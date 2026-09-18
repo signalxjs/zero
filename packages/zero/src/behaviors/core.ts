@@ -38,3 +38,6 @@ export { createCollection, defaultItemKey, defaultItemLabel, segmentBy } from '.
 export type { Collection, CollectionEntry, CollectionOptions, CollectionSegment } from './collection.js';
 export { createListboxCore, defaultFilter, stepKeys } from './listbox-core.js';
 export type { ListboxCore, ListboxOptions } from './listbox-core.js';
+
+export { triggerTokenAt, replaceToken } from './trigger-token.js';
+export type { TriggerToken } from './trigger-token.js';

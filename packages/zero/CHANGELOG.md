@@ -2,6 +2,49 @@
 
 ## [Unreleased]
 
+### Added — Combobox trigger mode: @mentions over a Textarea (#58)
+
+- **`Combobox.Root trigger`** (`'@'`, any string, or a RegExp matched
+  before the caret whose first group is the query) makes the
+  `Textarea.Textarea` composed inside the root the combobox's control. It
+  is the same scope, so the popup, items, groups and empty state reuse
+  every design system's combobox recipes as they are. The root owns:
+  - the token at the caret — the trigger at the start of the text or after
+    whitespace, then non-whitespace. It is the query: `model:inputValue`
+    holds it, and data-mode `items` filter by it;
+  - the popup — open while there is a token and something matches (or
+    `emptyText` is set), first option highlighted, anchored to the
+    textarea;
+  - the textarea's ARIA — `role="combobox"`, `aria-expanded` and
+    `aria-activedescendant` while the list is open; `aria-autocomplete`
+    and `aria-controls` all the time;
+  - the keys — ArrowUp/Down, Enter, Tab and Escape while the list is open,
+    handled before the app's `onKeydown` (which does not see them); a
+    shifted Enter is still a line break;
+  - the commit — the whole token replaced by trigger + label + space (a
+    space already following it is reused, never doubled) through
+    `insertText` (so it undoes), with a fallback that writes the
+    value and dispatches `input`. The caret lands after it, and
+    **`onInsert`** (`ComboboxInsertDetail`: `{ value, label, text }`)
+    fires. There is no selection: `model` is not written, and nothing posts
+    but the textarea;
+  - focus — a press on the list never takes it from the textarea.
+- **`triggerTokenAt` / `replaceToken`** (`@sigx/zero/behaviors/core`): the
+  token rules as pure functions.
+- **`useTextControlBinding`** (`@sigx/zero/behaviors`): the seam through
+  which an ancestor drives a text control. `Textarea.Textarea` claims it at
+  setup; the first control to ask wins.
+
+### Fixed — `onInput` saw the previous value after the first keystroke
+
+- `Input.Input` and `Textarea.Textarea` promised (#40) that the app's
+  `onInput` runs after the model has the new value. That only held until
+  the first re-render: sigx re-adds the model's own listener on every
+  render, and re-added it lands after zero's. From the second keystroke
+  on, the handler read the value from one keystroke earlier. Both now
+  write the model themselves before calling `onInput`, except under a
+  `lazy`/`debounce` modifier.
+
 ### Added — the attribute pass-through reaches the overlay and listbox parts (#74)
 
 - **Every app-written part of Dialog, Drawer, Popover, Tooltip, Menu,

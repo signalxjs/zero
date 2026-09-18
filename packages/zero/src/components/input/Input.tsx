@@ -235,8 +235,17 @@ const InputInput = component<InputInputProps>(({ props, expose, onMounted, onUnm
     // The app's onInput is attached at mount, not in the JSX: sigx appends
     // the model's own listener after every declared prop, so a JSX onInput
     // would run BEFORE the model took the value. Registered later, it runs
-    // after — the handler reads the new value from its model.
-    const onInput = (e: Event): void => props.onInput?.(e);
+    // after — but only until the first re-render: sigx re-adds the model's
+    // listener on every render (the handler is a new closure each time), and
+    // re-added it lands AFTER this one. So this writes the model itself
+    // first (the model's own write that follows is then a no-op), and the
+    // handler reads the new value from its model on every keystroke. Not
+    // under a timing modifier: `lazy` and `debounce` exist precisely to NOT
+    // write on each input.
+    const onInput = (e: Event): void => {
+        if (el && !ctx.modifiers() && ctx.state.value !== el.value) ctx.state.value = el.value;
+        props.onInput?.(e);
+    };
     let detachInput = (): void => {};
 
     // Reset restores the default into the model, then the element — see

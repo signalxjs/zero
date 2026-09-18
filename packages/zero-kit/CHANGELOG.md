@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — Combobox trigger mode (zero#58)
+
+- **`RESERVED_PROPS_BY_SCOPE.combobox` gains `trigger`**, Combobox.Root's
+  new trigger-mode prop.
+
 ### Changed — Textarea autosize (zero#88)
 
 - **`ManifestPart.autosize`** (and `manifest.schema.json`) carries

@@ -33,6 +33,7 @@ import { createControllableState, createInertState, type ControllableState } fro
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { createAutosize, type Autosize } from '../../behaviors/autosize.js';
+import { useTextControlBinding } from '../../behaviors/text-control-binding.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
@@ -230,13 +231,26 @@ export type TextareaTextareaProps =
 
 const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMounted, onUnmounted }) => {
     const ctx = useTextareaContext();
+    // A trigger-mode Combobox above drives this control (#58): its ARIA, its
+    // keys first, and every text or caret change.
+    const claim = useTextControlBinding()?.claim() ?? null;
     let el: HTMLTextAreaElement | null = null;
 
     // The app's onInput is attached at mount, not in the JSX: sigx appends
     // the model's own listener after every declared prop, so a JSX onInput
     // would run BEFORE the model took the value. Registered later, it runs
-    // after — the handler reads the new value from its model.
-    const onInput = (e: Event): void => props.onInput?.(e);
+    // after — but only until the first re-render: sigx re-adds the model's
+    // listener on every render (the handler is a new closure each time), and
+    // re-added it lands AFTER this one. So this writes the model itself
+    // first (the model's own write that follows is then a no-op), and the
+    // handler reads the new value from its model on every keystroke. Not
+    // under a timing modifier: `lazy` and `debounce` exist precisely to NOT
+    // write on each input.
+    const onInput = (e: Event): void => {
+        if (el && !ctx.modifiers() && ctx.state.value !== el.value) ctx.state.value = el.value;
+        claim?.sync(true);
+        props.onInput?.(e);
+    };
     let detachInput = (): void => {};
 
     let detachReset = (): void => {};
@@ -269,6 +283,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
         });
     });
     onUnmounted(() => {
+        claim?.release();
         detachReset();
         detachInput();
         autosize?.dispose();
@@ -314,10 +329,16 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
                 aria-invalid={ctx.invalid() ? 'true' : undefined}
                 aria-describedby={describedBy}
                 class={props.class}
-                ref={(node: HTMLTextAreaElement | null) => { el = node; }}
+                {...claim?.attrs()}
+                ref={(node: HTMLTextAreaElement | null) => { el = node; claim?.setElement(node); }}
                 onBeforeinput={props.onBeforeinput}
-                onKeydown={props.onKeydown}
-                onKeyup={props.onKeyup}
+                onKeydown={claim
+                    ? (e: KeyboardEvent) => { if (!claim.keydown(e)) props.onKeydown?.(e); }
+                    : props.onKeydown}
+                onKeyup={claim
+                    ? (e: KeyboardEvent) => { claim.sync(); props.onKeyup?.(e); }
+                    : props.onKeyup}
+                onClick={claim ? () => claim.sync() : undefined}
                 onCompositionstart={props.onCompositionstart}
                 onCompositionend={props.onCompositionend}
                 onFocus={(e: FocusEvent) => {
@@ -326,6 +347,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
                 }}
                 onBlur={(e: FocusEvent) => {
                     ctx.focusVisible.value = false;
+                    claim?.blur(e);
                     props.onBlur?.(e);
                 }}
             />

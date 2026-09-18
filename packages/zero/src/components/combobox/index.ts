@@ -8,6 +8,7 @@ export type {
     ComboboxTagLabelProps,
     ComboboxTagRemoveProps,
     ComboboxTagSlotProps,
+    ComboboxInsertDetail,
     ComboboxInputProps,
     ComboboxTriggerProps,
     ComboboxPopupProps,
