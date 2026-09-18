@@ -26,9 +26,11 @@ import { renderAsChild } from '../../contract/as-child.js';
 import type { WithAsChild, WithClass } from '../../contract/props.js';
 
 /** What an `asChild` slot spreads onto its element. */
-export interface VisuallyHiddenBag {
+// A type alias, not an interface: an alias is assignable to the
+// `Record<string, unknown>` `renderAsChild` takes.
+export type VisuallyHiddenBag = {
     'data-visually-hidden': '';
-}
+};
 
 export type VisuallyHiddenProps =
     & WithClass

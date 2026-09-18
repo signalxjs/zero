@@ -19,7 +19,7 @@ type SlotAccessor = ((scopedProps?: any) => any) | undefined;
  * `bag` is a part's `PartProps` everywhere but `VisuallyHidden`, which is no
  * part (no scope) and spreads its one attribute through the same seam.
  */
-export function renderAsChild(slot: SlotAccessor, bag: PartProps | object): unknown {
+export function renderAsChild(slot: SlotAccessor, bag: PartProps | Record<string, unknown>): unknown {
     const out = slot?.(bag);
     if (out == null) return null;
     const items = Array.isArray(out) ? out : [out];
