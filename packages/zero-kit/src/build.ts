@@ -306,6 +306,8 @@ function warnUninstallableApiImports(
     } catch {
         return; // No package.json to check against — say nothing rather than guess.
     }
+    // The design system's own package is imported relatively (#62), never by name.
+    owners.delete(pkg['name'] as string);
     const shipped = new Set([
         ...Object.keys((pkg['dependencies'] as Record<string, string> | undefined) ?? {}),
         ...Object.keys((pkg['peerDependencies'] as Record<string, string> | undefined) ?? {}),

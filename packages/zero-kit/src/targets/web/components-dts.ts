@@ -140,22 +140,45 @@ function componentApiOf(compiled: CompiledDesignSystem): Record<string, Compiled
 }
 
 /**
+ * How the emitted module reaches the design system's OWN package (#62).
+ *
+ * A design system that also publishes an ecosystem fragment — agentic's
+ * `@agentic/ui`, deriving from zero-daisyui and owning its `ai-*` scopes —
+ * owns scopes its own `./components` module re-exports. Importing them by
+ * package name is a package importing itself; `self` names that package and
+ * the RELATIVE specifiers, from the emitted file, of its root export (`js`)
+ * and of the declaration file TypeScript reads for it (`types`).
+ * `writeArtifacts` derives both from the package.json nearest its `outDir`.
+ */
+export interface ComponentsEmitOptions {
+    self?: { package: string; js: string; types: string };
+}
+
+/**
  * Where a scope's component is imported from. Zero's own components live on
  * subpath exports; an ecosystem scope's live at the root of the package its
  * manifest fragment named — the fragment convention is that the package's
- * root export carries `componentExportName(scope)`.
+ * root export carries `componentExportName(scope)` — and the design system's
+ * own package is reached relatively.
  */
-function moduleSpecifierFor(compiled: CompiledDesignSystem, scope: string): string {
-    return externalPackage(compiled, scope) ?? `@sigx/zero/${scope}`;
+function moduleSpecifierFor(
+    compiled: CompiledDesignSystem,
+    scope: string,
+    options: ComponentsEmitOptions,
+    kind: 'js' | 'types',
+): string {
+    const owner = externalPackage(compiled, scope);
+    if (owner === undefined) return `@sigx/zero/${scope}`;
+    return owner === options.self?.package ? options.self[kind] : owner;
 }
 
-export function compileComponentsDts(compiled: CompiledDesignSystem): string {
+export function compileComponentsDts(compiled: CompiledDesignSystem, options: ComponentsEmitOptions = {}): string {
     const componentApi = componentApiOf(compiled);
     const scopes = Object.keys(compiled.components);
 
     const imports = scopes.map((scope) => {
         const name = componentExportName(scope);
-        return `import type { ${name} as Z${name} } from '${moduleSpecifierFor(compiled, scope)}';`;
+        return `import type { ${name} as Z${name} } from '${moduleSpecifierFor(compiled, scope, options, 'types')}';`;
     });
 
     const blocks = scopes.map((scope) => {
@@ -196,7 +219,7 @@ export function compileComponentsDts(compiled: CompiledDesignSystem): string {
     ].join('\n');
 }
 
-export function compileComponentsJs(compiled: CompiledDesignSystem): string {
+export function compileComponentsJs(compiled: CompiledDesignSystem, options: ComponentsEmitOptions = {}): string {
     const componentApi = componentApiOf(compiled);
     const scopes = Object.keys(compiled.components);
     const adapted = scopes.filter((scope) => needsAdapt(componentApi[scope]!));
@@ -233,11 +256,11 @@ export function compileComponentsJs(compiled: CompiledDesignSystem): string {
         ...(adapted.length > 0 ? ["import { adapt } from '@sigx/zero/adapt';"] : []),
         ...adapted.map((scope) => {
             const name = componentExportName(scope);
-            return `import { ${name} as Z${name} } from '${moduleSpecifierFor(compiled, scope)}';`;
+            return `import { ${name} as Z${name} } from '${moduleSpecifierFor(compiled, scope, options, 'js')}';`;
         }),
         '',
         ...calls.flatMap((call) => [call, '']),
-        ...reexported.map((scope) => `export { ${componentExportName(scope)} } from '${moduleSpecifierFor(compiled, scope)}';`),
+        ...reexported.map((scope) => `export { ${componentExportName(scope)} } from '${moduleSpecifierFor(compiled, scope, options, 'js')}';`),
         '',
     ].join('\n');
 }

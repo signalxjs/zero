@@ -1150,7 +1150,13 @@ the architecture facts, briefly:
   because an api-declaring design system's generated `./components` module
   imports exactly that name from exactly that package. The convention broke
   once, unnoticed, because api mode and fragment mode had never been
-  composed — which is why the components-dts tests now assert it.
+  composed — which is why the components-dts tests now assert it. The one
+  owner NOT imported by name is the design system's own package (#62). A
+  system derived from a skin that also publishes a fragment (agentic's
+  `@agentic/ui`) would otherwise import itself. So `writeArtifacts`
+  (`selfComponentsImport`) reads the package.json nearest its `outDir` and
+  emits a path relative to the root export, and to its `types` condition for
+  the d.ts (`self-owned-api.test.ts`).
 - The merge enforces the shared vocabularies at the boundary and stamps
   provenance; the generated register artifact excludes merged scopes **by
   name** from its `ZeroScope` gate rather than dropping the gate

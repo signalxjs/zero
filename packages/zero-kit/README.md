@@ -638,7 +638,12 @@ excludes exactly them — by name — from its ZeroScope compile gate (the
 typo/version-skew guard keeps full strength for zero-origin scopes, and the
 emitted comment records who owns what), and under api mode the generated
 `./components` module imports an external scope from its owning package's root
-export instead of `@sigx/zero/<scope>`.
+export instead of `@sigx/zero/<scope>`. When that owner is the design system's
+**own** package, as with a system derived from a skin that also publishes a
+fragment, the import is relative instead of by name, so the package never
+imports itself. `writeArtifacts` resolves it from the package.json nearest the
+`outDir`: the root export for `components.js` and its `types` condition for
+`components.d.ts`.
 
 A component may also ship a **recipe pack** — `RecipeInput[]` written against
 the recommended token grammar (`var(--color-primary)`, the recommended sizes)

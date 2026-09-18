@@ -148,6 +148,17 @@
 
 ### Fixed
 
+- **A design system that owns a fragment imported itself from `./components`**
+  (#62). The generated module imported every ecosystem scope from its
+  owning package by name, so a system derived from a skin that also
+  publishes a fragment wrote `@agentic/ui` importing `@agentic/ui`. That
+  kept it from carrying its base's `api`. A scope owned by the design
+  system's own package is now imported relatively, from the root export
+  (and its `types` condition, for the d.ts) of the package.json nearest the
+  `outDir`. `compileComponentsDts`/`compileComponentsJs` take the route as
+  `{ self }` (`ComponentsEmitOptions`), `selfComponentsImport` derives it,
+  and the "not a dependency" warning no longer names the package itself.
+
 - **A dark-only design system shipped `color-scheme: light` on `:root`**
   (#61). With no `defaultDark`, `:root` hard-coded `light`, so native
   controls, scrollbars and `light-dark()` resolved light under a dark
