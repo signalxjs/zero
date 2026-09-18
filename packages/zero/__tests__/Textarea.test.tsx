@@ -216,6 +216,12 @@ describe('Textarea', () => {
             const other = document.body.appendChild(document.createElement('div'));
             render(<Textarea.Root minRows={4} maxRows={2}><Textarea.Textarea /></Textarea.Root>, other);
             expect(box(other).style.getPropertyValue('--textarea-max-rows')).toBe('4');
+            const third = document.body.appendChild(document.createElement('div'));
+            render(<Textarea.Root minRows={Number.NaN} maxRows={Infinity}><Textarea.Textarea /></Textarea.Root>, third);
+            expect(box(third).hasAttribute('data-autosize')).toBe(true);
+            expect(box(third).style.getPropertyValue('--textarea-min-rows')).toBe('1');
+            expect(box(third).style.getPropertyValue('--textarea-max-rows')).toBe('');
+            expect(box(third).getAttribute('rows')).toBe('1');
         });
 
         it('minRows alone is unbounded above', () => {

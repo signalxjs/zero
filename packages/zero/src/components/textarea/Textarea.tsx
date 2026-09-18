@@ -152,9 +152,10 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
         autosize: () => {
             if (props.minRows == null && props.maxRows == null) return undefined;
             // Whole rows, at least one — the `rows` attribute takes nothing
-            // else — and a max below the min is the min.
-            const min = Math.max(1, Math.floor(props.minRows ?? 1) || 1);
-            const max = props.maxRows == null ? undefined : Math.max(min, Math.floor(props.maxRows) || min);
+            // else — and a max below the min is the min. A non-finite max
+            // (`Infinity`) is no bound; a non-finite min is the default.
+            const min = Number.isFinite(props.minRows) ? Math.max(1, Math.floor(props.minRows!)) : 1;
+            const max = Number.isFinite(props.maxRows) ? Math.max(min, Math.floor(props.maxRows!)) : undefined;
             return { min, max };
         },
         controlId: fc.controlId,
