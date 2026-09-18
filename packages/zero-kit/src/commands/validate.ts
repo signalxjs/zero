@@ -122,7 +122,7 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
 
     const { ds, manifest, result } = await loadInputs(
         env,
-        commandEntry(env.cwd, opts.entry, opts.package),
+        commandEntry(env.cwd, opts.entry, opts.package, 'validated'),
         opts.manifest,
         opts.extraManifest ?? [],
         ecosystemOptionsFrom(env, opts),

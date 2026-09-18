@@ -148,9 +148,12 @@ export function packageDesignSystemEntry(cwd: string, name: string, what = 'vali
     return resolve(dir, subpath);
 }
 
-/** The entry a command loads: `--package`'s export when given, else the path. */
-export function commandEntry(cwd: string, entry: string, pkg?: string): string {
-    return pkg ? packageDesignSystemEntry(cwd, pkg) : entry;
+/**
+ * The entry a command loads: `--package`'s export when given, else the path.
+ * `what` names the command's verb for the error (`validated`, `audited`).
+ */
+export function commandEntry(cwd: string, entry: string, pkg: string | undefined, what: string): string {
+    return pkg ? packageDesignSystemEntry(cwd, pkg, what) : entry;
 }
 
 export async function loadDesignSystem(cwd: string, entry: string): Promise<DesignSystemInput> {

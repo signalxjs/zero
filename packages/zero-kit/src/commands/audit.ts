@@ -44,7 +44,7 @@ export interface AuditCommandOptions {
 export async function runAudit(env: CommandEnv, opts: AuditCommandOptions): Promise<void> {
     const inputs = await loadInputs(
         env,
-        commandEntry(env.cwd, opts.entry, opts.package),
+        commandEntry(env.cwd, opts.entry, opts.package, 'audited'),
         opts.manifest,
         opts.extraManifest ?? [],
         ecosystemOptionsFrom(env, opts),

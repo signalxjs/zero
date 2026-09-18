@@ -203,14 +203,24 @@ describe('--package: an installed design system by name (#37)', () => {
         const dir = installed({ './design-system': { types: './dist/design-system.d.ts', import: './dist/design-system.js' } });
         const entry = join(dir, 'node_modules', '@acme', 'skin', 'dist', 'design-system.js');
         expect(packageDesignSystemEntry(dir, '@acme/skin')).toBe(entry);
-        expect(commandEntry(dir, './dist/design-system.js', '@acme/skin')).toBe(entry);
-        expect(commandEntry(dir, './dist/design-system.js')).toBe('./dist/design-system.js');
+        expect(commandEntry(dir, './dist/design-system.js', '@acme/skin', 'validated')).toBe(entry);
+        expect(commandEntry(dir, './dist/design-system.js', undefined, 'validated')).toBe('./dist/design-system.js');
     });
 
     it('names a package that is not installed, and one that exports no ./design-system', () => {
         const dir = installed({ '.': './dist/index.js' });
         expect(() => packageDesignSystemEntry(dir, '@acme/missing')).toThrow(/@acme\/missing is not installed/);
         expect(() => packageDesignSystemEntry(dir, '@acme/skin')).toThrow(/exports no "\.\/design-system", so it cannot be validated/);
+        // The error speaks the running command's verb.
+        expect(() => commandEntry(dir, './x.js', '@acme/skin', 'audited')).toThrow(/so it cannot be audited/);
+    });
+
+    it('refuses an export target that leaves the package, as Node would', () => {
+        // Resolved by hand, so Node's ERR_INVALID_PACKAGE_TARGET is enforced here.
+        for (const target of ['../evil.js', './dist/../../evil.js', 'dist/design-system.js', './node_modules/x/ds.js']) {
+            const dir = installed({ './design-system': { import: target } });
+            expect(() => packageDesignSystemEntry(dir, '@acme/skin'), target).toThrow(/is not a path inside the package/);
+        }
     });
 });
 
