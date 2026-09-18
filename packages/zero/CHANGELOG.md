@@ -57,7 +57,7 @@
     per key);
   - `scrollToIndex(i, align)` and `scrollToEnd()`.
 
-  Behaviour:
+  Behavior:
   - Rows are measured in the task they render in, then observed from the
     next frame. Observing them inside the ResizeObserver's own callback is
     what WebKit reports as a "loop completed with undelivered
