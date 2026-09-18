@@ -189,6 +189,14 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
         outsidePress: false,
     });
 
+    // An inline drawer open on first render is plain markup: emit `open` so
+    // the server paints it open instead of flashing open at hydration (#38).
+    // Captured once, so the render never patches it again — show()/close()
+    // stay its only writers after mount (a render writing `el.open = false`
+    // would close the element without a close event). Modal stays a
+    // client call: the top layer cannot be expressed in markup.
+    const openInMarkup = !drawer.modal() && drawer.state.value ? true : undefined;
+
     onMounted(() => {
         effect(() => {
             const open = drawer.state.value;
@@ -209,6 +217,7 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
             data-scope={SCOPE}
             data-part="panel"
             data-state={stateAttr(drawer.state.value, 'open', 'closed')}
+            open={openInMarkup}
             data-placement={drawer.placement()}
             aria-labelledby={drawer.titlePresent() ? drawer.ids.title : undefined}
             aria-label={drawer.titlePresent() ? undefined : drawer.label()}

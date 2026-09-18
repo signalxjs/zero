@@ -12,8 +12,9 @@
  * </Dialog.Root>
  * ```
  *
- * The top layer replaces any Portal: the server renders the popup closed in
- * place, and `showModal()` gives focus trapping, Escape, inert background
+ * The top layer replaces any Portal: the server renders the popup in place
+ * (closed, unless it is non-modal and open — then `open` is plain markup),
+ * and `showModal()` gives focus trapping, Escape, inert background
  * and focus restore natively. State flows one way — the model opens/closes
  * the element in an effect, and native `close` events sync back.
  */
@@ -191,6 +192,14 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
         outsidePress: false,
     });
 
+    // A non-modal dialog open on first render is plain markup: emit `open`
+    // so the server paints it open instead of flashing open at hydration
+    // (#38). Captured once, so the render never patches it again —
+    // show()/close() stay its only writers after mount (a render writing
+    // `el.open = false` would close the element without a close event).
+    // Modal stays a client call: the top layer cannot be expressed in markup.
+    const openInMarkup = !dialog.modal() && dialog.state.value ? true : undefined;
+
     onMounted(() => {
         effect(() => {
             const open = dialog.state.value;
@@ -211,6 +220,7 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
             data-scope={SCOPE}
             data-part="popup"
             data-state={stateAttr(dialog.state.value, 'open', 'closed')}
+            open={openInMarkup}
             role={dialog.role() === 'alertdialog' ? 'alertdialog' : undefined}
             aria-labelledby={dialog.titlePresent() ? dialog.ids.title : undefined}
             aria-describedby={dialog.descriptionPresent() ? dialog.ids.description : undefined}

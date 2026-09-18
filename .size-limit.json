@@ -576,7 +576,7 @@
     {
         "name": "@sigx/zero/drawer",
         "path": "packages/zero/dist/components/drawer/index.js",
-        "limit": "3.5 kB",
+        "limit": "3.55 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
