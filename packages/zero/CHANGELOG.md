@@ -187,7 +187,8 @@
   Dialog's popup rule. A recipe's `display` would otherwise keep a closed
   panel painted.
 - Agentic's other asks are handled elsewhere. The hidden title is
-  `Drawer.Title visuallyHidden` (#54). The enter and exit transitions were
+  `Drawer.Title visuallyHidden` (#54), which the playground now
+  demonstrates and the drawer e2e checks. The enter and exit transitions were
   already recipe-side on the motion tokens in all six skins, as fades; a
   directional slide and the responsive inline/modal mode are follow-ups
   (see #51).

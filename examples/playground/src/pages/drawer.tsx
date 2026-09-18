@@ -56,6 +56,19 @@ const DrawerDemos = component(() => () => (
                 <Drawer.Close>Close full-screen drawer</Drawer.Close>
             </Drawer.Panel>
         </Drawer.Root>
+        <p>
+            A shell's drawer whose visible heading is a brand row: the title
+            stays the panel's accessible name, out of sight
+            (<code>Drawer.Title visuallyHidden</code>).
+        </p>
+        <Drawer.Root>
+            <Drawer.Trigger>Open app menu</Drawer.Trigger>
+            <Drawer.Panel measure="xs">
+                <Drawer.Title visuallyHidden>App menu</Drawer.Title>
+                <p><strong>Acme</strong> workspace</p>
+                <Drawer.Close>Close app menu</Drawer.Close>
+            </Drawer.Panel>
+        </Drawer.Root>
         <p>Inline (non-modal) — furniture, not a popup:</p>
         <Drawer.Root modal={false} label="Filters">
             <Drawer.Trigger>Open filters</Drawer.Trigger>

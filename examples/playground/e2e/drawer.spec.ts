@@ -28,7 +28,8 @@ test.beforeEach(async ({ page }) => {
  * `Drawer.Root` renders no element, so there is no demo root to hang parts
  * off — each demo is pinned by the text on its own trigger, and the panel
  * resolves through the `aria-controls` id that trigger publishes (`demo.ts`).
- * The page holds three drawers: start, end, and the inline filters panel.
+ * The page holds the start and end drawers, the measure and hidden-title
+ * demos, and the inline filters panel.
  */
 const startTrigger = (page: Page) => page.getByRole('button', { name: 'Open drawer', exact: true });
 const endTrigger = (page: Page) => page.getByRole('button', { name: 'Open end drawer', exact: true });
@@ -153,6 +154,19 @@ test('the panel is labelled by its Title, or by the label prop when no Title ren
     await expect(start).toHaveAttribute('aria-labelledby', titleId!);
     // Title wins over the label prop; both never render together.
     await expect(start).not.toHaveAttribute('aria-label', /.*/);
+});
+
+test('a visually hidden title still names the panel, and paints nothing (#51, #54)', async ({ page }) => {
+    const trigger = page.getByRole('button', { name: 'Open app menu', exact: true });
+    await trigger.click();
+    const panel = await controlledPopup(page, trigger, 'the app menu trigger');
+    await expect(panel).toHaveAttribute('data-state', 'open');
+    await expect(page.getByRole('dialog', { name: 'App menu', exact: true })).toBeVisible();
+    const title = panel.locator('[data-scope="drawer"][data-part="title"]');
+    await expect(title).toHaveAttribute('data-visually-hidden', '');
+    const box = await title.evaluate((el) => el.getBoundingClientRect().toJSON() as DOMRect);
+    expect(box.width).toBeLessThanOrEqual(1);
+    expect(box.height).toBeLessThanOrEqual(1);
 });
 
 const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
