@@ -482,6 +482,84 @@ describe('extensible color roles', () => {
         }
     });
 
+    describe('declared contrast pairs over custom tokens (#65)', () => {
+        // A dim caption ink and a status tone the role pairs never see.
+        const withInks = (inks: Record<string, string>, contrast: NonNullable<typeof brandTokens.contrast>) => {
+            const tokens = structuredClone(brandTokens);
+            tokens.custom = {
+                ...tokens.custom,
+                'ink-dim': { syntax: '<color>' },
+                '--ink-tone': { syntax: '<color>' },
+            };
+            tokens.themes.day!.custom = { ...tokens.themes.day!.custom, ...inks };
+            tokens.contrast = contrast;
+            return validateDesignSystem({ name: 'x', tokens, recipes: [] }, manifest);
+        };
+        const pairErrors = (result: ReturnType<typeof validateDesignSystem>) =>
+            result.errors.filter((e) => e.where.startsWith('tokens.contrast') || /contrast pair|declared in tokens\.contrast/.test(e.message));
+
+        it('passes a pair that clears its floor, in any spelling of either end', () => {
+            const result = withInks(
+                { 'ink-dim': 'oklch(45% 0 0)', '--ink-tone': 'var(--color-brand)' },
+                [
+                    { fg: 'ink-dim', bg: 'base-200', min: 4.5 },
+                    { fg: '--ink-dim', bg: 'color-base-100' },
+                    { fg: 'ink-tone', bg: '--color-base-100', min: 3 },
+                ],
+            );
+            expect(pairErrors(result).map((e) => e.message)).toEqual([]);
+        });
+
+        it('errors below the declared floor, in the role pairs\' format, with a fix solved at that floor', () => {
+            const result = withInks(
+                { 'ink-dim': 'oklch(80% 0 0)', '--ink-tone': 'oklch(70% 0.1 150)' },
+                [{ fg: 'ink-dim', bg: 'base-200', min: 4.5, description: 'captions' }],
+            );
+            const [issue, ...rest] = pairErrors(result);
+            expect(rest).toEqual([]);
+            expect(issue).toMatchObject({ level: 'error', where: 'themes.day', rule: 'contrast-floor' });
+            expect(issue!.message).toMatch(/^contrast base-200 vs ink-dim is \d\.\d\d:1 \(< 4\.5:1 declared in tokens\.contrast — captions\) — suggest ink-dim: oklch\(/);
+            expect(issue!.suggest?.token).toBe('ink-dim');
+            // The suggestion is a real fix: pasted in, the pair passes.
+            const fixed = withInks(
+                { 'ink-dim': issue!.suggest!.value, '--ink-tone': 'oklch(70% 0.1 150)' },
+                [{ fg: 'ink-dim', bg: 'base-200', min: 4.5 }],
+            );
+            expect(pairErrors(fixed)).toEqual([]);
+        });
+
+        it('measures what a derived value paints: color-mix over a derived -soft, and a translucent ink over its surface', () => {
+            // 30% black over base-100 is a light grey — well under 4.5:1,
+            // though the opaque black alone would clear 20:1.
+            const translucent = withInks(
+                { 'ink-dim': 'rgb(0 0 0 / 0.3)', '--ink-tone': 'color-mix(in oklab, var(--color-brand-soft) 50%, black)' },
+                [{ fg: 'ink-dim', bg: 'base-100' }, { fg: 'ink-tone', bg: 'base-100', min: 3 }],
+            );
+            const errors = pairErrors(translucent);
+            expect(errors).toHaveLength(1);
+            expect(errors[0]!.message).toMatch(/vs ink-dim .* translucent, composited over base-100/);
+        });
+
+        it('refuses an end that names nothing, a ratio that is not one, and a value it cannot measure', () => {
+            const result = withInks(
+                { 'ink-dim': 'var(--nowhere)', '--ink-tone': 'oklch(40% 0 0)' },
+                [
+                    { fg: 'ink-missing', bg: 'base-200' },
+                    { fg: 'ink-tone', bg: 'base-100', min: 30 },
+                    { fg: 'ink-dim', bg: 'base-100' },
+                    { fg: 'ink-tone', bg: 'ink-dim' },
+                ],
+            );
+            const messages = pairErrors(result).map((e) => `${e.where}: ${e.message}`);
+            expect(messages).toEqual(expect.arrayContaining([
+                expect.stringMatching(/^tokens\.contrast\[0\]: fg "ink-missing" is not a declared custom token or colour token/),
+                expect.stringMatching(/^tokens\.contrast\[1\]: min 30 is not a contrast ratio/),
+                expect.stringMatching(/^themes\.day: contrast pair ink-dim on base-100 cannot be measured: fg "ink-dim" — "var\(--nowhere\)"/),
+                expect.stringMatching(/^themes\.day: contrast pair ink-tone on ink-dim cannot be measured: bg "ink-dim"/),
+            ]));
+        });
+    });
+
     it('matches custom-token spellings with and without the -- prefix', () => {
         const mixed = defineTokens({
             roles: { brand: {} },

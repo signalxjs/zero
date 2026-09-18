@@ -18,6 +18,7 @@
  * build harness) stays behind the Node-only barrel and `/build`.
  */
 export type {
+    ContrastPairDecl,
     CustomTokenDecl,
     RolesDecl,
     ScopeVocabulary,

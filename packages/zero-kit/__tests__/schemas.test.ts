@@ -436,6 +436,15 @@ describe('tokens.schema.json', () => {
         expect(validateTokens(bad)).toBe(false);
     });
 
+    it('accepts declared contrast pairs, and rejects one without an end or with a stray key', () => {
+        const pair = { fg: 'ink-dim', bg: 'base-200', min: 4.5, description: 'captions' };
+        expectValid(validateTokens, asJson({ ...basicDS.tokens, contrast: [pair] }), 'contrast pairs');
+        const { bg: _bg, ...noSurface } = pair;
+        expect(validateTokens(asJson({ ...basicDS.tokens, contrast: [noSurface] }))).toBe(false);
+        expect(validateTokens(asJson({ ...basicDS.tokens, contrast: [{ ...pair, level: 'AA' }] }))).toBe(false);
+        expect(validateTokens(asJson({ ...basicDS.tokens, contrast: [{ ...pair, min: 0.5 }] }))).toBe(false);
+    });
+
     it('rejects a role name that is not a bare kebab-case identifier', () => {
         expect(validateTokens(asJson({
             ...basicDS.tokens,

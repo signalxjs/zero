@@ -946,6 +946,10 @@ Content is checked, not just structure. These are errors:
   primary-content: oklch(…)`), and the same fix rides the issue as
   `suggest: { token, value }` for tooling; 3–4.5:1 is the warning form of
   the same rule.
+- a `tokens.contrast` pair below its declared `min` (default 4.5) in any
+  theme — how a `custom` colour token (a dim-text ink, a status tone) gets
+  measured at all; declare one for every custom ink a recipe puts text on.
+  Same message and `suggest`, solved at the pair's `min`.
 - a declaration key that is not a CSS property but is within two edits of
   one — `paddding`, `borderRadus` — with the property you meant. The browser
   drops such a declaration silently, so nothing else would ever tell you.
