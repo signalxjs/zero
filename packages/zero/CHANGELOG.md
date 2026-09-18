@@ -25,6 +25,7 @@
   `aria-labelledby`/`aria-describedby` joins a popup's title and
   description, a group's label, a Field control's description and a tooltip
   trigger's popup.
+
 ### Added — Textarea autosize (#88)
 
 - **`Textarea.Root` takes `minRows` / `maxRows`.** Either one turns
