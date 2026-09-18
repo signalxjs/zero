@@ -85,6 +85,16 @@ describe('a derived design system that owns a fragment', () => {
         expect(selfComponentsImport(compiled, dir)).toEqual({ package: PKG, js: './lib/main.js', types: './lib/main.js' });
     });
 
+    it('takes the types field when the exports map has no types condition', () => {
+        const dir = fixturePackage({ exports: { '.': './dist/index.js' }, types: './types/index.d.ts' });
+        const compiled = compileDesignSystem(designSystem, mergeManifests(manifest, fragment));
+        expect(selfComponentsImport(compiled, join(dir, 'dist', 'ds'))).toEqual({
+            package: PKG,
+            js: '../index.js',
+            types: '../../types/index.js',
+        });
+    });
+
     it('refuses a package with no root export to import from', () => {
         const dir = fixturePackage({ exports: { './css': './dist/index.css' } });
         const compiled = compileDesignSystem(designSystem, mergeManifests(manifest, fragment));

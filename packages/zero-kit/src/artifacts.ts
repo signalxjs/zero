@@ -162,9 +162,11 @@ function typesCondition(value: unknown): string | undefined {
  * `@agentic/ui`) owns scopes its `./components` module re-exports. By
  * package name that is the package importing itself, so the specifiers are
  * made relative from `outDir` to the files its own package.json names: the
- * root export (`exports["."]`, else `module`/`main`) for the JS, and its
- * `types` condition (else `types`/`typings`, else the JS path) for the
- * declarations — respelled `.d.ts` → `.js`, which TypeScript maps back.
+ * root export (`exports["."]`, else `module`/`main` when there is no exports
+ * map) for the JS, and for the declarations the root export's `types`
+ * condition, else the top-level `types`/`typings` field (with or without an
+ * exports map), else the JS path — respelled `.d.ts` → `.js`, which
+ * TypeScript maps back.
  */
 export function selfComponentsImport(
     compiled: Pick<CompiledDesignSystem, 'name' | 'externalScopes'>,
@@ -196,7 +198,10 @@ export function selfComponentsImport(
             + ' components.js, but that package.json exports no root entry to import them from',
         );
     }
-    const types = typesCondition(rootEntry) ?? (exportsMap === undefined ? field('types') ?? field('typings') : undefined);
+    // The explicit `types` field backs up an exports map with no `types`
+    // condition too: it is the author's own statement of where the
+    // declarations are, and a path that exists beats guessing the JS twin.
+    const types = typesCondition(rootEntry) ?? field('types') ?? field('typings');
     const typesJs = types?.replace(/\.d\.([mc]?)ts$/, '.$1js');
     const outAbs = resolve(outDir);
     return {
