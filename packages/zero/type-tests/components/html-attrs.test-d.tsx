@@ -6,7 +6,7 @@
  * property of that exact name, so `aria-label={{}}` or `data-mod-x` cannot
  * be caught here — those answer to `htmlAttrs` at runtime.)
  */
-import { Alert, Badge, Button, Card, Checkbox, Divider, Field, Progress, Spinner, Stack, Switch, Table, Tabs } from '@sigx/zero';
+import { Alert, Badge, Button, Card, Checkbox, Dialog, Divider, Field, Menu, Progress, Select, Spinner, Stack, Switch, Table, Tabs } from '@sigx/zero';
 
 // ── valid ──
 export const labelled = <Button.Root aria-label="Close" aria-busy={true} aria-describedby="hint">×</Button.Root>;
@@ -36,6 +36,8 @@ export const e5 = <Button.Root title={1}>x</Button.Root>;
 export const e6 = <Table.Cell colSpan="3">x</Table.Cell>;
 export const tabs = <Tabs.List aria-label="Settings" data-testid="tabs"><Tabs.Tab value="a" title="A">A</Tabs.Tab></Tabs.List>;
 export const check = <Checkbox.Root id="terms" title="Terms" aria-label="Accept" data-testid="terms" />;
+export const dialog = <Dialog.Popup aria-describedby="extra" data-testid="confirm" title="Confirm">x</Dialog.Popup>;
+export const trigger = <Select.Trigger aria-label="Fruit" data-testid="fruit">x</Select.Trigger>;
 
 // ── refused: the name is the part's own (#74) ──
 // @ts-expect-error — a divider IS a separator
@@ -54,3 +56,9 @@ export const r6 = <Tabs.Tab value="a" id="mine">A</Tabs.Tab>;
 export const r7 = <Switch.Root role="checkbox" />;
 // @ts-expect-error — the control is labelled by the Label's own id
 export const r8 = <Field.Label id="mine">Email</Field.Label>;
+// @ts-expect-error — the Root's `role` prop picks dialog or alertdialog
+export const r9 = <Dialog.Popup role="alertdialog">x</Dialog.Popup>;
+// @ts-expect-error — the item's id is the active descendant
+export const r10 = <Select.Item value="a" id="mine">A</Select.Item>;
+// @ts-expect-error — a menu item is a `menuitem`
+export const r11 = <Menu.Item value="a" role="option">A</Menu.Item>;

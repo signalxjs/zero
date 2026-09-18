@@ -66,8 +66,8 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { menuAnatomy } from './anatomy.js';
 
 const SCOPE = menuAnatomy.scope;
@@ -198,6 +198,8 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
 export type MenuTriggerProps =
     & WithDisabled
     & WithClass
+    /** Not `id`: the popup is labelled by the Trigger's own. */
+    & Omit<WithHtmlAttrs, 'id'>
     & WithVariantAxes<'menu'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
@@ -219,6 +221,7 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onUnmou
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         id: menu.ids.trigger,
         'data-scope': SCOPE,
         'data-part': 'trigger',
@@ -274,6 +277,7 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onUnmou
 export type MenuContextTriggerProps =
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -291,6 +295,7 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, s
     const focus = signal({ visible: false });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'context-trigger',
         'data-state': stateAttr(menu.state.value, 'open', 'closed'),
@@ -376,7 +381,11 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, s
 
 // ── Popup ──
 
-export type MenuPopupProps = WithClass & Define.Slot<'default'>;
+export type MenuPopupProps =
+    & WithClass
+    /** Not `id`/`role`: the Trigger points at the popup, which is the `menu`. */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
+    & Define.Slot<'default'>;
 
 const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
     const menu = useMenuContext();
@@ -398,25 +407,33 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
         });
     });
 
-    return () => (
-        <div
-            id={menu.ids.popup}
-            data-scope={SCOPE}
-            data-part="popup"
-            data-state={stateAttr(menu.state.value, 'open', 'closed')}
-            popover="auto"
-            role="menu"
-            aria-labelledby={menu.triggerPresent() ? menu.ids.trigger : undefined}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { el = node; menu.setPopup(node); }}
-            onToggle={(e: Event) => {
-                const open = (e as ToggleEvent).newState === 'open';
-                if (menu.state.value !== open) menu.state.value = open;
-            }}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                id={menu.ids.popup}
+                data-scope={SCOPE}
+                data-part="popup"
+                data-state={stateAttr(menu.state.value, 'open', 'closed')}
+                popover="auto"
+                role="menu"
+                // An app's own references join the Trigger's.
+                aria-labelledby={[
+                    menu.triggerPresent() ? menu.ids.trigger : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; menu.setPopup(node); }}
+                onToggle={(e: Event) => {
+                    const open = (e as ToggleEvent).newState === 'open';
+                    if (menu.state.value !== open) menu.state.value = open;
+                }}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Menu.Popup' });
 
 // ── Item core ──
@@ -504,6 +521,8 @@ export type MenuItemProps =
     & Define.Prop<'textValue', string, false>
     & WithDisabled
     & WithClass
+    /** Not `role`: the item's role is its menu semantics. */
+    & Omit<WithHtmlAttrs, 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -516,6 +535,7 @@ const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         ...core.handlers(),
         'data-scope': SCOPE,
         'data-part': 'item',
@@ -545,6 +565,8 @@ export type MenuCheckboxItemProps =
     & Define.Prop<'textValue', string, false>
     & WithDisabled
     & WithClass
+    /** Not `role`: the item's role is its menu semantics. */
+    & Omit<WithHtmlAttrs, 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -570,6 +592,7 @@ const MenuCheckboxItem = component<MenuCheckboxItemProps>(({ props, slots, emit,
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         ...core.handlers(),
         'data-scope': SCOPE,
         'data-part': 'checkbox-item',
@@ -614,6 +637,8 @@ export type MenuRadioGroupProps =
     & Define.Prop<'defaultValue', string, false>
     & Define.Event<'valueChange', string>
     & WithClass
+    /** Not `role`: it renders the `group` part (see Menu.Group). */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 /**
@@ -628,7 +653,7 @@ const MenuRadioGroup = component<MenuRadioGroupProps>(({ props, slots, emit }) =
         (v) => emit('valueChange', v),
     );
     defineProvide(useMenuRadioGroupContext, () => ({ state }));
-    return () => <MenuGroup class={props.class}>{slots.default?.()}</MenuGroup>;
+    return () => <MenuGroup {...htmlAttrs(props)} class={props.class}>{slots.default?.()}</MenuGroup>;
 }, { name: 'Menu.RadioGroup' });
 
 export type MenuRadioItemProps =
@@ -638,6 +663,8 @@ export type MenuRadioItemProps =
     & Define.Prop<'textValue', string, false>
     & WithDisabled
     & WithClass
+    /** Not `role`: the item's role is its menu semantics. */
+    & Omit<WithHtmlAttrs, 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -656,6 +683,7 @@ const MenuRadioItem = component<MenuRadioItemProps>(({ props, slots, signal, onU
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         ...core.handlers(),
         'data-scope': SCOPE,
         'data-part': 'radio-item',
@@ -895,6 +923,8 @@ export type MenuSubTriggerProps =
     & Define.Prop<'textValue', string, false>
     & WithDisabled
     & WithClass
+    /** Not `id`/`role`: the sub-popup is labelled by it, and it is a `menuitem`. */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -922,6 +952,7 @@ const MenuSubTrigger = component<MenuSubTriggerProps>(({ props, slots, signal, o
     onUnmounted(() => unregister());
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         id: sub.ids.trigger,
         'data-scope': SCOPE,
         'data-part': 'sub-trigger',
@@ -984,7 +1015,11 @@ const MenuSubTrigger = component<MenuSubTriggerProps>(({ props, slots, signal, o
 
 // ── SubPopup ──
 
-export type MenuSubPopupProps = WithClass & Define.Slot<'default'>;
+export type MenuSubPopupProps =
+    & WithClass
+    /** Not `id`/`role`: the SubTrigger points at the popup, which is a `menu`. */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
+    & Define.Slot<'default'>;
 
 const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) => {
     const sub = useMenuSubContext();
@@ -1009,34 +1044,38 @@ const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) 
         });
     });
 
-    return () => (
-        <div
-            id={sub.ids.popup}
-            data-scope={SCOPE}
-            data-part="sub-popup"
-            data-state={stateAttr(sub.state.value, 'open', 'closed')}
-            popover="auto"
-            role="menu"
-            aria-labelledby={sub.ids.trigger}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { el = node; sub.setSubPopup(node); }}
-            onToggle={(e: Event) => {
-                const open = (e as ToggleEvent).newState === 'open';
-                if (sub.state.value === open) return;
-                // A native close (Escape) with focus still inside would
-                // strand it on a hidden element; hand it back to the
-                // sub-trigger. A light-dismiss click has already moved focus
-                // to the clicked target, so `contains` is false and nothing
-                // is stolen.
-                if (!open && el?.contains(document.activeElement)) sub.subTrigger()?.focus();
-                sub.state.value = open;
-            }}
-            onPointerenter={() => sub.cancelTimers()}
-            onPointerleave={() => sub.scheduleClose()}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                id={sub.ids.popup}
+                data-scope={SCOPE}
+                data-part="sub-popup"
+                data-state={stateAttr(sub.state.value, 'open', 'closed')}
+                popover="auto"
+                role="menu"
+                aria-labelledby={attrs['aria-labelledby'] ? `${sub.ids.trigger} ${attrs['aria-labelledby']}` : sub.ids.trigger}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; sub.setSubPopup(node); }}
+                onToggle={(e: Event) => {
+                    const open = (e as ToggleEvent).newState === 'open';
+                    if (sub.state.value === open) return;
+                    // A native close (Escape) with focus still inside would
+                    // strand it on a hidden element; hand it back to the
+                    // sub-trigger. A light-dismiss click has already moved focus
+                    // to the clicked target, so `contains` is false and nothing
+                    // is stolen.
+                    if (!open && el?.contains(document.activeElement)) sub.subTrigger()?.focus();
+                    sub.state.value = open;
+                }}
+                onPointerenter={() => sub.cancelTimers()}
+                onPointerleave={() => sub.scheduleClose()}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Menu.SubPopup' });
 
 // ── Group / GroupLabel / Separator ──
@@ -1057,7 +1096,11 @@ function makeInertGroup(): MenuGroupContext {
 
 export const useMenuGroupContext = defineInjectable<MenuGroupContext>(() => makeInertGroup());
 
-export type MenuGroupProps = WithClass & Define.Slot<'default'>;
+export type MenuGroupProps =
+    & WithClass
+    /** Not `role`: the part is the `group`. An app `aria-labelledby` joins the GroupLabel's. */
+    & Omit<WithHtmlAttrs, 'role'>
+    & Define.Slot<'default'>;
 
 const MenuGroup = component<MenuGroupProps>(({ props, slots, signal }) => {
     const baseId = createId('zx-menu-group');
@@ -1070,20 +1113,28 @@ const MenuGroup = component<MenuGroupProps>(({ props, slots, signal }) => {
         setLabelPresent: (p) => { present.label = p; },
     };
     defineProvide(useMenuGroupContext, () => ctx);
-    return () => (
-        <div
-            data-scope={SCOPE}
-            data-part="group"
-            role="group"
-            aria-labelledby={ctx.labelPresent() ? ctx.labelId : undefined}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                data-scope={SCOPE}
+                data-part="group"
+                role="group"
+                aria-labelledby={[
+                    ctx.labelPresent() ? ctx.labelId : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
+                class={props.class}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Menu.Group' });
 
-export type MenuGroupLabelProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the group is labelled by the GroupLabel's own. */
+export type MenuGroupLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const MenuGroupLabel = component<MenuGroupLabelProps>(({ props, slots, onUnmounted }) => {
     const group = useMenuGroupContext();
@@ -1098,17 +1149,18 @@ const MenuGroupLabel = component<MenuGroupLabelProps>(({ props, slots, onUnmount
     // aria-labelledby to compute a name from it — role="presentation" was
     // self-defeating.
     return () => (
-        <div id={group.labelId} data-scope={SCOPE} data-part="group-label" class={props.class}>
+        <div {...htmlAttrs(props)} id={group.labelId} data-scope={SCOPE} data-part="group-label" class={props.class}>
             {slots.default?.()}
         </div>
     );
 }, { name: 'Menu.GroupLabel' });
 
-export type MenuSeparatorProps = WithClass;
+/** Not `role`: the part is a `separator`. */
+export type MenuSeparatorProps = WithClass & Omit<WithHtmlAttrs, 'role'>;
 
 const MenuSeparator = component<MenuSeparatorProps>(({ props }) => {
     return () => (
-        <div data-scope={SCOPE} data-part="separator" role="separator" class={props.class} />
+        <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="separator" role="separator" class={props.class} />
     );
 }, { name: 'Menu.Separator' });
 

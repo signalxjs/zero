@@ -63,12 +63,14 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
+import { htmlAttrs } from '../../contract/props.js';
 import type {
     PartProps,
     WithAsChild,
     WithClass,
     WithDisabled,
     WithFormControl,
+    WithHtmlAttrs,
     WithVariantAxes,
 } from '../../contract/props.js';
 import { selectAnatomy } from './anatomy.js';
@@ -156,6 +158,7 @@ export type SelectRootProps<T = unknown, M = unknown> =
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & WithVariantAxes<'select'>
     & WithClass
+    & WithHtmlAttrs
     /** Custom content for a generated option (data mode). */
     & Define.Slot<'item', { item: T }>
     & Define.Slot<'default'>;
@@ -385,6 +388,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...fc.flags()}
@@ -471,6 +475,12 @@ export type SelectTriggerProps =
      */
     & Define.Prop<'label', string, false>
     & WithClass
+    /**
+     * Not `id`/`role`: the Field's label and the popup point at the
+     * trigger, which is the `combobox`. An app `aria-label` stands in for
+     * `label`; an app `aria-describedby` joins the Field's.
+     */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -484,43 +494,50 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
         isDisabled: () => select.disabled(),
     });
 
-    const bag = (): PartProps => ({
-        id: select.triggerId(),
-        'data-scope': SCOPE,
-        'data-part': 'trigger',
-        'data-state': stateAttr(select.open.value, 'open', 'closed'),
-        'data-disabled': dataAttr(select.disabled()),
-        'data-invalid': dataAttr(select.invalid()),
-        'data-placeholder': dataAttr(select.listbox.selectedKeys().length === 0),
-        'data-focus-visible': dataAttr(focus.visible),
-        role: 'combobox',
-        'aria-label': props.label,
-        'aria-haspopup': 'listbox',
-        'aria-expanded': select.open.value ? 'true' : 'false',
-        'aria-controls': select.ids.popup,
-        'aria-invalid': select.invalid() ? 'true' : undefined,
-        'aria-required': select.required() ? 'true' : undefined,
-        'aria-describedby': select.describedBy(),
-        'aria-activedescendant': select.listbox.activeDescendant(select.open.value),
-        onClick: () => {
-            if (!select.disabled()) select.open.value = !select.open.value;
-        },
-        onKeydown: (e: KeyboardEvent) => {
-            press.onKeydown(e);
-            select.triggerKeydown(e);
-        },
-        onKeyup: press.onKeyup,
-        onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: (e: FocusEvent) => {
-            press.onBlur(e);
-            focus.visible = false;
-        },
-        onPointerdown: press.onPointerdown,
-        onPointerup: press.onPointerup,
-        onPointercancel: press.onPointercancel,
-        onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; select.setTrigger(node); },
-    });
+    const bag = (): PartProps => {
+        const attrs = htmlAttrs(props);
+        return {
+            ...attrs,
+            id: select.triggerId(),
+            'data-scope': SCOPE,
+            'data-part': 'trigger',
+            'data-state': stateAttr(select.open.value, 'open', 'closed'),
+            'data-disabled': dataAttr(select.disabled()),
+            'data-invalid': dataAttr(select.invalid()),
+            'data-placeholder': dataAttr(select.listbox.selectedKeys().length === 0),
+            'data-focus-visible': dataAttr(focus.visible),
+            role: 'combobox',
+            'aria-label': props.label ?? attrs['aria-label'],
+            'aria-haspopup': 'listbox',
+            'aria-expanded': select.open.value ? 'true' : 'false',
+            'aria-controls': select.ids.popup,
+            'aria-invalid': select.invalid() ? 'true' : undefined,
+            'aria-required': select.required() ? 'true' : undefined,
+            'aria-describedby': [
+                select.describedBy(),
+                attrs['aria-describedby'],
+            ].filter(Boolean).join(' ') || undefined,
+            'aria-activedescendant': select.listbox.activeDescendant(select.open.value),
+            onClick: () => {
+                if (!select.disabled()) select.open.value = !select.open.value;
+            },
+            onKeydown: (e: KeyboardEvent) => {
+                press.onKeydown(e);
+                select.triggerKeydown(e);
+            },
+            onKeyup: press.onKeyup,
+            onFocus: () => { focus.visible = isFocusVisible(el); },
+            onBlur: (e: FocusEvent) => {
+                press.onBlur(e);
+                focus.visible = false;
+            },
+            onPointerdown: press.onPointerdown,
+            onPointerup: press.onPointerup,
+            onPointercancel: press.onPointercancel,
+            onPointerleave: press.onPointerleave,
+            ref: (node: HTMLElement | null) => { el = node; select.setTrigger(node); },
+        };
+    };
 
     return () => {
         const b = bag();
@@ -540,7 +557,7 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
  * each key, or the key itself for a hand-written `Select.Item` (no data
  * stands behind it, and its key is its value).
  */
-export type SelectValueProps = WithClass & Define.Slot<'default', { value: unknown; items: unknown[] }>;
+export type SelectValueProps = WithClass & WithHtmlAttrs & Define.Slot<'default', { value: unknown; items: unknown[] }>;
 
 /** The selected labels (joined under `multiple`), or the placeholder. */
 const SelectValue = component<SelectValueProps>(({ props, slots }) => {
@@ -550,6 +567,7 @@ const SelectValue = component<SelectValueProps>(({ props, slots }) => {
         const isPlaceholder = keys.length === 0;
         return (
             <span
+                {...htmlAttrs(props)}
                 data-scope={SCOPE}
                 data-part="value"
                 data-placeholder={dataAttr(isPlaceholder)}
@@ -564,12 +582,13 @@ const SelectValue = component<SelectValueProps>(({ props, slots }) => {
 
 // ── Indicator ──
 
-export type SelectIndicatorProps = WithClass & Define.Slot<'default'>;
+export type SelectIndicatorProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const SelectIndicator = component<SelectIndicatorProps>(({ props, slots }) => {
     const select = useSelectContext();
     return () => (
         <span
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="indicator"
             data-state={stateAttr(select.open.value, 'open', 'closed')}
@@ -583,7 +602,11 @@ const SelectIndicator = component<SelectIndicatorProps>(({ props, slots }) => {
 
 // ── Popup ──
 
-export type SelectPopupProps = WithClass & Define.Slot<'default'>;
+export type SelectPopupProps =
+    & WithClass
+    /** Not `id`/`role`: the trigger points at the popup, which is the `listbox`. */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
+    & Define.Slot<'default'>;
 
 const SelectPopup = component<SelectPopupProps>(({ props, slots, onMounted }) => {
     const select = useSelectContext();
@@ -591,26 +614,30 @@ const SelectPopup = component<SelectPopupProps>(({ props, slots, onMounted }) =>
 
     onMounted(() => { syncPopover(() => el, () => select.open.value); });
 
-    return () => (
-        <div
-            id={select.ids.popup}
-            data-scope={SCOPE}
-            data-part="popup"
-            data-state={stateAttr(select.open.value, 'open', 'closed')}
-            popover="auto"
-            role="listbox"
-            aria-multiselectable={select.multiple() ? 'true' : undefined}
-            aria-labelledby={select.triggerId()}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { el = node; select.setPopup(node); }}
-            onToggle={(e: Event) => {
-                const open = (e as ToggleEvent).newState === 'open';
-                if (select.open.value !== open) select.open.value = open;
-            }}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                id={select.ids.popup}
+                data-scope={SCOPE}
+                data-part="popup"
+                data-state={stateAttr(select.open.value, 'open', 'closed')}
+                popover="auto"
+                role="listbox"
+                aria-multiselectable={select.multiple() ? 'true' : undefined}
+                aria-labelledby={attrs['aria-labelledby'] ? `${select.triggerId()} ${attrs['aria-labelledby']}` : select.triggerId()}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; select.setPopup(node); }}
+                onToggle={(e: Event) => {
+                    const open = (e as ToggleEvent).newState === 'open';
+                    if (select.open.value !== open) select.open.value = open;
+                }}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Select.Popup' });
 
 // ── Item ──
@@ -620,6 +647,8 @@ export type SelectItemProps =
     & Define.Prop<'textValue', string, false>
     & WithDisabled
     & WithClass
+    /** Not `id`/`role`: the trigger's active descendant is the item's id, an `option`. */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -648,6 +677,7 @@ const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) =>
     onUnmounted(() => item.unregister());
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         ...item.bag(),
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,
@@ -680,7 +710,11 @@ export const useSelectGroupContext = defineInjectable<GroupPresence>(
     () => createGroupPresence('zx-select-group-inert-label', { label: false }),
 );
 
-export type SelectGroupProps = WithClass & Define.Slot<'default'>;
+export type SelectGroupProps =
+    & WithClass
+    /** Not `role`: the part is the `group`. An app `aria-labelledby` joins the GroupLabel's. */
+    & Omit<WithHtmlAttrs, 'role'>
+    & Define.Slot<'default'>;
 
 /**
  * The optgroup equivalent — `role="group"` inside the listbox, named by its
@@ -691,20 +725,28 @@ const SelectGroup = component<SelectGroupProps>(({ props, slots, signal }) => {
     const baseId = createId('zx-select-group');
     const ctx = createGroupPresence(`${baseId}-label`, signal({ label: false }));
     defineProvide(useSelectGroupContext, () => ctx);
-    return () => (
-        <div
-            data-scope={SCOPE}
-            data-part="group"
-            role="group"
-            aria-labelledby={ctx.labelPresent() ? ctx.labelId : undefined}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                data-scope={SCOPE}
+                data-part="group"
+                role="group"
+                aria-labelledby={[
+                    ctx.labelPresent() ? ctx.labelId : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
+                class={props.class}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Select.Group' });
 
-export type SelectGroupLabelProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the group is labelled by the GroupLabel's own. */
+export type SelectGroupLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const SelectGroupLabel = component<SelectGroupLabelProps>(({ props, slots, onUnmounted }) => {
     const group = useSelectGroupContext();
@@ -712,7 +754,7 @@ const SelectGroupLabel = component<SelectGroupLabelProps>(({ props, slots, onUnm
     // No role: the label must stay in the accessibility tree for the group's
     // aria-labelledby to compute a name from it.
     return () => (
-        <div id={group.labelId} data-scope={SCOPE} data-part="group-label" class={props.class}>
+        <div {...htmlAttrs(props)} id={group.labelId} data-scope={SCOPE} data-part="group-label" class={props.class}>
             {slots.default?.()}
         </div>
     );

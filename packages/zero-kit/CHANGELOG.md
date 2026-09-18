@@ -61,6 +61,12 @@
   participation (#53). A vendor-named api can no longer claim those names as
   axis props on toggle-group.
 
+- **`RESERVED_PROPS_BY_SCOPE` follows the roll-out's last part** (zero#74):
+  `select` and `combobox` gain `id`, `title` and `role`, `toast` gains `id`
+  and `title` (its root refuses `role`). The fragment-rooted scopes
+  (dialog, drawer, popover, tooltip, menu) are unchanged — their roots
+  render no element.
+
 - **`RESERVED_PROPS_BY_SCOPE` follows the roll-out's second part** (zero#74):
   the disclosure, navigation and form-control scopes gain `id`, `title` and
   `role` — less `role` on `steps`, `carousel`, `toggle`, `switch`,

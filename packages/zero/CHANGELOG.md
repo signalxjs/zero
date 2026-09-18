@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### Added — the attribute pass-through reaches the overlay and listbox parts (#74)
+
+- **Every app-written part of Dialog, Drawer, Popover, Tooltip, Menu,
+  Select, Toast and Combobox takes `WithHtmlAttrs`**, which completes the
+  roll-out: every part an app writes now forwards `aria-*`, the app's
+  `data-*`, `id`, `title` and `role`. The fragment roots (`Dialog.Root`,
+  `Drawer.Root`, `Popover.Root`, `Tooltip.Root`, `Menu.Root`, `Menu.Sub`)
+  render no element and take none; the Trigger and the popup carry their
+  own.
+- **Refused by the type:** `id` and `role` on every popup (the trigger
+  points at it; `Dialog.Popup`'s role is the Root's `role` prop;
+  `Drawer.Panel`, a native `<dialog>`, refuses only `id`), the Select and
+  Combobox items (the active descendant, an `option`), the Select trigger
+  and the Combobox input (a `combobox`); `role` on menu items, groups, the separator, `Toast.Root` and the
+  viewport; `id` on Titles, Descriptions, group labels, `Menu.Trigger`/
+  `SubTrigger` and the Combobox trigger.
+- **Defaults give way, wired references join:** an app `aria-label`
+  replaces `Toast.Close`'s "Close", the viewport's "Notifications",
+  `Combobox.Trigger`'s "Show options" and a tag remover's name, and names a
+  `Select.Trigger` or a title-less `Drawer.Panel`; an app
+  `aria-labelledby`/`aria-describedby` joins a popup's title and
+  description, a group's label, a Field control's description and a tooltip
+  trigger's popup.
 ### Added — Textarea autosize (#88)
 
 - **`Textarea.Root` takes `minRows` / `maxRows`.** Either one turns
