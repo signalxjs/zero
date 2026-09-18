@@ -801,42 +801,43 @@ export type ComboboxInputProps =
 const ComboboxInput = component<ComboboxInputProps>(({ props }) => {
     const combobox = useComboboxContext();
     let el: HTMLElement | null = null;
-    const describedBy = (): string | undefined =>
-        [combobox.describedBy(), htmlAttrs(props)['aria-describedby']].filter(Boolean).join(' ') || undefined;
 
-    return () => (
-        <input
-            {...htmlAttrs(props)}
-            id={combobox.inputId()}
-            type="text"
-            data-scope={SCOPE}
-            data-part="input"
-            data-state={stateAttr(combobox.open.value, 'open', 'closed')}
-            data-disabled={dataAttr(combobox.disabled())}
-            data-invalid={dataAttr(combobox.invalid())}
-            data-required={dataAttr(combobox.required())}
-            data-readonly={dataAttr(combobox.readonly())}
-            data-focus-visible={dataAttr(combobox.inputFocusVisible.value)}
-            role="combobox"
-            aria-expanded={combobox.open.value ? 'true' : 'false'}
-            aria-controls={combobox.ids.popup}
-            aria-autocomplete="list"
-            aria-activedescendant={combobox.listbox.activeDescendant(combobox.open.value)}
-            aria-invalid={combobox.invalid() ? 'true' : undefined}
-            aria-describedby={describedBy()}
-            placeholder={props.placeholder ?? combobox.placeholder()}
-            value={combobox.inputValue.value}
-            disabled={combobox.disabled()}
-            readOnly={combobox.readonly()}
-            required={combobox.required()}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { el = node; combobox.setInput(node); }}
-            onInput={(e: Event) => { combobox.onInput((e.target as HTMLInputElement).value); }}
-            onKeydown={(e: KeyboardEvent) => { combobox.inputKeydown(e); }}
-            onFocus={() => { combobox.inputFocusVisible.value = isFocusVisible(el); }}
-            onBlur={() => { combobox.inputFocusVisible.value = false; }}
-        />
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <input
+                {...attrs}
+                id={combobox.inputId()}
+                type="text"
+                data-scope={SCOPE}
+                data-part="input"
+                data-state={stateAttr(combobox.open.value, 'open', 'closed')}
+                data-disabled={dataAttr(combobox.disabled())}
+                data-invalid={dataAttr(combobox.invalid())}
+                data-required={dataAttr(combobox.required())}
+                data-readonly={dataAttr(combobox.readonly())}
+                data-focus-visible={dataAttr(combobox.inputFocusVisible.value)}
+                role="combobox"
+                aria-expanded={combobox.open.value ? 'true' : 'false'}
+                aria-controls={combobox.ids.popup}
+                aria-autocomplete="list"
+                aria-activedescendant={combobox.listbox.activeDescendant(combobox.open.value)}
+                aria-invalid={combobox.invalid() ? 'true' : undefined}
+                aria-describedby={[combobox.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
+                placeholder={props.placeholder ?? combobox.placeholder()}
+                value={combobox.inputValue.value}
+                disabled={combobox.disabled()}
+                readOnly={combobox.readonly()}
+                required={combobox.required()}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; combobox.setInput(node); }}
+                onInput={(e: Event) => { combobox.onInput((e.target as HTMLInputElement).value); }}
+                onKeydown={(e: KeyboardEvent) => { combobox.inputKeydown(e); }}
+                onFocus={() => { combobox.inputFocusVisible.value = isFocusVisible(el); }}
+                onBlur={() => { combobox.inputFocusVisible.value = false; }}
+            />
+        );
+    };
 }, { name: 'Combobox.Input' });
 
 // ── Trigger ──
