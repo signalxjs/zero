@@ -185,9 +185,13 @@
   in every skin, so `full` never overflows by its own padding; a default
   panel's outer width is the stated width rather than that width plus
   padding and border.
-- **A closed `Drawer.Panel` is `display: none` in `css/base.css`**, beside
-  Dialog's popup rule. A recipe's `display` would otherwise keep a closed
-  panel painted.
+- **A closed `Drawer.Panel` is `display: none` in `css/base.css`, and so is
+  a closed `Dialog.Popup`, now in `@layer zero.structure`.** Dialog's rule
+  used to sit in `zero.recipes`, where a skin's equally specific rule loaded
+  later would still win, and the drawer had none. A recipe's `display` on
+  the part would otherwise keep a closed one painted. Exit transitions are
+  unaffected: `display … allow-discrete` transitions the computed value
+  whichever layer set it.
 - Agentic's other asks are handled elsewhere. The hidden title is
   `Drawer.Title visuallyHidden` (#54), which the playground now
   demonstrates and the drawer e2e checks. The enter and exit transitions were
