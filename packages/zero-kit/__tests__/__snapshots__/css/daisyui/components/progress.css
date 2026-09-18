@@ -1,0 +1,117 @@
+@layer zero.recipes {
+    [data-scope="progress"][data-part="root"] {
+        --progress-accent: color-mix(in oklab, var(--color-primary) 90%, var(--color-primary-content));
+        --progress-track-size: calc(var(--size-selector) * 2.5);
+    }
+
+    [data-scope="progress"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        width: 100%;
+    }
+
+    [data-scope="progress"][data-part="label"] {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+    }
+
+    [data-scope="progress"][data-part="track"] {
+        width: 100%;
+        height: var(--progress-track-size);
+        background: var(--color-base-300);
+        border-radius: var(--radius-box);
+        overflow: hidden;
+    }
+
+    [data-scope="progress"][data-part="range"] {
+        height: 100%;
+        background: var(--progress-accent);
+        border-radius: var(--radius-box);
+        transition: width var(--duration-slow) var(--ease-standard);
+    }
+
+    [data-scope="progress"][data-part="range"][data-state="complete"] {
+        background: color-mix(in oklab, var(--color-success) 55%, var(--color-success-content));
+    }
+
+    [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
+        width: 40%;
+        animation: zero-daisy-indeterminate 1.2s ease-in-out infinite;
+    }
+
+    [data-scope="progress"][data-part="value-text"] {
+        font-size: var(--text-xs);
+        opacity: 0.6;
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="primary"] {
+        --progress-accent: color-mix(in oklab, var(--color-primary) 90%, var(--color-primary-content));
+    }
+
+    [data-scope="progress"][data-part="root"]:not([data-color]) {
+        --progress-accent: color-mix(in oklab, var(--color-primary) 90%, var(--color-primary-content));
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="secondary"] {
+        --progress-accent: color-mix(in oklab, var(--color-secondary) 90%, var(--color-secondary-content));
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="accent"] {
+        --progress-accent: color-mix(in oklab, var(--color-accent) 90%, var(--color-accent-content));
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="neutral"] {
+        --progress-accent: color-mix(in oklab, var(--color-neutral) 90%, var(--color-neutral-content));
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="info"] {
+        --progress-accent: color-mix(in oklab, var(--color-info) 90%, var(--color-info-content));
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="success"] {
+        --progress-accent: color-mix(in oklab, var(--color-success) 90%, var(--color-success-content));
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="warning"] {
+        --progress-accent: color-mix(in oklab, var(--color-warning) 90%, var(--color-warning-content));
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="error"] {
+        --progress-accent: color-mix(in oklab, var(--color-error) 90%, var(--color-error-content));
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="xs"] {
+        --progress-track-size: var(--size-selector);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="sm"] {
+        --progress-track-size: calc(var(--size-selector) * 1.5);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="md"] {
+        --progress-track-size: calc(var(--size-selector) * 2.5);
+    }
+
+    [data-scope="progress"][data-part="root"]:not([data-size]) {
+        --progress-track-size: calc(var(--size-selector) * 2.5);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="lg"] {
+        --progress-track-size: calc(var(--size-selector) * 3.5);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="xl"] {
+        --progress-track-size: calc(var(--size-selector) * 4.5);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
+            animation: none;
+            width: 100%;
+        }
+    }
+}
+@keyframes zero-daisy-indeterminate {
+    from { margin-inline-start: -40%; } to { margin-inline-start: 100%; }
+}

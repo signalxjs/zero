@@ -1,0 +1,13 @@
+{
+    "extends": "../tsconfig.base.json",
+    "compilerOptions": {
+        // The whole point of this project: no lib.dom. Everything the
+        // portable surface (class grammar, variant pass-through, vocabularies,
+        // anatomies, behaviors/core, theme/registry, the anatomy-oracle rules)
+        // reaches must compile against pure ES2022 — a Lynx runtime has no
+        // DOM types to offer. skipLibCheck (inherited) keeps DEPENDENCY d.ts
+        // out of scope; every file listed here is checked as source.
+        "lib": ["ES2022"]
+    },
+    "include": ["./**/*.ts"]
+}

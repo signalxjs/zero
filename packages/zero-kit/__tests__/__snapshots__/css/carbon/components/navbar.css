@@ -1,0 +1,54 @@
+@layer zero.recipes {
+    [data-scope="navbar"][data-part="root"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        min-block-size: 3rem;
+        padding-inline: var(--space-md);
+        background: var(--color-base-200);
+        color: var(--color-base-content);
+        border-block-end: var(--border) solid var(--carbon-line);
+        border-radius: 0;
+    }
+
+    [data-scope="navbar"][data-part="start"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        flex: 1 1 0%;
+        justify-content: flex-start;
+    }
+
+    [data-scope="navbar"][data-part="center"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        justify-content: center;
+    }
+
+    [data-scope="navbar"][data-part="end"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        flex: 1 1 0%;
+        justify-content: flex-end;
+    }
+
+    [data-scope="navbar"][data-part="root"][data-size="sm"] {
+        min-block-size: 2.5rem;
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-size="lg"] {
+        min-block-size: 3.5rem;
+    }
+
+    [data-scope="navbar"][data-part="root"][data-size="xl"] {
+        min-block-size: 4rem;
+    }
+
+    [data-scope="navbar"][data-part="root"][data-size="2xl"] {
+        min-block-size: 5rem;
+        font-size: var(--text-lg);
+    }
+}

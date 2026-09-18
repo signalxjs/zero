@@ -1,0 +1,209 @@
+/**
+ * @sigx/zero base stylesheet — structural, design-system-neutral.
+ *
+ * Declares the cascade layer order (app CSS stays unlayered and therefore
+ * always wins) and provides structural fallback values so zero primitives
+ * are usable before any design system loads. Color roles are DS-declared,
+ * so their typed `@property` registrations live in each design system's
+ * compiled tokens.css, not here.
+ *
+ * NO visual design lives here — that is the design system's job.
+ */
+/*
+ * Layer order. `zero.fallback` exists so the values below are genuinely
+ * last-resort: a design system writes into `zero.tokens`, and layer order
+ * beats selector specificity, so its defaults win no matter how they are
+ * spelled or in what order the stylesheets are imported.
+ *
+ * Sharing one layer did not work. These fallbacks are on `:root` — a
+ * pseudo-class, specificity (0,1,0) — while a compiled design system emits
+ * `:where(:root)` at (0,0,0) to sit below its own `[data-theme]` blocks. Same
+ * layer means specificity decides, so the fallback beat the design system's
+ * default and `--radius-box: 0.75rem` silently rendered as `0.5rem` until a
+ * theme was explicitly selected.
+ *
+ * `zero.structure` is the mirror image, at the other end: declarations no
+ * design system may overrule, because they are how the runtime's behavior
+ * reaches the screen at all. It stays a layer (not `!important`) so the
+ * promise above holds — a consumer's unlayered app CSS still wins.
+ */
+@layer zero.fallback, zero.tokens, zero.recipes, zero.structure;
+
+@layer zero.fallback {
+    :root {
+        /* Structural fallbacks — a DS's tokens.css overrides all of these. */
+        --radius-selector: 0.25rem;
+        --radius-field: 0.25rem;
+        --radius-box: 0.5rem;
+        --size-selector: 0.25rem;
+        --size-field: 0.25rem;
+        --text-xs: 0.75rem;
+        --text-sm: 0.875rem;
+        --text-md: 1rem;
+        --text-lg: 1.125rem;
+        --text-xl: 1.25rem;
+        --text-2xl: 1.5rem;
+        --text-3xl: 1.875rem;
+
+        /* Fixed-size aliases: the same ramp, immune to platform font
+           scaling. On the web that scaling doesn't exist, so these are pure
+           indirection; targets with a runtime font scale materialize them as
+           literals. Recipes use them for control chrome that must not grow
+           with in-app text scaling. A DS's tokens.css re-emits aliases for
+           every key it declares. */
+        --text-fixed-xs: var(--text-xs);
+        --text-fixed-sm: var(--text-sm);
+        --text-fixed-md: var(--text-md);
+        --text-fixed-lg: var(--text-lg);
+        --text-fixed-xl: var(--text-xl);
+        --text-fixed-2xl: var(--text-2xl);
+        --text-fixed-3xl: var(--text-3xl);
+
+        --border: 1px;
+        --disabled-opacity: 0.4;
+
+        /* The ink a print fallback draws with.
+         *
+         * Paper is not theme-aware. `print-color-adjust: economy` — the
+         * browser default — drops background paint, so a mark drawn as a
+         * background has to come back as a glyph, and that glyph needs an ink
+         * that is dark whatever the page's `color-scheme` is. Every
+         * theme-carried candidate fails on one side or the other:
+         * `--color-base-content` and `CanvasText` are both white under a dark
+         * theme (white on white paper, 1.00:1), and an on-accent ink is white
+         * under a light one over a fill that did not print — the same 1.00:1
+         * from the other direction (#233).
+         *
+         * So it is stated absolutely, and it is the one colour in this file
+         * that is not a design decision: it is a fact about the medium. A
+         * design system that wants a softer printed ink overrides it like any
+         * other token. */
+        --print-ink: black;
+
+        /* Families. `--font-*` is families only — sizes are `--text-*`. */
+        --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        --font-serif: ui-serif, Georgia, Cambria, serif;
+        --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+        --font-display: var(--font-sans);
+
+        --weight-normal: 400;
+        --weight-medium: 500;
+        --weight-semibold: 600;
+        --weight-bold: 700;
+
+        --leading-none: 1;
+        --leading-tight: 1.25;
+        --leading-normal: 1.5;
+        --leading-relaxed: 1.75;
+
+        --tracking-tight: -0.01em;
+        --tracking-normal: 0em;
+        --tracking-wide: 0.05em;
+
+        --space-2xs: 0.125rem;
+        --space-xs: 0.25rem;
+        --space-sm: 0.375rem;
+        --space-md: 0.5rem;
+        --space-lg: 0.75rem;
+        --space-xl: 1rem;
+        --space-2xl: 1.5rem;
+
+        /* Page-scale widths a Container is bounded by. Last-resort values
+           only: a design system that cares how wide its pages run declares
+           its own, and most should — this is identity, not geometry.
+           `prose` is in `ch` so the reading measure tracks the type. */
+        --measure-xs: 20rem;
+        --measure-sm: 30rem;
+        --measure-md: 48rem;
+        --measure-lg: 64rem;
+        --measure-xl: 80rem;
+        --measure-prose: 65ch;
+
+        /* Achromatic so they read on any hue; a design system that cares
+           about shadow tint overrides them, and dark themes usually want
+           heavier ones via `systemDark.shadow`. */
+        --shadow-xs: 0 1px 2px oklch(0% 0 0 / 0.06);
+        --shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.1);
+        --shadow-md: 0 4px 12px -2px oklch(0% 0 0 / 0.12);
+        --shadow-lg: 0 12px 32px -8px oklch(0% 0 0 / 0.18);
+        --shadow-xl: 0 24px 56px -12px oklch(0% 0 0 / 0.24);
+
+        --duration-instant: 0ms;
+        --duration-fast: 120ms;
+        --duration-normal: 200ms;
+        --duration-slow: 320ms;
+        --ease-linear: linear;
+        --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+        --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+    }
+
+    /* Reduced motion, for the recommended durations only — a design system's
+       own duration keys are neutralized by its compiled tokens.css, which is
+       the only place that knows their names.
+
+       0.01ms rather than 0ms: a zero duration suppresses transitionend /
+       animationend, which presence/exit coordination relies on. */
+    @media (prefers-reduced-motion: reduce) {
+        :root, [data-theme] {
+            --duration-instant: 0.01ms;
+            --duration-fast: 0.01ms;
+            --duration-normal: 0.01ms;
+            --duration-slow: 0.01ms;
+        }
+    }
+}
+
+@layer zero.recipes {
+    /* Structural necessities only. */
+
+    /* Collapsible/Accordion: the summary is the whole trigger surface;
+       hide the default disclosure marker so the DS owns the affordance. */
+    [data-scope="collapsible"][data-part="trigger"] {
+        list-style: none;
+        cursor: pointer;
+    }
+    [data-scope="collapsible"][data-part="trigger"]::-webkit-details-marker {
+        display: none;
+    }
+
+    /* Native dialog: closed popups are display:none by the UA already;
+       keep the top-layer margin reset structural. */
+    [data-scope="dialog"][data-part="popup"]:not([open]) {
+        display: none;
+    }
+
+    [data-disabled] {
+        cursor: not-allowed;
+    }
+}
+
+/*
+ * Structure the design system cannot overrule.
+ *
+ * `hidden` is the only thing hiding a collapsed `tree-view.branch-content`, an
+ * inactive `tabs.panel` or a swapped-out `avatar.image` — the runtime sets the
+ * attribute and leans on the UA sheet's `[hidden] { display: none }`. That is
+ * the weakest declaration in the document: ANY author-origin `display` on the
+ * same element beats it, and a recipe's `display: flex` on a flex container is
+ * the most ordinary line a design system writes. All six shipped one on
+ * branch-content, so collapsing a branch hid nothing anywhere (#209).
+ *
+ * A later layer, not higher specificity: every design-system declaration
+ * compiles into `@layer zero.recipes`, so ordering settles it once and for all
+ * — no arithmetic against a compound-variant selector that can reach (0,8,0),
+ * and no future design system can out-specify it. Not `!important` either:
+ * that would invert the promise at the top of this file that a consumer's
+ * unlayered app CSS always wins.
+ *
+ * `hidden="until-found"` is deliberately exempt. The UA gives it
+ * `content-visibility: hidden` instead of `display: none` precisely so
+ * find-in-page can reveal it, and forcing `display: none` would destroy that
+ * — this guard defeating an intended UA behavior is the very bug it fixes.
+ * Zero emits no `until-found` today; the exclusion is what keeps that door
+ * open. (Case-insensitive: `hidden` is an enumerated attribute.)
+ */
+@layer zero.structure {
+    [data-scope][data-part][hidden]:not([hidden="until-found" i]) {
+        display: none;
+    }
+}

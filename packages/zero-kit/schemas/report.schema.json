@@ -1,0 +1,563 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://signalxjs.github.io/zero/schemas/report.schema.json",
+    "title": "SignalX Zero design-system coverage report",
+    "description": "What a design system COVERS, as opposed to what is wrong with it — emitted as dist/report.json by the zero build and by `sigx zero:validate --report-json` (docs/architecture.md, \"The authoring surface\"). Components styled against the anatomy manifest, the axes each component wires and which are typed `never` by its register artifact, declared-but-unwired values per axis and modifier, per-part state and flag coverage including deliberate `skipStates`, the axis-agnostic divergence partition and the minimum contrast margin per theme. Machine-readable first: the conformance matrix generates its already-proven-in-repo rows from this file, so they cannot go stale by hand.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["$schema", "reportVersion", "name", "score", "coverage", "vocabulary", "unwired", "unclaimed", "components", "divergence", "themes"],
+    "properties": {
+        "$schema": {
+            "description": "Self-reference to this schema — the emitter always writes exactly this URL.",
+            "const": "https://signalxjs.github.io/zero/schemas/report.schema.json"
+        },
+        "reportVersion": {
+            "description": "Shape version of this document. Bumped when a consumer would have to change to keep reading it. 2 added the required `score` section.",
+            "const": 2
+        },
+        "name": {
+            "description": "The design system's name, as declared on the design-system input.",
+            "type": "string",
+            "minLength": 1
+        },
+        "score": { "$ref": "#/$defs/score" },
+        "lynx": {
+            "description": "The lynx target's capability findings — present only when the build ran with targets: ['web', 'lynx']. What the lynx emitters translated (semantically equivalent projection) or dropped (not expressible on the target; each entry says how to patch it), so \"what did the lynx copy lose\" has one answer in the same file that answers \"what did this design system ship\".",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["translated", "dropped"],
+            "properties": {
+                "translated": { "$ref": "#/$defs/lynxFindings" },
+                "dropped": { "$ref": "#/$defs/lynxFindings" },
+                "webOnly": {
+                    "description": "Ecosystem scopes excluded from the lynx target because a discovered pack's recipe references a web-runtime mechanism the lynx emitter refuses. A first-party recipe in the same position fails the build; a discovered pack's is dropped instead, because the design system's author neither wrote it nor can fix it.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["scope", "package", "reason"],
+                        "properties": {
+                            "scope": { "type": "string" },
+                            "package": { "type": "string" },
+                            "reason": { "type": "string" }
+                        }
+                    }
+                }
+            }
+        },
+        "coverage": {
+            "description": "Components styled, against the anatomy manifest validated to.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["componentsStyled", "componentsTotal", "unstyled"],
+            "properties": {
+                "componentsStyled": { "type": "integer", "minimum": 0 },
+                "componentsTotal": { "type": "integer", "minimum": 0 },
+                "unstyled": {
+                    "description": "Manifest scopes with no recipe — they render unstyled. Sorted.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" }
+                }
+            }
+        },
+        "vocabulary": {
+            "description": "What the design system DECLARES, before any question of what its recipes wire.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["roles", "sizes", "variants", "axes", "modifiers", "declaredOut", "scopes"],
+            "properties": {
+                "roles": { "$ref": "#/$defs/tokenList" },
+                "sizes": { "$ref": "#/$defs/valueList" },
+                "variants": { "$ref": "#/$defs/valueList" },
+                "axes": { "$ref": "#/$defs/valueListsByAxis" },
+                "modifiers": { "$ref": "#/$defs/tokenList" },
+                "declaredOut": {
+                    "description": "Axes declared OUT of existence rather than merely left unwired — `roles: {}` retires colour, `sizes: []` retires the size ramp, `variants: []` retires the variant axis. Only an explicitly empty declaration lands here: omitting `tokens.variants` means \"declared nothing\", not \"no variant axis\".",
+                    "type": "array",
+                    "items": { "enum": ["color", "size", "variant"] },
+                    "uniqueItems": true
+                },
+                "scopes": {
+                    "description": "Per-scope restrictions of the vocabularies above (docs/architecture.md, \"Declared vocabulary\") — scope → the part of each axis vocabulary that scope offers. `{}` when the design system declares none, which is what makes the lists above the whole vocabulary rather than a union of per-scope ones. An empty list under a scope is the claim \"this scope has no such axis\".",
+                    "type": "object",
+                    "propertyNames": { "$ref": "#/$defs/kebabToken" },
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "colors": { "$ref": "#/$defs/tokenList" },
+                            "sizes": { "$ref": "#/$defs/valueList" },
+                            "variants": { "$ref": "#/$defs/valueList" },
+                            "axes": { "$ref": "#/$defs/valueListsByAxis" },
+                            "modifiers": { "$ref": "#/$defs/tokenList" }
+                        }
+                    }
+                }
+            }
+        },
+        "unwired": {
+            "description": "Declared, but wired by no recipe anywhere — the attribute renders and matches nothing. The validator warns for variant, custom axes and modifiers; colour and size have no such check, so for those this is the only place the gap is stated.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["color", "size", "variant", "axes", "modifiers"],
+            "properties": {
+                "color": { "$ref": "#/$defs/tokenList" },
+                "size": { "$ref": "#/$defs/valueList" },
+                "variant": { "$ref": "#/$defs/valueList" },
+                "axes": { "$ref": "#/$defs/valueListsByAxis" },
+                "modifiers": { "$ref": "#/$defs/tokenList" }
+            }
+        },
+        "unclaimed": {
+            "description": "Declared, but in NO scope's vocabulary — the union carries a value that belongs to nobody (docs/architecture.md, \"Declared vocabulary\"). `unwired` is about what the recipes paint; this is about what the declaration promises. Always empty while any styled scope is unrestricted for that axis: an unrestricted scope's vocabulary IS the union, so nothing can be unclaimed.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["color", "size", "variant", "axes", "modifiers"],
+            "properties": {
+                "color": { "$ref": "#/$defs/tokenList" },
+                "size": { "$ref": "#/$defs/valueList" },
+                "variant": { "$ref": "#/$defs/valueList" },
+                "axes": { "$ref": "#/$defs/valueListsByAxis" },
+                "modifiers": { "$ref": "#/$defs/tokenList" }
+            }
+        },
+        "components": {
+            "description": "Every scope in the anatomy manifest, styled or not.",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/kebabToken" },
+            "additionalProperties": { "$ref": "#/$defs/component" }
+        },
+        "divergence": {
+            "description": "The axis-agnostic partition: per axis, the per-component value sets, flagging any component wiring a strict subset of its siblings. Keyed by axis name, plus `mods` — modifier names are a value set like any other.",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/kebabToken" },
+            "additionalProperties": { "$ref": "#/$defs/axisDivergence" }
+        },
+        "themes": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/themeContrast" }
+        },
+        "contrast": {
+            "description": "The static contrast matrix, per theme — present when the report was built beside an audit that computed it (`buildReport(…, { contrast })`). Declared-pair contrast (`themes`) says what the tokens promise; this says what the recipe cascade produces when states combine, with every cell the estimate could not judge counted by reason rather than dropped.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/contrastTheme" }
+        },
+        "api": {
+            "description": "The vendor-named component API surfaces (issue #179), one row per vendor prop, sorted by prop — present only when the design system declares an `api`. Grades are derived from the declaration the ./components artifact is emitted from, so a conformance-matrix row generated from this section cannot claim a mapping the artifact doesn't implement.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/apiSurface" }
+        },
+        "issues": {
+            "description": "Validation counts, present only when the report was built alongside a validation pass. The report is a coverage document and stands without one.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["errors", "warnings"],
+            "properties": {
+                "errors": { "type": "integer", "minimum": 0 },
+                "warnings": { "type": "integer", "minimum": 0 }
+            }
+        },
+        "audit": {
+            "description": "The audit's counts (auditDesignSystem, #403) — present when the report was built beside an audit, which the zero build and `sigx zero:validate --report` both do. The findings live in dist/audit.json (audit.schema.json); this is what the score's `audit` criterion reads.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["auditVersion", "errors", "warnings", "info", "byRule"],
+            "properties": {
+                "auditVersion": { "const": 1 },
+                "errors": { "type": "integer", "minimum": 0 },
+                "warnings": { "type": "integer", "minimum": 0 },
+                "info": { "type": "integer", "minimum": 0 },
+                "byRule": {
+                    "description": "Finding count per rule that fired. The key set mirrors audit.schema.json's ruleId — a test pins both against AUDIT_RULES.",
+                    "type": "object",
+                    "propertyNames": {
+                        "type": "string",
+                        "enum": [
+                            "state-legibility/component",
+                            "state-legibility/indicator",
+                            "state-legibility/disclosure",
+                            "button-affordance",
+                            "axis-value-coverage/gap",
+                            "axis-value-coverage/ambiguous-base",
+                            "axis-value-coverage/unused",
+                            "axis-coverage",
+                            "reduced-motion/loop",
+                            "contrast/text",
+                            "contrast/indicator",
+                            "contrast/unmeasured",
+                            "spacing/literal",
+                            "spacing/off-ramp"
+                        ]
+                    },
+                    "additionalProperties": { "type": "integer", "minimum": 1 }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "criterion": {
+            "description": "One scored criterion: 0–100 (one decimal), its weight in the total, and the counts it was computed from.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["score", "weight", "detail"],
+            "properties": {
+                "score": { "type": "number", "minimum": 0, "maximum": 100 },
+                "weight": { "type": "number", "exclusiveMinimum": 0 },
+                "detail": {
+                    "type": "object",
+                    "additionalProperties": { "type": ["number", "string"] }
+                }
+            }
+        },
+        "score": {
+            "description": "The composite score (docs/architecture.md, \"The authoring surface\"): five named criteria — six when an audit score was handed in — weighted into a total and a letter grade. A declined axis (`declaredOut`) and a fill role (`content: false` / `soft: false`) cost nothing; `skipStates` earns half credit; the weakest theme is the one graded. Per-scope `variant` wiring is deliberately not scored.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["total", "grade", "criteria"],
+            "properties": {
+                "total": { "type": "number", "minimum": 0, "maximum": 100 },
+                "grade": { "enum": ["A", "B", "C", "D", "F"] },
+                "criteria": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["components", "vocabulary", "states", "contrast"],
+                    "properties": {
+                        "components": { "$ref": "#/$defs/criterion" },
+                        "vocabulary": { "$ref": "#/$defs/criterion" },
+                        "states": { "$ref": "#/$defs/criterion" },
+                        "contrast": { "$ref": "#/$defs/criterion" },
+                        "issues": { "$ref": "#/$defs/criterion" },
+                        "audit": { "$ref": "#/$defs/criterion" }
+                    }
+                }
+            }
+        },
+        "lynxFindings": {
+            "description": "One list of lynx capability findings — where in the recipe/tokens source, what was found, and what happened to it.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["where", "what", "detail"],
+                "dependentRequired": { "package": ["scope"] },
+                "properties": {
+                    "where": { "type": "string", "minLength": 1 },
+                    "what": { "type": "string", "minLength": 1 },
+                    "detail": { "type": "string", "minLength": 1 },
+                    "scope": {
+                        "description": "The anatomy scope, when the finding is about a recipe.",
+                        "$ref": "#/$defs/kebabToken"
+                    },
+                    "package": {
+                        "description": "The ecosystem package owning `scope`, when a discovered pack does — so a finding about a recipe the design system did not write says whose it is.",
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            }
+        },
+        "apiSurface": {
+            "description": "One surface of the vendor-named component API: the prop consumers write, where it routes on zero, and the conformance fidelity grade (docs/architecture.md, \"The authoring surface\").",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["prop", "zero", "grade", "respelled"],
+            "properties": {
+                "prop": {
+                    "description": "The vendor prop name — a valid JSX attribute (dashes allowed, no whitespace).",
+                    "type": "string",
+                    "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$-]*$"
+                },
+                "zero": {
+                    "description": "The zero surface the prop routes to: `color`, `size`, `variant`, `axes.<axis>` or `mods.<modifier>`.",
+                    "type": "string",
+                    "pattern": "^(color|size|variant|axes\\.[a-z0-9]+(-[a-z0-9]+)*|mods\\.[a-z0-9]+(-[a-z0-9]+)*)$"
+                },
+                "grade": { "enum": ["exact", "renamed", "reshaped"] },
+                "respelled": {
+                    "description": "Vendor spellings that differ from the zero value they map to, sorted. Non-empty implies grade `reshaped`.",
+                    "type": "array",
+                    "items": { "type": "string", "minLength": 1 },
+                    "uniqueItems": true
+                }
+            }
+        },
+        "axisValue": {
+            "description": "An axis VALUE: lowercase letters, digits and hyphens, repeated hyphens included (Carbon's danger--tertiary) — what a quoted [data-…=\"…\"] attribute selector, a single-quoted literal union in register.d.ts and an unescaped lynx class name (zx-a-<axis>-<value>) all carry verbatim. Wider than the kebab-case grammar names take; still no %, ., quotes, backslashes, whitespace or uppercase.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+        },
+        "valueList": {
+            "description": "A duplicate-free list of axis VALUES (the wider grammar). Same ordering rule as tokenList.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/axisValue" },
+            "uniqueItems": true
+        },
+        "valueListsByAxis": {
+            "description": "Custom axis name → its value list.",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/kebabToken" },
+            "additionalProperties": { "$ref": "#/$defs/valueList" }
+        },
+        "kebabToken": {
+            "description": "A kebab-case identifier that may start with a digit — the grammar shared by scope, part, state, flag, axis and modifier names (and role names, which are also colour-axis values).",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "tokenList": {
+            "description": "A duplicate-free list of kebab-case names. Harvested sets are sorted; DECLARED vocabularies (`vocabulary.sizes`, `vocabulary.variants`, `vocabulary.axes`) keep declaration order, because a ramp's order is part of what it says.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/kebabToken" },
+            "uniqueItems": true
+        },
+        "tokenListsByAxis": {
+            "description": "Custom axis name → its value list.",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/kebabToken" },
+            "additionalProperties": { "$ref": "#/$defs/tokenList" }
+        },
+        "component": {
+            "description": "One anatomy scope. A scope with no recipe carries `styled: false` and nothing else — the register artifact emits no entry for it either, so it has no axes to report.",
+            "oneOf": [
+                { "$ref": "#/$defs/styledComponent" },
+                { "$ref": "#/$defs/unstyledComponent" }
+            ]
+        },
+        "unstyledComponent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["styled", "parts"],
+            "properties": {
+                "styled": { "const": false },
+                "parts": {
+                    "description": "Always empty: with no recipe there is nothing to cover, part by part.",
+                    "type": "object",
+                    "maxProperties": 0
+                }
+            }
+        },
+        "styledComponent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["styled", "axes", "customAxes", "mods", "never", "parts"],
+            "properties": {
+                "styled": { "const": true },
+                "axes": {
+                    "description": "The three contract axes, always all present.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["color", "size", "variant"],
+                    "properties": {
+                        "color": { "$ref": "#/$defs/axisReport" },
+                        "size": { "$ref": "#/$defs/axisReport" },
+                        "variant": { "$ref": "#/$defs/axisReport" }
+                    }
+                },
+                "customAxes": { "$ref": "#/$defs/valueListsByAxis" },
+                "mods": {
+                    "description": "Presence-only modifiers this recipe wires, rendered `data-mod-<name>`.",
+                    "$ref": "#/$defs/tokenList"
+                },
+                "defaults": {
+                    "description": "The recipe's `defaultVariants`, when it has any. Documentation only — a default never widens a generated union.",
+                    "type": "object",
+                    "propertyNames": { "$ref": "#/$defs/kebabToken" },
+                    "additionalProperties": { "$ref": "#/$defs/axisValue" }
+                },
+                "never": {
+                    "description": "The contract axes this design system's register artifact types `never` — exactly the axes whose status is not `wired`. Derived from the same harvest as the artifact, so the two cannot disagree.",
+                    "type": "array",
+                    "items": { "enum": ["color", "size", "variant"] },
+                    "uniqueItems": true
+                },
+                "parts": {
+                    "description": "Every part the anatomy declares for this scope, styled by the recipe or not.",
+                    "type": "object",
+                    "propertyNames": { "$ref": "#/$defs/kebabToken" },
+                    "additionalProperties": { "$ref": "#/$defs/part" }
+                }
+            }
+        },
+        "axisReport": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["wired", "status"],
+            "properties": {
+                "wired": { "$ref": "#/$defs/valueList" },
+                "offered": {
+                    "description": "The values this scope's own vocabulary offers — present only when `tokens.scopes` restricts this axis for this scope. `wired` is what the recipe delivers against it.",
+                    "$ref": "#/$defs/valueList"
+                },
+                "status": {
+                    "description": "`undeclared` means the design system has no such axis (`roles: {}` / `sizes: []`) and is reachable only for colour and size; `unwired` means the axis exists and this recipe keys nothing on it. Both produce `never` in the register artifact — they differ in what the author should do about it.",
+                    "enum": ["wired", "unwired", "undeclared"]
+                }
+            }
+        },
+        "part": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["styled", "states", "flags"],
+            "properties": {
+                "styled": {
+                    "description": "Whether the recipe styles this part anywhere — `parts.<name>`, a variant or compound block, or a modifier. A part reached only through a variant is styled, so this agrees with the coverage buckets rather than with the shape of the authoring input.",
+                    "type": "boolean"
+                },
+                "states": {
+                    "description": "Coverage of the part's closed `data-state` vocabulary.",
+                    "$ref": "#/$defs/coverageSplit"
+                },
+                "flags": {
+                    "description": "Coverage of the part's presence-only flags.",
+                    "$ref": "#/$defs/coverageSplit"
+                }
+            }
+        },
+        "coverageSplit": {
+            "description": "Every declared name of a part, in exactly one bucket.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["covered", "coveredIndirectly", "skipped", "uncovered"],
+            "properties": {
+                "covered": {
+                    "description": "Styled unconditionally on the part — through `states` or a raw `selectors` key that gates on the state.",
+                    "$ref": "#/$defs/tokenList"
+                },
+                "coveredIndirectly": {
+                    "description": "Styled, but only inside an `at` condition, a variant, a compound or a modifier — real coverage that an attribute has to match first.",
+                    "$ref": "#/$defs/tokenList"
+                },
+                "skipped": {
+                    "description": "Listed in the recipe's `skipStates` — deliberately delegated elsewhere rather than forgotten.",
+                    "$ref": "#/$defs/tokenList"
+                },
+                "uncovered": { "$ref": "#/$defs/tokenList" }
+            }
+        },
+        "axisDivergence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["wiredAnywhere", "byComponent", "subsets", "declared"],
+            "properties": {
+                "wiredAnywhere": {
+                    "description": "The union any component wires. Divergence is measured against this rather than against the declared vocabulary, so a value held back everywhere on purpose says nothing while a component lagging behind its siblings does.",
+                    "$ref": "#/$defs/valueList"
+                },
+                "byComponent": {
+                    "description": "Scope → its value set. Only components wiring at least one value: wiring nothing is `never`, not divergence.",
+                    "type": "object",
+                    "propertyNames": { "$ref": "#/$defs/kebabToken" },
+                    "additionalProperties": { "$ref": "#/$defs/valueList" }
+                },
+                "subsets": {
+                    "description": "Components wiring a STRICT subset of `wiredAnywhere` — where an axis value renders as the default here but not elsewhere.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["scope", "wired", "missing"],
+                        "properties": {
+                            "scope": { "$ref": "#/$defs/kebabToken" },
+                            "wired": { "$ref": "#/$defs/valueList" },
+                            "missing": { "$ref": "#/$defs/valueList" }
+                        }
+                    }
+                },
+                "declared": {
+                    "description": "Of `subsets`, the scopes whose narrower set is exactly what their scope vocabulary declared — a declared narrowing is the design system saying what it means, not divergence.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" }
+                }
+            }
+        },
+        "themeContrast": {
+            "description": "Declared-pair contrast for one theme. Role pairs only — what the recipe cascade produces when states combine is measured by the Playwright state-matrix audit, not here.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "colorScheme", "minContrast", "worstPair", "belowMin", "belowAA", "pairs"],
+            "properties": {
+                "name": { "$ref": "#/$defs/kebabToken" },
+                "colorScheme": { "enum": ["light", "dark"] },
+                "pair": {
+                    "description": "The opposite-scheme theme this one pairs with, when it declares one.",
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "minContrast": {
+                    "description": "The smallest ratio across every declared pair — the margin this theme has left. Null when no pair could be measured, which the validator reports as errors of its own.",
+                    "type": ["number", "null"],
+                    "minimum": 1
+                },
+                "worstPair": {
+                    "description": "[background, foreground] of the pair `minContrast` came from.",
+                    "type": ["array", "null"],
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "belowMin": {
+                    "description": "Pairs below the 3:1 hard floor — each one is a validator error.",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "belowAA": {
+                    "description": "Pairs below 4.5:1 AA text contrast, `belowMin` included — each one is at least a validator warning.",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "pairs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["bg", "fg", "ratio"],
+                        "properties": {
+                            "bg": { "$ref": "#/$defs/kebabToken" },
+                            "fg": { "$ref": "#/$defs/kebabToken" },
+                            "ratio": {
+                                "description": "WCAG contrast ratio, rounded to two decimals so a committed report is not a diff against itself.",
+                                "type": "number",
+                                "minimum": 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "contrastTheme": {
+            "description": "One theme of the static contrast matrix, summarised. The full cell table lives in the audit result (`AuditResult.contrast`).",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "cells", "measured", "failing", "warnings", "disabledFailing", "unrendered", "unpainted", "unmeasured", "worst"],
+            "properties": {
+                "name": { "$ref": "#/$defs/kebabToken" },
+                "cells": { "description": "Every cell the matrix produced for this theme.", "type": "integer", "minimum": 0 },
+                "measured": { "description": "Cells with a ratio — `cells` minus unmeasured, unrendered and unpainted.", "type": "integer", "minimum": 0 },
+                "failing": { "description": "Below the 3:1 floor.", "type": "integer", "minimum": 0 },
+                "warnings": { "description": "In the 3:1–4.5:1 band.", "type": "integer", "minimum": 0 },
+                "disabledFailing": { "description": "`disabled` cells whose pre-fade pair is below 2:1.", "type": "integer", "minimum": 0 },
+                "unrendered": { "type": "integer", "minimum": 0 },
+                "unpainted": { "type": "integer", "minimum": 0 },
+                "unmeasured": {
+                    "description": "Reason → how many cells the estimate could not judge for it.",
+                    "type": "object",
+                    "additionalProperties": { "type": "integer", "minimum": 0 }
+                },
+                "worst": {
+                    "description": "The ten lowest measured ratios, worst first.",
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["key", "ratio", "ink", "bg"],
+                        "properties": {
+                            "key": { "type": "string" },
+                            "ratio": { "type": "number", "minimum": 1 },
+                            "ink": { "type": "string" },
+                            "bg": { "type": "string" }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

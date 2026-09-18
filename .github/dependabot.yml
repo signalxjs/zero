@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    ignore:
+      # Pinned exact: it is the source of the checked-in CSS property list
+      # (packages/zero-kit/src/resolve/css-properties.ts). A bump must run
+      # `pnpm --filter @sigx/zero-kit gen:css-properties` and commit the
+      # regenerated file, so it is a deliberate PR rather than a weekly one.
+      - dependency-name: "@webref/css"
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      production-dependencies:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

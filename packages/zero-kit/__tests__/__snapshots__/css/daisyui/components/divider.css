@@ -1,0 +1,70 @@
+@layer zero.recipes {
+    [data-scope="divider"][data-part="root"] {
+        --divider-ink: var(--color-base-300);
+        --divider-thickness: var(--border);
+    }
+
+    [data-scope="divider"][data-part="root"] {
+        border: none;
+        background: var(--divider-ink);
+        align-self: stretch;
+    }
+
+    [data-scope="divider"][data-part="root"][data-orientation="horizontal"] {
+        inline-size: 100%;
+        block-size: var(--divider-thickness);
+    }
+
+    [data-scope="divider"][data-part="root"][data-orientation="vertical"] {
+        inline-size: var(--divider-thickness);
+        min-block-size: 1em;
+    }
+
+    [data-scope="divider"][data-part="root"][data-color="primary"] {
+        --divider-ink: var(--color-primary);
+    }
+
+    [data-scope="divider"][data-part="root"][data-color="secondary"] {
+        --divider-ink: var(--color-secondary);
+    }
+
+    [data-scope="divider"][data-part="root"][data-color="accent"] {
+        --divider-ink: var(--color-accent);
+    }
+
+    [data-scope="divider"][data-part="root"][data-color="neutral"] {
+        --divider-ink: var(--color-neutral);
+    }
+
+    [data-scope="divider"][data-part="root"][data-color="info"] {
+        --divider-ink: var(--color-info);
+    }
+
+    [data-scope="divider"][data-part="root"][data-color="success"] {
+        --divider-ink: var(--color-success);
+    }
+
+    [data-scope="divider"][data-part="root"][data-color="warning"] {
+        --divider-ink: var(--color-warning);
+    }
+
+    [data-scope="divider"][data-part="root"][data-color="error"] {
+        --divider-ink: var(--color-error);
+    }
+
+    [data-scope="divider"][data-part="root"][data-size="xs"] {
+        --divider-thickness: var(--border);
+    }
+
+    [data-scope="divider"][data-part="root"][data-size="sm"] {
+        --divider-thickness: var(--border);
+    }
+
+    [data-scope="divider"][data-part="root"][data-size="lg"] {
+        --divider-thickness: calc(var(--border) * 2);
+    }
+
+    [data-scope="divider"][data-part="root"][data-size="xl"] {
+        --divider-thickness: calc(var(--border) * 3);
+    }
+}

@@ -1,0 +1,131 @@
+@layer zero.recipes {
+    [data-scope="textarea"][data-part="root"] {
+        --textarea-accent: var(--color-secondary);
+    }
+
+    [data-scope="textarea"][data-part="root"] {
+        display: inline-flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="textarea"][data-part="label"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="textarea"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="textarea"][data-part="label"][data-invalid] {
+        color: var(--color-error);
+    }
+
+    [data-scope="textarea"][data-part="label"][data-required]::after {
+        content: " *";
+        color: var(--color-error);
+    }
+
+    [data-scope="textarea"][data-part="textarea"] {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        appearance: none;
+        background: transparent;
+        color: var(--color-base-content);
+        border: var(--border) solid var(--color-outline);
+        border-radius: var(--radius-field);
+        font-family: var(--font-sans);
+        font-size: var(--text-md);
+        line-height: var(--leading-normal);
+        padding: var(--space-sm) var(--space-md);
+        resize: vertical;
+        transition: border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-focus-visible] {
+        outline: 3px solid var(--textarea-accent);
+        outline-offset: 2px;
+    }
+
+    [data-scope="textarea"][data-part="textarea"]::placeholder {
+        color: var(--color-outline);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="primary"] {
+        --textarea-accent: var(--color-primary);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="secondary"] {
+        --textarea-accent: var(--color-secondary);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="tertiary"] {
+        --textarea-accent: var(--color-tertiary);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="error"] {
+        --textarea-accent: var(--color-error);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="neutral"] {
+        --textarea-accent: var(--color-neutral);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="info"] {
+        --textarea-accent: var(--color-info);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="success"] {
+        --textarea-accent: var(--color-success);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="warning"] {
+        --textarea-accent: var(--color-warning);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="accent"] {
+        --textarea-accent: var(--color-accent);
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="xs"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            font-size: var(--text-sm);
+            padding: var(--space-2xs) var(--space-xs);
+        }
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="sm"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            font-size: var(--text-sm);
+            padding: var(--space-xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="lg"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            font-size: var(--text-lg);
+            padding: var(--space-md) var(--space-lg);
+        }
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="xl"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            font-size: var(--text-xl);
+            padding: var(--space-lg) var(--space-xl);
+        }
+    }
+}

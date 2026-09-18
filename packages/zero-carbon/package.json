@@ -1,0 +1,63 @@
+{
+    "name": "@sigx/zero-carbon",
+    "version": "0.1.0",
+    "description": "Carbon-flavoured design system for SignalX Zero — the runtime acceptance test for the api values remap: the fused seven-member kind axis with Carbon's double-hyphen spellings restored at the prop boundary, and hasIconOnly/isExpressive as data-mod-*.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./design-system": {
+            "types": "./dist/design-system.d.ts",
+            "import": "./dist/design-system.js"
+        },
+        "./register": {
+            "types": "./dist/register.d.ts",
+            "import": "./dist/register.js"
+        },
+        "./components": {
+            "types": "./dist/components.d.ts",
+            "import": "./dist/components.js"
+        },
+        "./css": "./dist/css/index.css",
+        "./css/tokens": "./dist/css/tokens.css",
+        "./css/*": "./dist/css/components/*.css",
+        "./manifest.json": "./dist/manifest.json",
+        "./report.json": "./dist/report.json",
+        "./audit.json": "./dist/audit.json"
+    },
+    "files": [
+        "dist",
+        "src"
+    ],
+    "sideEffects": false,
+    "scripts": {
+        "build": "tsgo -p tsconfig.json && node build.mjs",
+        "typecheck": "tsgo --noEmit"
+    },
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/zero.git",
+        "directory": "packages/zero-carbon"
+    },
+    "homepage": "https://sigx.dev/zero/",
+    "bugs": {
+        "url": "https://github.com/signalxjs/zero/issues"
+    },
+    "peerDependencies": {
+        "@sigx/zero": "workspace:^"
+    },
+    "devDependencies": {
+        "@sigx/runtime-dom": "catalog:",
+        "@sigx/zero": "workspace:^",
+        "@sigx/zero-kit": "workspace:^",
+        "sigx": "catalog:",
+        "typescript": "^6.0.3"
+    },
+    "private": true
+}

@@ -1,0 +1,111 @@
+@layer zero.recipes {
+    [data-scope="field"][data-part="root"] {
+        --field-accent: var(--color-base-content);
+    }
+
+    [data-scope="field"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    [data-scope="field"][data-part="label"] {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--field-accent);
+    }
+
+    [data-scope="field"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="field"][data-part="label"][data-required]::after {
+        content: " *";
+        color: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+    }
+
+    [data-scope="field"][data-part="description"] {
+        margin: 0;
+        font-size: var(--text-xs);
+        opacity: 0.6;
+    }
+
+    [data-scope="field"][data-part="error"] {
+        margin: 0;
+        font-size: var(--text-xs);
+        color: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+        font-weight: var(--weight-medium);
+    }
+
+    [data-scope="field"][data-part="root"][data-color="primary"] {
+        --field-accent: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+    }
+
+    [data-scope="field"][data-part="root"][data-color="secondary"] {
+        --field-accent: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+    }
+
+    [data-scope="field"][data-part="root"][data-color="accent"] {
+        --field-accent: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+    }
+
+    [data-scope="field"][data-part="root"][data-color="neutral"] {
+        --field-accent: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+    }
+
+    [data-scope="field"][data-part="root"][data-color="info"] {
+        --field-accent: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+    }
+
+    [data-scope="field"][data-part="root"][data-color="success"] {
+        --field-accent: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+    }
+
+    [data-scope="field"][data-part="root"][data-color="warning"] {
+        --field-accent: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="field"][data-part="root"][data-color="error"] {
+        --field-accent: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="xs"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="sm"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="lg"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="xl"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-md);
+        }
+    }
+}

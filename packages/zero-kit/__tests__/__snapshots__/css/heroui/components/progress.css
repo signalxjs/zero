@@ -1,0 +1,73 @@
+@layer zero.recipes {
+    [data-scope="progress"][data-part="root"] {
+        --progress-height: calc(var(--size-selector) * 2);
+        --progress-ink: var(--hero-muted);
+    }
+
+    [data-scope="progress"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+        width: 100%;
+    }
+
+    [data-scope="progress"][data-part="root"][data-state="complete"] {
+        --progress-ink: var(--hero-primary);
+    }
+
+    [data-scope="progress"][data-part="label"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="progress"][data-part="track"] {
+        width: 100%;
+        height: var(--progress-height);
+        background: var(--color-base-300);
+        border-radius: 9999px;
+        overflow: hidden;
+    }
+
+    [data-scope="progress"][data-part="range"] {
+        height: 100%;
+        background: var(--hero-primary);
+        border-radius: 9999px;
+        transition: width var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="progress"][data-part="range"][data-state="complete"] {
+        box-shadow: inset 0 0 0 var(--border) color-mix(in oklab, var(--hero-primary-ink) 70%, transparent);
+    }
+
+    [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
+        width: 40%;
+        animation: hero-indeterminate 1.2s ease-in-out infinite;
+    }
+
+    [data-scope="progress"][data-part="value-text"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        color: var(--progress-ink);
+        transition: color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="sm"] {
+        --progress-height: calc(var(--size-selector) * 1.5);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="lg"] {
+        --progress-height: calc(var(--size-selector) * 3);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
+            animation: none;
+            width: 100%;
+        }
+    }
+}
+@keyframes hero-indeterminate {
+    from { margin-inline-start: -40%; } to { margin-inline-start: 100%; }
+}

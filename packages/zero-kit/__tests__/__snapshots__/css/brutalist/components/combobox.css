@@ -1,0 +1,249 @@
+@layer zero.recipes {
+    [data-scope="combobox"][data-part="root"] {
+        --combobox-accent: var(--color-primary);
+        --combobox-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="combobox"][data-part="root"] {
+        display: inline-flex;
+        position: relative;
+    }
+
+    [data-scope="combobox"][data-part="control"] {
+        display: inline-flex;
+        align-items: center;
+        min-width: 12rem;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-xs);
+    }
+
+    [data-scope="combobox"][data-part="control"][data-state="open"] {
+        box-shadow: none;
+        transform: translate(2px, 2px);
+    }
+
+    [data-scope="combobox"][data-part="control"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="combobox"][data-part="control"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="combobox"][data-part="control"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    [data-scope="combobox"][data-part="input"] {
+        flex: 1;
+        min-width: 0;
+        appearance: none;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: inherit;
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    [data-scope="combobox"][data-part="input"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="combobox"][data-part="input"]::placeholder {
+        color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+        text-transform: uppercase;
+    }
+
+    [data-scope="combobox"][data-part="trigger"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        padding: 0 var(--space-md);
+        cursor: pointer;
+        transition: transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="combobox"][data-part="trigger"][data-state="open"] {
+        transform: rotate(180deg);
+    }
+
+    [data-scope="combobox"][data-part="trigger"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="combobox"][data-part="popup"] {
+        opacity: 0;
+        transform: translate(4px, 4px);
+        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), display var(--duration-fast) allow-discrete, overlay var(--duration-fast) allow-discrete;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-md);
+        padding: var(--space-xs);
+        min-width: 12rem;
+    }
+
+    [data-scope="combobox"][data-part="popup"][data-state="open"] {
+        opacity: 1;
+        transform: none;
+    }
+
+    [data-scope="combobox"][data-part="group"] {
+        padding: var(--space-2xs) 0;
+    }
+
+    [data-scope="combobox"][data-part="group-label"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        opacity: 0.7;
+    }
+
+    [data-scope="combobox"][data-part="item"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding: var(--space-xs) var(--space-sm);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        cursor: pointer;
+    }
+
+    [data-scope="combobox"][data-part="item"][data-highlighted] {
+        background: var(--combobox-accent);
+        color: var(--combobox-on-accent);
+    }
+
+    [data-scope="combobox"][data-part="item"][data-selected] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+    }
+
+    [data-scope="combobox"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="combobox"][data-part="item-indicator"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="combobox"][data-part="empty"] {
+        padding: var(--space-md);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        text-align: center;
+        opacity: 0.7;
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="primary"] {
+        --combobox-accent: var(--color-primary);
+        --combobox-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="secondary"] {
+        --combobox-accent: var(--color-secondary);
+        --combobox-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="accent"] {
+        --combobox-accent: var(--color-accent);
+        --combobox-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="neutral"] {
+        --combobox-accent: var(--color-neutral);
+        --combobox-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="info"] {
+        --combobox-accent: var(--color-info);
+        --combobox-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="success"] {
+        --combobox-accent: var(--color-success);
+        --combobox-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="warning"] {
+        --combobox-accent: var(--color-warning);
+        --combobox-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="error"] {
+        --combobox-accent: var(--color-error);
+        --combobox-on-accent: var(--color-error-content);
+    }
+
+    @scope ([data-scope="combobox"][data-part="root"][data-size="xs"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="input"] {
+            padding: var(--space-2xs) var(--space-xs);
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="combobox"][data-part="root"][data-size="sm"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="input"] {
+            padding: var(--space-xs) var(--space-sm);
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="combobox"][data-part="root"][data-size="md"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="input"] {
+            padding: var(--space-sm) var(--space-md);
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="combobox"][data-part="root"][data-size="lg"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="input"] {
+            padding: var(--space-md) var(--space-lg);
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="combobox"][data-part="root"][data-size="xl"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="input"] {
+            padding: var(--space-lg) var(--space-xl);
+            font-size: var(--text-md);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="combobox"][data-part="popup"] {
+            transition: none;
+        }
+
+        [data-scope="combobox"][data-part="popup"][data-state="open"] {
+            transform: none;
+        }
+    }
+
+    @starting-style {
+        [data-scope="combobox"][data-part="popup"][data-state="open"] {
+            opacity: 0;
+            transform: translate(4px, 4px);
+        }
+    }
+}

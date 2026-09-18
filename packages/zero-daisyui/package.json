@@ -1,0 +1,66 @@
+{
+    "name": "@sigx/zero-daisyui",
+    "version": "0.2.0-beta.6",
+    "description": "DaisyUI-flavored design system for SignalX Zero — daisy's token values and component look as a pure tokens+recipes skin over @sigx/zero primitives. No Tailwind, no daisyUI plugin required.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./design-system": {
+            "types": "./dist/design-system.d.ts",
+            "import": "./dist/design-system.js"
+        },
+        "./register": {
+            "types": "./dist/register.d.ts",
+            "import": "./dist/register.js"
+        },
+        "./components": {
+            "types": "./dist/components.d.ts",
+            "import": "./dist/components.js"
+        },
+        "./css": "./dist/css/index.css",
+        "./lynx/index.css": "./dist/lynx/index.css",
+        "./lynx/tokens.css": "./dist/lynx/tokens.css",
+        "./lynx/manifest.json": "./dist/lynx/manifest.json",
+        "./css/tokens": "./dist/css/tokens.css",
+        "./css/*": "./dist/css/components/*.css",
+        "./manifest.json": "./dist/manifest.json",
+        "./report.json": "./dist/report.json",
+        "./audit.json": "./dist/audit.json"
+    },
+    "files": [
+        "dist",
+        "src"
+    ],
+    "sideEffects": false,
+    "scripts": {
+        "build": "tsgo -p tsconfig.json && node build.mjs",
+        "typecheck": "tsgo --noEmit"
+    },
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/zero.git",
+        "directory": "packages/zero-daisyui"
+    },
+    "homepage": "https://sigx.dev/zero/",
+    "bugs": {
+        "url": "https://github.com/signalxjs/zero/issues"
+    },
+    "peerDependencies": {
+        "@sigx/zero": "workspace:^"
+    },
+    "devDependencies": {
+        "@sigx/zero": "workspace:^",
+        "@sigx/zero-kit": "workspace:^",
+        "typescript": "^6.0.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

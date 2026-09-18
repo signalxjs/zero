@@ -1,0 +1,64 @@
+{
+    "name": "sigx-zero",
+    "version": "0.1.0",
+    "private": true,
+    "packageManager": "pnpm@10.33.4",
+    "description": "SignalX Zero — unstyled, accessible component foundation and design-system authoring kit",
+    "type": "module",
+    "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+    },
+    "scripts": {
+        "sync:core": "node scripts/sync-core.mjs",
+        "verify:catalog": "node scripts/check-catalog.mjs",
+        "wt": "node scripts/worktree.mjs",
+        "build": "pnpm -r --filter \"@sigx/*\" run build",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
+        "typecheck": "tsgo --noEmit",
+        "test:types": "tsgo --noEmit -p packages/zero/type-tests/open/tsconfig.json && tsgo --noEmit -p packages/zero/type-tests/augmented/tsconfig.json && tsgo --noEmit -p packages/zero/type-tests/generated/tsconfig.json && tsgo --noEmit -p packages/zero/type-tests/components/tsconfig.json && tsgo --noEmit -p packages/zero/type-tests/registered-components/tsconfig.json && tsgo --noEmit -p packages/zero/type-tests/ecosystem/tsconfig.json && tsgo --noEmit -p packages/zero/type-tests/portable/tsconfig.json",
+        "lint": "oxlint packages/zero/src packages/zero-kit/src packages/zero-basic/src packages/zero-daisyui/src packages/zero-material/src packages/zero-brutalist/src packages/zero-heroui/src packages/zero-carbon/src packages/zero-ext-example/src packages/create-zero-ds/src packages/zero-kit/skills",
+        "lint:fix": "oxlint --fix packages/zero/src packages/zero-kit/src packages/zero-basic/src packages/zero-daisyui/src packages/zero-material/src packages/zero-brutalist/src packages/zero-heroui/src packages/zero-carbon/src packages/zero-ext-example/src packages/create-zero-ds/src packages/zero-kit/skills",
+        "publish:dry": "node scripts/publish.js --dry-run",
+        "publish:all": "node scripts/publish.js",
+        "verify:pack": "node scripts/verify-pack.js",
+        "version:set": "node scripts/bump-version.js",
+        "version:patch": "node scripts/bump-version.js patch",
+        "version:minor": "node scripts/bump-version.js minor",
+        "version:major": "node scripts/bump-version.js major",
+        "size": "size-limit"
+    },
+    "devDependencies": {
+        "@sigx/cli": "^0.10.0",
+        "@size-limit/preset-small-lib": "^12.1.0",
+        "@types/node": "^22.20.1",
+        "@typescript/native-preview": "7.0.0-dev.20260707.2",
+        "@vitest/coverage-v8": "^4.1.5",
+        "happy-dom": "^20.9.0",
+        "oxlint": "^1.63.0",
+        "size-limit": "^12.1.0",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.11",
+        "vitest": "^4.1.5"
+    },
+    "keywords": [
+        "SignalX",
+        "sigx",
+        "headless",
+        "unstyled",
+        "components",
+        "design-system",
+        "design-tokens"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/zero.git"
+    },
+    "homepage": "https://sigx.dev/zero/",
+    "bugs": {
+        "url": "https://github.com/signalxjs/zero/issues"
+    }
+}

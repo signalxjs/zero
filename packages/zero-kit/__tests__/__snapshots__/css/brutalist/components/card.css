@@ -1,0 +1,106 @@
+@layer zero.recipes {
+    [data-scope="card"][data-part="root"] {
+        --card-pad: var(--space-lg);
+        --card-accent: var(--color-base-content);
+    }
+
+    [data-scope="card"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-md);
+        border-block-start-width: calc(var(--border) * 2);
+        border-block-start-color: var(--card-accent);
+    }
+
+    [data-scope="card"][data-part="header"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+        padding: var(--card-pad) var(--card-pad) 0;
+        border-block-end: var(--border) solid var(--color-base-content);
+        padding-block-end: var(--space-sm);
+    }
+
+    [data-scope="card"][data-part="title"] {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-md);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="card"][data-part="description"] {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+    }
+
+    [data-scope="card"][data-part="body"] {
+        padding: var(--card-pad);
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        line-height: var(--leading-normal);
+    }
+
+    [data-scope="card"][data-part="footer"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        padding: 0 var(--card-pad) var(--card-pad);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="primary"] {
+        --card-accent: var(--color-primary);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="secondary"] {
+        --card-accent: var(--color-secondary);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="accent"] {
+        --card-accent: var(--color-accent);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="neutral"] {
+        --card-accent: var(--color-neutral);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="info"] {
+        --card-accent: var(--color-info);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="success"] {
+        --card-accent: var(--color-success);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="warning"] {
+        --card-accent: var(--color-warning);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="error"] {
+        --card-accent: var(--color-error);
+    }
+
+    [data-scope="card"][data-part="root"][data-size="xs"] {
+        --card-pad: var(--space-sm);
+    }
+
+    [data-scope="card"][data-part="root"][data-size="sm"] {
+        --card-pad: var(--space-md);
+    }
+
+    [data-scope="card"][data-part="root"][data-size="lg"] {
+        --card-pad: var(--space-xl);
+    }
+
+    [data-scope="card"][data-part="root"][data-size="xl"] {
+        --card-pad: var(--space-2xl);
+    }
+}

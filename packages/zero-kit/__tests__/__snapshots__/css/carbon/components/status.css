@@ -1,0 +1,33 @@
+@layer zero.recipes {
+    [data-scope="status"][data-part="root"] {
+        --status-ink: var(--carbon-interactive);
+        --status-size: calc(var(--size-selector) * 2.5);
+    }
+
+    [data-scope="status"][data-part="root"] {
+        display: inline-block;
+        inline-size: var(--status-size);
+        block-size: var(--status-size);
+        box-sizing: border-box;
+        vertical-align: middle;
+        background: var(--status-ink);
+        border: calc(var(--status-size) / 2) solid var(--status-ink);
+        border-radius: 50%;
+    }
+
+    [data-scope="status"][data-part="root"][data-size="sm"] {
+        --status-size: calc(var(--size-selector) * 2);
+    }
+
+    [data-scope="status"][data-part="root"][data-size="lg"] {
+        --status-size: calc(var(--size-selector) * 3);
+    }
+
+    [data-scope="status"][data-part="root"][data-size="xl"] {
+        --status-size: calc(var(--size-selector) * 3.5);
+    }
+
+    [data-scope="status"][data-part="root"][data-size="2xl"] {
+        --status-size: calc(var(--size-selector) * 4);
+    }
+}

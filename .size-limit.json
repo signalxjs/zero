@@ -1,0 +1,588 @@
+[
+    {
+        "name": "@sigx/zero (full barrel)",
+        "path": "packages/zero/dist/index.js",
+        "limit": "38 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/adapt",
+        "path": "packages/zero/dist/adapt/index.js",
+        "limit": "1 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/tabs",
+        "path": "packages/zero/dist/components/tabs/index.js",
+        "limit": "3.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/dialog",
+        "path": "packages/zero/dist/components/dialog/index.js",
+        "limit": "3.65 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/menu",
+        "path": "packages/zero/dist/components/menu/index.js",
+        "limit": "7 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/select",
+        "path": "packages/zero/dist/components/select/index.js",
+        "limit": "8 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/anatomy (tooling entry)",
+        "path": "packages/zero/dist/anatomy.js",
+        "limit": "3.5 kB",
+        "ignore": [
+            "sigx",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/button",
+        "path": "packages/zero/dist/components/button/index.js",
+        "limit": "2.15 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/avatar",
+        "path": "packages/zero/dist/components/avatar/index.js",
+        "limit": "1650 B",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/toast",
+        "path": "packages/zero/dist/components/toast/index.js",
+        "limit": "4.35 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/combobox",
+        "path": "packages/zero/dist/components/combobox/index.js",
+        "limit": "8.6 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/toggle",
+        "path": "packages/zero/dist/components/toggle/index.js",
+        "limit": "2.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/toggle-group",
+        "path": "packages/zero/dist/components/toggle-group/index.js",
+        "limit": "3.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/number-input",
+        "path": "packages/zero/dist/components/number-input/index.js",
+        "limit": "4.65 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/rating-group",
+        "path": "packages/zero/dist/components/rating-group/index.js",
+        "limit": "3.35 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/tree-view",
+        "path": "packages/zero/dist/components/tree-view/index.js",
+        "limit": "4.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/input",
+        "path": "packages/zero/dist/components/input/index.js",
+        "limit": "3 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/textarea",
+        "path": "packages/zero/dist/components/textarea/index.js",
+        "limit": "3 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/card",
+        "path": "packages/zero/dist/components/card/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/alert",
+        "path": "packages/zero/dist/components/alert/index.js",
+        "limit": "3 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/badge",
+        "path": "packages/zero/dist/components/badge/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/divider",
+        "path": "packages/zero/dist/components/divider/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/skeleton",
+        "path": "packages/zero/dist/components/skeleton/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/spinner",
+        "path": "packages/zero/dist/components/spinner/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/kbd",
+        "path": "packages/zero/dist/components/kbd/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/spacer",
+        "path": "packages/zero/dist/components/spacer/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/stack",
+        "path": "packages/zero/dist/components/stack/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/container",
+        "path": "packages/zero/dist/components/container/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/box",
+        "path": "packages/zero/dist/components/box/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/center",
+        "path": "packages/zero/dist/components/center/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/grid",
+        "path": "packages/zero/dist/components/grid/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/status",
+        "path": "packages/zero/dist/components/status/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/indicator",
+        "path": "packages/zero/dist/components/indicator/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/stats",
+        "path": "packages/zero/dist/components/stats/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/timeline",
+        "path": "packages/zero/dist/components/timeline/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/chat",
+        "path": "packages/zero/dist/components/chat/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/radial-progress",
+        "path": "packages/zero/dist/components/radial-progress/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/table",
+        "path": "packages/zero/dist/components/table/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/file-upload",
+        "path": "packages/zero/dist/components/file-upload/index.js",
+        "limit": "4.2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/carousel",
+        "path": "packages/zero/dist/components/carousel/index.js",
+        "limit": "3.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/swap",
+        "path": "packages/zero/dist/components/swap/index.js",
+        "limit": "2.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/countdown",
+        "path": "packages/zero/dist/components/countdown/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/diff",
+        "path": "packages/zero/dist/components/diff/index.js",
+        "limit": "3 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/join",
+        "path": "packages/zero/dist/components/join/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/navbar",
+        "path": "packages/zero/dist/components/navbar/index.js",
+        "limit": "1.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/breadcrumbs",
+        "path": "packages/zero/dist/components/breadcrumbs/index.js",
+        "limit": "1.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/pagination",
+        "path": "packages/zero/dist/components/pagination/index.js",
+        "limit": "3 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/steps",
+        "path": "packages/zero/dist/components/steps/index.js",
+        "limit": "3.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/drawer",
+        "path": "packages/zero/dist/components/drawer/index.js",
+        "limit": "3.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    }
+]

@@ -1,0 +1,169 @@
+/*
+ * The playground's own app CSS — the page surface, and the one demo surface
+ * no design system owns.
+ *
+ * A design system paints its components; painting the PAGE is the app's job,
+ * and this playground never did it. `color-scheme` from the DS tokens gave the
+ * right polarity but a generic backdrop: every dark daisyUI theme demoed on
+ * Chromium's `rgb(18,18,18)`, nord on pure white, body prose in UA
+ * `CanvasText` — so components were judged against a surface no design system
+ * ever specified.
+ *
+ * Deliberately UNLAYERED. `@sigx/zero/css` declares
+ * `@layer zero.fallback, zero.tokens, zero.recipes` precisely so that app CSS,
+ * which sits outside every layer, always wins — this is that case, written the
+ * way a real consumer would write it. It also stays correct across a runtime
+ * design-system swap and a theme swap with no JS: the swap replaces the
+ * `<link>` that defines `--color-base-100` / `--color-base-content`, and these
+ * two `var()`s simply re-resolve.
+ *
+ * `body` rather than `html`: with no background on `html`, the body's
+ * background propagates to the canvas, so the whole viewport gets the theme's
+ * surface. It is also the exact rule `e2e/contrast-audit.spec.ts` injects as
+ * "the app baseline every real app provides" — the audit measured against a
+ * backdrop the app itself did not supply. Now the two agree.
+ */
+body {
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+}
+
+/*
+ * The context-menu demo surface's focus ring.
+ *
+ * `menu/context-trigger` is `asChild` over whatever the consumer wraps, and
+ * the anatomy comment says so outright ("typically the consumer's own
+ * content, so recipes usually leave it unstyled"). The part now carries a
+ * `focus-visible` flag a recipe COULD hook (#252), but none of the six design
+ * systems paints it — heroui and carbon decline it explicitly through
+ * `skipStates`. Without this rule, dismissing the context menu returns focus
+ * to the box and Chromium draws its own `1px auto rgb(0, 95, 204)` — the
+ * single element on the page not speaking the design system's focus
+ * language.
+ *
+ * Styling the consumer's surface is therefore the consumer's job, and this
+ * playground is that consumer. It cannot reach a design system's focus ring:
+ * each one keeps its own (material `3px solid var(--color-secondary)`, carbon
+ * `2px solid var(--carbon-focus)` at a NEGATIVE offset, brutalist
+ * `var(--border) solid var(--color-primary)`) inside its recipes, and the
+ * colour roles they draw it with are DS-declared vocabulary — `--color-primary`
+ * does not exist under carbon or heroui, which declare `roles: {}`. What every
+ * design system does guarantee is the base surfaces, so the ring is drawn in
+ * `--color-base-content`: the ink of the current theme, re-resolving on a
+ * design-system swap and a theme swap exactly like the two rules above. Its
+ * SHAPE comes from the design system for free — an outline follows the box's
+ * `border-radius`, which is now `var(--radius-box)`, so the ring is square on
+ * brutalist and carbon and rounded on material.
+ *
+ * Selected by anatomy rather than a class because the anatomy IS the styling
+ * API here, and unlayered so it wins over `@layer zero.recipes` should a
+ * design system ever decide to paint this part.
+ */
+[data-scope="menu"][data-part="context-trigger"]:focus-visible {
+    outline: 2px solid var(--color-base-content);
+    outline-offset: 2px;
+}
+
+/*
+ * ── The shell ───────────────────────────────────────────────────────────────
+ *
+ * Sidebar + content grid. All of it plays by the same rule as the two blocks
+ * above: unlayered app CSS drawing only on the base surfaces every design
+ * system guarantees (`base-100/200/300`, `base-content`, the structural
+ * radius/text tokens), so a design-system or theme swap restyles the chrome
+ * with no JS.
+ */
+body {
+    font-family: system-ui, sans-serif;
+}
+
+.shell {
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+.shell-sidebar {
+    background: var(--color-base-200);
+    border-right: 1px solid var(--color-base-300);
+    padding: 1.25rem 1rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.shell-masthead {
+    display: block;
+    font-weight: 700;
+    color: inherit;
+    text-decoration: none;
+    margin-bottom: 0.75rem;
+}
+
+.shell-category {
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.65;
+    margin: 1rem 0 0.25rem;
+}
+
+.shell-sidebar nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.shell-sidebar nav a {
+    display: block;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-selector);
+    color: inherit;
+    text-decoration: none;
+}
+
+.shell-sidebar nav a:hover {
+    background: var(--color-base-300);
+}
+
+.shell-sidebar nav a[aria-current="page"] {
+    background: var(--color-base-300);
+    font-weight: 600;
+}
+
+.shell-main {
+    width: 100%;
+    min-width: 0;
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+/* One column on narrow viewports; the sidebar becomes a normal block. */
+@media (max-width: 50rem) {
+    .shell {
+        grid-template-columns: 1fr;
+    }
+
+    .shell-sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--color-base-300);
+    }
+}
+
+/*
+ * ── Demo primitives (src/demo/Section.tsx) ──────────────────────────────────
+ */
+.demo-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.axis-label {
+    flex-shrink: 0;
+}

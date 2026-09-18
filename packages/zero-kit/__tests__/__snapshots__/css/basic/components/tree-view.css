@@ -1,0 +1,197 @@
+@layer zero.recipes {
+    [data-scope="tree-view"][data-part="root"] {
+        --tree-accent: var(--color-primary);
+        --tree-text: var(--text-sm);
+        --tree-soft: var(--color-primary-soft);
+    }
+
+    [data-scope="tree-view"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="tree-view"][data-part="label"] {
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-medium);
+        text-transform: uppercase;
+        letter-spacing: var(--tracking-wide);
+        color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
+    }
+
+    [data-scope="tree-view"][data-part="tree"] {
+        display: flex;
+        flex-direction: column;
+        font-size: var(--tree-text);
+    }
+
+    [data-scope="tree-view"][data-part="item"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        padding: var(--space-xs) var(--space-md);
+        border-inline-start: 2px solid transparent;
+        padding-inline-start: calc(var(--space-md) - 2px);
+        font-variant-numeric: tabular-nums;
+        border-radius: var(--radius-selector);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="tree-view"][data-part="item"]:hover:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="tree-view"][data-part="item"][data-selected] {
+        background: var(--tree-soft);
+        border-inline-start-color: var(--tree-accent);
+    }
+
+    [data-scope="tree-view"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="tree-view"][data-part="item"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: -2px;
+    }
+
+    [data-scope="tree-view"][data-part="item"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
+    }
+
+    [data-scope="tree-view"][data-part="branch"] {
+        display: flex;
+        flex-direction: column;
+        outline: none;
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        padding: var(--space-xs) var(--space-md);
+        border-inline-start: 2px solid transparent;
+        padding-inline-start: calc(var(--space-md) - 2px);
+        font-variant-numeric: tabular-nums;
+        border-radius: var(--radius-selector);
+        cursor: pointer;
+        user-select: none;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"]:hover:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"][data-selected] {
+        background: var(--tree-soft);
+        border-inline-start-color: var(--tree-accent);
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: -2px;
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
+    }
+
+    [data-scope="tree-view"][data-part="branch-indicator"] {
+        display: inline-block;
+        opacity: 0.55;
+        transition: transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="tree-view"][data-part="branch-indicator"][data-state="open"] {
+        transform: rotate(90deg);
+    }
+
+    [data-scope="tree-view"][data-part="branch-indicator"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        scale: -1 1;
+    }
+
+    [data-scope="tree-view"][data-part="branch-content"] {
+        display: flex;
+        flex-direction: column;
+        margin-inline-start: var(--space-md);
+        padding-inline-start: var(--space-md);
+        border-inline-start: var(--border) solid var(--color-base-300);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="primary"] {
+        --tree-accent: var(--color-primary);
+        --tree-soft: var(--color-primary-soft);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="secondary"] {
+        --tree-accent: var(--color-secondary);
+        --tree-soft: var(--color-secondary-soft);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="accent"] {
+        --tree-accent: var(--color-accent);
+        --tree-soft: var(--color-accent-soft);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="neutral"] {
+        --tree-accent: var(--color-neutral);
+        --tree-soft: var(--color-neutral-soft);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="info"] {
+        --tree-accent: var(--color-info);
+        --tree-soft: var(--color-info-soft);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="success"] {
+        --tree-accent: var(--color-success);
+        --tree-soft: var(--color-success-soft);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="warning"] {
+        --tree-accent: var(--color-warning);
+        --tree-soft: var(--color-warning-soft);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="error"] {
+        --tree-accent: var(--color-error);
+        --tree-soft: var(--color-error-soft);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="xs"] {
+        --tree-text: var(--text-xs);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="sm"] {
+        --tree-text: var(--text-xs);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="lg"] {
+        --tree-text: var(--text-md);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="xl"] {
+        --tree-text: var(--text-lg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="tree-view"][data-part="branch-indicator"] {
+            transition: none;
+        }
+    }
+}

@@ -1,0 +1,66 @@
+@layer zero.recipes {
+    [data-scope="stats"][data-part="root"] {
+        display: flex;
+        border: var(--border) solid var(--hero-line);
+        border-radius: var(--radius-box);
+        background: var(--color-base-100);
+    }
+
+    [data-scope="stats"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+    }
+
+    [data-scope="stats"][data-part="item"] {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: var(--space-md);
+        align-content: center;
+        flex: 1 1 0%;
+        padding: var(--space-lg) var(--space-xl);
+    }
+
+    [data-scope="stats"][data-part="item"][data-orientation="horizontal"] + [data-scope="stats"][data-part="item"] {
+        border-inline-start: var(--border) solid var(--hero-line);
+    }
+
+    [data-scope="stats"][data-part="item"][data-orientation="vertical"] + [data-scope="stats"][data-part="item"] {
+        border-block-start: var(--border) solid var(--hero-line);
+    }
+
+    [data-scope="stats"][data-part="title"] {
+        grid-column: 1;
+        font-size: var(--text-xs);
+        color: var(--hero-muted);
+    }
+
+    [data-scope="stats"][data-part="value"] {
+        grid-column: 1;
+        font-size: var(--text-2xl);
+        font-weight: var(--weight-semibold);
+        font-variant-numeric: tabular-nums;
+    }
+
+    [data-scope="stats"][data-part="desc"] {
+        grid-column: 1;
+        font-size: var(--text-xs);
+        color: var(--hero-muted);
+    }
+
+    [data-scope="stats"][data-part="figure"] {
+        grid-column: 2;
+        grid-row: 1 / span 3;
+        align-self: center;
+    }
+
+    @scope ([data-scope="stats"][data-part="root"][data-size="sm"]) to ([data-scope="stats"][data-part="root"]) {
+        [data-scope="stats"][data-part="value"] {
+            font-size: var(--text-xl);
+        }
+    }
+
+    @scope ([data-scope="stats"][data-part="root"][data-size="lg"]) to ([data-scope="stats"][data-part="root"]) {
+        [data-scope="stats"][data-part="value"] {
+            font-size: var(--text-3xl);
+        }
+    }
+}

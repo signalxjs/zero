@@ -1,0 +1,187 @@
+@layer zero.recipes {
+    [data-scope="switch"][data-part="root"] {
+        --switch-width: calc(var(--size-selector) * 13);
+        --switch-height: calc(var(--size-selector) * 8);
+        --switch-accent: var(--color-primary);
+        --switch-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="switch"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    [data-scope="switch"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="switch"][data-part="control"] {
+        display: inline-block;
+        position: relative;
+        width: var(--switch-width);
+        height: var(--switch-height);
+        border-radius: 624rem;
+        background: var(--color-surface-container-high);
+        border: 2px solid var(--color-outline);
+        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="switch"][data-part="control"][data-state="checked"] {
+        background: var(--switch-accent);
+        border-color: var(--switch-accent);
+    }
+
+    [data-scope="switch"][data-part="control"][data-invalid] {
+        --switch-accent: var(--color-error);
+        --switch-on-accent: var(--color-error-content);
+        border-color: var(--color-error);
+    }
+
+    [data-scope="switch"][data-part="control"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="switch"][data-part="control"]:hover:not([data-disabled]) [data-part="thumb"]::before {
+        opacity: 0.08;
+    }
+
+    [data-scope="switch"][data-part="control"][data-pressed]:not([data-disabled]) [data-part="thumb"]::before {
+        opacity: 0.12;
+    }
+
+    [data-scope="switch"][data-part="control"][data-state="unchecked"] [data-part="thumb"]::before {
+        background: var(--color-base-content);
+    }
+
+    [data-scope="switch"][data-part="thumb"] {
+        position: absolute;
+        top: 50%;
+        inset-inline-start: var(--size-selector);
+        width: calc(var(--size-selector) * 4);
+        height: calc(var(--size-selector) * 4);
+        border-radius: 624rem;
+        background: var(--color-outline);
+        transform: translateY(-50%);
+        transition: transform var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), width var(--duration-fast) var(--ease-standard), height var(--duration-fast) var(--ease-standard);
+        --switch-thumb-dir: 1;
+    }
+
+    [data-scope="switch"][data-part="thumb"][data-state="checked"] {
+        background: var(--switch-on-accent);
+        width: calc(var(--size-selector) * 6);
+        height: calc(var(--size-selector) * 6);
+        transform: translate(calc(var(--switch-thumb-dir) * (var(--switch-width) - 100% - var(--size-selector) * 2)), -50%);
+    }
+
+    [data-scope="switch"][data-part="thumb"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --switch-thumb-dir: -1;
+    }
+
+    [data-scope="switch"][data-part="thumb"]::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: calc(var(--size-selector) * 10);
+        height: calc(var(--size-selector) * 10);
+        border-radius: 50%;
+        background: var(--switch-accent);
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="switch"][data-part="label"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="switch"][data-part="hidden-input"] {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="xs"] {
+        --switch-width: calc(var(--size-selector) * 9);
+        --switch-height: calc(var(--size-selector) * 5.5);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="sm"] {
+        --switch-width: calc(var(--size-selector) * 11);
+        --switch-height: calc(var(--size-selector) * 6.5);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="lg"] {
+        --switch-width: calc(var(--size-selector) * 15);
+        --switch-height: calc(var(--size-selector) * 9);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="xl"] {
+        --switch-width: calc(var(--size-selector) * 17);
+        --switch-height: calc(var(--size-selector) * 10);
+    }
+
+    [data-scope="switch"][data-part="root"][data-color="primary"] {
+        --switch-accent: var(--color-primary);
+        --switch-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="switch"][data-part="root"][data-color="secondary"] {
+        --switch-accent: var(--color-secondary);
+        --switch-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="switch"][data-part="root"][data-color="tertiary"] {
+        --switch-accent: var(--color-tertiary);
+        --switch-on-accent: var(--color-tertiary-content);
+    }
+
+    [data-scope="switch"][data-part="root"][data-color="error"] {
+        --switch-accent: var(--color-error);
+        --switch-on-accent: var(--color-error-content);
+    }
+
+    [data-scope="switch"][data-part="root"][data-color="neutral"] {
+        --switch-accent: var(--color-neutral);
+        --switch-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="switch"][data-part="root"][data-color="info"] {
+        --switch-accent: var(--color-info);
+        --switch-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="switch"][data-part="root"][data-color="success"] {
+        --switch-accent: var(--color-success);
+        --switch-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="switch"][data-part="root"][data-color="warning"] {
+        --switch-accent: var(--color-warning);
+        --switch-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="switch"][data-part="root"][data-color="accent"] {
+        --switch-accent: var(--color-accent);
+        --switch-on-accent: var(--color-accent-content);
+    }
+
+    @media (hover: none) {
+        [data-scope="switch"][data-part="control"]:hover:not([data-disabled]) [data-part="thumb"]::before {
+            opacity: 0;
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="switch"][data-part="thumb"]::before {
+            display: none;
+        }
+    }
+}

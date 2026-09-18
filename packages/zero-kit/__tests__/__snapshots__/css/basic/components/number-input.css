@@ -1,0 +1,194 @@
+@layer zero.recipes {
+    [data-scope="number-input"][data-part="root"] {
+        --number-input-accent: var(--color-primary);
+    }
+
+    [data-scope="number-input"][data-part="root"] {
+        display: inline-flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="number-input"][data-part="label"] {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        font-variant-numeric: tabular-nums;
+    }
+
+    [data-scope="number-input"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="number-input"][data-part="label"][data-invalid] {
+        color: var(--color-error);
+    }
+
+    [data-scope="number-input"][data-part="control"] {
+        display: inline-flex;
+        align-items: stretch;
+        background: var(--color-base-100);
+        border: var(--border) solid var(--color-base-300);
+        border-radius: var(--radius-field);
+        overflow: hidden;
+        transition: border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="number-input"][data-part="control"]:hover:not([data-disabled]) {
+        border-color: var(--color-secondary);
+    }
+
+    [data-scope="number-input"][data-part="control"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="number-input"][data-part="control"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="number-input"][data-part="control"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+        border-color: var(--color-primary);
+    }
+
+    [data-scope="number-input"][data-part="control"][data-invalid][data-focus-visible] {
+        outline: 2px solid var(--color-error);
+        border-color: var(--color-error);
+    }
+
+    [data-scope="number-input"][data-part="input"] {
+        width: 5rem;
+        min-width: 0;
+        appearance: none;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: inherit;
+        caret-color: var(--number-input-accent);
+        font: inherit;
+        font-size: var(--text-sm);
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+        padding: var(--space-md);
+    }
+
+    [data-scope="number-input"][data-part="input"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="number-input"][data-part="input"]::placeholder {
+        color: color-mix(in oklch, var(--color-base-content) 55%, transparent);
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        padding: 0 var(--space-lg);
+        cursor: pointer;
+        user-select: none;
+        border-inline-start: var(--border) solid var(--color-base-300);
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"]:hover:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
+    }
+
+    [data-scope="number-input"][data-part="decrement-trigger"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        padding: 0 var(--space-lg);
+        cursor: pointer;
+        user-select: none;
+        border-inline-end: var(--border) solid var(--color-base-300);
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="number-input"][data-part="decrement-trigger"]:hover:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="number-input"][data-part="decrement-trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="number-input"][data-part="decrement-trigger"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="primary"] {
+        --number-input-accent: var(--color-primary);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="secondary"] {
+        --number-input-accent: var(--color-secondary);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="accent"] {
+        --number-input-accent: var(--color-accent);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="neutral"] {
+        --number-input-accent: var(--color-neutral);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="info"] {
+        --number-input-accent: var(--color-info);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="success"] {
+        --number-input-accent: var(--color-success);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="warning"] {
+        --number-input-accent: var(--color-warning);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="error"] {
+        --number-input-accent: var(--color-error);
+    }
+
+    @scope ([data-scope="number-input"][data-part="root"][data-size="xs"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-xs);
+            padding: var(--space-xs);
+        }
+    }
+
+    @scope ([data-scope="number-input"][data-part="root"][data-size="sm"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-xs);
+            padding: var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="number-input"][data-part="root"][data-size="lg"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-md);
+            padding: var(--space-lg);
+        }
+    }
+
+    @scope ([data-scope="number-input"][data-part="root"][data-size="xl"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-lg);
+            padding: var(--space-xl);
+        }
+    }
+}

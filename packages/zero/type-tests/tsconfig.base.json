@@ -1,0 +1,37 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "jsxImportSource": "sigx",
+        "esModuleInterop": true,
+        // skipLibCheck stays on for DEPENDENCY declarations (runtime-core's
+        // shipped d.ts currently fails a full lib check), so the register
+        // stand-in is a .ts module rather than a .d.ts — skipLibCheck skips
+        // only declaration files, and the whole point of the augmented
+        // project is that the register file itself is semantically checked.
+        // Phase 3's generator gate must compile the real EMITTED .d.ts with
+        // lib checking on, since an app's skipLibCheck would skip it.
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "types": [],
+        // Every candidate must reach SOURCE. A subpath that matches none of
+        // these falls through to Node resolution, which lands in the stale,
+        // gitignored dist/ (or, in CI, resolves to nothing and is silently
+        // skipped under skipLibCheck) — the hollow-gate failure #316 closed.
+        // Components live at src/components/<scope>/, so the bare `../src/*`
+        // wildcard alone cannot reach them. Pinned against package.json
+        // exports by __tests__/type-test-paths.test.ts.
+        "paths": {
+            "@sigx/zero": ["../src/index.ts"],
+            "@sigx/zero/*": [
+                "../src/components/*/index.ts",
+                "../src/*/index.ts",
+                "../src/*"
+            ]
+        }
+    }
+}

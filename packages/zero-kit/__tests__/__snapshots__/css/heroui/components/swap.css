@@ -1,0 +1,76 @@
+@layer zero.recipes {
+    [data-scope="swap"][data-part="root"] {
+        --swap-ink: var(--color-base-content);
+        --swap-size: var(--text-xl);
+    }
+
+    [data-scope="swap"][data-part="root"] {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        font-size: var(--swap-size);
+        line-height: var(--leading-none);
+        color: var(--swap-ink);
+        user-select: none;
+    }
+
+    [data-scope="swap"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="swap"][data-part="root"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
+    [data-scope="swap"][data-part="root"]:is(button) {
+        appearance: none;
+        border: none;
+        background: transparent;
+        padding: var(--space-2xs);
+        border-radius: var(--radius-selector);
+        cursor: pointer;
+        font: inherit;
+        font-size: var(--swap-size);
+        color: var(--swap-ink);
+    }
+
+    [data-scope="swap"][data-part="on"] {
+        grid-area: 1 / 1;
+        transition: transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="swap"][data-part="on"][data-state="off"] {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    [data-scope="swap"][data-part="off"] {
+        grid-area: 1 / 1;
+        transition: transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="swap"][data-part="off"][data-state="on"] {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    [data-scope="swap"][data-part="root"][data-size="sm"] {
+        --swap-size: var(--text-md);
+    }
+
+    [data-scope="swap"][data-part="root"][data-size="lg"] {
+        --swap-size: var(--text-2xl);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="swap"][data-part="on"] {
+            transition: none;
+        }
+
+        [data-scope="swap"][data-part="off"] {
+            transition: none;
+        }
+    }
+}

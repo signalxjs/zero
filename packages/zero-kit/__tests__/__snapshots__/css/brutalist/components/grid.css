@@ -1,0 +1,32 @@
+@layer zero.recipes {
+    [data-scope="grid"][data-part="root"] {
+        --l-cols: none;
+        --l-track: 16rem;
+        --l-gap: 0;
+        --l-gap-x: var(--l-gap);
+        --l-gap-y: var(--l-gap);
+        --l-pad: 0;
+        --l-pad-x: var(--l-pad);
+        --l-pad-y: var(--l-pad);
+        --l-align: stretch;
+        --l-justify: stretch;
+    }
+
+    [data-scope="grid"][data-part="root"] {
+        display: grid;
+        min-inline-size: 0;
+        grid-template-columns: var(--l-cols);
+        column-gap: var(--l-gap-x);
+        row-gap: var(--l-gap-y);
+        padding-inline: var(--l-pad-x);
+        padding-block: var(--l-pad-y);
+        align-items: var(--l-align);
+        justify-items: var(--l-justify);
+    }
+
+    [data-scope="grid"][data-part="cell"] {
+        --l-span: auto;
+        grid-column: var(--l-span);
+        min-inline-size: 0;
+    }
+}

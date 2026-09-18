@@ -1,0 +1,186 @@
+@layer zero.recipes {
+    [data-scope="field"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+
+    [data-scope="field"][data-part="label"] {
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="field"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="field"][data-part="label"][data-required]::after {
+        content: " *";
+        color: var(--color-error);
+    }
+
+    [data-scope="field"][data-part="description"] {
+        margin: 0;
+        font-size: var(--text-xs);
+        opacity: 0.75;
+    }
+
+    [data-scope="field"][data-part="error"] {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        color: var(--color-error);
+    }
+
+    [data-scope="field"][data-part="root"][data-size="xs"] {
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="field"][data-part="root"][data-size="sm"] {
+        gap: var(--space-2xs);
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="primary"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-primary);
+            color: var(--color-primary-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="secondary"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-secondary);
+            color: var(--color-secondary-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="accent"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-accent);
+            color: var(--color-accent-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="neutral"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-neutral);
+            color: var(--color-neutral-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="info"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-info);
+            color: var(--color-info-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="success"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-success);
+            color: var(--color-success-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="warning"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-warning);
+            color: var(--color-warning-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="error"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-error);
+            color: var(--color-error-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="xs"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            letter-spacing: var(--tracking-normal);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="lg"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="xl"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-md);
+        }
+    }
+}

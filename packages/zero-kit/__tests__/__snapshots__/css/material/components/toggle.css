@@ -1,0 +1,181 @@
+@layer zero.recipes {
+    [data-scope="toggle"][data-part="root"] {
+        --toggle-accent: var(--color-primary);
+        --toggle-on-accent: var(--color-primary-content);
+        --toggle-ink: var(--color-base-content);
+    }
+
+    [data-scope="toggle"][data-part="root"] {
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-xs);
+        background: transparent;
+        color: var(--color-base-content);
+        border: var(--border) solid var(--color-outline);
+        border-radius: var(--radius-field);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-state="on"] {
+        background: var(--toggle-accent);
+        color: var(--toggle-on-accent);
+        border-color: var(--toggle-accent);
+        --toggle-ink: var(--toggle-on-accent);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="toggle"][data-part="root"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="toggle"][data-part="root"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--toggle-ink);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="toggle"][data-part="root"]:hover:not([data-disabled])::before {
+        opacity: 0.08;
+    }
+
+    [data-scope="toggle"][data-part="root"][data-pressed]:not([data-disabled])::before {
+        opacity: 0.12;
+    }
+
+    [data-scope="toggle"][data-part="root"]::after {
+        content: "";
+        position: absolute;
+        left: var(--press-x, 50%);
+        top: var(--press-y, 50%);
+        width: calc(var(--press-r, 0px) * 2);
+        height: calc(var(--press-r, 0px) * 2);
+        border-radius: 50%;
+        background: var(--toggle-ink);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="toggle"][data-part="root"][data-press-animating]::after {
+        animation: toggle-ripple var(--duration-slow) var(--ease-standard);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-color="primary"] {
+        --toggle-accent: var(--color-primary);
+        --toggle-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="toggle"][data-part="root"]:not([data-color]) {
+        --toggle-accent: var(--color-primary);
+        --toggle-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-color="secondary"] {
+        --toggle-accent: var(--color-secondary);
+        --toggle-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-color="tertiary"] {
+        --toggle-accent: var(--color-tertiary);
+        --toggle-on-accent: var(--color-tertiary-content);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-color="error"] {
+        --toggle-accent: var(--color-error);
+        --toggle-on-accent: var(--color-error-content);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-color="neutral"] {
+        --toggle-accent: var(--color-neutral);
+        --toggle-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-color="info"] {
+        --toggle-accent: var(--color-info);
+        --toggle-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-color="success"] {
+        --toggle-accent: var(--color-success);
+        --toggle-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-color="warning"] {
+        --toggle-accent: var(--color-warning);
+        --toggle-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-color="accent"] {
+        --toggle-accent: var(--color-accent);
+        --toggle-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-size="xs"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-size="md"] {
+        padding: var(--space-xs) var(--space-lg);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="toggle"][data-part="root"]:not([data-size]) {
+        padding: var(--space-xs) var(--space-lg);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-size="lg"] {
+        padding: var(--space-sm) var(--space-xl);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="toggle"][data-part="root"][data-size="xl"] {
+        padding: var(--space-md) var(--space-2xl);
+        font-size: var(--text-lg);
+    }
+
+    @media (hover: none) {
+        [data-scope="toggle"][data-part="root"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="toggle"][data-part="root"]::before {
+            display: none;
+        }
+
+        [data-scope="toggle"][data-part="root"]::after {
+            display: none;
+        }
+    }
+}
+@keyframes toggle-ripple {
+    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}

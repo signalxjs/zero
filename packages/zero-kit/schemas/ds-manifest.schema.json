@@ -1,0 +1,205 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://signalxjs.github.io/zero/schemas/ds-manifest.schema.json",
+    "title": "SignalX Zero design-system manifest",
+    "description": "The manifest a COMPILED design system ships as dist/manifest.json (written by @sigx/zero-kit's writeArtifacts): its themes, its declared token vocabulary, and per component the axis values its recipes actually wire. A DIFFERENT artifact from the zero anatomy manifest (manifest.schema.json), which describes @sigx/zero's component anatomies — the two files share a name on disk and nothing else. Versioned: manifestVersion is the contract for this file's shape, and every consumer should check it instead of hand-declaring the shape (drift defense the unversioned file forced on the playground and the e2e suites).",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["$schema", "manifestVersion", "zeroVersion", "name", "themes", "tokens", "components"],
+    "properties": {
+        "$schema": {
+            "description": "Self-reference to this schema — the emitter always writes exactly this URL.",
+            "const": "https://signalxjs.github.io/zero/schemas/ds-manifest.schema.json"
+        },
+        "manifestVersion": {
+            "description": "The version of THIS FILE's shape. Bumped when the manifest contract changes incompatibly; consumers hard-check it rather than sniffing keys.",
+            "const": 1
+        },
+        "zeroVersion": {
+            "description": "The @sigx/zero contract version the design system was compiled against (lockstep with @sigx/zero-kit).",
+            "type": "string",
+            "minLength": 1
+        },
+        "name": {
+            "description": "The design system's own name, as declared to defineDesignSystem.",
+            "type": "string",
+            "minLength": 1
+        },
+        "themes": {
+            "description": "The compiled themes — names, color-scheme, light/dark pairing and the swatch a picker samples.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/theme" },
+            "minItems": 1
+        },
+        "tokens": {
+            "description": "The DECLARED token vocabulary — what the design system says, as opposed to components[*], which is what its recipes deliver.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["roles", "sizes", "variants", "variantsDeclared", "axes", "modifiers", "scopes", "custom", "breakpoints", "system", "systemDark", "properties"],
+            "properties": {
+                "roles": {
+                    "description": "Color roles: role name → declaration ({} = full role with -content and -soft). Doubles as the `color` axis vocabulary; empty for a design system with no colour axis.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" },
+                    "additionalProperties": { "$ref": "#/$defs/roleDecl" }
+                },
+                "sizes": {
+                    "description": "The `size` axis ramp, resolved (declared, else the recommended ramp); [] when declared out of existence.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/axisValue" }
+                },
+                "variants": {
+                    "description": "The `variant` axis vocabulary — the UNION of every scope's vocabulary once tokens.scopes restricts any ([] when undeclared or declared out of existence — `variantsDeclared` tells the two apart).",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/axisValue" }
+                },
+                "variantsDeclared": {
+                    "description": "Whether `tokens.variants` was stated at all. `variants: []` is the claim \"this design system has no variant axis\" (the grammar `sizes: []` uses); an omitted key is only silence, and both resolve to an empty `variants` list.",
+                    "type": "boolean"
+                },
+                "axes": {
+                    "description": "Declared custom variant axes: axis name → values.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/axisValue" }
+                    }
+                },
+                "modifiers": {
+                    "description": "Declared presence-only modifiers (rendered data-mod-<name>).",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" }
+                },
+                "scopes": {
+                    "description": "Per-scope restrictions of the vocabularies above (#294; docs/architecture.md, \"Declared vocabulary\") — scope → its own vocabulary subset. {} when none are declared.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": { "type": "object" }
+                },
+                "custom": {
+                    "description": "Free-form custom token declarations, as authored.",
+                    "type": "object"
+                },
+                "breakpoints": {
+                    "description": "Declared breakpoint names → CSS lengths.",
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                },
+                "system": {
+                    "description": "DS-level values per token category id (radius, size, typography, …), as authored.",
+                    "type": "object"
+                },
+                "systemDark": {
+                    "description": "Overrides applied to dark-scheme themes.",
+                    "type": "object"
+                },
+                "properties": {
+                    "description": "Every custom property the compiled tokens.css emits, flat and sorted.",
+                    "type": "array",
+                    "items": { "type": "string", "pattern": "^--" }
+                }
+            }
+        },
+        "components": {
+            "description": "Scope → the axis vocabulary that scope's recipe actually WIRES (plus, when tokens.scopes restricts it, what the scope offers). A scope absent here has no recipe in this design system.",
+            "type": "object",
+            "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+            "additionalProperties": { "$ref": "#/$defs/componentAxes" }
+        },
+        "api": {
+            "description": "Scope → the vendor-named API surface — present iff the design system declares an `api` (issue #179).",
+            "type": "object",
+            "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+            "additionalProperties": { "type": "object" }
+        },
+        "externalScopes": {
+            "description": "Scope → the ecosystem package that ships it, for every component adopted from outside @sigx/zero. Absent when the design system adopted none. A top-level key rather than a field on componentAxes, which holds what a recipe WIRES — an owning package is not an axis fact.",
+            "type": "object",
+            "minProperties": 1,
+            "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+            "additionalProperties": { "type": "string", "minLength": 1 }
+        }
+    },
+    "$defs": {
+        "axisValue": {
+            "description": "An axis VALUE: lowercase letters, digits and hyphens, repeated hyphens included (Carbon's danger--tertiary) — what a quoted [data-…=\"…\"] attribute selector, a single-quoted literal union in register.d.ts and an unescaped lynx class name (zx-a-<axis>-<value>) all carry verbatim. Wider than the kebab-case grammar names take; still no %, ., quotes, backslashes, whitespace or uppercase.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+        },
+        "kebabToken": {
+            "description": "A kebab-case identifier that may start with a digit — the grammar for token keys and axis/modifier names.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "roleDecl": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "content": { "type": "boolean" },
+                "soft": { "type": "boolean" },
+                "description": { "type": "string" }
+            }
+        },
+        "theme": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "colorScheme", "swatch"],
+            "properties": {
+                "name": { "$ref": "#/$defs/kebabToken" },
+                "colorScheme": { "enum": ["light", "dark"] },
+                "pair": {
+                    "description": "The counterpart theme toggle() switches to.",
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "swatch": {
+                    "description": "Representative colors for pickers: token → CSS color.",
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                }
+            }
+        },
+        "axisValues": {
+            "description": "A wired value set. Modifier names ride the same list shape; their kebab grammar is a subset of the axis-value one.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/axisValue" }
+        },
+        "componentAxes": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["color", "size", "variant", "axes", "mods"],
+            "properties": {
+                "color": { "$ref": "#/$defs/axisValues" },
+                "size": { "$ref": "#/$defs/axisValues" },
+                "variant": { "$ref": "#/$defs/axisValues" },
+                "axes": {
+                    "description": "Custom axes this recipe wires: axis name → values.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": { "$ref": "#/$defs/axisValues" }
+                },
+                "mods": { "$ref": "#/$defs/axisValues" },
+                "defaults": {
+                    "description": "The recipe's defaultVariants — manifest/docs only, never widens a union.",
+                    "type": "object",
+                    "additionalProperties": { "$ref": "#/$defs/axisValue" }
+                },
+                "offered": {
+                    "description": "The vocabulary this scope OFFERS (its tokens.scopes entry, resolved) — the promise, where the sibling fields are the delivery.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "color": { "$ref": "#/$defs/axisValues" },
+                        "size": { "$ref": "#/$defs/axisValues" },
+                        "variant": { "$ref": "#/$defs/axisValues" },
+                        "axes": {
+                            "type": "object",
+                            "additionalProperties": { "$ref": "#/$defs/axisValues" }
+                        },
+                        "mods": { "$ref": "#/$defs/axisValues" }
+                    }
+                }
+            }
+        }
+    }
+}

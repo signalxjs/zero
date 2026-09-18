@@ -1,0 +1,42 @@
+@layer zero.recipes {
+    [data-scope="skeleton"][data-part="root"] {
+        --skeleton-fill: var(--color-base-300);
+    }
+
+    [data-scope="skeleton"][data-part="root"] {
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-state="loading"] {
+        color: transparent;
+        background: var(--skeleton-fill);
+        animation: zero-carbon-skeleton 1.6s ease-in-out infinite;
+        user-select: none;
+        pointer-events: none;
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-size="sm"] {
+        border-radius: var(--radius-selector);
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-size="lg"] {
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-size="xl"] {
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-size="2xl"] {
+        border-radius: var(--radius-box);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="skeleton"][data-part="root"][data-state="loading"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-carbon-skeleton {
+    from, to { opacity: 1; } 50% { opacity: 0.55; }
+}

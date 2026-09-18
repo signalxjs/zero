@@ -1,0 +1,285 @@
+@layer zero.recipes {
+    [data-scope="drawer"][data-part="trigger"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5em;
+        height: calc(var(--size-field) * 12);
+        padding-inline: calc(var(--size-field) * 4);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--color-base-content);
+        background: var(--color-base-200);
+        border: var(--border) solid var(--color-base-300);
+        border-radius: var(--radius-field);
+        box-shadow: var(--shadow-xs);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="drawer"][data-part="trigger"]:hover:not([data-disabled]) {
+        background: var(--color-base-300);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-focus-visible] {
+        outline: 2px solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
+    [data-scope="drawer"][data-part="panel"] {
+        opacity: 0;
+        transform: none;
+        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), display var(--duration-fast) allow-discrete, overlay var(--duration-fast) allow-discrete;
+        padding: var(--space-lg);
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        border: none;
+        border-radius: var(--radius-box);
+        box-shadow: var(--shadow-xl);
+        inline-size: min(20rem, 85vw);
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-state="open"] {
+        opacity: 1;
+        transform: none;
+    }
+
+    [data-scope="drawer"][data-part="panel"]:modal {
+        position: fixed;
+        inset-block-start: 0;
+        inset-block-end: 0;
+        block-size: 100dvh;
+        max-block-size: 100dvh;
+        inline-size: min(20rem, 85vw);
+        max-inline-size: none;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-placement="start"]:modal {
+        inset-inline-start: 0;
+        inset-inline-end: auto;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-placement="end"]:modal {
+        inset-inline-start: auto;
+        inset-inline-end: 0;
+    }
+
+    [data-scope="drawer"][data-part="panel"]::backdrop {
+        background: oklch(0% 0 0 / 0.4);
+    }
+
+    [data-scope="drawer"][data-part="title"] {
+        margin: 0 0 var(--space-md);
+        font-size: var(--text-lg);
+        font-weight: var(--weight-bold);
+    }
+
+    [data-scope="drawer"][data-part="close"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5em;
+        height: calc(var(--size-field) * 12);
+        padding-inline: calc(var(--size-field) * 4);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--color-base-content);
+        background: var(--color-base-200);
+        border: var(--border) solid var(--color-base-300);
+        border-radius: var(--radius-field);
+        box-shadow: var(--shadow-xs);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="drawer"][data-part="close"]:hover:not([data-disabled]) {
+        background: var(--color-base-300);
+    }
+
+    [data-scope="drawer"][data-part="close"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="drawer"][data-part="close"][data-focus-visible] {
+        outline: 2px solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="primary"] {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+        border-color: transparent;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="primary"]:hover:not([data-disabled]) {
+        background: var(--color-primary);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="primary"][data-state="open"] {
+        background: var(--color-primary);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="secondary"] {
+        background: var(--color-secondary);
+        color: var(--color-secondary-content);
+        border-color: transparent;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="secondary"]:hover:not([data-disabled]) {
+        background: var(--color-secondary);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="secondary"][data-state="open"] {
+        background: var(--color-secondary);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="accent"] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+        border-color: transparent;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="accent"]:hover:not([data-disabled]) {
+        background: var(--color-accent);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="accent"][data-state="open"] {
+        background: var(--color-accent);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="neutral"] {
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+        border-color: transparent;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="neutral"]:hover:not([data-disabled]) {
+        background: var(--color-neutral);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="neutral"][data-state="open"] {
+        background: var(--color-neutral);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="info"] {
+        background: var(--color-info);
+        color: var(--color-info-content);
+        border-color: transparent;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="info"]:hover:not([data-disabled]) {
+        background: var(--color-info);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="info"][data-state="open"] {
+        background: var(--color-info);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="success"] {
+        background: var(--color-success);
+        color: var(--color-success-content);
+        border-color: transparent;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="success"]:hover:not([data-disabled]) {
+        background: var(--color-success);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="success"][data-state="open"] {
+        background: var(--color-success);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="warning"] {
+        background: var(--color-warning);
+        color: var(--color-warning-content);
+        border-color: transparent;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="warning"]:hover:not([data-disabled]) {
+        background: var(--color-warning);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="warning"][data-state="open"] {
+        background: var(--color-warning);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="error"] {
+        background: var(--color-error);
+        color: var(--color-error-content);
+        border-color: transparent;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="error"]:hover:not([data-disabled]) {
+        background: var(--color-error);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="error"][data-state="open"] {
+        background: var(--color-error);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="xs"] {
+        height: calc(var(--size-field) * 8);
+        padding-inline: calc(var(--size-field) * 2);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="sm"] {
+        height: calc(var(--size-field) * 10);
+        padding-inline: calc(var(--size-field) * 3);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="lg"] {
+        height: calc(var(--size-field) * 14);
+        padding-inline: calc(var(--size-field) * 5);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="xl"] {
+        height: calc(var(--size-field) * 16);
+        padding-inline: calc(var(--size-field) * 6);
+        font-size: var(--text-lg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="drawer"][data-part="panel"] {
+            transition: none;
+        }
+
+        [data-scope="drawer"][data-part="panel"][data-state="open"] {
+            transform: none;
+        }
+    }
+
+    @starting-style {
+        [data-scope="drawer"][data-part="panel"][data-state="open"] {
+            opacity: 0;
+            transform: none;
+        }
+    }
+}

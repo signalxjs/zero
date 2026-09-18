@@ -1,0 +1,57 @@
+{
+    "name": "@sigx/create-zero-ds",
+    "version": "0.2.0-beta.6",
+    "description": "Scaffold a SignalX Zero design system from a style brief — `pnpm create @sigx/zero-ds <name> --brief <id>` lays down the package with @sigx/zero-basic's recipes as the baseline, fitted to the brief's vocabulary.",
+    "type": "module",
+    "bin": {
+        "create-zero-ds": "./bin/create-zero-ds.mjs"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "bin",
+        "templates"
+    ],
+    "sideEffects": false,
+    "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+    },
+    "scripts": {
+        "build": "tsgo -p tsconfig.build.json && node scripts/collect-templates.mjs",
+        "typecheck": "tsgo --noEmit"
+    },
+    "keywords": [
+        "SignalX",
+        "sigx",
+        "design-system",
+        "scaffold",
+        "create"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/zero.git",
+        "directory": "packages/create-zero-ds"
+    },
+    "homepage": "https://sigx.dev/zero/",
+    "bugs": {
+        "url": "https://github.com/signalxjs/zero/issues"
+    },
+    "devDependencies": {
+        "@sigx/zero-basic": "workspace:^",
+        "@sigx/zero-kit": "workspace:^",
+        "@types/node": "^22.10.0",
+        "typescript": "^6.0.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

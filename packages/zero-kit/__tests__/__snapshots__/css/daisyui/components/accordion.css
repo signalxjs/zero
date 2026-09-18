@@ -1,0 +1,165 @@
+@layer zero.recipes {
+    [data-scope="accordion"][data-part="root"] {
+        --accordion-accent: var(--color-base-content);
+    }
+
+    [data-scope="accordion"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    [data-scope="accordion"][data-part="item"] {
+        interpolate-size: allow-keywords;
+        border: var(--border) solid var(--color-base-300);
+        border-radius: var(--radius-box);
+        background: var(--color-base-100);
+        overflow: hidden;
+    }
+
+    [data-scope="accordion"][data-part="item"]::details-content {
+        block-size: 0;
+        overflow: hidden;
+        transition: block-size var(--duration-normal) var(--ease-standard), content-visibility var(--duration-normal) allow-discrete;
+    }
+
+    [data-scope="accordion"][data-part="item"][open]::details-content {
+        block-size: auto;
+    }
+
+    [data-scope="accordion"][data-part="trigger"] {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--space-xl) var(--space-2xl);
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
+        cursor: pointer;
+        list-style: none;
+    }
+
+    [data-scope="accordion"][data-part="trigger"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="accordion"][data-part="trigger"][data-state="open"] {
+        color: var(--accordion-accent);
+    }
+
+    [data-scope="accordion"][data-part="trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="accordion"][data-part="trigger"][data-focus-visible] {
+        outline: 2px solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
+    [data-scope="accordion"][data-part="trigger"]::after {
+        content: "";
+        width: 0.5rem;
+        height: 0.5rem;
+        border: 2px solid currentColor;
+        border-top: none;
+        border-left: none;
+        transform: rotate(45deg);
+        transition: transform var(--duration-normal) var(--ease-standard);
+        opacity: 0.6;
+    }
+
+    [data-scope="accordion"][data-part="trigger"][data-state="open"]::after {
+        transform: rotate(225deg);
+    }
+
+    [data-scope="accordion"][data-part="panel"] {
+        padding: 0 var(--space-2xl) var(--space-xl);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="primary"] {
+        --accordion-accent: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="secondary"] {
+        --accordion-accent: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="accent"] {
+        --accordion-accent: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="neutral"] {
+        --accordion-accent: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="info"] {
+        --accordion-accent: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="success"] {
+        --accordion-accent: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="warning"] {
+        --accordion-accent: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="error"] {
+        --accordion-accent: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="xs"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            padding: var(--space-md) var(--space-lg);
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="accordion"][data-part="panel"] {
+            padding: 0 var(--space-lg) var(--space-md);
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="sm"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            padding: var(--space-lg) var(--space-xl);
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="accordion"][data-part="panel"] {
+            padding: 0 var(--space-xl) var(--space-lg);
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="lg"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            padding: var(--space-2xl) var(--space-2xl);
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="accordion"][data-part="panel"] {
+            padding: 0 var(--space-2xl) var(--space-2xl);
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="xl"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            padding: var(--space-2xl) var(--space-2xl);
+            font-size: var(--text-xl);
+        }
+
+        [data-scope="accordion"][data-part="panel"] {
+            padding: 0 var(--space-2xl) var(--space-2xl);
+            font-size: var(--text-lg);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="accordion"][data-part="item"]::details-content {
+            transition: none;
+        }
+    }
+}

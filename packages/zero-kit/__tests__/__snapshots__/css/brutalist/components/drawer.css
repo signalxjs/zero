@@ -1,0 +1,190 @@
+@layer zero.recipes {
+    [data-scope="drawer"][data-part="trigger"] {
+        appearance: none;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        padding: var(--space-sm) var(--space-lg);
+        box-shadow: var(--shadow-xs);
+        cursor: pointer;
+    }
+
+    [data-scope="drawer"][data-part="trigger"]:hover:not([data-disabled]) {
+        box-shadow: var(--shadow-xs);
+        transform: translate(1px, 1px);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    [data-scope="drawer"][data-part="panel"] {
+        opacity: 0;
+        transform: none;
+        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), display var(--duration-fast) allow-discrete, overlay var(--duration-fast) allow-discrete;
+        padding: var(--space-xl);
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        inline-size: min(20rem, 85vw);
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-state="open"] {
+        opacity: 1;
+        transform: none;
+    }
+
+    [data-scope="drawer"][data-part="panel"]:modal {
+        position: fixed;
+        inset-block-start: 0;
+        inset-block-end: 0;
+        block-size: 100dvh;
+        max-block-size: 100dvh;
+        inline-size: min(20rem, 85vw);
+        max-inline-size: none;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-placement="start"]:modal {
+        inset-inline-start: 0;
+        inset-inline-end: auto;
+        border-inline-end: calc(var(--border) * 2) solid var(--color-base-content);
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-placement="end"]:modal {
+        inset-inline-start: auto;
+        inset-inline-end: 0;
+        border-inline-start: calc(var(--border) * 2) solid var(--color-base-content);
+    }
+
+    [data-scope="drawer"][data-part="panel"]::backdrop {
+        background: oklch(0% 0 0 / 0.55);
+    }
+
+    [data-scope="drawer"][data-part="title"] {
+        margin: 0 0 var(--space-md);
+        font-family: var(--font-mono);
+        font-size: var(--text-2xl);
+        font-weight: var(--weight-bold);
+        letter-spacing: var(--tracking-tight);
+        line-height: var(--leading-none);
+        text-transform: uppercase;
+    }
+
+    [data-scope="drawer"][data-part="close"] {
+        appearance: none;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        padding: var(--space-sm) var(--space-lg);
+        box-shadow: var(--shadow-xs);
+        cursor: pointer;
+    }
+
+    [data-scope="drawer"][data-part="close"]:hover:not([data-disabled]) {
+        box-shadow: var(--shadow-xs);
+        transform: translate(1px, 1px);
+    }
+
+    [data-scope="drawer"][data-part="close"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="primary"] {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="secondary"] {
+        background: var(--color-secondary);
+        color: var(--color-secondary-content);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="accent"] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="neutral"] {
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="info"] {
+        background: var(--color-info);
+        color: var(--color-info-content);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="success"] {
+        background: var(--color-success);
+        color: var(--color-success-content);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="warning"] {
+        background: var(--color-warning);
+        color: var(--color-warning-content);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-color="error"] {
+        background: var(--color-error);
+        color: var(--color-error-content);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="xs"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="lg"] {
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="xl"] {
+        padding: var(--space-lg) var(--space-2xl);
+        font-size: var(--text-md);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="drawer"][data-part="panel"] {
+            transition: none;
+        }
+
+        [data-scope="drawer"][data-part="panel"][data-state="open"] {
+            transform: none;
+        }
+    }
+
+    @starting-style {
+        [data-scope="drawer"][data-part="panel"][data-state="open"] {
+            opacity: 0;
+            transform: none;
+        }
+    }
+}

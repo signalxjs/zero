@@ -1,0 +1,120 @@
+@layer zero.recipes {
+    [data-scope="diff"][data-part="root"] {
+        --diff-accent: var(--color-base-content);
+        --diff-grip: 1.5rem;
+        --diff-hit: 2rem;
+    }
+
+    [data-scope="diff"][data-part="root"] {
+        display: grid;
+        overflow: hidden;
+        background: var(--color-base-100);
+        border: calc(var(--border) * 2) solid var(--color-base-content);
+    }
+
+    [data-scope="diff"][data-part="before"] {
+        grid-area: 1 / 1;
+        min-width: 0;
+    }
+
+    [data-scope="diff"][data-part="after"] {
+        grid-area: 1 / 1;
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: 0;
+        inline-size: var(--diff-percent);
+        overflow: hidden;
+    }
+
+    [data-scope="diff"][data-part="handle"] {
+        inset-block: 0;
+        inline-size: var(--diff-hit);
+        margin-inline-start: calc(var(--diff-hit) / -2);
+        display: grid;
+        place-items: center;
+        cursor: ew-resize;
+        touch-action: none;
+        z-index: 1;
+    }
+
+    [data-scope="diff"][data-part="handle"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    [data-scope="diff"][data-part="handle"][data-pressed] {
+        --diff-accent: var(--color-primary);
+    }
+
+    [data-scope="diff"][data-part="handle"]::before {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: calc(50% - var(--border));
+        inline-size: calc(var(--border) * 2);
+        background: var(--diff-accent);
+    }
+
+    [data-scope="diff"][data-part="handle"]::after {
+        content: "";
+        inline-size: var(--diff-grip);
+        block-size: var(--diff-grip);
+        box-sizing: border-box;
+        background: var(--color-base-100);
+        border: calc(var(--border) * 2) solid var(--diff-accent);
+        border-radius: 0;
+        z-index: 1;
+    }
+
+    [data-scope="diff"][data-part="root"][data-color="primary"] {
+        --diff-accent: var(--color-primary);
+    }
+
+    [data-scope="diff"][data-part="root"][data-color="secondary"] {
+        --diff-accent: var(--color-secondary);
+    }
+
+    [data-scope="diff"][data-part="root"][data-color="accent"] {
+        --diff-accent: var(--color-accent);
+    }
+
+    [data-scope="diff"][data-part="root"][data-color="neutral"] {
+        --diff-accent: var(--color-neutral);
+    }
+
+    [data-scope="diff"][data-part="root"][data-color="info"] {
+        --diff-accent: var(--color-info);
+    }
+
+    [data-scope="diff"][data-part="root"][data-color="success"] {
+        --diff-accent: var(--color-success);
+    }
+
+    [data-scope="diff"][data-part="root"][data-color="warning"] {
+        --diff-accent: var(--color-warning);
+    }
+
+    [data-scope="diff"][data-part="root"][data-color="error"] {
+        --diff-accent: var(--color-error);
+    }
+
+    [data-scope="diff"][data-part="root"][data-size="xs"] {
+        --diff-grip: 1rem;
+        --diff-hit: 1.5rem;
+    }
+
+    [data-scope="diff"][data-part="root"][data-size="sm"] {
+        --diff-grip: 1.25rem;
+        --diff-hit: 1.75rem;
+    }
+
+    [data-scope="diff"][data-part="root"][data-size="lg"] {
+        --diff-grip: 2rem;
+        --diff-hit: 2.5rem;
+    }
+
+    [data-scope="diff"][data-part="root"][data-size="xl"] {
+        --diff-grip: 2.25rem;
+        --diff-hit: 2.75rem;
+    }
+}

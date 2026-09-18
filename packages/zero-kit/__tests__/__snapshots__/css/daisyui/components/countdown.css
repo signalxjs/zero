@@ -1,0 +1,83 @@
+@layer zero.recipes {
+    [data-scope="countdown"][data-part="root"] {
+        --countdown-ink: var(--color-base-content);
+        --countdown-font: var(--text-2xl);
+    }
+
+    [data-scope="countdown"][data-part="root"] {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.1em;
+        font-size: var(--countdown-font);
+        font-weight: var(--weight-semibold);
+        font-variant-numeric: tabular-nums;
+        color: var(--countdown-ink);
+    }
+
+    [data-scope="countdown"][data-part="value"] {
+        display: inline-block;
+        overflow: hidden;
+    }
+
+    [data-scope="countdown"][data-part="digits"] {
+        display: inline-block;
+        animation: zero-daisyui-countdown-in 0.35s var(--ease-standard);
+    }
+
+    [data-scope="countdown"][data-part="root"][data-color="primary"] {
+        --countdown-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+    }
+
+    [data-scope="countdown"][data-part="root"][data-color="secondary"] {
+        --countdown-ink: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+    }
+
+    [data-scope="countdown"][data-part="root"][data-color="accent"] {
+        --countdown-ink: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+    }
+
+    [data-scope="countdown"][data-part="root"][data-color="neutral"] {
+        --countdown-ink: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+    }
+
+    [data-scope="countdown"][data-part="root"][data-color="info"] {
+        --countdown-ink: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+    }
+
+    [data-scope="countdown"][data-part="root"][data-color="success"] {
+        --countdown-ink: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+    }
+
+    [data-scope="countdown"][data-part="root"][data-color="warning"] {
+        --countdown-ink: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="countdown"][data-part="root"][data-color="error"] {
+        --countdown-ink: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+    }
+
+    [data-scope="countdown"][data-part="root"][data-size="xs"] {
+        --countdown-font: var(--text-md);
+    }
+
+    [data-scope="countdown"][data-part="root"][data-size="sm"] {
+        --countdown-font: var(--text-xl);
+    }
+
+    [data-scope="countdown"][data-part="root"][data-size="lg"] {
+        --countdown-font: var(--text-3xl);
+    }
+
+    [data-scope="countdown"][data-part="root"][data-size="xl"] {
+        --countdown-font: var(--text-3xl);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="countdown"][data-part="digits"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-daisyui-countdown-in {
+    from { transform: translateY(0.6em); opacity: 0; }
+}

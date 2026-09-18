@@ -1,0 +1,122 @@
+@layer zero.recipes {
+    [data-scope="join"][data-part="root"] {
+        display: inline-flex;
+        align-items: stretch;
+    }
+
+    [data-scope="join"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+    }
+
+    [data-scope="join"][data-part="item"] {
+        position: relative;
+    }
+
+    [data-scope="join"][data-part="item"][data-orientation="horizontal"]:not(:first-child), [data-scope="join"][data-part="item"][data-orientation="horizontal"]:not(:first-child) > * {
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+    }
+
+    [data-scope="join"][data-part="item"][data-orientation="horizontal"]:not(:first-child) {
+        margin-inline-start: calc(var(--border) * -1);
+    }
+
+    [data-scope="join"][data-part="item"][data-orientation="horizontal"]:not(:last-child), [data-scope="join"][data-part="item"][data-orientation="horizontal"]:not(:last-child) > * {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+    }
+
+    [data-scope="join"][data-part="item"][data-orientation="vertical"]:not(:first-child), [data-scope="join"][data-part="item"][data-orientation="vertical"]:not(:first-child) > * {
+        border-start-start-radius: 0;
+        border-start-end-radius: 0;
+    }
+
+    [data-scope="join"][data-part="item"][data-orientation="vertical"]:not(:first-child) {
+        margin-block-start: calc(var(--border) * -1);
+    }
+
+    [data-scope="join"][data-part="item"][data-orientation="vertical"]:not(:last-child), [data-scope="join"][data-part="item"][data-orientation="vertical"]:not(:last-child) > * {
+        border-end-start-radius: 0;
+        border-end-end-radius: 0;
+    }
+
+    [data-scope="join"][data-part="item"]:focus-within {
+        z-index: 1;
+    }
+
+    [data-scope="join"][data-part="item"]:focus-visible {
+        z-index: 1;
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-color="primary"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            color: var(--color-primary);
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-color="secondary"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            color: var(--color-secondary);
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-color="accent"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            color: var(--color-accent);
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-color="neutral"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            color: var(--color-base-content);
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-color="info"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            color: var(--color-info);
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-color="success"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            color: var(--color-success);
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-color="warning"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            color: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-color="error"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            color: var(--color-error);
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-size="xs"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-size="sm"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-size="lg"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="join"][data-part="root"][data-size="xl"]) to ([data-scope="join"][data-part="root"]) {
+        [data-scope="join"][data-part="item"] {
+            font-size: var(--text-lg);
+        }
+    }
+}

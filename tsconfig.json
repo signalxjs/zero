@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "sigx",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "paths": {
+      "@sigx/zero": ["./packages/zero/src/index.ts"],
+      "@sigx/zero/testing": ["./packages/zero/src/testing/index.ts"],
+      "@sigx/zero/*": ["./packages/zero/src/*"],
+      "@sigx/zero-kit": ["./packages/zero-kit/src/index.ts"],
+      "@sigx/zero-kit/build": ["./packages/zero-kit/src/build.ts"],
+      "@sigx/zero-kit/define": ["./packages/zero-kit/src/define.ts"],
+      "@sigx/zero-basic": ["./packages/zero-basic/src/index.ts"],
+      "@sigx/zero-daisyui": ["./packages/zero-daisyui/src/index.ts"],
+      "@sigx/zero-material": ["./packages/zero-material/src/index.ts"],
+      "@sigx/zero-brutalist": ["./packages/zero-brutalist/src/index.ts"],
+      "@sigx/zero-heroui": ["./packages/zero-heroui/src/index.ts"],
+      "@sigx/zero-carbon": ["./packages/zero-carbon/src/index.ts"],
+      "@sigx/zero-ext-example": ["./packages/zero-ext-example/src/index.ts"],
+      "@sigx/zero-ext-example/fragment": ["./packages/zero-ext-example/src/fragment.ts"]
+    }
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/skills/**/*.ts",
+    "packages/*/src/**/*.tsx",
+    "packages/*/__tests__/**/*.ts",
+    "packages/*/__tests__/**/*.tsx"
+  ],
+  "exclude": ["node_modules", "**/dist", "examples"]
+}

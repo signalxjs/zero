@@ -1,0 +1,8 @@
+{
+    "extends": "../tsconfig.base.json",
+    "include": ["./**/*.ts", "./**/*.tsx", "../assert.ts"]
+    // Subpath resolution comes from the base config's paths map, whose
+    // wildcards reach src/components/<scope>/ — the partial per-scope
+    // restatement that used to live here let unlisted subpaths fall through
+    // to the stale dist/ (#316).
+}

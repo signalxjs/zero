@@ -1,0 +1,85 @@
+@layer zero.recipes {
+    [data-scope="kbd"][data-part="root"] {
+        --kbd-fill: var(--color-base-100);
+        --kbd-ink: var(--color-base-content);
+    }
+
+    [data-scope="kbd"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-inline-size: 1.75em;
+        padding: 0 var(--space-sm);
+        background: var(--kbd-fill);
+        color: var(--kbd-ink);
+        border: calc(var(--border) * 2) solid var(--color-base-content);
+        border-radius: 0;
+        box-shadow: var(--shadow-xs);
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-bold);
+        line-height: var(--leading-normal);
+        white-space: nowrap;
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="primary"] {
+        --kbd-fill: var(--color-primary);
+        --kbd-ink: var(--color-primary-content);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="secondary"] {
+        --kbd-fill: var(--color-secondary);
+        --kbd-ink: var(--color-secondary-content);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="accent"] {
+        --kbd-fill: var(--color-accent);
+        --kbd-ink: var(--color-accent-content);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="neutral"] {
+        --kbd-fill: var(--color-neutral);
+        --kbd-ink: var(--color-neutral-content);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="info"] {
+        --kbd-fill: var(--color-info);
+        --kbd-ink: var(--color-info-content);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="success"] {
+        --kbd-fill: var(--color-success);
+        --kbd-ink: var(--color-success-content);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="warning"] {
+        --kbd-fill: var(--color-warning);
+        --kbd-ink: var(--color-warning-content);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="error"] {
+        --kbd-fill: var(--color-error);
+        --kbd-ink: var(--color-error-content);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-size="xs"] {
+        font-size: var(--text-xs);
+        padding: 0 var(--space-xs);
+        min-inline-size: 1.5em;
+    }
+
+    [data-scope="kbd"][data-part="root"][data-size="sm"] {
+        font-size: var(--text-xs);
+        padding: 0 var(--space-xs);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-size="lg"] {
+        font-size: var(--text-sm);
+        padding: 0 var(--space-md);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-size="xl"] {
+        font-size: var(--text-md);
+        padding: var(--space-2xs) var(--space-lg);
+    }
+}

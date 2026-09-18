@@ -1,0 +1,38 @@
+@layer zero.recipes {
+    [data-scope="badge"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375em;
+        background: var(--color-base-300);
+        color: var(--color-base-content);
+        border: var(--border) solid transparent;
+        border-radius: var(--radius-selector);
+        padding: 0 var(--space-md);
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-normal);
+        white-space: nowrap;
+        text-decoration: none;
+    }
+
+    [data-scope="badge"][data-part="root"][data-size="sm"] {
+        font-size: var(--text-xs);
+        padding: 0 var(--space-sm);
+    }
+
+    [data-scope="badge"][data-part="root"][data-size="lg"] {
+        font-size: var(--text-sm);
+        padding: 0 var(--space-lg);
+    }
+
+    [data-scope="badge"][data-part="root"][data-size="xl"] {
+        font-size: var(--text-md);
+        padding: var(--space-2xs) var(--space-xl);
+    }
+
+    [data-scope="badge"][data-part="root"][data-size="2xl"] {
+        font-size: var(--text-md);
+        padding: var(--space-xs) var(--space-2xl);
+    }
+}

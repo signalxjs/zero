@@ -1,0 +1,97 @@
+@layer zero.recipes {
+    [data-scope="radial-progress"][data-part="root"] {
+        --radial-size: calc(var(--size-selector) * 16);
+        --radial-thickness: calc(var(--size-selector) * 1.5);
+        --radial-ink: var(--carbon-interactive);
+        --radial-track: var(--color-base-300);
+    }
+
+    [data-scope="radial-progress"][data-part="root"] {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        inline-size: var(--radial-size);
+        block-size: var(--radial-size);
+        border-radius: 50%;
+    }
+
+    [data-scope="radial-progress"][data-part="root"][data-state="complete"] {
+        --radial-ink: var(--carbon-toggle-on);
+    }
+
+    [data-scope="radial-progress"][data-part="root"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: var(--radial-track);
+        mask: radial-gradient(closest-side, transparent calc(100% - var(--radial-thickness)), #000 calc(100% - var(--radial-thickness) + 0.5px));
+    }
+
+    [data-scope="radial-progress"][data-part="root"]::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: var(--radial-ink);
+        mask: radial-gradient(closest-side, transparent calc(100% - var(--radial-thickness)), #000 calc(100% - var(--radial-thickness) + 0.5px)), conic-gradient(#000 var(--progress-percent, 30%), transparent 0);
+        mask-composite: intersect;
+    }
+
+    [data-scope="radial-progress"][data-part="root"][data-state="indeterminate"]::after {
+        animation: zero-carbon-radial-spin 1.2s linear infinite;
+    }
+
+    [data-scope="radial-progress"][data-part="label"] {
+        font-size: var(--text-xs);
+        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+    }
+
+    [data-scope="radial-progress"][data-part="value-text"] {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        font-variant-numeric: tabular-nums;
+        color: var(--color-base-content);
+    }
+
+    [data-scope="radial-progress"][data-part="root"][data-size="sm"] {
+        --radial-size: calc(var(--size-selector) * 13);
+        --radial-thickness: calc(var(--size-selector) * 1.25);
+    }
+
+    [data-scope="radial-progress"][data-part="root"][data-size="lg"] {
+        --radial-size: calc(var(--size-selector) * 20);
+        --radial-thickness: calc(var(--size-selector) * 2);
+    }
+
+    [data-scope="radial-progress"][data-part="root"][data-size="xl"] {
+        --radial-size: calc(var(--size-selector) * 24);
+        --radial-thickness: calc(var(--size-selector) * 2.5);
+    }
+
+    [data-scope="radial-progress"][data-part="root"][data-size="2xl"] {
+        --radial-size: calc(var(--size-selector) * 28);
+        --radial-thickness: calc(var(--size-selector) * 3);
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="radial-progress"][data-part="root"] {
+            border: calc(var(--border) * 2) solid CanvasText;
+        }
+    }
+
+    @media print {
+        [data-scope="radial-progress"][data-part="root"] {
+            border: calc(var(--border) * 2) solid var(--radial-ink);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="radial-progress"][data-part="root"][data-state="indeterminate"]::after {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-carbon-radial-spin {
+    to { transform: rotate(360deg); }
+}

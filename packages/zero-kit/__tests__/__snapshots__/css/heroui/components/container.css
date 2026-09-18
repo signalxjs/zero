@@ -1,0 +1,16 @@
+@layer zero.recipes {
+    [data-scope="container"][data-part="root"] {
+        --l-measure: none;
+        --l-pad: 0;
+        --l-pad-x: var(--l-pad);
+        --l-pad-y: var(--l-pad);
+    }
+
+    [data-scope="container"][data-part="root"] {
+        inline-size: 100%;
+        max-inline-size: var(--l-measure);
+        margin-inline: auto;
+        padding-inline: var(--l-pad-x);
+        padding-block: var(--l-pad-y);
+    }
+}

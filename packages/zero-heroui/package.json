@@ -1,0 +1,62 @@
+{
+    "name": "@sigx/zero-heroui",
+    "version": "0.1.0",
+    "description": "HeroUI-flavoured design system for SignalX Zero \u2014 the acceptance test for non-orthogonal axis surfaces and presence-only modifiers: no colour axis at all, colour fused into a seven-member variant, and HeroUI's isIconOnly/isPending as data-mod-*.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./design-system": {
+            "types": "./dist/design-system.d.ts",
+            "import": "./dist/design-system.js"
+        },
+        "./register": {
+            "types": "./dist/register.d.ts",
+            "import": "./dist/register.js"
+        },
+        "./components": {
+            "types": "./dist/components.d.ts",
+            "import": "./dist/components.js"
+        },
+        "./css": "./dist/css/index.css",
+        "./css/tokens": "./dist/css/tokens.css",
+        "./css/*": "./dist/css/components/*.css",
+        "./manifest.json": "./dist/manifest.json",
+        "./report.json": "./dist/report.json",
+        "./audit.json": "./dist/audit.json"
+    },
+    "files": [
+        "dist",
+        "src"
+    ],
+    "sideEffects": false,
+    "scripts": {
+        "build": "tsgo -p tsconfig.json && node build.mjs",
+        "typecheck": "tsgo --noEmit"
+    },
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/zero.git",
+        "directory": "packages/zero-heroui"
+    },
+    "homepage": "https://sigx.dev/zero/",
+    "bugs": {
+        "url": "https://github.com/signalxjs/zero/issues"
+    },
+    "peerDependencies": {
+        "@sigx/zero": "workspace:^"
+    },
+    "devDependencies": {
+        "@sigx/zero": "workspace:^",
+        "@sigx/zero-ext-example": "workspace:*",
+        "@sigx/zero-kit": "workspace:^",
+        "typescript": "^6.0.3"
+    },
+    "private": true
+}

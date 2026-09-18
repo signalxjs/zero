@@ -1,0 +1,93 @@
+@layer zero.recipes {
+    [data-scope="navbar"][data-part="root"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        min-block-size: 4rem;
+        padding: var(--space-sm);
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="navbar"][data-part="start"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        flex: 1 1 0%;
+        justify-content: flex-start;
+    }
+
+    [data-scope="navbar"][data-part="center"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        justify-content: center;
+    }
+
+    [data-scope="navbar"][data-part="end"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        flex: 1 1 0%;
+        justify-content: flex-end;
+    }
+
+    [data-scope="navbar"][data-part="root"][data-color="primary"] {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-color="secondary"] {
+        background: var(--color-secondary);
+        color: var(--color-secondary-content);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-color="accent"] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-color="neutral"] {
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-color="info"] {
+        background: var(--color-info);
+        color: var(--color-info-content);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-color="success"] {
+        background: var(--color-success);
+        color: var(--color-success-content);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-color="warning"] {
+        background: var(--color-warning);
+        color: var(--color-warning-content);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-color="error"] {
+        background: var(--color-error);
+        color: var(--color-error-content);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-size="xs"] {
+        min-block-size: 2.5rem;
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-size="sm"] {
+        min-block-size: 3rem;
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="navbar"][data-part="root"][data-size="lg"] {
+        min-block-size: 5rem;
+    }
+
+    [data-scope="navbar"][data-part="root"][data-size="xl"] {
+        min-block-size: 6rem;
+        font-size: var(--text-lg);
+    }
+}

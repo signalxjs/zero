@@ -1,0 +1,13 @@
+@layer zero.recipes {
+    [data-scope="spacer"][data-part="root"] {
+        --l-space: 0;
+        --l-space-grow: 1;
+    }
+
+    [data-scope="spacer"][data-part="root"] {
+        flex-grow: var(--l-space-grow);
+        flex-shrink: 0;
+        flex-basis: var(--l-space);
+        align-self: stretch;
+    }
+}

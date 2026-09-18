@@ -1,0 +1,84 @@
+@layer zero.recipes {
+    [data-scope="alert"][data-part="root"] {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: start;
+        gap: var(--space-2xs) var(--space-md);
+        background: var(--color-base-200);
+        color: var(--color-base-content);
+        border-radius: var(--radius-box);
+        border-inline-start: 3px solid var(--carbon-danger);
+        padding: var(--space-md) var(--space-lg);
+    }
+
+    [data-scope="alert"][data-part="icon"] {
+        grid-row: 1 / span 2;
+        display: inline-flex;
+        align-items: center;
+        color: var(--carbon-danger);
+        font-size: var(--text-md);
+        line-height: var(--leading-none);
+    }
+
+    [data-scope="alert"][data-part="title"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="alert"][data-part="description"] {
+        grid-column: 2;
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        line-height: var(--leading-normal);
+    }
+
+    [data-scope="alert"][data-part="close"] {
+        grid-row: 1;
+        grid-column: 3;
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        border-radius: 0;
+        padding: var(--space-2xs);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="alert"][data-part="close"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="alert"][data-part="close"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="alert"][data-part="close"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="alert"][data-part="close"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
+    [data-scope="alert"][data-part="root"][data-size="sm"] {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    [data-scope="alert"][data-part="root"][data-size="lg"] {
+        padding: var(--space-lg) var(--space-xl);
+    }
+
+    [data-scope="alert"][data-part="root"][data-size="xl"] {
+        padding: var(--space-xl) var(--space-2xl);
+    }
+
+    [data-scope="alert"][data-part="root"][data-size="2xl"] {
+        padding: var(--space-2xl);
+    }
+}

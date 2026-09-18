@@ -1,0 +1,139 @@
+@layer zero.recipes {
+    [data-scope="input"][data-part="root"] {
+        --input-accent: var(--color-primary);
+    }
+
+    [data-scope="input"][data-part="root"] {
+        display: inline-flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+
+    [data-scope="input"][data-part="label"] {
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="input"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="input"][data-part="label"][data-invalid] {
+        color: var(--color-error);
+    }
+
+    [data-scope="input"][data-part="label"][data-required]::after {
+        content: " *";
+        color: var(--color-error);
+    }
+
+    [data-scope="input"][data-part="control"] {
+        display: inline-flex;
+        align-items: stretch;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-xs);
+        overflow: hidden;
+    }
+
+    [data-scope="input"][data-part="control"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="input"][data-part="control"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="input"][data-part="control"][data-focus-visible] {
+        outline: var(--border) solid var(--input-accent);
+        outline-offset: 3px;
+    }
+
+    [data-scope="input"][data-part="input"] {
+        width: 100%;
+        min-width: 0;
+        appearance: none;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: inherit;
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    [data-scope="input"][data-part="input"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="input"][data-part="input"]::placeholder {
+        color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+        text-transform: uppercase;
+    }
+
+    [data-scope="input"][data-part="root"][data-color="primary"] {
+        --input-accent: var(--color-primary);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="secondary"] {
+        --input-accent: var(--color-secondary);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="accent"] {
+        --input-accent: var(--color-accent);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="neutral"] {
+        --input-accent: var(--color-neutral);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="info"] {
+        --input-accent: var(--color-info);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="success"] {
+        --input-accent: var(--color-success);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="warning"] {
+        --input-accent: var(--color-warning);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="error"] {
+        --input-accent: var(--color-error);
+    }
+
+    @scope ([data-scope="input"][data-part="root"][data-size="xs"]) to ([data-scope="input"][data-part="root"]) {
+        [data-scope="input"][data-part="input"] {
+            font-size: var(--text-xs);
+            padding: var(--space-2xs) var(--space-xs);
+        }
+    }
+
+    @scope ([data-scope="input"][data-part="root"][data-size="sm"]) to ([data-scope="input"][data-part="root"]) {
+        [data-scope="input"][data-part="input"] {
+            font-size: var(--text-xs);
+            padding: var(--space-xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="input"][data-part="root"][data-size="lg"]) to ([data-scope="input"][data-part="root"]) {
+        [data-scope="input"][data-part="input"] {
+            font-size: var(--text-sm);
+            padding: var(--space-md) var(--space-lg);
+        }
+    }
+
+    @scope ([data-scope="input"][data-part="root"][data-size="xl"]) to ([data-scope="input"][data-part="root"]) {
+        [data-scope="input"][data-part="input"] {
+            font-size: var(--text-md);
+            padding: var(--space-lg) var(--space-xl);
+        }
+    }
+}

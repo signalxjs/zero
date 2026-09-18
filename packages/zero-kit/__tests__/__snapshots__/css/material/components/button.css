@@ -1,0 +1,227 @@
+@layer zero.recipes {
+    [data-scope="button"][data-part="root"] {
+        --btn-accent: var(--color-primary);
+        --btn-on-accent: var(--color-primary-content);
+        --btn-soft: var(--color-primary-soft);
+        --btn-ripple: var(--btn-on-accent);
+    }
+
+    [data-scope="button"][data-part="root"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-xs);
+        border: var(--border) solid transparent;
+        border-radius: 624rem;
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    [data-scope="button"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    [data-scope="button"][data-part="root"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="button"][data-part="root"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--btn-ripple);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="button"][data-part="root"]:hover:not([data-disabled])::before {
+        opacity: 0.08;
+    }
+
+    [data-scope="button"][data-part="root"][data-pressed]:not([data-disabled])::before {
+        opacity: 0.12;
+    }
+
+    [data-scope="button"][data-part="root"]::after {
+        content: "";
+        position: absolute;
+        left: var(--press-x, 50%);
+        top: var(--press-y, 50%);
+        width: calc(var(--press-r, 0px) * 2);
+        height: calc(var(--press-r, 0px) * 2);
+        border-radius: 50%;
+        background: var(--btn-ripple);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="button"][data-part="root"][data-press-animating]::after {
+        animation: btn-ripple var(--duration-slow) var(--ease-standard);
+    }
+
+    [data-scope="button"][data-part="root"][data-color="primary"] {
+        --btn-accent: var(--color-primary);
+        --btn-on-accent: var(--color-primary-content);
+        --btn-soft: var(--color-primary-soft);
+    }
+
+    [data-scope="button"][data-part="root"]:not([data-color]) {
+        --btn-accent: var(--color-primary);
+        --btn-on-accent: var(--color-primary-content);
+        --btn-soft: var(--color-primary-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-color="secondary"] {
+        --btn-accent: var(--color-secondary);
+        --btn-on-accent: var(--color-secondary-content);
+        --btn-soft: var(--color-secondary-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-color="tertiary"] {
+        --btn-accent: var(--color-tertiary);
+        --btn-on-accent: var(--color-tertiary-content);
+        --btn-soft: var(--color-tertiary-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-color="error"] {
+        --btn-accent: var(--color-error);
+        --btn-on-accent: var(--color-error-content);
+        --btn-soft: var(--color-error-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-color="neutral"] {
+        --btn-accent: var(--color-neutral);
+        --btn-on-accent: var(--color-neutral-content);
+        --btn-soft: var(--color-neutral-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-color="info"] {
+        --btn-accent: var(--color-info);
+        --btn-on-accent: var(--color-info-content);
+        --btn-soft: var(--color-info-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-color="success"] {
+        --btn-accent: var(--color-success);
+        --btn-on-accent: var(--color-success-content);
+        --btn-soft: var(--color-success-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-color="warning"] {
+        --btn-accent: var(--color-warning);
+        --btn-on-accent: var(--color-warning-content);
+        --btn-soft: var(--color-warning-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-color="accent"] {
+        --btn-accent: var(--color-accent);
+        --btn-on-accent: var(--color-accent-content);
+        --btn-soft: var(--color-accent-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="solid"] {
+        background: var(--btn-accent);
+        color: var(--btn-on-accent);
+        box-shadow: var(--shadow-level1);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="solid"]:hover:not([data-disabled]) {
+        box-shadow: var(--shadow-level2);
+    }
+
+    [data-scope="button"][data-part="root"]:not([data-variant]) {
+        background: var(--btn-accent);
+        color: var(--btn-on-accent);
+        box-shadow: var(--shadow-level1);
+    }
+
+    [data-scope="button"][data-part="root"]:not([data-variant]):hover:not([data-disabled]) {
+        box-shadow: var(--shadow-level2);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="outline"] {
+        background: transparent;
+        color: var(--btn-accent);
+        border-color: var(--color-outline);
+        --btn-ripple: var(--btn-accent);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="soft"] {
+        background: var(--btn-soft);
+        color: var(--btn-accent);
+        --btn-ripple: var(--btn-accent);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="soft"]:hover:not([data-disabled]) {
+        box-shadow: var(--shadow-level1);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="ghost"] {
+        background: transparent;
+        color: var(--btn-accent);
+        --btn-ripple: var(--btn-accent);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="xs"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="md"] {
+        padding: var(--space-xs) var(--space-lg);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="button"][data-part="root"]:not([data-size]) {
+        padding: var(--space-xs) var(--space-lg);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="lg"] {
+        padding: var(--space-sm) var(--space-xl);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="xl"] {
+        padding: var(--space-md) var(--space-2xl);
+        font-size: var(--text-lg);
+    }
+
+    @media (hover: none) {
+        [data-scope="button"][data-part="root"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="button"][data-part="root"]::before {
+            display: none;
+        }
+
+        [data-scope="button"][data-part="root"]::after {
+            display: none;
+        }
+    }
+}
+@keyframes btn-ripple {
+    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}

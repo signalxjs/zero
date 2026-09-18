@@ -1,0 +1,58 @@
+@layer zero.recipes {
+    [data-scope="field"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="field"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="field"][data-part="label"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="field"][data-part="label"][data-invalid] {
+        color: var(--hero-danger);
+    }
+
+    [data-scope="field"][data-part="label"][data-required] {
+        font-weight: var(--weight-semibold);
+    }
+
+    [data-scope="field"][data-part="description"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        color: var(--hero-muted);
+    }
+
+    [data-scope="field"][data-part="error"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        color: var(--hero-danger);
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="sm"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="lg"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-sm);
+        }
+    }
+}

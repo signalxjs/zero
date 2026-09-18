@@ -1,0 +1,85 @@
+@layer zero.recipes {
+    [data-scope="textarea"][data-part="root"] {
+        --textarea-text: var(--text-sm);
+    }
+
+    [data-scope="textarea"][data-part="root"] {
+        display: inline-flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="textarea"][data-part="label"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="textarea"][data-part="label"][data-invalid] {
+        color: var(--hero-danger);
+    }
+
+    [data-scope="textarea"][data-part="label"][data-required] {
+        font-weight: var(--weight-semibold);
+    }
+
+    [data-scope="textarea"][data-part="textarea"] {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        appearance: none;
+        border: var(--border) solid var(--hero-line);
+        border-radius: var(--radius-field);
+        background: var(--color-base-100);
+        padding: var(--space-sm) var(--space-md);
+        color: var(--color-base-content);
+        font-family: var(--font-sans);
+        font-size: var(--textarea-text);
+        line-height: var(--leading-normal);
+        resize: vertical;
+        transition: border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="textarea"][data-part="textarea"]:hover:not([data-disabled]) {
+        border-color: var(--color-base-content);
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-invalid] {
+        border-color: var(--hero-danger);
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
+    [data-scope="textarea"][data-part="textarea"]::placeholder {
+        color: var(--hero-muted);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-size="sm"] {
+        --textarea-text: var(--text-xs);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-size="lg"] {
+        --textarea-text: var(--text-md);
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="sm"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            padding: var(--space-xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="lg"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            padding: var(--space-md) var(--space-lg);
+        }
+    }
+}

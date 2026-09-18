@@ -1,0 +1,137 @@
+@layer zero.recipes {
+    [data-scope="rating-group"][data-part="root"] {
+        --rating-size: var(--text-fixed-xl);
+    }
+
+    [data-scope="rating-group"][data-part="root"] {
+        display: inline-flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="rating-group"][data-part="label"] {
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+        color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+    }
+
+    [data-scope="rating-group"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="rating-group"][data-part="label"][data-invalid] {
+        color: var(--carbon-danger);
+    }
+
+    [data-scope="rating-group"][data-part="control"] {
+        display: inline-flex;
+        gap: var(--space-xs);
+    }
+
+    [data-scope="rating-group"][data-part="control"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="rating-group"][data-part="control"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="rating-group"][data-part="item"] {
+        position: relative;
+        display: inline-block;
+        width: var(--rating-size);
+        height: var(--rating-size);
+        font-size: 0;
+        color: transparent;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-readonly] {
+        cursor: default;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: 1px;
+    }
+
+    [data-scope="rating-group"][data-part="item"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border: 2px solid var(--carbon-border-strong);
+        transition: border-color var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="rating-group"][data-part="item"]::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--carbon-interactive);
+        transform-origin: left;
+        transition: scale var(--duration-slow) var(--ease-standard);
+    }
+
+    [data-scope="rating-group"][data-part="item"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::after {
+        transform-origin: right;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-state="empty"]::after {
+        scale: 0 1;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-state="half"]::after {
+        scale: 0.5 1;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-state="full"]::after {
+        scale: 1 1;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-highlighted]::before {
+        border-color: var(--carbon-interactive);
+    }
+
+    [data-scope="rating-group"][data-part="root"][data-size="sm"] {
+        --rating-size: var(--text-fixed-md);
+    }
+
+    [data-scope="rating-group"][data-part="root"][data-size="lg"] {
+        --rating-size: var(--text-fixed-2xl);
+    }
+
+    [data-scope="rating-group"][data-part="root"][data-size="xl"] {
+        --rating-size: var(--text-fixed-3xl);
+    }
+
+    [data-scope="rating-group"][data-part="root"][data-size="2xl"] {
+        --rating-size: calc(var(--text-fixed-3xl) * 1.25);
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="rating-group"][data-part="item"]::before {
+            border-color: CanvasText;
+        }
+
+        [data-scope="rating-group"][data-part="item"]::after {
+            background: CanvasText;
+        }
+    }
+
+    @media print {
+        [data-scope="rating-group"][data-part="item"]::before {
+            print-color-adjust: exact;
+        }
+
+        [data-scope="rating-group"][data-part="item"]::after {
+            print-color-adjust: exact;
+        }
+    }
+}

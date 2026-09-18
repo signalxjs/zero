@@ -1,0 +1,90 @@
+@layer zero.recipes {
+    [data-scope="textarea"][data-part="root"] {
+        display: inline-flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="textarea"][data-part="label"] {
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+        color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+    }
+
+    [data-scope="textarea"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="textarea"][data-part="label"][data-invalid] {
+        color: var(--carbon-danger);
+    }
+
+    [data-scope="textarea"][data-part="textarea"] {
+        background: var(--color-base-200);
+        border: none;
+        border-block-end: var(--border) solid var(--carbon-border-strong);
+        border-radius: var(--radius-field);
+        display: block;
+        width: 100%;
+        min-width: 0;
+        min-height: 5rem;
+        appearance: none;
+        color: var(--color-base-content);
+        font: inherit;
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        line-height: var(--leading-normal);
+        padding: var(--space-sm) var(--space-md);
+        resize: vertical;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="textarea"][data-part="textarea"]:hover:not([data-disabled]) {
+        background: var(--carbon-field-hover);
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-invalid] {
+        outline: 2px solid var(--carbon-danger);
+        outline-offset: -2px;
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        border-block-end-color: transparent;
+        cursor: not-allowed;
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="textarea"][data-part="textarea"]::placeholder {
+        color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="sm"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            min-height: 4rem;
+        }
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="lg"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            min-height: 6rem;
+        }
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="xl"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            min-height: 8rem;
+        }
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="2xl"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            min-height: 10rem;
+        }
+    }
+}

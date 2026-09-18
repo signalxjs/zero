@@ -1,0 +1,26 @@
+packages:
+  - packages/*
+  - examples/*
+
+onlyBuiltDependencies:
+  - esbuild
+
+# Single source of truth for the SignalX core version this repo builds against.
+# `^0.15.0` == `>=0.15.0 <0.16.0` (ONE minor). @sigx/reactivity keeps reactive
+# state in module-local variables, so two physical copies of core silently
+# split its singletons and break reactivity; the single-minor range forces pnpm
+# to hoist ONE copy. Bump this one block to move the whole repo to a new core
+# minor. Consumed via `"catalog:"` in package.json (peerDeps + devDeps);
+# `pnpm pack` rewrites `catalog:` to the concrete range in the published manifest.
+catalog:
+  "@sigx/reactivity": ^0.15.0
+  "@sigx/runtime-core": ^0.15.0
+  "@sigx/runtime-dom": ^0.15.0
+  "@sigx/server-renderer": ^0.15.0
+  # PINNED to ^0.13: @sigx/vite >= 0.14 fails to resolve `?url` imports of
+  # package subpath exports (#352) — the playground's DS stylesheets vanish
+  # and e2e goes dark. Safe to diverge from the runtime five: the single-minor
+  # rule above exists for @sigx/reactivity's module-state singletons, and the
+  # vite plugin is build-time only. Un-pin when the upstream fix ships.
+  "@sigx/vite": ^0.13.0
+  sigx: ^0.15.0

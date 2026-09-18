@@ -1,0 +1,79 @@
+@layer zero.recipes {
+    [data-scope="spinner"][data-part="root"] {
+        --spinner-size: calc(var(--size-field) * 0.6);
+        --spinner-ink: var(--color-primary);
+        --spinner-track: var(--color-outline);
+    }
+
+    [data-scope="spinner"][data-part="root"] {
+        display: inline-block;
+        inline-size: var(--spinner-size);
+        block-size: var(--spinner-size);
+        box-sizing: border-box;
+        border-radius: 50%;
+        border: calc(var(--border) * 2) solid var(--spinner-track);
+        border-block-start-color: var(--spinner-ink);
+        animation: zero-material-spin 0.7s linear infinite;
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="primary"] {
+        --spinner-ink: var(--color-primary);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="secondary"] {
+        --spinner-ink: var(--color-secondary);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="tertiary"] {
+        --spinner-ink: var(--color-tertiary);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="error"] {
+        --spinner-ink: var(--color-error);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="neutral"] {
+        --spinner-ink: var(--color-neutral);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="info"] {
+        --spinner-ink: var(--color-info);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="success"] {
+        --spinner-ink: var(--color-success);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="warning"] {
+        --spinner-ink: var(--color-warning);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="accent"] {
+        --spinner-ink: var(--color-accent);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="xs"] {
+        --spinner-size: calc(var(--size-field) * 0.4);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="sm"] {
+        --spinner-size: calc(var(--size-field) * 0.5);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="lg"] {
+        --spinner-size: calc(var(--size-field) * 0.8);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="xl"] {
+        --spinner-size: var(--size-field);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="spinner"][data-part="root"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-material-spin {
+    to { transform: rotate(360deg); }
+}

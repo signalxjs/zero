@@ -1,0 +1,102 @@
+@layer zero.recipes {
+    [data-scope="radio-group"][data-part="root"] {
+        --radio-size: calc(var(--size-selector) * 5);
+    }
+
+    [data-scope="radio-group"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-orientation="horizontal"] {
+        flex-direction: row;
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
+        border-color: var(--hero-danger);
+    }
+
+    [data-scope="radio-group"][data-part="label"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="radio-group"][data-part="label"][data-invalid] {
+        color: var(--hero-danger);
+    }
+
+    [data-scope="radio-group"][data-part="label"][data-required] {
+        font-weight: var(--weight-semibold);
+    }
+
+    [data-scope="radio-group"][data-part="item"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        cursor: pointer;
+    }
+
+    [data-scope="radio-group"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"] {
+        display: inline-grid;
+        place-items: center;
+        flex: none;
+        width: var(--radio-size);
+        height: var(--radio-size);
+        border: var(--border) solid var(--hero-line);
+        border-radius: 9999px;
+        background: var(--color-base-100);
+        transition: border-color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
+        border-color: var(--hero-primary);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-pressed]:not([data-disabled]) {
+        transform: scale(0.97);
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"] {
+        width: calc(var(--radio-size) / 2);
+        height: calc(var(--radio-size) / 2);
+        border-radius: 9999px;
+        background: transparent;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"][data-state="checked"] {
+        background: var(--hero-primary);
+    }
+
+    [data-scope="radio-group"][data-part="item-label"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="sm"] {
+        --radio-size: calc(var(--size-selector) * 4);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="lg"] {
+        --radio-size: calc(var(--size-selector) * 6);
+    }
+}

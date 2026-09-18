@@ -1,0 +1,198 @@
+@layer zero.recipes {
+    [data-scope="toast"][data-part="viewport"] {
+        position: fixed;
+        inset: auto;
+        margin: 0;
+        padding: var(--space-xl);
+        border: none;
+        background: transparent;
+        overflow: visible;
+        width: min(24rem, 100vw);
+        list-style: none;
+        flex-direction: column;
+        gap: var(--space-sm);
+        pointer-events: none;
+    }
+
+    [data-scope="toast"][data-part="viewport"]:popover-open {
+        display: flex;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="top-start"] {
+        top: 0;
+        inset-inline-start: 0;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="top"] {
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="top-end"] {
+        top: 0;
+        inset-inline-end: 0;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="bottom-start"] {
+        bottom: 0;
+        inset-inline-start: 0;
+        flex-direction: column-reverse;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="bottom"] {
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        flex-direction: column-reverse;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="bottom-end"] {
+        bottom: 0;
+        inset-inline-end: 0;
+        flex-direction: column-reverse;
+    }
+
+    [data-scope="toast"][data-part="root"] {
+        pointer-events: auto;
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-md);
+        min-width: 18rem;
+        padding: var(--space-md) var(--space-lg);
+        border: var(--border) solid var(--hero-line);
+        border-radius: var(--radius-box);
+        background: var(--color-base-100);
+        box-shadow: var(--shadow-lg);
+        opacity: 0;
+        --toast-from: 8px;
+        --toast-dir: 1;
+        transform: translateX(calc(var(--toast-dir) * var(--toast-from)));
+        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="toast"][data-part="root"][data-state="open"] {
+        opacity: 1;
+        transform: none;
+    }
+
+    [data-scope="toast"][data-part="root"][data-placement$="-start"] {
+        --toast-from: -8px;
+    }
+
+    [data-scope="toast"][data-part="root"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --toast-dir: -1;
+    }
+
+    [data-scope="toast"][data-part="title"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="toast"][data-part="description"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        color: var(--hero-muted);
+    }
+
+    [data-scope="toast"][data-part="action"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--hero-primary);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        cursor: pointer;
+        border-radius: var(--radius-selector);
+    }
+
+    [data-scope="toast"][data-part="action"]:hover:not([data-disabled]) {
+        text-decoration: underline;
+    }
+
+    [data-scope="toast"][data-part="action"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="toast"][data-part="action"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
+    [data-scope="toast"][data-part="close"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--hero-muted);
+        border-radius: var(--radius-selector);
+        padding: var(--space-2xs);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+        margin-inline-start: auto;
+    }
+
+    [data-scope="toast"][data-part="close"]:hover:not([data-disabled]) {
+        color: var(--color-base-content);
+        background: var(--color-base-200);
+    }
+
+    [data-scope="toast"][data-part="close"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="toast"][data-part="close"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="sm"] {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="lg"] {
+        padding: var(--space-lg) var(--space-xl);
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="sm"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="title"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="toast"][data-part="action"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="lg"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="title"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="toast"][data-part="action"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="toast"][data-part="root"] {
+            transition: none;
+        }
+
+        [data-scope="toast"][data-part="root"][data-state="open"] {
+            transform: none;
+        }
+    }
+}

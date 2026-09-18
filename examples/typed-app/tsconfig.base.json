@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "jsxImportSource": "sigx",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        // Deliberately attempted as `false` and documented as `true`: every
+        // `@sigx/*` type below is the EMITTED dist/ artifact resolved
+        // through package exports (build first), and an app's tsc should be
+        // able to lib-check what we ship. It can't yet — not because of
+        // anything this repo emits, but because every program transitively
+        // reaches @sigx/runtime-core@0.13.0, whose shipped index.d.ts does
+        // a side-effect `import './jsx-types.d.ts'` that a full lib check
+        // rejects (TS2882) under any moduleResolution this app could use.
+        // So NO program here runs a full lib check today. The register /
+        // components artifacts themselves are still semantically checked:
+        // kit-side, register.d.ts is self-verifying and the goldens compile
+        // in lib-checked type-test programs. Flip this to `false` the day
+        // core ships a clean declaration set — that flip is the whole
+        // remaining gap.
+        "skipLibCheck": true,
+        "types": []
+    }
+}

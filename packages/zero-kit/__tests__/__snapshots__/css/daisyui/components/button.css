@@ -1,0 +1,258 @@
+@layer zero.recipes {
+    [data-scope="button"][data-part="root"] {
+        --btn-accent: var(--color-primary);
+        --btn-on-accent: var(--color-primary-content);
+        --btn-soft: var(--color-primary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5em;
+        border: var(--border) solid transparent;
+        border-radius: var(--radius-field);
+        box-shadow: var(--shadow-xs);
+        font-family: inherit;
+        font-weight: var(--weight-semibold);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="button"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="button"][data-part="root"][data-focus-visible] {
+        outline: 2px solid var(--btn-ink);
+        outline-offset: 2px;
+    }
+
+    [data-scope="button"][data-part="root"][data-pressed]:not([data-disabled]) {
+        transform: translateY(1px);
+        box-shadow: none;
+    }
+
+    [data-scope="button"][data-part="root"][data-color="primary"] {
+        --btn-accent: var(--color-primary);
+        --btn-on-accent: var(--color-primary-content);
+        --btn-soft: var(--color-primary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"]:not([data-color]) {
+        --btn-accent: var(--color-primary);
+        --btn-on-accent: var(--color-primary-content);
+        --btn-soft: var(--color-primary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"][data-color="secondary"] {
+        --btn-accent: var(--color-secondary);
+        --btn-on-accent: var(--color-secondary-content);
+        --btn-soft: var(--color-secondary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"][data-color="accent"] {
+        --btn-accent: var(--color-accent);
+        --btn-on-accent: var(--color-accent-content);
+        --btn-soft: var(--color-accent-soft);
+        --btn-ink: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"][data-color="neutral"] {
+        --btn-accent: var(--color-neutral);
+        --btn-on-accent: var(--color-neutral-content);
+        --btn-soft: var(--color-neutral-soft);
+        --btn-ink: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"][data-color="info"] {
+        --btn-accent: var(--color-info);
+        --btn-on-accent: var(--color-info-content);
+        --btn-soft: var(--color-info-soft);
+        --btn-ink: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"][data-color="success"] {
+        --btn-accent: var(--color-success);
+        --btn-on-accent: var(--color-success-content);
+        --btn-soft: var(--color-success-soft);
+        --btn-ink: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"][data-color="warning"] {
+        --btn-accent: var(--color-warning);
+        --btn-on-accent: var(--color-warning-content);
+        --btn-soft: var(--color-warning-soft);
+        --btn-ink: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"][data-color="error"] {
+        --btn-accent: var(--color-error);
+        --btn-on-accent: var(--color-error-content);
+        --btn-soft: var(--color-error-soft);
+        --btn-ink: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="solid"] {
+        background: var(--btn-accent);
+        color: var(--btn-on-accent);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="solid"]:hover:not([data-disabled]) {
+        filter: brightness(0.92);
+    }
+
+    [data-scope="button"][data-part="root"]:not([data-variant]) {
+        background: var(--btn-accent);
+        color: var(--btn-on-accent);
+    }
+
+    [data-scope="button"][data-part="root"]:not([data-variant]):hover:not([data-disabled]) {
+        filter: brightness(0.92);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="outline"] {
+        background: transparent;
+        color: var(--btn-ink);
+        border-color: var(--btn-ink);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="outline"]:hover:not([data-disabled]) {
+        background: var(--btn-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="soft"] {
+        background: var(--btn-soft);
+        color: var(--btn-ink);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="soft"]:hover:not([data-disabled]) {
+        filter: brightness(0.95);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="ghost"] {
+        background: transparent;
+        color: var(--btn-ink);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="ghost"]:hover:not([data-disabled]) {
+        background: var(--btn-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="dash"] {
+        background: transparent;
+        color: var(--btn-ink);
+        border-color: var(--btn-ink);
+        border-style: dashed;
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="dash"]:hover:not([data-disabled]) {
+        background: var(--btn-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="link"] {
+        background: transparent;
+        color: var(--btn-ink);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        box-shadow: none;
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="link"]:hover:not([data-disabled]) {
+        text-decoration-thickness: 2px;
+    }
+
+    [data-scope="button"][data-part="root"][data-size="xs"] {
+        height: calc(var(--size-field) * 6);
+        padding: var(--space-2xs) var(--space-xs);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="sm"] {
+        height: calc(var(--size-field) * 8);
+        padding: var(--space-xs) var(--space-sm);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="md"] {
+        height: calc(var(--size-field) * 10);
+        padding: var(--space-sm) var(--space-lg);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="button"][data-part="root"]:not([data-size]) {
+        height: calc(var(--size-field) * 10);
+        padding: var(--space-sm) var(--space-lg);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="lg"] {
+        height: calc(var(--size-field) * 12);
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-lg);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="xl"] {
+        height: calc(var(--size-field) * 14);
+        padding: var(--space-lg) var(--space-2xl);
+        font-size: var(--text-xl);
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-wide] {
+        inline-size: 100%;
+        max-inline-size: 16rem;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-block] {
+        inline-size: 100%;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-square] {
+        padding-inline: 0;
+        aspect-ratio: 1;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-circle] {
+        padding-inline: 0;
+        aspect-ratio: 1;
+        border-radius: 9999px;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-active] {
+        transform: translateY(1px);
+        box-shadow: none;
+        filter: brightness(0.92);
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-loading] {
+        cursor: progress;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-loading]::before {
+        content: "";
+        box-sizing: border-box;
+        inline-size: 1em;
+        block-size: 1em;
+        flex: none;
+        border-radius: 9999px;
+        border: calc(var(--border) * 2) solid currentColor;
+        border-block-start-color: transparent;
+        animation: zero-daisyui-btn-spin 0.7s linear infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="button"][data-part="root"][data-mod-loading]::before {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-daisyui-btn-spin {
+    to { transform: rotate(360deg) }
+}

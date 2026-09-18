@@ -1,0 +1,328 @@
+{
+    "name": "@sigx/zero",
+    "version": "0.2.0-beta.6",
+    "description": "SignalX Zero — unstyled, accessible component primitives with a machine-readable anatomy. The design-system-neutral foundation every sigx design system builds on.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./anatomy": {
+            "types": "./dist/anatomy.d.ts",
+            "import": "./dist/anatomy.js"
+        },
+        "./theme": {
+            "types": "./dist/theme/index.d.ts",
+            "import": "./dist/theme/index.js"
+        },
+        "./theme/registry": {
+            "types": "./dist/theme/registry.d.ts",
+            "import": "./dist/theme/registry.js"
+        },
+        "./contract": {
+            "types": "./dist/contract/index.d.ts",
+            "import": "./dist/contract/index.js"
+        },
+        "./contract/core": {
+            "types": "./dist/contract/core.d.ts",
+            "import": "./dist/contract/core.js"
+        },
+        "./behaviors": {
+            "types": "./dist/behaviors/index.d.ts",
+            "import": "./dist/behaviors/index.js"
+        },
+        "./behaviors/core": {
+            "types": "./dist/behaviors/core.d.ts",
+            "import": "./dist/behaviors/core.js"
+        },
+        "./adapt": {
+            "types": "./dist/adapt/index.d.ts",
+            "import": "./dist/adapt/index.js"
+        },
+        "./testing": {
+            "types": "./dist/testing/index.d.ts",
+            "import": "./dist/testing/index.js"
+        },
+        "./tabs": {
+            "types": "./dist/components/tabs/index.d.ts",
+            "import": "./dist/components/tabs/index.js"
+        },
+        "./collapsible": {
+            "types": "./dist/components/collapsible/index.d.ts",
+            "import": "./dist/components/collapsible/index.js"
+        },
+        "./switch": {
+            "types": "./dist/components/switch/index.d.ts",
+            "import": "./dist/components/switch/index.js"
+        },
+        "./dialog": {
+            "types": "./dist/components/dialog/index.d.ts",
+            "import": "./dist/components/dialog/index.js"
+        },
+        "./popover": {
+            "types": "./dist/components/popover/index.d.ts",
+            "import": "./dist/components/popover/index.js"
+        },
+        "./tooltip": {
+            "types": "./dist/components/tooltip/index.d.ts",
+            "import": "./dist/components/tooltip/index.js"
+        },
+        "./menu": {
+            "types": "./dist/components/menu/index.d.ts",
+            "import": "./dist/components/menu/index.js"
+        },
+        "./css": "./css/base.css",
+        "./manifest.json": "./dist/manifest.json",
+        "./field": {
+            "types": "./dist/components/field/index.d.ts",
+            "import": "./dist/components/field/index.js"
+        },
+        "./checkbox": {
+            "types": "./dist/components/checkbox/index.d.ts",
+            "import": "./dist/components/checkbox/index.js"
+        },
+        "./radio-group": {
+            "types": "./dist/components/radio-group/index.d.ts",
+            "import": "./dist/components/radio-group/index.js"
+        },
+        "./progress": {
+            "types": "./dist/components/progress/index.d.ts",
+            "import": "./dist/components/progress/index.js"
+        },
+        "./slider": {
+            "types": "./dist/components/slider/index.d.ts",
+            "import": "./dist/components/slider/index.js"
+        },
+        "./accordion": {
+            "types": "./dist/components/accordion/index.d.ts",
+            "import": "./dist/components/accordion/index.js"
+        },
+        "./select": {
+            "types": "./dist/components/select/index.d.ts",
+            "import": "./dist/components/select/index.js"
+        },
+        "./button": {
+            "types": "./dist/components/button/index.d.ts",
+            "import": "./dist/components/button/index.js"
+        },
+        "./avatar": {
+            "types": "./dist/components/avatar/index.d.ts",
+            "import": "./dist/components/avatar/index.js"
+        },
+        "./toast": {
+            "types": "./dist/components/toast/index.d.ts",
+            "import": "./dist/components/toast/index.js"
+        },
+        "./combobox": {
+            "types": "./dist/components/combobox/index.d.ts",
+            "import": "./dist/components/combobox/index.js"
+        },
+        "./toggle": {
+            "types": "./dist/components/toggle/index.d.ts",
+            "import": "./dist/components/toggle/index.js"
+        },
+        "./toggle-group": {
+            "types": "./dist/components/toggle-group/index.d.ts",
+            "import": "./dist/components/toggle-group/index.js"
+        },
+        "./number-input": {
+            "types": "./dist/components/number-input/index.d.ts",
+            "import": "./dist/components/number-input/index.js"
+        },
+        "./rating-group": {
+            "types": "./dist/components/rating-group/index.d.ts",
+            "import": "./dist/components/rating-group/index.js"
+        },
+        "./tree-view": {
+            "types": "./dist/components/tree-view/index.d.ts",
+            "import": "./dist/components/tree-view/index.js"
+        },
+        "./input": {
+            "types": "./dist/components/input/index.d.ts",
+            "import": "./dist/components/input/index.js"
+        },
+        "./textarea": {
+            "types": "./dist/components/textarea/index.d.ts",
+            "import": "./dist/components/textarea/index.js"
+        },
+        "./card": {
+            "types": "./dist/components/card/index.d.ts",
+            "import": "./dist/components/card/index.js"
+        },
+        "./alert": {
+            "types": "./dist/components/alert/index.d.ts",
+            "import": "./dist/components/alert/index.js"
+        },
+        "./badge": {
+            "types": "./dist/components/badge/index.d.ts",
+            "import": "./dist/components/badge/index.js"
+        },
+        "./divider": {
+            "types": "./dist/components/divider/index.d.ts",
+            "import": "./dist/components/divider/index.js"
+        },
+        "./skeleton": {
+            "types": "./dist/components/skeleton/index.d.ts",
+            "import": "./dist/components/skeleton/index.js"
+        },
+        "./stack": {
+            "types": "./dist/components/stack/index.d.ts",
+            "import": "./dist/components/stack/index.js"
+        },
+        "./spacer": {
+            "types": "./dist/components/spacer/index.d.ts",
+            "import": "./dist/components/spacer/index.js"
+        },
+        "./grid": {
+            "types": "./dist/components/grid/index.d.ts",
+            "import": "./dist/components/grid/index.js"
+        },
+        "./center": {
+            "types": "./dist/components/center/index.d.ts",
+            "import": "./dist/components/center/index.js"
+        },
+        "./box": {
+            "types": "./dist/components/box/index.d.ts",
+            "import": "./dist/components/box/index.js"
+        },
+        "./container": {
+            "types": "./dist/components/container/index.d.ts",
+            "import": "./dist/components/container/index.js"
+        },
+        "./spinner": {
+            "types": "./dist/components/spinner/index.d.ts",
+            "import": "./dist/components/spinner/index.js"
+        },
+        "./kbd": {
+            "types": "./dist/components/kbd/index.d.ts",
+            "import": "./dist/components/kbd/index.js"
+        },
+        "./status": {
+            "types": "./dist/components/status/index.d.ts",
+            "import": "./dist/components/status/index.js"
+        },
+        "./indicator": {
+            "types": "./dist/components/indicator/index.d.ts",
+            "import": "./dist/components/indicator/index.js"
+        },
+        "./stats": {
+            "types": "./dist/components/stats/index.d.ts",
+            "import": "./dist/components/stats/index.js"
+        },
+        "./timeline": {
+            "types": "./dist/components/timeline/index.d.ts",
+            "import": "./dist/components/timeline/index.js"
+        },
+        "./chat": {
+            "types": "./dist/components/chat/index.d.ts",
+            "import": "./dist/components/chat/index.js"
+        },
+        "./radial-progress": {
+            "types": "./dist/components/radial-progress/index.d.ts",
+            "import": "./dist/components/radial-progress/index.js"
+        },
+        "./join": {
+            "types": "./dist/components/join/index.d.ts",
+            "import": "./dist/components/join/index.js"
+        },
+        "./navbar": {
+            "types": "./dist/components/navbar/index.d.ts",
+            "import": "./dist/components/navbar/index.js"
+        },
+        "./breadcrumbs": {
+            "types": "./dist/components/breadcrumbs/index.d.ts",
+            "import": "./dist/components/breadcrumbs/index.js"
+        },
+        "./pagination": {
+            "types": "./dist/components/pagination/index.d.ts",
+            "import": "./dist/components/pagination/index.js"
+        },
+        "./steps": {
+            "types": "./dist/components/steps/index.d.ts",
+            "import": "./dist/components/steps/index.js"
+        },
+        "./drawer": {
+            "types": "./dist/components/drawer/index.d.ts",
+            "import": "./dist/components/drawer/index.js"
+        },
+        "./table": {
+            "types": "./dist/components/table/index.d.ts",
+            "import": "./dist/components/table/index.js"
+        },
+        "./file-upload": {
+            "types": "./dist/components/file-upload/index.d.ts",
+            "import": "./dist/components/file-upload/index.js"
+        },
+        "./carousel": {
+            "types": "./dist/components/carousel/index.d.ts",
+            "import": "./dist/components/carousel/index.js"
+        },
+        "./swap": {
+            "types": "./dist/components/swap/index.d.ts",
+            "import": "./dist/components/swap/index.js"
+        },
+        "./countdown": {
+            "types": "./dist/components/countdown/index.d.ts",
+            "import": "./dist/components/countdown/index.js"
+        },
+        "./diff": {
+            "types": "./dist/components/diff/index.d.ts",
+            "import": "./dist/components/diff/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "css",
+        "llms.txt"
+    ],
+    "sideEffects": false,
+    "scripts": {
+        "build": "vite build && tsgo --emitDeclarationOnly && node scripts/gen-manifest.mjs",
+        "build:types": "tsgo --emitDeclarationOnly",
+        "typecheck": "tsgo --noEmit"
+    },
+    "keywords": [
+        "SignalX",
+        "sigx",
+        "headless",
+        "unstyled",
+        "components",
+        "accessibility",
+        "design-system"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/zero.git",
+        "directory": "packages/zero"
+    },
+    "homepage": "https://sigx.dev/zero/",
+    "bugs": {
+        "url": "https://github.com/signalxjs/zero/issues"
+    },
+    "peerDependencies": {
+        "sigx": "catalog:",
+        "@sigx/reactivity": "catalog:",
+        "@sigx/runtime-core": "catalog:",
+        "@sigx/runtime-dom": "catalog:"
+    },
+    "devDependencies": {
+        "@sigx/reactivity": "catalog:",
+        "@sigx/runtime-core": "catalog:",
+        "@sigx/runtime-dom": "catalog:",
+        "@sigx/server-renderer": "catalog:",
+        "@sigx/vite": "catalog:",
+        "happy-dom": "^20.0.11",
+        "sigx": "catalog:",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.3",
+        "vitest": "^4.1.1"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

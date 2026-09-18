@@ -1,0 +1,85 @@
+@layer zero.recipes {
+    [data-scope="badge"][data-part="root"] {
+        --badge-fill: var(--color-base-200);
+        --badge-ink: var(--color-base-content);
+    }
+
+    [data-scope="badge"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375em;
+        background: var(--badge-fill);
+        color: var(--badge-ink);
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        padding: 0 var(--space-sm);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        line-height: var(--leading-normal);
+        white-space: nowrap;
+        text-decoration: none;
+    }
+
+    [data-scope="badge"][data-part="root"][data-color="primary"] {
+        --badge-fill: var(--color-primary);
+        --badge-ink: var(--color-primary-content);
+    }
+
+    [data-scope="badge"][data-part="root"][data-color="secondary"] {
+        --badge-fill: var(--color-secondary);
+        --badge-ink: var(--color-secondary-content);
+    }
+
+    [data-scope="badge"][data-part="root"][data-color="accent"] {
+        --badge-fill: var(--color-accent);
+        --badge-ink: var(--color-accent-content);
+    }
+
+    [data-scope="badge"][data-part="root"][data-color="neutral"] {
+        --badge-fill: var(--color-neutral);
+        --badge-ink: var(--color-neutral-content);
+    }
+
+    [data-scope="badge"][data-part="root"][data-color="info"] {
+        --badge-fill: var(--color-info);
+        --badge-ink: var(--color-info-content);
+    }
+
+    [data-scope="badge"][data-part="root"][data-color="success"] {
+        --badge-fill: var(--color-success);
+        --badge-ink: var(--color-success-content);
+    }
+
+    [data-scope="badge"][data-part="root"][data-color="warning"] {
+        --badge-fill: var(--color-warning);
+        --badge-ink: var(--color-warning-content);
+    }
+
+    [data-scope="badge"][data-part="root"][data-color="error"] {
+        --badge-fill: var(--color-error);
+        --badge-ink: var(--color-error-content);
+    }
+
+    [data-scope="badge"][data-part="root"][data-size="xs"] {
+        font-size: var(--text-xs);
+        padding: 0 var(--space-xs);
+    }
+
+    [data-scope="badge"][data-part="root"][data-size="sm"] {
+        font-size: var(--text-xs);
+        padding: 0 var(--space-sm);
+    }
+
+    [data-scope="badge"][data-part="root"][data-size="lg"] {
+        font-size: var(--text-sm);
+        padding: 0 var(--space-md);
+    }
+
+    [data-scope="badge"][data-part="root"][data-size="xl"] {
+        font-size: var(--text-md);
+        padding: var(--space-2xs) var(--space-lg);
+    }
+}

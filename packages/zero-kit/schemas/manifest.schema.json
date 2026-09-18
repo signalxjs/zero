@@ -1,0 +1,350 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://signalxjs.github.io/zero/schemas/manifest.schema.json",
+    "title": "SignalX Zero anatomy manifest",
+    "description": "The machine-readable face of @sigx/zero, emitted as dist/manifest.json by the zero build: every component's parts, data-state values, boolean flags and token hints (with ready-made selector fragments), plus the contract vocabulary — the attribute spec, the color-token naming convention, the token categories and the recommended role/size defaults. An AI or build tool reads this manifest to enumerate every styleable selector, emit recipes as JSON and iterate against `sigx zero:validate` without ever reading component code.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["$schema", "zeroVersion", "attributeSpec", "tokens", "components"],
+    "properties": {
+        "$schema": {
+            "description": "Self-reference to this schema — the emitter always writes exactly this URL.",
+            "const": "https://signalxjs.github.io/zero/schemas/manifest.schema.json"
+        },
+        "zeroVersion": {
+            "description": "The @sigx/zero package version this manifest was emitted from.",
+            "type": "string",
+            "minLength": 1
+        },
+        "attributeSpec": {
+            "description": "How the anatomy contract is spelled in the DOM: the attribute names, the presence-only flag form, the closed flag vocabulary, and the variant axes.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scope", "part", "state", "flagForm", "flagVocabulary", "stateVocabulary", "stateSynonyms", "placementVocabulary", "layoutPrefix", "layoutVocabulary", "variantAxes", "extraAxisForm"],
+            "properties": {
+                "scope": { "const": "data-scope" },
+                "part": { "const": "data-part" },
+                "state": { "const": "data-state" },
+                "flagForm": {
+                    "description": "Prose statement of the presence-only flag convention (data-<flag>=\"\", never =\"false\").",
+                    "type": "string"
+                },
+                "flagVocabulary": {
+                    "description": "The closed set of boolean data-* flags. Adding a flag is a contract change, so a new zero version ships a new manifest (and schema) rather than this list being open.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 1
+                },
+                "stateVocabulary": {
+                    "description": "The governed data-state vocabulary, grouped by family. Every value in every part's `states` is a member of some family; a new state value is a contract change here first. Families are documentation — membership is checked against the union.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/kebabToken" },
+                        "minItems": 1
+                    }
+                },
+                "stateSynonyms": {
+                    "description": "Spellings the state vocabulary deliberately does not contain, mapped to the member that means the same thing — diagnostic data for governance failures.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": { "$ref": "#/$defs/kebabToken" }
+                },
+                "placementVocabulary": {
+                    "description": "The closed data-placement vocabulary (side, optionally refined by an alignment). A part that can carry the attribute declares its subset in `placements`.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 1
+                },
+                "layoutPrefix": {
+                    "description": "The namespace every layout attribute renders under. A per-breakpoint value puts the breakpoint in prefix position: data-l-gap=\"md\" and data-l-md-gap=\"lg\".",
+                    "const": "data-l-"
+                },
+                "layoutVocabulary": {
+                    "description": "The closed layout attribute vocabulary: attribute name to its permitted values, and whether it may also be written per breakpoint. A part that can carry an attribute declares it in `layout`.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["values"],
+                        "properties": {
+                            "values": {
+                                "type": "array",
+                                "items": { "$ref": "#/$defs/kebabToken" },
+                                "minItems": 1
+                            },
+                            "responsive": { "const": true }
+                        }
+                    }
+                },
+                "variantAxes": {
+                    "description": "The variant axes with named props on every zero component. The three contract axes are always present; the axis SET is open by design (a design system may declare others, reached through the `axes` prop), so additional data-<axis> entries are allowed.",
+                    "type": "object",
+                    "required": ["color", "size", "variant"],
+                    "properties": {
+                        "color": { "const": "data-color" },
+                        "size": { "const": "data-size" },
+                        "variant": { "const": "data-variant" }
+                    },
+                    "additionalProperties": {
+                        "type": "string",
+                        "pattern": "^data-[a-z0-9]+(-[a-z0-9]+)*$"
+                    }
+                },
+                "extraAxisForm": {
+                    "description": "Prose statement of how a design-system-declared extra axis is spelled (data-<axis> via the `axes` prop).",
+                    "type": "string"
+                }
+            }
+        },
+        "tokens": {
+            "description": "The token-name contract. Both halves are grammars, not vocabularies: design systems declare their own color roles and their own keys within each category — only the base surfaces are fixed.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["colors", "categories", "recommendedSizes"],
+            "properties": {
+                "colors": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["convention", "required", "recommendedRoles"],
+                    "properties": {
+                        "convention": {
+                            "description": "The color-token naming grammar: --color-<role>, with -content (readable foreground) and -soft (tinted surface) suffixes.",
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["prefix", "contentSuffix", "softSuffix"],
+                            "properties": {
+                                "prefix": { "const": "--color-" },
+                                "contentSuffix": { "const": "-content" },
+                                "softSuffix": { "const": "-soft" }
+                            }
+                        },
+                        "required": {
+                            "description": "The fixed base-surface custom properties every design system must provide (they anchor soft derivation, light-dark() emission and theme swatches).",
+                            "type": "array",
+                            "items": { "type": "string", "pattern": "^--color-[a-z0-9]+(-[a-z0-9]+)*$" },
+                            "minItems": 1
+                        },
+                        "recommendedRoles": {
+                            "description": "The default role vocabulary a design system gets when it declares no `roles` of its own — a default, not a closed set.",
+                            "type": "array",
+                            "items": { "$ref": "#/$defs/kebabToken" }
+                        }
+                    }
+                },
+                "categories": {
+                    "description": "The closed, kit-curated set of non-color token categories. Each fixes a --prefix- and a value grammar; the KEYS inside a category are declared by each design system and open.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/tokenCategory" }
+                },
+                "recommendedSizes": {
+                    "description": "The default `size` axis ramp — what a design system gets when it declares no `sizes`, not a closed set.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" }
+                }
+            }
+        },
+        "components": {
+            "description": "Every component anatomy, in registry order. Each anatomy is the closed source of truth for that component's styleable surface.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/component" },
+            "minItems": 1
+        }
+    },
+    "$defs": {
+        "camelIdentifier": {
+            "description": "A camelCase identifier — the grammar for a model's name, concept and companion prop names (they become JSX prop keys).",
+            "type": "string",
+            "pattern": "^[a-z][A-Za-z0-9]*$"
+        },
+        "kebabToken": {
+            "description": "A kebab-case identifier that may start with a digit — the grammar for state, flag, part and token-key names (they end up inside attribute selectors and custom-property names).",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "tokenCategory": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "shape", "prefix", "path", "recommended", "syntax", "description"],
+            "properties": {
+                "id": { "$ref": "#/$defs/kebabToken" },
+                "shape": {
+                    "description": "`scale` categories hold key → value maps (--radius-box); `scalar` categories hold a single value (--border).",
+                    "enum": ["scale", "scalar"]
+                },
+                "prefix": {
+                    "description": "Custom-property prefix, including the leading `--`.",
+                    "type": "string",
+                    "pattern": "^--[a-z0-9-]+$"
+                },
+                "path": {
+                    "description": "Where the category lives in the authoring shape, under tokens `system` (e.g. [\"typography\", \"sizes\"]).",
+                    "type": "array",
+                    "items": { "type": "string", "minLength": 1 },
+                    "minItems": 1
+                },
+                "recommended": {
+                    "description": "Keys @sigx/zero's base.css ships fallbacks for; a design system may declare any others.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" }
+                },
+                "syntax": {
+                    "description": "CSS value grammar of the category, for tooling and generators.",
+                    "enum": ["<length>", "<time>", "<number>", "<color>", "*"]
+                },
+                "description": { "type": "string" }
+            }
+        },
+        "component": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scope", "parts"],
+            "properties": {
+                "scope": {
+                    "description": "The data-scope value every part of this component carries.",
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "orientation": {
+                    "description": "Present (and true) only when the component carries data-orientation — the emitter omits the key entirely otherwise.",
+                    "const": true
+                },
+                "parts": {
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/part" },
+                    "minItems": 1
+                },
+                "models": {
+                    "description": "The models the component's API carries — present only when there is at least one. What each binds, seeds, emits and whether it posts to a form; the two companion names are derived from the concept by one rule.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/model" },
+                    "minItems": 1
+                }
+            }
+        },
+        "model": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["concept", "type", "default", "change"],
+            "properties": {
+                "name": {
+                    "description": "The model:<name> key of a named model (model:open, model:inputValue). Absent for the unnamed model prop. A named model's concept is its name.",
+                    "$ref": "#/$defs/camelIdentifier"
+                },
+                "concept": {
+                    "description": "What the model holds, and the stem of both companions: open → defaultOpen + openChange.",
+                    "$ref": "#/$defs/camelIdentifier"
+                },
+                "type": {
+                    "description": "The value type as a TypeScript type expression; on a generic root T is the item type and V what itemValue returns.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "member": {
+                    "description": "The compound member whose props carry the model when it is not Root (Menu.CheckboxItem → \"CheckboxItem\").",
+                    "type": "string",
+                    "pattern": "^[A-Z][A-Za-z0-9]*$"
+                },
+                "multiple": {
+                    "description": "Present (and true) only when the multiple prop makes the model an array instead: type is the single-select shape, and under multiple the model is an array of the selectable value alone — the empty sentinel (null, '') has no element form, the empty array is it (T | null → T[]).",
+                    "const": true
+                },
+                "formControl": {
+                    "description": "Present (and true) only when the model posts to the enclosing form under name.",
+                    "const": true
+                },
+                "default": {
+                    "description": "The seed prop: default + the capitalised concept.",
+                    "$ref": "#/$defs/camelIdentifier"
+                },
+                "change": {
+                    "description": "The change event: the concept + Change (handler on<Concept>Change).",
+                    "$ref": "#/$defs/camelIdentifier"
+                }
+            }
+        },
+        "part": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "element", "selectors"],
+            "properties": {
+                "name": {
+                    "description": "The data-part value, unique within the component.",
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "element": {
+                    "description": "Default rendered element (e.g. \"button\", \"dialog\").",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "parent": {
+                    "description": "The same-scope part this part renders inside — the anatomy's part tree. Names the containing part, not necessarily the immediate parent element (other parts or consumer markup may sit between). Omitted for a top-level part, and always omitted on a `pseudo` part (it renders no element; its host is pseudo.of).",
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "states": {
+                    "description": "Closed set of data-state values this part can carry.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" }
+                },
+                "flags": {
+                    "description": "Boolean data-* flags this part can carry, drawn from attributeSpec.flagVocabulary.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" }
+                },
+                "placements": {
+                    "description": "The data-placement values this part can carry, drawn from attributeSpec.placementVocabulary — the anchored-position behavior writes the attribute on open floats, and Toast stamps its viewport and roots. Omitted entirely for parts the runtime never stamps; never empty.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 1
+                },
+                "layout": {
+                    "description": "The layout attributes this part can carry, drawn from attributeSpec.layoutVocabulary. Rendered under the data-l- prefix (data-l-gap=\"md\", and per breakpoint data-l-md-gap=\"lg\"). Omitted entirely for parts that take none; never empty.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 1
+                },
+                "hiddenIn": {
+                    "description": "States in which the runtime sets the hidden attribute on this part, so it paints nothing and leaves the accessibility tree (avatar's image while \"error\"). Always a subset of `states`. A rule targeting one of these states can never render, so styling it identically to a visible state is correct — the difference is presence, and the runtime owns it. Omitted entirely for parts the runtime never hides.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 1
+                },
+                "tokens": {
+                    "description": "Contract token groups that typically style this part — a hint for tooling, closed because the hint vocabulary is defined by zero.",
+                    "type": "array",
+                    "items": {
+                        "enum": ["color", "radius-selector", "radius-field", "radius-box", "size", "text"]
+                    }
+                },
+                "asChild": {
+                    "description": "True when the part supports asChild composition.",
+                    "type": "boolean"
+                },
+                "pseudo": {
+                    "description": "Present when the part renders no element of its own on the web and projects onto a pseudo-element of another part (dialog's backdrop \u2192 popup's ::backdrop). Consumers compose [data-part=\"<of>\"]<state fragments><selector> \u2014 pseudo-element last, because attributes can only narrow the host.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["of", "selector"],
+                    "properties": {
+                        "of": {
+                            "description": "The rendered part the pseudo-element belongs to.",
+                            "$ref": "#/$defs/kebabToken"
+                        },
+                        "selector": {
+                            "description": "The pseudo-element, including the leading ::.",
+                            "type": "string",
+                            "pattern": "^::"
+                        }
+                    }
+                },
+                "selectors": {
+                    "description": "Ready-made CSS selector fragment per state/flag name — states map to [data-state=\"x\"], flags to [data-x]. This is what the recipe compiler consumes.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": { "type": "string", "minLength": 1 }
+                }
+            }
+        }
+    }
+}

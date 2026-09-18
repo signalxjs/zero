@@ -1,0 +1,51 @@
+@layer zero.recipes {
+    [data-scope="countdown"][data-part="root"] {
+        --countdown-ink: var(--color-base-content);
+        --countdown-font: var(--text-2xl);
+    }
+
+    [data-scope="countdown"][data-part="root"] {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.1em;
+        font-size: var(--countdown-font);
+        font-weight: var(--weight-semibold);
+        font-variant-numeric: tabular-nums;
+        color: var(--countdown-ink);
+    }
+
+    [data-scope="countdown"][data-part="value"] {
+        display: inline-block;
+        overflow: hidden;
+    }
+
+    [data-scope="countdown"][data-part="digits"] {
+        display: inline-block;
+        animation: zero-carbon-countdown-in 0.24s var(--ease-standard);
+    }
+
+    [data-scope="countdown"][data-part="root"][data-size="sm"] {
+        --countdown-font: var(--text-xl);
+    }
+
+    [data-scope="countdown"][data-part="root"][data-size="lg"] {
+        --countdown-font: var(--text-3xl);
+    }
+
+    [data-scope="countdown"][data-part="root"][data-size="xl"] {
+        --countdown-font: var(--text-3xl);
+    }
+
+    [data-scope="countdown"][data-part="root"][data-size="2xl"] {
+        --countdown-font: var(--text-3xl);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="countdown"][data-part="digits"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-carbon-countdown-in {
+    from { transform: translateY(0.5em); opacity: 0; }
+}

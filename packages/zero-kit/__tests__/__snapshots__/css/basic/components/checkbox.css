@@ -1,0 +1,211 @@
+@layer zero.recipes {
+    [data-scope="checkbox"][data-part="root"] {
+        --checkbox-size: calc(var(--size-selector) * 5);
+        --checkbox-accent: var(--color-primary);
+        --checkbox-on-accent: var(--color-primary-content);
+        --checkbox-mark: polygon(36.6% 63.5%, 37.6% 92.8%, 37.6% 92.8%, 37.6% 92.8%, 36.6% 63.5%, 36.6% 63.5%);
+    }
+
+    [data-scope="checkbox"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-md);
+        cursor: pointer;
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="checkbox"][data-part="control"] {
+        display: inline-block;
+        position: relative;
+        flex-shrink: 0;
+        width: var(--checkbox-size);
+        height: var(--checkbox-size);
+        border: var(--border) solid var(--color-base-300);
+        border-radius: var(--radius-selector);
+        background: var(--color-base-100);
+        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-state="checked"] {
+        background: var(--checkbox-accent);
+        border-color: var(--checkbox-accent);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-state="indeterminate"] {
+        background: var(--checkbox-accent);
+        border-color: var(--checkbox-accent);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-state="unchecked"]:hover:not([data-disabled], [data-invalid]) {
+        border-color: var(--color-secondary);
+    }
+
+    [data-scope="checkbox"][data-part="indicator"] {
+        position: absolute;
+        inset: 17%;
+        background: var(--checkbox-on-accent);
+        clip-path: var(--checkbox-mark);
+        opacity: 0;
+        transition: clip-path var(--duration-fast) var(--ease-exit), opacity var(--duration-fast) var(--ease-exit);
+    }
+
+    [data-scope="checkbox"][data-part="indicator"][data-state="checked"] {
+        --checkbox-mark: polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%);
+        opacity: 1;
+        transition: clip-path var(--duration-normal) var(--ease-standard) var(--duration-fast), opacity var(--duration-fast) var(--ease-standard) var(--duration-fast);
+    }
+
+    [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"] {
+        --checkbox-mark: polygon(8% 40.1%, 8% 59.9%, 37.6% 59.9%, 92% 59.9%, 92% 40.1%, 37.6% 40.1%);
+        opacity: 1;
+        transition: clip-path var(--duration-normal) var(--ease-standard) var(--duration-fast), opacity var(--duration-fast) var(--ease-standard) var(--duration-fast);
+    }
+
+    [data-scope="checkbox"][data-part="label"] {
+        font-size: var(--text-sm);
+        font-variant-numeric: tabular-nums;
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-color="primary"] {
+        --checkbox-accent: var(--color-primary);
+        --checkbox-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-color="secondary"] {
+        --checkbox-accent: var(--color-secondary);
+        --checkbox-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-color="accent"] {
+        --checkbox-accent: var(--color-accent);
+        --checkbox-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-color="neutral"] {
+        --checkbox-accent: var(--color-neutral);
+        --checkbox-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-color="info"] {
+        --checkbox-accent: var(--color-info);
+        --checkbox-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-color="success"] {
+        --checkbox-accent: var(--color-success);
+        --checkbox-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-color="warning"] {
+        --checkbox-accent: var(--color-warning);
+        --checkbox-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-color="error"] {
+        --checkbox-accent: var(--color-error);
+        --checkbox-on-accent: var(--color-error-content);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-size="xs"] {
+        --checkbox-size: calc(var(--size-selector) * 4);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-size="sm"] {
+        --checkbox-size: calc(var(--size-selector) * 4.5);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-size="md"] {
+        --checkbox-size: calc(var(--size-selector) * 5);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-size="lg"] {
+        --checkbox-size: calc(var(--size-selector) * 6);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-size="xl"] {
+        --checkbox-size: calc(var(--size-selector) * 7);
+    }
+
+    @scope ([data-scope="checkbox"][data-part="root"][data-size="xs"]) to ([data-scope="checkbox"][data-part="root"]) {
+        [data-scope="checkbox"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="checkbox"][data-part="root"][data-size="sm"]) to ([data-scope="checkbox"][data-part="root"]) {
+        [data-scope="checkbox"][data-part="label"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="checkbox"][data-part="root"][data-size="md"]) to ([data-scope="checkbox"][data-part="root"]) {
+        [data-scope="checkbox"][data-part="label"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="checkbox"][data-part="root"][data-size="lg"]) to ([data-scope="checkbox"][data-part="root"]) {
+        [data-scope="checkbox"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="checkbox"][data-part="root"][data-size="xl"]) to ([data-scope="checkbox"][data-part="root"]) {
+        [data-scope="checkbox"][data-part="label"] {
+            font-size: var(--text-lg);
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="checkbox"][data-part="indicator"] {
+            clip-path: none;
+            background: transparent;
+            display: grid;
+            place-items: center;
+            color: CanvasText;
+            font-size: calc(var(--checkbox-size) * 0.72);
+            line-height: var(--leading-none);
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
+            content: "\2714";
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"]::after {
+            content: "\2212";
+        }
+    }
+
+    @media print {
+        [data-scope="checkbox"][data-part="indicator"] {
+            clip-path: none;
+            background: transparent;
+            display: grid;
+            place-items: center;
+            color: var(--print-ink);
+            font-size: calc(var(--checkbox-size) * 0.72);
+            line-height: var(--leading-none);
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
+            content: "\2714";
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"]::after {
+            content: "\2212";
+        }
+    }
+}

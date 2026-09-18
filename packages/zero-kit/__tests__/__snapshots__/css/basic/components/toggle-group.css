@@ -1,0 +1,188 @@
+@layer zero.recipes {
+    [data-scope="toggle-group"][data-part="root"] {
+        --toggle-group-accent: var(--color-primary);
+        --toggle-group-soft: var(--color-primary-soft);
+        --toggle-group-ink: var(--color-primary);
+    }
+
+    [data-scope="toggle-group"][data-part="root"] {
+        display: inline-flex;
+        border: var(--border) solid var(--color-base-300);
+        border-radius: var(--radius-field);
+        overflow: hidden;
+    }
+
+    [data-scope="toggle-group"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="toggle-group"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+    }
+
+    [data-scope="toggle-group"][data-part="item"] {
+        appearance: none;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5em;
+        background: transparent;
+        color: var(--color-base-content);
+        border: none;
+        padding: var(--space-xs) var(--space-md);
+        font-family: inherit;
+        font-weight: var(--weight-medium);
+        font-size: var(--text-sm);
+        line-height: var(--leading-none);
+        font-variant-numeric: tabular-nums;
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="toggle-group"][data-part="item"]:hover:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="toggle-group"][data-part="item"][data-state="on"] {
+        background: var(--toggle-group-soft);
+        color: var(--toggle-group-ink);
+    }
+
+    [data-scope="toggle-group"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="toggle-group"][data-part="item"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: -2px;
+    }
+
+    [data-scope="toggle-group"][data-part="item"][data-state="on"]::before {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: 0;
+        width: 2px;
+        background: var(--toggle-group-accent);
+        pointer-events: none;
+    }
+
+    [data-scope="toggle-group"][data-part="item"][data-state="on"]:hover {
+        background: color-mix(in oklch, var(--toggle-group-accent) 6%, var(--toggle-group-soft));
+    }
+
+    [data-scope="toggle-group"][data-part="item"][data-orientation="horizontal"] + [data-scope="toggle-group"][data-part="item"] {
+        border-inline-start: var(--border) solid var(--color-base-300);
+    }
+
+    [data-scope="toggle-group"][data-part="item"][data-orientation="vertical"] + [data-scope="toggle-group"][data-part="item"] {
+        border-block-start: var(--border) solid var(--color-base-300);
+    }
+
+    [data-scope="toggle-group"][data-part="item"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-size="xs"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            font-size: var(--text-xs);
+            padding: var(--space-2xs) var(--space-xs);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-size="sm"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            font-size: var(--text-xs);
+            padding: var(--space-2xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-size="lg"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            font-size: var(--text-md);
+            padding: var(--space-sm) var(--space-lg);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-size="xl"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            font-size: var(--text-lg);
+            padding: var(--space-md) var(--space-xl);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="primary"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-accent: var(--color-primary);
+            --toggle-group-soft: var(--color-primary-soft);
+            --toggle-group-ink: var(--color-primary);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"]:not([data-color])) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-accent: var(--color-primary);
+            --toggle-group-soft: var(--color-primary-soft);
+            --toggle-group-ink: var(--color-primary);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="secondary"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-accent: var(--color-secondary);
+            --toggle-group-soft: var(--color-secondary-soft);
+            --toggle-group-ink: var(--color-secondary);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="accent"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-accent: var(--color-accent);
+            --toggle-group-soft: var(--color-accent-soft);
+            --toggle-group-ink: var(--color-accent);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="neutral"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-accent: var(--color-neutral);
+            --toggle-group-soft: var(--color-neutral-soft);
+            --toggle-group-ink: var(--color-base-content);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="info"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-accent: var(--color-info);
+            --toggle-group-soft: var(--color-info-soft);
+            --toggle-group-ink: var(--color-info);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="success"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-accent: var(--color-success);
+            --toggle-group-soft: var(--color-success-soft);
+            --toggle-group-ink: var(--color-success);
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="warning"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-accent: var(--color-warning);
+            --toggle-group-soft: var(--color-warning-soft);
+            --toggle-group-ink: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="error"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-accent: var(--color-error);
+            --toggle-group-soft: var(--color-error-soft);
+            --toggle-group-ink: var(--color-error);
+        }
+    }
+}

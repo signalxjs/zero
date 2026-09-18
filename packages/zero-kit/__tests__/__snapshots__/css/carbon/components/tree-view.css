@@ -1,0 +1,145 @@
+@layer zero.recipes {
+    [data-scope="tree-view"][data-part="root"] {
+        --tree-text: var(--text-sm);
+    }
+
+    [data-scope="tree-view"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="tree-view"][data-part="label"] {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+    }
+
+    [data-scope="tree-view"][data-part="tree"] {
+        display: flex;
+        flex-direction: column;
+        font-size: var(--tree-text);
+    }
+
+    [data-scope="tree-view"][data-part="item"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        min-height: 2rem;
+        padding: 0 var(--space-sm);
+        border-inline-start: 3px solid transparent;
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="tree-view"][data-part="item"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="tree-view"][data-part="item"][data-selected] {
+        background: var(--color-base-300);
+        border-inline-start-color: var(--carbon-interactive);
+    }
+
+    [data-scope="tree-view"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="tree-view"][data-part="item"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="tree-view"][data-part="item"][data-selected]:hover:not([data-disabled]) {
+        background: var(--color-base-300);
+    }
+
+    [data-scope="tree-view"][data-part="item"][data-pressed]:not([data-disabled]) {
+        background: var(--color-base-300);
+    }
+
+    [data-scope="tree-view"][data-part="branch"] {
+        display: flex;
+        flex-direction: column;
+        outline: none;
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        min-height: 2rem;
+        padding: 0 var(--space-sm);
+        border-inline-start: 3px solid transparent;
+        cursor: pointer;
+        user-select: none;
+        transition: background var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"][data-selected] {
+        background: var(--color-base-300);
+        border-inline-start-color: var(--carbon-interactive);
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"][data-selected]:hover:not([data-disabled]) {
+        background: var(--color-base-300);
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"][data-pressed]:not([data-disabled]) {
+        background: var(--color-base-300);
+    }
+
+    [data-scope="tree-view"][data-part="branch-indicator"] {
+        display: inline-block;
+        transition: transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="tree-view"][data-part="branch-indicator"][data-state="open"] {
+        transform: rotate(90deg);
+    }
+
+    [data-scope="tree-view"][data-part="branch-indicator"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        scale: -1 1;
+    }
+
+    [data-scope="tree-view"][data-part="branch-content"] {
+        display: flex;
+        flex-direction: column;
+        padding-inline-start: var(--space-md);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="sm"] {
+        --tree-text: var(--text-xs);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="lg"] {
+        --tree-text: var(--text-md);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="xl"] {
+        --tree-text: var(--text-lg);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="2xl"] {
+        --tree-text: var(--text-xl);
+    }
+}

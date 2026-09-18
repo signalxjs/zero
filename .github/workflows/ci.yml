@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node-version: ['20', '22']
+        include:
+          - os: windows-latest
+            node-version: '22'
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      # Every core dep must flow through a single-minor catalog (one hoisted
+      # copy). Cheap static check; fails fast before build/test.
+      - name: Verify catalog
+        run: pnpm verify:catalog
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      # Isolated projects — module augmentation leaks program-wide, so the
+      # augmented assertions must never share a program with `pnpm typecheck`.
+      # After Build as a belt: the paths map resolves everything in source
+      # (pinned by type-test-paths.test.ts), but until #316 unmapped subpaths
+      # fell through to dist/ — absent here — and skipLibCheck swallowed the
+      # unresolved imports, so this step was green while checking a quarter
+      # of the components surface.
+      - name: Type tests
+        run: pnpm test:types
+
+      - name: Test
+        run: pnpm test
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # The root typecheck excludes examples/, so the playground has its own —
+      # and until #316 no CI step ran it.
+      - name: Playground typecheck
+        run: pnpm --filter zero-playground typecheck
+
+      # The consumer-side capstone (#326): three isolated programs compiling
+      # against the EMITTED dist/ artifacts through package exports — which
+      # is why this must run after Build, and why it lives in this job
+      # rather than the source-aliased test matrix.
+      - name: Typed-app typecheck (emitted artifacts)
+        run: pnpm --filter zero-typed-app typecheck
+
+      - name: Install Playwright browsers
+        run: pnpm --filter zero-playground exec playwright install --with-deps chromium firefox webkit
+
+      - name: Real-browser interaction suite
+        run: pnpm --filter zero-playground e2e
+
+  verify-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify pack
+        run: pnpm verify:pack
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: pnpm test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/coverage-final.json
+          fail_ci_if_error: false

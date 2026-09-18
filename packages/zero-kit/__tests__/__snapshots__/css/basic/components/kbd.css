@@ -1,0 +1,75 @@
+@layer zero.recipes {
+    [data-scope="kbd"][data-part="root"] {
+        --kbd-ink: var(--color-base-content);
+    }
+
+    [data-scope="kbd"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-inline-size: 1.75em;
+        padding: var(--space-2xs) var(--space-md);
+        background: var(--color-base-100);
+        color: var(--kbd-ink);
+        border: var(--border) solid var(--color-base-300);
+        border-block-end-width: calc(var(--border) * 2);
+        border-radius: var(--radius-field);
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        line-height: var(--leading-normal);
+        white-space: nowrap;
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="primary"] {
+        --kbd-ink: var(--color-primary);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="secondary"] {
+        --kbd-ink: var(--color-secondary);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="accent"] {
+        --kbd-ink: var(--color-accent);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="neutral"] {
+        --kbd-ink: var(--color-base-content);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="info"] {
+        --kbd-ink: var(--color-info);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="success"] {
+        --kbd-ink: var(--color-success);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="warning"] {
+        --kbd-ink: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="kbd"][data-part="root"][data-color="error"] {
+        --kbd-ink: var(--color-error);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-size="xs"] {
+        font-size: var(--text-xs);
+        padding: 0 var(--space-xs);
+        min-inline-size: 1.5em;
+    }
+
+    [data-scope="kbd"][data-part="root"][data-size="sm"] {
+        font-size: var(--text-xs);
+        padding: 0 var(--space-sm);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-size="lg"] {
+        font-size: var(--text-sm);
+        padding: var(--space-2xs) var(--space-lg);
+    }
+
+    [data-scope="kbd"][data-part="root"][data-size="xl"] {
+        font-size: var(--text-md);
+        padding: var(--space-xs) var(--space-xl);
+    }
+}

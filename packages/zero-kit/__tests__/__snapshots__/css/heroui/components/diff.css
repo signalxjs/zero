@@ -1,0 +1,78 @@
+@layer zero.recipes {
+    [data-scope="diff"][data-part="root"] {
+        --diff-accent: var(--hero-primary);
+        --diff-grip: 1.5rem;
+        --diff-hit: 2rem;
+    }
+
+    [data-scope="diff"][data-part="root"] {
+        display: grid;
+        overflow: hidden;
+        background: var(--color-base-100);
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="diff"][data-part="before"] {
+        grid-area: 1 / 1;
+        min-width: 0;
+    }
+
+    [data-scope="diff"][data-part="after"] {
+        grid-area: 1 / 1;
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: 0;
+        inline-size: var(--diff-percent);
+        overflow: hidden;
+    }
+
+    [data-scope="diff"][data-part="handle"] {
+        inset-block: 0;
+        inline-size: var(--diff-hit);
+        margin-inline-start: calc(var(--diff-hit) / -2);
+        display: grid;
+        place-items: center;
+        cursor: ew-resize;
+        touch-action: none;
+        z-index: 1;
+    }
+
+    [data-scope="diff"][data-part="handle"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
+    [data-scope="diff"][data-part="handle"][data-pressed] {
+        --diff-accent: color-mix(in oklch, var(--hero-primary) 85%, var(--color-base-content));
+    }
+
+    [data-scope="diff"][data-part="handle"]::before {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: calc(50% - var(--border));
+        inline-size: calc(var(--border) * 2);
+        background: var(--diff-accent);
+    }
+
+    [data-scope="diff"][data-part="handle"]::after {
+        content: "";
+        inline-size: var(--diff-grip);
+        block-size: var(--diff-grip);
+        box-sizing: border-box;
+        background: var(--diff-accent);
+        border: calc(var(--border) * 2) solid var(--diff-accent);
+        border-radius: 9999px;
+        z-index: 1;
+    }
+
+    [data-scope="diff"][data-part="root"][data-size="sm"] {
+        --diff-grip: 1.25rem;
+        --diff-hit: 1.75rem;
+    }
+
+    [data-scope="diff"][data-part="root"][data-size="lg"] {
+        --diff-grip: 2rem;
+        --diff-hit: 2.5rem;
+    }
+}

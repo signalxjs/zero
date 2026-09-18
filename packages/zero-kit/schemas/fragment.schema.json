@@ -1,0 +1,30 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://signalxjs.github.io/zero/schemas/fragment.schema.json",
+    "title": "SignalX Zero ecosystem manifest fragment",
+    "description": "How an ecosystem component package (a peer of @sigx/zero shipping its own scopes) joins the zero-kit pipeline: the `components` shape of zero's own anatomy manifest — each entry is `defineAnatomy(...).toJSON()` — plus the one fact zero's manifest never needs, the package that owns the scopes. A design system merges the fragment into the base manifest (`--extra-manifest`, or `mergeManifests` programmatically); merged scopes are tracked as external, excluded by name from the register artifact's ZeroScope compile gate, and (under api mode) imported from the owning package.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["version", "package", "components"],
+    "properties": {
+        "$schema": {
+            "description": "Optional self-reference to this schema.",
+            "const": "https://signalxjs.github.io/zero/schemas/fragment.schema.json"
+        },
+        "version": {
+            "description": "The fragment contract version this fragment was built against (FRAGMENT_VERSION in @sigx/zero-kit). Required — mergeManifests hard-errors on a missing or unknown version, so a fragment built against an older contract fails by name instead of merging silently.",
+            "const": 1
+        },
+        "package": {
+            "description": "The package that owns these scopes — provenance for diagnostics, and the import specifier api-mode emitters use (the package's root export carries the PascalCase compound component). Required: an unowned scope is exactly the anonymous drift the merge must not admit. Bare or scoped npm specifier, optionally with subpath segments — it is interpolated into generated import statements, so nothing looser passes.",
+            "type": "string",
+            "pattern": "^(@[a-z0-9~][\\w.~-]*/)?[a-z0-9~][\\w.~-]*(/[\\w.~-]+)*$"
+        },
+        "components": {
+            "description": "The anatomies this package ships, in zero's manifest component shape. Scope names SHOULD carry a vendor prefix (e.g. `acme-stepper`) — the merge hard-errors on any collision with the base manifest or another fragment.",
+            "type": "array",
+            "items": { "$ref": "manifest.schema.json#/$defs/component" },
+            "minItems": 1
+        }
+    }
+}

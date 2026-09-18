@@ -1,0 +1,11 @@
+{
+    "extends": "../tsconfig.base.json",
+    "include": ["./**/*.ts", "../assert.ts"]
+    // The program contains the REAL emitted zero-basic register golden
+    // (kept current by zero-kit's register-dts.test.ts) plus a probe that
+    // imports EVERY component and asserts its props narrowed — the one
+    // program where the generated artifact meets the actual prop surface.
+    // Isolated like the other augmented projects: the golden augments
+    // ZeroVocabulary program-wide, which must never leak into the root
+    // typecheck.
+}

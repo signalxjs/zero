@@ -1,0 +1,97 @@
+@layer zero.recipes {
+    [data-scope="card"][data-part="root"] {
+        --card-pad: var(--space-xl);
+    }
+
+    [data-scope="card"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        border-radius: var(--radius-box);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+    }
+
+    [data-scope="card"][data-part="header"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+        padding: var(--card-pad) var(--card-pad) 0;
+    }
+
+    [data-scope="card"][data-part="title"] {
+        margin: 0;
+        font-size: var(--text-lg);
+        font-weight: var(--weight-semibold);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="card"][data-part="description"] {
+        margin: 0;
+        font-size: var(--text-sm);
+        color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+    }
+
+    [data-scope="card"][data-part="body"] {
+        padding: var(--card-pad);
+        font-size: var(--text-sm);
+        line-height: var(--leading-normal);
+    }
+
+    [data-scope="card"][data-part="footer"] {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: var(--space-md);
+        padding: 0 var(--card-pad) var(--card-pad);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="primary"] {
+        border-top: calc(var(--border) * 3) solid var(--color-primary);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="secondary"] {
+        border-top: calc(var(--border) * 3) solid var(--color-secondary);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="accent"] {
+        border-top: calc(var(--border) * 3) solid var(--color-accent);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="neutral"] {
+        border-top: calc(var(--border) * 3) solid var(--color-neutral);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="info"] {
+        border-top: calc(var(--border) * 3) solid var(--color-info);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="success"] {
+        border-top: calc(var(--border) * 3) solid var(--color-success);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="warning"] {
+        border-top: calc(var(--border) * 3) solid var(--color-warning);
+    }
+
+    [data-scope="card"][data-part="root"][data-color="error"] {
+        border-top: calc(var(--border) * 3) solid var(--color-error);
+    }
+
+    [data-scope="card"][data-part="root"][data-size="xs"] {
+        --card-pad: var(--space-sm);
+    }
+
+    [data-scope="card"][data-part="root"][data-size="sm"] {
+        --card-pad: var(--space-md);
+    }
+
+    [data-scope="card"][data-part="root"][data-size="lg"] {
+        --card-pad: var(--space-2xl);
+    }
+
+    [data-scope="card"][data-part="root"][data-size="xl"] {
+        --card-pad: var(--space-2xl);
+    }
+}

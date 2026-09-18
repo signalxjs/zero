@@ -1,0 +1,18 @@
+@layer zero.recipes {
+    [data-scope="box"][data-part="root"] {
+        --box-surface: var(--color-base-100);
+        --box-ink: var(--color-base-content);
+        --l-pad: 0;
+        --l-pad-x: var(--l-pad);
+        --l-pad-y: var(--l-pad);
+    }
+
+    [data-scope="box"][data-part="root"] {
+        display: flow-root;
+        background: var(--box-surface);
+        color: var(--box-ink);
+        border-radius: var(--radius-box);
+        padding-inline: var(--l-pad-x);
+        padding-block: var(--l-pad-y);
+    }
+}

@@ -1,0 +1,194 @@
+@layer zero.fallback, zero.tokens, zero.recipes, zero.structure;
+
+@property --color-primary { syntax: '<color>'; inherits: true; initial-value: oklch(56% 0.24 28); }
+@property --color-secondary { syntax: '<color>'; inherits: true; initial-value: oklch(45% 0.2 265); }
+@property --color-accent { syntax: '<color>'; inherits: true; initial-value: oklch(80% 0.18 92); }
+@property --color-neutral { syntax: '<color>'; inherits: true; initial-value: oklch(0% 0 0); }
+@property --color-info { syntax: '<color>'; inherits: true; initial-value: oklch(45% 0.2 265); }
+@property --color-success { syntax: '<color>'; inherits: true; initial-value: oklch(48% 0.17 150); }
+@property --color-warning { syntax: '<color>'; inherits: true; initial-value: oklch(80% 0.18 92); }
+@property --color-error { syntax: '<color>'; inherits: true; initial-value: oklch(56% 0.24 28); }
+
+@layer zero.tokens {
+    :where(:root) {
+        color-scheme: light dark;
+        --color-primary: light-dark(oklch(56% 0.24 28), oklch(72% 0.2 28));
+        --color-primary-content: light-dark(oklch(100% 0 0), oklch(0% 0 0));
+        --color-secondary: light-dark(oklch(45% 0.2 265), oklch(72% 0.16 265));
+        --color-secondary-content: light-dark(oklch(100% 0 0), oklch(0% 0 0));
+        --color-accent: light-dark(oklch(80% 0.18 92), oklch(87% 0.17 92));
+        --color-accent-content: oklch(0% 0 0);
+        --color-neutral: light-dark(oklch(0% 0 0), oklch(100% 0 0));
+        --color-neutral-content: light-dark(oklch(100% 0 0), oklch(0% 0 0));
+        --color-info: light-dark(oklch(45% 0.2 265), oklch(72% 0.16 265));
+        --color-info-content: light-dark(oklch(100% 0 0), oklch(0% 0 0));
+        --color-success: light-dark(oklch(48% 0.17 150), oklch(76% 0.16 150));
+        --color-success-content: light-dark(oklch(100% 0 0), oklch(0% 0 0));
+        --color-warning: light-dark(oklch(80% 0.18 92), oklch(87% 0.17 92));
+        --color-warning-content: oklch(0% 0 0);
+        --color-error: light-dark(oklch(56% 0.24 28), oklch(72% 0.2 28));
+        --color-error-content: light-dark(oklch(100% 0 0), oklch(0% 0 0));
+        --color-base-100: light-dark(oklch(97% 0.02 95), oklch(14% 0.01 95));
+        --color-base-200: light-dark(oklch(93% 0.03 95), oklch(19% 0.012 95));
+        --color-base-300: light-dark(oklch(88% 0.04 95), oklch(25% 0.014 95));
+        --color-base-content: light-dark(oklch(0% 0 0), oklch(100% 0 0));
+        --color-primary-soft: color-mix(in oklab, var(--color-primary) 10%, var(--color-base-100));
+        --color-secondary-soft: color-mix(in oklab, var(--color-secondary) 10%, var(--color-base-100));
+        --color-accent-soft: color-mix(in oklab, var(--color-accent) 10%, var(--color-base-100));
+        --color-neutral-soft: color-mix(in oklab, var(--color-neutral) 10%, var(--color-base-100));
+        --color-info-soft: color-mix(in oklab, var(--color-info) 10%, var(--color-base-100));
+        --color-success-soft: color-mix(in oklab, var(--color-success) 10%, var(--color-base-100));
+        --color-warning-soft: color-mix(in oklab, var(--color-warning) 10%, var(--color-base-100));
+        --color-error-soft: color-mix(in oklab, var(--color-error) 10%, var(--color-base-100));
+        --radius-selector: 0;
+        --radius-field: 0;
+        --radius-box: 0;
+        --size-selector: 0.25rem;
+        --size-field: 0.25rem;
+        --font-mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Menlo, monospace;
+        --font-sans: ui-monospace, SFMono-Regular, "Cascadia Mono", Menlo, monospace;
+        --text-xs: 0.5002rem;
+        --text-sm: 0.7072rem;
+        --text-md: 1rem;
+        --text-lg: 1.414rem;
+        --text-xl: 1.9994rem;
+        --text-2xl: 2.8271rem;
+        --text-3xl: clamp(2.5rem, 1.5rem + 5vw, 4.5rem);
+        --weight-normal: 500;
+        --weight-medium: 700;
+        --weight-semibold: 800;
+        --weight-bold: 900;
+        --leading-none: 1;
+        --leading-tight: 1.1;
+        --leading-normal: 1.35;
+        --leading-relaxed: 1.5;
+        --tracking-tight: -0.03em;
+        --tracking-normal: 0em;
+        --tracking-wide: 0.1em;
+        --space-2xs: 0.125rem;
+        --space-xs: 0.25rem;
+        --space-sm: 0.5rem;
+        --space-md: 0.75rem;
+        --space-lg: 1rem;
+        --space-xl: 1.5rem;
+        --space-2xl: 2.5rem;
+        --measure-xs: 24rem;
+        --measure-sm: 40rem;
+        --measure-md: 60rem;
+        --measure-lg: 80rem;
+        --measure-xl: 100rem;
+        --measure-prose: 80ch;
+        --shadow-xs: 2px 2px 0 0 var(--color-base-content);
+        --shadow-sm: 3px 3px 0 0 var(--color-base-content);
+        --shadow-md: 5px 5px 0 0 var(--color-base-content);
+        --shadow-lg: 8px 8px 0 0 var(--color-base-content);
+        --shadow-xl: 12px 12px 0 0 var(--color-base-content);
+        --duration-instant: 0ms;
+        --duration-fast: 80ms;
+        --duration-normal: 120ms;
+        --duration-slow: 200ms;
+        --ease-linear: linear;
+        --ease-standard: steps(2, end);
+        --ease-emphasized: steps(3, end);
+        --border: 3px;
+        --disabled-opacity: 0.45;
+        --text-fixed-xs: var(--text-xs);
+        --text-fixed-sm: var(--text-sm);
+        --text-fixed-md: var(--text-md);
+        --text-fixed-lg: var(--text-lg);
+        --text-fixed-xl: var(--text-xl);
+        --text-fixed-2xl: var(--text-2xl);
+        --text-fixed-3xl: var(--text-3xl);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :where(:root) {
+            --border: 2px;
+        }
+    }
+
+    [data-theme="brutalist"] {
+        color-scheme: light;
+        --color-primary: oklch(56% 0.24 28);
+        --color-primary-content: oklch(100% 0 0);
+        --color-secondary: oklch(45% 0.2 265);
+        --color-secondary-content: oklch(100% 0 0);
+        --color-accent: oklch(80% 0.18 92);
+        --color-accent-content: oklch(0% 0 0);
+        --color-neutral: oklch(0% 0 0);
+        --color-neutral-content: oklch(100% 0 0);
+        --color-info: oklch(45% 0.2 265);
+        --color-info-content: oklch(100% 0 0);
+        --color-success: oklch(48% 0.17 150);
+        --color-success-content: oklch(100% 0 0);
+        --color-warning: oklch(80% 0.18 92);
+        --color-warning-content: oklch(0% 0 0);
+        --color-error: oklch(56% 0.24 28);
+        --color-error-content: oklch(100% 0 0);
+        --color-base-100: oklch(97% 0.02 95);
+        --color-base-200: oklch(93% 0.03 95);
+        --color-base-300: oklch(88% 0.04 95);
+        --color-base-content: oklch(0% 0 0);
+        --color-primary-soft: color-mix(in oklab, var(--color-primary) 10%, var(--color-base-100));
+        --color-secondary-soft: color-mix(in oklab, var(--color-secondary) 10%, var(--color-base-100));
+        --color-accent-soft: color-mix(in oklab, var(--color-accent) 10%, var(--color-base-100));
+        --color-neutral-soft: color-mix(in oklab, var(--color-neutral) 10%, var(--color-base-100));
+        --color-info-soft: color-mix(in oklab, var(--color-info) 10%, var(--color-base-100));
+        --color-success-soft: color-mix(in oklab, var(--color-success) 10%, var(--color-base-100));
+        --color-warning-soft: color-mix(in oklab, var(--color-warning) 10%, var(--color-base-100));
+        --color-error-soft: color-mix(in oklab, var(--color-error) 10%, var(--color-base-100));
+        --shadow-xs: 2px 2px 0 0 var(--color-base-content);
+        --shadow-sm: 3px 3px 0 0 var(--color-base-content);
+        --shadow-md: 5px 5px 0 0 var(--color-base-content);
+        --shadow-lg: 8px 8px 0 0 var(--color-base-content);
+        --shadow-xl: 12px 12px 0 0 var(--color-base-content);
+        --border: 3px;
+    }
+
+    [data-theme="brutalist-dark"] {
+        color-scheme: dark;
+        --color-primary: oklch(72% 0.2 28);
+        --color-primary-content: oklch(0% 0 0);
+        --color-secondary: oklch(72% 0.16 265);
+        --color-secondary-content: oklch(0% 0 0);
+        --color-accent: oklch(87% 0.17 92);
+        --color-accent-content: oklch(0% 0 0);
+        --color-neutral: oklch(100% 0 0);
+        --color-neutral-content: oklch(0% 0 0);
+        --color-info: oklch(72% 0.16 265);
+        --color-info-content: oklch(0% 0 0);
+        --color-success: oklch(76% 0.16 150);
+        --color-success-content: oklch(0% 0 0);
+        --color-warning: oklch(87% 0.17 92);
+        --color-warning-content: oklch(0% 0 0);
+        --color-error: oklch(72% 0.2 28);
+        --color-error-content: oklch(0% 0 0);
+        --color-base-100: oklch(14% 0.01 95);
+        --color-base-200: oklch(19% 0.012 95);
+        --color-base-300: oklch(25% 0.014 95);
+        --color-base-content: oklch(100% 0 0);
+        --color-primary-soft: color-mix(in oklab, var(--color-primary) 16%, var(--color-base-100));
+        --color-secondary-soft: color-mix(in oklab, var(--color-secondary) 16%, var(--color-base-100));
+        --color-accent-soft: color-mix(in oklab, var(--color-accent) 16%, var(--color-base-100));
+        --color-neutral-soft: color-mix(in oklab, var(--color-neutral) 16%, var(--color-base-100));
+        --color-info-soft: color-mix(in oklab, var(--color-info) 16%, var(--color-base-100));
+        --color-success-soft: color-mix(in oklab, var(--color-success) 16%, var(--color-base-100));
+        --color-warning-soft: color-mix(in oklab, var(--color-warning) 16%, var(--color-base-100));
+        --color-error-soft: color-mix(in oklab, var(--color-error) 16%, var(--color-base-100));
+        --shadow-xs: 2px 2px 0 0 var(--color-base-content);
+        --shadow-sm: 3px 3px 0 0 var(--color-base-content);
+        --shadow-md: 5px 5px 0 0 var(--color-base-content);
+        --shadow-lg: 8px 8px 0 0 var(--color-base-content);
+        --shadow-xl: 12px 12px 0 0 var(--color-base-content);
+        --border: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        :root, [data-theme] {
+            --duration-instant: 0.01ms;
+            --duration-fast: 0.01ms;
+            --duration-normal: 0.01ms;
+            --duration-slow: 0.01ms;
+        }
+    }
+}

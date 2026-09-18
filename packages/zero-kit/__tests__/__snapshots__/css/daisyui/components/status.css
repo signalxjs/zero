@@ -1,0 +1,66 @@
+@layer zero.recipes {
+    [data-scope="status"][data-part="root"] {
+        --status-ink: var(--color-base-content);
+        --status-size: calc(var(--size-selector) * 2.5);
+    }
+
+    [data-scope="status"][data-part="root"] {
+        display: inline-block;
+        inline-size: var(--status-size);
+        block-size: var(--status-size);
+        box-sizing: border-box;
+        vertical-align: middle;
+        background: var(--status-ink);
+        border: calc(var(--status-size) / 2) solid var(--status-ink);
+        border-radius: 9999px;
+        box-shadow: 0 0 0 calc(var(--status-size) / 4) color-mix(in oklch, var(--status-ink) 25%, transparent);
+    }
+
+    [data-scope="status"][data-part="root"][data-color="primary"] {
+        --status-ink: var(--color-primary);
+    }
+
+    [data-scope="status"][data-part="root"][data-color="secondary"] {
+        --status-ink: var(--color-secondary);
+    }
+
+    [data-scope="status"][data-part="root"][data-color="accent"] {
+        --status-ink: var(--color-accent);
+    }
+
+    [data-scope="status"][data-part="root"][data-color="neutral"] {
+        --status-ink: var(--color-neutral);
+    }
+
+    [data-scope="status"][data-part="root"][data-color="info"] {
+        --status-ink: var(--color-info);
+    }
+
+    [data-scope="status"][data-part="root"][data-color="success"] {
+        --status-ink: var(--color-success);
+    }
+
+    [data-scope="status"][data-part="root"][data-color="warning"] {
+        --status-ink: var(--color-warning);
+    }
+
+    [data-scope="status"][data-part="root"][data-color="error"] {
+        --status-ink: var(--color-error);
+    }
+
+    [data-scope="status"][data-part="root"][data-size="xs"] {
+        --status-size: calc(var(--size-selector) * 1.5);
+    }
+
+    [data-scope="status"][data-part="root"][data-size="sm"] {
+        --status-size: calc(var(--size-selector) * 2);
+    }
+
+    [data-scope="status"][data-part="root"][data-size="lg"] {
+        --status-size: calc(var(--size-selector) * 3);
+    }
+
+    [data-scope="status"][data-part="root"][data-size="xl"] {
+        --status-size: calc(var(--size-selector) * 3.5);
+    }
+}

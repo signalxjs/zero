@@ -1,0 +1,174 @@
+@layer zero.recipes {
+    [data-scope="chat"][data-part="root"] {
+        --chat-fill: var(--color-surface-container);
+        --chat-ink: var(--color-surface-container-content);
+    }
+
+    [data-scope="chat"][data-part="root"] {
+        display: grid;
+        column-gap: var(--space-sm);
+        row-gap: var(--space-2xs);
+        padding-block: var(--space-2xs);
+    }
+
+    [data-scope="chat"][data-part="root"][data-placement="start"] {
+        grid-template-columns: auto minmax(0, 1fr);
+        justify-items: start;
+    }
+
+    [data-scope="chat"][data-part="root"][data-placement="end"] {
+        grid-template-columns: minmax(0, 1fr) auto;
+        justify-items: end;
+    }
+
+    [data-scope="chat"][data-part="avatar"] {
+        grid-row: 1 / span 3;
+        align-self: end;
+        display: flex;
+        align-items: center;
+    }
+
+    [data-scope="chat"][data-part="root"][data-placement="start"] > [data-scope="chat"][data-part="avatar"] {
+        grid-column: 1;
+    }
+
+    [data-scope="chat"][data-part="root"][data-placement="end"] > [data-scope="chat"][data-part="avatar"] {
+        grid-column: 2;
+    }
+
+    [data-scope="chat"][data-part="header"] {
+        font-size: var(--text-xs);
+        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+    }
+
+    [data-scope="chat"][data-part="root"][data-placement="start"] > [data-scope="chat"][data-part="header"] {
+        grid-column: 2;
+    }
+
+    [data-scope="chat"][data-part="root"][data-placement="end"] > [data-scope="chat"][data-part="header"] {
+        grid-column: 1;
+    }
+
+    [data-scope="chat"][data-part="bubble"] {
+        max-inline-size: 90%;
+        padding: var(--space-xs) var(--space-lg);
+        font-size: var(--text-sm);
+        background: var(--chat-fill);
+        color: var(--chat-ink);
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="chat"][data-part="root"][data-placement="start"] > [data-scope="chat"][data-part="bubble"] {
+        grid-column: 2;
+        border-end-start-radius: var(--radius-selector);
+    }
+
+    [data-scope="chat"][data-part="root"][data-placement="end"] > [data-scope="chat"][data-part="bubble"] {
+        grid-column: 1;
+        border-end-end-radius: var(--radius-selector);
+    }
+
+    [data-scope="chat"][data-part="footer"] {
+        font-size: var(--text-xs);
+        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+    }
+
+    [data-scope="chat"][data-part="root"][data-placement="start"] > [data-scope="chat"][data-part="footer"] {
+        grid-column: 2;
+    }
+
+    [data-scope="chat"][data-part="root"][data-placement="end"] > [data-scope="chat"][data-part="footer"] {
+        grid-column: 1;
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-color="primary"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            --chat-fill: var(--color-primary);
+            --chat-ink: var(--color-primary-content);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-color="secondary"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            --chat-fill: var(--color-secondary);
+            --chat-ink: var(--color-secondary-content);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-color="tertiary"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            --chat-fill: var(--color-tertiary);
+            --chat-ink: var(--color-tertiary-content);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-color="error"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            --chat-fill: var(--color-error);
+            --chat-ink: var(--color-error-content);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-color="neutral"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            --chat-fill: var(--color-neutral);
+            --chat-ink: var(--color-neutral-content);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-color="info"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            --chat-fill: var(--color-info);
+            --chat-ink: var(--color-info-content);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-color="success"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            --chat-fill: var(--color-success);
+            --chat-ink: var(--color-success-content);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-color="warning"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            --chat-fill: var(--color-warning);
+            --chat-ink: var(--color-warning-content);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-color="accent"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            --chat-fill: var(--color-accent);
+            --chat-ink: var(--color-accent-content);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-size="xs"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            font-size: var(--text-xs);
+            padding: var(--space-2xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-size="sm"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            font-size: var(--text-xs);
+            padding: var(--space-xs) var(--space-md);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-size="lg"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            font-size: var(--text-md);
+            padding: var(--space-md) var(--space-lg);
+        }
+    }
+
+    @scope ([data-scope="chat"][data-part="root"][data-size="xl"]) to ([data-scope="chat"][data-part="root"]) {
+        [data-scope="chat"][data-part="bubble"] {
+            font-size: var(--text-lg);
+            padding: var(--space-md) var(--space-xl);
+        }
+    }
+}

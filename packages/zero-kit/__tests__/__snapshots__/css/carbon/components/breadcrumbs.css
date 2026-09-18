@@ -1,0 +1,64 @@
+@layer zero.recipes {
+    [data-scope="breadcrumbs"][data-part="root"] {
+        font-size: var(--text-sm);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="breadcrumbs"][data-part="list"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-xs);
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    [data-scope="breadcrumbs"][data-part="item"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+
+    [data-scope="breadcrumbs"][data-part="link"] {
+        color: color-mix(in oklch, var(--color-base-content) 75%, transparent);
+        text-decoration: none;
+        transition: color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="breadcrumbs"][data-part="link"]:hover:not([data-disabled]) {
+        color: var(--color-base-content);
+        text-decoration: underline;
+    }
+
+    [data-scope="breadcrumbs"][data-part="link"][data-state="active"] {
+        color: var(--color-base-content);
+        font-weight: var(--weight-semibold);
+    }
+
+    [data-scope="breadcrumbs"][data-part="link"]:focus-visible {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: 1px;
+    }
+
+    [data-scope="breadcrumbs"][data-part="separator"] {
+        color: color-mix(in oklch, var(--color-base-content) 45%, transparent);
+        user-select: none;
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-size="sm"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-size="lg"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-size="xl"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-size="2xl"] {
+        font-size: var(--text-lg);
+    }
+}

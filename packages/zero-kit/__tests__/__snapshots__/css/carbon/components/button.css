@@ -1,0 +1,128 @@
+@layer zero.recipes {
+    [data-scope="button"][data-part="root"] {
+        --btn-fill: var(--carbon-interactive);
+        --btn-ink: var(--carbon-interactive-ink);
+        --btn-line: transparent;
+        --btn-fill-hover: color-mix(in oklab, var(--btn-fill) 90%, black);
+        --btn-fill-active: color-mix(in oklab, var(--btn-fill) 78%, black);
+        --btn-ink-hover: var(--btn-ink);
+        --btn-ink-active: var(--btn-ink-hover);
+    }
+
+    [data-scope="button"][data-part="root"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        width: fit-content;
+        padding: 0 calc(var(--space-2xl) + var(--space-lg)) 0 var(--space-md);
+        min-height: 3rem;
+        border: var(--border) solid var(--btn-line);
+        border-radius: var(--radius-field);
+        background: var(--btn-fill);
+        color: var(--btn-ink);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="button"][data-part="root"]:hover:not([data-disabled]) {
+        background: var(--btn-fill-hover);
+        color: var(--btn-ink-hover);
+    }
+
+    [data-scope="button"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="button"][data-part="root"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="button"][data-part="root"][data-pressed]:not([data-disabled]) {
+        background: var(--btn-fill-active);
+        color: var(--btn-ink-active);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="secondary"] {
+        --btn-fill: var(--carbon-secondary);
+        --btn-ink: var(--carbon-secondary-ink);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="tertiary"] {
+        --btn-fill: transparent;
+        --btn-ink: var(--carbon-interactive);
+        --btn-line: var(--carbon-interactive);
+        --btn-fill-hover: var(--carbon-interactive);
+        --btn-fill-active: color-mix(in oklab, var(--carbon-interactive) 78%, black);
+        --btn-ink-hover: var(--carbon-interactive-ink);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="ghost"] {
+        --btn-fill: transparent;
+        --btn-ink: var(--carbon-interactive);
+        --btn-fill-hover: var(--color-base-200);
+        --btn-fill-active: var(--color-base-300);
+        --btn-ink-hover: var(--carbon-interactive);
+        --btn-ink-active: color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content));
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="danger"] {
+        --btn-fill: var(--carbon-danger);
+        --btn-ink: var(--carbon-danger-ink);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="danger-tertiary"] {
+        --btn-fill: transparent;
+        --btn-ink: var(--carbon-danger);
+        --btn-line: var(--carbon-danger);
+        --btn-fill-hover: var(--carbon-danger);
+        --btn-fill-active: color-mix(in oklab, var(--carbon-danger) 78%, black);
+        --btn-ink-hover: var(--carbon-danger-ink);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="danger-ghost"] {
+        --btn-fill: transparent;
+        --btn-ink: var(--carbon-danger);
+        --btn-fill-hover: var(--carbon-danger);
+        --btn-fill-active: color-mix(in oklab, var(--carbon-danger) 78%, black);
+        --btn-ink-hover: var(--carbon-danger-ink);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="sm"] {
+        min-height: 2rem;
+    }
+
+    [data-scope="button"][data-part="root"][data-size="md"] {
+        min-height: 2.5rem;
+    }
+
+    [data-scope="button"][data-part="root"][data-size="xl"] {
+        min-height: 4rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
+    [data-scope="button"][data-part="root"][data-size="2xl"] {
+        min-height: 5rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-icon-only] {
+        justify-content: center;
+        padding: 0;
+        aspect-ratio: 1;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-expressive] {
+        font-size: var(--text-md);
+        letter-spacing: var(--tracking-normal);
+    }
+}

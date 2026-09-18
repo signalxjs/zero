@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SignalX Zero playground</title>
+        <!--
+          Restore a persisted explicit theme before first paint. This is the
+          string `themeInitScript({ storageKey: 'zero-theme' })` returns; an
+          SSG/SSR app injects it into <head> via the framework. A client-only
+          SPA like this playground inlines it here so the persisted theme
+          survives reload (and the controller's state stays in sync with the
+          DOM). System light/dark needs no script — it is pure CSS light-dark().
+        -->
+        <script>(function(){try{var t=localStorage.getItem("zero-theme");if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+    </head>
+    <body>
+        <div id="app"></div>
+        <script type="module" src="/src/main.tsx"></script>
+    </body>
+</html>

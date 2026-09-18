@@ -1,0 +1,421 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://signalxjs.github.io/zero/schemas/audit.schema.json",
+    "title": "SignalX Zero design-system audit",
+    "description": "Whether what a design system BUILT says what it claims \u2014 emitted as dist/audit.json by the zero build and by `sigx zero:audit --json` (docs/architecture.md, \"The verification architecture\"). Every finding is a verdict about one place, read from the compiled CSS: a declared state no part renders differently, an indicator that draws nothing, a real <button> the user agent still paints, a declared axis step a scope neither paints nor claims, an infinite animation that never stops under reduced motion. What a declared mechanism excused (skipStates, the anatomy's hiddenIn, tokens.scopes, a fill-role declaration) is listed under `waived` rather than swallowed. The summary is what report.json carries under `audit` and what the score's sixth criterion reads.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "$schema",
+        "auditVersion",
+        "name",
+        "findings",
+        "waived",
+        "contrast",
+        "summary"
+    ],
+    "properties": {
+        "$schema": {
+            "description": "Self-reference to this schema \u2014 the emitter always writes exactly this URL.",
+            "const": "https://signalxjs.github.io/zero/schemas/audit.schema.json"
+        },
+        "auditVersion": {
+            "description": "Shape version of this document. Bumped when a consumer would have to change to keep reading it.",
+            "const": 1
+        },
+        "name": {
+            "description": "The design system's name, as declared on the design-system input.",
+            "type": "string",
+            "minLength": 1
+        },
+        "findings": {
+            "description": "Sorted severity \u2192 rule \u2192 where, so two runs over one input diff cleanly.",
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/finding"
+            }
+        },
+        "waived": {
+            "description": "Findings a declared mechanism excused \u2014 visible, not silent.",
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/waiver"
+            }
+        },
+        "contrast": {
+            "description": "The static contrast matrix's full cell table, per theme \u2014 every cell with its verdict, not only the failing ones. `themes` is empty when the `contrast/*` rules were filtered out.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "themes"
+            ],
+            "properties": {
+                "themes": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "name",
+                            "cells"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            "cells": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/$defs/contrastCell"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "summary": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "errors",
+                "warnings",
+                "info",
+                "byRule"
+            ],
+            "properties": {
+                "errors": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "warnings": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "info": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "byRule": {
+                    "description": "Finding count per rule, for the rules that fired.",
+                    "type": "object",
+                    "propertyNames": {
+                        "$ref": "#/$defs/ruleId"
+                    },
+                    "additionalProperties": {
+                        "type": "integer",
+                        "minimum": 1
+                    }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "ruleId": {
+            "description": "The closed set of audit rules \u2014 `AUDIT_RULES` in the kit. The contrast rules (`contrast/text`, `contrast/indicator`, `contrast/unmeasured`) join when the static contrast matrix lands. report.schema.json mirrors this list under `audit.byRule`; a test pins the two against `AUDIT_RULES`.",
+            "type": "string",
+            "enum": [
+                "state-legibility/component",
+                "state-legibility/indicator",
+                "state-legibility/disclosure",
+                "button-affordance",
+                "axis-value-coverage/gap",
+                "axis-value-coverage/ambiguous-base",
+                "axis-value-coverage/unused",
+                "axis-coverage",
+                "reduced-motion/loop",
+                "contrast/text",
+                "contrast/indicator",
+                "contrast/unmeasured",
+                "spacing/literal",
+                "spacing/off-ramp"
+            ]
+        },
+        "severity": {
+            "description": "A property of the RULE, not of the design system: error for a lifted CI hard-fail, warning for the advisory rules, info for what is listed but never charged.",
+            "type": "string",
+            "enum": [
+                "error",
+                "warning",
+                "info"
+            ]
+        },
+        "kebabToken": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "finding": {
+            "description": "A verdict about one place. `where` is the `ValidationIssue` spelling (`scope`, `scope.part`, `scope.axis`, or `axis.value` for a design-system-level finding); the structured fields beside it are what a tool reads.",
+            "type": "object",
+            "additionalProperties": false,
+            "dependentRequired": { "package": ["scope"] },
+            "required": [
+                "rule",
+                "severity",
+                "where",
+                "message"
+            ],
+            "properties": {
+                "rule": {
+                    "$ref": "#/$defs/ruleId"
+                },
+                "severity": {
+                    "$ref": "#/$defs/severity"
+                },
+                "where": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "scope": {
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "package": {
+                    "description": "The ecosystem package owning `scope`, when a discovered pack does \u2014 so a finding about a recipe the design system did not write says whose it is. Never present without `scope`.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "part": {
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "states": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/kebabToken"
+                    }
+                },
+                "axis": {
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "theme": {
+                    "description": "The theme a contrast finding was measured in.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "cell": {
+                    "description": "The contrast cell (`ds/theme/scope/part/state/flag/axes`) a contrast finding is about.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "contrast": {
+                    "description": "The measured pair behind a contrast finding and the floor it answered to.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "ratio",
+                        "inGroup",
+                        "floor"
+                    ],
+                    "properties": {
+                        "ratio": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "inGroup": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "floor": {
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    }
+                },
+                "reason": {
+                    "$ref": "#/$defs/unmeasuredReason"
+                }
+            }
+        },
+        "waiver": {
+            "description": "A finding plus the mechanism that excused it. Mirrors `finding` property for property \u2014 2020-12 composition with `additionalProperties: false` would otherwise need `unevaluatedProperties`.",
+            "type": "object",
+            "additionalProperties": false,
+            "dependentRequired": { "package": ["scope"] },
+            "required": [
+                "rule",
+                "severity",
+                "where",
+                "message",
+                "waivedBy"
+            ],
+            "properties": {
+                "rule": {
+                    "$ref": "#/$defs/ruleId"
+                },
+                "severity": {
+                    "$ref": "#/$defs/severity"
+                },
+                "where": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "scope": {
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "package": {
+                    "description": "The ecosystem package owning `scope`, when a discovered pack does \u2014 so a finding about a recipe the design system did not write says whose it is. Never present without `scope`.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "part": {
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "states": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/kebabToken"
+                    }
+                },
+                "axis": {
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "waivedBy": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "mechanism",
+                        "detail"
+                    ],
+                    "properties": {
+                        "mechanism": {
+                            "type": "string",
+                            "enum": [
+                                "skipStates",
+                                "hiddenIn",
+                                "tokens.scopes",
+                                "role-decl"
+                            ]
+                        },
+                        "detail": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "unmeasuredReason": {
+            "description": "Why a static reading could not be taken \u2014 the closed set `UNMEASURED_REASONS`.",
+            "type": "string",
+            "enum": [
+                "gradient-or-image",
+                "unresolved-var",
+                "runtime-property",
+                "unsupported-selector",
+                "unparseable-color",
+                "currentcolor-cycle",
+                "filter-or-blend",
+                "unknown-geometry",
+                "raw-css",
+                "conditional-rule"
+            ]
+        },
+        "contrastCell": {
+            "description": "One cell of the static contrast matrix \u2014 a (part, state/flag, axes) combination in one theme, with its verdict.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "key",
+                "scope",
+                "part",
+                "matrix",
+                "verdict"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "scope": {
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "part": {
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "state": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "flag": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "axes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "mods": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "matrix": {
+                    "type": "string",
+                    "enum": [
+                        "text",
+                        "indicator"
+                    ]
+                },
+                "verdict": {
+                    "type": "string",
+                    "enum": [
+                        "pass",
+                        "warn",
+                        "fail",
+                        "disabled-fail",
+                        "unrendered",
+                        "unpainted",
+                        "unmeasured"
+                    ]
+                },
+                "ratio": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "inGroup": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "ink": {
+                    "type": "string"
+                },
+                "bg": {
+                    "type": "string"
+                },
+                "carrier": {
+                    "type": "string"
+                },
+                "reason": {
+                    "$ref": "#/$defs/unmeasuredReason"
+                },
+                "detail": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

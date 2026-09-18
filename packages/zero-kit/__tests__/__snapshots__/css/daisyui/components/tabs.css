@@ -1,0 +1,309 @@
+@layer zero.recipes {
+    [data-scope="tabs"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg);
+    }
+
+    [data-scope="tabs"][data-part="list"] {
+        display: inline-flex;
+        align-self: flex-start;
+    }
+
+    [data-scope="tabs"][data-part="tab"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        --tab-py: var(--space-sm);
+        --tab-px: var(--space-xl);
+        --tab-radius-min: calc(0.75rem - var(--border));
+        padding: var(--tab-py) var(--tab-px);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+        cursor: pointer;
+        position: relative;
+        transition: background var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="tabs"][data-part="tab"]:hover:not([data-disabled]) {
+        color: var(--color-base-content);
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        color: var(--color-base-content);
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-focus-visible] {
+        outline: 2px solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
+    [data-scope="tabs"][data-part="panel"] {
+        font-size: var(--text-md);
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-size="xs"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            font-size: var(--text-xs);
+            --tab-py: var(--space-2xs);
+            --tab-px: var(--space-md);
+            --tab-radius-min: calc(0.5rem - var(--border));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-size="sm"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            font-size: var(--text-xs);
+            --tab-py: var(--space-xs);
+            --tab-px: var(--space-lg);
+            --tab-radius-min: calc(0.5rem - var(--border));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-size="lg"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            font-size: var(--text-md);
+            --tab-py: var(--space-md);
+            --tab-px: var(--space-2xl);
+            --tab-radius-min: calc(1.5rem - var(--border));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-size="xl"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            font-size: var(--text-lg);
+            --tab-py: var(--space-lg);
+            --tab-px: var(--space-2xl);
+            --tab-radius-min: calc(2rem - var(--border));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-color="primary"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            color: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-color="secondary"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            color: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-color="accent"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            color: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-color="neutral"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            color: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-color="info"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            color: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-color="success"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            color: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-color="warning"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            color: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-color="error"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            color: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="border"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            border-radius: var(--radius-field);
+        }
+
+        [data-scope="tabs"][data-part="tab"]::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            inset-inline-start: 10%;
+            width: 80%;
+            box-sizing: border-box;
+            height: 3px;
+            border-radius: var(--radius-field);
+            background-color: transparent;
+            transition: background-color var(--duration-normal) var(--ease-standard);
+        }
+
+        [data-scope="tabs"][data-part="tab"][data-state="active"]:not([data-disabled])::before {
+            background-color: currentColor;
+            border-top: 3px solid;
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"]:not([data-variant])) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            border-radius: var(--radius-field);
+        }
+
+        [data-scope="tabs"][data-part="tab"]::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            inset-inline-start: 10%;
+            width: 80%;
+            box-sizing: border-box;
+            height: 3px;
+            border-radius: var(--radius-field);
+            background-color: transparent;
+            transition: background-color var(--duration-normal) var(--ease-standard);
+        }
+
+        [data-scope="tabs"][data-part="tab"][data-state="active"]:not([data-disabled])::before {
+            background-color: currentColor;
+            border-top: 3px solid;
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="lift"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            --tab-radius-limit: min(var(--radius-field), var(--tab-radius-min));
+            border-start-start-radius: var(--tab-radius-limit);
+            border-start-end-radius: var(--tab-radius-limit);
+            border-width: 0 0 var(--border) 0;
+            border-style: solid;
+            border-color: var(--color-base-300);
+            padding: calc(var(--tab-py) + var(--border)) var(--tab-px) var(--tab-py);
+        }
+
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            background: var(--color-base-100);
+            border-width: var(--border) var(--border) 0 var(--border);
+            padding: var(--tab-py) calc(var(--tab-px) - var(--border)) calc(var(--tab-py) + var(--border));
+        }
+
+        [data-scope="tabs"][data-part="tab"][data-state="active"]::before {
+            --tab-grad: #0000 calc(69% - var(--border)), var(--color-base-300) calc(69% - var(--border) + 0.25px), var(--color-base-300) 69%, var(--color-base-100) calc(69% + 0.25px);
+            content: "";
+            position: absolute;
+            z-index: 1;
+            bottom: 0;
+            inset-inline-start: calc(var(--tab-radius-limit) * -1);
+            width: calc(100% + var(--tab-radius-limit) * 2);
+            height: var(--tab-radius-limit);
+            background-image: radial-gradient(circle at top left, var(--tab-grad)), radial-gradient(circle at top right, var(--tab-grad));
+            background-position: top left, top right;
+            background-size: var(--tab-radius-limit) var(--tab-radius-limit);
+            background-repeat: no-repeat;
+        }
+
+        [data-scope="tabs"][data-part="tab"][data-state="active"]:first-child::before {
+            background-image: none, radial-gradient(circle at top right, var(--tab-grad));
+        }
+
+        [data-scope="tabs"][data-part="tab"][data-state="active"]:last-child::before {
+            background-image: radial-gradient(circle at top left, var(--tab-grad)), none;
+        }
+
+        [data-scope="tabs"][data-part="tab"][data-state="active"]:only-child::before {
+            background-image: none;
+        }
+
+        [data-scope="tabs"][data-part="tab"][data-state="active"]:first-child:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::before {
+            transform: rotateY(180deg);
+        }
+
+        [data-scope="tabs"][data-part="tab"][data-state="active"]:last-child:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::before {
+            transform: rotateY(180deg);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="box"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="list"] {
+            padding: var(--space-xs);
+            gap: var(--space-xs);
+            background: var(--color-base-200);
+            border-radius: var(--radius-field);
+        }
+
+        [data-scope="tabs"][data-part="tab"] {
+            border-radius: calc(var(--radius-field) - 0.25rem);
+        }
+
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            background: var(--color-base-100);
+            box-shadow: var(--shadow-sm);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="box"][data-color="primary"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            background: var(--color-primary);
+            color: var(--color-primary-content);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="box"][data-color="secondary"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            background: var(--color-secondary);
+            color: var(--color-secondary-content);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="box"][data-color="accent"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            background: var(--color-accent);
+            color: var(--color-accent-content);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="box"][data-color="neutral"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            background: var(--color-neutral);
+            color: var(--color-neutral-content);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="box"][data-color="info"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            background: var(--color-info);
+            color: var(--color-info-content);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="box"][data-color="success"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            background: var(--color-success);
+            color: var(--color-success-content);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="box"][data-color="warning"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            background: var(--color-warning);
+            color: var(--color-warning-content);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-variant="box"][data-color="error"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"][data-state="active"] {
+            background: var(--color-error);
+            color: var(--color-error-content);
+        }
+    }
+}

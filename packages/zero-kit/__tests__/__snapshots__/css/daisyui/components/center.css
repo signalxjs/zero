@@ -1,0 +1,17 @@
+@layer zero.recipes {
+    [data-scope="center"][data-part="root"] {
+        --l-axis: center;
+        --l-gap: 0;
+        --l-pad: 0;
+        --l-pad-x: var(--l-pad);
+        --l-pad-y: var(--l-pad);
+    }
+
+    [data-scope="center"][data-part="root"] {
+        display: grid;
+        place-items: var(--l-axis);
+        gap: var(--l-gap);
+        padding-inline: var(--l-pad-x);
+        padding-block: var(--l-pad-y);
+    }
+}

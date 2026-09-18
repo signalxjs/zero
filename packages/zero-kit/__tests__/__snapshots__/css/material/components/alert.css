@@ -1,0 +1,135 @@
+@layer zero.recipes {
+    [data-scope="alert"][data-part="root"] {
+        --alert-tint: var(--color-info-soft);
+        --alert-accent: var(--color-info);
+    }
+
+    [data-scope="alert"][data-part="root"] {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: var(--space-2xs) var(--space-md);
+        background: var(--alert-tint);
+        color: var(--color-base-content);
+        border: var(--border) solid var(--alert-accent);
+        border-radius: var(--radius-box);
+        padding: var(--space-md) var(--space-lg);
+    }
+
+    [data-scope="alert"][data-part="icon"] {
+        grid-row: 1 / span 2;
+        display: inline-flex;
+        align-items: center;
+        color: var(--alert-accent);
+        font-size: var(--text-lg);
+        line-height: var(--leading-none);
+    }
+
+    [data-scope="alert"][data-part="title"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-md);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="alert"][data-part="description"] {
+        grid-column: 2;
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        line-height: var(--leading-normal);
+    }
+
+    [data-scope="alert"][data-part="close"] {
+        grid-row: 1;
+        grid-column: 3;
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        border-radius: var(--radius-selector);
+        padding: var(--space-2xs);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="alert"][data-part="close"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="alert"][data-part="close"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="alert"][data-part="close"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="alert"][data-part="close"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
+    [data-scope="alert"][data-part="root"][data-color="primary"] {
+        --alert-tint: var(--color-primary-soft);
+        --alert-accent: var(--color-primary);
+    }
+
+    [data-scope="alert"][data-part="root"][data-color="secondary"] {
+        --alert-tint: var(--color-secondary-soft);
+        --alert-accent: var(--color-secondary);
+    }
+
+    [data-scope="alert"][data-part="root"][data-color="tertiary"] {
+        --alert-tint: var(--color-tertiary-soft);
+        --alert-accent: var(--color-tertiary);
+    }
+
+    [data-scope="alert"][data-part="root"][data-color="error"] {
+        --alert-tint: var(--color-error-soft);
+        --alert-accent: var(--color-error);
+    }
+
+    [data-scope="alert"][data-part="root"][data-color="neutral"] {
+        --alert-tint: var(--color-neutral-soft);
+        --alert-accent: var(--color-neutral);
+    }
+
+    [data-scope="alert"][data-part="root"][data-color="info"] {
+        --alert-tint: var(--color-info-soft);
+        --alert-accent: var(--color-info);
+    }
+
+    [data-scope="alert"][data-part="root"][data-color="success"] {
+        --alert-tint: var(--color-success-soft);
+        --alert-accent: var(--color-success);
+    }
+
+    [data-scope="alert"][data-part="root"][data-color="warning"] {
+        --alert-tint: var(--color-warning-soft);
+        --alert-accent: var(--color-warning);
+    }
+
+    [data-scope="alert"][data-part="root"][data-color="accent"] {
+        --alert-tint: var(--color-accent-soft);
+        --alert-accent: var(--color-accent);
+    }
+
+    [data-scope="alert"][data-part="root"][data-size="xs"] {
+        padding: var(--space-2xs) var(--space-sm);
+    }
+
+    [data-scope="alert"][data-part="root"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+    }
+
+    [data-scope="alert"][data-part="root"][data-size="lg"] {
+        padding: var(--space-lg) var(--space-xl);
+    }
+
+    [data-scope="alert"][data-part="root"][data-size="xl"] {
+        padding: var(--space-xl) var(--space-2xl);
+    }
+}

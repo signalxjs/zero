@@ -1,0 +1,19 @@
+{
+    "name": "zero-typed-app",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "typecheck": "tsgo --noEmit -p tsconfig.register.json && tsgo --noEmit -p tsconfig.components.json && tsgo --noEmit -p tsconfig.api.json"
+    },
+    "dependencies": {
+        "@sigx/zero": "workspace:^",
+        "@sigx/zero-basic": "workspace:^",
+        "@sigx/zero-carbon": "workspace:^",
+        "@sigx/zero-heroui": "workspace:^",
+        "sigx": "catalog:"
+    },
+    "devDependencies": {
+        "typescript": "^6.0.3"
+    }
+}

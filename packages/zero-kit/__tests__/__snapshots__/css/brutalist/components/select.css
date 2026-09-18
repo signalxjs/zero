@@ -1,0 +1,231 @@
+@layer zero.recipes {
+    [data-scope="select"][data-part="root"] {
+        --select-accent: var(--color-primary);
+        --select-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="select"][data-part="root"] {
+        display: inline-flex;
+        position: relative;
+    }
+
+    [data-scope="select"][data-part="trigger"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        min-width: 12rem;
+        padding: var(--space-sm) var(--space-md);
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        box-shadow: var(--shadow-xs);
+        cursor: pointer;
+    }
+
+    [data-scope="select"][data-part="trigger"][data-state="open"] {
+        box-shadow: none;
+        transform: translate(2px, 2px);
+    }
+
+    [data-scope="select"][data-part="trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="select"][data-part="trigger"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="select"][data-part="trigger"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    [data-scope="select"][data-part="value"] {
+        flex: 1;
+        text-align: start;
+    }
+
+    [data-scope="select"][data-part="indicator"] {
+        transition: transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="select"][data-part="indicator"][data-state="open"] {
+        transform: rotate(180deg);
+    }
+
+    [data-scope="select"][data-part="popup"] {
+        opacity: 0;
+        transform: translate(4px, 4px);
+        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), display var(--duration-fast) allow-discrete, overlay var(--duration-fast) allow-discrete;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-md);
+        padding: var(--space-xs);
+        min-width: 12rem;
+    }
+
+    [data-scope="select"][data-part="popup"][data-state="open"] {
+        opacity: 1;
+        transform: none;
+    }
+
+    [data-scope="select"][data-part="group"] {
+        padding: var(--space-2xs) 0;
+    }
+
+    [data-scope="select"][data-part="group-label"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        opacity: 0.7;
+    }
+
+    [data-scope="select"][data-part="item"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding: var(--space-xs) var(--space-sm);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        cursor: pointer;
+    }
+
+    [data-scope="select"][data-part="item"][data-highlighted] {
+        background: var(--select-accent);
+        color: var(--select-on-accent);
+    }
+
+    [data-scope="select"][data-part="item"][data-selected] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+    }
+
+    [data-scope="select"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="select"][data-part="item"]:focus-visible {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    [data-scope="select"][data-part="item-indicator"] {
+        font-weight: var(--weight-bold);
+    }
+
+    [data-scope="select"][data-part="hidden-input"] {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="select"][data-part="root"][data-color="primary"] {
+        --select-accent: var(--color-primary);
+        --select-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="secondary"] {
+        --select-accent: var(--color-secondary);
+        --select-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="accent"] {
+        --select-accent: var(--color-accent);
+        --select-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="neutral"] {
+        --select-accent: var(--color-neutral);
+        --select-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="info"] {
+        --select-accent: var(--color-info);
+        --select-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="success"] {
+        --select-accent: var(--color-success);
+        --select-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="warning"] {
+        --select-accent: var(--color-warning);
+        --select-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="error"] {
+        --select-accent: var(--color-error);
+        --select-on-accent: var(--color-error-content);
+    }
+
+    @scope ([data-scope="select"][data-part="root"][data-size="xs"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            padding: var(--space-2xs) var(--space-xs);
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="select"][data-part="root"][data-size="sm"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            padding: var(--space-xs) var(--space-sm);
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="select"][data-part="root"][data-size="md"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            padding: var(--space-sm) var(--space-md);
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="select"][data-part="root"][data-size="lg"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            padding: var(--space-md) var(--space-lg);
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="select"][data-part="root"][data-size="xl"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            padding: var(--space-lg) var(--space-xl);
+            font-size: var(--text-md);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="select"][data-part="popup"] {
+            transition: none;
+        }
+
+        [data-scope="select"][data-part="popup"][data-state="open"] {
+            transform: none;
+        }
+    }
+
+    @starting-style {
+        [data-scope="select"][data-part="popup"][data-state="open"] {
+            opacity: 0;
+            transform: translate(4px, 4px);
+        }
+    }
+}

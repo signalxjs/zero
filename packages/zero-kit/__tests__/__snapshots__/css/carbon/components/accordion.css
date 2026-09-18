@@ -1,0 +1,112 @@
+@layer zero.recipes {
+    [data-scope="accordion"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        border-block-end: var(--border) solid var(--carbon-line);
+        border-radius: var(--radius-box);
+        color: var(--color-base-content);
+        font-family: var(--font-sans);
+    }
+
+    [data-scope="accordion"][data-part="item"] {
+        interpolate-size: allow-keywords;
+        border-block-start: var(--border) solid var(--carbon-line);
+    }
+
+    [data-scope="accordion"][data-part="item"]::details-content {
+        block-size: 0;
+        overflow: hidden;
+        transition: block-size var(--duration-normal) var(--ease-standard), content-visibility var(--duration-normal) allow-discrete;
+    }
+
+    [data-scope="accordion"][data-part="item"][open]::details-content {
+        block-size: auto;
+    }
+
+    [data-scope="accordion"][data-part="trigger"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        min-height: 2.5rem;
+        padding: 0 var(--space-md);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-wide);
+        border-radius: var(--radius-field);
+        cursor: pointer;
+        list-style: none;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="accordion"][data-part="trigger"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="accordion"][data-part="trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="accordion"][data-part="trigger"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="accordion"][data-part="trigger"]::-webkit-details-marker {
+        display: none;
+    }
+
+    [data-scope="accordion"][data-part="trigger"]::after {
+        content: "\203A";
+        flex: none;
+        margin-inline-start: auto;
+        rotate: 90deg;
+        transition: rotate var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="accordion"][data-part="trigger"][data-state="open"]::after {
+        rotate: 270deg;
+    }
+
+    [data-scope="accordion"][data-part="trigger"][data-pressed]:not([data-disabled]) {
+        background: var(--color-base-300);
+    }
+
+    [data-scope="accordion"][data-part="panel"] {
+        padding: var(--space-sm) var(--space-md) var(--space-lg);
+        font-size: var(--text-sm);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-normal);
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="sm"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 2rem;
+            padding: 0 var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="lg"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 3rem;
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="xl"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 4rem;
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="2xl"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 5rem;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="accordion"][data-part="item"]::details-content {
+            transition: none;
+        }
+    }
+}

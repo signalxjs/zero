@@ -1,0 +1,307 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://signalxjs.github.io/zero/schemas/recipe.schema.json",
+    "title": "SignalX Zero component recipe (RecipeInput)",
+    "description": "The argument to @sigx/zero-kit's defineRecipe(), as plain JSON data: per-part styles for one component, resolved against that component's anatomy in the zero manifest. An AI (or any tool) can emit this JSON, wrap it in defineRecipe(...) and run `sigx zero:validate` \u2014 this schema catches structural mistakes; whether a part, state or var(--\u2026) reference actually exists is the validator's job, because it depends on the anatomy and the token declaration.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "component",
+        "parts"
+    ],
+    "properties": {
+        "component": {
+            "description": "The component scope this recipe styles (e.g. \"tabs\") \u2014 must match an anatomy scope in the zero manifest.",
+            "$ref": "#/$defs/kebabToken"
+        },
+        "tokens": {
+            "description": "Component-level tokens declared on the carrier part (root, else the first part). Emitted in @layer zero.recipes, so a theme-level declaration of the same property cannot override one.",
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "parts": {
+            "$ref": "#/$defs/partsRecord"
+        },
+        "variants": {
+            "description": "axis \u2192 value \u2192 part \u2192 styles. The contract axes (color, size, variant) have named props; any other kebab-case axis is reachable through zero's `axes` prop. Axis names and values are written into [data-<axis>=\"<value>\"] selectors (and lynx class names): names take the kebab-case grammar, values the wider axis-value grammar (repeated hyphens allowed).",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "type": "object",
+                "propertyNames": {
+                    "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+                },
+                "additionalProperties": {
+                    "$ref": "#/$defs/partsRecord"
+                }
+            }
+        },
+        "modifiers": {
+            "description": "Presence-only modifiers: name \u2192 part \u2192 styles, emitted as [data-mod-<name>]. Names must be declared in tokens.modifiers. There is no defaultVariants analogue \u2014 a modifier is absent by nature, so absence already is the default.",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "$ref": "#/$defs/partsRecord"
+            }
+        },
+        "compoundVariants": {
+            "description": "Styles applied when several axis values (and/or modifiers) hold at once.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "match",
+                    "parts"
+                ],
+                "properties": {
+                    "match": {
+                        "description": "axis \u2192 value, or modifier \u2192 true; every entry must hold for the styles to apply. A true entry compiles to the presence-only [data-mod-<name>].",
+                        "type": "object",
+                        "propertyNames": {
+                            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                        },
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/$defs/axisValue"
+                                },
+                                {
+                                    "const": true
+                                }
+                            ]
+                        },
+                        "minProperties": 1
+                    },
+                    "parts": {
+                        "$ref": "#/$defs/partsRecord"
+                    }
+                }
+            }
+        },
+        "defaultVariants": {
+            "description": "axis \u2192 value applied when the axis attribute is absent (CSS-only defaults, compiled to :not([data-<axis>]) selectors).",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "$ref": "#/$defs/axisValue"
+            }
+        },
+        "keyframes": {
+            "description": "name \u2192 raw keyframes body (\"from { \u2026 } to { \u2026 }\"), emitted as @keyframes <name> after the recipe's layer block.",
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "css": {
+            "description": "Raw CSS appended verbatim at the end of this component's @layer zero.recipes block \u2014 the escape hatch for anything the typed surface can't express.",
+            "type": "string"
+        },
+        "skipStates": {
+            "description": "part \u2192 declared states/flags intentionally left unstyled; silences the validator's coverage warning for them, and tells the state-legibility guard the state is deliberately indistinguishable from its siblings.",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/$defs/kebabToken"
+                }
+            }
+        },
+        "targets": {
+            "description": "Per-target sections, deep-merged over the shared recipe before that target compiles. Web-runtime-dependent declarations (var(--press-*), the raw css hatch) live in targets.web; targets.lynx supplies replacements where a dropped web spelling leaves a state illegible.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "web": {
+                    "$ref": "#/$defs/targetOverride"
+                },
+                "lynx": {
+                    "$ref": "#/$defs/targetOverride"
+                }
+            }
+        }
+    },
+    "$defs": {
+        "kebabToken": {
+            "description": "A kebab-case identifier that may start with a digit \u2014 the grammar for anything written into a [data-\u2026] selector (scopes, parts, states, axis and modifier names); axis VALUES take the wider axisValue grammar.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "cssProps": {
+            "description": "CSS declarations: property \u2192 value. Property names may be camelCase (kebab-cased at compile time) or custom properties (--x, kept verbatim); numbers are emitted as-is, so use them only for unitless values.",
+            "type": "object",
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "number"
+                ]
+            }
+        },
+        "partStyles": {
+            "description": "Styles for one part. `at` maps a condition \u2014 a declared breakpoint name, a built-in (reduced-motion, hover-none, prefers-dark, forced-colors, print, starting-style) or a raw \"@\u2026\" prelude \u2014 to this same shape, recursively; nesting composes the at-rules.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "base": {
+                    "$ref": "#/$defs/cssProps"
+                },
+                "states": {
+                    "description": "state/flag/interaction name \u2192 declarations. Names resolve through the anatomy: machine states \u2192 [data-state=\"\u2026\"], flags \u2192 [data-\u2026], interactions \u2192 real pseudo-classes. An empty object marks a state as deliberately covered without emitting CSS.",
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/$defs/cssProps"
+                    }
+                },
+                "selectors": {
+                    "description": "Nested selectors; `&` is the part selector (a key without `&` is treated as a descendant).",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/$defs/cssProps"
+                    }
+                },
+                "at": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/$defs/partStyles"
+                    },
+                    "propertyNames": {
+                        "pattern": "^(@.+|[a-z0-9]+(-[a-z0-9]+)*)$",
+                        "description": "A declared breakpoint or built-in condition (kebab-case), or a raw at-rule prelude starting with @."
+                    }
+                }
+            }
+        },
+        "partsRecord": {
+            "description": "part name \u2192 styles. Part names must exist in the component's anatomy \u2014 the compiler and validator both fail on an unknown part.",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "$ref": "#/$defs/partStyles"
+            }
+        },
+        "targetOverride": {
+            "description": "One target's override \u2014 the styling surface only; identity (component, defaultVariants) and coverage claims stay shared.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "tokens": {
+                    "description": "Component-level tokens declared on the carrier part (root, else the first part). Emitted in @layer zero.recipes, so a theme-level declaration of the same property cannot override one.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "parts": {
+                    "$ref": "#/$defs/partsRecord"
+                },
+                "variants": {
+                    "description": "axis \u2192 value \u2192 part \u2192 styles. The contract axes (color, size, variant) have named props; any other kebab-case axis is reachable through zero's `axes` prop. Axis names and values are written into [data-<axis>=\"<value>\"] selectors (and lynx class names): names take the kebab-case grammar, values the wider axis-value grammar (repeated hyphens allowed).",
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "type": "object",
+                        "propertyNames": {
+                            "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+                        },
+                        "additionalProperties": {
+                            "$ref": "#/$defs/partsRecord"
+                        }
+                    }
+                },
+                "modifiers": {
+                    "description": "Presence-only modifiers: name \u2192 part \u2192 styles, emitted as [data-mod-<name>]. Names must be declared in tokens.modifiers. There is no defaultVariants analogue \u2014 a modifier is absent by nature, so absence already is the default.",
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/$defs/partsRecord"
+                    }
+                },
+                "compoundVariants": {
+                    "description": "Styles applied when several axis values (and/or modifiers) hold at once.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "match",
+                            "parts"
+                        ],
+                        "properties": {
+                            "match": {
+                                "description": "axis \u2192 value, or modifier \u2192 true; every entry must hold for the styles to apply. A true entry compiles to the presence-only [data-mod-<name>].",
+                                "type": "object",
+                                "propertyNames": {
+                                    "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                                },
+                                "additionalProperties": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/$defs/axisValue"
+                                        },
+                                        {
+                                            "const": true
+                                        }
+                                    ]
+                                },
+                                "minProperties": 1
+                            },
+                            "parts": {
+                                "$ref": "#/$defs/partsRecord"
+                            }
+                        }
+                    }
+                },
+                "keyframes": {
+                    "description": "name \u2192 raw keyframes body (\"from { \u2026 } to { \u2026 }\"), emitted as @keyframes <name> after the recipe's layer block.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "css": {
+                    "description": "Raw CSS appended verbatim at the end of this component's @layer zero.recipes block \u2014 the escape hatch for anything the typed surface can't express.",
+                    "type": "string"
+                },
+                "skipStates": {
+                    "description": "part \u2192 declared states/flags intentionally left unstyled; silences the validator's coverage warning for them, and tells the state-legibility guard the state is deliberately indistinguishable from its siblings.",
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/kebabToken"
+                        }
+                    }
+                }
+            }
+        },
+        "axisValue": {
+            "description": "An axis VALUE: lowercase letters, digits and hyphens, repeated hyphens included (Carbon's danger--tertiary) \u2014 what a quoted [data-\u2026=\"\u2026\"] attribute selector, a single-quoted literal union in register.d.ts and an unescaped lynx class name (zx-a-<axis>-<value>) all carry verbatim. Wider than the kebab-case grammar names take; still no %, ., quotes, backslashes, whitespace or uppercase.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+        }
+    }
+}

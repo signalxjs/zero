@@ -1,0 +1,166 @@
+@layer zero.recipes {
+    [data-scope="indicator"][data-part="root"] {
+        position: relative;
+        display: inline-flex;
+        vertical-align: middle;
+        max-width: max-content;
+    }
+
+    [data-scope="indicator"][data-part="item"] {
+        position: absolute;
+        z-index: 1;
+        white-space: nowrap;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="top-start"] {
+        inset-block-start: 0;
+        inset-inline-start: 0;
+        translate: -50% -50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="top"] {
+        inset-block-start: 0;
+        inset-inline-start: 50%;
+        translate: -50% -50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="top-end"] {
+        inset-block-start: 0;
+        inset-inline-end: 0;
+        translate: 50% -50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="start"] {
+        inset-block-start: 50%;
+        inset-inline-start: 0;
+        translate: -50% -50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="end"] {
+        inset-block-start: 50%;
+        inset-inline-end: 0;
+        translate: 50% -50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="bottom-start"] {
+        inset-block-end: 0;
+        inset-inline-start: 0;
+        translate: -50% 50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="bottom"] {
+        inset-block-end: 0;
+        inset-inline-start: 50%;
+        translate: -50% 50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="bottom-end"] {
+        inset-block-end: 0;
+        inset-inline-end: 0;
+        translate: 50% 50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="top-start"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        translate: 50% -50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="top"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        translate: 50% -50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="top-end"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        translate: -50% -50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="start"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        translate: 50% -50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="end"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        translate: -50% -50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="bottom-start"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        translate: 50% 50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="bottom"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        translate: 50% 50%;
+    }
+
+    [data-scope="indicator"][data-part="item"][data-placement="bottom-end"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        translate: -50% 50%;
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-color="primary"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            color: var(--color-primary);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-color="secondary"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            color: var(--color-secondary);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-color="accent"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            color: var(--color-accent);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-color="neutral"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            color: var(--color-neutral);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-color="info"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            color: var(--color-info);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-color="success"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            color: var(--color-success);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-color="warning"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            color: var(--color-warning);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-color="error"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            color: var(--color-error);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-size="xs"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-size="sm"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-size="lg"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="indicator"][data-part="root"][data-size="xl"]) to ([data-scope="indicator"][data-part="root"]) {
+        [data-scope="indicator"][data-part="item"] {
+            font-size: var(--text-lg);
+        }
+    }
+}

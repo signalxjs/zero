@@ -1,0 +1,710 @@
+# SignalX Zero (@sigx/zero)
+
+> Unstyled, accessible component primitives for the SignalX (sigx) framework.
+> Components render a stable machine-readable anatomy — data-scope, data-part,
+> data-state attributes — and NO styling. A design system is a separate,
+> generatable artifact: typed tokens + recipes compiled to plain CSS by
+> @sigx/zero-kit.
+
+## The attribute contract
+
+- Every part: `data-scope="<component>"` + `data-part="<part>"` (kebab-case).
+- `data-state`: ONE value from a closed per-part set (open|closed,
+  checked|unchecked, active|inactive).
+- Boolean flags are presence-only: `data-disabled=""`, never ="false".
+  Vocabulary: disabled, highlighted, selected, invalid, required, readonly,
+  placeholder, focus-visible, pressed, press-animating.
+- Press feedback (parts declaring the `pressed` flag): the runtime sets
+  `data-pressed` while the pointer/key is down, and `data-press-animating`
+  from press-start until the part's CSS animation ends (one-shot effects
+  like ripples play out even on a quick tap), and writes the press point as
+  `--press-x`/`--press-y`/`--press-r` (px; r = farthest-corner radius).
+  Keyboard presses get centered coordinates. Lifecycle: a press ends when
+  the gesture ends — an uncaptured pointerleave cancels it, a captured
+  pointer (touch's implicit capture) holds it until release, and a drag
+  surface (slider) attaches no pointerleave at all: a window-level release
+  listener ends the press wherever the pointer lets go.
+  Publishing parts: button root; tabs tab; dialog/popover/drawer
+  trigger+close;
+  menu trigger+item; select trigger+item and combobox trigger+item (items
+  are pointer-only — keyboard selection lives on the trigger/input via
+  aria-activedescendant); collapsible/accordion trigger;
+  switch/checkbox control and radio-group item-control (press anywhere in
+  the label row lands on the control; Space via the hidden input);
+  slider control (`data-pressed` only — a drag has no one-shot);
+  pagination item and prev/next triggers; steps item.
+- Variant axes pass through as data-color / data-size / data-variant
+  (values: color = any DS-declared role — recommended vocabulary
+  primary|secondary|accent|neutral|info|success|warning|error,
+  size = xs|sm|md|lg|xl, variant = design-system-defined).
+- Layout attributes render under the data-l- prefix from a CLOSED
+  vocabulary zero owns (gap, gap-x, gap-y, pad, pad-x, pad-y, align,
+  justify, wrap, cols, span, track, grow, axis, space). A part declares
+  which ones it may carry as `layout` in its anatomy, exactly as it
+  declares `placements`. Spacing values are the --space-* ramp plus `none`
+  (none|2xs|xs|sm|md|lg|xl|2xl), so a layout prop cannot spell a gap the
+  design system has no token for. Per-breakpoint values put the breakpoint
+  in PREFIX position — data-l-gap="sm" with data-l-md-gap="lg" — which is
+  what keeps the multi-word attributes (data-l-gap-x) unambiguous.
+  Unlike a variant axis, this vocabulary is the same in every design
+  system: the skin chooses what --space-md IS, not what "md" means.
+- The full machine-readable registry ships as `@sigx/zero/manifest.json`:
+  every component, part, state (as a ready-made CSS selector), flag and
+  token hint — and per component a `models` block: what its API binds
+  (`name` absent = the `model` prop, else `model:<name>`), the `concept`,
+  the value `type`, the derived `default`/`change` companions, the compound
+  `member` when not Root, `multiple`, `formControl`.
+
+## The token contract
+
+- Colors are a naming GRAMMAR, not a fixed vocabulary: each design system
+  declares its own roles, emitted as `--color-<role>` with optional
+  `--color-<role>-content` (readable foreground, contrast-validated) and
+  `--color-<role>-soft` (derived tint). Only the base surfaces are fixed:
+  base-100/base-200/base-300/base-content. A DS that declares nothing gets
+  the recommended roles: primary/secondary/accent/neutral/info/success/
+  warning/error.
+- Non-color tokens work the same way: a closed set of CATEGORIES, each fixing
+  a `--prefix-` and a value grammar, with OPEN keys inside that the design
+  system declares. Today: `--radius-*` (selector|field|box), `--size-*`
+  (selector|field), `--text-*` (xs…3xl), `--space-*`
+  (2xs…2xl), `--shadow-*` (xs…xl), `--font-*` (FAMILIES: sans|serif|mono|
+  display), `--weight-*`, `--leading-*`, `--tracking-*`, `--duration-*`
+  (instant|fast|normal|slow), `--ease-*` (linear|standard|emphasized),
+  `--border`, `--disabled-opacity`.
+  The `recommended` keys are the ones `@sigx/zero/css` ships fallbacks for —
+  declare any others you need and they flow into your manifest. The full
+  table is `tokens.categories` in manifest.json.
+- Category values are declared ONCE for the design system in
+  `tokens.system`, not repeated per theme. `tokens.systemDark` overrides them
+  for dark-scheme themes, and a single theme can override via its own
+  `system` block. Resolution: `system` → `systemDark` → `theme.system`.
+- `--font-*` is FAMILIES, never sizes; sizes are `--text-*`. The ramp is
+  either listed in `typography.sizes` or generated from
+  `typography.scale: { base, ratio }`, with `sizes` winning per key.
+  Weights and leading are unitless.
+- Motion: recipes write
+  `transition: background var(--duration-fast) var(--ease-standard)`, never a
+  literal duration. Every declared `--duration-*` collapses to 0.01ms under
+  `prefers-reduced-motion: reduce`, so referencing the token is what makes a
+  recipe honor the preference — a hardcoded `0.2s` opts out. (0.01ms rather
+  than 0ms so `transitionend` / `animationend` still fire.) Don't tokenise a
+  LOOPING animation's duration; it would speed up rather than stop.
+- ANY token can differ by color scheme, not only colors. Colors use
+  `light-dark()`; everything else (category values, declared `custom` tokens,
+  `extra`, component overrides) is emitted in a `prefers-color-scheme: dark`
+  block whenever the default light and dark themes disagree. Give a value a
+  light counterpart if you want it to differ under dark — there has to be
+  something for an explicitly-selected light theme to restate.
+- Themes are selected via `data-theme` on any ancestor; the default
+  light/dark pair uses CSS `light-dark()` so system scheme needs no JS.
+- Cascade layers: `@layer zero.tokens, zero.recipes;` — app CSS is unlayered
+  and always wins.
+
+## Components (state via one two-way `model` prop, sigx Define.Model)
+
+Bind a signal property with a getter: `model={() => state.open}` (sigx tracks
+the read to write back — two-way, no onChange needed). Or stay uncontrolled
+with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
+signal property directly, not a transformed expression.
+
+THE NAMING RULE (every model, no exceptions): a model concept N has exactly
+`default<N>` (the uncontrolled seed) and `<n>Change` (the change event,
+handler `on<N>Change`). A named model's concept is its name
+(`model:expandedValues` → `defaultExpandedValues` + `expandedValuesChange`).
+The anatomy declares each model and manifest.json carries it; a parity test
+holds the sources to it.
+
+THE BINDING LAW: a zero model IS a sigx `Model`, and the native control a
+component renders binds to it with `model=` — sigx's platform processor owns
+write-back, so the wrapper is a superset of the raw element, never a subset.
+`modelModifiers` (`trim`/`number`/`lazy`/`debounce`) on Input.Root and
+Textarea.Root reach the native input; Checkbox bound to a `string[]` is
+sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
+model. Transforms apply once at the component boundary, timing on the
+element.
+
+56 components ship today. Every part each renders is listed below, in
+anatomy order; the authoritative machine-readable list (parts × states × flags
+× token hints) is `@sigx/zero/manifest.json` — generate design systems against
+that, not this summary.
+
+`hidden-input` is a real, styleable part: form controls render an actual
+native input so they post pre-hydration. Design systems normally hide it
+visually while keeping it focusable, rather than `display: none`.
+
+THE FORM CONTRACT (#441): every posting control takes `name`, `form`,
+`disabled`, `invalid`, `required` (and `readonly` where the platform has
+it), each the prop OR its Field's. It posts only while it has a `name`; a
+disabled control never posts; `form="id"` associates it from outside the
+form; the form's `reset()` restores the component default into model and
+DOM. Select and Combobox post through a real visually-hidden `<select>`
+(`hidden-input`, element select) — `required` is a platform constraint and
+the invalid focus lands on the trigger/input.
+
+Every component has a `Root` COMPONENT — it takes the `model` and the
+configuration props, and always wraps the others. For Dialog, Popover,
+Tooltip and Menu the root renders no DOM element of its own (it only provides
+context), so those four have no `root` PART and nothing to select with
+`[data-part="root"]`. Below, the slash-separated names are the parts a
+component renders; the root is called out separately where it carries props.
+
+- Button: Root(asChild) — one part on a native <button>, no machine states.
+  Carries all three variant axes (color/size/variant), which is what it is
+  for: it is where a design system puts its fill styles. Publishes press
+  feedback (data-pressed / data-press-animating / --press-*), as do all
+  interactive parts — see the press-feedback bullet above.
+- Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
+  roving arrows, automatic|manual activation, orientation.
+- Collapsible: Root(model=open)/Trigger/Panel on native <details>.
+- Accordion: Root(model=string[])/Item/Trigger/Panel on native <details>;
+  `multiple` and `collapsible`.
+- Dialog: Root(model=open, modal, dismissible, role — renders no element)
+  then Trigger/Popup/Title/Description/Footer/Close/Cancel on native <dialog>
+  + top layer (no Portal). The backdrop is a `backdrop` part that renders no
+  element on the web — recipes style `parts.backdrop` and the compiler
+  projects it onto [data-scope="dialog"][data-part="popup"]::backdrop (states
+  narrow the popup: [data-state="open"]::backdrop).
+  role="alertdialog" is the APG alert-dialog preset on the same anatomy: the
+  popup announces as alertdialog, a backdrop click does NOT dismiss (Escape
+  still does, under `dismissible`), and initial focus goes to the
+  least-destructive action — mark it with Dialog.Cancel, which closes like
+  Close and carries `autofocus` in alertdialog mode so `showModal()`'s
+  focusing steps land on it.
+- Popover: Root(model=open, placement, offset, positionStrategy — renders no
+  element) then Trigger/Popup/Title/Close, on the popover attribute + anchor
+  positioning.
+- Tooltip: Root(model=open, defaultOpen, openDelay, closeDelay, placement — renders no
+  element) then Trigger/Popup.
+- Menu: Root(model=open, defaultOpen, closeOnSelect, placement — renders no element) then
+  Trigger/Popup/Item(asChild)/CheckboxItem/RadioGroup/RadioItem/Group/
+  GroupLabel/Separator; `select` event.
+  Stateful items (APG menuitemcheckbox/menuitemradio): CheckboxItem(value,
+  model=checked, closeOnSelect default FALSE — unlike plain items, toggling
+  keeps the menu open) and RadioGroup(model=value — renders the same labelled
+  `group` part Menu.Group does)/RadioItem(value, closeOnSelect default
+  FALSE). Both carry data-state checked|unchecked + aria-checked, emit the
+  root's `select` alongside their own model events, and auto-render an
+  `item-indicator` part mirroring the checked state — zero leaves it empty,
+  the design system draws the mark (recipes key on
+  [data-state="checked"]). asChild renders only the consumer's element.
+  Context menu: ContextTrigger(asChild) wraps any surface — right-click /
+  Android long-press opens the SAME popup at the pointer via a virtual
+  anchor (deferred past the gesture: an auto popover opened mid-gesture
+  would be light-dismissed by its own pointerup, racily); Shift+F10 /
+  ContextMenu key open anchored to the surface RECT (keyboard has no
+  pointer). A second right-click outside the popup repositions; last
+  opener (Trigger vs ContextTrigger) wins the anchor. No iOS long-press
+  (no native contextmenu there) — pair -webkit-touch-callout: none with
+  your own recognizer for now.
+  Submenus: Sub(model=open, placement default right-start with RTL flip,
+  openDelay/closeDelay hover intent — renders no element) then
+  SubTrigger(asChild)/SubPopup, nested to any depth inside a Popup. Item/
+  Group/Separator work unchanged inside a SubPopup and `select` bubbles to
+  the root. sub-trigger carries data-state open|closed AND the highlighted
+  flag — style [data-state="open"] to keep it active while focus is in the
+  submenu; sub-popup is a distinct part so it can animate on its own axis.
+  Keyboard: ArrowRight/Enter/Space open + focus first item, ArrowLeft closes
+  back (mirrored under RTL); Escape closes one level (native popover);
+  hover opens without moving focus.
+- Select: Root(model=value | value[], model:open, items, itemKey, itemLabel,
+  itemValue, itemDisabled, itemGroup, multiple, name, form, required,
+  placeholder)/Trigger/Value/Indicator/Popup/Group/GroupLabel/Item/
+  ItemIndicator/HiddenInput. TYPED GENERIC ROOT: T infers from `items`; the
+  model holds the ITEM unless `itemValue` says what it holds (a value
+  model: `itemValue={(c) => c.code}` → string; a number works too) — null
+  while nothing is selected, `T | null` / `V | null`; `multiple` makes it
+  an array.
+  itemKey is the string identity (DOM id, typeahead, the posted value —
+  default: an object's value/id or the primitive), itemLabel the display
+  text (default: label or the key). THE COLLECTION IS THE TRUTH: labels and
+  groups resolve from data before anything mounts. With `items` and no slot
+  children the Root renders Trigger(Value, Indicator) + Popup(Item per item,
+  Group/GroupLabel per distinct group in first-appearance order) through the
+  SAME anatomy; the `item` slot ({ item }) customises an option's content;
+  slot children win entirely when both are given. Hand-written Select.Item
+  children register into the same collection. Option groups are the
+  optgroup equivalent: role=group named by its GroupLabel while one is
+  rendered. Under `multiple` a selection toggles, the popup stays open,
+  Value joins the labels, the popup is aria-multiselectable. The hidden
+  <select> carries every item as an option in data mode (autofill), the
+  selection alone with hand-written items, and is `multiple` under multiple.
+  The generated trigger has no aria-label: name an items-driven Select
+  through a Field.
+- Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
+- Checkbox: Root(model=checked | string[])/Control/Indicator/Label/HiddenInput;
+  supports `indeterminate`. A `string[]` model is sigx's array mode: boxes
+  sharing it toggle their own `value`'s membership; `checkedChange` reports
+  THIS box's boolean.
+- RadioGroup: Root(model=value, items, itemKey, itemLabel, itemDisabled, slot
+  item)/Label/Item/ItemControl/ItemIndicator/ItemLabel/HiddenInput;
+  orientation. `items` renders one radio per item (explicit children win
+  entirely); the model stays the STRING a native radio group posts, so
+  itemKey IS the posted value (defaults: value / id / the primitive).
+- Slider: Root(model=number|number[], min, max, step, name, invalid, marks,
+  getValueText)/Label/Control/Track/Range/Thumb/Mark/ValueText/HiddenInput.
+  Two projections over one anatomy. Scalar model: render Slider.Control — a
+  native <input type=range> bound with model= to the first value (a derived
+  Model whose write quantizes and clamps), single thumb, platform
+  keyboard/forms/a11y.
+  Range model (number[]): compose the real parts — Slider.Track wrapping
+  Slider.Range and one Slider.Thumb(label, index?) per value, in order.
+  Each thumb is an APG role=slider tab stop: arrows/PageUp/PageDown step
+  (RTL-aware), Home/End go to its ALLOWED bounds — thumbs cannot cross, so
+  each clamps at its neighbor and announces the clamp as aria-valuemin/max;
+  aria-valuetext comes from getValueText(value, index). Track presses move
+  the nearest thumb and start a drag; range spans lowest→highest (min→value
+  when single); `marks` renders positioned `mark` tick parts (with label
+  text) inside the track; a range model posts one hidden input per value
+  under the shared `name`. Zero positions structurally (absolute + logical
+  inset-inline-start percents — RTL mirrors for free) and paints nothing:
+  recipes center the thumb with a negative margin-inline-start of half its
+  width and own every color. --slider-percent still tracks the (highest)
+  value's fraction.
+- Progress: Root/Label/Track/Range/ValueText; `value: number | null`
+  (null = indeterminate).
+- RadialProgress: Root/Label/ValueText — circular progress as its OWN scope
+  (a radial has no track/range geometry: the ring is one painted layer on
+  the root, so reusing progress's anatomy would ship dead parts, and a
+  data-mod is a styling hook, not a structural switch). Shares linear
+  progress's value model verbatim: value number|null (null=indeterminate),
+  min/max, role=progressbar + aria value trio, states
+  loading|complete|indeterminate, and the SAME runtime-published
+  --progress-percent — recipes paint the arc from it via conic-gradient
+  masks over a background-color ink, and stop the indeterminate loop under
+  reduced motion. ValueText defaults to the rounded percent.
+- Field: Root/Label/Description/Error — wires ids and disabled/invalid/
+  required down to the control it wraps.
+- Input: Root(model=string)/Label/Control/Input, a single-line text field.
+  `type` is text|email|password|search|tel|url only (number is NumberInput;
+  the selection and date/time types are not text fields). The model writes
+  through on every keystroke — no draft/commit split; `modelModifiers`
+  (`lazy`, `debounce`, `trim`) defer or shape it exactly as on a bare
+  <input>. `control` is the field chrome (border/ring/invalid tint), the
+  <input> inside it is transparent. NO hidden input: the visible <input> IS
+  the form control and carries `name`.
+- Card: Root/Header/Title/Description/Body/Footer. No state, no context, no
+  ids — a styling container. Title renders <h3> so a page of cards is
+  navigable from a heading list. Every part below Root is optional.
+- Alert: Root(model=open, default TRUE)/Icon/Title/Description/Close.
+  role=alert on Root; a live region announces CHANGES, so a server-rendered
+  alert is silent at load and one inserted later is announced. Close sets the
+  model false and the runtime sets `hidden` (anatomy: hiddenIn: ['closed']),
+  so design systems never paint `closed`. Icon is aria-hidden.
+- Badge: Root only — the carrier IS the text-bearing part, which is why it is
+  the one scope that can wire its own `variant` vocabulary against the
+  contrast audit's one-element probe. asChild.
+- Kbd: Root only, on a semantic <kbd> — the element is the meaning, so there
+  is no asChild to swap it away. No states; size is the axis that matters.
+- Status: Root only — an empty presence dot the design system paints. NO
+  states on purpose: online/busy/degraded are colours of one resting render
+  (the `color` axis), not a machine lifecycle. Without `label` it is
+  aria-hidden (the visible text beside it carries the meaning); with `label`
+  it announces as role="img" — not role="status", which is a live region.
+- Indicator: Root/Item(placement) — anchors the item to a corner/edge of
+  whatever Root wraps (badge on a button, dot on an avatar). Item stamps
+  data-placement from a declared eight-slot subset: top-start|top|top-end|
+  start|end|bottom-start|bottom|bottom-end — all LOGICAL (start/end are the
+  reading-direction inline sides, added to the placement vocabulary for it;
+  no left/right), so recipes position with inset-inline-* and RTL mirrors
+  free. No ARIA of its own: meaning belongs to the item's content.
+- Stats: Root(orientation)/Item/Title/Value/Desc/Figure — Card's cousin: a
+  styling container for figures with labels, no state, no ids, no ARIA.
+  BOTH root and item carry data-orientation (the between-item divider is
+  directional CSS on the item, and a sibling selector cannot see the root —
+  the toggle-group precedent). Every band below Item is optional.
+- Timeline: Root(orientation, default VERTICAL — a feed grows downward)/
+  Item/Marker/Connector/Content(placement start|end). A real <ul>/<li> list
+  so AT announces and walks it. Marker (the dot/icon on the axis — a paint
+  part, graded by the contrast audit's indicator matrix) and Connector (the
+  line toward the next item) are aria-hidden decoration; Content declares
+  which SIDE of the axis it sits on as data-placement from the logical
+  start|end pair, so alternating layouts are per-item markup and RTL
+  mirrors free. Content and connector also carry data-orientation — a
+  recipe composes side × axis on the element that has both.
+- Chat: Root(placement start|end, default START — the reading edge is the
+  other party in every messenger; your own rows opt into end)/Avatar/Header/
+  Bubble/Footer. One message row, pure content: no state, no ids, no ARIA —
+  a transcript needing log semantics is a role="log" container the consumer
+  writes around the rows. Avatar is a SLOT (zero's Avatar, an <img>,
+  initials). The colour axis rides the row and recipes wire it to the
+  BUBBLE's fill; placement is logical, so RTL mirrors free.
+- Join: Root(orientation)/Item(asChild) — visual grouping that collapses
+  the radii of adjacent children (segmented search field, button strip).
+  Pure CSS composition: two attribute carriers, no state, no ARIA (a join
+  is a visual group; a consumer who means toolbar/group writes the role).
+  Both root and item carry data-orientation (the collapse is item + item
+  directional CSS). asChild is the honest joint: a wrapper cannot collapse
+  the radius of the control inside it, so put the item attributes ON the
+  control.
+- Stack: Root(orientation, gap/gapX/gapY, pad/padX/padY, align, justify,
+  wrap)/Item(asChild, grow) — the flex row or column an application layout
+  is made of. Row and Col are the SAME scope with a different default
+  orientation, exported as presets: two scopes would mean two recipes and
+  two chances for a skin to paint them differently. Prefer them over
+  `<Stack orientation=…>`; Stack itself defaults to horizontal, matching
+  data-orientation everywhere else in zero rather than the vertical default
+  some other libraries give this name. Spacing props take a rung of the
+  --space-* ramp (or a breakpoint record), never a length. Item exists only
+  so a child can opt into growing, and supports asChild for Join's reason:
+  flex-grow applies to the flex ITEM, so a wrapper cannot grow the control
+  inside it. No role — a stack is visual grouping.
+- Container: Root only(measure, pad/padX/padY) — bounds the page width and
+  keeps content off the edges. `measure` is xs|sm|md|lg|xl|prose|full from
+  the design system's own --measure-* ramp, a token category of its own
+  because the density ramp cannot reach page scale (--space-* tops out around
+  1.5rem). Deliberately NOT the `size` axis: size="lg" on a Button means a
+  chunkier button and on a Container would mean a wider page, and those ramps
+  have no reason to move together; `prose` (a reading measure in ch) is not a
+  size at all. `full` is `none`, not 100% — a container told not to bound
+  itself should have no maximum. Unbounded by default. No colour: a container
+  is a constraint, not a surface — wrap it around a Box.
+- Box: Root only(color, pad/padX/padY) — the layout tier's one scope that
+  PAINTS: a padded surface tinted by meaning. Card is the structured sibling
+  (header/body/footer); Box is the unstructured one — a callout, a well, a
+  panel. Follows Card's axis answer rather than inventing a second: color
+  wired, variant NOT (no surveyed system varies a plain surface's chrome; the
+  ones that do call it a Card). SIZE is declared out of existence, which is
+  the one departure from Card: a Box's size IS its padding and `pad` already
+  says that. The tint is the role's `-soft` derivation and the ink is the
+  role itself — a large area of `--color-error` is a warning label, not a
+  container. display:flow-root, so a child's margin cannot collapse out
+  through the padding.
+- Grid: Root(cols, track, gap/gapX/gapY, pad/padX/padY, align, justify)/
+  Cell(asChild, span) — two-dimensional layout where Stack is
+  one-dimensional. cols is a twelve-column count or `auto`; `auto` is
+  repeat(auto-fit, minmax(min(100%, track), 1fr)), which reflows by available
+  width with NO breakpoint named, and is what a collection of cards wants.
+  track sets how narrow a column may get first. Counts compile to
+  minmax(0, 1fr), not a bare 1fr: a track's implicit minimum is `auto`, which
+  refuses to shrink below its content and is the usual reason a grid
+  overflows. Cell exists because grid-column is a property of the grid ITEM,
+  so a wrapper cannot make the child span; span="full" is 1 / -1. No role — a
+  CSS grid is visual arrangement, and zero ships a Table for the other thing.
+- Center: Root only(axis, pad/padX/padY, gap) — place-items on a
+  single-child grid, the one construction that centres on both axes without
+  caring what the child is. axis is both|inline|block, LOGICAL; the one-axis
+  values pin the other to stretch, so axis="inline" does not also collapse
+  the child vertically. Distinct from <Row justify="center" align="center">,
+  which centres a row's CONTENT along its own axes.
+- Spacer: Root only(space) — flexible room by default, a fixed rung of the
+  spacing ramp when given `space`. aria-hidden: it holds room, never
+  content. Earns its place next to `gap` because the two answer different
+  questions: gap spaces EVERY child equally, a spacer pushes ONE boundary
+  apart (the toolbar whose actions sit at the far end), which otherwise
+  needs the row split into nested stacks.
+- Carousel: Root(label REQUIRED — the root is a region, and a nameless
+  region is an axe violation)/Viewport/Item/PrevTrigger/NextTrigger/
+  IndicatorGroup/Indicator(index). A scroll-snap viewport whose MODEL IS
+  THE ACTIVE INDEX: derived from real scroll by an IntersectionObserver
+  (created only in onMounted — SSR never observes) and driven back by
+  scrollIntoView on model set, smooth unless prefers-reduced-motion asks
+  for a jump. APG carousel ARIA: region + aria-roledescription=carousel;
+  items are "slide" groups labelled "n of m". Prev/next CLAMP (no wrap)
+  and disable at their bounds; the dots are labelled BUTTONS (not tabs, no
+  roving tabindex), the active one carrying aria-current. item and
+  indicator ride data-state active|inactive; the indicator is a paint part
+  graded by the contrast audit's indicator matrix. Horizontal only.
+- Diff: Root(model=percent 0-100, default 50)/Before/After/Handle — a
+  before/after reveal whose divider HANDLE IS AN APG SLIDER: role=slider,
+  aria-valuenow 0-100, arrows/PageUp/PageDown/Home/End (RTL-aware — Arrow
+  Right increases in LTR, decreases in RTL, so the handle always moves the
+  way the key points), pointer drag with window listeners that survive
+  leaving the box. The panes are CONTENT and stay inert. The runtime
+  publishes --diff-percent on the root and positions the handle at the
+  logical inset-inline-start; recipes clip the after pane with a LOGICAL
+  inline-size (never a physical clip-path), so RTL mirrors free — the
+  physical result is measured in e2e/diff.spec.ts. Size pane content to
+  the ROOT, not the pane: the after pane clips by width. The handle is a
+  paint part graded by the contrast audit's indicator matrix.
+- FileUpload: Root(model=File[], defaultFiles)/Label/Trigger/Input/Dropzone/ItemGroup/
+  Item(file)/ItemName/ItemSize/ItemRemove. The INPUT IS THE CONTROL — a
+  real <input type=file> holding name/accept/multiple/required and posting
+  its FileList natively — visually hidden and out of the tab order; the
+  TRIGGER (a real <button>) is the one keyboard path to the picker. The
+  DROPZONE is a pointer affordance only: never focusable, no role (APG has
+  no drop-target pattern; a click forwards to the picker). Drag-over is
+  the shared data-highlighted FLAG (stamped on dropzone AND root), not a
+  new state. multiple appends across selections (dedupe name+size+
+  lastModified); single replaces; drops are filtered by accept so the two
+  ingestion paths agree; the input's own FileList is re-synced through
+  DataTransfer best-effort. Field-context aware exactly like Input (the
+  trigger owns the field's control id). ItemName/ItemSize default to the
+  file's name and human-readable size; ItemRemove is labelled
+  "Remove <name>".
+- Countdown: Root(label -> role=timer)/Value(value, digits)/digits —
+  display-only numbers; the APP OWNS TIME. No internal timer, deliberately:
+  a timer is app logic (which clock, paused when, what at zero) and an SSR
+  hazard, so the component only renders the `value` it is given. Root
+  composes units (hours/minutes/seconds are separate Values, separators
+  are consumer text); each value publishes --countdown-value and renders
+  real digit text (AT reads "10:04" off the DOM), zero-padded to `digits`
+  and clamped at 0. The digits element is KEYED by its text, so each tick
+  replaces it and a recipe's enter animation (translate/fade) plays once —
+  collapsed to a cut under reduced motion. No states, no flags.
+- Swap: Root(model=boolean — concept `active`: defaultActive + activeChange,
+  daisy's own word; the faces keep data-state on|off)/On/Off — two faces
+  over one boolean. BOTH
+  faces stay rendered (the component exists for the CSS transition between
+  them; `hidden` computes display:none and would kill it) and the inactive
+  one is aria-hidden. All three parts ride data-state on|off. DISPLAY by
+  default (a span, no semantics — a theme icon following external state);
+  `interactive` renders a real <button aria-pressed> that toggles on click
+  (platform Enter/Space), labelled via `label`. No indeterminate face —
+  the model is a boolean, and rotate/flip looks are recipe styling, not
+  contract.
+- Table: Root/Table/Caption/Head/Body/Foot/Row/HeaderCell/Cell — semantic
+  data table over the REAL table elements (caption/thead/tbody/tfoot/tr/th/
+  td; the elements are the semantics, so no asChild anywhere). Root is the
+  SCROLL CONTAINER — a <table> cannot be its own overflow box, so the
+  wrapper div is anatomy, carries the axes, and recipes give it
+  overflow-x auto. No states; a row can carry the shared data-selected
+  flag (`selected` prop). Zebra striping and hover-highlight are design-
+  system mods (data-mod-* on the root) in the skins that offer them, never
+  anatomy. Sorting is deliberately out: header-cell renders the <th> that
+  will carry aria-sort later. Write a Caption — it is the table's
+  accessible name.
+- Divider: Root only, role=separator, orientation. Non-focusable;
+  aria-orientation emitted only for `vertical`.
+- Navbar: Root/Start/Center/End — the landmark header bar, pure
+  composition (no states, no behavior). Root is a <header> (the banner
+  landmark at document scope), NOT a <nav>: the bar holds non-navigation
+  content too, so the consumer wraps the actual link set in its own
+  labelled <nav> inside a section. start/end are the logical pair, so RTL
+  mirrors free.
+- Breadcrumbs: Root(label)/List/Item/Link(current,asChild)/Separator — the
+  APG breadcrumb pattern: <nav aria-label="Breadcrumb"> around an <ol>
+  (order IS the meaning). The current page's link carries
+  aria-current="page" and data-state="active" (the activation pair —
+  data-current is not in the flag vocabulary and the synonym table rules
+  current → active); every other link is "inactive". The separator is
+  aria-hidden punctuation inside the item (default glyph /, replaceable
+  slot) so the <ol> keeps only <li> children.
+- Drawer: Root(model=open, modal, dismissible, placement start|end, label
+  — renders no element) then Trigger/Panel/Title/Close on native <dialog>
+  + top layer, Dialog's machinery inherited (backdrop = ::backdrop pseudo
+  part; presence-tracked aria-labelledby, with the label prop as the
+  aria-label fallback when no Title renders — a nav drawer often has no
+  visible heading). The panel stamps data-placement="start|end" from the
+  LOGICAL pair (an edge panel anchors to the reading direction); recipes
+  pin it with inset-inline-* so RTL mirrors free, and distinguish modal
+  from inline with the platform's own :modal pseudo-class. modal (default)
+  = showModal(): focus trap, Escape via cancel, scrim click dismisses by
+  Dialog's click geometry. modal={false} = INLINE: renders in flow via
+  show(), no dismiss trap (outside clicks are a non-event), Escape still
+  closes through the dismissable behavior, focus restore covered by zero
+  since show() provides neither.
+- Steps: Root(model=step value, defaultStep, loop, label, orientation)/
+  Item(value,asChild)/Indicator/Separator/Title/Description — the wizard
+  step rail, promoted from the ecosystem ext-stepper pattern (the
+  zero-ext-example package REMAINS as the ecosystem acceptance test).
+  role="group" + aria-label; arrow keys rove focus without changing the
+  step (orientation-aware), click/Space/Enter select, ONE tab stop on the
+  active step, aria-current="step". States are the active|complete|
+  inactive family: complete is position-derived (before the current step,
+  DOM order). The indicator mirrors its item's phase; the separator — the
+  line from its item toward the next, aria-hidden, inside the item like
+  timeline's connector — carries only complete|inactive (complete once
+  its OWN item is complete; an active item's separator is inactive: the
+  walk has reached it, not crossed it). Title/description carry no
+  states; style them through the item's state.
+- Pagination: Root(model=page, count, siblingCount, boundaryCount, label,
+  prevLabel/nextLabel) — options-driven: the row derives from count + the
+  model, so zero renders item buttons, aria-hidden ellipses and the
+  prev/next triggers itself. Constant-width windowing (the sibling block
+  slides near the edges instead of shrinking). The current item carries
+  aria-current="page" + data-state="active". Ordinary buttons in the nav
+  landmark — deliberately no roving tabindex (no APG pagination pattern;
+  each page is its own meaningful tab stop). The triggers carry the ‹/›
+  glyph (Select.Indicator's convention), named by aria-label; recipes flip
+  the glyph under RTL (scaleX(-1) under the skin's rtl guard).
+- Skeleton: Root only(model=loading, default TRUE), data-state loading|loaded,
+  aria-busy while loading. Children stay in the DOM in BOTH states — the
+  component exists to hold the layout its content will occupy, so the recipe
+  paints OVER them while loading. No hiddenIn: the states differ by paint, so
+  every design system must tell them apart.
+- Spinner: Root only, no state — it spins or it is not rendered.
+  role=status with aria-label (default "Loading"); renders empty, the mark is
+  the design system's. Both loop, so both owe a prefers-reduced-motion answer
+  that STOPS rather than collapsing the duration to ~0 (which strobes).
+- Textarea: Root(model=string)/Label/Textarea. Input's shape minus `control`
+  — nothing sits inside a textarea for a wrapper to hold, so the chrome draws
+  on the element. `rows` passes through; auto-sizing is not zero's job and
+  `resize` is the design system's call. No hidden input, same reason.
+  `modelModifiers` reach the textarea as on Input.
+- Avatar: Root/Image(src, alt, asChild)/Fallback. Display-only; every part
+  mirrors the load status as data-state="loading|loaded|error" (no src →
+  error). Zero toggles `hidden` (fallback while loaded, image while error), so
+  recipes must not set `display` on those parts unconditionally — style
+  `&:not([hidden])` instead. Server markup always renders `loading`; the
+  status resolves on mount. `statusChange` event.
+- Toast: Viewport(placement, toaster)/Root(toast)/Title/Description/Action/
+  Close, over an imperative queue: `toast({ title, color, duration, role })`
+  (browser-only), `createToaster()` for apps/tests, `useToaster` injectable.
+  Viewport is a popover="manual" top layer, `role=region`; each root is
+  `role=status` (or `alert`), carries `data-color` + `data-placement`, and
+  publishes `--toast-index`/`--toast-count`. PRESENCE IS RUNTIME-MANAGED —
+  the one exception to the declarative presence rule: roots mount `closed`,
+  flip `open` a frame later, and stay mounted after dismissal until their
+  longest transition/animation ends. Style the plain two-state transition;
+  never `@starting-style`/`allow-discrete` on toast parts, and gate any
+  viewport `display` behind `&:popover-open`.
+- Combobox: Root(model=value | value[], model:inputValue, model:open, items,
+  itemKey, itemLabel, itemValue, itemDisabled, itemGroup, filter, emptyText,
+  multiple, name, form, required, readonly, placeholder)/Control/Input/
+  Trigger/Popup/Group/GroupLabel/Item(asChild)/ItemIndicator/Empty/
+  HiddenInput. The same typed generic root and collection as Select. APG
+  editable combobox: focus stays in the real <input> (role=combobox,
+  aria-autocomplete=list, aria-activedescendant); Control is the field
+  chrome wrapping input + trigger and mirrors open/invalid/focus-visible so
+  the ring draws on the box. FILTERING: with `items`, zero filters — the
+  default is a case-insensitive contains-match on the label as you type,
+  `filter={(item, query) => …}` replaces it, `filter={false}` shows every
+  item (a server-filtered list: pass what came back). Hand-written
+  Combobox.Item children stay consumer-filtered — what you render is what
+  is visible. Empty renders its content only while the visible list is
+  empty (the data expansion renders it from `emptyText`). A selection fills
+  the input with the item's label and closes; under `multiple` it toggles,
+  clears the query and stays open. A preset value's label reaches the input
+  from data before any item mounts. The popup is popover="manual" + the
+  dismiss layer (native auto light dismiss would close on a caret click).
+  No data-placeholder on the input — use :placeholder-shown. Home/End stay
+  with the text caret; no typeahead (typing IS the filter).
+- NumberInput: Root(model=number|null, defaultValue: number|null, min, max, step, allowWheel,
+  clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
+  DecrementTrigger/HiddenInput. APG spinbutton on a real text input
+  (inputmode=decimal): the input binds the DRAFT with model= (a derived
+  Model: reads the display text, writes the draft); typing is an
+  UNCOMMITTED draft, committed on
+  blur/Enter (parse → clamp → step-snap anchored at min); stepping commits
+  immediately (arrows ±step, PageUp/Down ±10 steps, Home/End → min/max,
+  triggers hold-to-repeat, wheel only when allowWheel AND focused).
+  Control is the field chrome (ring/invalid draw there; input delegates
+  focus-visible). hidden-input posts canonical String(value) — the visible
+  input never carries name, so format can't corrupt form data. Empty
+  commits null, never 0. Triggers are tabIndex=-1 satellites.
+- RatingGroup: Root(model=number 0=none, count=5, allowHalf, deselectable,
+  name/required/invalid/readonly)/Label/Control(role=radiogroup)/
+  Item(index — explicit children 1..count, zero owns no iteration)/
+  HiddenInput. Item's data-state is the ONE 3-value set: full|half|empty,
+  driven by the DISPLAYED value (hover preview ?? committed);
+  data-highlighted marks the preview range; the default slot receives
+  { state, highlighted } for SVG swapping. Without a slot the item's content
+  is a BARE TEXT node ★/★/☆ — half is a FULL star (the half-star codepoint
+  U+2BEA is poorly covered in the common system sans stacks and renders as
+  tofu), so a distinct half is the DS's job; a consumer symbol is an ELEMENT,
+  which is how a DS tells them apart (:not(:has(> *)) / :has(*)).
+  Keyboard moves the VALUE, not element focus (allowHalf: two per element):
+  single tab stop at ceil(value), arrows ±step (0.5 with allowHalf), Home
+  = smallest step, End = count, RTL flips horizontal. Pointer x decides
+  halves; tap commits with the same math; pointerleave on control clears
+  the preview.
+- TreeView: Root(model=selected value, model:expandedValues=string[] —
+  named-models convention: defaultExpandedValues + expandedValuesChange)/
+  Label/Tree(role=tree)/Item(value, asChild,
+  role=treeitem leaf)/Branch(value — the treeitem ELEMENT wrapping its
+  group: aria-expanded+aria-level live here, it owns focus)/
+  BranchTrigger(the clickable row — mirrors branch state + focus so
+  recipes ring the row, never the subtree)/BranchIndicator/
+  BranchContent(role=group, hidden when closed — content stays MOUNTED,
+  just invisible to navigation). Keyboard walks VISIBLE nodes (the tree
+  controller implements the flat list interface over them — roving and
+  typeahead unchanged): Up/Down/Home/End rove, ArrowRight expands a
+  closed branch then steps to first child, ArrowLeft collapses then
+  climbs to the parent (RTL-mirrored), Enter/Space select — selection
+  and expansion are separate acts. One tab stop: selected, else first
+  visible enabled. No aria-posinset/setsize — the full tree is in the
+  DOM, AT computes them. Single selection v1.
+- Toggle: Root(model=pressed, defaultPressed, label, asChild) — one
+  two-state <button> (aria-pressed, data-state on|off; `label` →
+  aria-label for icon-only toggles). A mode you flip, not a form value
+  (Switch keeps the form case). No hidden input.
+- ToggleGroup: Root(model=string | string[], multiple, deselectable, loop,
+  label, orientation)/Item(value, asChild). role=group of aria-pressed
+  buttons (`label` names the group); the model FOLLOWS `multiple` (Select's
+  rule): single mode holds the pressed value as a string ('' = none),
+  `multiple` holds string[] — typed through overloads, so a string signal
+  never binds a multiple group. Single mode deselects on re-click unless
+  deselectable=false. Arrow keys rove focus (orientation- and RTL-aware,
+  one tab stop: first enabled on item, else first enabled) WITHOUT changing
+  selection; click/Space/Enter toggle. Item mirrors toggle's on|off and
+  doubles it as a data-selected presence flag.
+
+Named models (first used by Combobox; the convention for every multi-state
+component): a component has exactly ONE unnamed `model` — its essential
+value, what `hidden-input` posts. Every additional controllable state is a
+named model bound as `model:<stateName>` in JSX (sigx
+`Define.Model<'<stateName>', T>`), each keeping the standard companions
+`default<StateName>` + `<stateName>Change`. Combobox: `model` = selected
+value, `model:inputValue` = text, `model:open` = open.
+
+Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
+Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
+Divider, Field, Indicator, Input, Join, Kbd, Menu, NumberInput,
+Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
+RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
+Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
+Table, FileUpload, Carousel, Swap, Countdown, Diff and TreeView;
+that is every component. Where the Root renders a fragment (a
+dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
+carrier part the compiled axis selectors anchor on, and Toast routes the
+queue's `toast({ color })` through the same pass-through with an explicit prop
+on a composed Root winning. The axes pass through as
+data-* and zero attaches no styling to them. Button is the worked example:
+route `color` through a component token pair (`--btn-accent` and its
+content colour) that the `variant` rules read, so the two axes compose
+instead of multiplying into a rule per combination.
+
+- Recipes take conditional styles via `parts.<part>.at`, keyed by a declared
+  breakpoint (emitted as `@media (min-width: ...)`), a built-in
+  (`reduced-motion`, `hover-none`, `prefers-dark`, `forced-colors`) or a raw
+  `@`-prefixed prelude. Nesting composes at-rules, and `at` inside `variants`
+  gives responsive variants. Author mobile-first and declare breakpoints
+  ascending -- declaration order is emission order. `prefers-dark` is the
+  SYSTEM preference, NOT a `[data-theme]` dark theme. Stop a looping
+  animation under `reduced-motion` (`animation: none`); never shorten it.
+
+## Authoring a design system (@sigx/zero-kit)
+
+defineTokens({roles?, system?, systemDark?, custom?, breakpoints?, themes,
+defaultLight, defaultDark}) + defineRecipe({component, parts: {part: {base,
+states, selectors}}, variants, defaultVariants}) + defineDesignSystem({name,
+tokens, recipes}). `roles` declares the color vocabulary ({brand: {}, surface:
+{content: false, soft: false}, …}; omitted → the recommended eight);
+`system` declares the non-color token values per category ({radius: {field:
+'0.5rem'}, border: '1px'}), with `systemDark` for dark-scheme overrides;
+`custom` declares DS-specific tokens (name → {description, syntax?}) valued
+per-theme in `custom` — all surface in the DS's dist/manifest.json, which
+also lists every custom property the DS emits under `tokens.properties`.
+Compile with `sigx zero:build`; check with `sigx zero:validate` (declared-role
+completeness, WCAG contrast on every declared role/-content pair, state
+coverage) and `sigx zero:audit` (the compiled CSS: every declared state
+renders differently, indicators draw, real buttons reset `appearance`,
+declared axis steps are honoured, loops stop under reduced motion; also
+written as dist/audit.json by the build). Reference implementation: @sigx/zero-basic; daisyUI-flavored
+skin: @sigx/zero-daisyui.
+
+## Building your own component (ecosystem packages)
+
+The authoring surface is public: defineAnatomy (from @sigx/zero/anatomy;
+`toJSON()` emits the manifest component shape), every behavior
+(@sigx/zero/behaviors: controllable state, SSR-safe ids, list/tree
+registration, roving tabindex, dismissal, focus, press feedback, typeahead,
+anchor positioning), the contract helpers (dataAttr, stateAttr, variantAttrs,
+renderAsChild + synthesizesClickFrom for asChild keyboard activation), and
+the conformance assertion expectAnatomy (@sigx/zero/testing — throws plain
+Error, any test runner). Convention: vendor-prefix the scope (`acme-…`),
+publish a manifest fragment `{package: "<npm specifier>", components:
+[anatomy.toJSON()]}` and optionally a recipe pack (RecipeInput[] against the
+recommended token grammar). A design system opts in by MERGING the fragment
+(`mergeManifests(base, fragment)` from @sigx/zero-kit, or `--extra-manifest`
+on zero:build/zero:validate) and writing or adopting a recipe; one that never
+merges it leaves the component unstyled but accessible. ZeroScope stays
+closed — merged scopes carry provenance and are excluded by name from the
+generated register.d.ts gate. Worked example: @sigx/zero-ext-example
+(in-repo), adopted by @sigx/zero-basic's build.mjs.
+
+## Docs
+
+- https://sigx.dev/llms.txt (the framework)
+- https://signalxjs.github.io/zero/manifest.json (anatomy manifest)

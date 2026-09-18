@@ -1,0 +1,134 @@
+@layer zero.recipes {
+    [data-scope="avatar"][data-part="root"] {
+        --avatar-size: calc(var(--size-selector) * 10);
+        --avatar-accent: var(--color-surface-container-high);
+        --avatar-on-accent: var(--color-surface-container-high-content);
+    }
+
+    [data-scope="avatar"][data-part="root"] {
+        position: relative;
+        display: inline-grid;
+        width: var(--avatar-size);
+        height: var(--avatar-size);
+        border-radius: 9999px;
+        overflow: hidden;
+        vertical-align: middle;
+        background: var(--color-surface-container);
+    }
+
+    [data-scope="avatar"][data-part="image"] {
+        grid-area: 1 / 1;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="avatar"][data-part="image"][data-state="loaded"] {
+        opacity: 1;
+    }
+
+    [data-scope="avatar"][data-part="fallback"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        grid-area: 1 / 1;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        background: var(--avatar-accent);
+        color: var(--avatar-on-accent);
+        user-select: none;
+    }
+
+    [data-scope="avatar"][data-part="fallback"]:not([hidden]) {
+        display: grid;
+    }
+
+    [data-scope="avatar"][data-part="root"][data-color="primary"] {
+        --avatar-accent: var(--color-primary-soft);
+        --avatar-on-accent: var(--color-primary);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-color="secondary"] {
+        --avatar-accent: var(--color-secondary-soft);
+        --avatar-on-accent: var(--color-secondary);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-color="tertiary"] {
+        --avatar-accent: var(--color-tertiary-soft);
+        --avatar-on-accent: var(--color-tertiary);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-color="error"] {
+        --avatar-accent: var(--color-error-soft);
+        --avatar-on-accent: var(--color-error);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-color="neutral"] {
+        --avatar-accent: var(--color-neutral-soft);
+        --avatar-on-accent: var(--color-neutral);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-color="info"] {
+        --avatar-accent: var(--color-info-soft);
+        --avatar-on-accent: var(--color-info);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-color="success"] {
+        --avatar-accent: var(--color-success-soft);
+        --avatar-on-accent: var(--color-success);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-color="warning"] {
+        --avatar-accent: var(--color-warning-soft);
+        --avatar-on-accent: var(--color-warning);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-color="accent"] {
+        --avatar-accent: var(--color-accent-soft);
+        --avatar-on-accent: var(--color-accent);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-size="xs"] {
+        --avatar-size: calc(var(--size-selector) * 6);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-size="sm"] {
+        --avatar-size: calc(var(--size-selector) * 8);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-size="lg"] {
+        --avatar-size: calc(var(--size-selector) * 12);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-size="xl"] {
+        --avatar-size: calc(var(--size-selector) * 16);
+    }
+
+    @scope ([data-scope="avatar"][data-part="root"][data-size="xs"]) to ([data-scope="avatar"][data-part="root"]) {
+        [data-scope="avatar"][data-part="fallback"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="avatar"][data-part="root"][data-size="sm"]) to ([data-scope="avatar"][data-part="root"]) {
+        [data-scope="avatar"][data-part="fallback"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="avatar"][data-part="root"][data-size="lg"]) to ([data-scope="avatar"][data-part="root"]) {
+        [data-scope="avatar"][data-part="fallback"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="avatar"][data-part="root"][data-size="xl"]) to ([data-scope="avatar"][data-part="root"]) {
+        [data-scope="avatar"][data-part="fallback"] {
+            font-size: var(--text-lg);
+        }
+    }
+}

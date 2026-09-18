@@ -1,0 +1,103 @@
+@layer zero.recipes {
+    [data-scope="progress"][data-part="root"] {
+        --progress-track-size: 0.25rem;
+    }
+
+    [data-scope="progress"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+        width: 100%;
+    }
+
+    [data-scope="progress"][data-part="root"] [data-part="label"]::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        inset-inline-end: 0;
+        box-sizing: border-box;
+        width: calc(var(--text-xs) * 0.7);
+        height: calc(var(--text-xs) * 0.35);
+        border-left: 2px solid color-mix(in oklab, var(--carbon-toggle-on) 85%, var(--color-base-content));
+        border-bottom: 2px solid color-mix(in oklab, var(--carbon-toggle-on) 85%, var(--color-base-content));
+        rotate: -45deg;
+        translate: 0 calc(-50% - var(--text-xs) * 0.12);
+        scale: 0;
+        opacity: 0;
+        transition: scale var(--duration-normal) var(--ease-decelerate), opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="progress"][data-part="root"][data-state="complete"] [data-part="label"]::after {
+        scale: 1;
+        opacity: 1;
+    }
+
+    [data-scope="progress"][data-part="label"] {
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+        color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+        position: relative;
+        padding-inline-end: var(--space-md);
+    }
+
+    [data-scope="progress"][data-part="track"] {
+        width: 100%;
+        height: var(--progress-track-size);
+        background: var(--color-base-300);
+        overflow: hidden;
+    }
+
+    [data-scope="progress"][data-part="range"] {
+        height: 100%;
+        background: color-mix(in oklab, var(--carbon-interactive) 85%, var(--color-base-content));
+        transition: width var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard);
+        --progress-sweep-dir: 1;
+    }
+
+    [data-scope="progress"][data-part="range"][data-state="complete"] {
+        background: color-mix(in oklab, var(--carbon-toggle-on) 85%, var(--color-base-content));
+    }
+
+    [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
+        width: 40%;
+        animation: carbon-indeterminate 1.4s ease-in-out infinite;
+    }
+
+    [data-scope="progress"][data-part="range"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --progress-sweep-dir: -1;
+    }
+
+    [data-scope="progress"][data-part="value-text"] {
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+        color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="sm"] {
+        --progress-track-size: 0.125rem;
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="lg"] {
+        --progress-track-size: 0.5rem;
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="xl"] {
+        --progress-track-size: 0.75rem;
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="2xl"] {
+        --progress-track-size: 1rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
+            animation: none;
+            width: 100%;
+        }
+    }
+}
+@keyframes carbon-indeterminate {
+    from { translate: calc(var(--progress-sweep-dir) * -100%) 0; } to { translate: calc(var(--progress-sweep-dir) * 250%) 0; }
+}

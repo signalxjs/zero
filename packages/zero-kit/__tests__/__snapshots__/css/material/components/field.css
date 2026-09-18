@@ -1,0 +1,116 @@
+@layer zero.recipes {
+    [data-scope="field"][data-part="root"] {
+        --field-accent: var(--color-base-content);
+    }
+
+    [data-scope="field"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="field"][data-part="label"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        color: var(--field-accent);
+    }
+
+    [data-scope="field"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="field"][data-part="label"][data-required]::after {
+        content: " *";
+        color: var(--color-error);
+    }
+
+    [data-scope="field"][data-part="description"] {
+        margin: 0;
+        font-size: var(--text-xs);
+        color: var(--color-outline);
+    }
+
+    [data-scope="field"][data-part="error"] {
+        margin: 0;
+        font-size: var(--text-xs);
+        color: var(--color-error);
+    }
+
+    [data-scope="field"][data-part="root"][data-color="primary"] {
+        --field-accent: var(--color-primary);
+    }
+
+    [data-scope="field"][data-part="root"][data-color="secondary"] {
+        --field-accent: var(--color-secondary);
+    }
+
+    [data-scope="field"][data-part="root"][data-color="tertiary"] {
+        --field-accent: var(--color-tertiary);
+    }
+
+    [data-scope="field"][data-part="root"][data-color="error"] {
+        --field-accent: var(--color-error);
+    }
+
+    [data-scope="field"][data-part="root"][data-color="neutral"] {
+        --field-accent: var(--color-neutral);
+    }
+
+    [data-scope="field"][data-part="root"][data-color="info"] {
+        --field-accent: var(--color-info);
+    }
+
+    [data-scope="field"][data-part="root"][data-color="success"] {
+        --field-accent: var(--color-success);
+    }
+
+    [data-scope="field"][data-part="root"][data-color="warning"] {
+        --field-accent: var(--color-warning);
+    }
+
+    [data-scope="field"][data-part="root"][data-color="accent"] {
+        --field-accent: var(--color-accent);
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="xs"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="sm"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="lg"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="xl"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-md);
+        }
+    }
+}

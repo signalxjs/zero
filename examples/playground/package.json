@@ -1,0 +1,33 @@
+{
+    "name": "zero-playground",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "typecheck": "tsgo --noEmit",
+        "gen:brand": "node scripts/gen-brand-theme.mjs",
+        "e2e": "playwright test"
+    },
+    "dependencies": {
+        "@sigx/zero": "workspace:^",
+        "@sigx/zero-basic": "workspace:^",
+        "@sigx/zero-brutalist": "workspace:^",
+        "@sigx/zero-carbon": "workspace:^",
+        "@sigx/zero-daisyui": "workspace:^",
+        "@sigx/zero-heroui": "workspace:^",
+        "@sigx/zero-material": "workspace:^",
+        "sigx": "catalog:"
+    },
+    "devDependencies": {
+        "@axe-core/playwright": "^4.12.1",
+        "@playwright/test": "^1.58.2",
+        "@sigx/vite": "catalog:",
+        "@sigx/zero-kit": "workspace:^",
+        "@types/node": "^22.20.1",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.3"
+    }
+}

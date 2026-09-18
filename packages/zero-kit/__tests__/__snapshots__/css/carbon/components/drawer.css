@@ -1,0 +1,187 @@
+@layer zero.recipes {
+    [data-scope="drawer"][data-part="trigger"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 var(--space-md);
+        min-height: 3rem;
+        border: none;
+        border-radius: var(--radius-field);
+        background: transparent;
+        color: var(--carbon-interactive);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="drawer"][data-part="trigger"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-state="open"] {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-pressed]:not([data-disabled]) {
+        background: var(--color-base-300);
+        color: color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content));
+    }
+
+    [data-scope="drawer"][data-part="panel"] {
+        opacity: 0;
+        transform: none;
+        transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
+        padding: var(--space-lg);
+        background: var(--color-base-200);
+        color: var(--color-base-content);
+        border: var(--border) solid var(--carbon-line);
+        border-radius: 0;
+        font-family: var(--font-sans);
+        inline-size: min(20rem, 85vw);
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-state="open"] {
+        opacity: 1;
+        transform: none;
+    }
+
+    [data-scope="drawer"][data-part="panel"]:modal {
+        position: fixed;
+        inset-block-start: 0;
+        inset-block-end: 0;
+        block-size: 100dvh;
+        max-block-size: 100dvh;
+        inline-size: min(20rem, 85vw);
+        max-inline-size: none;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        box-shadow: var(--shadow-xl);
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-placement="start"]:modal {
+        inset-inline-start: 0;
+        inset-inline-end: auto;
+        border-inline-end: var(--border) solid var(--carbon-line);
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-placement="end"]:modal {
+        inset-inline-start: auto;
+        inset-inline-end: 0;
+        border-inline-start: var(--border) solid var(--carbon-line);
+    }
+
+    [data-scope="drawer"][data-part="panel"]::backdrop {
+        background: oklch(0% 0 0 / 0.5);
+        opacity: 0;
+        transition: opacity var(--duration-normal) var(--ease-standard), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-state="open"]::backdrop {
+        opacity: 1;
+    }
+
+    [data-scope="drawer"][data-part="title"] {
+        margin: 0 0 var(--space-md);
+        font-size: var(--text-xl);
+        font-weight: var(--weight-normal);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="drawer"][data-part="close"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        width: auto;
+        height: auto;
+        padding: var(--space-xs) var(--space-md);
+        border: none;
+        border-radius: var(--radius-field);
+        background: transparent;
+        color: var(--color-base-content);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        letter-spacing: var(--tracking-wide);
+    }
+
+    [data-scope="drawer"][data-part="close"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="drawer"][data-part="close"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="drawer"][data-part="close"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="drawer"][data-part="close"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="sm"] {
+        min-height: 2rem;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="md"] {
+        min-height: 2.5rem;
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="xl"] {
+        min-height: 4rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
+    [data-scope="drawer"][data-part="trigger"][data-size="2xl"] {
+        min-height: 5rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="drawer"][data-part="panel"] {
+            transition: none;
+        }
+
+        [data-scope="drawer"][data-part="panel"][data-state="open"] {
+            transform: none;
+        }
+
+        [data-scope="drawer"][data-part="panel"]::backdrop {
+            transition: none;
+        }
+    }
+
+    @starting-style {
+        [data-scope="drawer"][data-part="panel"][data-state="open"] {
+            opacity: 0;
+            transform: none;
+        }
+
+        [data-scope="drawer"][data-part="panel"][data-state="open"]::backdrop {
+            opacity: 0;
+        }
+    }
+}

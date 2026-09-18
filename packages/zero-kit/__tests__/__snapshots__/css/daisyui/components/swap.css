@@ -1,0 +1,116 @@
+@layer zero.recipes {
+    [data-scope="swap"][data-part="root"] {
+        --swap-ink: var(--color-base-content);
+        --swap-size: var(--text-xl);
+    }
+
+    [data-scope="swap"][data-part="root"] {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        font-size: var(--swap-size);
+        line-height: var(--leading-none);
+        color: var(--swap-ink);
+        user-select: none;
+    }
+
+    [data-scope="swap"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="swap"][data-part="root"][data-focus-visible] {
+        outline: 2px solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
+    [data-scope="swap"][data-part="root"]:is(button) {
+        appearance: none;
+        border: none;
+        background: transparent;
+        padding: var(--space-2xs);
+        border-radius: var(--radius-selector);
+        cursor: pointer;
+        font: inherit;
+        font-size: var(--swap-size);
+        color: var(--swap-ink);
+    }
+
+    [data-scope="swap"][data-part="on"] {
+        grid-area: 1 / 1;
+        transition: transform var(--duration-normal) var(--ease-standard), opacity var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="swap"][data-part="on"][data-state="off"] {
+        opacity: 0;
+        transform: rotate(45deg);
+    }
+
+    [data-scope="swap"][data-part="off"] {
+        grid-area: 1 / 1;
+        transition: transform var(--duration-normal) var(--ease-standard), opacity var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="swap"][data-part="off"][data-state="on"] {
+        opacity: 0;
+        transform: rotate(-45deg);
+    }
+
+    [data-scope="swap"][data-part="root"][data-color="primary"] {
+        --swap-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+    }
+
+    [data-scope="swap"][data-part="root"][data-color="secondary"] {
+        --swap-ink: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+    }
+
+    [data-scope="swap"][data-part="root"][data-color="accent"] {
+        --swap-ink: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+    }
+
+    [data-scope="swap"][data-part="root"][data-color="neutral"] {
+        --swap-ink: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+    }
+
+    [data-scope="swap"][data-part="root"][data-color="info"] {
+        --swap-ink: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+    }
+
+    [data-scope="swap"][data-part="root"][data-color="success"] {
+        --swap-ink: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+    }
+
+    [data-scope="swap"][data-part="root"][data-color="warning"] {
+        --swap-ink: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="swap"][data-part="root"][data-color="error"] {
+        --swap-ink: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+    }
+
+    [data-scope="swap"][data-part="root"][data-size="xs"] {
+        --swap-size: var(--text-sm);
+    }
+
+    [data-scope="swap"][data-part="root"][data-size="sm"] {
+        --swap-size: var(--text-md);
+    }
+
+    [data-scope="swap"][data-part="root"][data-size="lg"] {
+        --swap-size: var(--text-2xl);
+    }
+
+    [data-scope="swap"][data-part="root"][data-size="xl"] {
+        --swap-size: var(--text-3xl);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="swap"][data-part="on"] {
+            transition: none;
+        }
+
+        [data-scope="swap"][data-part="off"] {
+            transition: none;
+        }
+    }
+}

@@ -1,0 +1,114 @@
+@layer zero.recipes {
+    [data-scope="breadcrumbs"][data-part="root"] {
+        --bc-accent: var(--color-base-content);
+        --bc-accent-content: var(--color-base-100);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"] {
+        font-size: var(--text-sm);
+        color: var(--color-base-content);
+        font-weight: var(--weight-bold);
+        text-transform: uppercase;
+        letter-spacing: var(--tracking-wide);
+    }
+
+    [data-scope="breadcrumbs"][data-part="list"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-sm);
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    [data-scope="breadcrumbs"][data-part="item"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+
+    [data-scope="breadcrumbs"][data-part="link"] {
+        color: var(--color-base-content);
+        text-decoration: underline;
+        text-decoration-thickness: calc(var(--border) * 2);
+        text-underline-offset: 0.2em;
+    }
+
+    [data-scope="breadcrumbs"][data-part="link"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="breadcrumbs"][data-part="link"][data-state="active"] {
+        background: var(--bc-accent);
+        color: var(--bc-accent-content);
+        text-decoration: none;
+        padding: 0 var(--space-2xs);
+    }
+
+    [data-scope="breadcrumbs"][data-part="link"]:focus-visible {
+        outline: calc(var(--border) * 2) solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
+    [data-scope="breadcrumbs"][data-part="separator"] {
+        color: var(--color-base-content);
+        user-select: none;
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-color="primary"] {
+        --bc-accent: var(--color-primary);
+        --bc-accent-content: var(--color-primary-content);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-color="secondary"] {
+        --bc-accent: var(--color-secondary);
+        --bc-accent-content: var(--color-secondary-content);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-color="accent"] {
+        --bc-accent: var(--color-accent);
+        --bc-accent-content: var(--color-accent-content);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-color="neutral"] {
+        --bc-accent: var(--color-neutral);
+        --bc-accent-content: var(--color-neutral-content);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-color="info"] {
+        --bc-accent: var(--color-info);
+        --bc-accent-content: var(--color-info-content);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-color="success"] {
+        --bc-accent: var(--color-success);
+        --bc-accent-content: var(--color-success-content);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-color="warning"] {
+        --bc-accent: var(--color-warning);
+        --bc-accent-content: var(--color-warning-content);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-color="error"] {
+        --bc-accent: var(--color-error);
+        --bc-accent-content: var(--color-error-content);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-size="xs"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-size="sm"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-size="lg"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="breadcrumbs"][data-part="root"][data-size="xl"] {
+        font-size: var(--text-lg);
+    }
+}

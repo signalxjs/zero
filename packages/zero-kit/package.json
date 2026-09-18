@@ -1,0 +1,76 @@
+{
+    "name": "@sigx/zero-kit",
+    "version": "0.2.0-beta.6",
+    "description": "Design-system authoring kit for SignalX Zero \u2014 typed tokens and recipes compiled to plain CSS, plus the `sigx` CLI plugin closing the AI-generate \u2192 validate \u2192 iterate loop.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./build": {
+            "types": "./dist/build.d.ts",
+            "import": "./dist/build.js"
+        },
+        "./define": {
+            "types": "./dist/define.d.ts",
+            "import": "./dist/define.js"
+        },
+        "./plugin": {
+            "types": "./dist/plugin.d.ts",
+            "import": "./dist/plugin.js"
+        }
+    },
+    "sigx-cli": {
+        "plugin": "./dist/plugin.js",
+        "requires": ">=0.7.0"
+    },
+    "files": [
+        "dist",
+        "skills"
+    ],
+    "sideEffects": false,
+    "scripts": {
+        "build": "tsgo -p tsconfig.build.json && node scripts/copy-schemas.mjs",
+        "typecheck": "tsgo --noEmit",
+        "gen:css-properties": "node scripts/gen-css-properties.mjs"
+    },
+    "keywords": [
+        "SignalX",
+        "sigx",
+        "design-system",
+        "design-tokens",
+        "css",
+        "recipes",
+        "codegen"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/zero.git",
+        "directory": "packages/zero-kit"
+    },
+    "homepage": "https://sigx.dev/zero/",
+    "bugs": {
+        "url": "https://github.com/signalxjs/zero/issues"
+    },
+    "dependencies": {
+        "@sigx/cli": "^0.10.0",
+        "ajv": "^8.20.0",
+        "culori": "^4.0.1"
+    },
+    "devDependencies": {
+        "@sigx/args": "^0.12.0",
+        "@sigx/zero": "workspace:^",
+        "@types/culori": "^4.0.1",
+        "@types/node": "^22.10.0",
+        "@webref/css": "8.7.4",
+        "typescript": "^6.0.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

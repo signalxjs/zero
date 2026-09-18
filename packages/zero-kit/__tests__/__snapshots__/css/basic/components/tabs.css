@@ -1,0 +1,122 @@
+@layer zero.recipes {
+    [data-scope="tabs"][data-part="root"] {
+        --tabs-accent: var(--color-primary);
+    }
+
+    [data-scope="tabs"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    [data-scope="tabs"][data-part="list"] {
+        display: flex;
+        gap: var(--space-xs);
+        border-bottom: var(--border) solid var(--color-base-300);
+    }
+
+    [data-scope="tabs"][data-part="tab"] {
+        appearance: none;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: calc(-1 * var(--border));
+        padding: var(--space-md) var(--space-lg);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        font-variant-numeric: tabular-nums;
+        color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+        cursor: pointer;
+        transition: color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="tabs"][data-part="tab"]:hover:not([data-disabled]) {
+        color: var(--color-base-content);
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        color: var(--tabs-accent);
+        border-bottom-color: var(--tabs-accent);
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
+    }
+
+    [data-scope="tabs"][data-part="panel"] {
+        font-size: var(--text-md);
+        font-variant-numeric: tabular-nums;
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="primary"] {
+        --tabs-accent: var(--color-primary);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="secondary"] {
+        --tabs-accent: var(--color-secondary);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="accent"] {
+        --tabs-accent: var(--color-accent);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="neutral"] {
+        --tabs-accent: var(--color-neutral);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="info"] {
+        --tabs-accent: var(--color-info);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="success"] {
+        --tabs-accent: var(--color-success);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="warning"] {
+        --tabs-accent: var(--color-warning);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="error"] {
+        --tabs-accent: var(--color-error);
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-size="xs"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            font-size: var(--text-xs);
+            padding: var(--space-xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-size="sm"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            font-size: var(--text-xs);
+            padding: var(--space-sm) var(--space-md);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-size="lg"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            font-size: var(--text-md);
+            padding: var(--space-lg) var(--space-xl);
+        }
+    }
+
+    @scope ([data-scope="tabs"][data-part="root"][data-size="xl"]) to ([data-scope="tabs"][data-part="root"]) {
+        [data-scope="tabs"][data-part="tab"] {
+            font-size: var(--text-lg);
+            padding: var(--space-xl) var(--space-2xl);
+        }
+    }
+}

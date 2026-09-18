@@ -1,0 +1,177 @@
+@layer zero.recipes {
+    [data-scope="radio-group"][data-part="root"] {
+        --radio-size: calc(var(--size-selector) * 6);
+        --radio-accent: var(--color-primary);
+        --radio-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="radio-group"][data-part="label"] {
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="radio-group"][data-part="item"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        cursor: pointer;
+    }
+
+    [data-scope="radio-group"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--radio-size);
+        height: var(--radio-size);
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-xs);
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
+        background: var(--radio-accent);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"] {
+        width: calc(var(--radio-size) / 2.4);
+        height: calc(var(--radio-size) / 2.4);
+        background: var(--radio-on-accent);
+        transform: scale(0);
+        transition: transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"][data-state="checked"] {
+        transform: scale(1);
+    }
+
+    [data-scope="radio-group"][data-part="item-label"] {
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="radio-group"][data-part="hidden-input"] {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="primary"] {
+        --radio-accent: var(--color-primary);
+        --radio-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="secondary"] {
+        --radio-accent: var(--color-secondary);
+        --radio-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="accent"] {
+        --radio-accent: var(--color-accent);
+        --radio-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="neutral"] {
+        --radio-accent: var(--color-neutral);
+        --radio-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="info"] {
+        --radio-accent: var(--color-info);
+        --radio-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="success"] {
+        --radio-accent: var(--color-success);
+        --radio-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="warning"] {
+        --radio-accent: var(--color-warning);
+        --radio-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="error"] {
+        --radio-accent: var(--color-error);
+        --radio-on-accent: var(--color-error-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xs"] {
+        --radio-size: calc(var(--size-selector) * 4);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="sm"] {
+        --radio-size: calc(var(--size-selector) * 5);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="md"] {
+        --radio-size: calc(var(--size-selector) * 6);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="lg"] {
+        --radio-size: calc(var(--size-selector) * 7);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xl"] {
+        --radio-size: calc(var(--size-selector) * 8);
+    }
+
+    @scope ([data-scope="radio-group"][data-part="root"][data-size="xs"]) to ([data-scope="radio-group"][data-part="root"]) {
+        [data-scope="radio-group"][data-part="item-label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="radio-group"][data-part="root"][data-size="sm"]) to ([data-scope="radio-group"][data-part="root"]) {
+        [data-scope="radio-group"][data-part="item-label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="radio-group"][data-part="root"][data-size="md"]) to ([data-scope="radio-group"][data-part="root"]) {
+        [data-scope="radio-group"][data-part="item-label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="radio-group"][data-part="root"][data-size="lg"]) to ([data-scope="radio-group"][data-part="root"]) {
+        [data-scope="radio-group"][data-part="item-label"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="radio-group"][data-part="root"][data-size="xl"]) to ([data-scope="radio-group"][data-part="root"]) {
+        [data-scope="radio-group"][data-part="item-label"] {
+            font-size: var(--text-md);
+        }
+    }
+}

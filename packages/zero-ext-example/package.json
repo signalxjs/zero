@@ -1,0 +1,46 @@
+{
+    "name": "@sigx/zero-ext-example",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Acceptance test for the ecosystem-component contract: a component zero doesn't ship, built entirely from @sigx/zero's public surface, published to design systems as a manifest fragment plus a grammar-targeting recipe pack.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./fragment": {
+            "types": "./dist/fragment.d.ts",
+            "import": "./dist/fragment.js"
+        }
+    },
+    "sideEffects": false,
+    "sigx-zero": {
+        "fragment": "./dist/fragment.js",
+        "requires": ">=0.2.0"
+    },
+    "scripts": {
+        "build": "vite build && tsgo --emitDeclarationOnly && sigx zero:fragment",
+        "typecheck": "tsgo --noEmit"
+    },
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "peerDependencies": {
+        "sigx": "catalog:",
+        "@sigx/zero": "workspace:^"
+    },
+    "devDependencies": {
+        "@sigx/cli": "^0.10.0",
+        "@sigx/reactivity": "catalog:",
+        "@sigx/runtime-core": "catalog:",
+        "@sigx/runtime-dom": "catalog:",
+        "@sigx/vite": "catalog:",
+        "@sigx/zero": "workspace:^",
+        "@sigx/zero-kit": "workspace:^",
+        "sigx": "catalog:",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.3"
+    }
+}

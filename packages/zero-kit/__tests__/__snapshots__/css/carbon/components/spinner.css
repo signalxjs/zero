@@ -1,0 +1,43 @@
+@layer zero.recipes {
+    [data-scope="spinner"][data-part="root"] {
+        --spinner-size: calc(var(--size-field) * 0.5);
+        --spinner-ink: var(--carbon-interactive);
+        --spinner-track: var(--carbon-line);
+    }
+
+    [data-scope="spinner"][data-part="root"] {
+        display: inline-block;
+        inline-size: var(--spinner-size);
+        block-size: var(--spinner-size);
+        box-sizing: border-box;
+        border-radius: 50%;
+        border: calc(var(--border) * 2) solid var(--spinner-track);
+        border-block-start-color: var(--spinner-ink);
+        animation: zero-carbon-spin 0.7s linear infinite;
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="sm"] {
+        --spinner-size: calc(var(--size-field) * 0.4);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="lg"] {
+        --spinner-size: calc(var(--size-field) * 0.7);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="xl"] {
+        --spinner-size: calc(var(--size-field) * 0.9);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="2xl"] {
+        --spinner-size: var(--size-field);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="spinner"][data-part="root"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-carbon-spin {
+    to { transform: rotate(360deg); }
+}

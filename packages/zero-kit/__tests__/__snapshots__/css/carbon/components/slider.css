@@ -1,0 +1,184 @@
+@layer zero.recipes {
+    [data-scope="slider"][data-part="root"] {
+        --slider-track-size: 0.125rem;
+        --slider-thumb-size: calc(var(--size-selector) * 3.5);
+        --slider-control-size: calc(var(--size-selector) * 10);
+    }
+
+    [data-scope="slider"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        width: 100%;
+    }
+
+    [data-scope="slider"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="slider"][data-part="label"] {
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+        color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+    }
+
+    [data-scope="slider"][data-part="control"] {
+        appearance: none;
+        width: 100%;
+        height: var(--slider-control-size);
+        margin: 0;
+        background: transparent;
+        cursor: pointer;
+        outline: none;
+        accent-color: var(--carbon-interactive);
+        --slider-ring: inset 0 0 0 2px transparent, inset 0 0 0 4px transparent;
+        --slider-track: linear-gradient(to right, var(--carbon-interactive) var(--slider-percent, 50%), var(--carbon-line) 0);
+    }
+
+    [data-scope="slider"][data-part="control"][data-focus-visible] {
+        --slider-ring: inset 0 0 0 2px var(--carbon-focus), inset 0 0 0 4px var(--color-base-100);
+    }
+
+    [data-scope="slider"][data-part="control"][data-pressed] {
+        --slider-ring: inset 0 0 0 2px var(--carbon-focus), inset 0 0 0 4px var(--color-base-100);
+    }
+
+    [data-scope="slider"][data-part="control"][data-invalid] {
+        --slider-track: linear-gradient(to right, var(--carbon-danger) var(--slider-percent, 50%), var(--carbon-line) 0);
+    }
+
+    [data-scope="slider"][data-part="control"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="slider"][data-part="control"]::-webkit-slider-runnable-track {
+        height: var(--slider-track-size);
+        background: var(--slider-track);
+    }
+
+    [data-scope="slider"][data-part="control"]::-webkit-slider-thumb {
+        appearance: none;
+        width: var(--slider-thumb-size);
+        height: var(--slider-thumb-size);
+        margin-top: calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2);
+        border: none;
+        border-radius: var(--radius-selector);
+        background: var(--color-base-content);
+        box-shadow: var(--slider-ring);
+        transition: box-shadow var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="slider"][data-part="control"]::-moz-range-track {
+        height: var(--slider-track-size);
+        background: var(--slider-track);
+    }
+
+    [data-scope="slider"][data-part="control"]::-moz-range-thumb {
+        width: var(--slider-thumb-size);
+        height: var(--slider-thumb-size);
+        border: none;
+        border-radius: var(--radius-selector);
+        background: var(--color-base-content);
+        box-shadow: var(--slider-ring);
+        transition: box-shadow var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="slider"][data-part="track"] {
+        height: var(--slider-track-size);
+        margin-block: calc((var(--slider-control-size) - var(--slider-track-size)) / 2);
+        background: var(--color-base-300);
+        cursor: pointer;
+    }
+
+    [data-scope="slider"][data-part="track"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="slider"][data-part="range"] {
+        height: 100%;
+        background: color-mix(in oklab, var(--carbon-interactive) 85%, var(--color-base-content));
+    }
+
+    [data-scope="slider"][data-part="thumb"] {
+        width: var(--slider-thumb-size);
+        height: var(--slider-thumb-size);
+        inset-block-start: 50%;
+        translate: 0 -50%;
+        margin-inline-start: calc(var(--slider-thumb-size) / -2);
+        border-radius: var(--radius-selector);
+        background: var(--color-base-content);
+        cursor: pointer;
+        outline: none;
+        touch-action: none;
+        transition: box-shadow var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-focus-visible] {
+        box-shadow: inset 0 0 0 2px var(--carbon-focus), inset 0 0 0 4px var(--color-base-100);
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-pressed] {
+        box-shadow: inset 0 0 0 2px var(--carbon-focus), inset 0 0 0 4px var(--color-base-100);
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="slider"][data-part="mark"] {
+        padding-block-start: calc(0.125rem + var(--space-2xs));
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        line-height: 1;
+        white-space: nowrap;
+        color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+    }
+
+    [data-scope="slider"][data-part="mark"]::before {
+        content: "";
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-start: -1px;
+        width: 2px;
+        height: 0.125rem;
+        background: var(--carbon-line);
+    }
+
+    [data-scope="slider"][data-part="value-text"] {
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+        color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="sm"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="control"] {
+            height: 2rem;
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="lg"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="control"] {
+            height: 3rem;
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="xl"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="control"] {
+            height: 4rem;
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="2xl"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="control"] {
+            height: 5rem;
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="slider"][data-part="control"] {
+            appearance: auto;
+        }
+    }
+}
