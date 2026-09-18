@@ -495,6 +495,20 @@ describe('a pack that declares an axis out of existence (#64)', () => {
         expect(waived.map((w) => w.waivedBy.mechanism)).toEqual(['tokens.scopes']);
     });
 
+    it('holds a directly supplied pack to the same rule — a pack may only decline', async () => {
+        const log = logger();
+        const out = await resolveEcosystem({
+            manifest: baseManifest(),
+            designSystem: basicDS,
+            ecosystem: { packs: [feedPack({ 'acme-feed': { colors: ['primary'] } })] },
+            defaultCwd: tree(),
+            logger: log,
+        });
+        expect(out.packs).toEqual([]);
+        expect(log.error).toHaveBeenCalledWith(expect.stringMatching(/"acme-feed\.colors" not an empty list/));
+        expect(out.designSystem.tokens.scopes?.['acme-feed']).toBeUndefined();
+    });
+
     it('never overrides the design system\'s own entry for the scope', async () => {
         const own = { ...basicDS, tokens: { ...basicDS.tokens, scopes: { ...basicDS.tokens.scopes, 'acme-feed': { colors: ['primary'] } } } };
         const out = await adopt(own as DesignSystemInput, feedPack({ 'acme-feed': { colors: [] } }));

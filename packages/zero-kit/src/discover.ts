@@ -607,16 +607,12 @@ export async function discoverEcosystem(
  * is for, and not one anybody opted into by adding a dependency.
  */
 function refuseOverreach(pack: EcosystemPack): void {
-    // `scopes` is held to the same rule in `packFromModule`; a pack supplied
-    // directly (`packs:`) never passed through it, so check both here.
+    // A pack supplied directly (`packs:`) never passed through
+    // `packFromModule`, so its `scopes` get the same check here — own scopes,
+    // known keys, every list empty — before composition reads them as
+    // declines.
+    packScopes(pack.package, pack.source, pack.fragment, pack.scopes);
     const owned = new Set(pack.fragment.components.map((c) => c.scope));
-    const foreignScopes = Object.keys(pack.scopes ?? {}).filter((s) => !owned.has(s));
-    if (foreignScopes.length > 0) {
-        throw new Error(
-            `[zero-kit] ${pack.package} declares scope vocabularies for scopes it does not declare `
-            + `(${foreignScopes.map((s) => `"${s}"`).join(', ')}) — a pack may only speak for its own components`,
-        );
-    }
     const foreign = pack.recipes.filter((r) => !owned.has(r.component));
     if (foreign.length === 0) return;
     throw new Error(
