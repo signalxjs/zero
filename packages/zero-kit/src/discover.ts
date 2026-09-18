@@ -471,9 +471,10 @@ function packScopes(
         if (typeof entry !== 'object' || entry === null || isList(entry)) fail(`with a "${scope}" entry that is not an object`);
         for (const [key, value] of Object.entries(entry as Record<string, unknown>)) {
             if (!PACK_SCOPE_KEYS.has(key)) fail(`with an unknown key "${key}" on "${scope}" (known: ${[...PACK_SCOPE_KEYS].join(', ')})`);
-            const lists = key === 'axes'
-                ? (typeof value === 'object' && value !== null && !isList(value) ? Object.values(value) : [value])
-                : [value];
+            if (key === 'axes' && (typeof value !== 'object' || value === null || isList(value))) {
+                fail(`with "${scope}.axes" not an object — it maps each custom axis to []`);
+            }
+            const lists = key === 'axes' ? Object.values(value as object) : [value];
             if (lists.some((list) => !isList(list) || list.length > 0)) {
                 fail(`with "${scope}.${key}" not an empty list — a pack may only declare an axis out of existence ([]); narrowing to values is the adopting design system's call`);
             }
@@ -756,7 +757,9 @@ function compose(
     // Null prototype, for the same reason `packagesByScope` uses one:
     // `constructor` passes the scope grammar.
     const contributed: Record<string, string> = Object.create(null) as Record<string, string>;
-    const scopes: Record<string, ScopeVocabulary> = { ...ds.tokens.scopes };
+    // Null prototype, like every scope-keyed map in the kit (`layoutScopes`):
+    // `constructor` passes the scope grammar.
+    const scopes = Object.assign(Object.create(null) as Record<string, ScopeVocabulary>, ds.tokens.scopes);
     let scoped = false;
 
     for (const pack of packs) {

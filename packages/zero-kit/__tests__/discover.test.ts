@@ -314,6 +314,8 @@ describe('packFromModule', () => {
                 .toThrow(/"acme-stepper\.axes" not an empty list/);
             expect(() => packFromModule(declaration, { fragment: owning, scopes: [] }))
                 .toThrow(/"scopes" that is not an object/);
+            expect(() => packFromModule(declaration, { fragment: owning, scopes: { 'acme-stepper': { axes: [] } } }))
+                .toThrow(/"acme-stepper\.axes" not an object/);
         });
     });
 });
