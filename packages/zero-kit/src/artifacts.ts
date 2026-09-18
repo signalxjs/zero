@@ -19,7 +19,7 @@
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import { createRequire } from 'node:module';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import type { ValidateFunction } from 'ajv/dist/2020.js';
@@ -34,7 +34,9 @@ import type { DesignSystemReport } from './resolve/report.js';
 import type { AuditResult } from './audit/types.js';
 import { buildAuditArtifact } from './audit/index.js';
 import { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
+import type { ComponentsEmitOptions } from './targets/web/components-dts.js';
 import { compileComponentsDts, compileComponentsJs } from './targets/web/components-dts.js';
+import { exportedSubpath, nearestPackageDir } from './discover.js';
 
 const require = createRequire(import.meta.url);
 
@@ -134,6 +136,81 @@ export function buildDsManifest(compiled: CompiledDesignSystem): DesignSystemMan
     };
 }
 
+/** A path from `fromDir` as an ESM relative specifier — POSIX separators, always `./`- or `../`-led. */
+function relativeSpecifier(fromDir: string, file: string): string {
+    const path = relative(fromDir, file).split(sep).join('/');
+    return path.startsWith('.') ? path : `./${path}`;
+}
+
+/** The `types` condition of a root export, searched through nested conditions. */
+function typesCondition(value: unknown): string | undefined {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+    const conditions = value as Record<string, unknown>;
+    if (typeof conditions['types'] === 'string') return conditions['types'];
+    for (const key of ['import', 'node', 'default']) {
+        const found = typesCondition(conditions[key]);
+        if (found) return found;
+    }
+    return undefined;
+}
+
+/**
+ * The components artifact's route to the design system's OWN package (#62),
+ * or `undefined` when no styled scope is owned by it.
+ *
+ * A derived design system that also publishes a fragment (agentic's
+ * `@agentic/ui`) owns scopes its `./components` module re-exports. By
+ * package name that is the package importing itself, so the specifiers are
+ * made relative from `outDir` to the files its own package.json names: the
+ * root export (`exports["."]`, else `module`/`main` when there is no exports
+ * map) for the JS, and for the declarations the root export's `types`
+ * condition, else the top-level `types`/`typings` field (with or without an
+ * exports map), else the JS path — respelled `.d.ts` → `.js`, which
+ * TypeScript maps back.
+ */
+export function selfComponentsImport(
+    compiled: Pick<CompiledDesignSystem, 'name' | 'externalScopes'>,
+    outDir: string,
+): ComponentsEmitOptions['self'] {
+    const owners = new Set(Object.values(compiled.externalScopes ?? {}));
+    if (owners.size === 0) return undefined;
+    const pkgDir = nearestPackageDir(outDir);
+    let pkg: Record<string, unknown>;
+    try {
+        pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')) as Record<string, unknown>;
+    } catch {
+        return undefined;
+    }
+    const name = pkg['name'];
+    if (typeof name !== 'string' || !owners.has(name)) return undefined;
+
+    const field = (key: string): string | undefined => (typeof pkg[key] === 'string' ? pkg[key] : undefined);
+    const exportsMap = pkg['exports'];
+    const rootEntry = typeof exportsMap === 'object' && exportsMap !== null && !Array.isArray(exportsMap)
+        && Object.keys(exportsMap).some((key) => key.startsWith('.'))
+        ? (exportsMap as Record<string, unknown>)['.']
+        : exportsMap;
+    const js = exportedSubpath(pkg, '.') ?? (exportsMap === undefined ? field('module') ?? field('main') : undefined);
+    if (!js) {
+        const scopes = Object.entries(compiled.externalScopes ?? {}).filter(([, owner]) => owner === name).map(([scope]) => scope);
+        throw new Error(
+            `[zero-kit] design system "${compiled.name}" re-exports ${scopes.join(', ')} from its own package ${name} in`
+            + ' components.js, but that package.json exports no root entry to import them from',
+        );
+    }
+    // The explicit `types` field backs up an exports map with no `types`
+    // condition too: it is the author's own statement of where the
+    // declarations are, and a path that exists beats guessing the JS twin.
+    const types = typesCondition(rootEntry) ?? field('types') ?? field('typings');
+    const typesJs = types?.replace(/\.d\.([mc]?)ts$/, '.$1js');
+    const outAbs = resolve(outDir);
+    return {
+        package: name,
+        js: relativeSpecifier(outAbs, resolve(pkgDir, js)),
+        types: relativeSpecifier(outAbs, resolve(pkgDir, typesJs ?? js)),
+    };
+}
+
 /**
  * The `types` target of a design system's extensionless stylesheet exports
  * (`./css`, `./css/tokens`, `./css/*`). `import '@acme/ds/css'` has no `.css`
@@ -206,8 +283,9 @@ export async function writeArtifacts(
     await write(join(outDir, 'register.d.ts'), compileRegisterDts(compiled));
     await write(join(outDir, 'register.js'), compileRegisterJs(compiled));
     if (compiled.componentApi) {
-        await write(join(outDir, 'components.d.ts'), compileComponentsDts(compiled));
-        await write(join(outDir, 'components.js'), compileComponentsJs(compiled));
+        const self = selfComponentsImport(compiled, outDir);
+        await write(join(outDir, 'components.d.ts'), compileComponentsDts(compiled, { self }));
+        await write(join(outDir, 'components.js'), compileComponentsJs(compiled, { self }));
     }
     if (report) await write(join(outDir, 'report.json'), JSON.stringify(report, null, 2));
     if (audit) await write(join(outDir, 'audit.json'), JSON.stringify(buildAuditArtifact(audit), null, 2));

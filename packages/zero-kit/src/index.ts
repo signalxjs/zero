@@ -85,6 +85,7 @@ export {
     compileComponentsJs,
     componentExportName,
 } from './targets/web/components-dts.js';
+export type { ComponentsEmitOptions } from './targets/web/components-dts.js';
 export { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
 export { axisClaims, defineDesignSystem, compileDesignSystem, externalPackage, offeredFor, undeclaredAxes } from './design-system.js';
 
@@ -197,7 +198,7 @@ export type { TokenVocabulary } from './resolve/vocabulary.js';
 export { tokenVocabulary } from './resolve/vocabulary.js';
 export { validateRecipes } from './resolve/validate-recipes.js';
 
-export { buildDsManifest, writeArtifacts, DS_MANIFEST_VERSION } from './artifacts.js';
+export { buildDsManifest, selfComponentsImport, writeArtifacts, DS_MANIFEST_VERSION } from './artifacts.js';
 export type { DesignSystemManifest } from './artifacts.js';
 
 export type { StandardBuildLogger, StandardBuildOptions, StandardBuildResult } from './build.js';
