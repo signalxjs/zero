@@ -230,6 +230,30 @@ theme-carried candidate for that glyph's ink is white on one side or the other
 under a light one, over a fill that did not print). A design system may
 override it; it never has to declare it.
 
+**Where your app's CSS goes.** `css/base.css` declares the cascade order
+`zero.fallback, zero.tokens, zero.recipes, zero.structure`, and every design
+system's `tokens.css` restates it. Everything zero and a design system emit
+sits in those layers, so your page CSS beats all of it in either of two
+ways:
+
+- **Unlayered**, the simplest option. Unlayered CSS outranks every layer
+  whatever its specificity or load order.
+- **In a layer of your own, ordered after zero's.** Put the order statement
+  first in your entry stylesheet, before any import:
+
+  ```css
+  @layer zero, app;          /* zero's sublayers nest under `zero` */
+  @layer app { .page { … } }
+  ```
+
+  A layer's position is fixed by its first mention. If the statement is
+  missing and your stylesheet loads before `base.css`, `app` is created
+  first and ranks below every `zero.*` layer. Your unlayered overrides
+  still beat `app`.
+
+`base.css` deliberately does not name an app layer. It would not remove the
+load-order dependency described above, and the layer's name belongs to you.
+
 ## Patterns
 
 Compositions the pieces above are designed to express — no component grows a

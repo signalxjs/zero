@@ -85,6 +85,28 @@
                 }
             }
         },
+        "composes": {
+            "description": "Other component scopes this one contains, styled in context: nested scope \u2192 where it sits (`within`, a part of this component; default its carrier part) and its parts' styles. Compiles to [data-scope=\"<this>\"][data-part=\"<within>\"] [data-scope=\"<nested>\"][data-part=\"<part>\"]. Scopes, parts and states are checked against the manifest at compile time. Web only.",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "parts"
+                ],
+                "properties": {
+                    "within": {
+                        "$ref": "#/$defs/kebabToken"
+                    },
+                    "parts": {
+                        "$ref": "#/$defs/partsRecord"
+                    }
+                }
+            }
+        },
         "defaultVariants": {
             "description": "axis \u2192 value applied when the axis attribute is absent (CSS-only defaults, compiled to :not([data-<axis>]) selectors).",
             "type": "object",
@@ -181,7 +203,7 @@
                     },
                     "propertyNames": {
                         "pattern": "^(@.+|[a-z0-9]+(-[a-z0-9]+)*)$",
-                        "description": "A declared breakpoint or built-in condition (kebab-case), or a raw at-rule prelude starting with @."
+                        "description": "A declared breakpoint, below-<breakpoint> (everything narrower than it), or a built-in condition (kebab-case), or a raw at-rule prelude starting with @."
                     }
                 }
             }

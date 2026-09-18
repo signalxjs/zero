@@ -342,6 +342,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         const resolved = resolveRecipeForTarget(recipe, 'web');
         componentCss[recipe.component] = compileRecipeCss(resolved, component, {
             breakpoints: ds.tokens.breakpoints,
+            components: byScope,
         });
         components[recipe.component] = harvestAxes(resolved);
     }

@@ -480,6 +480,14 @@ export function compileLynxRecipeCss(
         emitPartStyles(component, partName, styles, '', rules, report, themes);
     }
 
+    for (const nested of Object.keys(recipe.composes ?? {})) {
+        report.dropped.push({
+            where: `lynx recipe for "${scope}"`,
+            what: `composes["${nested}"]`,
+            detail: 'a nested scope styled in context has no class form on this target — dropped; the nested component keeps its own recipe',
+        });
+    }
+
     for (const [axis, values] of Object.entries(recipe.variants ?? {})) {
         assertAxisToken('axis', axis, scope);
         for (const [value, parts] of Object.entries(values)) {

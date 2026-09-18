@@ -487,6 +487,19 @@ Other compilation facts a reader needs:
   different tiers (a raw `@media (min-width: 640px)` next to a declared
   `sm`) is a hard error: its position would otherwise depend on visit
   order.
+- `below-<breakpoint>` keys (#63) compile to `@media (width < …)`, the
+  range complement of that breakpoint's `min-width` rule. They join the
+  breakpoint tier after every min-width breakpoint, narrowest last, so the
+  narrower range wins where two apply. The prefix is reserved in
+  `tokens.breakpoints`.
+- `composes` (#63) styles a declared nested scope in context. It emits
+  `[host][within] [nested][part]` rules into the HOST's stylesheet, at
+  (0,4,0) against the nested recipe's (0,2,0)/(0,3,0). `compileDesignSystem`
+  hands the compiler the manifest (`RecipeContext.components`), so the
+  nested scope, the host part and the nested parts and states resolve
+  exactly like `parts` do: an undeclared one is a compile error, which the
+  validator reports. Lynx drops it with a report entry. Borrowing the
+  nested recipe's own axis values in context is not supported (#91).
 - Everything lands inside `@layer zero.recipes`; `@keyframes` are emitted
   outside the layer.
 - Compound rules are emitted separately rather than comma-joined, because
@@ -765,6 +778,14 @@ The visually-hidden clip sits there for the same reason: a label recipe's
 `data-visually-hidden` is a presentation request, not a flag. Parts declare
 it (`PartSpec.visuallyHidden`), `expectAnatomy` checks it, and the state
 tooling never crosses it.
+
+**App CSS sits outside or after the four layers** (#63). Unlayered, it
+beats them all. Layered, the app states `@layer zero, app;` first in its
+entry stylesheet, because a layer's position is fixed by its first mention,
+and an app stylesheet parsed before base.css would otherwise rank `app`
+below every `zero.*` layer. base.css deliberately does not name an app
+layer: that would not remove the load-order dependency, and the name
+belongs to the consumer.
 
 **Specificity is designed, not accidental.** Root token defaults are
 emitted as `:where(:root)` — (0,0,0) — so any `[data-theme="x"]` block at
