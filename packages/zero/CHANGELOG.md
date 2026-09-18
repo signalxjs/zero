@@ -26,7 +26,9 @@
   it), mirrored in the kit's manifest types and schema. Like
   `visuallyHidden` it is a presentation request, not a flag:
   `expectAnatomy` fails `data-autosize` on a part that does not declare it
-  or when it is not presence-only, and `autosize` joins `RESERVED_AXES`.
+  or when it is not presence-only, `autosize` joins `RESERVED_AXES`, and
+  `htmlAttrs` refuses an app's `data-autosize` like any contract-owned
+  `data-*`.
 
 ### Added — the attribute pass-through reaches the disclosure, navigation and form-control parts (#74)
 

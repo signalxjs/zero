@@ -51,7 +51,7 @@ describe('htmlAttrs', () => {
     it.each([
         'data-scope', 'data-part', 'data-state', 'data-orientation', 'data-placement',
         'data-color', 'data-size', 'data-variant', 'data-disabled', 'data-focus-visible',
-        'data-mod-block', 'data-l-gap', 'data-l-md-gap',
+        'data-mod-block', 'data-l-gap', 'data-l-md-gap', 'data-autosize',
     ])('throws on the contract-owned %s', (name) => {
         expect(() => htmlAttrs({ [name]: 'x' })).toThrow(/anatomy contract/);
     });
