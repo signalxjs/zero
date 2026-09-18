@@ -143,6 +143,39 @@ option in data mode, `multiple` under `multiple`). There is no separate
 native select: the hidden `<select>` is the form control, and a native
 projection would be a prop on this anatomy, never a second component.
 
+**Trigger mode: `@mentions` over a Textarea.** `Combobox.Root trigger="@"`
+(or a RegExp matched before the caret, whose first group is the query)
+turns the `Textarea.Textarea` composed inside it into the combobox's
+control. It is the same scope, so the popup, items, groups and empty
+state are the ones every design system already styles. The token at the
+caret — the trigger at the start of the text or after whitespace, then
+non-whitespace — is the query (`model:inputValue` holds it, and `items`
+are filtered by it as usual). The list opens while there is a token and
+something matches (or `emptyText` says nothing does), with the first option
+highlighted. While it is open the textarea is an ARIA combobox (`role`,
+`aria-expanded`, `aria-activedescendant`; `aria-autocomplete` and
+`aria-controls` stay on all the time), and Arrow keys, Enter, Tab and
+Escape belong to it — the app's own `onKeydown` does not see them, so a
+composer's Enter-to-send only sends while the list is closed. Shift+Enter
+is still a line break. A commit replaces the whole token with the trigger,
+the label and a space through the editing stack (it undoes), keeps the
+caret after it and emits `insert` (`{ value, label, text }`). There is no
+selection: `model` is never written, and nothing posts but the textarea. A
+press on the list never takes focus from the textarea. The popup anchors to
+the textarea, not the caret. The data expansion renders only the popup;
+hand-written items go in a `Combobox.Popup` of your own beside the
+textarea.
+
+```tsx
+<Combobox.Root trigger="@" items={members} itemKey={(m) => m.id} itemLabel={(m) => m.name}
+    onInsert={({ value }) => mention(value.id)}>
+    <Textarea.Root model={() => state.draft} minRows={1} maxRows={8}>
+        <Textarea.Label visuallyHidden>Message</Textarea.Label>
+        <Textarea.Textarea onKeydown={sendOnEnter} />
+    </Textarea.Root>
+</Combobox.Root>
+```
+
 Interaction state is published as data for the design system to style:
 `data-focus-visible`, and press feedback on every interactive part —
 `data-pressed` while the pointer/key is down (a press ends when the gesture

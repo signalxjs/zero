@@ -1,5 +1,5 @@
 import { component, signal } from 'sigx';
-import { Combobox, Field } from '@sigx/zero';
+import { Combobox, Field, Textarea } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
 import type { PageEntry } from './registry';
 
@@ -11,11 +11,21 @@ const COUNTRIES = [
 
 const TOOLS = ['browser', 'editor', 'git', 'search', 'shell'];
 
+const AGENTS = [
+    { id: 'atlas', name: 'Atlas' },
+    { id: 'ada', name: 'Ada' },
+    { id: 'grace', name: 'Grace' },
+    { id: 'linus', name: 'Linus' },
+];
+
 const ComboboxDemos = component(() => {
     const state = signal({
         country: '',
         countryQuery: '',
         countryOpen: false,
+        message: '',
+        mentioned: [] as string[],
+        sent: '',
     });
 
     return () => (
@@ -98,6 +108,35 @@ const ComboboxDemos = component(() => {
                     emptyText="Press Enter to add it"
                 />
             </Field.Root>
+            <p>
+                Trigger mode: <code>trigger="@"</code> turns the{' '}
+                <code>Textarea</code> inside the root into the combobox's
+                control. The token at the caret is the query, the textarea is an
+                ARIA combobox while the list is open, and Enter or Tab replaces
+                the token with the label — while the list is closed, Enter is
+                the composer's own (send).
+            </p>
+            <Combobox.Root
+                trigger="@"
+                items={AGENTS}
+                itemKey={(a) => a.id}
+                itemLabel={(a) => a.name}
+                onInsert={(d) => { state.mentioned = [...state.mentioned, d.value.id]; }}
+            >
+                <Textarea.Root model={() => state.message} minRows={2} maxRows={6}>
+                    <Textarea.Label>Message (@ to mention)</Textarea.Label>
+                    <Textarea.Textarea
+                        placeholder="Ask the team, @ someone…"
+                        onKeydown={(e: KeyboardEvent) => {
+                            if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+                            e.preventDefault();
+                            state.sent = state.message;
+                            state.message = '';
+                        }}
+                    />
+                </Textarea.Root>
+            </Combobox.Root>
+            <p><small>Mentioned: <code>{state.mentioned.join(', ') || '—'}</code> · Sent: <code>{state.sent || '—'}</code></small></p>
             <p>
                 <code>readonly</code> and <code>invalid</code> are chrome, not
                 branches you have to write: readonly keeps the value, refuses to

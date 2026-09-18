@@ -46,6 +46,10 @@ export { onFormReset } from './form-reset.js';
 export type { FormOwned } from './form-reset.js';
 export { VISUALLY_HIDDEN_STYLE } from './visually-hidden.js';
 export { createAutosize } from './autosize.js';
+export { useTextControlBinding } from './text-control-binding.js';
+export type { TextControlBinding, TextControlClaim } from './text-control-binding.js';
+export { triggerTokenAt, replaceToken } from './trigger-token.js';
+export type { TriggerToken } from './trigger-token.js';
 export type { Autosize } from './autosize.js';
 
 export { createCollection, defaultItemKey, defaultItemLabel, segmentBy } from './collection.js';

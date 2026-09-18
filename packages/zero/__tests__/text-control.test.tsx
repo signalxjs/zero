@@ -82,6 +82,20 @@ describe.each(kinds)('$name', ({ mount }) => {
         expect(seen).toEqual(['hi @']);
     });
 
+    it('…on every keystroke, not just until the first re-render', async () => {
+        // sigx re-adds the model's listener on each render, after the one
+        // zero attached at mount — the order held for one keystroke only.
+        const model = signal({ v: '' });
+        const seen: string[] = [];
+        const el = mount(container, model, { onInput: () => seen.push(model.v) });
+        for (const text of ['a', 'ab', 'abc']) {
+            el.value = text;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            await new Promise((r) => setTimeout(r, 0));
+        }
+        expect(seen).toEqual(['a', 'ab', 'abc']);
+    });
+
     it('forwards beforeinput and composition events', () => {
         const onBeforeinput = vi.fn();
         const onCompositionstart = vi.fn();

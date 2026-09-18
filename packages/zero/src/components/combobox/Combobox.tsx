@@ -46,6 +46,32 @@
  * option is highlighted — the option whose label it matches, else the text
  * itself — and a custom value posts like any other.
  *
+ * TRIGGER MODE (#58): with `trigger` (`'@'`, or a RegExp) the control is
+ * the `Textarea.Textarea` composed inside the root rather than an input —
+ * an `@mention` over a message box:
+ *
+ * ```tsx
+ * <Combobox.Root trigger="@" items={people} itemLabel={(p) => p.name} onInsert={(d) => …}>
+ *     <Textarea.Root model={() => state.draft} minRows={1} maxRows={8}>
+ *         <Textarea.Label visuallyHidden>Message</Textarea.Label>
+ *         <Textarea.Textarea onKeydown={sendOnEnter} />
+ *     </Textarea.Root>
+ * </Combobox.Root>
+ * ```
+ *
+ * The token at the caret (the trigger at the start of the text or after
+ * whitespace, then non-whitespace) is the query — it is what
+ * `model:inputValue` holds, and what the list filters on. The popup opens
+ * while there is one and something matches (or `emptyText` says nothing
+ * does); the first option is highlighted, so Enter or Tab commits at once.
+ * A commit replaces the whole token with the trigger, the label and a space
+ * (through the editing stack, so it undoes), puts the caret after it and
+ * emits `insert`; there is no selection, so `model` is not written. While
+ * the popup is open the textarea is an ARIA combobox and Arrow keys, Enter,
+ * Tab and Escape are its — the app's own `onKeydown` does not see them.
+ * The data expansion renders only the popup; hand-written items go in a
+ * `Combobox.Popup` of your own beside the textarea.
+ *
  * Focus stays in the input; the highlighted option is conveyed via
  * `aria-activedescendant` + `data-highlighted`. ArrowDown/Up open and move,
  * Enter selects, Escape closes, Tab closes without being swallowed, Home/End
@@ -66,6 +92,8 @@ import {
     announceGroupLabel, createGroupPresence, createListbox, createListboxItem, type GroupPresence, type Listbox,
 } from '../../behaviors/listbox.js';
 import { syncPopover } from '../../behaviors/popover-sync.js';
+import { useTextControlBinding, type TextControlBinding, type TextControlClaim } from '../../behaviors/text-control-binding.js';
+import { replaceToken, triggerTokenAt, type TriggerToken } from '../../behaviors/trigger-token.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -119,6 +147,10 @@ interface ComboboxContext {
     focusInput(): void;
     inputKeydown(e: KeyboardEvent): void;
     onInput(value: string): void;
+    /** Trigger mode: the popup keeps focus in the textarea, and names itself by it. */
+    triggerMode(): boolean;
+    /** The id the popup is labelled by — the input's, or in trigger mode the textarea's. */
+    labelledBy(): string | undefined;
 }
 
 function makeInert(): ComboboxContext {
@@ -152,6 +184,8 @@ function makeInert(): ComboboxContext {
         focusInput: () => {},
         inputKeydown: () => {},
         onInput: () => {},
+        triggerMode: () => false,
+        labelledBy: () => undefined,
     };
 }
 
@@ -193,6 +227,14 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
      */
     & Define.Prop<'allowCustom', boolean, false>
     & Define.Prop<'placeholder', string, false>
+    /**
+     * Trigger mode (#58): autocomplete a token typed into the
+     * `Textarea.Textarea` inside the root — `'@'` for mentions, or a RegExp
+     * matched before the caret whose first group is the query. Read at setup.
+     */
+    & Define.Prop<'trigger', string | RegExp, false>
+    /** Trigger mode: an option replaced the token. */
+    & Define.Event<'insert', ComboboxInsertDetail<InsertValue<M>>>
     & WithFormControl
     & WithReadonly
     & Define.Prop<'placement', Placement, false>
@@ -204,6 +246,16 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     /** Per-tag content under `multiple` (data mode) — replaces the label + remove button. */
     & Define.Slot<'tag', ComboboxTagSlotProps<T>>
     & Define.Slot<'default'>;
+
+/** What `insert` carries: the committed option's value and label, and the text that replaced the token. */
+export interface ComboboxInsertDetail<V = unknown> {
+    value: V;
+    label: string;
+    text: string;
+}
+
+/** An option's value for the model shape `M` — one member of it. */
+type InsertValue<M> = M extends readonly (infer E)[] ? E : NonNullable<M>;
 
 /** What a tag's content slot receives: the key, its label, and the data item (absent for a custom value). */
 export interface ComboboxTagSlotProps<T = unknown> {
@@ -222,7 +274,9 @@ export interface ComboboxTagSlotProps<T = unknown> {
 type ComboboxRootImplProps = ComboboxRootProps & Define.Prop<'itemValue', (item: unknown) => unknown, false>;
 
 const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
-    const multiple = (): boolean => !!props.multiple;
+    // Trigger mode is a shape, not a state: read once, like the data mode.
+    const triggerMode = props.trigger !== undefined;
+    const multiple = (): boolean => !triggerMode && !!props.multiple;
     // Explicit children win ENTIRELY over `items`: with a default slot the
     // data is not rendered, so the collection must not hold it either — the
     // highlight, the typeahead and the hidden select follow what is rendered.
@@ -231,7 +285,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     // later list arrives into — so the mode never flips on what the list
     // holds, and an omitted `items` is the hand-written (string-model) shape
     // the overloads promise.
-    const items = (): ReadonlyArray<unknown> | undefined => (slots.default || props.items === undefined ? undefined : props.items);
+    // In trigger mode the children are the textarea, so `items` alone decides.
+    const items = (): ReadonlyArray<unknown> | undefined =>
+        (triggerMode ? props.items : slots.default || props.items === undefined ? undefined : props.items);
     const emptyValue = (): unknown => (items() ? null : '');
     // The seed is exactly what the consumer provided — an explicit
     // `defaultValue={null}` included — and the empty shape otherwise.
@@ -273,9 +329,15 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         if (openState.value !== v) openState.value = v;
     };
 
+    // Trigger mode commits text, not a selection: an option is never
+    // `selected`, and the model is never written.
+    const noSelection = { get value(): unknown { return ''; }, set value(_: unknown) {} };
+    const trig = signal({ token: null as TriggerToken | null, dismissed: false, textId: '' });
+    let textEl: HTMLTextAreaElement | HTMLInputElement | null = null;
+
     const listbox = createListbox<unknown>({
         collection,
-        selection: state,
+        selection: triggerMode ? noSelection : state,
         multiple,
         list,
         idBase: baseId,
@@ -285,6 +347,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         // A single selection fills the input with the label and closes; a
         // multiple one toggles, clears the query and stays open.
         onSelect: (key) => {
+            if (triggerMode) { commit(key); return; }
             if (multiple()) { inputValue.value = ''; return; }
             inputValue.value = collection.label(key);
             setOpen(false);
@@ -361,6 +424,148 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         inputValue.value = '';
     };
 
+    // ── Trigger mode ──
+
+    const sameToken = (a: TriggerToken | null, b: TriggerToken | null): boolean =>
+        a === b || (!!a && !!b && a.start === b.start && a.end === b.end && a.query === b.query && a.prefix === b.prefix);
+
+    /** Re-read the token at the caret — after input (`edited`), keyup and click. */
+    const syncToken = (edited = false): void => {
+        const el = textEl;
+        const trigger = props.trigger;
+        if (!el || trigger === undefined) return;
+        // An edit un-dismisses: Escape holds only until the next one.
+        if (edited && trig.dismissed) trig.dismissed = false;
+        const start = el.selectionStart ?? el.value.length;
+        const next = start === el.selectionEnd ? triggerTokenAt(el.value, start, trigger) : null;
+        if (!sameToken(trig.token, next)) trig.token = next;
+        const query = next?.query ?? '';
+        if (inputValue.value !== query) inputValue.value = query;
+    };
+
+    /**
+     * Replace the token with the option. Through `insertText` where the
+     * engine has it, so the edit lands on the undo stack and the textarea's
+     * own `input` updates its model; else written and announced by hand.
+     */
+    const commit = (key: string): void => {
+        const el = textEl;
+        const token = trig.token;
+        if (!el || !token) return;
+        const label = collection.label(key);
+        const text = `${token.prefix}${label} `;
+        const next = replaceToken(el.value, token, text);
+        el.focus();
+        el.setSelectionRange(token.start, token.end);
+        let inserted = false;
+        try {
+            inserted = typeof document.execCommand === 'function' && document.execCommand('insertText', false, text);
+        } catch {
+            inserted = false;
+        }
+        if (!inserted || el.value !== next.text) {
+            el.value = next.text;
+            el.setSelectionRange(next.caret, next.caret);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        el.setSelectionRange(next.caret, next.caret);
+        // The model's re-render writes the same value back; the caret must
+        // survive it.
+        queueMicrotask(() => {
+            if (textEl === el && el.ownerDocument.activeElement === el) el.setSelectionRange(next.caret, next.caret);
+        });
+        syncToken(true);
+        emit('insert', { value: collection.valueForKey(key), label, text } as never);
+    };
+
+    const triggerKeydown = (e: KeyboardEvent): boolean => {
+        if (e.isComposing || !openState.value) return false;
+        const key = e.key;
+        if (key === 'ArrowDown' || key === 'ArrowUp') {
+            e.preventDefault();
+            listbox.move(key === 'ArrowDown' ? 1 : -1);
+            return true;
+        }
+        if (key === 'Enter' || key === 'Tab') {
+            // Shift+Enter is still a line break, Shift+Tab still leaves.
+            if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return false;
+            const h = listbox.highlighted.value;
+            if (h === null) return false;
+            e.preventDefault();
+            listbox.select(h);
+            return true;
+        }
+        if (key === 'Escape') {
+            e.preventDefault();
+            trig.dismissed = true;
+            return true;
+        }
+        return false;
+    };
+
+    if (triggerMode) {
+        let claimed = false;
+        const binding: TextControlBinding = {
+            claim: () => {
+                if (claimed) return null;
+                claimed = true;
+                const claim: TextControlClaim = {
+                    // A combobox for the popup's lifetime (#58); a textbox
+                    // that autocompletes the rest of the time.
+                    attrs: () => {
+                        const open = openState.value;
+                        return {
+                            role: open ? 'combobox' : undefined,
+                            'aria-autocomplete': 'list',
+                            'aria-expanded': open ? 'true' : undefined,
+                            'aria-controls': ctx.ids.popup,
+                            'aria-activedescendant': listbox.activeDescendant(open),
+                        };
+                    },
+                    keydown: triggerKeydown,
+                    sync: syncToken,
+                    blur: (e) => {
+                        const to = e.relatedTarget as Node | null;
+                        if (to && popup?.contains(to)) return;
+                        trig.token = null;
+                    },
+                    setElement: (el) => {
+                        textEl = el;
+                        if (el && trig.textId !== el.id) trig.textId = el.id;
+                    },
+                    release: () => {
+                        claimed = false;
+                        textEl = null;
+                        trig.token = null;
+                    },
+                };
+                return claim;
+            },
+        };
+        defineProvide(useTextControlBinding, () => binding);
+
+        // Open while a token is at the caret, not dismissed, and something
+        // (or `emptyText`) is there to show.
+        effect(() => {
+            setOpen(!!trig.token && !trig.dismissed && !fc.disabled() && !fc.readonly()
+                && (!listbox.isEmpty() || props.emptyText !== undefined));
+        });
+        // The first option is highlighted on open and whenever the query
+        // moves, so Enter commits the best match at once.
+        let lastQuery: string | null = null;
+        effect(() => {
+            const open = openState.value;
+            const query = inputValue.value;
+            const visible = listbox.visibleKeys();
+            const h = listbox.highlighted.value;
+            if (!open) { lastQuery = null; return; }
+            if (query !== lastQuery || h === null || !visible.includes(h)) {
+                lastQuery = query;
+                listbox.move('first');
+            }
+        });
+    }
+
     // A close clears the highlight however the open state was written (a
     // consumer's `model:open` included); an open leaves it to the arrows.
     watch(
@@ -421,7 +626,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         setInput: (el) => { input = el; },
         setTrigger: (el) => { trigger = el; },
         setPopup: (el) => { popup = el; },
-        focusInput: () => { input?.focus(); },
+        focusInput: () => { (input ?? textEl)?.focus(); },
         inputKeydown(e) {
             if (ctx.disabled() || ctx.readonly()) return;
             const key = e.key;
@@ -475,11 +680,13 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             inputValue.value = value;
             if (!openState.value && !ctx.disabled() && !ctx.readonly()) setOpen(true);
         },
+        triggerMode: () => triggerMode,
+        labelledBy: () => (triggerMode ? trig.textId || undefined : fc.controlId()),
     };
     defineProvide(useComboboxContext, () => ctx);
 
     createAnchorPosition({
-        getAnchor: () => control ?? input,
+        getAnchor: () => control ?? input ?? textEl,
         getFloating: () => popup,
         isOpen: () => openState.value,
         placement: () => props.placement ?? 'bottom-start',
@@ -493,14 +700,14 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     createDismissable({
         getElement: () => popup,
         isOpen: () => openState.value,
-        dismiss: () => setOpen(false),
+        dismiss: () => { if (triggerMode) trig.dismissed = true; else setOpen(false); },
         escape: false,
-        getExtraTargets: () => [control, input, trigger],
+        getExtraTargets: () => [control, input, trigger, textEl],
     });
 
     // A preset value's label reaches the input at setup — from data, before
     // any item mounts (hand-written items reflect on mount instead).
-    if (!multiple() && collection.mode() === 'data' && inputValue.value === '' && listbox.selectedKeys().length > 0) {
+    if (!triggerMode && !multiple() && collection.mode() === 'data' && inputValue.value === '' && listbox.selectedKeys().length > 0) {
         inputValue.value = listbox.displayText();
     }
 
@@ -509,7 +716,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     watch(
         () => state.value,
         (value, prev) => {
-            if (value === prev || multiple()) return;
+            if (value === prev || multiple() || triggerMode) return;
             const text = listbox.displayText();
             if (inputValue.value !== text) inputValue.value = text;
         },
@@ -532,6 +739,11 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
                 <ComboboxInput />
                 <ComboboxTrigger />
             </ComboboxControl>
+            {dataPopup()}
+        </>
+        );
+    };
+    const dataPopup = (): JSXElement => (
             <ComboboxPopup>
                 {listbox.visibleItems().length === 0 && props.emptyText !== undefined
                     ? <ComboboxEmpty>{props.emptyText}</ComboboxEmpty>
@@ -549,9 +761,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
                         );
                 })}
             </ComboboxPopup>
-        </>
-        );
-    };
+    );
 
     return () => (
         <div
@@ -563,9 +773,12 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             {...fc.axisAttrs()}
             class={props.class}
         >
-            {/* Explicit children win ENTIRELY over `items` — no merging. */}
-            {slots.default ? slots.default() : items() ? dataContent() : null}
-            {fc.hasName()
+            {/* Explicit children win ENTIRELY over `items` — no merging —
+                except in trigger mode, where they are the textarea. */}
+            {triggerMode
+                ? <>{slots.default?.()}{items() ? (guardKeys(collection.keys()), dataPopup()) : null}</>
+                : slots.default ? slots.default() : items() ? dataContent() : null}
+            {!triggerMode && fc.hasName()
                 ? (
                     <select
                         data-scope={SCOPE}
@@ -932,9 +1145,12 @@ const ComboboxPopup = component<ComboboxPopupProps>(({ props, slots, onMounted }
                 popover="manual"
                 role="listbox"
                 aria-multiselectable={combobox.multiple() ? 'true' : undefined}
-                aria-labelledby={attrs['aria-labelledby'] ? `${combobox.inputId()} ${attrs['aria-labelledby']}` : combobox.inputId()}
+                aria-labelledby={[combobox.labelledBy(), attrs['aria-labelledby']].filter(Boolean).join(' ') || undefined}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; combobox.setPopup(node); }}
+                // Trigger mode: a press on the list must not take focus (and
+                // the caret) out of the textarea it is completing.
+                onMousedown={combobox.triggerMode() ? (e: MouseEvent) => e.preventDefault() : undefined}
             >
                 {slots.default?.()}
             </div>

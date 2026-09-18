@@ -615,6 +615,21 @@ component renders; the root is called out separately where it carries props.
   dismiss layer (native auto light dismiss would close on a caret click).
   No data-placeholder on the input — use :placeholder-shown. Home/End stay
   with the text caret; no typeahead (typing IS the filter).
+  TRIGGER MODE (#58): `trigger="@"` (or a RegExp matched before the caret,
+  group 1 = the query) makes the Textarea.Textarea composed INSIDE the Root
+  the control — @mentions in a composer. Same scope, same Popup/Item/Group/
+  Empty parts, so no new recipe; no Control/Input/Trigger/HiddenInput
+  render. The token at the caret (trigger at text start or after
+  whitespace, then non-whitespace) is the query (model:inputValue). Opens
+  while a token exists and something matches (or emptyText is set), first
+  option highlighted. While open the textarea carries role=combobox,
+  aria-expanded, aria-activedescendant (aria-autocomplete=list and
+  aria-controls always); ArrowUp/Down, Enter, Tab (unmodified) and Escape
+  are consumed before the app's onKeydown. A commit replaces the whole token
+  with trigger + label + space via insertText (undoable), restores the caret
+  after it and emits `insert` ({ value, label, text }); `model` is never
+  written. Mousedown on the popup is prevented, so focus stays in the
+  textarea. Anchored to the textarea, not the caret.
 - NumberInput: Root(model=number|null, defaultValue: number|null, min, max, step, allowWheel,
   clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
   DecrementTrigger/HiddenInput. APG spinbutton on a real text input
