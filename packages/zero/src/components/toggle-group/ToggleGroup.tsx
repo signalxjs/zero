@@ -173,8 +173,10 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
     const syncHidden = (): void => {
         queueMicrotask(() => {
             if (!hidden) return;
+            // Only the single-mode placeholder carries the empty key; under
+            // `multiple` an empty-string value is a real one.
             const on = new Set(selected());
-            for (const o of Array.from(hidden.options)) o.selected = o.value !== '' && on.has(o.value);
+            for (const o of Array.from(hidden.options)) o.selected = (!!props.multiple || o.value !== '') && on.has(o.value);
             if (!props.multiple && on.size === 0) hidden.value = '';
         });
     };
@@ -230,7 +232,9 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
                         // restoration): its selection flows back into the model.
                         onChange={() => {
                             if (!hidden) return;
-                            const on = Array.from(hidden.options).filter((o) => o.selected && o.value !== '').map((o) => o.value);
+                            const on = Array.from(hidden.options)
+                                .filter((o) => o.selected && (props.multiple || o.value !== ''))
+                                .map((o) => o.value);
                             state.value = props.multiple ? on : on[0] ?? '';
                         }}
                     >

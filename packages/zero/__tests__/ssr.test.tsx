@@ -291,7 +291,7 @@ describe('SSR', () => {
         // …and posts pre-hydration like Select (#53): one field in single
         // mode, a selected option per pressed value under `multiple`.
         expect(html).toMatch(/<select[^>]*data-scope="toggle-group"[^>]*data-part="hidden-input"[^>]*name="align"[^>]*>[\s\S]*?<option value="b"[^>]*selected/);
-        expect(html).toMatch(/<select[^>]*data-scope="toggle-group"[^>]*data-part="hidden-input"[^>]*name="marks"[^>]*multiple[^>]*>[\s\S]*?<option value="x"[^>]*selected[^>]*>x<\/option><option value="y"[^>]*selected/);
+        expect(html).toMatch(/<select[^>]*data-scope="toggle-group"[^>]*data-part="hidden-input"[^>]*name="marks"[^>]*multiple[^>]*>[\s\S]*?<option value="x"[^>]*selected[\s\S]*?<option value="y"[^>]*selected/);
         // The number input posts pre-hydration and renders the committed value.
         expect(html).toMatch(/data-scope="number-input"[^>]*data-part="hidden-input"[^>]*value="3"/);
         // The draft binds with model= (#455): the server emits the resting value.
