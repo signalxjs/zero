@@ -1,6 +1,6 @@
 /**
  * State-matrix contrast audit — the dynamic half of the split-pair problem
- * (andtii/zero-wip#116, #118, #119).
+ * (andtii/zero-wip#116, andtii/zero-wip#118, andtii/zero-wip#119).
  *
  * The token validator contrast-checks declared role PAIRS; it cannot see what
  * the recipe cascade produces when states combine. This audit can. It runs two
