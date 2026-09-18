@@ -169,7 +169,9 @@ export function registerThemes(source: ThemeSource): void {
     }
     if (source.defaultLight) schemeDefaults.light = source.defaultLight;
     if (source.defaultDark) schemeDefaults.dark = source.defaultDark;
-    if (source.breakpoints) breakpoints = Object.freeze({ ...source.breakpoints });
+    // Replaced even when absent: a source that declares no ramp must not
+    // inherit the previous design system's.
+    breakpoints = Object.freeze({ ...source.breakpoints });
 }
 
 /**

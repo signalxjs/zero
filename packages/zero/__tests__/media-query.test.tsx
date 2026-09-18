@@ -3,7 +3,7 @@ import { component, defineApp } from 'sigx';
 import { render } from '@sigx/runtime-dom';
 import { renderToString } from '@sigx/server-renderer';
 import { breakpointQuery, clearThemes, getBreakpoints, registerThemes, useMediaQuery } from '@sigx/zero';
-import type { MediaQueryInput, MediaQueryMatch, MediaQueryOptions } from '@sigx/zero';
+import type { BreakpointRange, MediaQueryInput, MediaQueryMatch, MediaQueryOptions } from '@sigx/zero';
 
 type Listener = (e: { matches: boolean }) => void;
 
@@ -46,6 +46,10 @@ describe('breakpoints in the theme registry', () => {
         registerThemes(ramp);
         registerThemes({ ...ramp, breakpoints: { md: '900px' } });
         expect(getBreakpoints()).toEqual({ md: '900px' });
+        // A source that declares no ramp does not inherit the previous one.
+        registerThemes({ themes: ramp.themes });
+        expect(getBreakpoints()).toEqual({});
+        registerThemes(ramp);
         clearThemes();
         expect(getBreakpoints()).toEqual({});
     });
@@ -77,8 +81,8 @@ describe('breakpointQuery', () => {
         expect(() => breakpointQuery({ below: 'md' })).toThrow(/the ramp is empty: call your design system's installThemes\(\)/);
     });
 
-    it('throws on an empty range', () => {
-        expect(() => breakpointQuery({})).toThrow(/needs `above`, `below`, or both/);
+    it('throws on an empty range (for an untyped caller — the type refuses it)', () => {
+        expect(() => breakpointQuery({} as BreakpointRange)).toThrow(/needs `above`, `below`, or both/);
     });
 });
 

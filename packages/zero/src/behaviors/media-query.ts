@@ -22,14 +22,15 @@ import type { ZeroBreakpointName } from '../contract/vocabulary.js';
 
 /**
  * A viewport range named by the design system's breakpoints. Either bound
- * alone, or both (`{ above: 'sm', below: 'lg' }` — the band between).
+ * alone, or both (`{ above: 'sm', below: 'lg' }` — the band between). At
+ * least one is required: an empty range names no query.
+ *
+ * - `above` — at or above the breakpoint's min-width: `(min-width: <value>)`.
+ * - `below` — strictly below it: `(width < <value>)`.
  */
-export interface BreakpointRange {
-    /** At or above the breakpoint's min-width: `(min-width: <value>)`. */
-    above?: ZeroBreakpointName;
-    /** Strictly below the breakpoint's min-width: `(width < <value>)`. */
-    below?: ZeroBreakpointName;
-}
+export type BreakpointRange =
+    | { above: ZeroBreakpointName; below?: ZeroBreakpointName }
+    | { above?: ZeroBreakpointName; below: ZeroBreakpointName };
 
 /** A raw media query (`'(prefers-reduced-motion: reduce)'`) or a breakpoint range. */
 export type MediaQueryInput = string | BreakpointRange;
@@ -86,6 +87,7 @@ export function breakpointQuery(
     const clauses: string[] = [];
     if (range.above !== undefined) clauses.push(`(min-width: ${width(range.above)})`);
     if (range.below !== undefined) clauses.push(`(width < ${width(range.below)})`);
+    // The type already refuses `{}`; this is for untyped callers.
     if (clauses.length === 0) {
         throw new Error('[zero] a breakpoint range needs `above`, `below`, or both');
     }

@@ -113,6 +113,8 @@ const aboveMd: BreakpointRange = { above: 'md' };
 const band: BreakpointRange = { above: 'sm', below: 'lg' };
 // @ts-expect-error — `xl` is not a breakpoint this design system declares
 const belowXl: BreakpointRange = { below: 'xl' };
+// @ts-expect-error — an empty range names no query
+const emptyRange: BreakpointRange = {};
 
 // ── layout props follow the vocabulary's own `responsive` flag ──
 //
