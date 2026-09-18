@@ -32,6 +32,8 @@ export type {
     DialogFooterProps,
     DialogCloseProps,
     DialogCancelProps,
+    DialogCloseReason,
+    DialogCloseDetail,
 } from './components/dialog/index.js';
 
 export { Popover, popoverAnatomy, usePopoverContext } from './components/popover/index.js';
@@ -304,6 +306,8 @@ export type {
     DrawerTitleProps,
     DrawerCloseProps,
     DrawerPlacement,
+    DrawerCloseReason,
+    DrawerCloseDetail,
 } from './components/drawer/index.js';
 export { Table, tableAnatomy } from './components/table/index.js';
 export type { TableRootProps, TablePartProps, TableRowProps, TableHeaderCellProps } from './components/table/index.js';

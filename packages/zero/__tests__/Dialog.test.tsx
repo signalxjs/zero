@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { Dialog, dialogAnatomy } from '@sigx/zero';
+import type { DialogCloseDetail } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 /** Presence flags land one microtask after the render pass; settle them. */
@@ -291,5 +292,137 @@ describe('Dialog as alertdialog', () => {
         expect(cancel.hasAttribute('autofocus')).toBe(false);
         cancel.click();
         expect(state.open).toBe(false);
+    });
+});
+
+describe('Dialog close reason (#52)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    /** Mounts an open dialog and records every event, in order. */
+    function mountRecorded(state: { open: boolean }, opts: { modal?: boolean } = {}) {
+        const log: Array<[string, unknown]> = [];
+        render(
+            <Dialog.Root
+                model={[state, 'open']}
+                modal={opts.modal}
+                onOpenChange={(open: boolean) => log.push(['openChange', open])}
+                onClose={(detail: DialogCloseDetail) => log.push(['close', detail])}
+            >
+                <Dialog.Trigger>Open</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Title>Delete file?</Dialog.Title>
+                    <Dialog.Footer>
+                        <Dialog.Cancel>Cancel</Dialog.Cancel>
+                        <Dialog.Close value="confirm">Delete</Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+        return log;
+    }
+
+    const popupOf = () => {
+        const popup = container.querySelector<HTMLDialogElement>('dialog')!;
+        popup.getBoundingClientRect = () =>
+            ({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
+        return popup;
+    };
+
+    it('Dialog.Close reports `close` with its value, after openChange(false)', () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        container.querySelector<HTMLElement>('[data-part="close"]')!.click();
+        expect(state.open).toBe(false);
+        expect(log).toEqual([['openChange', false], ['close', { reason: 'close', value: 'confirm' }]]);
+    });
+
+    it('Dialog.Cancel reports `cancel`, with no value', () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        container.querySelector<HTMLElement>('[data-part="cancel"]')!.click();
+        expect(log).toEqual([['openChange', false], ['close', { reason: 'cancel' }]]);
+    });
+
+    it('Escape reports `escape` — the native cancel, and the non-modal dismiss layer', async () => {
+        const modal = signal({ open: true });
+        const log = mountRecorded(modal);
+        popupOf().dispatchEvent(new Event('cancel', { cancelable: true }));
+        expect(log).toEqual([['openChange', false], ['close', { reason: 'escape' }]]);
+
+        const other = document.createElement('div');
+        document.body.appendChild(other);
+        container = other;
+        const inline = signal({ open: true });
+        const inlineLog = mountRecorded(inline, { modal: false });
+        await tick();
+        document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+        expect(inline.open).toBe(false);
+        expect(inlineLog).toEqual([['openChange', false], ['close', { reason: 'escape' }]]);
+    });
+
+    it('a backdrop click reports `backdrop`', () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        popupOf().dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        expect(log).toEqual([['openChange', false], ['close', { reason: 'backdrop' }]]);
+    });
+
+    it('the parent writing the model reports `programmatic` — and no openChange, which only reports zero\'s writes', () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        state.open = false;
+        expect(log).toEqual([['close', { reason: 'programmatic' }]]);
+        // Reopening and closing through a part reports that part, not a
+        // leftover from the last close.
+        state.open = true;
+        container.querySelector<HTMLElement>('[data-part="cancel"]')!.click();
+        expect(log.at(-1)).toEqual(['close', { reason: 'cancel' }]);
+    });
+
+    it('a native close zero did not start reports `programmatic` with the returnValue', () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        const popup = popupOf();
+        // What a <form method="dialog"> submitter leaves behind.
+        popup.returnValue = 'save';
+        popup.dispatchEvent(new Event('close'));
+        expect(state.open).toBe(false);
+        expect(log).toEqual([['openChange', false], ['close', { reason: 'programmatic', value: 'save' }]]);
+    });
+
+    it('reports each close exactly once — the native close event that follows a requested close is not a second one', () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        container.querySelector<HTMLElement>('[data-part="close"]')!.click();
+        popupOf().dispatchEvent(new Event('close'));
+        expect(log.filter(([name]) => name === 'close')).toHaveLength(1);
+    });
+
+    it('a controlled parent that refuses the close gets no close event', () => {
+        const log: unknown[] = [];
+        render(
+            <Dialog.Root
+                model={[{ get open() { return true; }, set open(_v: boolean) {} }, 'open']}
+                onClose={(detail: DialogCloseDetail) => log.push(detail)}
+            >
+                <Dialog.Popup>
+                    <Dialog.Close>Close</Dialog.Close>
+                </Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-part="close"]')!.click();
+        expect(log).toEqual([]);
+    });
+
+    it('forwards `value` to the rendered button, as <form method="dialog"> would read it', () => {
+        mountRecorded(signal({ open: true }));
+        expect(container.querySelector<HTMLElement>('[data-part="close"]')!.getAttribute('value')).toBe('confirm');
+        expect(container.querySelector<HTMLElement>('[data-part="cancel"]')!.hasAttribute('value')).toBe(false);
     });
 });

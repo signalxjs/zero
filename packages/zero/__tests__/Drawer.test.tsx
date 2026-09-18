@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { Drawer, drawerAnatomy } from '@sigx/zero';
+import type { DrawerCloseDetail } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 /** Presence flags land one microtask after the render pass; settle them. */
@@ -165,5 +166,102 @@ describe('Drawer', () => {
         const trigger = part(container, 'trigger');
         expect(trigger.getAttribute('data-color')).toBe('primary');
         expect(trigger.getAttribute('data-size')).toBe('sm');
+    });
+});
+
+describe('Drawer close reason (#52) — Dialog\'s contract, minus cancel', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    function mountRecorded(state: { open: boolean }, opts: { modal?: boolean } = {}) {
+        const log: Array<[string, unknown]> = [];
+        render(
+            <Drawer.Root
+                model={[state, 'open']}
+                modal={opts.modal}
+                onOpenChange={(open: boolean) => log.push(['openChange', open])}
+                onClose={(detail: DrawerCloseDetail) => log.push(['close', detail])}
+            >
+                <Drawer.Panel>
+                    <Drawer.Title>Navigation</Drawer.Title>
+                    <Drawer.Close value="done">Close</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        return log;
+    }
+
+    it('Drawer.Close reports `close` with its value, after openChange(false)', () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        part(container, 'close').click();
+        expect(log).toEqual([['openChange', false], ['close', { reason: 'close', value: 'done' }]]);
+    });
+
+    it('Escape, the scrim and a model write report `escape`, `backdrop`, `programmatic`', async () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        const panel = part(container, 'panel') as HTMLDialogElement;
+        panel.getBoundingClientRect = () =>
+            ({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
+
+        panel.dispatchEvent(new Event('cancel', { cancelable: true }));
+        state.open = true;
+        panel.dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        state.open = true;
+        state.open = false;
+        expect(log.filter(([name]) => name === 'close')).toEqual([
+            ['close', { reason: 'escape' }],
+            ['close', { reason: 'backdrop' }],
+            ['close', { reason: 'programmatic' }],
+        ]);
+    });
+
+    it('inline mode: the dismiss layer\'s Escape reports `escape`', async () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state, { modal: false });
+        await tick();
+        document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+        expect(log).toEqual([['openChange', false], ['close', { reason: 'escape' }]]);
+    });
+
+    it('a native close zero did not start carries the returnValue; a requested close is reported once', () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        const panel = part(container, 'panel') as HTMLDialogElement;
+        panel.returnValue = 'save';
+        panel.dispatchEvent(new Event('close'));
+        expect(log).toEqual([['openChange', false], ['close', { reason: 'programmatic', value: 'save' }]]);
+
+        state.open = true;
+        part(container, 'close').click();
+        panel.dispatchEvent(new Event('close'));
+        expect(log.filter(([name]) => name === 'close')).toHaveLength(2);
+    });
+
+    it('a controlled parent that refuses the close gets no close event', () => {
+        const log: DrawerCloseDetail[] = [];
+        render(
+            <Drawer.Root
+                model={[{ get open() { return true; }, set open(_v: boolean) {} }, 'open']}
+                onClose={(detail: DrawerCloseDetail) => log.push(detail)}
+            >
+                <Drawer.Panel>
+                    <Drawer.Close>Close</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        part(container, 'close').click();
+        expect(log).toEqual([]);
+    });
+
+    it('forwards `value` to the rendered button, as <form method="dialog"> would read it', () => {
+        mountRecorded(signal({ open: true }));
+        expect(part(container, 'close').getAttribute('value')).toBe('done');
     });
 });

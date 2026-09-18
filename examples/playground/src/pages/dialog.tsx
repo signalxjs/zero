@@ -1,9 +1,13 @@
 import { component, signal } from 'sigx';
 import { Dialog } from '@sigx/zero';
+import type { DialogCloseDetail } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const DialogDemos = component(() => {
-    const state = signal({ dialogOpen: false, findOpen: false });
+    const state = signal({ dialogOpen: false, findOpen: false, lastClose: 'none yet' });
+    const onAlertClose = (d: DialogCloseDetail): void => {
+        state.lastClose = d.value === undefined ? d.reason : `${d.reason} · ${d.value}`;
+    };
 
     return () => (
         <>
@@ -46,8 +50,10 @@ const DialogDemos = component(() => {
                 <code>role="alertdialog"</code> tightens the pattern: the
                 backdrop no longer dismisses, and initial focus lands on{' '}
                 <code>Dialog.Cancel</code> — the least-destructive action.
+                The <code>close</code> event says why it closed, and carries
+                the closing <code>Dialog.Close</code>'s <code>value</code>.
             </p>
-            <Dialog.Root role="alertdialog">
+            <Dialog.Root role="alertdialog" onClose={onAlertClose}>
                 <Dialog.Trigger>Delete file…</Dialog.Trigger>
                 <Dialog.Popup>
                     <Dialog.Title>Delete "report.pdf"?</Dialog.Title>
@@ -57,10 +63,11 @@ const DialogDemos = component(() => {
                     </Dialog.Description>
                     <Dialog.Footer>
                         <Dialog.Cancel>Cancel</Dialog.Cancel>
-                        <Dialog.Close>Delete</Dialog.Close>
+                        <Dialog.Close value="delete">Delete</Dialog.Close>
                     </Dialog.Footer>
                 </Dialog.Popup>
             </Dialog.Root>
+            <p data-demo="close-reason">Last close: {state.lastClose}</p>
         </>
     );
 }, { name: 'DialogDemos' });

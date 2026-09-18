@@ -94,7 +94,12 @@ The peer-parity surfaces ship too: Menu has stateful items
 menuitemcheckbox/menuitemradio; toggling keeps the menu open unless the item
 sets `closeOnSelect`); Dialog has an alert-dialog preset
 (`role="alertdialog"`: no backdrop dismiss, initial focus on the
-least-destructive `Dialog.Cancel`); Slider's `model` accepts `number[]` for a
+least-destructive `Dialog.Cancel`), and every Dialog/Drawer close reports
+why on a `close` event that follows `openChange(false)` — `{ reason, value }`
+with `reason` one of `close` · `cancel` · `escape` · `backdrop` ·
+`programmatic` (Drawer has no `cancel`) and `value` from the closing
+`Dialog.Close value="…"`, the `<form method="dialog">` + `returnValue` pair
+in model form, so a confirm dialog needs no flag beside its model; Slider's `model` accepts `number[]` for a
 composed multi-thumb range (`Slider.Track`/`Range`/`Thumb`, thumbs clamp at
 their neighbors, `marks` renders ticks) while a scalar model keeps the native
 `<input type=range>`; Select and Combobox group options
