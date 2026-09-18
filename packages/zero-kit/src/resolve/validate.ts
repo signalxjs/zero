@@ -465,6 +465,22 @@ export function validateDesignSystem<R extends RolesDecl>(
     if (ds.tokens.defaultDark && !ds.tokens.themes[ds.tokens.defaultDark]) {
         error('tokens', `defaultDark "${ds.tokens.defaultDark}" is not a defined theme`);
     }
+    // A distinct dark default makes `:root` a `light-dark()` pair under
+    // `color-scheme: light dark`, which only resolves the right side when
+    // each default is the scheme it answers for. One scheme (dark-only
+    // included) omits `defaultDark`, or names the same theme twice.
+    const defaultLightTheme = ds.tokens.themes[ds.tokens.defaultLight];
+    const defaultDarkTheme = ds.tokens.defaultDark && ds.tokens.defaultDark !== ds.tokens.defaultLight
+        ? ds.tokens.themes[ds.tokens.defaultDark]
+        : undefined;
+    if (defaultLightTheme && defaultDarkTheme) {
+        if (defaultLightTheme.colorScheme !== 'light') {
+            error('tokens', `defaultLight "${ds.tokens.defaultLight}" is colorScheme "${defaultLightTheme.colorScheme}" but is paired with defaultDark "${ds.tokens.defaultDark}" — a light/dark pair needs a light defaultLight (a single-scheme design system omits defaultDark)`);
+        }
+        if (defaultDarkTheme.colorScheme !== 'dark') {
+            error('tokens', `defaultDark "${ds.tokens.defaultDark}" is colorScheme "${defaultDarkTheme.colorScheme}" — it answers for system dark, so it must be a dark theme (a single-scheme design system omits defaultDark)`);
+        }
+    }
     for (const name of ds.tokens.swatch ?? []) {
         if (!roles[name] && !(BASE_SURFACE_TOKEN_LIST as readonly string[]).includes(name)) {
             error('tokens.swatch', `swatch entry "${name}" is not a declared role or base surface`);

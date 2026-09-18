@@ -38,6 +38,31 @@ describe('compileTokensCss', () => {
         expect(css).toMatch(/--color-primary: light-dark\(/);
     });
 
+    it('gives a dark-only design system color-scheme: dark on :root (#61)', () => {
+        // With no dark default the one theme IS the scheme; stating `light`
+        // would resolve native controls, scrollbars and `light-dark()` light
+        // under a dark palette.
+        const dark = basicTokens.themes['basic-dark']!;
+        const darkOnly = compileTokensCss({
+            ...basicTokens,
+            themes: { night: dark },
+            defaultLight: 'night',
+            defaultDark: undefined,
+        });
+        const root = darkOnly.slice(darkOnly.indexOf(':where(:root)'));
+        expect(root).toMatch(/^:where\(:root\) \{\s*color-scheme: dark;/);
+        expect(darkOnly).not.toContain('color-scheme: light');
+        expect(darkOnly).not.toContain('light-dark(');
+
+        // Naming the one theme as both defaults is the same design system.
+        expect(compileTokensCss({
+            ...basicTokens,
+            themes: { night: dark },
+            defaultLight: 'night',
+            defaultDark: 'night',
+        })).toBe(darkOnly);
+    });
+
     it('derives soft tints live via color-mix', () => {
         expect(css).toMatch(/--color-primary-soft: color-mix\(in oklab, var\(--color-primary\) \d+%, var\(--color-base-100\)\)/);
     });
@@ -434,6 +459,27 @@ describe('extensible color roles', () => {
         const result = validateDesignSystem({ name: 'x', tokens: missing, recipes: [] }, manifest);
         expect(result.errors.some((e) => e.message.includes('missing color token "danger"'))).toBe(true);
         expect(result.errors.some((e) => e.message.includes('"mystery" is not in the declared vocabulary'))).toBe(true);
+    });
+
+    it('errors when a distinct light/dark default pair is not a light and a dark theme (#61)', () => {
+        // Two dark defaults would ship `color-scheme: light dark` over a
+        // `light-dark()` pair whose light side is dark — the mismatch the
+        // single-scheme path exists to avoid.
+        const dark = basicTokens.themes['basic-dark']!;
+        const tokens = { ...basicTokens, themes: { night: dark, dusk: { ...dark } }, defaultLight: 'night', defaultDark: 'dusk' };
+        const result = validateDesignSystem({ ...basicDS, tokens }, manifest);
+        expect(result.errors.some((e) => e.message.includes('defaultLight "night" is colorScheme "dark"'))).toBe(true);
+
+        const swapped = { ...basicTokens, defaultLight: 'basic-dark', defaultDark: 'basic' };
+        const messages = validateDesignSystem({ ...basicDS, tokens: swapped }, manifest).errors.map((e) => e.message);
+        expect(messages.some((m) => m.includes('defaultDark "basic" is colorScheme "light"'))).toBe(true);
+
+        // One scheme — omitted or the same theme twice — is not a pair.
+        for (const defaultDark of [undefined, 'night']) {
+            const single = { ...basicTokens, themes: { night: dark }, defaultLight: 'night', defaultDark };
+            const errors = validateDesignSystem({ ...basicDS, tokens: single }, manifest).errors;
+            expect(errors.filter((e) => e.message.includes('defaultLight') || e.message.includes('defaultDark'))).toEqual([]);
+        }
     });
 
     it('matches custom-token spellings with and without the -- prefix', () => {

@@ -114,6 +114,11 @@ function themeOwnProps(theme: AnyTheme): Record<string, string> {
  * `light-dark()` is a `<color>` function, so every other property emits its
  * light value here, and any that differ under dark go in the caller's
  * `prefers-color-scheme: dark` block.
+ *
+ * With no distinct dark default there is one scheme, and it is the default
+ * theme's own: a dark-only design system states `color-scheme: dark`, or
+ * native controls, scrollbars and `light-dark()` would resolve light under
+ * its palette.
  */
 function rootDecls(
     light: AnyTheme,
@@ -123,7 +128,7 @@ function rootDecls(
 ): string[] {
     if (!dark) {
         return [
-            'color-scheme: light;',
+            `color-scheme: ${light.colorScheme};`,
             ...colorDecls(light, roles),
             ...systemDecls(nonColorLight),
         ];
@@ -282,10 +287,13 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
     const roles = resolveRoles(input.roles);
     const light = input.themes[input.defaultLight];
     if (!light) throw new Error(`[zero-kit] defaultLight theme "${input.defaultLight}" is not in themes`);
-    const dark = input.defaultDark ? input.themes[input.defaultDark] : undefined;
-    if (input.defaultDark && !dark) {
+    if (input.defaultDark && !input.themes[input.defaultDark]) {
         throw new Error(`[zero-kit] defaultDark theme "${input.defaultDark}" is not in themes`);
     }
+    // Naming one theme as both defaults is a single-scheme design system.
+    const dark = input.defaultDark && input.defaultDark !== input.defaultLight
+        ? input.themes[input.defaultDark]
+        : undefined;
 
     const nonColorLight = nonColorFor(input, light);
     const nonColorDark = dark ? nonColorFor(input, dark) : {};
