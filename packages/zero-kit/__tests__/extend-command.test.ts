@@ -73,6 +73,12 @@ describe('exportedSubpath', () => {
         expect(exportedSubpath(pkg, '.')).toBe('./dist/index.js');
     });
 
+    it('takes the first resolvable entry of a fallback array, as Node does', () => {
+        const pkg = { exports: { './design-system': [{ worker: './w.js' }, { import: './dist/design-system.js' }] } };
+        expect(exportedSubpath(pkg, './design-system')).toBe('./dist/design-system.js');
+        expect(exportedSubpath({ exports: ['./dist/index.js'] }, '.')).toBe('./dist/index.js');
+    });
+
     it('reports an undeclared subpath as unreachable rather than guessing', () => {
         const pkg = { exports: { '.': './dist/index.js' }, main: './dist/index.js' };
         expect(exportedSubpath(pkg, './design-system')).toBeUndefined();

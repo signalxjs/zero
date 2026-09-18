@@ -285,7 +285,15 @@ export function exportedSubpath(pkg: Record<string, unknown>, subpath: string): 
 function exportTarget(pkg: Record<string, unknown>, subpath: string): string | undefined {
     const resolveCondition = (value: unknown): string | undefined => {
         if (typeof value === 'string') return value;
-        if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+        // A fallback array: the first entry that resolves, as Node takes it.
+        if (Array.isArray(value)) {
+            for (const entry of value) {
+                const found = resolveCondition(entry);
+                if (found) return found;
+            }
+            return undefined;
+        }
+        if (typeof value !== 'object' || value === null) return undefined;
         const conditions = value as Record<string, unknown>;
         for (const key of ['import', 'node', 'default']) {
             const found = resolveCondition(conditions[key]);
@@ -297,7 +305,8 @@ function exportTarget(pkg: Record<string, unknown>, subpath: string): string | u
     const exports = pkg['exports'];
     // A bare string, or a bare conditions object, IS the root and nothing else.
     if (typeof exports === 'string') return subpath === '.' ? exports : undefined;
-    if (typeof exports !== 'object' || exports === null || Array.isArray(exports)) return undefined;
+    if (Array.isArray(exports)) return subpath === '.' ? resolveCondition(exports) : undefined;
+    if (typeof exports !== 'object' || exports === null) return undefined;
 
     const map = exports as Record<string, unknown>;
     const isSubpathMap = Object.keys(map).some((key) => key.startsWith('.'));

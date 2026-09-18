@@ -142,7 +142,7 @@ export function packageDesignSystemEntry(cwd: string, name: string, what = 'vali
     if (!subpath) {
         throw new Error(
             `[zero-kit] ${name} exports no "./design-system", so it cannot be ${what} —`
-            + ` upgrade ${name} to a version that exports it (design systems built with @sigx/zero-kit 0.3 or newer do)`,
+            + ` upgrade ${name} to a version that exports it`,
         );
     }
     return resolve(dir, subpath);
