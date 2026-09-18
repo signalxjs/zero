@@ -149,9 +149,14 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
         autocomplete: () => props.autocomplete,
         maxlength: () => props.maxlength,
         rows: () => props.rows,
-        autosize: () => (props.minRows == null && props.maxRows == null
-            ? undefined
-            : { min: props.minRows ?? 1, max: props.maxRows }),
+        autosize: () => {
+            if (props.minRows == null && props.maxRows == null) return undefined;
+            // Whole rows, at least one — the `rows` attribute takes nothing
+            // else — and a max below the min is the min.
+            const min = Math.max(1, Math.floor(props.minRows ?? 1) || 1);
+            const max = props.maxRows == null ? undefined : Math.max(min, Math.floor(props.maxRows) || min);
+            return { min, max };
+        },
         controlId: fc.controlId,
         labelId: fc.labelId,
         describedBy: fc.describedBy,

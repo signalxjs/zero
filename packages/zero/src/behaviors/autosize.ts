@@ -4,7 +4,8 @@
  * The growing itself is CSS: `css/base.css` gives an autosizing textarea
  * (`[data-autosize]`) `field-sizing: content` and row bounds in `lh`, so on
  * an engine that supports it the box is right from the first paint, SSR
- * included, and nothing here runs per keystroke. What CSS cannot do is read
+ * included, and typing costs nothing here beyond one computed-style read
+ * each time the box changes size (the observer below). What CSS cannot do is read
  * the recipe's padding and border, which a `border-box` element's bounds
  * have to add to its rows — so this measures them and publishes the sum as
  * `--textarea-block-chrome`.

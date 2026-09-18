@@ -207,6 +207,17 @@ describe('Textarea', () => {
             expect(el.style.getPropertyValue('--textarea-max-rows')).toBe('5');
         });
 
+        it('normalizes the bounds to whole rows, at least one, max never below min', () => {
+            render(<Textarea.Root minRows={0} maxRows={2.7}><Textarea.Textarea /></Textarea.Root>, container);
+            const el = box(container);
+            expect(el.style.getPropertyValue('--textarea-min-rows')).toBe('1');
+            expect(el.style.getPropertyValue('--textarea-max-rows')).toBe('2');
+            expect(el.getAttribute('rows')).toBe('1');
+            const other = document.body.appendChild(document.createElement('div'));
+            render(<Textarea.Root minRows={4} maxRows={2}><Textarea.Textarea /></Textarea.Root>, other);
+            expect(box(other).style.getPropertyValue('--textarea-max-rows')).toBe('4');
+        });
+
         it('minRows alone is unbounded above', () => {
             render(<Textarea.Root minRows={3}><Textarea.Textarea /></Textarea.Root>, container);
             expect(box(container).style.getPropertyValue('--textarea-max-rows')).toBe('');

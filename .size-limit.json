@@ -204,7 +204,7 @@
     {
         "name": "@sigx/zero/textarea",
         "path": "packages/zero/dist/components/textarea/index.js",
-        "limit": "3.7 kB",
+        "limit": "3.8 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -588,7 +588,7 @@
     {
         "name": "@sigx/zero/drawer",
         "path": "packages/zero/dist/components/drawer/index.js",
-        "limit": "3.7 kB",
+        "limit": "3.8 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

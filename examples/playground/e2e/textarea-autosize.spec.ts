@@ -34,7 +34,17 @@ async function rows(el: Locator): Promise<number> {
         const cs = getComputedStyle(node);
         const px = (v: string) => Number.parseFloat(v) || 0;
         const chrome = px(cs.paddingTop) + px(cs.paddingBottom) + px(cs.borderTopWidth) + px(cs.borderBottomWidth);
-        const lh = px(cs.lineHeight);
+        // `normal` has no number to parse; measure one line with a probe
+        // in the same font instead of dividing by zero.
+        let lh = px(cs.lineHeight);
+        if (!lh) {
+            const probe = document.createElement('span');
+            probe.textContent = 'x';
+            probe.style.cssText = `font: ${cs.font}; line-height: ${cs.lineHeight}; display: block; position: absolute; visibility: hidden;`;
+            document.body.append(probe);
+            lh = probe.getBoundingClientRect().height;
+            probe.remove();
+        }
         return (node.getBoundingClientRect().height - chrome) / lh;
     });
 }
