@@ -727,7 +727,7 @@ The authoring surface is public: defineAnatomy (from @sigx/zero/anatomy;
 `toJSON()` emits the manifest component shape), every behavior
 (@sigx/zero/behaviors: controllable state, SSR-safe ids, list/tree
 registration, roving tabindex, dismissal, focus, press feedback, typeahead,
-anchor positioning), the contract helpers (dataAttr, stateAttr, variantAttrs,
+anchor positioning, createVirtualList windowing), the contract helpers (dataAttr, stateAttr, variantAttrs,
 renderAsChild + synthesizesClickFrom for asChild keyboard activation), and
 the conformance assertion expectAnatomy (@sigx/zero/testing — throws plain
 Error, any test runner). Convention: vendor-prefix the scope (`acme-…`),

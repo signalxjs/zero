@@ -384,6 +384,65 @@ getBreakpoints();                                // { sm: '640px', md: '768px', 
 On a non-DOM platform `getBreakpoints()` (from `@sigx/zero/theme/registry`)
 is the same ramp; `useMediaQuery` is web-only.
 
+## Long lists: `createVirtualList`
+
+A windowing behavior for a chat transcript, a log or any list too long to
+keep in the document. It decides which rows to render; you render them. The
+rows that are not rendered become the list's block padding.
+
+```tsx
+import { createVirtualList } from '@sigx/zero';
+
+const Transcript = component(({ props }) => {
+    const v = createVirtualList({
+        count: () => props.messages.length,
+        key: (i) => props.messages[i]!.id,
+        estimateSize: 72,             // px, until a row has been measured
+        stickToBottom: true,          // follow the tail until the reader scrolls up
+    });
+    return () => (
+        <section>
+            <div ref={v.viewportRef} role="log" aria-label="Transcript" tabIndex={0} style="overflow-y: auto; height: 30rem">
+                <ol ref={v.listRef} style={`padding-block: ${v.before()}px ${v.after()}px`}>
+                    {v.rows().map((row) => (
+                        <li key={row.key} ref={v.measureRef(row.key)}>{/* props.messages[row.index] */}</li>
+                    ))}
+                </ol>
+            </div>
+            {!v.following() && <button onClick={() => v.scrollToEnd()}>Jump to latest</button>}
+        </section>
+    );
+});
+```
+
+- **Keyed rows with measured heights.** Each rendered row is measured in the
+  same task it renders in, then watched by one `ResizeObserver` for later
+  changes such as streamed text or a late image. A height is remembered by
+  key, so it survives the row leaving the window. Rows not yet measured
+  count `estimateSize`.
+- **Anchor-preserving.** The row at the top of the viewport stays still when
+  rows are prepended above it, or when a row above it measures taller or
+  shorter than its estimate. The browser's own scroll anchoring is turned
+  off on the viewport, because two correctors would fight.
+- **Stick to bottom.** With `stickToBottom`, appends and a growing last row
+  keep the end in view. This continues until the reader scrolls up.
+  Scrolling back to the end (within `threshold`, 24px by default) or calling
+  `scrollToEnd()` resumes it. Only an upward scroll lets go, so content
+  arriving faster than scroll events can't be mistaken for the reader
+  leaving.
+- **`scrollToIndex(i, align)`** jumps to a row that may never have been
+  measured, and keeps it in place while the rows around it measure.
+- **Layout rules.** Rows stack vertically and have no margins. Pass the
+  list's CSS `gap` as `gap`. If anything scrolls with the list above it
+  (such as a "load earlier" button), wire `listRef`.
+- **SSR-safe and context-bound.** Call it from the setup of the component
+  that renders the rows. Before mount it renders the first `initialCount`
+  rows (the last ones under `stickToBottom`), so the server and the first
+  client render agree.
+- **Semantics are yours.** A log wants `role="log"`. A `listbox` or `feed`
+  wants `aria-setsize={v.count()}` and `aria-posinset={row.index + 1}` on
+  each row, because only a window is in the accessibility tree.
+
 ## Typed vocabulary (opt-in)
 
 The variant-axis props (`color`, `size`, `variant`, `axes`, `mods`) are open unions
@@ -460,7 +519,7 @@ same behaviors, held to the same conformance assertion:
   default contains-filter, single/multiple selection over the model,
   highlight stepping, typeahead over the visible labels, option ids),
   `createListboxItem` (the `role="option"` bag), `createGroupPresence` and
-  `syncPopover`.
+  `syncPopover`; `useMediaQuery`, and `createVirtualList` for windowing.
 - `@sigx/zero/contract` also carries `JsxProps` and `FactoryBrands`: a root
   written once against `unknown` is exported through a cast to a generic call
   signature, so `items` infers `T` at the JSX level (the mechanism behind the

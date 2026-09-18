@@ -131,10 +131,14 @@ while focus sits elsewhere), tabs (one roving tab stop, automatic
 activation), slider drag under implicit pointer capture, tree-view
 keyboard (expand/descend/collapse/climb, typeahead against the accessible
 text), carousel (real scroll-snap: buttons and dots move the scroll, and a
-REAL scroll drives the model back through the IntersectionObserver), and
+REAL scroll drives the model back through the IntersectionObserver),
 diff (the divider handle's captured drag moves the painted reveal, APG
 keyboard steps, and an RTL check measured in boxes — the reveal is a
-logical inline-size, which the physical-direction lint cannot see) — plus
+logical inline-size, which the physical-direction lint cannot see), and
+the `createVirtualList` behavior (#56: measured rows tile with no gap
+under real layout, stick-to-bottom follows the tail and lets go on a
+wheel scroll up, a prepend leaves the row being read in place, and no
+"ResizeObserver loop" error in any engine) — plus
 reduced-motion and forced-colors projects, and
 the state-matrix contrast audit — two matrices over every state combination ×
 design system × theme, hard-fail below 3:1, chromium-only: **text legibility**

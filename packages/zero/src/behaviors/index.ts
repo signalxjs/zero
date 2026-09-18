@@ -52,4 +52,6 @@ export { createListbox, createListboxCore, createListboxItem, createGroupPresenc
 export type { Listbox, ListboxCore, ListboxOptions, WebListboxOptions, ListboxItem, ListboxItemOptions, GroupPresence } from './listbox.js';
 export { syncPopover } from './popover-sync.js';
 export { useMediaQuery, breakpointQuery } from './media-query.js';
+export { createVirtualList } from './virtual-list.js';
+export type { VirtualList, VirtualListOptions, VirtualRow } from './virtual-list.js';
 export type { BreakpointRange, MediaQueryInput, MediaQueryMatch, MediaQueryOptions } from './media-query.js';
