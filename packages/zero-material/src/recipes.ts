@@ -2212,6 +2212,7 @@ export const combobox: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
+                flexWrap: 'wrap',
                 minWidth: '12rem',
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
@@ -2251,6 +2252,50 @@ export const combobox: RecipeInput = {
             },
             selectors: {
                 '&::placeholder': { color: 'var(--color-outline)' },
+            },
+        },
+        // A chosen value under `multiple` (#39): a chip in the control, before
+        // the input. Symmetric metrics only — the physical-direction lint and
+        // the lynx emitter both refuse a one-sided inset.
+        // MD3's input chip: an outlined 8dp-radius chip on the container.
+        tag: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                margin: 'var(--space-2xs)',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                border: '1px solid var(--color-outline)',
+                background: 'transparent',
+                color: 'var(--color-surface-container-content)',
+                borderRadius: 'var(--radius-selector)',
+                ...label,
+            },
+            states: { disabled: {} },
+        },
+        'tag-label': { base: { whiteSpace: 'nowrap' } },
+        'tag-remove': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                borderRadius: 'var(--radius-selector)',
+                padding: '0 var(--space-2xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'color-mix(in oklab, var(--color-base-content) 8%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklab, var(--color-base-content) 15%, transparent)',
+                },
             },
         },
         trigger: withPresence(pressableCentered('combobox', '2.5rem', 'var(--combobox-accent)'), {

@@ -1722,6 +1722,7 @@ export const combobox: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
+                flexWrap: 'wrap',
                 minWidth: '12rem',
                 ...inked,
                 boxShadow: 'var(--shadow-xs)',
@@ -1757,6 +1758,47 @@ export const combobox: RecipeInput = {
             },
             selectors: {
                 '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)', textTransform: 'uppercase' },
+            },
+        },
+        // A chosen value under `multiple` (#39): a chip in the control, before
+        // the input. Symmetric metrics only — the physical-direction lint and
+        // the lynx emitter both refuse a one-sided inset.
+        // A stamped label: inked box, mono caps, no radius.
+        tag: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                margin: 'var(--space-2xs)',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                ...inked,
+                ...label,
+                fontSize: 'var(--text-xs)',
+            },
+            states: { disabled: {} },
+        },
+        'tag-label': { base: { whiteSpace: 'nowrap' } },
+        'tag-remove': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                padding: '0 var(--space-2xs)',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'var(--color-base-200)',
+                    transform: 'translate(1px, 1px)',
+                },
             },
         },
         trigger: {

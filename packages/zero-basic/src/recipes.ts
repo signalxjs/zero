@@ -2507,6 +2507,7 @@ export const combobox: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
+                flexWrap: 'wrap',
                 minWidth: '12rem',
                 background: 'var(--color-base-100)',
                 border: hairline,
@@ -2562,6 +2563,47 @@ export const combobox: RecipeInput = {
             selectors: {
                 '&::placeholder': { color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)' },
             },
+        },
+        // A chosen value under `multiple` (#39): a chip in the control, before
+        // the input. Symmetric metrics only — the physical-direction lint and
+        // the lynx emitter both refuse a one-sided inset.
+        // The selection's soft wash, the row marker's colour without the bar.
+        tag: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                margin: 'var(--space-2xs)',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                background: 'var(--combobox-soft)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-selector)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-none)',
+            },
+            states: { disabled: {} },
+        },
+        'tag-label': { base: { whiteSpace: 'nowrap' } },
+        'tag-remove': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                borderRadius: 'var(--radius-selector)',
+                padding: '0 var(--space-2xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
         },
         trigger: {
             base: {

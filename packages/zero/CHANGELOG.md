@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### Added — Combobox tags, Backspace removal and `allowCustom` (#39)
+
+- **Tags.** Under `multiple` the Combobox's data expansion renders one
+  `Combobox.Tag` per chosen value, in the control before the input. Its
+  default content is a `Combobox.TagLabel` and a `Combobox.TagRemove`: a
+  real `<button>` in the tab order, named `Remove <label>`, which hands focus
+  back to the input. The root's new `tag` slot (`{ value, label, item }`)
+  replaces that content, for per-tag controls such as a mode select.
+  Hand-written roots place `Combobox.Tags` (a scoped default slot with the
+  same props) or individual `Combobox.Tag`s themselves. A tag keeps its
+  label after a consumer-filtered item unmounts.
+- **Keyboard removal.** Backspace on an empty input removes the last value.
+- **`allowCustom`.** Enter commits the trimmed text while no option is
+  highlighted. A chosen value or an option whose label the text names
+  (case-insensitively) wins, else the text itself becomes the value. It
+  posts through the hidden select like any other value: data mode now also
+  posts chosen values the data does not hold. Under `multiple` it adds a tag
+  and clears the input; single mode sets the value and closes. The overloads
+  type it only for a string model (hand-written items, string items, or a
+  string `itemValue`).
+- **Anatomy:** `combobox` gains `tag` (span, in `control`), `tag-label` and
+  `tag-remove` (button, with `disabled`/`focus-visible`/`pressed`/
+  `press-animating`). All six design systems style them. Their controls
+  now `flex-wrap`, and daisyUI's size ramp sets a `min-height` rather than
+  a `height`, so wrapped tags can grow the field.
+
 ### Added — ToggleGroup posts to forms (#53)
 
 - **`ToggleGroup.Root` takes the form contract** (`name`, `form`,

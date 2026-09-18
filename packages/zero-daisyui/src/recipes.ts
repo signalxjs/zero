@@ -2760,6 +2760,7 @@ export const combobox: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignItems: 'stretch',
+                flexWrap: 'wrap',
                 minWidth: '13rem',
                 ...fieldControl,
                 transition: 'border-color var(--duration-fast) var(--ease-standard)',
@@ -2803,6 +2804,52 @@ export const combobox: RecipeInput = {
                 // at. A pseudo-element is out of the audit's reach, so this
                 // half is fixed by argument rather than by measurement (#264).
                 '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
+            },
+        },
+        // A chosen value under `multiple` (#39): a chip in the control, before
+        // the input. Symmetric metrics only — the physical-direction lint and
+        // the lynx emitter both refuse a one-sided inset.
+        // daisy's badge: a base-200 pill, centred in the stretched row.
+        tag: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                alignSelf: 'center',
+                gap: 'var(--space-2xs)',
+                margin: 'var(--space-2xs)',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-selector)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-none)',
+            },
+            states: { disabled: {} },
+        },
+        'tag-label': { base: { whiteSpace: 'nowrap' } },
+        'tag-remove': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                borderRadius: 'var(--radius-selector)',
+                padding: '0 var(--space-2xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklab, var(--color-base-content) 10%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklab, var(--color-base-content) 18%, transparent)',
+                },
             },
         },
         trigger: {
@@ -2873,15 +2920,15 @@ export const combobox: RecipeInput = {
             '--combobox-accent': `var(--color-${c})`,
         } } }])),
         // The control carries the height — the shared field ramp, the same one
-        // `select`'s trigger steps on — and the input carries the inset and the
-        // type. `md` restates exactly the resting values so the union stays
+        // `select`'s trigger steps on, as a floor so wrapped tags can grow it
+        // — and the input carries the inset and the type. `md` restates exactly the resting values so the union stays
         // complete.
         size: {
-            xs: { control: { base: { height: fieldHeight('xs') } }, input: { base: { padding: 'var(--space-2xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
-            sm: { control: { base: { height: fieldHeight('sm') } }, input: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
-            md: { control: { base: { height: fieldHeight('md') } }, input: { base: { padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
-            lg: { control: { base: { height: fieldHeight('lg') } }, input: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-md)' } } },
-            xl: { control: { base: { height: fieldHeight('xl') } }, input: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
+            xs: { control: { base: { minHeight: fieldHeight('xs') } }, input: { base: { padding: 'var(--space-2xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
+            sm: { control: { base: { minHeight: fieldHeight('sm') } }, input: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
+            md: { control: { base: { minHeight: fieldHeight('md') } }, input: { base: { padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
+            lg: { control: { base: { minHeight: fieldHeight('lg') } }, input: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-md)' } } },
+            xl: { control: { base: { minHeight: fieldHeight('xl') } }, input: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
         },
     },
     // The visible ring lives on `control`; input and trigger delegate.
