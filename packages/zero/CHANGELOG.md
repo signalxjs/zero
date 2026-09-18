@@ -21,6 +21,26 @@
   spreads `axisAttrs()` instead of `variantAttrs(props)` to join in; a
   hand-built `FieldContext` must now provide `size`.
 
+### Added — Table's column spec (#55)
+
+- **`Table.Root` takes `columns`** (`TableColumn[]`: `label`, `width`,
+  `align`, `key`, all optional), provided to its parts (`useTableContext`).
+- **`Table.Head`** renders the widths as a `<colgroup>` before its
+  `<thead>`, which is the content model's place for it. With no children it
+  renders the header row from the labels.
+- **Widths** ride `--table-column-width` on each `<col>`, applied by a new
+  `zero.structure` rule. There is no `width` literal to fight a responsive
+  rule with `!important`.
+- **`Table.Cell` / `Table.HeaderCell` take `column`** (an index, or a
+  column's `key`). The cell takes the column's alignment as
+  `--table-cell-align`, and a header cell with no children renders the
+  column's label. A column the spec doesn't have throws.
+- **Anatomy:** `table` gains `colgroup` (parent `table`) and `column` (a
+  `<col>`, parent `colgroup`). All six design systems' cell and header-cell
+  recipes read `text-align: var(--table-cell-align)`, declared `start` on
+  the root.
+- The responsive stacked mode is proposed on #55 and not in this change.
+
 ### Added — Button `loading`, and the link-button answer (#50)
 
 - **`Button.Root` takes `loading`**: `data-state="loading"`,

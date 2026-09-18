@@ -195,6 +195,7 @@ props and spread `htmlAttrs(props)` first.
 <Button.Root aria-label="Close" data-testid="close" onClick={close}>×</Button.Root>
 <Table.Row data-row-id={row.id}><Table.Cell colSpan={5}>No results</Table.Cell></Table.Row>
 <Card.Root role="region" aria-labelledby="report-title">…</Card.Root>
+```
 
 **Visually hidden, still named.** `Field.Label`, `Input.Label`,
 `Textarea.Label`, `Dialog.Title` and `Drawer.Title` take `visuallyHidden`,
@@ -236,6 +237,31 @@ holds for Checkbox.
 </Field.Root>
 
 <Switch.Root hideLabel>Airplane mode</Switch.Root>
+```
+
+**Table columns.** `Table.Root` takes a column spec (`columns`: per column
+an optional `label`, `width`, `align` and `key`). `<Table.Head />` with no
+children renders the header row from the labels. Head also renders the
+widths as a `<colgroup>` of `column` parts: each `<col>` carries
+`--table-column-width`, and a `zero.structure` rule applies it. It's a custom
+property, never a `width` literal, so a responsive rule can take it back. A
+`Table.Cell` or `Table.HeaderCell` that names its column (`column={2}` or
+`column="age"`) takes the alignment as `--table-cell-align`, which every
+skin's cell recipe reads. A header cell with no children renders its
+column's label. Naming a column the spec doesn't have throws.
+
+```tsx
+<Table.Root columns={[{ label: 'Time', width: '8rem' }, { label: 'What' }, { key: 'cost', label: 'Cost', align: 'end' }]}>
+    <Table.Caption>Activity</Table.Caption>
+    <Table.Head />
+    <Table.Body>
+        <Table.Row>
+            <Table.Cell column={0}>09:12</Table.Cell>
+            <Table.Cell column={1}>Deployed</Table.Cell>
+            <Table.Cell column="cost">$0.42</Table.Cell>
+        </Table.Row>
+    </Table.Body>
+</Table.Root>
 ```
 
 **Text controls.** `Input.Input` and `Textarea.Textarea` are what an app

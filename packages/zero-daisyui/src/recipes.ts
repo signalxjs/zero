@@ -5322,6 +5322,9 @@ export const drawer: RecipeInput = {
 export const table: RecipeInput = {
     component: 'table',
     tokens: {
+        // The column spec's alignment (#55): a cell that names an aligned
+        // column overrides it inline; everything else reads `start`.
+        '--table-cell-align': 'start',
         '--table-accent': 'var(--color-base-content)',
         '--table-pad-block': 'var(--space-sm)',
         '--table-pad-inline': 'var(--space-md)',
@@ -5370,7 +5373,7 @@ export const table: RecipeInput = {
         'header-cell': {
             base: {
                 padding: 'var(--table-pad-block) var(--table-pad-inline)',
-                textAlign: 'start',
+                textAlign: 'var(--table-cell-align)',
                 fontWeight: 'var(--weight-semibold)',
                 fontSize: 'var(--text-xs)',
                 color: 'color-mix(in oklab, var(--table-accent) 60%, transparent)',
@@ -5379,7 +5382,7 @@ export const table: RecipeInput = {
         cell: {
             base: {
                 padding: 'var(--table-pad-block) var(--table-pad-inline)',
-                textAlign: 'start',
+                textAlign: 'var(--table-cell-align)',
             },
         },
     },

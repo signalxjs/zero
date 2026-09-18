@@ -234,4 +234,14 @@
         clip-path: inset(50%);
         white-space: nowrap;
     }
+
+    /*
+     * A table column's width from `Table.Root`'s column spec (#55). The app
+     * states it as data; this is how it reaches the screen, so no skin can
+     * forget it. A custom property rather than an inline `width` literal, so
+     * a responsive rule in this layer can take it back without `!important`.
+     */
+    [data-scope="table"][data-part="column"] {
+        width: var(--table-column-width, auto);
+    }
 }

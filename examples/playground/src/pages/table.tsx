@@ -52,6 +52,35 @@ const TableDemos = component(() => () => (
             </Table.Foot>
         </Table.Root>
         <p>
+            A column spec on <code>Table.Root</code> — label, width, alignment.
+            <code>&lt;Table.Head /&gt;</code> renders the header row from the
+            labels and the widths as a <code>&lt;colgroup&gt;</code>; a cell
+            that names its <code>column</code> takes the alignment:
+        </p>
+        <Table.Root columns={[
+            { label: 'Time', width: '8rem' },
+            { label: 'What happened' },
+            { key: 'cost', label: 'Cost', width: '6rem', align: 'end' },
+        ]}>
+            <Table.Caption>Activity (column spec)</Table.Caption>
+            <Table.Head />
+            <Table.Body>
+                <Table.Row>
+                    <Table.Cell column={0}>09:12</Table.Cell>
+                    <Table.Cell column={1}>Deployed api-gateway 2.14.0</Table.Cell>
+                    <Table.Cell column="cost">$0.42</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell column={0}>09:40</Table.Cell>
+                    <Table.Cell column={1}>Rolled back search</Table.Cell>
+                    <Table.Cell column="cost">$12.08</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell colSpan={3}>No more activity today</Table.Cell>
+                </Table.Row>
+            </Table.Body>
+        </Table.Root>
+        <p>
             Zebra striping and hover-highlight are design-system mods
             (<code>data-mod-*</code>), spelled in each skin's own vocabulary —
             zebra here rides whichever name the live design system declares:
