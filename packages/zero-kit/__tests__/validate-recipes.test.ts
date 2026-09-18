@@ -376,6 +376,30 @@ describe('coverage', () => {
         }).errors).toContainEqual(expect.stringContaining('neither a state nor a flag'));
     });
 
+    it('sameAs names a real pair of one part\'s states, and addresses the one it names (#64)', () => {
+        // tabs.tab carries active | inactive.
+        const tab = { states: { 'focus-visible': { outline: '1px solid' }, active: { color: 'red' } } };
+        const unstyled = 'declared state "inactive" is not styled';
+        expect(check({ component: 'tabs', parts: { tab } }).warnings)
+            .toContainEqual(expect.stringContaining(unstyled));
+        const alike = check({ component: 'tabs', parts: { tab }, sameAs: { tab: { inactive: 'active' } } });
+        expect(alike.errors).toEqual([]);
+        expect(alike.warnings).not.toContainEqual(expect.stringContaining(unstyled));
+
+        // …including from a `targets.web` section, which is what the web build reads.
+        const perTarget = check({ component: 'tabs', parts: { tab }, targets: { web: { sameAs: { tab: { inactive: 'active' } } } } });
+        expect(perTarget.warnings).not.toContainEqual(expect.stringContaining(unstyled));
+
+        const bad = check({
+            component: 'tabs',
+            parts: { tab },
+            sameAs: { tab: { inactive: 'levitating', active: 'active' }, nope: { active: 'inactive' } },
+        }).errors;
+        expect(bad).toContainEqual(expect.stringContaining('"levitating" is not a state of "tab"'));
+        expect(bad).toContainEqual(expect.stringContaining('"active" is declared the same as itself'));
+        expect(bad).toContainEqual(expect.stringContaining('"nope" is not a part of "tabs"'));
+    });
+
     it('accepts a skipStates entry naming a flag', () => {
         // `invalid` and `required` are flags, not machine states. The old
         // check looked only at states, so entries like this were dead config.

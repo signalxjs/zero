@@ -165,6 +165,21 @@ export interface RecipeInput {
      */
     skipStates?: Record<string, readonly string[]>;
     /**
+     * Declared states that paint the SAME on purpose — part → `{ state:
+     * otherState }` (`{ root: { complete: 'loading' } }`: a finished tool
+     * call recedes to the quiet look it had while queued).
+     *
+     * Narrower than `skipStates`, which excuses a state against every
+     * sibling: this names the one pair, so the state-legibility guard still
+     * requires every OTHER pair to differ. Chains are one class
+     * (`{ complete: 'loading', closed: 'loading' }` makes all three alike).
+     * The named state counts as addressed for the validator's coverage
+     * warning — its styling is its partner's. Scoped to the part it names,
+     * exactly like `skipStates`, and declared instead of disguising the
+     * equivalence as a no-op declaration (`opacity: '1'`).
+     */
+    sameAs?: Record<string, Readonly<Record<string, string>>>;
+    /**
      * Per-target sections, deep-merged over the shared recipe before that
      * target compiles (`resolveRecipeForTarget`). The division of labor:
      *
@@ -193,7 +208,7 @@ export interface RecipeInput {
  * shared, because they describe the ONE design decision both targets deliver.
  */
 export type RecipeTargetOverride = Partial<Pick<RecipeInput,
-    'tokens' | 'parts' | 'variants' | 'modifiers' | 'compoundVariants' | 'keyframes' | 'css' | 'skipStates'>>;
+    'tokens' | 'parts' | 'variants' | 'modifiers' | 'compoundVariants' | 'keyframes' | 'css' | 'skipStates' | 'sameAs'>>;
 
 /** Identity with typing — the authoring entry point. */
 export function defineRecipe(recipe: RecipeInput): RecipeInput {
@@ -247,7 +262,8 @@ function mergePartsRecord(
  * per part (and per state/selector/condition inside); `compoundVariants`
  * CONCATENATE (an array entry has no address to merge into — a target adds
  * rules, it does not edit the shared ones); `keyframes` merge per name;
- * `css` strings concatenate; `skipStates` union per part.
+ * `css` strings concatenate; `skipStates` union per part; `sameAs` merges
+ * per part, the override's entry winning for a state both name.
  */
 export function resolveRecipeForTarget(recipe: RecipeInput, target: 'web' | 'lynx'): RecipeInput {
     const { targets, ...shared } = recipe;
@@ -296,6 +312,13 @@ export function resolveRecipeForTarget(recipe: RecipeInput, target: 'web' | 'lyn
             skip[part] = [...new Set([...(skip[part] ?? []), ...states])];
         }
         out.skipStates = skip;
+    }
+    if (shared.sameAs || override.sameAs) {
+        const same: Record<string, Readonly<Record<string, string>>> = { ...shared.sameAs };
+        for (const [part, pairs] of Object.entries(override.sameAs ?? {})) {
+            same[part] = { ...same[part], ...pairs };
+        }
+        out.sameAs = same;
     }
     return out;
 }

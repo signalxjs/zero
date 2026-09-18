@@ -14,7 +14,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { auditDesignSystem, compileDesignSystem, compileRecipeCss } from '@sigx/zero-kit';
-import type { AuditFinding, AuditRuleId, CompiledDesignSystem, DesignSystemInput, ManifestComponent, PartStyles, RecipeInput } from '@sigx/zero-kit';
+import type { AuditFinding, AuditRuleId, AuditWaiver, CompiledDesignSystem, DesignSystemInput, ManifestComponent, PartStyles, RecipeInput } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -347,6 +347,46 @@ describe('the guard\'s own teeth', () => {
         // a state it never renders in, and no recipe can differentiate those.
         // The two assertions ask different questions of the same declaration.
         expect(indicatorFindings(c)).toEqual([]);
+    });
+
+    describe('sameAs — a declared equivalence (#64)', () => {
+        const withSame = (sameAs: RecipeInput['sameAs'], skipStates?: RecipeInput['skipStates']): Case => {
+            const recipe: RecipeInput = { component: 'checkbox', parts: { control, indicator: blind }, sameAs, ...(skipStates ? { skipStates } : {}) };
+            return caseOf(checkbox, recipe, compileRecipeCss(recipe, checkbox));
+        };
+
+        it('excuses exactly the pair it names, where skipStates would excuse the state against all', () => {
+            const waived: AuditWaiver[] = [];
+            const c = withSame({ indicator: { indeterminate: 'checked' } });
+            const [finding] = indicatorFindings(c, waived);
+            expect(finding!.message).toContain('"checked"/"unchecked"');
+            expect(finding!.message).toContain('"unchecked"/"indeterminate"');
+            expect(finding!.message).not.toContain('"checked"/"indeterminate"');
+            expect(waived.map((w) => [w.states, w.waivedBy.mechanism])).toEqual([[['checked', 'indeterminate'], 'sameAs']]);
+        });
+
+        it('reads chained claims as one class', () => {
+            // indeterminate ~ unchecked and checked ~ unchecked: all three alike.
+            expect(indicatorFindings(withSame({ indicator: { indeterminate: 'unchecked', checked: 'unchecked' } }))).toEqual([]);
+        });
+
+        it('waives the component only when every owner of the states has said so', () => {
+            // `control` and `indicator` saying it is not the component saying it:
+            // `root` and `label` carry the same states and made no claim.
+            const partial = withSame({ control: { indeterminate: 'checked' }, indicator: { indeterminate: 'checked' } });
+            expect(messages(componentFindings(partial))[0]).toContain('"checked" and "indeterminate"');
+
+            const waived: AuditWaiver[] = [];
+            const every = withSame(
+                { control: { indeterminate: 'checked' }, indicator: { indeterminate: 'checked' }, label: { indeterminate: 'checked' } },
+                { root: ['checked', 'unchecked', 'indeterminate'] },
+            );
+            expect(componentFindings(every, waived)).toEqual([]);
+            const component = waived.find((w) => w.rule === 'state-legibility/component')!;
+            expect(component.waivedBy.mechanism).toBe('sameAs');
+            // The detail says which owner did which — a skip is not a claim of likeness.
+            expect(component.waivedBy.detail).toBe('control, indicator, label declare "checked" and "indeterminate" alike; root skips the pair');
+        });
     });
 
     it('accepts a component whose difference lives on a sibling part', () => {

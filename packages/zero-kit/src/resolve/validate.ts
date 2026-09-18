@@ -1063,8 +1063,10 @@ export function validateDesignSystem<R extends RolesDecl>(
     }
 
     // ── Recipe state coverage ──
+    // Read off the web resolution, like `validateRecipes` above: a state a
+    // `targets.web` section styles, skips or declares alike is addressed.
     const byScope = new Map(manifest.components.map((c) => [c.scope, c]));
-    for (const recipe of ds.recipes) {
+    for (const recipe of ds.recipes.map((r) => resolveRecipeForTarget(r, 'web'))) {
         const component = byScope.get(recipe.component);
         if (!component) continue; // already an error above
         for (const [partName, styles] of Object.entries(recipe.parts)) {
@@ -1072,11 +1074,14 @@ export function validateDesignSystem<R extends RolesDecl>(
             if (!part) continue; // already an error above
             const styled = new Set(Object.keys(styles.states ?? {}));
             const skipped = new Set(recipe.skipStates?.[partName] ?? []);
+            // A state declared to paint like another is addressed: its
+            // styling is its partner's, by the author's own statement.
+            const same = new Set(Object.keys(recipe.sameAs?.[partName] ?? {}));
             for (const state of part.states ?? []) {
-                if (!styled.has(state) && !skipped.has(state)) {
+                if (!styled.has(state) && !skipped.has(state) && !same.has(state)) {
                     warn(
                         `recipes.${recipe.component}.${partName}`,
-                        `declared state "${state}" is not styled (add it or list it in skipStates)`,
+                        `declared state "${state}" is not styled (add it, list it in skipStates, or declare the state it paints like in sameAs)`,
                     );
                 }
             }

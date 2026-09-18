@@ -184,6 +184,8 @@ export interface LegibilityCase {
     groups: string[];
     /** The recipe's own exemptions, kept per part — see `skipsPair`. */
     skipStates: Readonly<Record<string, readonly string[]>>;
+    /** The recipe's declared equivalences, kept per part — see `declaresSame`. */
+    sameAs: Readonly<Record<string, Readonly<Record<string, string>>>>;
 }
 
 /** One judgeable unit: an anatomy, the recipe for it, and the CSS that came out. */
@@ -195,6 +197,7 @@ export function caseOf(component: ManifestComponent, recipe: RecipeInput, css: s
         rules,
         groups: [...new Set(rules.map(groupOf).filter((g): g is string => Boolean(g)))],
         skipStates: recipe.skipStates ?? {},
+        sameAs: recipe.sameAs ?? {},
     };
 }
 
@@ -214,6 +217,35 @@ export function caseOf(component: ManifestComponent, recipe: RecipeInput, css: s
 const skipsPair = (c: LegibilityCase, part: string, a: string, b: string): boolean => {
     const skipped = c.skipStates[part] ?? [];
     return skipped.includes(a) || skipped.includes(b);
+};
+
+/**
+ * Has `part` declared that `a` and `b` paint the same ON PURPOSE?
+ *
+ * The narrow sibling of `skipsPair`. A skip excuses a state against every
+ * other state of the part; `sameAs` names the pair, so a tool call whose
+ * `complete` recedes to `loading`'s quiet look is still held to telling
+ * `complete` from `active` and `error`. The map's entries are edges and the
+ * question is whether `a` and `b` are in one connected class — `{ complete:
+ * 'loading', closed: 'loading' }` makes `complete`/`closed` alike too, which
+ * is what two such claims mean. Per part, for `skipsPair`'s reason.
+ */
+const declaresSame = (c: LegibilityCase, part: string, a: string, b: string): boolean => {
+    const edges = Object.entries(c.sameAs[part] ?? {});
+    if (edges.length === 0) return false;
+    const seen = new Set([a]);
+    const queue = [a];
+    while (queue.length > 0) {
+        const at = queue.pop()!;
+        for (const [x, y] of edges) {
+            const next = x === at ? y : y === at ? x : undefined;
+            if (next === undefined || seen.has(next)) continue;
+            if (next === b) return true;
+            seen.add(next);
+            queue.push(next);
+        }
+    }
+    return false;
 };
 
 /**
@@ -305,8 +337,9 @@ export function componentFindings(c: LegibilityCase, waived?: AuditWaiver[]): Au
                 scope: c.scope,
                 states: [a, b],
                 message: `${c.scope}: states "${a}" and "${b}" are visually identical — no `
-                    + `part of the component styles them differently. Style one of them, or `
-                    + `declare skipStates: { <part>: ['${b}'] } with a reason.`,
+                    + `part of the component styles them differently. Style one of them, declare `
+                    + `sameAs: { <part>: { ${b}: '${a}' } } if they look alike on purpose, or `
+                    + `skipStates: { <part>: ['${b}'] } with a reason.`,
             };
             // A skip is a claim about ONE part, so a component-wide "these two
             // states may look the same" needs it from every part that has those
@@ -317,6 +350,15 @@ export function componentFindings(c: LegibilityCase, waived?: AuditWaiver[]): Au
             // difference rather than waiving one, so one matching part is enough.
             if (owners.every((p) => skipsPair(c, p, a, b))) {
                 waived?.push(waiver(finding, 'skipStates', `every owner (${owners.join(', ')}) skips the pair`));
+                continue;
+            }
+            // The same signature rule: a component-wide "these look alike"
+            // needs every owner to have said so, by either mechanism.
+            if (owners.every((p) => skipsPair(c, p, a, b) || declaresSame(c, p, a, b))) {
+                const alike = owners.filter((p) => !skipsPair(c, p, a, b));
+                const skipping = owners.filter((p) => skipsPair(c, p, a, b));
+                waived?.push(waiver(finding, 'sameAs', `${alike.join(', ')} declare${alike.length === 1 ? 's' : ''} "${a}" and "${b}" alike`
+                    + (skipping.length ? `; ${skipping.join(', ')} skip${skipping.length === 1 ? 's' : ''} the pair` : '')));
                 continue;
             }
             if (presenceDiffers(c, owners, a, b)) {
@@ -374,8 +416,9 @@ export function indicatorFindings(c: LegibilityCase, waived?: AuditWaiver[]): Au
         const own = ownGroups(c, part.name);
         const alike = pairsOf(part.states).filter(([a, b]) => {
             const excused = skipsPair(c, part.name, a, b) ? 'skipStates'
-                : cannotPaintPair(c, part.name, a, b) ? 'hiddenIn'
-                    : undefined;
+                : declaresSame(c, part.name, a, b) ? 'sameAs'
+                    : cannotPaintPair(c, part.name, a, b) ? 'hiddenIn'
+                        : undefined;
             if (excused) {
                 waived?.push(waiver({
                     rule: 'state-legibility/indicator',
@@ -387,7 +430,9 @@ export function indicatorFindings(c: LegibilityCase, waived?: AuditWaiver[]): Au
                     message: `${c.scope}.${part.name}: "${a}"/"${b}" excused.`,
                 }, excused, excused === 'skipStates'
                     ? `skipStates.${part.name} names ${a} or ${b}`
-                    : `hiddenIn on ${part.name} names ${a} or ${b}`));
+                    : excused === 'sameAs'
+                        ? `sameAs.${part.name} declares ${a} and ${b} alike`
+                        : `hiddenIn on ${part.name} names ${a} or ${b}`));
                 return false;
             }
             return !own.some((g) => distinguishes(c.rules, g, a, b));
@@ -463,8 +508,9 @@ export function disclosureFindings(c: LegibilityCase, waived?: AuditWaiver[]): A
         const own = ownGroups(c, part.name);
         const alike = pairsOf(part.states).filter(([a, b]) => {
             const excused = skipsPair(c, part.name, a, b) ? 'skipStates'
-                : cannotPaintPair(c, part.name, a, b) ? 'hiddenIn'
-                    : undefined;
+                : declaresSame(c, part.name, a, b) ? 'sameAs'
+                    : cannotPaintPair(c, part.name, a, b) ? 'hiddenIn'
+                        : undefined;
             if (excused) {
                 waived?.push(waiver({
                     rule: 'state-legibility/disclosure',
@@ -476,7 +522,9 @@ export function disclosureFindings(c: LegibilityCase, waived?: AuditWaiver[]): A
                     message: `${c.scope}.${part.name}: "${a}"/"${b}" excused.`,
                 }, excused, excused === 'skipStates'
                     ? `skipStates.${part.name} names ${a} or ${b}`
-                    : `hiddenIn on ${part.name} names ${a} or ${b}`));
+                    : excused === 'sameAs'
+                        ? `sameAs.${part.name} declares ${a} and ${b} alike`
+                        : `hiddenIn on ${part.name} names ${a} or ${b}`));
                 return false;
             }
             return !own.some((g) => distinguishes(c.rules, g, a, b))

@@ -23,6 +23,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
     ECOSYSTEM_ENV,
+    auditDesignSystem,
     declarationFor,
     mergeManifests,
     nearestPackageDir,
@@ -30,11 +31,13 @@ import {
     resolveEcosystem,
     satisfiesKitRange,
     selectDependencies,
+    validateDesignSystem,
     zeroKitVersion,
 } from '@sigx/zero-kit';
 import { ecosystemOptionsFrom } from '../src/commands/shared.js';
 import type { DesignSystemInput, EcosystemDeclaration, EcosystemPack, ManifestComponent, ManifestFragment } from '@sigx/zero-kit';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
+import { designSystem as basicDS } from '@sigx/zero-basic';
 
 const dirs: string[] = [];
 afterEach(() => {
@@ -286,6 +289,35 @@ describe('packFromModule', () => {
         expect(() => packFromModule(declaration, { fragment, recipes: null }))
             .toThrow(/"recipes" that is not an array/);
     });
+
+    describe('the optional scopes export (#64)', () => {
+        const owning: ManifestFragment = {
+            ...fragment,
+            components: [defineAnatomy('acme-stepper', { root: { element: 'div' } }).toJSON() as ManifestComponent],
+        };
+
+        it('carries declined axes for the pack\'s own scopes', () => {
+            const scopes = { 'acme-stepper': { colors: [], axes: { density: [] } } };
+            expect(packFromModule(declaration, { fragment: owning, scopes }).scopes).toEqual(scopes);
+            expect(packFromModule(declaration, { fragment: owning })).not.toHaveProperty('scopes');
+        });
+
+        it('refuses a foreign scope, an unknown key, and any list that is not empty', () => {
+            expect(() => packFromModule(declaration, { fragment: owning, scopes: { button: { colors: [] } } }))
+                .toThrow(/naming "button", which the fragment does not declare/);
+            expect(() => packFromModule(declaration, { fragment: owning, scopes: { 'acme-stepper': { parts: [] } } }))
+                .toThrow(/unknown key "parts"/);
+            // Narrowing to values is the adopting skin's call, in its vocabulary.
+            expect(() => packFromModule(declaration, { fragment: owning, scopes: { 'acme-stepper': { colors: ['primary'] } } }))
+                .toThrow(/"acme-stepper\.colors" not an empty list/);
+            expect(() => packFromModule(declaration, { fragment: owning, scopes: { 'acme-stepper': { axes: { density: ['x'] } } } }))
+                .toThrow(/"acme-stepper\.axes" not an empty list/);
+            expect(() => packFromModule(declaration, { fragment: owning, scopes: [] }))
+                .toThrow(/"scopes" that is not an object/);
+            expect(() => packFromModule(declaration, { fragment: owning, scopes: { 'acme-stepper': { axes: [] } } }))
+                .toThrow(/"acme-stepper\.axes" not an object/);
+        });
+    });
 });
 
 // -------------------------------------------------------------- merge policy
@@ -426,6 +458,63 @@ describe('resolveEcosystem', () => {
         });
         expect(out.manifest.components.find((c) => c.scope === 'acme-stepper')?.package).toBe('@hand/wired');
         expect(log.error).toHaveBeenCalledWith(expect.stringContaining('@auto/discovered not adopted'));
+    });
+});
+
+describe('a pack that declares an axis out of existence (#64)', () => {
+    // A feed that never renders `data-color`: the pack says so instead of
+    // wiring every role to keep the axis guards quiet.
+    const feed = defineAnatomy('acme-feed', { root: { element: 'div', tokens: ['color'] } });
+    const feedPack = (scopes?: EcosystemPack['scopes']): EcosystemPack => ({
+        package: '@acme/feed',
+        source: '/somewhere/@acme/feed/dist/fragment.js',
+        fragment: { version: 1, package: '@acme/feed', components: [feed.toJSON() as ManifestComponent] },
+        recipes: [{ component: 'acme-feed', parts: { root: { base: { color: 'var(--color-base-content)' } } } }],
+        ...(scopes ? { scopes } : {}),
+    });
+    const adopt = (designSystem: DesignSystemInput, p: EcosystemPack) => resolveEcosystem({
+        manifest: baseManifest(), designSystem, ecosystem: { packs: [p] }, defaultCwd: tree(), logger: logger(),
+    });
+    const colorCoverage = (out: Awaited<ReturnType<typeof adopt>>) => {
+        const audit = auditDesignSystem(out.designSystem, out.manifest);
+        return {
+            findings: audit.findings.filter((f) => f.rule === 'axis-coverage' && f.where === 'acme-feed.color'),
+            waived: audit.waived.filter((f) => f.rule === 'axis-coverage' && f.where === 'acme-feed.color'),
+        };
+    };
+
+    it('folds into the adopting design system\'s tokens.scopes, and the axis guard reads it as a waiver', async () => {
+        const without = colorCoverage(await adopt(basicDS, feedPack()));
+        expect(without.findings).toHaveLength(1);
+
+        const out = await adopt(basicDS, feedPack({ 'acme-feed': { colors: [], variants: [], axes: { density: [] } } }));
+        // `density` is not an axis basic declares, so declining it says
+        // nothing and is dropped rather than tripping the union check.
+        expect(out.designSystem.tokens.scopes?.['acme-feed']).toEqual({ colors: [], variants: [] });
+        expect(validateDesignSystem(out.designSystem, out.manifest).errors).toEqual([]);
+        const { findings, waived } = colorCoverage(out);
+        expect(findings).toEqual([]);
+        expect(waived.map((w) => w.waivedBy.mechanism)).toEqual(['tokens.scopes']);
+    });
+
+    it('holds a directly supplied pack to the same rule — a pack may only decline', async () => {
+        const log = logger();
+        const out = await resolveEcosystem({
+            manifest: baseManifest(),
+            designSystem: basicDS,
+            ecosystem: { packs: [feedPack({ 'acme-feed': { colors: ['primary'] } })] },
+            defaultCwd: tree(),
+            logger: log,
+        });
+        expect(out.packs).toEqual([]);
+        expect(log.error).toHaveBeenCalledWith(expect.stringMatching(/"acme-feed\.colors" not an empty list/));
+        expect(out.designSystem.tokens.scopes?.['acme-feed']).toBeUndefined();
+    });
+
+    it('never overrides the design system\'s own entry for the scope', async () => {
+        const own = { ...basicDS, tokens: { ...basicDS.tokens, scopes: { ...basicDS.tokens.scopes, 'acme-feed': { colors: ['primary'] } } } };
+        const out = await adopt(own as DesignSystemInput, feedPack({ 'acme-feed': { colors: [] } }));
+        expect(out.designSystem.tokens.scopes?.['acme-feed']).toEqual({ colors: ['primary'] });
     });
 });
 
