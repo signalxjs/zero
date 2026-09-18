@@ -560,9 +560,13 @@ validator's own dependencies (ajv, culori) do not belong in the runtime
 package. Ecosystem discovery runs against the app's dependencies, so the
 check also covers the ecosystem components the app installs.
 
-`--extra-manifest` (repeatable, path or module specifier) merges an ecosystem
-**manifest fragment** into the base manifest instead of replacing it — how a
-design system opts into covering a component some other package ships. See
+`--extra-manifest` (repeatable) merges an ecosystem **manifest fragment** into
+the base manifest instead of replacing it — how a design system opts into
+covering a component some other package ships. It takes a JSON file or a JS
+module exporting `fragment` (or a default export), by path or by package: a
+bare name (`@acme/stepper`) is read through the package's `"sigx-zero"`
+field, and a subpath (`@acme/stepper/fragment`) through its exports map, so
+the module a `build.mjs` merges is exactly what the CLI can merge too. See
 "Ecosystem components" below.
 
 ## Spacing rides the ramp

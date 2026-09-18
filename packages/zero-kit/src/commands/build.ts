@@ -23,7 +23,7 @@ export async function runBuild(env: CommandEnv, opts: BuildOptions): Promise<voi
     // design-system build.mjs calls.
     const [ds, manifest] = await Promise.all([
         loadDesignSystem(env.cwd, opts.entry),
-        loadManifest(env.cwd, opts.manifest, opts.extraManifest ?? []),
+        loadManifest(env.cwd, opts.manifest, opts.extraManifest ?? [], env.logger),
     ]);
     await runStandardBuild({
         designSystem: ds,

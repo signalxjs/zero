@@ -19,8 +19,8 @@ import type { ZeroManifest } from '../contract.js';
 import type { DesignSystemInput } from '../design-system.js';
 import type { ManifestFragment } from '../manifest.js';
 import { attributeFindings, mergeManifests, packagesByScope, whereWithOwner } from '../manifest.js';
-import type { EcosystemOptions, EcosystemPack } from '../discover.js';
-import { exportedSubpath, installedPackageDir, resolveEcosystem } from '../discover.js';
+import type { EcosystemLogger, EcosystemOptions, EcosystemPack } from '../discover.js';
+import { declarationFor, exportedSubpath, installedPackageDir, resolveEcosystem } from '../discover.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import { validateDesignSystem } from '../resolve/validate.js';
 
@@ -35,6 +35,53 @@ function isModuleSpecifier(value: string): boolean {
     return !value.startsWith('.') && !value.startsWith('/') && !value.startsWith('\\') && !/^[a-zA-Z]:/.test(value);
 }
 
+/** A fragment that is a module to import rather than JSON to parse. */
+const MODULE_FILE = /\.(?:m?js|cjs)$/;
+
+/** `@scope/name/sub/path` → `['@scope/name', 'sub/path']`; the subpath may be empty. */
+function splitSpecifier(spec: string): [string, string] {
+    const parts = spec.split('/');
+    const size = spec.startsWith('@') ? 2 : 1;
+    return [parts.slice(0, size).join('/'), parts.slice(size).join('/')];
+}
+
+/**
+ * Where an `--extra-manifest` points, as a file. Three spellings of a
+ * package, tried in order, because the fragment an ecosystem package ships is
+ * usually a JS module behind an ESM-only export:
+ *
+ * - a bare package name (`@acme/stepper`) is read through its `"sigx-zero"`
+ *   field — the declaration discovery reads, so naming the package is enough;
+ * - a subpath (`@acme/stepper/fragment`) goes through `require.resolve`
+ *   first (a `.json` file, a package that declares `require`), then through
+ *   the exports map by hand, since an export declaring only `import` is
+ *   invisible to the CommonJS resolver;
+ * - anything else is a path, relative to `cwd`.
+ */
+function fragmentFile(cwd: string, spec: string, logger: EcosystemLogger): string {
+    if (!isModuleSpecifier(spec)) return resolve(cwd, spec);
+    const [name, subpath] = splitSpecifier(spec);
+    if (!subpath) {
+        const declaration = declarationFor(cwd, name, logger);
+        if (declaration) return declaration.source;
+    }
+    const require = createRequire(resolve(cwd, 'package.json'));
+    try {
+        return require.resolve(spec);
+    } catch {
+        const dir = installedPackageDir(cwd, name);
+        if (dir) {
+            const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as Record<string, unknown>;
+            const target = exportedSubpath(pkg, subpath ? `./${subpath}` : '.');
+            if (target) return resolve(dir, target);
+        }
+        throw new Error(
+            `cannot resolve the manifest fragment "${spec}" from ${cwd}`
+            + (subpath ? '' : ' — a bare package name is read through its "sigx-zero" field, which it does not declare'),
+        );
+    }
+}
+
 /**
  * The anatomy manifest to validate against. Defaults to the manifest generated
  * by whichever `@sigx/zero` the project has installed — resolved from `cwd`,
@@ -45,10 +92,19 @@ function isModuleSpecifier(value: string): boolean {
  * must work rather than being read as a directory named `@sigx`.
  *
  * `extras` are ecosystem manifest fragments (`--extra-manifest`, repeatable),
- * resolved the same way and MERGED rather than replacing — that is the whole
- * difference between covering an ecosystem component and forking the contract.
+ * MERGED rather than replacing — that is the whole difference between
+ * covering an ecosystem component and forking the contract. Each is a JSON
+ * file or a JS module exporting `fragment` (or a default), by path or by
+ * package (`fragmentFile` has the spellings): the module is what an ecosystem
+ * package actually ships, and what a design system's `build.mjs` merges, so
+ * the CLI reads the same thing (#33).
  */
-export async function loadManifest(cwd: string, explicit?: string, extras: string[] = []): Promise<ZeroManifest> {
+export async function loadManifest(
+    cwd: string,
+    explicit?: string,
+    extras: string[] = [],
+    logger: EcosystemLogger = SILENT,
+): Promise<ZeroManifest> {
     const require = createRequire(resolve(cwd, 'package.json'));
 
     const readJson = async (spec: string, what: string): Promise<{ resolved: string; parsed: unknown }> => {
@@ -102,7 +158,7 @@ export async function loadManifest(cwd: string, explicit?: string, extras: strin
 
     const fragments: ManifestFragment[] = [];
     for (const extra of extras) {
-        const { resolved, parsed } = await readJson(extra, 'manifest fragment');
+        const { resolved, parsed } = await readFragment(fragmentFile(cwd, extra, logger), readJson);
         // Shape errors past this point come from `mergeManifests`, which names
         // the fragment by its package — the one mistake it cannot name is a
         // full manifest passed where a fragment belongs, which would otherwise
@@ -163,6 +219,27 @@ export function commandEntry(cwd: string, entry: string, pkg: string | undefined
         throw new Error(`[zero-kit] pass an entry or --package, not both — got "${entry}" and --package ${pkg}`);
     }
     return packageDesignSystemEntry(cwd, pkg, what);
+}
+
+const SILENT: EcosystemLogger = { log() {}, warn() {}, error() {} };
+
+/** A fragment file's content: a module's `fragment` (or default) export, or parsed JSON. */
+async function readFragment(
+    path: string,
+    readJson: (spec: string, what: string) => Promise<{ resolved: string; parsed: unknown }>,
+): Promise<{ resolved: string; parsed: unknown }> {
+    if (!MODULE_FILE.test(path)) return readJson(path, 'manifest fragment');
+    let mod: Record<string, unknown>;
+    try {
+        mod = (await import(pathToFileURL(path).href)) as Record<string, unknown>;
+    } catch (err) {
+        throw new Error(`cannot import the manifest fragment module ${path}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    const parsed = mod['fragment'] ?? mod['default'];
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new Error(`${path} exports no "fragment" object (named "fragment" or default)`);
+    }
+    return { resolved: path, parsed };
 }
 
 export async function loadDesignSystem(cwd: string, entry: string): Promise<DesignSystemInput> {
@@ -229,7 +306,7 @@ export async function loadInputs(
 ): Promise<LoadedInputs> {
     const [loadedDs, loadedManifest] = await Promise.all([
         loadDesignSystem(env.cwd, entry),
-        loadManifest(env.cwd, manifest, extraManifests),
+        loadManifest(env.cwd, manifest, extraManifests, env.logger),
     ]);
     const resolved = await resolveEcosystem({
         manifest: loadedManifest,
