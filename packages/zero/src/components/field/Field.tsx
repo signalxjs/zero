@@ -19,7 +19,7 @@ import { createId } from '../../behaviors/create-id.js';
 import { provideFieldContext, useFieldContext, type FieldContext } from '../../behaviors/field.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithInvalid, WithReadonly, WithRequired, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithInvalid, WithReadonly, WithRequired, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { fieldAnatomy } from './anatomy.js';
 
 const SCOPE = fieldAnatomy.scope;
@@ -67,7 +67,7 @@ const FieldRoot = component<FieldRootProps>(({ props, slots }) => {
     );
 }, { name: 'Field.Root' });
 
-export type FieldLabelProps = WithClass & Define.Slot<'default'>;
+export type FieldLabelProps = WithClass & WithVisuallyHidden & Define.Slot<'default'>;
 
 const FieldLabel = component<FieldLabelProps>(({ props, slots }) => {
     const field = useFieldContext();
@@ -80,6 +80,7 @@ const FieldLabel = component<FieldLabelProps>(({ props, slots }) => {
             data-disabled={dataAttr(field.disabled())}
             data-invalid={dataAttr(field.invalid())}
             data-required={dataAttr(field.required())}
+            data-visually-hidden={dataAttr(props.visuallyHidden)}
             class={props.class}
         >
             {slots.default?.()}

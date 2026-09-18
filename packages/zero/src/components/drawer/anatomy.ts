@@ -46,6 +46,7 @@ export const drawerAnatomy = defineAnatomy('drawer', {
         element: 'h2',
         parent: 'panel',
         tokens: ['color', 'text'],
+        visuallyHidden: true,
     },
     close: {
         element: 'button',

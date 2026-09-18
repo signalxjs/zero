@@ -33,6 +33,12 @@ export type SwitchRootProps =
     & WithModelModifiers
     & WithVariantAxes<'switch'>
     & WithClass
+    /**
+     * Hide the label from sight and keep it as the control's name — for a
+     * switch whose row, not its own text, says what it is. Renders the
+     * `label` part with `data-visually-hidden` (see `WithVisuallyHidden`).
+     */
+    & Define.Prop<'hideLabel', boolean, false>
     & Define.Slot<'default'>;
 
 const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
@@ -133,6 +139,7 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal, onM
                         data-part="label"
                         data-state={checkedState()}
                         data-disabled={dataAttr(disabled())}
+                        data-visually-hidden={dataAttr(props.hideLabel)}
                     >
                         {slots.default()}
                     </span>

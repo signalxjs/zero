@@ -750,7 +750,7 @@ order is idempotent; relying on load order is not. What each layer holds:
 | `zero.fallback` | base.css only: design-system-neutral structural token defaults (radius/size/text ramps, durations, …) so an unstyled page is sane. |
 | `zero.tokens` | Compiled design-system tokens: `:where(:root)` defaults, `@property`-adjacent blocks, theme blocks. |
 | `zero.recipes` | All compiled recipe CSS, plus base.css's few structural necessities (summary marker removal, `cursor: not-allowed`). |
-| `zero.structure` | One rule: `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`. |
+| `zero.structure` | Two rules: `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, and the `[data-visually-hidden]` clip (#54). |
 
 `zero.structure` exists because `[hidden]` otherwise relies on the UA
 sheet — the weakest declaration in the document — and all six design
@@ -760,6 +760,11 @@ rather than higher specificity (compound selectors can reach (0,8,0)) and
 never `!important` (which would also outrank the consumer's unlayered app
 CSS — the consumer must always win). `hidden="until-found"` is exempt
 because the UA gives it `content-visibility: hidden` for find-in-page.
+The visually-hidden clip sits there for the same reason: a label recipe's
+`display` or `margin` must not be able to put a hidden label's box back.
+`data-visually-hidden` is a presentation request, not a flag. Parts declare
+it (`PartSpec.visuallyHidden`), `expectAnatomy` checks it, and the state
+tooling never crosses it.
 
 **Specificity is designed, not accidental.** Root token defaults are
 emitted as `:where(:root)` — (0,0,0) — so any `[data-theme="x"]` block at

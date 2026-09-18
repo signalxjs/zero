@@ -28,6 +28,7 @@ export const dialogAnatomy = defineAnatomy('dialog', {
         element: 'h2',
         parent: 'popup',
         tokens: ['color', 'text'],
+        visuallyHidden: true,
     },
     description: {
         element: 'p',

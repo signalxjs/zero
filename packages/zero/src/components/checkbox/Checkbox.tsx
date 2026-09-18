@@ -41,6 +41,12 @@ export type CheckboxRootProps =
     & WithModelModifiers
     & WithVariantAxes<'checkbox'>
     & WithClass
+    /**
+     * Hide the label from sight and keep it as the control's name — for a
+     * checkbox whose row, not its own text, says what it is. Renders the
+     * `label` part with `data-visually-hidden` (see `WithVisuallyHidden`).
+     */
+    & Define.Prop<'hideLabel', boolean, false>
     & Define.Slot<'default'>;
 
 const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
@@ -150,6 +156,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
                         data-part="label"
                         data-state={checkedState()}
                         data-disabled={dataAttr(disabled())}
+                        data-visually-hidden={dataAttr(props.hideLabel)}
                     >
                         {slots.default()}
                     </span>

@@ -342,3 +342,7 @@ export type { CountdownRootProps, CountdownValueProps } from './components/count
 
 export { Diff, diffAnatomy, useDiffContext } from './components/diff/index.js';
 export type { DiffRootProps, DiffPaneProps, DiffHandleProps } from './components/diff/index.js';
+
+// Not a scope — no anatomy, nothing for a design system to style (see its module).
+export { VisuallyHidden } from './components/visually-hidden/index.js';
+export type { VisuallyHiddenProps, VisuallyHiddenBag } from './components/visually-hidden/index.js';

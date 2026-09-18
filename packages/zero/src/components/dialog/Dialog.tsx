@@ -35,7 +35,7 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { dialogAnatomy } from './anatomy.js';
 
 const SCOPE = dialogAnatomy.scope;
@@ -333,7 +333,11 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
 
 // ── Title / Description ──
 
-export type DialogTitleProps = WithClass & Define.Slot<'default'>;
+/**
+ * `visuallyHidden` keeps the title as the dialog's accessible name while
+ * something else carries the visible heading — a brand row, an icon bar.
+ */
+export type DialogTitleProps = WithClass & WithVisuallyHidden & Define.Slot<'default'>;
 
 const DialogTitle = component<DialogTitleProps>(({ props, slots, onUnmounted }) => {
     const dialog = useDialogContext();
@@ -345,7 +349,13 @@ const DialogTitle = component<DialogTitleProps>(({ props, slots, onUnmounted }) 
         dialog.setTitlePresent(false);
     });
     return () => (
-        <h2 id={dialog.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
+        <h2
+            id={dialog.ids.title}
+            data-scope={SCOPE}
+            data-part="title"
+            data-visually-hidden={dataAttr(props.visuallyHidden)}
+            class={props.class}
+        >
             {slots.default?.()}
         </h2>
     );

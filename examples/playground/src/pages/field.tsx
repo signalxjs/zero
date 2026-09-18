@@ -1,5 +1,5 @@
 import { component } from 'sigx';
-import { Checkbox, Field, Switch } from '@sigx/zero';
+import { Checkbox, Field, Input, Switch } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const FieldDemos = component(() => () => (
@@ -37,6 +37,31 @@ const FieldDemos = component(() => () => (
             <Field.Label>Change notifications</Field.Label>
             <Switch.Root>Email me about changes</Switch.Root>
             <Field.Error>Pick a delivery method.</Field.Error>
+        </Field.Root>
+
+        <h2>Visually hidden labels</h2>
+        {/*
+          * One accessible name, three ways (#54). A Field.Label and the
+          * Switch's own text are BOTH <label>s of the same input, so the
+          * name concatenates them — name it once: here the Field names it
+          * and the Switch renders no text of its own.
+          */}
+        <Field.Root>
+            <Field.Label>Dark mode</Field.Label>
+            <Switch.Root />
+        </Field.Root>
+        {/* The row says what it is; the switch keeps a name for AT alone. */}
+        <p data-demo="row-named">
+            Airplane mode <Switch.Root hideLabel>Airplane mode</Switch.Root>
+        </p>
+        {/* A compact control whose label is out of sight but still `for` it. */}
+        <Field.Root>
+            <Field.Label visuallyHidden>Search the docs</Field.Label>
+            <Input.Root>
+                <Input.Control>
+                    <Input.Input placeholder="Search…" />
+                </Input.Control>
+            </Input.Root>
         </Field.Root>
     </>
 ), { name: 'FieldDemos' });

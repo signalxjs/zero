@@ -179,6 +179,47 @@ props and spread `htmlAttrs(props)` first.
 <Button.Root aria-label="Close" data-testid="close" onClick={close}>×</Button.Root>
 <Table.Row data-row-id={row.id}><Table.Cell colSpan={5}>No results</Table.Cell></Table.Row>
 <Card.Root role="region" aria-labelledby="report-title">…</Card.Root>
+
+**Visually hidden, still named.** `Field.Label`, `Input.Label`,
+`Textarea.Label`, `Dialog.Title` and `Drawer.Title` take `visuallyHidden`,
+and `Switch.Root` / `Checkbox.Root` take `hideLabel` for their `label` part:
+the part stays in the accessibility tree — the label still names its
+control through `for`, the title still names its popup through
+`aria-labelledby` — and leaves the screen. It renders
+`data-visually-hidden`, which `css/base.css` clips in
+`@layer zero.structure`, so no recipe can put the box back and a design
+system has nothing to write. It is a presentation request, not a flag: the
+anatomy declares which parts offer it (`visuallyHidden: true`), and
+`expectAnatomy` fails the attribute anywhere else. For content that is not
+a part — an icon button's text — `VisuallyHidden` (`@sigx/zero/visually-hidden`,
+`asChild` supported) renders the same attribute; it is deliberately not a
+scope, since there is nothing in it to style.
+
+```tsx
+<Field.Root>
+    <Field.Label visuallyHidden>Search the docs</Field.Label>
+    <Input.Root>…</Input.Root>
+</Field.Root>
+
+<button><Icon name="close" /><VisuallyHidden>Close</VisuallyHidden></button>
+```
+
+**Field + Switch share one accessible name — give it once.** Inside a
+Field, `Field.Label` (`for` the input) and `Switch.Root` (a `<label>`
+wrapping it) are both labels of the same input, and a control's accessible
+name concatenates every label it has. So name it in exactly one place:
+either `Field.Label` and a `Switch.Root` with no children of its own, or the
+Switch's own text and no `Field.Label`. When a row elsewhere carries the
+visible text, keep the Switch's text as the name with `hideLabel`. The same
+holds for Checkbox.
+
+```tsx
+<Field.Root>
+    <Field.Label>Dark mode</Field.Label>
+    <Switch.Root />               {/* name: "Dark mode" */}
+</Field.Root>
+
+<Switch.Root hideLabel>Airplane mode</Switch.Root>
 ```
 
 `css/base.css` also declares `--print-ink`, the ink a print fallback draws

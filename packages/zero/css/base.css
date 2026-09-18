@@ -206,4 +206,32 @@
     [data-scope][data-part][hidden]:not([hidden="until-found" i]) {
         display: none;
     }
+
+    /*
+     * Visually hidden: gone from sight, still in the accessibility tree — a
+     * `Field.Label visuallyHidden`, a `Drawer.Title visuallyHidden`, the
+     * `VisuallyHidden` utility, or any element an app stamps by hand. The
+     * same technique as the inline `VISUALLY_HIDDEN_STYLE` the native form
+     * controls carry, as a rule.
+     *
+     * Here for the `[hidden]` guard's reason: a label recipe's `display`,
+     * `margin` or `padding` in `zero.recipes` must not be able to put the box
+     * back. The attribute is not scope-qualified — it is zero's own spelling,
+     * owned by no one scope. Both the physical and the logical size are
+     * stated, so a recipe `inline-size` cannot outrank the clip either way.
+     */
+    [data-visually-hidden] {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        border: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
 }

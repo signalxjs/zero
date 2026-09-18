@@ -37,7 +37,7 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { drawerAnatomy } from './anatomy.js';
 
 const SCOPE = drawerAnatomy.scope;
@@ -316,7 +316,11 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
 
 // ── Title ──
 
-export type DrawerTitleProps = WithClass & Define.Slot<'default'>;
+/**
+ * `visuallyHidden` keeps the title as the drawer's accessible name while
+ * something else carries the visible heading — a brand row, an icon bar.
+ */
+export type DrawerTitleProps = WithClass & WithVisuallyHidden & Define.Slot<'default'>;
 
 const DrawerTitle = component<DrawerTitleProps>(({ props, slots, onUnmounted }) => {
     const drawer = useDrawerContext();
@@ -328,7 +332,13 @@ const DrawerTitle = component<DrawerTitleProps>(({ props, slots, onUnmounted }) 
         drawer.setTitlePresent(false);
     });
     return () => (
-        <h2 id={drawer.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
+        <h2
+            id={drawer.ids.title}
+            data-scope={SCOPE}
+            data-part="title"
+            data-visually-hidden={dataAttr(props.visuallyHidden)}
+            class={props.class}
+        >
             {slots.default?.()}
         </h2>
     );

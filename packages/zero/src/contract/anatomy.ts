@@ -126,6 +126,17 @@ export interface PartSpec {
     tokens?: readonly TokenHint[];
     /** True when the part supports `asChild`. */
     asChild?: boolean;
+    /**
+     * True when the consumer can hide the part from sight while it keeps
+     * naming something — a label beside a compact control, a drawer title
+     * whose heading is the brand row. The part then renders
+     * `data-visually-hidden`, which `css/base.css` clips in
+     * `@layer zero.structure`: no recipe can undo it, and a design system
+     * has nothing to style. Declared rather than exempted, like
+     * `placements`, so `expectAnatomy` fails the attribute on a part that
+     * never offered it.
+     */
+    visuallyHidden?: boolean;
     /** Present when the part projects onto a pseudo-element on the web. */
     pseudo?: PartPseudo;
 }

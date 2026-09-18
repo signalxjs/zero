@@ -26,6 +26,7 @@ export const checkboxAnatomy = defineAnatomy('checkbox', {
         states: ['checked', 'unchecked', 'indeterminate'],
         flags: ['disabled'],
         tokens: ['color', 'text'],
+        visuallyHidden: true,
     },
     'hidden-input': {
         element: 'input',

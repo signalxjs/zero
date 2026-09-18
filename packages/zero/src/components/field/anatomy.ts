@@ -11,6 +11,7 @@ export const fieldAnatomy = defineAnatomy('field', {
         parent: 'root',
         flags: ['disabled', 'invalid', 'required'],
         tokens: ['color', 'text'],
+        visuallyHidden: true,
     },
     description: {
         element: 'p',

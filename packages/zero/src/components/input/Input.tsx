@@ -30,7 +30,7 @@ import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithFormControl, WithModelModifiers, WithReadonly, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithFormControl, WithModelModifiers, WithReadonly, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { inputAnatomy } from './anatomy.js';
 
 const SCOPE = inputAnatomy.scope;
@@ -152,7 +152,7 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
 
 // ── Label ──
 
-export type InputLabelProps = WithClass & Define.Slot<'default'>;
+export type InputLabelProps = WithClass & WithVisuallyHidden & Define.Slot<'default'>;
 
 const InputLabel = component<InputLabelProps>(({ props, slots }) => {
     const ctx = useInputContext();
@@ -165,6 +165,7 @@ const InputLabel = component<InputLabelProps>(({ props, slots }) => {
             data-disabled={dataAttr(ctx.disabled())}
             data-invalid={dataAttr(ctx.invalid())}
             data-required={dataAttr(ctx.required())}
+            data-visually-hidden={dataAttr(props.visuallyHidden)}
             class={props.class}
         >
             {slots.default?.()}
