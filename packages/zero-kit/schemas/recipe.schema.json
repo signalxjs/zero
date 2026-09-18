@@ -141,6 +141,22 @@
                 }
             }
         },
+        "sameAs": {
+            "description": "part \u2192 { state: otherState }: declared states that paint the same on purpose. The state-legibility guard excuses exactly that pair (chains form one class) and still requires every other pair to differ; the named state counts as addressed for the validator's coverage warning.",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "type": "object",
+                "propertyNames": {
+                    "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                },
+                "additionalProperties": {
+                    "$ref": "#/$defs/kebabToken"
+                }
+            }
+        },
         "targets": {
             "description": "Per-target sections, deep-merged over the shared recipe before that target compiles. Web-runtime-dependent declarations (var(--press-*), the raw css hatch) live in targets.web; targets.lynx supplies replacements where a dropped web spelling leaves a state illegible.",
             "type": "object",
@@ -314,6 +330,22 @@
                     "additionalProperties": {
                         "type": "array",
                         "items": {
+                            "$ref": "#/$defs/kebabToken"
+                        }
+                    }
+                },
+                "sameAs": {
+                    "description": "part \u2192 { state: otherState }: declared states that paint the same on purpose, for this target.",
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "type": "object",
+                        "propertyNames": {
+                            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                        },
+                        "additionalProperties": {
                             "$ref": "#/$defs/kebabToken"
                         }
                     }

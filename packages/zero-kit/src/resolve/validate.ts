@@ -1072,11 +1072,14 @@ export function validateDesignSystem<R extends RolesDecl>(
             if (!part) continue; // already an error above
             const styled = new Set(Object.keys(styles.states ?? {}));
             const skipped = new Set(recipe.skipStates?.[partName] ?? []);
+            // A state declared to paint like another is addressed: its
+            // styling is its partner's, by the author's own statement.
+            const same = new Set(Object.keys(recipe.sameAs?.[partName] ?? {}));
             for (const state of part.states ?? []) {
-                if (!styled.has(state) && !skipped.has(state)) {
+                if (!styled.has(state) && !skipped.has(state) && !same.has(state)) {
                     warn(
                         `recipes.${recipe.component}.${partName}`,
-                        `declared state "${state}" is not styled (add it or list it in skipStates)`,
+                        `declared state "${state}" is not styled (add it, list it in skipStates, or declare the state it paints like in sameAs)`,
                     );
                 }
             }

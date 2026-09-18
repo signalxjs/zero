@@ -554,6 +554,16 @@ describe('recipe.schema.json', () => {
         expect(validateRecipe(asJson({ parts: { root: { base: { color: 'red' } } } }))).toBe(false);
     });
 
+    it('accepts sameAs, shared and per target, and rejects a list where a state belongs', () => {
+        expectValid(validateRecipe, asJson({
+            component: 'tabs',
+            parts: { tab: {} },
+            sameAs: { tab: { inactive: 'active' } },
+            targets: { lynx: { sameAs: { tab: { active: 'inactive' } } } },
+        }), 'sameAs');
+        expect(validateRecipe(asJson({ component: 'tabs', parts: {}, sameAs: { tab: { inactive: ['active'] } } }))).toBe(false);
+    });
+
     it('rejects an unknown key inside PartStyles (the shape is closed, so typos fail)', () => {
         expect(validateRecipe(asJson({
             component: 'tabs',

@@ -161,6 +161,27 @@ declared state distinctly — the state-legibility tooling measures ink.
 JSON form of the fragment validates against the kit's
 `schemas/fragment.schema.json`.
 
+Two declarations keep that honest instead of padded:
+
+- **A component that never renders `data-color` has no colour axis** — say
+  so rather than wiring every role to quiet the guards. Export `scopes`
+  beside `fragment` and `recipes`, the shape of a design system's
+  `tokens.scopes` with every list empty:
+
+  ```ts
+  export const scopes = { 'acme-feed': { colors: [], variants: [] } };
+  ```
+
+  Discovery folds it into the adopting design system's `tokens.scopes`
+  (never over an entry the design system wrote itself, and only for axes it
+  declares) — the waiver `layoutScopes` gives the layout tier. A design
+  system that adopts you by hand spreads it the same way. Only empty lists:
+  narrowing to values is the adopter's decision, in its vocabulary.
+- **States that look alike on purpose are declared alike** —
+  `sameAs: { root: { complete: 'loading' } }` on the recipe excuses that one
+  pair from the state-legibility guard (every other pair must still differ)
+  and counts `complete` as addressed. No `opacity: '1'` to fake a difference.
+
 ## 5. A design system adopts you
 
 Declare one field, and every zero build finds the package:

@@ -846,9 +846,9 @@ the artifact sees all of them. Twelve rules:
 
 | Rule | Severity | It reports… | Waived by |
 |---|---|---|---|
-| `state-legibility/component` | error | two declared states no part of the component renders differently | `skipStates` on every part that has them; the anatomy's `hiddenIn` |
-| `state-legibility/indicator` | error | an `*indicator` part that renders identically across its own states — a spacer, not an indicator | `skipStates` on the indicator; `hiddenIn` |
-| `state-legibility/disclosure` | error | the control of an in-flow disclosure (collapsible, accordion, tree-view) that says nothing about `open`/`closed` — the panel expanding is the browser's doing | `skipStates` on the control; a sibling `*indicator` that differentiates |
+| `state-legibility/component` | error | two declared states no part of the component renders differently | `skipStates` or `sameAs` on every part that has them; the anatomy's `hiddenIn` |
+| `state-legibility/indicator` | error | an `*indicator` part that renders identically across its own states — a spacer, not an indicator | `skipStates` or `sameAs` on the indicator; `hiddenIn` |
+| `state-legibility/disclosure` | error | the control of an in-flow disclosure (collapsible, accordion, tree-view) that says nothing about `open`/`closed` — the panel expanding is the browser's doing | `skipStates` or `sameAs` on the control; a sibling `*indicator` that differentiates |
 | `button-affordance` | error | a part zero renders as a real `<button>` with no unconditional `appearance` reset, so the user agent paints its chip | — (set `appearance: none`) |
 | `axis-value-coverage/gap` | error | a declared step a sibling scope implements that this scope neither paints nor claims as its base (#258's shape) | `tokens.scopes` |
 | `axis-value-coverage/ambiguous-base` | error | two values written as empty entries, both claiming the base and rendering identically | — |

@@ -121,7 +121,7 @@ export interface AuditFinding {
  */
 export interface AuditWaiver extends AuditFinding {
     waivedBy: {
-        mechanism: 'skipStates' | 'hiddenIn' | 'tokens.scopes' | 'role-decl';
+        mechanism: 'skipStates' | 'sameAs' | 'hiddenIn' | 'tokens.scopes' | 'role-decl';
         detail: string;
     };
 }

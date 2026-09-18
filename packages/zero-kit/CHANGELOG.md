@@ -53,6 +53,24 @@
   style. It is not a flag. `visually-hidden` joins the mirrored
   `RESERVED_AXES`, and `hideLabel` joins the reserved root props of
   `switch` and `checkbox`.
+- **`sameAs`: states that look alike on purpose** (#64). A recipe declares
+  `sameAs: { <part>: { <state>: <otherState> } }` and the state-legibility
+  guard excuses exactly that pair (chained claims form one class) while
+  still holding every other pair to a visible difference — where
+  `skipStates` excuses the state against all its siblings. The named state
+  counts as addressed for the validator's coverage warning; names are
+  validated; `targets` sections merge it per part; audit waivers carry the
+  new `sameAs` mechanism. Replaces a no-op declaration (`opacity: '1'`)
+  written only to make two states differ.
+- **An ecosystem pack may decline an axis for its own scopes** (#64). The
+  fragment entry's optional `scopes` export (`{ 'acme-feed': { colors: [] } }`
+  — `tokens.scopes`-shaped, every list empty) rides with the pack's adopted
+  recipe into the design system's `tokens.scopes`, never over the design
+  system's own entry and only for axes it declares, so `axis-coverage`
+  waives it the way it waives the layout tier. A component that renders no
+  `data-color` no longer wires every role to keep the guards quiet.
+  `packFromModule` (and so `sigx zero:fragment`) refuses a foreign scope,
+  an unknown key or a non-empty list.
 
 - **`extendDesignSystem` and `extendRecipe`: derive a design system from
   another** (#60). On `/define` and the barrel. A derived system patches

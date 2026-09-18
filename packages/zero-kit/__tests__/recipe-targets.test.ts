@@ -116,4 +116,15 @@ describe('resolveRecipeForTarget', () => {
         expect(Object.keys(lynx.keyframes!)).toEqual(['spin', 'fade']);
         expect(lynx.skipStates).toEqual({ root: ['focus-visible', 'pressed'], label: ['disabled'] });
     });
+
+    it('merges sameAs per part, the target winning for a state both name', () => {
+        const recipe: RecipeInput = {
+            component: 'tabs',
+            parts: {},
+            sameAs: { tab: { inactive: 'active' }, list: { a: 'b' } },
+            targets: { lynx: { sameAs: { tab: { inactive: 'x', y: 'z' } } } },
+        };
+        expect(resolveRecipeForTarget(recipe, 'lynx').sameAs).toEqual({ tab: { inactive: 'x', y: 'z' }, list: { a: 'b' } });
+        expect(resolveRecipeForTarget(recipe, 'web').sameAs).toEqual(recipe.sameAs);
+    });
 });

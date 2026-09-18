@@ -37,6 +37,7 @@ import type { DesignSystemInput } from './design-system.js';
 import type { ManifestFragment } from './manifest.js';
 import { mergeManifests, packagesByScope } from './manifest.js';
 import type { RecipeInput } from './recipes.js';
+import type { ScopeVocabulary } from './tokens.js';
 import type { FitReport } from './fit.js';
 import { fitRecipes } from './fit.js';
 
@@ -87,6 +88,17 @@ export interface EcosystemPack {
      * grammar. Loaded here; composed into the design system by the caller.
      */
     recipes: readonly RecipeInput[];
+    /**
+     * Axes the pack declares OUT of existence for its own scopes — the
+     * optional `scopes` export, the shape of `tokens.scopes` with every list
+     * empty (`{ 'acme-feed': { colors: [] } }`). A component that never
+     * renders `data-color` says so here instead of wiring every role to keep
+     * the axis guards quiet; composition folds it into the adopting design
+     * system's `tokens.scopes`, where it is the same waiver `layoutScopes`
+     * gives the layout tier. Only empty lists: narrowing to VALUES is the
+     * adopting design system's decision, in its own vocabulary.
+     */
+    scopes?: Readonly<Record<string, ScopeVocabulary>>;
 }
 
 export interface EcosystemOptions {
@@ -422,7 +434,53 @@ export function packFromModule(declaration: EcosystemDeclaration, mod: Record<st
         throw new Error(`[zero-kit] ${name}'s fragment entry ${source} exports a "recipes" that is not an array`);
     }
 
-    return { package: name, source, fragment: fragment as ManifestFragment, recipes: recipes as RecipeInput[] };
+    const scopes = packScopes(name, source, fragment as ManifestFragment, mod['scopes']);
+    return {
+        package: name,
+        source,
+        fragment: fragment as ManifestFragment,
+        recipes: recipes as RecipeInput[],
+        ...(scopes ? { scopes } : {}),
+    };
+}
+
+/** The keys a pack's `scopes` entry may declare out — `ScopeVocabulary`'s. */
+const PACK_SCOPE_KEYS = new Set(['colors', 'sizes', 'variants', 'modifiers', 'axes']);
+
+/**
+ * Validate a pack's optional `scopes` export: its own scopes only, known
+ * keys only, and every list empty. Thrown, like every other shape error
+ * here, so `sigx zero:fragment` refuses it before an adopter's build does.
+ */
+function packScopes(
+    name: string,
+    source: string,
+    fragment: ManifestFragment,
+    raw: unknown,
+): Record<string, ScopeVocabulary> | undefined {
+    if (raw === undefined) return undefined;
+    const fail = (why: string): never => {
+        throw new Error(`[zero-kit] ${name}'s fragment entry ${source} exports "scopes" ${why}`);
+    };
+    const isList = (v: unknown): v is unknown[] => Array.isArray(v);
+    if (typeof raw !== 'object' || raw === null || isList(raw)) fail('that is not an object');
+    const owned = new Set((fragment.components ?? []).map((c) => c.scope));
+    const out = Object.create(null) as Record<string, ScopeVocabulary>;
+    for (const [scope, entry] of Object.entries(raw as Record<string, unknown>)) {
+        if (!owned.has(scope)) fail(`naming "${scope}", which the fragment does not declare — a pack speaks only for its own scopes`);
+        if (typeof entry !== 'object' || entry === null || isList(entry)) fail(`with a "${scope}" entry that is not an object`);
+        for (const [key, value] of Object.entries(entry as Record<string, unknown>)) {
+            if (!PACK_SCOPE_KEYS.has(key)) fail(`with an unknown key "${key}" on "${scope}" (known: ${[...PACK_SCOPE_KEYS].join(', ')})`);
+            const lists = key === 'axes'
+                ? (typeof value === 'object' && value !== null && !isList(value) ? Object.values(value) : [value])
+                : [value];
+            if (lists.some((list) => !isList(list) || list.length > 0)) {
+                fail(`with "${scope}.${key}" not an empty list — a pack may only declare an axis out of existence ([]); narrowing to values is the adopting design system's call`);
+            }
+        }
+        out[scope] = entry as ScopeVocabulary;
+    }
+    return out;
 }
 
 /**
@@ -549,7 +607,16 @@ export async function discoverEcosystem(
  * is for, and not one anybody opted into by adding a dependency.
  */
 function refuseOverreach(pack: EcosystemPack): void {
+    // `scopes` is held to the same rule in `packFromModule`; a pack supplied
+    // directly (`packs:`) never passed through it, so check both here.
     const owned = new Set(pack.fragment.components.map((c) => c.scope));
+    const foreignScopes = Object.keys(pack.scopes ?? {}).filter((s) => !owned.has(s));
+    if (foreignScopes.length > 0) {
+        throw new Error(
+            `[zero-kit] ${pack.package} declares scope vocabularies for scopes it does not declare `
+            + `(${foreignScopes.map((s) => `"${s}"`).join(', ')}) — a pack may only speak for its own components`,
+        );
+    }
     const foreign = pack.recipes.filter((r) => !owned.has(r.component));
     if (foreign.length === 0) return;
     throw new Error(
@@ -693,6 +760,8 @@ function compose(
     // Null prototype, for the same reason `packagesByScope` uses one:
     // `constructor` passes the scope grammar.
     const contributed: Record<string, string> = Object.create(null) as Record<string, string>;
+    const scopes: Record<string, ScopeVocabulary> = { ...ds.tokens.scopes };
+    let scoped = false;
 
     for (const pack of packs) {
         if (pack.recipes.length === 0) continue;
@@ -715,11 +784,42 @@ function compose(
             styled.add(recipe.component);
             contributed[recipe.component] = pack.package;
             added.push(recipe);
+
+            // The pack's declined axes ride along with its recipe — only for
+            // a scope whose recipe it contributed, and never over the design
+            // system's own entry, which is its decision about that scope.
+            const declined = pack.scopes?.[recipe.component];
+            if (declined && !Object.hasOwn(scopes, recipe.component)) {
+                const entry = declinedFor(declined, ds.tokens);
+                if (entry) {
+                    scopes[recipe.component] = entry;
+                    scoped = true;
+                }
+            }
         }
     }
 
-    return {
-        designSystem: added.length > 0 ? { ...ds, recipes: [...ds.recipes, ...added] } : ds,
-        contributed,
-    };
+    let designSystem = added.length > 0 ? { ...ds, recipes: [...ds.recipes, ...added] } : ds;
+    if (scoped) designSystem = { ...designSystem, tokens: { ...designSystem.tokens, scopes } };
+    return { designSystem, contributed };
+}
+
+/**
+ * A pack's declined axes, kept only where this design system declares the
+ * axis at all. Declining an axis the skin never had is already true, and
+ * `tokens.scopes` refuses a restriction of an undeclared union — so the
+ * entry is filtered rather than folded verbatim. `undefined` when nothing
+ * is left to say.
+ */
+function declinedFor(declined: ScopeVocabulary, tokens: DesignSystemInput['tokens']): ScopeVocabulary | undefined {
+    const entry: { -readonly [K in keyof ScopeVocabulary]: ScopeVocabulary[K] } = {};
+    // Colours and sizes always have a union: roles and sizes resolve to the
+    // recommended sets when omitted, and `{}` / `[]` is itself a declaration.
+    if (declined.colors) entry.colors = [];
+    if (declined.sizes) entry.sizes = [];
+    if (declined.variants && tokens.variants !== undefined) entry.variants = [];
+    if (declined.modifiers && tokens.modifiers !== undefined) entry.modifiers = [];
+    const axes = Object.keys(declined.axes ?? {}).filter((axis) => tokens.axes?.[axis] !== undefined);
+    if (axes.length > 0) entry.axes = Object.fromEntries(axes.map((axis) => [axis, []]));
+    return Object.keys(entry).length > 0 ? entry : undefined;
 }

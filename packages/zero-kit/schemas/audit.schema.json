@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://signalxjs.github.io/zero/schemas/audit.schema.json",
     "title": "SignalX Zero design-system audit",
-    "description": "Whether what a design system BUILT says what it claims \u2014 emitted as dist/audit.json by the zero build and by `sigx zero:audit --json` (docs/architecture.md, \"The verification architecture\"). Every finding is a verdict about one place, read from the compiled CSS: a declared state no part renders differently, an indicator that draws nothing, a real <button> the user agent still paints, a declared axis step a scope neither paints nor claims, an infinite animation that never stops under reduced motion. What a declared mechanism excused (skipStates, the anatomy's hiddenIn, tokens.scopes, a fill-role declaration) is listed under `waived` rather than swallowed. The summary is what report.json carries under `audit` and what the score's sixth criterion reads.",
+    "description": "Whether what a design system BUILT says what it claims \u2014 emitted as dist/audit.json by the zero build and by `sigx zero:audit --json` (docs/architecture.md, \"The verification architecture\"). Every finding is a verdict about one place, read from the compiled CSS: a declared state no part renders differently, an indicator that draws nothing, a real <button> the user agent still paints, a declared axis step a scope neither paints nor claims, an infinite animation that never stops under reduced motion. What a declared mechanism excused (skipStates, sameAs, the anatomy's hiddenIn, tokens.scopes, a fill-role declaration) is listed under `waived` rather than swallowed. The summary is what report.json carries under `audit` and what the score's sixth criterion reads.",
     "type": "object",
     "additionalProperties": false,
     "required": [
@@ -303,6 +303,7 @@
                             "type": "string",
                             "enum": [
                                 "skipStates",
+                                "sameAs",
                                 "hiddenIn",
                                 "tokens.scopes",
                                 "role-decl"

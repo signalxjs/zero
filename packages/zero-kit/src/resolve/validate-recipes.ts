@@ -812,6 +812,31 @@ export function validateRecipes(
             }
         }
 
+        // ── sameAs must name a real pair of one part's states ──
+        for (const [partName, pairs] of Object.entries(recipe.sameAs ?? {})) {
+            const part = partsByName.get(partName);
+            if (!part) {
+                error(`${where}.sameAs`, `"${partName}" is not a part of "${recipe.component}"`);
+                continue;
+            }
+            // States only: a flag is presence, not one value of a closed
+            // set, so "paints like" another member has no meaning for it.
+            const states = new Set(part.states ?? []);
+            for (const [state, other] of Object.entries(pairs)) {
+                for (const name of [state, other]) {
+                    if (!states.has(name)) {
+                        error(
+                            `${where}.sameAs.${partName}`,
+                            `"${name}" is not a state of "${partName}" (has: ${[...states].join(', ') || 'none'})`,
+                        );
+                    }
+                }
+                if (state === other) {
+                    error(`${where}.sameAs.${partName}`, `"${state}" is declared the same as itself — name the state it paints like`);
+                }
+            }
+        }
+
         // ── variant axes and values ──
         // Vocabulary membership is checked per axis. The rule is one
         // principle: an EXPLICIT declaration closes its set — colour against
