@@ -95,6 +95,12 @@
 
 ### Fixed
 
+- **A dark-only design system shipped `color-scheme: light` on `:root`**
+  (#61). With no `defaultDark`, `:root` hard-coded `light`, so native
+  controls, scrollbars and `light-dark()` resolved light under a dark
+  palette. It now states the default theme's own `colorScheme`; naming one
+  theme as both `defaultLight` and `defaultDark` compiles identically, so the
+  both-defaults workaround and an app-level `color-scheme` pin can go.
 - **`color-mix()` toward an achromatic colour invented a hue** (#403,
   slice D). CSS Color 4 §12.3: a MISSING component — black's hue in oklch,
   any grey's, `transparent`'s — is carried over from the other colour before

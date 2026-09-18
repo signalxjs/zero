@@ -63,6 +63,10 @@ export const designSystem = defineDesignSystem({
 
 Only the base surfaces (`base-100/200/300/base-content`) are fixed — they
 anchor `-soft` derivation, `light-dark()` emission and theme swatches.
+`defaultDark` is optional: without it (or naming the same theme as
+`defaultLight`) there is one scheme, and `:root` takes the default theme's
+own `colorScheme` — a dark-only design system names its dark theme as
+`defaultLight` and ships `color-scheme: dark`.
 Declared roles are `@property`-registered in the compiled CSS and surfaced,
 with `sizes`, `variants`, `modifiers`, `axes`, `system`, `custom` and
 `breakpoints`, in the DS's `dist/manifest.json` (which also lists every custom

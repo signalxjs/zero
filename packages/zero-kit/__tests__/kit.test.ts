@@ -38,6 +38,31 @@ describe('compileTokensCss', () => {
         expect(css).toMatch(/--color-primary: light-dark\(/);
     });
 
+    it('gives a dark-only design system color-scheme: dark on :root (#61)', () => {
+        // With no dark default the one theme IS the scheme; stating `light`
+        // would resolve native controls, scrollbars and `light-dark()` light
+        // under a dark palette.
+        const dark = basicTokens.themes['basic-dark']!;
+        const darkOnly = compileTokensCss({
+            ...basicTokens,
+            themes: { night: dark },
+            defaultLight: 'night',
+            defaultDark: undefined,
+        });
+        const root = darkOnly.slice(darkOnly.indexOf(':where(:root)'));
+        expect(root).toMatch(/^:where\(:root\) \{\s*color-scheme: dark;/);
+        expect(darkOnly).not.toContain('color-scheme: light');
+        expect(darkOnly).not.toContain('light-dark(');
+
+        // Naming the one theme as both defaults is the same design system.
+        expect(compileTokensCss({
+            ...basicTokens,
+            themes: { night: dark },
+            defaultLight: 'night',
+            defaultDark: 'night',
+        })).toBe(darkOnly);
+    });
+
     it('derives soft tints live via color-mix', () => {
         expect(css).toMatch(/--color-primary-soft: color-mix\(in oklab, var\(--color-primary\) \d+%, var\(--color-base-100\)\)/);
     });

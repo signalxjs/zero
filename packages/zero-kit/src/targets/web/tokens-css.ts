@@ -114,6 +114,11 @@ function themeOwnProps(theme: AnyTheme): Record<string, string> {
  * `light-dark()` is a `<color>` function, so every other property emits its
  * light value here, and any that differ under dark go in the caller's
  * `prefers-color-scheme: dark` block.
+ *
+ * With no distinct dark default there is one scheme, and it is the default
+ * theme's own: a dark-only design system states `color-scheme: dark`, or
+ * native controls, scrollbars and `light-dark()` would resolve light under
+ * its palette.
  */
 function rootDecls(
     light: AnyTheme,
@@ -121,9 +126,9 @@ function rootDecls(
     roles: RolesDecl,
     nonColorLight: Record<string, string>,
 ): string[] {
-    if (!dark) {
+    if (!dark || dark === light) {
         return [
-            'color-scheme: light;',
+            `color-scheme: ${light.colorScheme};`,
             ...colorDecls(light, roles),
             ...systemDecls(nonColorLight),
         ];

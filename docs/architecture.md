@@ -818,8 +818,10 @@ system. The system default needs **no JavaScript**: compiled CSS uses
 `light-dark()` with `color-scheme: light dark` on `:root` (colour tokens
 only — a non-colour token that differs between the default themes goes into
 a `prefers-color-scheme: dark` block instead, because `light-dark()` is a
-`<color>` function). The controller only manages *explicit* choices via the
-`data-theme` attribute.
+`<color>` function). A design system with no distinct `defaultDark` has one
+scheme, and `:root` states its default theme's own — `color-scheme: dark` for
+a dark-only system, never a hard-coded `light`. The controller only manages
+*explicit* choices via the `data-theme` attribute.
 
 **`pickThemeFor` prefers declared defaults.** The registry stores each
 source's `defaultLight`/`defaultDark` and prefers them (when registered

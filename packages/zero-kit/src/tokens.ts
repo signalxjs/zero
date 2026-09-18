@@ -315,7 +315,11 @@ export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTo
      */
     systemDark?: ThemeSystem<T>;
     themes: Record<string, ThemeInput<R, T>>;
-    /** Theme used for `:root` (system light). */
+    /**
+     * Theme used for `:root` (system light). Without a distinct
+     * `defaultDark` it is the only default, and `:root` takes its
+     * `colorScheme` — a dark-only design system names its dark theme here.
+     */
     defaultLight: string;
     /** Theme paired with `defaultLight` for system dark. */
     defaultDark?: string;
