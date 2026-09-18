@@ -282,7 +282,11 @@ describe('the generated shapes', () => {
         const compiledHeroui = compileDesignSystem(herouiDS as DesignSystemInput, manifest);
         const dts = compileComponentsDts(compiledHeroui);
         expect(dts).toContain('export declare const Tabs: TabsAdapted & AdaptedStatics<typeof ZTabs> & { Root: TabsAdapted };');
-        expect(dts).toContain('export declare const Button: ButtonAdapted & { Root: ButtonAdapted };');
+        expect(dts).toContain('export declare const Badge: BadgeAdapted & { Root: BadgeAdapted };');
+        // More than one part is the proxy, not compound membership: Button's
+        // `spinner` (#50) is rendered by Root, so its statics are empty — the
+        // intersection is harmless, and the vendor-renamed Root still wins.
+        expect(dts).toContain('export declare const Button: ButtonAdapted & AdaptedStatics<typeof ZButton> & { Root: ButtonAdapted };');
     });
 });
 

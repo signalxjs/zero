@@ -1079,10 +1079,14 @@ export function validateDesignSystem<R extends RolesDecl>(
             const same = new Set(Object.keys(recipe.sameAs?.[partName] ?? {}));
             for (const state of part.states ?? []) {
                 if (!styled.has(state) && !skipped.has(state) && !same.has(state)) {
-                    warn(
-                        `recipes.${recipe.component}.${partName}`,
-                        `declared state "${state}" is not styled (add it, list it in skipStates, or declare the state it paints like in sameAs)`,
-                    );
+                    // Tagged here: this loop runs after validateRecipes, so
+                    // there is no ambient scope for it to inherit.
+                    warnings.push({
+                        level: 'warning',
+                        where: `recipes.${recipe.component}.${partName}`,
+                        message: `declared state "${state}" is not styled (add it, list it in skipStates, or declare the state it paints like in sameAs)`,
+                        scope: recipe.component,
+                    });
                 }
             }
         }

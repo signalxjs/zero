@@ -67,7 +67,10 @@ export const button: RecipeInput = {
     parts: {
         root: {
             base: { border: '1px solid transparent', cursor: 'pointer' },
-            states: { 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' } },
+            states: {
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                loading: { cursor: 'progress' },
+            },
         },
     },
     variants: {

@@ -146,7 +146,6 @@ const EXPECTED: Record<string, Record<string, ConformanceGrade>> = {
         variant: 'exact',
         'axes.radius': 'exact',
         'mods.high-contrast': 'reshaped',
-        'mods.loading': 'reshaped',
     },
     heroui: { variant: 'exact', 'mods.icon-only': 'reshaped', 'mods.pending': 'reshaped', 'mods.striped': 'reshaped' },
     material: {},

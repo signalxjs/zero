@@ -3483,8 +3483,20 @@
         --btn-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
     }
 
+    [data-scope="button"][data-part="spinner"] {
+        box-sizing: border-box;
+        inline-size: 1em;
+        block-size: 1em;
+        flex: none;
+        border-radius: 9999px;
+        border: calc(var(--border) * 2) solid currentColor;
+        border-block-start-color: transparent;
+        animation: zero-daisyui-btn-spin 0.7s linear infinite;
+    }
+
     [data-scope="button"][data-part="root"] {
         appearance: none;
+        text-decoration: none;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -3497,6 +3509,10 @@
         line-height: var(--leading-none);
         cursor: pointer;
         transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="button"][data-part="root"][data-state="loading"] {
+        cursor: progress;
     }
 
     [data-scope="button"][data-part="root"][data-disabled] {
@@ -3708,24 +3724,8 @@
         filter: brightness(0.92);
     }
 
-    [data-scope="button"][data-part="root"][data-mod-loading] {
-        cursor: progress;
-    }
-
-    [data-scope="button"][data-part="root"][data-mod-loading]::before {
-        content: "";
-        box-sizing: border-box;
-        inline-size: 1em;
-        block-size: 1em;
-        flex: none;
-        border-radius: 9999px;
-        border: calc(var(--border) * 2) solid currentColor;
-        border-block-start-color: transparent;
-        animation: zero-daisyui-btn-spin 0.7s linear infinite;
-    }
-
     @media (prefers-reduced-motion: reduce) {
-        [data-scope="button"][data-part="root"][data-mod-loading]::before {
+        [data-scope="button"][data-part="spinner"] {
             animation: none;
         }
     }

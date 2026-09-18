@@ -2147,8 +2147,20 @@
         --btn-line: transparent;
     }
 
+    [data-scope="button"][data-part="spinner"] {
+        box-sizing: border-box;
+        inline-size: 1em;
+        block-size: 1em;
+        flex: none;
+        border-radius: 9999px;
+        border: calc(var(--border) * 2) solid currentColor;
+        border-block-start-color: transparent;
+        animation: zero-heroui-btn-spin 0.7s linear infinite;
+    }
+
     [data-scope="button"][data-part="root"] {
         appearance: none;
+        text-decoration: none;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -2165,6 +2177,11 @@
         line-height: var(--leading-none);
         cursor: pointer;
         transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="button"][data-part="root"][data-state="loading"] {
+        cursor: progress;
+        opacity: 0.8;
     }
 
     [data-scope="button"][data-part="root"]:hover:not([data-disabled]) {
@@ -2252,6 +2269,15 @@
     [data-scope="button"][data-part="root"][data-variant="danger"][data-mod-icon-only] {
         border-radius: 9999px;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="button"][data-part="spinner"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-heroui-btn-spin {
+    to { transform: rotate(360deg) }
 }
 
 @layer zero.recipes {

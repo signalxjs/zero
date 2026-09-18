@@ -72,18 +72,20 @@ describe.each(['basic', 'daisyui'] as const)('%s button', (name) => {
 });
 
 describe('the button anatomy', () => {
-    it('is a single part on a real button element', () => {
+    it('is a real button element, plus the spinner it shows while loading', () => {
         const button = manifest.components.find((c) => c.scope === 'button')!;
-        expect(button.parts.map((p) => p.name)).toEqual(['root']);
+        expect(button.parts.map((p) => p.name)).toEqual(['root', 'spinner']);
         expect(button.parts[0]!.element).toBe('button');
+        expect(button.parts[1]!).toMatchObject({ element: 'span', parent: 'root' });
     });
 
-    it('declares no machine states', () => {
-        // A button has nothing to be open or checked about. Held press is
-        // `:active` (a pseudo-class) plus the `pressed` / `press-animating`
-        // press-feedback flags — flags, not states, because they compose.
+    it('declares one machine state, loading, and the press flags', () => {
+        // A button has nothing to be open or checked about; work in flight
+        // (#50) is the one state it has. Held press is `:active` (a
+        // pseudo-class) plus the `pressed` / `press-animating` press-feedback
+        // flags — flags, not states, because they compose.
         const button = manifest.components.find((c) => c.scope === 'button')!;
-        expect(button.parts[0]!.states ?? []).toEqual([]);
+        expect(button.parts[0]!.states).toEqual(['loading']);
         expect(button.parts[0]!.flags).toEqual(['disabled', 'focus-visible', 'pressed', 'press-animating']);
     });
 });

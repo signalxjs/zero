@@ -7,8 +7,20 @@
         --btn-ghost-ink: var(--color-base-content);
     }
 
+    [data-scope="button"][data-part="spinner"] {
+        box-sizing: border-box;
+        inline-size: 1em;
+        block-size: 1em;
+        flex: none;
+        border-radius: 9999px;
+        border: calc(var(--border) * 2) solid currentColor;
+        border-block-start-color: transparent;
+        animation: zero-basic-btn-spin 0.7s linear infinite;
+    }
+
     [data-scope="button"][data-part="root"] {
         appearance: none;
+        text-decoration: none;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -21,6 +33,10 @@
         font-variant-numeric: tabular-nums;
         cursor: pointer;
         transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="button"][data-part="root"][data-state="loading"] {
+        cursor: progress;
     }
 
     [data-scope="button"][data-part="root"][data-disabled] {
@@ -203,4 +219,13 @@
         padding: var(--space-lg) var(--space-2xl);
         font-size: var(--text-xl);
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="button"][data-part="spinner"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-basic-btn-spin {
+    to { transform: rotate(360deg) }
 }

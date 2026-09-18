@@ -212,13 +212,13 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** button — color, size, variant, mods.active, mods.block, mods.circle, mods.loading, mods.square, mods.wide wired. */
+            /** button — color, size, variant, mods.active, mods.block, mods.circle, mods.square, mods.wide wired. */
             'button': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 variant: 'solid' | 'outline' | 'soft' | 'ghost' | 'dash' | 'link';
                 axes: Record<string, never>;
-                mods: { 'active': boolean; 'block': boolean; 'circle': boolean; 'loading': boolean; 'square': boolean; 'wide': boolean };
+                mods: { 'active': boolean; 'block': boolean; 'circle': boolean; 'square': boolean; 'wide': boolean };
             };
             /** avatar — color, size wired. */
             'avatar': {

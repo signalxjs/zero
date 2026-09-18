@@ -5,8 +5,10 @@
  * camelCase-renamed modifier.** Radix's `variant` vocabulary maps onto zero's
  * `variant` with no rename and no respelling — the `exact` grade the
  * declaration states with a bare `{}`. `radius` is a custom axis surfacing
- * unrenamed; `highContrast` is the camelCase rename of a kebab modifier, and
- * `loading` surfaces under its own name.
+ * unrenamed; `highContrast` is the camelCase rename of a kebab modifier.
+ * Radix's `loading` needs no declaration at all: since #50 it is
+ * `Button.Root`'s own prop (a state, with `aria-busy`), so the vendor name
+ * IS zero's name — and a modifier spelled `loading` would collide with it.
  */
 import type { RecipeInput, TokensInput } from '@sigx/zero-kit';
 import { defineApi } from '@sigx/zero-kit';
@@ -29,7 +31,7 @@ export const vocabulary = {
     sizes: ['1', '2', '3', '4'],
     variants: ['classic', 'solid', 'soft', 'surface', 'outline', 'ghost'],
     axes: { radius: ['none', 'small', 'medium', 'large', 'full'] },
-    modifiers: ['high-contrast', 'loading'],
+    modifiers: ['high-contrast'],
 } as const;
 
 export const api = defineApi(vocabulary, {
@@ -37,7 +39,6 @@ export const api = defineApi(vocabulary, {
     axes: { radius: {} },
     modifiers: {
         'high-contrast': { as: 'highContrast' },
-        loading: {},
     },
 });
 
@@ -69,7 +70,10 @@ export const button: RecipeInput = {
     parts: {
         root: {
             base: { border: 'none', cursor: 'pointer' },
-            states: { 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' } },
+            states: {
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                loading: { cursor: 'progress' },
+            },
         },
     },
     variants: {
@@ -97,6 +101,5 @@ export const button: RecipeInput = {
     },
     modifiers: {
         'high-contrast': { root: { base: { filter: 'contrast(1.2)' } } },
-        loading: { root: { base: { cursor: 'progress', opacity: '0.7' } } },
     },
 };

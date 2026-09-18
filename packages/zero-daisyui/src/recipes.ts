@@ -2288,9 +2288,34 @@ export const button: RecipeInput = {
         '--btn-ink': roleInk('primary'),
     },
     parts: {
+        // The loading spinner (#50): a real part zero renders before the
+        // label while `loading`, drawn as a ring in `currentColor` with one
+        // transparent quadrant — it takes whatever ink the variant chose.
+        // A literal duration and an explicit reduced-motion `none`: the kit
+        // collapses `--duration-*` under reduced motion, and an infinite
+        // loop at ~0s strobes rather than stops.
+        // daisy marks a loading button with a `loading loading-spinner` span;
+        // this is that span, zero's own now (it was a `loading` modifier's
+        // `::before` until #50 made loading a Button state).
+        spinner: {
+            base: {
+                boxSizing: 'border-box',
+                inlineSize: '1em',
+                blockSize: '1em',
+                flex: 'none',
+                borderRadius: '9999px',
+                border: 'calc(var(--border) * 2) solid currentColor',
+                borderBlockStartColor: 'transparent',
+                animation: 'zero-daisyui-btn-spin 0.7s linear infinite',
+            },
+            at: { 'reduced-motion': { base: { animation: 'none' } } },
+        },
         root: {
             base: {
                 appearance: 'none',
+                // An asChild `<a>` gets no UA underline (see the README's
+                // link-button note for the unlayered `a { color }` case).
+                textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -2306,6 +2331,9 @@ export const button: RecipeInput = {
                     + 'border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
+                // Work in flight (`loading`, #50): still focusable, still legible —
+                // the label is what the reader is waiting on — so no fade here.
+                loading: { cursor: 'progress' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 // The ring is drawn on the page, offset clear of the button —
                 // ink, not fill, and the same 3:1 floor. On `--btn-accent` it
@@ -2450,37 +2478,6 @@ export const button: RecipeInput = {
         // press it represents.
         active: {
             root: { base: { transform: 'translateY(1px)', boxShadow: 'none', filter: 'brightness(0.92)' } },
-        },
-        /**
-         * daisy's loading spinner, drawn by the recipe (#332): daisy marks
-         * the button with a `loading loading-spinner` span; zero changes no
-         * DOM, so the ring is a `::before` in `currentColor` with one
-         * transparent quadrant — it inherits whatever ink the variant chose,
-         * and the root's existing `gap` spaces it from the label. Literal
-         * duration + explicit reduced-motion `none`, like the spinner
-         * recipe: the kit collapses `--duration-*` under reduced motion, and
-         * an infinite loop at ~0s strobes rather than stops.
-         */
-        loading: {
-            root: {
-                base: { cursor: 'progress' },
-                selectors: {
-                    '&::before': {
-                        content: '""',
-                        boxSizing: 'border-box',
-                        inlineSize: '1em',
-                        blockSize: '1em',
-                        flex: 'none',
-                        borderRadius: '9999px',
-                        border: 'calc(var(--border) * 2) solid currentColor',
-                        borderBlockStartColor: 'transparent',
-                        animation: 'zero-daisyui-btn-spin 0.7s linear infinite',
-                    },
-                },
-                at: {
-                    'reduced-motion': { selectors: { '&::before': { animation: 'none' } } },
-                },
-            },
         },
     },
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },

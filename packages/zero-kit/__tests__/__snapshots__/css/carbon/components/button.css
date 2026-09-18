@@ -9,8 +9,21 @@
         --btn-ink-active: var(--btn-ink-hover);
     }
 
+    [data-scope="button"][data-part="spinner"] {
+        box-sizing: border-box;
+        inline-size: 1em;
+        block-size: 1em;
+        flex: none;
+        border-radius: 9999px;
+        border: var(--border) solid currentColor;
+        border-block-start-color: transparent;
+        margin-inline-end: var(--space-sm);
+        animation: zero-carbon-btn-spin 0.9s linear infinite;
+    }
+
     [data-scope="button"][data-part="root"] {
         appearance: none;
+        text-decoration: none;
         display: inline-flex;
         align-items: center;
         justify-content: flex-start;
@@ -28,6 +41,10 @@
         line-height: var(--leading-tight);
         cursor: pointer;
         transition: background var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="button"][data-part="root"][data-state="loading"] {
+        cursor: progress;
     }
 
     [data-scope="button"][data-part="root"]:hover:not([data-disabled]) {
@@ -125,4 +142,13 @@
         font-size: var(--text-md);
         letter-spacing: var(--tracking-normal);
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="button"][data-part="spinner"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-carbon-btn-spin {
+    to { transform: rotate(360deg) }
 }

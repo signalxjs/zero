@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Changed — Button's `loading` state (#50)
+
+- **`RESERVED_PROPS_BY_SCOPE.button` gains `loading`.** It is
+  `Button.Root`'s own prop now, so a design-system-wide modifier spelled
+  `loading` would shadow it. `@sigx/zero-daisyui` drops its `loading`
+  modifier (`<Button loading>` reaches zero directly) and the Radix
+  conformance fixture drops its own; the conformance matrix loses both rows.
+- **The six design-system briefs and the three conformance fixtures** style
+  the new `loading` state; the briefs also draw the `spinner` part.
+- **Fixed: the "declared state is not styled" warning carries its `scope`.**
+  It is raised after the recipe loop, so it had no ambient scope to inherit
+  and reached tooling unattributed.
+- The generated `components.d.ts` intersects `AdaptedStatics` for Button,
+  because the "single part" proxy counts parts and Button now has two. The
+  statics are empty, so the change is harmless.
+
 ### Added — the lifecycle state family (#42)
 
 - The kit's `STATE_VOCABULARY` / `STATE_SYNONYMS` mirror zero's new

@@ -145,9 +145,31 @@ export const button: RecipeInput = {
         '--btn-soft': 'var(--color-primary-soft)',
     },
     parts: {
+        // The loading spinner (#50): a real part zero renders before the
+        // label while `loading`, drawn as a ring in `currentColor` with one
+        // transparent quadrant — it takes whatever ink the variant chose.
+        // A literal duration and an explicit reduced-motion `none`: the kit
+        // collapses `--duration-*` under reduced motion, and an infinite
+        // loop at ~0s strobes rather than stops.
+        spinner: {
+            base: {
+                boxSizing: 'border-box',
+                inlineSize: '1em',
+                blockSize: '1em',
+                flex: 'none',
+                borderRadius: '0',
+                border: 'calc(var(--border) * 2) solid currentColor',
+                borderBlockStartColor: 'transparent',
+                animation: 'zero-brutalist-btn-spin 0.9s linear infinite',
+            },
+            at: { 'reduced-motion': { base: { animation: 'none' } } },
+        },
         root: {
             base: {
                 appearance: 'none',
+                // An asChild `<a>` gets no UA underline (see the README's
+                // link-button note for the unlayered `a { color }` case).
+                textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -160,6 +182,9 @@ export const button: RecipeInput = {
                 transition: motion('box-shadow, transform, background'),
             },
             states: {
+                // Work in flight (`loading`, #50): still focusable, still legible —
+                // the label is what the reader is waiting on — so no fade here.
+                loading: { cursor: 'progress' },
                 disabled: {
                     opacity: 'var(--disabled-opacity)',
                     cursor: 'not-allowed',
@@ -211,6 +236,7 @@ export const button: RecipeInput = {
         },
     },
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
+    keyframes: { 'zero-brutalist-btn-spin': 'to { transform: rotate(360deg) }' },
 };
 
 // ── Tabs ──────────────────────────────────────────────────────────────────

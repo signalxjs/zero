@@ -11,7 +11,6 @@ export const Button = /* @__PURE__ */ adapt(ZButton, {
         'active': { modifier: 'active' },
         'block': { modifier: 'block' },
         'circle': { modifier: 'circle' },
-        'loading': { modifier: 'loading' },
         'square': { modifier: 'square' },
         'variant': { axis: 'variant' },
         'wide': { modifier: 'wide' },

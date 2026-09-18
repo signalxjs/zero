@@ -1528,9 +1528,31 @@ export const button: RecipeInput = {
         '--btn-line': 'transparent',
     },
     parts: {
+        // The loading spinner (#50): a real part zero renders before the
+        // label while `loading`, drawn as a ring in `currentColor` with one
+        // transparent quadrant — it takes whatever ink the variant chose.
+        // A literal duration and an explicit reduced-motion `none`: the kit
+        // collapses `--duration-*` under reduced motion, and an infinite
+        // loop at ~0s strobes rather than stops.
+        spinner: {
+            base: {
+                boxSizing: 'border-box',
+                inlineSize: '1em',
+                blockSize: '1em',
+                flex: 'none',
+                borderRadius: '9999px',
+                border: 'calc(var(--border) * 2) solid currentColor',
+                borderBlockStartColor: 'transparent',
+                animation: 'zero-heroui-btn-spin 0.7s linear infinite',
+            },
+            at: { 'reduced-motion': { base: { animation: 'none' } } },
+        },
         root: {
             base: {
                 appearance: 'none',
+                // An asChild `<a>` gets no UA underline (see the README's
+                // link-button note for the unlayered `a { color }` case).
+                textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1550,6 +1572,9 @@ export const button: RecipeInput = {
                 transition: motion('background, border-color, opacity, transform'),
             },
             states: {
+                // Work in flight (`loading`, #50) — the same reading as `pending`
+                // below: a fade held at 0.8 so the label clears 3:1 (#263).
+                loading: { cursor: 'progress', opacity: '0.8' },
                 hover: { filter: 'brightness(0.95)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed', filter: 'none' },
                 ...focusRing,
@@ -1618,6 +1643,7 @@ export const button: RecipeInput = {
             parts: { root: { base: { borderRadius: '9999px' } } },
         },
     ],
+    keyframes: { 'zero-heroui-btn-spin': 'to { transform: rotate(360deg) }' },
 };
 
 // ── Avatar ────────────────────────────────────────────────────────────────

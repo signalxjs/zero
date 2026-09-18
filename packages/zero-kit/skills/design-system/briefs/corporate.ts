@@ -170,9 +170,26 @@ export const button: RecipeInput = {
         '--btn-soft': 'var(--color-primary-soft)',
     },
     parts: {
+        // The loading spinner zero renders while `loading` (#50): a ring in
+        // `currentColor` with one open quadrant. Literal duration + explicit
+        // reduced-motion `none` — a loop at ~0s strobes rather than stops.
+        spinner: {
+            base: {
+                boxSizing: 'border-box',
+                inlineSize: '1em',
+                blockSize: '1em',
+                flex: 'none',
+                borderRadius: '9999px',
+                border: 'calc(var(--border) * 2) solid currentColor',
+                borderBlockStartColor: 'transparent',
+                animation: 'corporate-btn-spin 0.8s linear infinite',
+            },
+            at: { 'reduced-motion': { base: { animation: 'none' } } },
+        },
         root: {
             base: {
                 appearance: 'none',
+                textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -189,6 +206,7 @@ export const button: RecipeInput = {
                 transition: 'background var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard)',
             },
             states: {
+                loading: { cursor: 'progress' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed', boxShadow: 'none' },
                 hover: { boxShadow: 'var(--shadow-sm)' },
                 // Two-tone ring: it stays visible on both a light card and a
@@ -247,4 +265,5 @@ export const button: RecipeInput = {
         },
     },
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
+    keyframes: { 'corporate-btn-spin': 'to { transform: rotate(360deg) }' },
 };
