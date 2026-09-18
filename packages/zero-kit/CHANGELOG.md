@@ -30,6 +30,19 @@
   (`./css`, `./css/tokens`, `./css/*`), which otherwise fail TypeScript's
   side-effect-import check. The six skins and `create-zero-ds`'s
   `package.json` template point at it.
+- **Declared contrast pairs over custom tokens: `tokens.contrast`** (#65).
+  The WCAG check covered role / `-content` and base pairs only, so a
+  `custom` colour token — a dim caption ink, a status tone — was never
+  measured, and a design system carried its own luminance code to hold one.
+  `contrast: [{ fg, bg, min?, description? }]` names either end as a custom
+  token or a colour token; `validateDesignSystem` checks every pair in every
+  theme, in the role pairs' `contrast-floor` format with a `suggest` solved
+  at the declared `min` (default 4.5), and errors below it. Custom values
+  are read through `var()`, `color-mix()` and `light-dark()` with the
+  shared baker; a translucent ink is composited over its surface. New
+  `ContrastPairDecl` type (barrel and `/define`), and `tokens.schema.json`
+  gains the `contrast` array. `suggestContrastFix` also takes a parsed
+  culori colour.
 
 - **The `measure` token category, and the Container recipe** (#484).
   `SystemTokens.measure`, the `tokens.schema.json` entry (in both the system

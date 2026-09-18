@@ -376,6 +376,14 @@ the set down). The other rules worth knowing:
   on a generated theme pastes the value rather than guessing a lightness.
   `rule` and `suggest` are optional on every issue; a rule carries them
   only when it can vouch for a fix.
+- **A custom colour token is measured where the design system says it is
+  read.** `contrastPairs` is derived from the role declaration, so it can
+  never reach a `custom` token; `tokens.contrast` declares those pairs
+  (`{ fg, bg, min? }`, either end a custom or colour token) and the same
+  per-theme loop checks them in the same format, solving the fix at the
+  declared `min` — an error below it, since the floor is the author's own.
+  Values go through the shared colour baker (`var()`, `color-mix()`,
+  `light-dark()`), a translucent ink composited over its surface.
 - **`defaultVariants` is validated unconditionally** — against the recipe
   itself (wired keys and values), so it needs no declaration to be checked.
 - **An axis wired with zero values is an error** — the components emitter

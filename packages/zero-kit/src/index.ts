@@ -5,6 +5,7 @@
 // and a tiny runtime module that imports only @sigx/zero.
 
 export type {
+    ContrastPairDecl,
     CustomTokenDecl,
     DurationKey,
     EaseKey,

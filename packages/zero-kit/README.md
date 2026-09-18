@@ -184,6 +184,31 @@ package's extensionless stylesheet exports (`./css`, `./css/tokens`,
 `./css/*`) at it, as the shipped skins and `create-zero-ds` do, or
 `import '<pkg>/css'` fails TypeScript's side-effect-import check.
 
+The WCAG check covers every `role` / `role-content` pair and the base pairs
+on its own. A `custom` colour token — a dim caption ink, a status tone — is
+measured when the design system declares the pair it is read on:
+
+```ts
+defineTokens({
+    custom: { 'ink-dim': { syntax: '<color>' } },
+    contrast: [
+        { fg: 'ink-dim', bg: 'base-300', min: 4.5, description: 'captions' },
+        { fg: 'ink-dim', bg: 'color-base-100' },   // min defaults to 4.5
+    ],
+    /* … */
+});
+```
+
+`fg`/`bg` name a declared custom token or a colour token (a role, its
+`-content`/`-soft`, a base surface), with or without `--`; a bare name is a
+custom token first, and `color-<token>` is always the colour token. Each
+pair is checked in every theme, in the role pairs' format (`contrast-floor`,
+with a passing `suggest` solved at the pair's own `min`) — but below `min` is
+always an error, since the floor is one the author declared. A custom value
+may be a `var()` of other tokens, `color-mix()` or `light-dark()`; a
+translucent ink is composited over its surface, and a translucent surface or
+a value the kit cannot evaluate is an error rather than a skipped pair.
+
 Conditional styles live in `parts.<part>.at`, keyed by a declared breakpoint
 (`@media (min-width: …)`), a built-in preference query (`reduced-motion`,
 `hover-none`, `prefers-dark`, `forced-colors`, `print`) or a raw `@` prelude

@@ -132,6 +132,40 @@
                 }
             }
         },
+        "contrast": {
+            "description": "Contrast floors over the design system's own tokens, checked in every theme by `sigx zero:validate` beside the role pairs \u2014 how a `custom` colour token is measured. `fg`/`bg` name a declared custom token or a colour token (a role, its -content/-soft, a base surface), with or without `--`; a `color-` prefix always means the colour token. Below `min` is an error.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "fg",
+                    "bg"
+                ],
+                "properties": {
+                    "fg": {
+                        "description": "The ink.",
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "bg": {
+                        "description": "The (opaque) surface it sits on.",
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "min": {
+                        "description": "The floor ratio. Default 4.5 (WCAG AA body text); 3 for large text and non-text marks.",
+                        "type": "number",
+                        "minimum": 1,
+                        "maximum": 21
+                    },
+                    "description": {
+                        "description": "Why the pair matters \u2014 echoed in the validator's message.",
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "breakpoints": {
             "description": "Mobile-first min-width breakpoints, in ascending order (declaration order is emission order \u2014 the validator enforces kebab-case names, px/rem/em values and the ordering).",
             "type": "object",

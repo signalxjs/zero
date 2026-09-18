@@ -14,12 +14,15 @@
  *   colors parseable. Color keys a theme defines but the DS never declared
  *   are errors — declare the role or drop the value.
  * - Contrast: WCAG ratio on every declared `role` / `role-content` pair and
- *   the base pairs (error < 3:1, warning < 4.5:1).
+ *   the base pairs (error < 3:1, warning < 4.5:1), and on every pair the
+ *   design system declares in `tokens.contrast` — how a `custom` colour
+ *   token is measured (error below the pair's own `min`).
  * - Recipe coverage: recipes only touch known components/parts/states
  *   (compile already hard-errors); every declared machine state of a styled
  *   part is addressed or explicitly listed in `skipStates`.
  */
-import { converter, parse, wcagContrast } from 'culori';
+import { converter, interpolate, parse, wcagContrast } from 'culori';
+import type { Color } from 'culori';
 import type { ZeroManifest } from '../contract.js';
 import { badAxisValue } from './messages.js';
 import {
@@ -47,6 +50,7 @@ import { compileDesignSystem } from '../design-system.js';
 import { validateRecipes } from './validate-recipes.js';
 import { tokenVocabulary } from './vocabulary.js';
 import { formatOklch, solveContentLightness } from '../palette.js';
+import { tryBakeColorValue } from './color-bake.js';
 
 export interface ValidationIssue {
     level: 'error' | 'warning';
@@ -90,14 +94,50 @@ const toOklch = converter('oklch');
  * way the briefs spell colours, or `null` when no lightness reaches the
  * floor from either side (a mid-grey `bg`; at 4.5:1 that cannot happen,
  * since black or white always clears it, but at 7:1 it can). Both inputs
- * are any CSS colour culori can parse.
+ * are any CSS colour culori can parse, or an already-parsed culori colour.
  */
-export function suggestContrastFix(bg: string, fg: string, floor: number): string | null {
+export function suggestContrastFix(bg: string | Color, fg: string | Color, floor: number): string | null {
     const b = toOklch(bg);
     const f = toOklch(fg);
     if (!b || !f) return null;
     const solved = solveContentLightness({ l: f.l, c: f.c, h: f.h ?? 0 }, { l: b.l, c: b.c, h: b.h ?? 0 }, floor);
     return solved ? formatOklch(solved) : null;
+}
+
+/** One end of a `tokens.contrast` pair, resolved against the vocabulary. */
+type PairEnd = { kind: 'color'; token: string } | { kind: 'custom'; prop: string };
+
+/**
+ * A `tokens.contrast` end's colour in one theme, or why it has none. A custom value may read other custom tokens and any
+ * `--color-*` (a derived `-soft` included) through `var()`, and may be a
+ * `color-mix()` / `light-dark()` — the same baker the lynx target and the
+ * static contrast matrix use, so the three agree on what a value paints.
+ */
+function pairEndColor(
+    end: PairEnd,
+    colors: Record<string, string>,
+    custom: Map<string, string>,
+    colorScheme: 'light' | 'dark',
+): { color: Color } | { unmeasured: string } {
+    let value = end.kind === 'color' ? colors[end.token] : custom.get(end.prop);
+    if (value === undefined) return { unmeasured: 'this theme gives it no value' };
+    // `var()` references substituted a few levels deep — custom tokens and
+    // `--color-*` alike (the baker reads `--color-*` only inside a colour
+    // function, and a bare `var(--color-brand)` is a value too).
+    for (let depth = 0; depth < 8 && /var\(/.test(value); depth++) {
+        const next: string = value.replace(/var\(\s*(--[a-z0-9-]+)\s*(?:,\s*([^()]*))?\)/g, (whole, prop: string, fallback?: string) =>
+            (prop.startsWith('--color-') ? colors[prop.slice('--color-'.length)] : custom.get(prop)) ?? fallback?.trim() ?? whole);
+        if (next === value) break;
+        value = next;
+    }
+    // A plain colour is read as written, the way the role pairs read theirs
+    // (baking rounds to 8-bit hex, which can flip a ratio sitting on the
+    // floor); only an expression goes through the baker.
+    const direct = parse(value);
+    if (direct) return { color: direct };
+    const baked = tryBakeColorValue(value, colors, colorScheme);
+    const color = 'hex' in baked ? parse(baked.hex) : undefined;
+    return color ? { color } : { unmeasured: `"${value}" is not a colour the kit can evaluate` };
 }
 
 export interface ValidationResult {
@@ -379,6 +419,39 @@ export function validateDesignSystem<R extends RolesDecl>(
         ...Object.entries(roles).flatMap(([name, decl]) => (decl.soft === false ? [] : [`${name}-soft`])),
     ]);
     const pairs = contrastPairs(roles);
+
+    // ── Declared contrast pairs (`tokens.contrast`) ──
+    // Resolved once against the vocabulary; measured per theme below.
+    const resolvePairEnd = (raw: string): PairEnd | undefined => {
+        const bare = raw.startsWith('--') ? raw.slice(2) : raw;
+        // `--color-*` is never a custom token (refused above), so the
+        // prefixed spelling is unambiguous; a bare name is a custom token
+        // first, then a colour token.
+        if (bare.startsWith('color-') && declared.has(bare.slice('color-'.length))) {
+            return { kind: 'color', token: bare.slice('color-'.length) };
+        }
+        if (declaredCustom.has(`--${bare}`)) return { kind: 'custom', prop: `--${bare}` };
+        if (declared.has(bare)) return { kind: 'color', token: bare };
+        return undefined;
+    };
+    const declaredPairs: { fg: PairEnd; bg: PairEnd; min: number; decl: NonNullable<typeof ds.tokens.contrast>[number] }[] = [];
+    for (const [i, decl] of (ds.tokens.contrast ?? []).entries()) {
+        const where = `tokens.contrast[${i}]`;
+        const fg = resolvePairEnd(decl.fg);
+        const bg = resolvePairEnd(decl.bg);
+        for (const [side, raw, end] of [['fg', decl.fg, fg], ['bg', decl.bg, bg]] as const) {
+            if (!end) {
+                error(where, `${side} "${raw}" is not a declared custom token or colour token — name a tokens.custom entry, a role (or its -content / -soft) or a base surface`);
+            }
+        }
+        const min = decl.min ?? CONTRAST_AA;
+        if (typeof min !== 'number' || !Number.isFinite(min) || min < 1 || min > 21) {
+            error(where, `min ${String(decl.min)} is not a contrast ratio — WCAG ratios run from 1 to 21`);
+            continue;
+        }
+        if (fg && bg) declaredPairs.push({ fg, bg, min, decl });
+    }
+
     for (const [themeName, theme] of Object.entries(ds.tokens.themes)) {
         // compileTokensCss throws on the same input; this is where an author
         // gets told, with all the other issues.
@@ -432,6 +505,65 @@ export function validateDesignSystem<R extends RolesDecl>(
                     rule: 'contrast-floor',
                 };
             (level === 'error' ? errors : warnings).push(issue);
+        }
+        if (declaredPairs.length > 0) {
+            // The colours a custom value can read: the theme's own, plus each
+            // `-soft` the compiler derives rather than the theme spelling it.
+            const readable: Record<string, string> = { ...colors };
+            const mix = theme.softMix ?? 0.16;
+            for (const [name, decl] of Object.entries(roles)) {
+                if (decl.soft === false || readable[`${name}-soft`] || !colors[name] || !colors['base-100']) continue;
+                readable[`${name}-soft`] = `color-mix(in oklab, ${colors[name]} ${Math.round(mix * 100)}%, ${colors['base-100']})`;
+            }
+            const customValues = new Map(Object.entries(theme.custom ?? {}).map(([name, value]) => [normProp(name), value]));
+            for (const { fg, bg, min, decl } of declaredPairs) {
+                const fgColor = pairEndColor(fg, readable, customValues, theme.colorScheme);
+                const bgColor = pairEndColor(bg, readable, customValues, theme.colorScheme);
+                const unmeasured = 'unmeasured' in fgColor ? ['fg', decl.fg, fgColor.unmeasured] as const
+                    : 'unmeasured' in bgColor ? ['bg', decl.bg, bgColor.unmeasured] as const
+                        : undefined;
+                if (unmeasured) {
+                    error(`themes.${themeName}`, `contrast pair ${decl.fg} on ${decl.bg} cannot be measured: ${unmeasured[0]} "${unmeasured[1]}" — ${unmeasured[2]}`);
+                    continue;
+                }
+                const f = (fgColor as { color: Color }).color;
+                const b = (bgColor as { color: Color }).color;
+                if ((b.alpha ?? 1) < 1) {
+                    error(`themes.${themeName}`, `contrast pair ${decl.fg} on ${decl.bg} cannot be measured: bg "${decl.bg}" is translucent, so what it paints depends on what is under it — declare the pair against the opaque surface`);
+                    continue;
+                }
+                // A translucent ink is read where it lands: composited over
+                // the surface, as the browser paints it.
+                const ink = (f.alpha ?? 1) < 1
+                    ? interpolate([b, { ...f, alpha: 1 }], 'rgb')(f.alpha ?? 1)
+                    : f;
+                const ratio = wcagContrast(ink, b);
+                if (ratio >= min) continue;
+                const said = `contrast ${decl.bg} vs ${decl.fg} is ${ratio.toFixed(2)}:1 (< ${min}:1 declared in tokens.contrast${decl.description ? ` — ${decl.description}` : ''})`;
+                // Solved at the declared floor, like the role pairs' fix; a
+                // translucent ink gets none (its lightness is not its paint).
+                const value = (f.alpha ?? 1) >= 1 ? suggestContrastFix(b, f, min) : null;
+                // The suggestion names the key the theme actually holds — the
+                // colour token bare, the custom token as tokens.custom spells
+                // it — whatever spelling the pair was declared with.
+                const key = fg.kind === 'color' ? fg.token : declaredCustom.get(fg.prop) ?? fg.prop;
+                errors.push(value
+                    ? {
+                        level: 'error',
+                        where: `themes.${themeName}`,
+                        message: `${said} — suggest ${key}: ${value}`,
+                        rule: 'contrast-floor',
+                        suggest: { token: key, value },
+                    }
+                    : {
+                        level: 'error',
+                        where: `themes.${themeName}`,
+                        message: (f.alpha ?? 1) >= 1
+                            ? `${said} — no ${decl.fg} lightness reaches ${min}:1 against ${decl.bg}; move ${decl.bg}'s lightness instead`
+                            : `${said} — ${decl.fg} is translucent, composited over ${decl.bg}`,
+                        rule: 'contrast-floor',
+                    });
+            }
         }
         const themeCustom = new Set(Object.keys(theme.custom ?? {}).map(normProp));
         for (const name of Object.keys(customDecls)) {

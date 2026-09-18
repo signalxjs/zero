@@ -161,6 +161,28 @@ export interface CustomTokenDecl {
     syntax?: string;
 }
 
+/**
+ * A contrast floor the design system declares over its own tokens — how a
+ * `custom` colour token (a dim-text ink, a status tone) gets the WCAG check
+ * the validator already runs on every `role` / `role-content` and base pair.
+ *
+ * `fg` and `bg` name a token the way its custom property does, with or
+ * without `--`: a declared `custom` token (`ag-text-dim`), or a colour token
+ * (`base-200`, `primary-content`, `primary-soft` — also spelled
+ * `color-base-200`). A bare name is a custom token first; the `color-`
+ * spelling is always the colour token.
+ */
+export interface ContrastPairDecl {
+    /** The ink. */
+    fg: string;
+    /** The surface it sits on. Must resolve opaque: a translucent surface has no ratio of its own. */
+    bg: string;
+    /** The floor, as a ratio. Default 4.5 (WCAG AA body text); 3 for large text and non-text marks. */
+    min?: number;
+    /** Why the pair matters — echoed in the validator's message. */
+    description?: string;
+}
+
 export interface ThemeInput<R extends RolesDecl = RolesDecl, T extends SystemTokens = SystemTokens> {
     colorScheme: 'light' | 'dark';
     /** The theme `toggle()` switches to. */
@@ -301,6 +323,12 @@ export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTo
     swatch?: (RoleName<R> | typeof BASE_SURFACE_TOKEN_LIST[number])[];
     /** DS-declared custom tokens: name → metadata. Values live per-theme in `custom`. */
     custom?: Record<string, CustomTokenDecl>;
+    /**
+     * Contrast floors over the design system's own tokens, checked in every
+     * theme by `validateDesignSystem` beside the role pairs — the way a
+     * `custom` colour token is measured at all. See `ContrastPairDecl`.
+     */
+    contrast?: ContrastPairDecl[];
     /** Mobile-first min-width breakpoints (compile-time values, surfaced in the DS manifest). */
     breakpoints?: Record<string, string>;
     /**
