@@ -543,13 +543,17 @@ export function validateDesignSystem<R extends RolesDecl>(
                 // Solved at the declared floor, like the role pairs' fix; a
                 // translucent ink gets none (its lightness is not its paint).
                 const value = (f.alpha ?? 1) >= 1 ? suggestContrastFix(b, f, min) : null;
+                // The suggestion names the key the theme actually holds — the
+                // colour token bare, the custom token as tokens.custom spells
+                // it — whatever spelling the pair was declared with.
+                const key = fg.kind === 'color' ? fg.token : declaredCustom.get(fg.prop) ?? fg.prop;
                 errors.push(value
                     ? {
                         level: 'error',
                         where: `themes.${themeName}`,
-                        message: `${said} — suggest ${decl.fg}: ${value}`,
+                        message: `${said} — suggest ${key}: ${value}`,
                         rule: 'contrast-floor',
-                        suggest: { token: decl.fg, value },
+                        suggest: { token: key, value },
                     }
                     : {
                         level: 'error',

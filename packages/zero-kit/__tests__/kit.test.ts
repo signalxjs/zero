@@ -526,6 +526,13 @@ describe('extensible color roles', () => {
                 [{ fg: 'ink-dim', bg: 'base-200', min: 4.5 }],
             );
             expect(pairErrors(fixed)).toEqual([]);
+
+            // Declared in any spelling, the suggestion names the key the theme holds.
+            const spelled = withInks(
+                { 'ink-dim': 'oklch(45% 0 0)', '--ink-tone': 'oklch(80% 0 0)' },
+                [{ fg: 'color-base-300', bg: 'base-100', min: 4.5 }, { fg: 'ink-tone', bg: '--color-base-100', min: 4.5 }],
+            );
+            expect(pairErrors(spelled).map((e) => e.suggest?.token)).toEqual(['base-300', '--ink-tone']);
         });
 
         it('measures what a derived value paints: color-mix over a derived -soft, and a translucent ink over its surface', () => {
