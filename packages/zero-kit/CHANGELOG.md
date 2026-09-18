@@ -4,6 +4,16 @@
 
 ### Added
 
+- **`extendDesignSystem` and `extendRecipe`: derive a design system from
+  another** (#60). On `/define` and the barrel. A derived system patches
+  its base's tokens, recipes and api as data and still compiles one recipe
+  per scope. The merge rule is the same everywhere: objects merge per key,
+  arrays and scalars replace, and `null` deletes. `compoundVariants` are
+  addressed by `match`, and a recipe's `css` concatenates. A patch for a
+  scope the base does not style throws, and so does `addRecipes` for a
+  scope it does. An unmodified layout tier is regenerated from the derived
+  tokens. Declared public hooks on skins are split out to #73.
+
 - **The `measure` token category, and the Container recipe** (#484).
   `SystemTokens.measure`, the `tokens.schema.json` entry (in both the system
   and the per-theme override blocks), and the `--measure-*` emission that

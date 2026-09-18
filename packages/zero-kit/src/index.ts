@@ -42,6 +42,9 @@ export { LAYOUT_SCOPES, layoutCss, layoutRecipes, layoutScopes } from './layout-
 export type { FitReport } from './fit.js';
 export { explainFit, fitRecipes, fitRecipesToVocabulary } from './fit.js';
 
+export type { CompoundVariantPatch, DesignSystemExtension, PartStylesPatch, Patch, RecipePatch, RecipeTargetPatch } from './extend.js';
+export { extendDesignSystem, extendRecipe } from './extend.js';
+
 export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes.js';
 export { defineRecipe, BUILTIN_CONDITIONS } from './recipes.js';
 export { compileRecipeCss } from './targets/web/recipe-css.js';

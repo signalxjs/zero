@@ -914,6 +914,22 @@ round-trip deep-equal), and the reason a `roles: {}` / `sizes: []` brief
 compiles on its first build instead of erroring on every one of basic's
 size blocks and role references. `eject` remains open (#11).
 
+**A derived design system patches its base; it never restyles it.**
+`extendDesignSystem` / `extendRecipe` (`packages/zero-kit/src/extend.ts`, on
+`./define`, #60) exist because a second recipe for a styled scope is a hard
+compile error, so a skin built on another (agentic's control-room on
+zero-daisyui) must still compile one recipe per scope. The patch is data
+under one merge rule: objects merge per key recursively, arrays and scalars
+replace, `null` deletes. The exceptions are `compoundVariants`, addressed by
+`match`, and the recipe `css` hatch, which concatenates. A patch for a scope
+the base does not style throws, and so does an added recipe for one it does.
+The layout tier is the one thing regenerated rather than patched: it is a
+function of the tokens (roles, spacing and measure keys, breakpoints), so a
+base copy that equals the generated one is re-derived from the derived
+tokens, and a customised one is kept. A derivation that changes nothing
+compiles its base byte for byte (`extend.test.ts`). What a patch may rely on
+in the base (declared hooks, and a warning for private names) is #73.
+
 **Colour is derived before it is authored.** `derivePalette` /
 `deriveThemePair` (`packages/zero-kit/src/palette.ts`, on `./define`) turn
 seed hues into the exact token set `requiredColorTokens(roles)` names, with
