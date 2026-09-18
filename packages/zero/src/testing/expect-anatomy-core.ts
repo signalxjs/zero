@@ -172,6 +172,17 @@ export function expectAnatomyElements(
                 }
                 continue;
             }
+            // The same kind of presentation request: declared per part
+            // (`autosize`), presence-only, never a flag.
+            if (attr === 'data-autosize') {
+                if (!spec.autosize) {
+                    fail(anatomy, `part "${partName}" renders data-autosize but does not declare autosize`);
+                }
+                if (el.getAttribute(attr) !== '') {
+                    fail(anatomy, `data-autosize on part "${partName}" must be presence-only, got "${el.getAttribute(attr)}"`);
+                }
+                continue;
+            }
             // Layout attributes are declared contract data like placements,
             // but namespaced, so they are recognised by prefix and then
             // checked against the part's own `layout` list. A name under the

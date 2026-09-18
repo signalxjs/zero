@@ -204,7 +204,7 @@
     {
         "name": "@sigx/zero/textarea",
         "path": "packages/zero/dist/components/textarea/index.js",
-        "limit": "3.2 kB",
+        "limit": "3.7 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

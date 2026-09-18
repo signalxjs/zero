@@ -299,7 +299,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     switch: ['defaultChecked', 'form', 'hideLabel', 'id', 'invalid', 'name', 'required', 'title', 'value'],
     table: ['columns', 'id', 'role', 'title'],
     tabs: ['activationMode', 'defaultValue', 'id', 'loop', 'role', 'title', 'value'],
-    textarea: ['autocomplete', 'defaultValue', 'form', 'id', 'invalid', 'maxlength', 'name', 'readonly', 'required', 'role', 'rows', 'title', 'value'],
+    textarea: ['autocomplete', 'defaultValue', 'form', 'id', 'invalid', 'maxRows', 'maxlength', 'minRows', 'name', 'readonly', 'required', 'role', 'rows', 'title', 'value'],
     timeline: ['id', 'role', 'title'],
     toast: ['toast'],
     toggle: ['defaultPressed', 'id', 'label', 'title', 'value'],

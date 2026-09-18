@@ -1,7 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { render } from '@sigx/runtime-dom';
-import { signal } from 'sigx';
-import { Field, Textarea, textareaAnatomy } from '@sigx/zero';
+import { renderToString } from '@sigx/server-renderer';
+import { component, defineApp, signal } from 'sigx';
+import { Field, Textarea, textareaAnatomy, zeroPlugin } from '@sigx/zero';
+import { expectAnatomy as expectAnatomyPublic } from '@sigx/zero/testing';
+import { defineAnatomy } from '@sigx/zero/anatomy';
 import { expectAnatomy } from './helpers';
 
 function mount(container: HTMLElement, extra: {
@@ -161,5 +166,167 @@ describe('Textarea', () => {
         const root = part(container, 'root');
         expect(root.getAttribute('data-color')).toBe('primary');
         expect(root.getAttribute('data-size')).toBe('lg');
+    });
+
+    describe('autosize (#88)', () => {
+        const tick = () => new Promise<void>((r) => setTimeout(r, 0));
+        afterEach(() => vi.unstubAllGlobals());
+
+        it('stays off until minRows or maxRows is set', () => {
+            mount(container, { rows: 4 });
+            const el = box(container);
+            expect(el.hasAttribute('data-autosize')).toBe(false);
+            expect(el.getAttribute('style') ?? '').toBe('');
+            expect(el.getAttribute('rows')).toBe('4');
+        });
+
+        it('publishes the row bounds and a valid anatomy', () => {
+            render(
+                <Textarea.Root minRows={2} maxRows={8}>
+                    <Textarea.Label>Message</Textarea.Label>
+                    <Textarea.Textarea />
+                </Textarea.Root>,
+                container,
+            );
+            const el = box(container);
+            expect(el.getAttribute('data-autosize')).toBe('');
+            expect(el.style.getPropertyValue('--textarea-min-rows')).toBe('2');
+            expect(el.style.getPropertyValue('--textarea-max-rows')).toBe('8');
+            expectAnatomy(container, textareaAnatomy);
+        });
+
+        it('maxRows alone floors at one row and leaves the minimum implicit', () => {
+            render(<Textarea.Root maxRows={5}><Textarea.Textarea /></Textarea.Root>, container);
+            const el = box(container);
+            expect(el.style.getPropertyValue('--textarea-min-rows')).toBe('1');
+            expect(el.style.getPropertyValue('--textarea-max-rows')).toBe('5');
+        });
+
+        it('minRows alone is unbounded above', () => {
+            render(<Textarea.Root minRows={3}><Textarea.Textarea /></Textarea.Root>, container);
+            expect(box(container).style.getPropertyValue('--textarea-max-rows')).toBe('');
+        });
+
+        it('turns off again when the bounds go away', async () => {
+            const state = signal({ max: 4 as number | undefined });
+            const App = component(() => () => <Textarea.Root maxRows={state.max}><Textarea.Textarea /></Textarea.Root>);
+            render(<App />, container);
+            const el = box(container);
+            expect(el.hasAttribute('data-autosize')).toBe(true);
+            state.max = undefined;
+            await tick();
+            expect(el.hasAttribute('data-autosize')).toBe(false);
+            expect(el.style.getPropertyValue('--textarea-max-rows')).toBe('');
+            expect(el.style.getPropertyValue('--textarea-block-chrome')).toBe('');
+        });
+
+        it('renders the bounds on the server, before any script runs', async () => {
+            const app = defineApp(
+                <Textarea.Root minRows={1} maxRows={8} name="draft">
+                    <Textarea.Textarea />
+                </Textarea.Root>,
+            );
+            app.use(zeroPlugin());
+            const html = await renderToString(app);
+            expect(html).toMatch(/<textarea[^>]*data-autosize[^>]*--textarea-min-rows:\s*1;?\s*--textarea-max-rows:\s*8/);
+        });
+
+        it('publishes a border-box element\'s block chrome for the bounds', async () => {
+            render(<Textarea.Root maxRows={4}><Textarea.Textarea /></Textarea.Root>, container);
+            const el = box(container);
+            el.style.boxSizing = 'border-box';
+            el.style.padding = '6px 10px';
+            el.style.border = '1px solid';
+            type(el, 'x');
+            await tick();
+            expect(el.style.getPropertyValue('--textarea-block-chrome')).toBe('14px');
+        });
+
+        it('falls back to measuring scrollHeight where field-sizing is unsupported', async () => {
+            vi.stubGlobal('CSS', { supports: () => false });
+            render(<Textarea.Root maxRows={4}><Textarea.Textarea /></Textarea.Root>, container);
+            const el = box(container);
+            el.style.boxSizing = 'border-box';
+            el.style.padding = '4px 0';
+            el.style.border = '1px solid';
+            let content = 20;
+            Object.defineProperty(el, 'scrollHeight', { configurable: true, get: () => content + 8 });
+            type(el, 'one');
+            expect(el.style.height).toBe('30px');
+            // A value written from outside an input event re-measures too.
+            content = 60;
+            el.value = 'one\ntwo\nthree';
+            el.dispatchEvent(new Event('input'));
+            expect(el.style.height).toBe('70px');
+        });
+
+        it('leaves the height to CSS where field-sizing is supported', async () => {
+            vi.stubGlobal('CSS', { supports: (p: string, v: string) => p === 'field-sizing' && v === 'content' });
+            render(<Textarea.Root maxRows={4}><Textarea.Textarea /></Textarea.Root>, container);
+            const el = box(container);
+            Object.defineProperty(el, 'scrollHeight', { configurable: true, get: () => 200 });
+            type(el, 'one');
+            await tick();
+            expect(el.style.height).toBe('');
+        });
+
+        it('re-measures when the model is written from outside', async () => {
+            vi.stubGlobal('CSS', { supports: () => false });
+            const state = signal({ draft: 'a\nb\nc' });
+            render(
+                <Textarea.Root model={() => state.draft} maxRows={6}>
+                    <Textarea.Textarea />
+                </Textarea.Root>,
+                container,
+            );
+            const el = box(container);
+            let content = 60;
+            Object.defineProperty(el, 'scrollHeight', { configurable: true, get: () => content });
+            type(el, 'a\nb\nc');
+            expect(el.style.height).toBe('60px');
+            content = 20;
+            state.draft = '';
+            await tick();
+            expect(el.style.height).toBe('20px');
+        });
+    });
+});
+
+describe('the contract around data-autosize', () => {
+    const demo = defineAnatomy('demo-as', {
+        root: { element: 'div' },
+        field: { element: 'textarea', parent: 'root', autosize: true },
+    });
+    const build = (partName: string, value = '') => {
+        const root = document.createElement('div');
+        root.setAttribute('data-scope', 'demo-as');
+        root.setAttribute('data-part', 'root');
+        const el = partName === 'root' ? root : root.appendChild(document.createElement('textarea'));
+        if (partName !== 'root') {
+            el.setAttribute('data-scope', 'demo-as');
+            el.setAttribute('data-part', partName);
+        }
+        el.setAttribute('data-autosize', value);
+        const host = document.createElement('div');
+        host.append(root);
+        return host;
+    };
+
+    it('expectAnatomy accepts it on a part that declares autosize', () => {
+        expect(() => expectAnatomyPublic(build('field'), demo)).not.toThrow();
+    });
+
+    it('expectAnatomy fails it on a part that never offered it, and when not presence-only', () => {
+        expect(() => expectAnatomyPublic(build('root'), demo)).toThrow(/does not declare autosize/);
+        expect(() => expectAnatomyPublic(build('field', 'true'), demo)).toThrow(/presence-only/);
+    });
+
+    it('base.css sizes it in the structure layer, where no recipe can undo it', () => {
+        const css = readFileSync(resolve(import.meta.dirname, '../css/base.css'), 'utf8');
+        const structure = css.slice(css.indexOf('@layer zero.structure {'));
+        const rule = structure.slice(structure.indexOf('[data-scope="textarea"][data-part="textarea"][data-autosize] {'));
+        expect(rule.slice(0, rule.indexOf('}'))).toMatch(
+            /field-sizing: content;[\s\S]*min-block-size: calc\(var\(--textarea-min-rows, 1\) \* 1lh \+ var\(--textarea-block-chrome, 0px\)\);[\s\S]*max-block-size: calc\(var\(--textarea-max-rows\) \* 1lh/,
+        );
     });
 });

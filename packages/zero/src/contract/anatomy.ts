@@ -137,6 +137,16 @@ export interface PartSpec {
      * never offered it.
      */
     visuallyHidden?: boolean;
+    /**
+     * True when the consumer can ask the part to grow with its content
+     * (`Textarea.Root minRows`/`maxRows`). The part then renders
+     * `data-autosize` plus the row bounds as custom properties, and
+     * `css/base.css` sizes it in `@layer zero.structure` — the same kind of
+     * presentation request as `visuallyHidden`: nothing for a recipe to
+     * style, never a flag, and declared so `expectAnatomy` fails the
+     * attribute on a part that never offered it.
+     */
+    autosize?: boolean;
     /** Present when the part projects onto a pseudo-element on the web. */
     pseudo?: PartPseudo;
 }

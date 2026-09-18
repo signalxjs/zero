@@ -140,6 +140,9 @@ consumer asks (`visuallyHidden` on the part; `hideLabel` on Switch.Root and
 Checkbox.Root), and zero's css/base.css clips it in `@layer zero.structure`.
 A design system writes nothing for it and cannot undo it. `VisuallyHidden`
 (asChild; no scope, no anatomy) hides arbitrary content the same way.
+AUTOSIZE (#88) is the same kind of presentation request: `data-autosize` on
+a part whose anatomy declares `autosize: true` (textarea's `textarea`),
+sized by base.css in `@layer zero.structure`.
 
 THE FORM CONTRACT (#441): every posting control takes `name`, `form`,
 `disabled`, `invalid`, `required` (and `readonly` where the platform has
@@ -551,8 +554,15 @@ component renders; the root is called out separately where it carries props.
   that STOPS rather than collapsing the duration to ~0 (which strobes).
 - Textarea: Root(model=string)/Label/Textarea. Input's shape minus `control`
   — nothing sits inside a textarea for a wrapper to hold, so the chrome draws
-  on the element. `rows` passes through; auto-sizing is not zero's job and
-  `resize` is the design system's call. No hidden input, same reason.
+  on the element. `rows` passes through and `resize` is the design system's
+  call — unless Root sets `minRows`/`maxRows` (#88): then the box AUTOSIZES
+  (soft wraps included) between those line counts and scrolls past the max.
+  The textarea part renders `data-autosize` + `--textarea-min-rows`/
+  `--textarea-max-rows`; css/base.css grows it (`field-sizing: content`, `lh`
+  bounds, `resize: none`) in `@layer zero.structure`, so a design system
+  writes nothing. `createAutosize` measures the border-box chrome
+  (`--textarea-block-chrome`) and is the scrollHeight fallback where
+  `field-sizing` is unsupported. No hidden input, same reason as Input's.
   `modelModifiers` reach the textarea as on Input.
 - Avatar: Root/Image(src, alt, asChild)/Fallback. Display-only; every part
   mirrors the load status as data-state="loading|loaded|error" (no src →

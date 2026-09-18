@@ -514,7 +514,7 @@ export const PLACEMENT_VOCABULARY = [
  * WITHIN the kit either.
  */
 export const RESERVED_AXES: ReadonlySet<string> = new Set([
-    'scope', 'part', 'state', 'orientation', 'visually-hidden', ...FLAG_VOCABULARY,
+    'scope', 'part', 'state', 'orientation', 'visually-hidden', 'autosize', ...FLAG_VOCABULARY,
 ]);
 
 /**
@@ -662,6 +662,14 @@ export interface ManifestPart {
      * flag: the state tooling does not cross it.
      */
     visuallyHidden?: boolean;
+    /**
+     * True when the consumer can ask the part to grow with its content
+     * (`Textarea.Root minRows`/`maxRows`). The part then renders
+     * `data-autosize`, which zero's `css/base.css` sizes in
+     * `@layer zero.structure` — a presentation request like
+     * `visuallyHidden`, never a flag.
+     */
+    autosize?: boolean;
     /**
      * Present when the part renders no element of its own on the web and
      * projects onto a pseudo-element of another part (dialog's `backdrop` →

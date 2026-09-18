@@ -17,7 +17,7 @@ import { FLAG_VOCABULARY } from './data-attrs.js';
  * wrong thing, with no error anywhere.
  */
 export const RESERVED_AXES: ReadonlySet<string> = new Set([
-    'scope', 'part', 'state', 'orientation', 'visually-hidden', ...FLAG_VOCABULARY,
+    'scope', 'part', 'state', 'orientation', 'visually-hidden', 'autosize', ...FLAG_VOCABULARY,
 ]);
 
 /**

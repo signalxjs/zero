@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Changed — Textarea autosize (zero#88)
+
+- **`ManifestPart.autosize`** (and `manifest.schema.json`) carries
+  zero's new `PartSpec.autosize`: the part renders `data-autosize`, which
+  zero's `css/base.css` sizes in `@layer zero.structure` — a presentation
+  request like `visuallyHidden`, nothing for a recipe to style.
+- **`autosize` joins `RESERVED_AXES`**, and
+  **`RESERVED_PROPS_BY_SCOPE.textarea` gains `minRows` and `maxRows`**.
+
 ### Changed — countdown's `inline` modifier in the conformance fixtures (zero#57)
 
 - The HeroUI and Carbon fixtures (`skills/design-system/conformance/`)

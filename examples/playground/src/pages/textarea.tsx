@@ -5,7 +5,7 @@ import { pickRole } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const TextareaDemos = component(() => {
-    const state = signal({ bio: '' });
+    const state = signal({ bio: '', draft: '' });
 
     return () => (
         <>
@@ -14,8 +14,7 @@ const TextareaDemos = component(() => {
                 <code>control</code> box: nothing sits inside a textarea for a
                 wrapper to hold, so the border, the ring and the invalid tint
                 draw on the element itself. Height is the reader's — the design
-                system supplies <code>resize</code>, the runtime does not
-                auto-size.
+                system supplies <code>resize</code> — unless the box autosizes.
             </p>
             <DemoRow gap="1rem" align="flex-end">
                 <Textarea.Root model={() => state.bio} name="bio" rows={4}>
@@ -40,6 +39,22 @@ const TextareaDemos = component(() => {
                     <Textarea.Label>Invalid + required</Textarea.Label>
                     <Textarea.Textarea />
                 </Textarea.Root>
+            </DemoRow>
+            <p>
+                <code>minRows</code> / <code>maxRows</code> grow the box with
+                its content, soft wraps included, and scroll past the upper
+                bound. The platform does the growing
+                (<code>field-sizing: content</code> in{' '}
+                <code>zero.structure</code>), so no skin writes a line of it;
+                the runtime only measures the padding a border-box bound adds,
+                and the height itself where the engine cannot.
+            </p>
+            <DemoRow gap="1rem" align="flex-end">
+                <Textarea.Root model={() => state.draft} name="draft" minRows={1} maxRows={5}>
+                    <Textarea.Label>Composer (1–5 rows)</Textarea.Label>
+                    <Textarea.Textarea placeholder="Write a message…" />
+                </Textarea.Root>
+                <button type="button" onClick={() => { state.draft = ''; }}>Clear draft</button>
             </DemoRow>
             <p>
                 Same Field adoption as Input — the field owns the label, the
