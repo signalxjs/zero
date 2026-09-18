@@ -310,7 +310,7 @@ export type {
     DrawerCloseDetail,
 } from './components/drawer/index.js';
 export { Table, tableAnatomy } from './components/table/index.js';
-export type { TableRootProps, TablePartProps, TableRowProps, TableHeaderCellProps } from './components/table/index.js';
+export type { TableRootProps, TablePartProps, TableRowProps, TableHeaderCellProps, TableCellProps, TableCellSpanProps } from './components/table/index.js';
 
 export { FileUpload, fileUploadAnatomy, acceptsFile, formatBytes, useFileUploadContext } from './components/file-upload/index.js';
 export type {

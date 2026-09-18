@@ -160,6 +160,27 @@ row (skipping `aria-hidden` decoration such as the default indicator glyph).
 condition pointing at an empty declaration, so the extensionless side-effect
 import typechecks under `noUncheckedSideEffectImports` with no app-side shim.
 
+**Attribute pass-through.** sigx forwards no rest props, so a part only
+renders what it declares. The parts below take `WithHtmlAttrs` and forward
+`aria-*`, the app's own `data-*`, `id`, `title` and `role` onto the element
+they render (into the asChild bag too): `Button.Root` (plus its native
+`form`/`name`/`value`), every `Table` part (`Table.Root` puts `aria-*` and
+`role` on the `<table>` and the rest on its scroll wrapper; `Table.Cell` and
+`Table.HeaderCell` also take `colSpan`/`rowSpan`), and every `Card` part
+(`Card.Root` also takes `asChild`, for a card that is an `<article>`). The
+part's own attributes win where both set one, and a `data-*` name the
+contract owns — `data-scope`/`part`/`state`/`orientation`/`placement`, a
+flag, `data-color`/`size`/`variant`, `data-mod-*`, `data-l-*` — is a compile
+error where TypeScript can see it and throws at runtime either way. Build
+your own forwarding part the same way: intersect `WithHtmlAttrs` into the
+props and spread `htmlAttrs(props)` first.
+
+```tsx
+<Button.Root aria-label="Close" data-testid="close" onClick={close}>×</Button.Root>
+<Table.Row data-row-id={row.id}><Table.Cell colSpan={5}>No results</Table.Cell></Table.Row>
+<Card.Root role="region" aria-labelledby="report-title">…</Card.Root>
+```
+
 `css/base.css` also declares `--print-ink`, the ink a print fallback draws
 with. Paper is not theme-aware — `print-color-adjust: economy` drops background
 paint, so a mark drawn as a background comes back as a glyph, and every

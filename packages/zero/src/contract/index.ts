@@ -99,7 +99,9 @@ export type {
     WithVariantAxesOpen,
     WithOrientation,
     WithAsChild,
+    WithHtmlAttrs,
+    HtmlAttrValue,
     PartProps,
 } from './props.js';
-export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX } from './props.js';
+export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX, htmlAttrs, RESERVED_DATA_ATTRS } from './props.js';
 export { renderAsChild, synthesizesClickFrom } from './as-child.js';
