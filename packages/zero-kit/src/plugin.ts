@@ -39,9 +39,9 @@ const manifestArg = a
 
 const extraManifestArg = a
     .string()
-    .valueHint('path')
+    .valueHint('path|package')
     .multiple()
-    .describe('Ecosystem manifest fragment ({ package, components }) merged into the base manifest — repeatable');
+    .describe('Ecosystem manifest fragment merged into the base manifest — repeatable. A JSON file, a JS module exporting `fragment` (or default), or a package: `@acme/x` reads its "sigx-zero" field, `@acme/x/fragment` its export');
 
 // On by default, matching `runStandardBuild`. `ZERO_ECOSYSTEM=0` is the off
 // switch — @sigx/args has no `--no-x` negation, so the env var carries it.

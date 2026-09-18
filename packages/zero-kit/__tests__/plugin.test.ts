@@ -12,10 +12,11 @@
  * accepts, and which directories the plugin claims. The compile/validate
  * behaviour behind them is covered by the rest of this suite.
  */
-import { describe, it, expect } from 'vitest';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { afterAll, describe, it, expect } from 'vitest';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { defineAnatomy } from '@sigx/zero/anatomy';
 import { parseArgs, ParseError } from '@sigx/args';
 import type { ArgsShape } from '@sigx/args';
 import plugin from '../src/plugin.js';
@@ -229,6 +230,98 @@ describe('--package: an installed design system by name (#37)', () => {
             const dir = installed({ './design-system': { import: target } });
             expect(() => packageDesignSystemEntry(dir, '@acme/skin'), target).toThrow(/is not a path inside the package/);
         }
+    });
+});
+
+describe('--extra-manifest: a JSON file, a fragment module, or a package (#33)', () => {
+    // Inside the repo rather than the OS temp dir: the module cases really
+    // import the fragment, and vite's module runner cannot load a file
+    // written outside the project.
+    const roots: string[] = [];
+    afterAll(() => { for (const dir of roots) rmSync(dir, { recursive: true, force: true }); });
+    const inRepo = (files: Record<string, string>): string => {
+        const dir = mkdtempSync(join(import.meta.dirname, '.tmp-extra-manifest-'));
+        roots.push(dir);
+        for (const [rel, contents] of Object.entries(files)) {
+            const path = join(dir, rel);
+            mkdirSync(join(path, '..'), { recursive: true });
+            writeFileSync(path, contents);
+        }
+        return dir;
+    };
+    const fragment = {
+        version: 1,
+        package: '@acme/feed',
+        components: [defineAnatomy('acme-feed', { root: { element: 'div' } }).toJSON()],
+    };
+    const asModule = `export const fragment = ${JSON.stringify(fragment)};\n`;
+    const base = { 'package.json': pkg({ devDependencies: { '@acme/feed': '1.0.0' } }), 'm.json': JSON.stringify({ components: [] }) };
+    const scopes = async (dir: string, extra: string) =>
+        (await loadManifest(dir, './m.json', [extra])).components.map((c) => `${c.scope}@${c.package}`);
+
+    it('merges a JSON fragment by path, as before', async () => {
+        const dir = inRepo({ ...base, 'f.json': JSON.stringify(fragment) });
+        expect(await scopes(dir, './f.json')).toEqual(['acme-feed@@acme/feed']);
+    });
+
+    it('imports a JS fragment module by path — `fragment`, or the default export', async () => {
+        const dir = inRepo({ ...base, 'f.mjs': asModule, 'd.js': `export default ${JSON.stringify(fragment)};\n` });
+        expect(await scopes(dir, './f.mjs')).toEqual(['acme-feed@@acme/feed']);
+        expect(await scopes(dir, './d.js')).toEqual(['acme-feed@@acme/feed']);
+    });
+
+    it('reads a bare package name through its "sigx-zero" field', async () => {
+        const dir = inRepo({
+            ...base,
+            'node_modules/@acme/feed/package.json': JSON.stringify({ name: '@acme/feed', 'sigx-zero': { fragment: './dist/fragment.js' } }),
+            'node_modules/@acme/feed/dist/fragment.js': asModule,
+        });
+        expect(await scopes(dir, '@acme/feed')).toEqual(['acme-feed@@acme/feed']);
+    });
+
+    it('resolves a subpath export that declares only `import`, which require.resolve cannot see', async () => {
+        const dir = inRepo({
+            ...base,
+            'node_modules/@acme/feed/package.json': JSON.stringify({
+                name: '@acme/feed',
+                exports: { './fragment': { types: './dist/fragment.d.ts', import: './dist/fragment.js' } },
+            }),
+            'node_modules/@acme/feed/dist/fragment.js': asModule,
+        });
+        expect(await scopes(dir, '@acme/feed/fragment')).toEqual(['acme-feed@@acme/feed']);
+    });
+
+    it('names a module with no fragment, and a package it cannot reach', async () => {
+        const dir = inRepo({ ...base, 'none.mjs': 'export const recipes = [];\n' });
+        await expect(loadManifest(dir, './m.json', ['./none.mjs'])).rejects.toThrow(/exports no "fragment" object/);
+        await expect(loadManifest(dir, './m.json', ['@acme/missing'])).rejects.toThrow(
+            /cannot resolve the manifest fragment "@acme\/missing".*"sigx-zero" field/,
+        );
+        await expect(loadManifest(dir, './m.json', ['@acme/missing/fragment'])).rejects.toThrow(
+            /cannot resolve the manifest fragment "@acme\/missing\/fragment"/,
+        );
+    });
+
+    it('refuses a subpath export that points outside its package', async () => {
+        // Resolved by hand past require.resolve, so the escape check is ours.
+        const dir = inRepo({
+            ...base,
+            'node_modules/@acme/feed/package.json': JSON.stringify({ name: '@acme/feed', exports: { './fragment': { import: '../../evil.mjs' } } }),
+        });
+        await expect(loadManifest(dir, './m.json', ['@acme/feed/fragment'])).rejects.toThrow(/is not a path inside the package/);
+        // …and the specifier's own subpath is held to the same segments.
+        await expect(loadManifest(dir, './m.json', ['@acme/feed/../../m.json'])).rejects.toThrow(/is not a subpath inside @acme\/feed/);
+    });
+
+    it('never falls back from a bare name to the package\'s main entry', async () => {
+        // Installed, resolvable, but no "sigx-zero" field: the main module is
+        // the package's runtime, and importing it as a fragment would run it.
+        const dir = inRepo({
+            ...base,
+            'node_modules/@acme/feed/package.json': JSON.stringify({ name: '@acme/feed', main: './index.js' }),
+            'node_modules/@acme/feed/index.js': 'throw new Error("runtime code ran");\n',
+        });
+        await expect(loadManifest(dir, './m.json', ['@acme/feed'])).rejects.toThrow(/"sigx-zero" field, which it does not declare/);
     });
 });
 

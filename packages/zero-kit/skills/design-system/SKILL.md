@@ -919,7 +919,8 @@ Schema `fragment.schema.json`). A design system that should cover them
 **merges** the fragment rather than replacing the manifest:
 
 - CLI: `sigx zero:validate --extra-manifest <path|specifier>` (repeatable),
-  same flag on `zero:build`.
+  same flag on `zero:build` — a JSON fragment, a JS module exporting
+  `fragment`, or a package name (read through its `"sigx-zero"` field).
 - Programmatic (`build.mjs`): `mergeManifests(zeroManifest, fragment)` from
   `@sigx/zero-kit`. If the ecosystem package is private, do the adoption in
   `build.mjs` only — never import it from the package's `src/`, or the

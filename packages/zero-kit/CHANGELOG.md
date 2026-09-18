@@ -101,6 +101,13 @@
   map like `zero:extend --ds` (which now shares the helper) — instead of a
   path into `node_modules`. The kit stays the devDependency that enables
   the command: the `sigx` CLI loads plugins from direct dependencies only.
+- **`--extra-manifest` takes a fragment module, or a package name** (#33).
+  Besides a JSON file it imports a `.js`/`.mjs`/`.cjs` module and takes its
+  `fragment` (or default) export — what an ecosystem package ships and what
+  a `build.mjs` merges. A bare package name is read through its
+  `"sigx-zero"` field; a subpath resolves through the exports map when
+  `require.resolve` cannot see an `import`-only export. `--help` names the
+  accepted shapes.
 
 - **`extendDesignSystem` and `extendRecipe`: derive a design system from
   another** (#60). On `/define` and the barrel. A derived system patches
