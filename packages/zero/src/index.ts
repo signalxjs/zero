@@ -195,6 +195,7 @@ export type {
     InputLabelProps,
     InputControlProps,
     InputInputProps,
+    InputHandle,
     InputType,
 } from './components/input/index.js';
 
@@ -203,6 +204,7 @@ export type {
     TextareaRootProps,
     TextareaLabelProps,
     TextareaTextareaProps,
+    TextareaHandle,
 } from './components/textarea/index.js';
 
 export { Card, cardAnatomy } from './components/card/index.js';

@@ -43,6 +43,23 @@
   now `flex-wrap`, and daisyUI's size ramp sets a `min-height` rather than
   a `height`, so wrapped tags can grow the field.
 
+### Added — text controls forward their events, ARIA and element (#40)
+
+- **`Input.Input` and `Textarea.Textarea` take `WithTextControlEvents`**:
+  `onKeydown`, `onKeyup`, `onBeforeinput`, `onInput`, `onCompositionstart`,
+  `onCompositionend`, `onFocus`, `onBlur`, forwarded to the element so
+  `preventDefault()` works on the control itself. `onInput` runs after the
+  model has taken the value; `onFocus`/`onBlur` compose with the part's
+  focus-visible tracking.
+- **The same two parts forward attributes** (`WithHtmlAttrs` minus `id`):
+  `aria-*`, `data-*`, `title`, `role`. The control's `id` and
+  `aria-invalid` stay the form contract's, and an app `aria-describedby` is
+  joined to the Field's rather than replacing it.
+- **A `ref` handle** — `InputHandle` / `TextareaHandle`
+  (`TextControlHandle<E>`): `{ element, focus() }`, for the caret and the
+  selection.
+- Autosize is not part of this; it is tracked in #88.
+
 ### Added — ToggleGroup posts to forms (#53)
 
 - **`ToggleGroup.Root` takes the form contract** (`name`, `form`,

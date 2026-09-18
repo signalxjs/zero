@@ -31,6 +31,39 @@ export type WithDisabled = Define.Prop<'disabled', boolean, false>;
  */
 export type WithModelModifiers = Define.Prop<'modelModifiers', ModelModifiers, false>;
 
+// ── The text-control surface ──
+// Input.Input and Textarea.Textarea render the native element an app builds
+// a composer, a search box or an autocomplete on. sigx forwards no rest
+// props, so what that needs is declared once here.
+
+/**
+ * The native events of a text control, forwarded to the element itself — so
+ * a handler can `preventDefault()` there (Enter-to-send, arrow keys driving a
+ * popup) instead of filtering a form-level listener by target. `onInput`
+ * runs AFTER the model has taken the new value (under the `lazy` modifier
+ * the model waits for `change`, so it has not). `onFocus`/`onBlur` compose
+ * with the part's own focus-visible tracking.
+ */
+export type WithTextControlEvents =
+    & Define.Prop<'onKeydown', (e: KeyboardEvent) => void, false>
+    & Define.Prop<'onKeyup', (e: KeyboardEvent) => void, false>
+    & Define.Prop<'onBeforeinput', (e: InputEvent) => void, false>
+    & Define.Prop<'onInput', (e: Event) => void, false>
+    & Define.Prop<'onCompositionstart', (e: CompositionEvent) => void, false>
+    & Define.Prop<'onCompositionend', (e: CompositionEvent) => void, false>
+    & Define.Prop<'onFocus', (e: FocusEvent) => void, false>
+    & Define.Prop<'onBlur', (e: FocusEvent) => void, false>;
+
+/**
+ * What a text control's `ref` receives: the element, for what only the
+ * element can do — `setSelectionRange`, `selectionStart`, measuring — and
+ * `focus()`. `element` is `null` until mount and after unmount.
+ */
+export interface TextControlHandle<E extends HTMLElement> {
+    readonly element: E | null;
+    focus(options?: FocusOptions): void;
+}
+
 // ── The form vocabulary ──
 // One spelling per prop, so thirteen components cannot drift on what
 // `name`/`form`/`invalid`/`required`/`readonly` mean. The runtime half is

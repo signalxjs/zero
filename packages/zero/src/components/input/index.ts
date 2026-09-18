@@ -4,6 +4,7 @@ export type {
     InputLabelProps,
     InputControlProps,
     InputInputProps,
+    InputHandle,
     InputType,
 } from './Input.js';
 export { inputAnatomy } from './anatomy.js';
