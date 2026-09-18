@@ -302,6 +302,15 @@ describe('--extra-manifest: a JSON file, a fragment module, or a package (#33)',
         );
     });
 
+    it('refuses a subpath export that points outside its package', async () => {
+        // Resolved by hand past require.resolve, so the escape check is ours.
+        const dir = inRepo({
+            ...base,
+            'node_modules/@acme/feed/package.json': JSON.stringify({ name: '@acme/feed', exports: { './fragment': { import: '../../evil.mjs' } } }),
+        });
+        await expect(loadManifest(dir, './m.json', ['@acme/feed/fragment'])).rejects.toThrow(/is not a path inside the package/);
+    });
+
     it('never falls back from a bare name to the package\'s main entry', async () => {
         // Installed, resolvable, but no "sigx-zero" field: the main module is
         // the package's runtime, and importing it as a fragment would run it.
