@@ -297,6 +297,20 @@ describe('--extra-manifest: a JSON file, a fragment module, or a package (#33)',
         await expect(loadManifest(dir, './m.json', ['@acme/missing'])).rejects.toThrow(
             /cannot resolve the manifest fragment "@acme\/missing".*"sigx-zero" field/,
         );
+        await expect(loadManifest(dir, './m.json', ['@acme/missing/fragment'])).rejects.toThrow(
+            /cannot resolve the manifest fragment "@acme\/missing\/fragment"/,
+        );
+    });
+
+    it('never falls back from a bare name to the package\'s main entry', async () => {
+        // Installed, resolvable, but no "sigx-zero" field: the main module is
+        // the package's runtime, and importing it as a fragment would run it.
+        const dir = inRepo({
+            ...base,
+            'node_modules/@acme/feed/package.json': JSON.stringify({ name: '@acme/feed', main: './index.js' }),
+            'node_modules/@acme/feed/index.js': 'throw new Error("runtime code ran");\n',
+        });
+        await expect(loadManifest(dir, './m.json', ['@acme/feed'])).rejects.toThrow(/"sigx-zero" field, which it does not declare/);
     });
 });
 

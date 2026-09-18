@@ -62,8 +62,14 @@ function fragmentFile(cwd: string, spec: string, logger: EcosystemLogger): strin
     if (!isModuleSpecifier(spec)) return resolve(cwd, spec);
     const [name, subpath] = splitSpecifier(spec);
     if (!subpath) {
+        // Only the field: a package's main entry is its runtime, not its
+        // fragment, and importing it would run unrelated code to fail.
         const declaration = declarationFor(cwd, name, logger);
         if (declaration) return declaration.source;
+        throw new Error(
+            `cannot resolve the manifest fragment "${spec}" from ${cwd} — a bare package name is read through its`
+            + ' "sigx-zero" field, which it does not declare (or it is not installed); name the fragment subpath or file instead',
+        );
     }
     const require = createRequire(resolve(cwd, 'package.json'));
     try {
@@ -75,10 +81,7 @@ function fragmentFile(cwd: string, spec: string, logger: EcosystemLogger): strin
             const target = exportedSubpath(pkg, subpath ? `./${subpath}` : '.');
             if (target) return resolve(dir, target);
         }
-        throw new Error(
-            `cannot resolve the manifest fragment "${spec}" from ${cwd}`
-            + (subpath ? '' : ' — a bare package name is read through its "sigx-zero" field, which it does not declare'),
-        );
+        throw new Error(`cannot resolve the manifest fragment "${spec}" from ${cwd}`);
     }
 }
 
