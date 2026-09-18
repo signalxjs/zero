@@ -228,4 +228,40 @@ describe('Drawer close reason (#52) — Dialog\'s contract, minus cancel', () =>
         document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
         expect(log).toEqual([['openChange', false], ['close', { reason: 'escape' }]]);
     });
+
+    it('a native close zero did not start carries the returnValue; a requested close is reported once', () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        const panel = part(container, 'panel') as HTMLDialogElement;
+        panel.returnValue = 'save';
+        panel.dispatchEvent(new Event('close'));
+        expect(log).toEqual([['openChange', false], ['close', { reason: 'programmatic', value: 'save' }]]);
+
+        state.open = true;
+        part(container, 'close').click();
+        panel.dispatchEvent(new Event('close'));
+        expect(log.filter(([name]) => name === 'close')).toHaveLength(2);
+    });
+
+    it('a controlled parent that refuses the close gets no close event', () => {
+        const log: DrawerCloseDetail[] = [];
+        render(
+            <Drawer.Root
+                model={[{ get open() { return true; }, set open(_v: boolean) {} }, 'open']}
+                onClose={(detail: DrawerCloseDetail) => log.push(detail)}
+            >
+                <Drawer.Panel>
+                    <Drawer.Close>Close</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        part(container, 'close').click();
+        expect(log).toEqual([]);
+    });
+
+    it('forwards `value` to the rendered button, as <form method="dialog"> would read it', () => {
+        mountRecorded(signal({ open: true }));
+        expect(part(container, 'close').getAttribute('value')).toBe('done');
+    });
 });

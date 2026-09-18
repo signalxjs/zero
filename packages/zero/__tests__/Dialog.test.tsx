@@ -419,4 +419,10 @@ describe('Dialog close reason (#52)', () => {
         container.querySelector<HTMLElement>('[data-part="close"]')!.click();
         expect(log).toEqual([]);
     });
+
+    it('forwards `value` to the rendered button, as <form method="dialog"> would read it', () => {
+        mountRecorded(signal({ open: true }));
+        expect(container.querySelector<HTMLElement>('[data-part="close"]')!.getAttribute('value')).toBe('confirm');
+        expect(container.querySelector<HTMLElement>('[data-part="cancel"]')!.hasAttribute('value')).toBe(false);
+    });
 });

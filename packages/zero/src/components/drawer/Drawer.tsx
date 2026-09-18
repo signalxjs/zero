@@ -356,6 +356,9 @@ const DrawerClose = component<DrawerCloseProps>(({ props, slots, signal }) => {
     const bag = (): PartProps => ({
         'data-scope': SCOPE,
         'data-part': 'close',
+        // The native spelling rides along too: an asChild <button> keeps
+        // `<form method="dialog">` semantics without re-threading it.
+        value: props.value,
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
         onClick: () => {
