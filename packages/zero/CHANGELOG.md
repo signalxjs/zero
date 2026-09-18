@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### Added — Button `loading`, and the link-button answer (#50)
+
+- **`Button.Root` takes `loading`**: `data-state="loading"`,
+  `aria-busy="true"` + `aria-disabled="true"`, and activation blocked (no
+  `onClick`, no form submission, no press feedback). The native `disabled`
+  is left alone, so the pressed button keeps focus. An `asChild` element
+  gets the state and the ARIA.
+- **Anatomy:** `button.root` declares `states: ['loading']`, and it is
+  absent at rest. A new `spinner` part (an `aria-hidden` span, parent
+  `root`) renders before the label while loading on the built-in
+  `<button>`. It is a real element rather than a pseudo-element a skin
+  picks: Material already spends both of the root's. All six design systems
+  draw it and style `states.loading` without fading the label.
+- **Link buttons:** the README documents `asChild` over an `<a>`, plus the
+  one unlayered rule
+  (`a[data-scope="button"][data-part="root"] { color: revert-layer; text-decoration: revert-layer; }`)
+  that holds the recipe's colour against an app's plain `a { color }`.
+  Every shipped button recipe now sets `text-decoration: none`, so the
+  revert lands on no underline. A playground spec pins both across the
+  six skins.
+- The README's "loading button" composition (`disabled` +
+  `mods={{ loading: true }}`) is retired in favour of the prop.
+
 ### Added — a lifecycle family in the governed states (#42)
 
 - **`STATE_VOCABULARY.lifecycle`: `running`, `paused`, `denied`,

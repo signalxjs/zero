@@ -282,33 +282,53 @@ load-order dependency described above, and the layer's name belongs to you.
 ## Patterns
 
 Compositions the pieces above are designed to express — no component grows a
-prop for what a composition already says.
+prop for what a composition already says. (Loading used to be one; it is a
+state since #50, because `aria-busy` and a press that does nothing are
+behaviour a composition could not say.)
 
-**The loading button.** Button stays behavior-free: there is no `loading`
-prop, because "busy" is a *styling* state the design system draws and a
-*semantics* the app owns. Compose it:
+**The loading button.** `loading` is Button's one state — work in flight:
 
 ```tsx
-<Button.Root
-    disabled={saving()}
-    mods={saving() ? { loading: true } : undefined}
-    onClick={save}
->
-    Save
+<Button.Root loading={saving()} onClick={save}>Save</Button.Root>
+```
+
+It renders `data-state="loading"`, `aria-busy="true"` and
+`aria-disabled="true"`, blocks activation (no `onClick`, no form submission,
+no press feedback) and renders a `spinner` part — an empty, `aria-hidden`
+span before the label — that every shipped design system draws. It does
+**not** set the native `disabled`: that would drop focus from the button the
+user just pressed. The label stays; it is what the reader is waiting on.
+Styling hooks are the part and the state (`parts.spinner`,
+`states.loading`), so an app extending a design system sizes the spinner by
+name rather than through a skin's pseudo-element. An `asChild` element gets
+the state and the ARIA but no spinner, since its children are the caller's.
+Announce long operations with your own live region when a label change
+alone won't be heard.
+
+**The link button.** A link that looks like a button is `asChild` over an
+`<a>`. It is a real link, with middle-click, "copy link" and the right role,
+and it wears the button's anatomy and recipe:
+
+```tsx
+<Button.Root asChild variant="outline">
+    {(p) => <a href="/docs" {...p}>Docs</a>}
 </Button.Root>
 ```
 
-`mods` renders the presence-only `data-mod-loading` attribute; a design
-system that declares the `loading` modifier — `@sigx/zero-daisyui` does —
-draws the spinner (and hides or dims the label) in pure CSS off
-`[data-mod-loading]`, a recipe-drawn mark the same way checkbox ticks work.
-Under a design system that does *not* declare it, the attribute would match
-no rule, so pass the mod only when the active vocabulary declares it (the
-manifest's `tokens.modifiers`) and the composition degrades to a plain
-disabled button — the accessible truth (`disabled` while the request is in
-flight) never depended on the paint.
-Announce long operations to AT with your own live region or a
-`Spinner label="Saving…"` beside the button when the design draws nothing.
+A design system's recipes live in `@layer zero.recipes`, and any unlayered
+rule beats any layered one, whatever the specificity. So an app stylesheet
+with a plain `a { color: … }` repaints every link button. That is the
+layering promise (app CSS always wins) working as designed, which is why zero
+does not ship an unlayered override of its own. Hand the colour back with one
+unlayered rule in the app:
+
+```css
+a[data-scope="button"][data-part="root"] { color: revert-layer; text-decoration: revert-layer; }
+```
+
+`revert-layer` rolls the property back to the layered cascade, the button
+recipe included. Every shipped button recipe sets `text-decoration: none`, so
+the underline reverts to none rather than the browser's link default.
 
 ## Responsive: breakpoints and `useMediaQuery`
 

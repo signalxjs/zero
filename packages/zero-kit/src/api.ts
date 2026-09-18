@@ -256,7 +256,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     badge: [],
     box: ['pad', 'padX', 'padY'],
     breadcrumbs: ['label'],
-    button: ['form', 'id', 'name', 'onBlur', 'onClick', 'onFocus', 'onKeydown', 'role', 'title', 'type', 'value'],
+    button: ['form', 'id', 'loading', 'name', 'onBlur', 'onClick', 'onFocus', 'onKeydown', 'role', 'title', 'type', 'value'],
     card: ['id', 'role', 'title'],
     carousel: ['defaultIndex', 'label', 'value'],
     center: ['axis', 'gap', 'pad', 'padX', 'padY'],

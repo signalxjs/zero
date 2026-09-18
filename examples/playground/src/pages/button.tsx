@@ -76,26 +76,32 @@ const ButtonDemos = component(() => {
             )}
             <p>
                 <small>
-                    <strong>The loading-button pattern</strong> — Button stays
-                    behavior-free (no <code>loading</code> prop): compose{' '}
-                    <code>disabled</code> with{' '}
-                    <code>mods=&#123;&#123; loading: true &#125;&#125;</code>{' '}
-                    and let the recipe draw the spinner off{' '}
-                    <code>[data-mod-loading]</code>. The mod is passed only
-                    when the live design system declares it, so under one that
-                    doesn't this degrades to a plain disabled button — the
-                    accessible truth never depended on the paint.
+                    <strong>Loading</strong> — <code>loading</code> keeps the
+                    button focusable and its label legible, sets{' '}
+                    <code>aria-busy</code>, blocks activation, and renders the{' '}
+                    <code>spinner</code> part the design system draws.
                 </small>
             </p>
             <DemoRow>
-                <AxisLabel>pattern</AxisLabel>
-                <Button.Root
-                    disabled={state.saving}
-                    mods={state.saving && axes().modifiers.includes('loading') ? { loading: true } : undefined}
-                    onClick={save}
-                >
+                <AxisLabel>loading</AxisLabel>
+                <Button.Root loading={state.saving} onClick={save}>
                     {state.saving ? 'Saving…' : 'Save'}
                 </Button.Root>
+                <Button.Root loading variant={axes().colors.length === 0 ? undefined : 'outline'}>Loading</Button.Root>
+            </DemoRow>
+            <p>
+                <small>
+                    <strong>Link buttons</strong> — <code>asChild</code> over an{' '}
+                    <code>&lt;a&gt;</code>. The twin beside it is a native button
+                    with the same props, so the two should paint alike.
+                </small>
+            </p>
+            <DemoRow>
+                <AxisLabel>link</AxisLabel>
+                <Button.Root asChild>
+                    {(p: Record<string, unknown>) => <a href="#/button" {...p}>Link button</a>}
+                </Button.Root>
+                <Button.Root>Button twin</Button.Root>
             </DemoRow>
         </>
     );

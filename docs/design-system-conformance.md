@@ -42,7 +42,6 @@ adapter would be its own fixture with an `api` declaration.
 | Radix Themes | [@radix-ui/themes v3](https://www.radix-ui.com/themes/docs/components/button) (2026-07-29) | `variant` | enumeration | classic, solid, soft, surface, outline, ghost | `variant` | exact | — | `skills/design-system/conformance/radix.ts` |
 | Radix Themes | [@radix-ui/themes v3](https://www.radix-ui.com/themes/docs/components/button) (2026-07-29) | `radius` | enumeration | none, small, medium, large, full | `axes.radius` | exact | — | `skills/design-system/conformance/radix.ts` |
 | Radix Themes | [@radix-ui/themes v3](https://www.radix-ui.com/themes/docs/components/button) (2026-07-29) | `highContrast` | presence-flag | boolean | `mods.high-contrast` | reshaped | #179 (shipped) | `skills/design-system/conformance/radix.ts` |
-| Radix Themes | [@radix-ui/themes v3](https://www.radix-ui.com/themes/docs/components/button) (2026-07-29) | `loading` | presence-flag | boolean | `mods.loading` | reshaped | #179 (shipped) | `skills/design-system/conformance/radix.ts` |
 | Ant Design | [antd v5](https://ant.design/components/button) (2026-07-29) | `type` | enumeration | primary, dashed, link, text, default | `variant` | renamed | #179 (shipped) | `skills/design-system/conformance/ant.ts` |
 | Ant Design | [antd v5](https://ant.design/components/button) (2026-07-29) | `shape` | enumeration | default, circle, round | `axes.shape` | exact | — | `skills/design-system/conformance/ant.ts` |
 | Ant Design | [antd v5](https://ant.design/components/button) (2026-07-29) | `danger` | presence-flag | boolean | `mods.danger` | reshaped | #179 (shipped) | `skills/design-system/conformance/ant.ts` |
@@ -73,7 +72,6 @@ api-derived grades where a system declares one.
 | daisyui | `block` | presence-flag | boolean | `mods.block` | reshaped | `packages/zero-daisyui` |
 | daisyui | `circle` | presence-flag | boolean | `mods.circle` | reshaped | `packages/zero-daisyui` |
 | daisyui | `hover` | presence-flag | boolean | `mods.hover` | reshaped | `packages/zero-daisyui` |
-| daisyui | `loading` | presence-flag | boolean | `mods.loading` | reshaped | `packages/zero-daisyui` |
 | daisyui | `square` | presence-flag | boolean | `mods.square` | reshaped | `packages/zero-daisyui` |
 | daisyui | `wide` | presence-flag | boolean | `mods.wide` | reshaped | `packages/zero-daisyui` |
 | daisyui | `zebra` | presence-flag | boolean | `mods.zebra` | reshaped | `packages/zero-daisyui` |

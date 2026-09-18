@@ -201,7 +201,7 @@ type ButtonProps = {
     'isPending'?: boolean;
 };
 type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'isIconOnly' | 'isPending' | 'variant', ButtonProps>;
-export declare const Button: ButtonAdapted & { Root: ButtonAdapted };
+export declare const Button: ButtonAdapted & AdaptedStatics<typeof ZButton> & { Root: ButtonAdapted };
 
 /** avatar — no vendor route; the wired surface keeps zero's names. */
 type AvatarProps = {

@@ -175,9 +175,26 @@ export const button: RecipeInput = {
         '--btn-soft': 'var(--color-primary-soft)',
     },
     parts: {
+        // The loading spinner zero renders while `loading` (#50): a ring in
+        // `currentColor` with one open quadrant. Literal duration + explicit
+        // reduced-motion `none` — a loop at ~0s strobes rather than stops.
+        spinner: {
+            base: {
+                boxSizing: 'border-box',
+                inlineSize: '1em',
+                blockSize: '1em',
+                flex: 'none',
+                borderRadius: '0',
+                border: 'calc(var(--border) * 2) solid currentColor',
+                borderBlockStartColor: 'transparent',
+                animation: 'brutalist-btn-spin 0.8s linear infinite',
+            },
+            at: { 'reduced-motion': { base: { animation: 'none' } } },
+        },
         root: {
             base: {
                 appearance: 'none',
+                textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -198,6 +215,7 @@ export const button: RecipeInput = {
                 transition: 'box-shadow var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard)',
             },
             states: {
+                loading: { cursor: 'progress' },
                 disabled: {
                     opacity: 'var(--disabled-opacity)',
                     cursor: 'not-allowed',
@@ -247,4 +265,5 @@ export const button: RecipeInput = {
         },
     },
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
+    keyframes: { 'brutalist-btn-spin': 'to { transform: rotate(360deg) }' },
 };

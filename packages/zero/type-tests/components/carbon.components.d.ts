@@ -18,7 +18,7 @@ type ButtonProps = {
     'isExpressive'?: boolean;
 };
 type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'hasIconOnly' | 'isExpressive' | 'kind', ButtonProps>;
-export declare const Button: ButtonAdapted & { Root: ButtonAdapted };
+export declare const Button: ButtonAdapted & AdaptedStatics<typeof ZButton> & { Root: ButtonAdapted };
 
 /** table — useZebraStyles ← mods.zebra. Attributes stay zero-spelled. */
 type TableProps = {

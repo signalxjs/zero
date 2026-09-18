@@ -18,7 +18,7 @@ type ButtonProps = {
     mods?: { 'expressive'?: boolean; 'icon-only'?: boolean };
 };
 type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'buttonKind' | 'size', ButtonProps>;
-export declare const Button: ButtonAdapted & { Root: ButtonAdapted };
+export declare const Button: ButtonAdapted & AdaptedStatics<typeof ZButton> & { Root: ButtonAdapted };
 
 /** table — no vendor route; the wired surface keeps zero's names. */
 type TableProps = {

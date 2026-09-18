@@ -210,7 +210,7 @@ type SelectProps = {
 type SelectAdapted = Adapted<typeof ZSelect, ZeroAxisProp, SelectProps>;
 export declare const Select: SelectAdapted & AdaptedStatics<typeof ZSelect> & { Root: SelectAdapted };
 
-/** button — variant ← variant; active ← mods.active; block ← mods.block; circle ← mods.circle; loading ← mods.loading; square ← mods.square; wide ← mods.wide. Attributes stay zero-spelled. */
+/** button — variant ← variant; active ← mods.active; block ← mods.block; circle ← mods.circle; square ← mods.square; wide ← mods.wide. Attributes stay zero-spelled. */
 type ButtonProps = {
     color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -218,12 +218,11 @@ type ButtonProps = {
     'active'?: boolean;
     'block'?: boolean;
     'circle'?: boolean;
-    'loading'?: boolean;
     'square'?: boolean;
     'wide'?: boolean;
 };
-type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'active' | 'block' | 'circle' | 'loading' | 'square' | 'variant' | 'wide', ButtonProps>;
-export declare const Button: ButtonAdapted & { Root: ButtonAdapted };
+type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'active' | 'block' | 'circle' | 'square' | 'variant' | 'wide', ButtonProps>;
+export declare const Button: ButtonAdapted & AdaptedStatics<typeof ZButton> & { Root: ButtonAdapted };
 
 /** avatar — no vendor route; the wired surface keeps zero's names. */
 type AvatarProps = {

@@ -153,18 +153,20 @@ export const variants = [...buttonVariants, ...tabVariants] as const;
 
 /**
  * daisyUI 5's button modifier set (#332), each a documented `btn-*` class:
- * `btn-wide`, `btn-block`, `btn-square`, `btn-circle`, `btn-active`, and
- * the loading spinner (daisy renders it as a `loading loading-spinner`
- * span; here the recipe draws it, no DOM change). All six were boolean
- * props on the old `@sigx/daisyui` Button — the api declaration routes
- * them back to those names.
+ * `btn-wide`, `btn-block`, `btn-square`, `btn-circle`, `btn-active`. All
+ * five were boolean props on the old `@sigx/daisyui` Button — the api
+ * declaration routes them back to those names. The sixth, `loading`, is not
+ * a modifier any more: since #50 it is `Button.Root`'s own prop (a state
+ * with `aria-busy` and blocked activation, not just paint), so
+ * `<Button loading>` reaches zero directly and the recipe draws the
+ * `spinner` part.
  *
  * `glass` is deliberately NOT here: daisyUI 5 no longer documents it on
  * any component (a v4 relic whose v5 survival is a compatibility style
  * with open breakage — saadeghi/daisyui#3316, #3501), and the old
  * `@sigx/daisyui` Button never exposed it either.
  */
-export const modifiers = ['wide', 'block', 'square', 'circle', 'active', 'loading'] as const;
+export const modifiers = ['wide', 'block', 'square', 'circle', 'active'] as const;
 
 /**
  * daisyUI's table looks (#340): `table-zebra` and the row-level `hover`

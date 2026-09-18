@@ -215,9 +215,26 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
 export const button: RecipeInput = {
     component: 'button',
     parts: {
+        // The loading spinner zero renders while `loading` (#50): a ring in
+        // `currentColor` with one open quadrant. Literal duration + explicit
+        // reduced-motion `none` — a loop at ~0s strobes rather than stops.
+        spinner: {
+            base: {
+                boxSizing: 'border-box',
+                inlineSize: '1em',
+                blockSize: '1em',
+                flex: 'none',
+                borderRadius: '9999px',
+                border: 'calc(var(--border) * 2) solid currentColor',
+                borderBlockStartColor: 'transparent',
+                animation: 'riso-btn-spin 0.8s linear infinite',
+            },
+            at: { 'reduced-motion': { base: { animation: 'none' } } },
+        },
         root: {
             base: {
                 appearance: 'none',
+                textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -238,6 +255,7 @@ export const button: RecipeInput = {
                     + 'color var(--duration-fast) var(--ease-standard)',
             },
             states: {
+                loading: { cursor: 'progress' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 hover: { background: 'var(--riso-tint)' },
                 // The focus ring is a second pass in the spot ink, offset the
@@ -296,4 +314,5 @@ export const button: RecipeInput = {
     // No `size` here: `sizes: []` means wiring one would be an error, not an
     // omission. `variant` is the only axis this design system has.
     defaultVariants: { variant: 'key' },
+    keyframes: { 'riso-btn-spin': 'to { transform: rotate(360deg) }' },
 };

@@ -555,7 +555,10 @@ const STATIC_COVERAGE: Record<(typeof DESIGN_SYSTEMS)[number], number> = {
     // noise texture as a second background layer; the star preview brightens.
     // 89.7 → 89.6 with #446: NativeSelect's cells, every one of them
     // measured, left the denominator; the 206 unmeasured are unchanged.
-    daisyui: 89.6,
+    // 89.6 → 86.5 with signalxjs/zero#50: Button's new `loading` state
+    // doubles the root's combos, and the 192 new unmeasured cells are all
+    // `+active` × loading — the same `brightness()` filter, no new reason.
+    daisyui: 86.5,
     material: 100,
     brutalist: 100,
     // The half star is a hard-stop gradient on `::before`.

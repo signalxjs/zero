@@ -63,10 +63,11 @@ components, different look, zero component-code changes.
 Button carries daisy 5's full style vocabulary — `variant` takes `solid`,
 `outline`, `soft`, `ghost`, `dash` (`btn-dash`) and `link` (`btn-link`),
 orthogonal to the eight-role `color` axis, exactly as daisy's own CSS composes
-`btn-outline` **with** `btn-primary` — plus the six documented `btn-*`
-modifiers as presence-only `data-mod-*`: `wide`, `block`, `square`, `circle`,
-`active`, and `loading`, whose spinner the recipe draws in `currentColor`
-(daisy renders it as a `loading loading-spinner` span; zero changes no DOM).
+`btn-outline` **with** `btn-primary` — plus five documented `btn-*`
+modifiers as presence-only `data-mod-*`: `wide`, `block`, `square`, `circle`
+and `active`. `loading` is zero's own Button prop (a state, with `aria-busy`
+and a blocked press), and the recipe draws its `spinner` part in
+`currentColor`: that part is daisy's `loading loading-spinner` span.
 daisy 4's `glass` is not carried: daisyUI 5 no longer documents it on any
 component, and the old library never exposed it either.
 
@@ -98,7 +99,7 @@ Migrating from the old `@sigx/daisyui` package, prop by prop:
 | `outline` / `soft` / `dash` (booleans) | `variant="outline"` / `"soft"` / `"dash"` |
 | `wide`, `block`, `square`, `circle`, `active`, `loading` | same names, same booleans |
 | `size="xs"` … `size="xl"` | unchanged |
-| `loading` also disabling the button | pass `disabled` yourself — loading is paint, not behaviour |
+| `loading` also disabling the button | built in: `loading` blocks the press and sets `aria-busy`, and keeps focus |
 
 The old fused `ButtonVariant` union (colours + `ghost` + `link` in one prop)
 was a modeling artifact, not daisy's real shape — daisy's CSS composes a style

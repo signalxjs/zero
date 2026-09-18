@@ -7,6 +7,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
+import { component, signal } from 'sigx';
 import { Button, buttonAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
@@ -234,5 +235,80 @@ describe('Button', () => {
         expect(el.hasAttribute('data-pressed')).toBe(true);
         el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
         expect(el.hasAttribute('data-pressed')).toBe(false);
+    });
+});
+
+describe('Button loading (#50)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    const root = () =>
+        container.querySelector<HTMLButtonElement>('[data-scope="button"][data-part="root"]')!;
+    const spinner = () => container.querySelector('[data-scope="button"][data-part="spinner"]');
+
+    it('renders the loading state, the ARIA and a spinner before the label', () => {
+        render(<Button.Root loading>Save</Button.Root>, container);
+        expectAnatomy(container, buttonAnatomy);
+        expect(root().getAttribute('data-state')).toBe('loading');
+        expect(root().getAttribute('aria-busy')).toBe('true');
+        expect(root().getAttribute('aria-disabled')).toBe('true');
+        expect(spinner()!.getAttribute('aria-hidden')).toBe('true');
+        expect(root().firstElementChild).toBe(spinner());
+        // The label stays: it is what the reader is waiting on.
+        expect(root().textContent).toBe('Save');
+    });
+
+    it('keeps the button focusable — not the native disabled', () => {
+        render(<Button.Root loading>Save</Button.Root>, container);
+        expect(root().disabled).toBe(false);
+        root().focus();
+        expect(document.activeElement).toBe(root());
+    });
+
+    it('blocks activation: no onClick, no form submission, no press feedback', () => {
+        const onClick = vi.fn();
+        const onSubmit = vi.fn((e: Event) => e.preventDefault());
+        const form = document.createElement('form');
+        form.addEventListener('submit', onSubmit);
+        container.appendChild(form);
+        render(<Button.Root loading type="submit" onClick={onClick}>Save</Button.Root>, form);
+        root().dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(root().hasAttribute('data-pressed')).toBe(false);
+        root().click();
+        expect(onClick).not.toHaveBeenCalled();
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('carries no state, ARIA or spinner at rest, and follows the prop', () => {
+        const state = signal({ saving: false });
+        const App = component(() => () => <Button.Root loading={state.saving}>Save</Button.Root>);
+        render(<App />, container);
+        expect(root().hasAttribute('data-state')).toBe(false);
+        expect(root().hasAttribute('aria-busy')).toBe(false);
+        expect(root().hasAttribute('aria-disabled')).toBe(false);
+        expect(spinner()).toBeNull();
+        state.saving = true;
+        expect(root().getAttribute('data-state')).toBe('loading');
+        expect(spinner()).not.toBeNull();
+        state.saving = false;
+        expect(spinner()).toBeNull();
+    });
+
+    it('gives an asChild element the state and the ARIA, but no spinner', () => {
+        const onClick = vi.fn();
+        render(
+            <Button.Root asChild loading onClick={onClick}>
+                {(p: Record<string, unknown>) => <a href="/docs" {...p}>Docs</a>}
+            </Button.Root>,
+            container,
+        );
+        const el = container.querySelector<HTMLElement>('[data-scope="button"][data-part="root"]')!;
+        expect(el.getAttribute('data-state')).toBe('loading');
+        expect(el.getAttribute('aria-busy')).toBe('true');
+        expect(spinner()).toBeNull();
+        el.click();
+        expect(onClick).not.toHaveBeenCalled();
     });
 });

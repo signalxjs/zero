@@ -13,11 +13,13 @@ import { recipes } from './recipes.js';
  * modeling artifact rather than the real shape — so no axis is renamed and
  * no value respelled: `variant: {}` is the explicit `exact` claim. What the
  * api adds is the modifier surface: the old library's boolean props
- * (`wide`, `block`, `square`, `circle`, `active`, `loading`) surface under
- * their own names on the generated `./components` module, so
+ * (`wide`, `block`, `square`, `circle`, `active`) surface under their own
+ * names on the generated `./components` module, so
  * `<Button wide loading variant="dash" color="primary">` is fully typed from
- * one import. None of the six collides with `RESERVED_PROPS_BY_SCOPE` — the
- * validator checks exactly that for every identity-named modifier.
+ * one import — `loading` being zero's own Button prop since #50, which is
+ * why it is no modifier here: it would collide with
+ * `RESERVED_PROPS_BY_SCOPE`, and the validator checks exactly that for
+ * every identity-named modifier.
  *
  * `defineApi` from `@sigx/zero-kit/define`, the node:-free authoring
  * subpath (#318): this module is in the package's RUNTIME graph (the barrel
@@ -36,7 +38,6 @@ const api = defineApi(
             square: {},
             circle: {},
             active: {},
-            loading: {},
             zebra: {},
             hover: {},
         },

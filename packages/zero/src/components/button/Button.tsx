@@ -6,11 +6,12 @@
  * <Button.Root asChild><a href="/docs">Docs</a></Button.Root>
  * ```
  *
- * There is no behavior to speak of here, and that is the point: a native
- * `<button>` already handles keyboard activation, form submission and the
- * disabled semantics. What zero adds is the anatomy — one stable selector
- * carrying `data-color` / `data-size` / `data-variant`, so a design system
- * has somewhere to put the fill styles the contract has always advertised.
+ * There is little behavior here, and that is the point: a native `<button>`
+ * already handles keyboard activation, form submission and the disabled
+ * semantics. What zero adds is the anatomy — one stable selector carrying
+ * `data-color` / `data-size` / `data-variant`, so a design system has
+ * somewhere to put the fill styles the contract has always advertised — and
+ * the one state a native button has no spelling for: `loading`.
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
@@ -54,6 +55,15 @@ export type ButtonRootProps =
      */
     & Define.Prop<'type', 'button' | 'submit' | 'reset', false>
     /**
+     * Work in flight: `aria-busy` + `aria-disabled`, `data-state="loading"`,
+     * activation blocked (a click neither fires `onClick` nor submits), and
+     * a `spinner` part rendered before the label for the design system to
+     * draw. NOT the native `disabled`: that would drop focus from the button
+     * the user just pressed. An asChild element gets the state and the ARIA
+     * but no spinner — its children are the caller's.
+     */
+    & Define.Prop<'loading', boolean, false>
+    /**
      * Interaction handlers are declared rather than forwarded: sigx passes no
      * rest props, so a `<Button.Root onClick={…}>` would otherwise be inert.
      * They compose with the component's own focus tracking rather than
@@ -71,9 +81,12 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
     // Always on: one listener set, zero work until a press, and whether
     // anything visible happens is the design system's call (CSS on
     // data-pressed / data-press-animating / --press-*), not the app's.
+    // Loading blocks activation like disabled does, without the native
+    // attribute (see the prop).
+    const inert = (): boolean => !!props.disabled || !!props.loading;
     const press = createPressFeedback({
         getElement: () => el,
-        isDisabled: () => !!props.disabled,
+        isDisabled: inert,
     });
 
     const bag = (): PartProps => ({
@@ -81,6 +94,7 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
         ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'root',
+        'data-state': props.loading ? 'loading' : undefined,
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
         // A native <button disabled> is inert already; an asChild <a> is not,
@@ -88,12 +102,15 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
         // The literal string: ARIA is string-valued, and a boolean true
         // serializes to an empty attribute, which reads as aria-disabled="".
         // Spread only when it applies, so an app's own `aria-disabled` (the
-        // focusable-disabled pattern) survives otherwise.
-        ...(props.asChild && props.disabled ? { 'aria-disabled': 'true' as const } : {}),
+        // focusable-disabled pattern) survives otherwise. Loading conveys it
+        // on every element: the button stays focusable, and a press does
+        // nothing.
+        ...((props.asChild && props.disabled) || props.loading ? { 'aria-disabled': 'true' as const } : {}),
+        ...(props.loading ? { 'aria-busy': 'true' as const } : {}),
         ...variantAttrs(props),
         ref: (node: HTMLElement | null) => { el = node; },
         onClick: (e: MouseEvent) => {
-            if (props.disabled) {
+            if (inert()) {
                 e.preventDefault();
                 e.stopPropagation();
                 return;
@@ -101,7 +118,7 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
             props.onClick?.(e);
         },
         onKeydown: (e: KeyboardEvent) => {
-            if (props.disabled) return;
+            if (inert()) return;
             press.onKeydown(e);
             props.onKeydown?.(e);
         },
@@ -134,6 +151,7 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
                 disabled={props.disabled}
                 {...b}
             >
+                {props.loading ? <span data-scope={SCOPE} data-part="spinner" aria-hidden="true" /> : null}
                 {slots.default?.(b)}
             </button>
         );
