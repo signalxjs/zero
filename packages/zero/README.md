@@ -347,7 +347,10 @@ same behaviors, held to the same conformance assertion:
   `FLAG_VOCABULARY`, placements of `PLACEMENT_VOCABULARY`, layout attributes
   of `LAYOUT_VOCABULARY` — and
   `mergeManifests` enforces all four on published fragments, so an ecosystem
-  scope cannot invent synonyms either. `FRAGMENT_VERSION` is the version a
+  scope cannot invent synonyms either. Work in flight (a job, tool call or
+  deploy) has its own family, lifecycle: `running|paused|denied|cancelled`,
+  alongside `loading` for the wait before it starts and `complete|error`
+  for the outcome. `FRAGMENT_VERSION` is the version a
   fragment declares — here so a package's `./fragment` entry can read it at
   runtime without the kit, which is only its devDependency.
 - `@sigx/zero/behaviors` — controllable state, SSR-safe ids, roving tabindex,

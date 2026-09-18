@@ -448,6 +448,7 @@ export const STATE_VOCABULARY = {
     toggle: ['on', 'off'],
     loading: ['loading', 'loaded', 'complete', 'error'],
     fill: ['full', 'half', 'empty'],
+    lifecycle: ['running', 'paused', 'denied', 'cancelled'],
 } as const;
 
 /** Every governed `data-state` value, flat. Mirrors zero's `STATE_NAMES`. */
@@ -477,6 +478,15 @@ export const STATE_SYNONYMS: Record<string, string> = {
     finished: 'complete',
     failed: 'error',
     errored: 'error',
+    'in-progress': 'running',
+    executing: 'running',
+    started: 'running',
+    suspended: 'paused',
+    rejected: 'denied',
+    refused: 'denied',
+    declined: 'denied',
+    canceled: 'cancelled',
+    aborted: 'cancelled',
 };
 
 /**

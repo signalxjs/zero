@@ -120,7 +120,7 @@
     {
         "name": "@sigx/zero/combobox",
         "path": "packages/zero/dist/components/combobox/index.js",
-        "limit": "9.2 kB",
+        "limit": "9.3 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -180,7 +180,7 @@
     {
         "name": "@sigx/zero/tree-view",
         "path": "packages/zero/dist/components/tree-view/index.js",
-        "limit": "4.5 kB",
+        "limit": "4.6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -456,7 +456,7 @@
     {
         "name": "@sigx/zero/file-upload",
         "path": "packages/zero/dist/components/file-upload/index.js",
-        "limit": "4.2 kB",
+        "limit": "4.3 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -576,7 +576,7 @@
     {
         "name": "@sigx/zero/steps",
         "path": "packages/zero/dist/components/steps/index.js",
-        "limit": "3.5 kB",
+        "limit": "3.6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

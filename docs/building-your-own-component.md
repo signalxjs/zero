@@ -44,8 +44,11 @@ Rules that make it a *zero* anatomy:
 
 - **Vendor-prefix the scope** (`acme-stepper`). The merge hard-errors on
   collisions; the prefix is what keeps you out of everyone's way.
-- `data-state` values form a closed set; boolean flags come from zero's
-  shared `FLAG_VOCABULARY` (never invent synonyms) and render presence-only.
+- `data-state` values form a closed set drawn from zero's governed
+  `STATE_VOCABULARY`. A job or tool-call card, for example, says
+  `loading|running|paused|denied|cancelled|complete|error` rather than
+  borrowing `active`/`closed`. Boolean flags come from zero's shared
+  `FLAG_VOCABULARY` (never invent synonyms) and render presence-only.
 - A part the runtime hides with `hidden` in some state declares `hiddenIn`.
 - `anatomy.toJSON()` emits exactly the manifest component shape — you never
   hand-write manifest JSON.

@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Added — a lifecycle family in the governed states (#42)
+
+- **`STATE_VOCABULARY.lifecycle`: `running`, `paused`, `denied`,
+  `cancelled`.** These are for work in flight: a tool call, a job, a
+  deploy. Before this, an ecosystem card could only borrow disclosure or
+  activation vocabulary (`active` for running, `closed` for a refusal), and
+  `mergeManifests` rejected the real spellings. The wait before work starts
+  stays `loading` (`pending → loading` is unchanged), and the outcomes stay
+  `complete` / `error`, so a job's full lifecycle is the two families
+  together. `running` and `paused` are the platform's own
+  `animation-play-state` spellings.
+- **`STATE_SYNONYMS`** gains `in-progress`/`executing`/`started → running`,
+  `suspended → paused`, `rejected`/`refused`/`declined → denied` and
+  `canceled`/`aborted → cancelled`.
+
 ### Added — Combobox tags, Backspace removal and `allowCustom` (#39)
 
 - **Tags.** Under `multiple` the Combobox's data expansion renders one
