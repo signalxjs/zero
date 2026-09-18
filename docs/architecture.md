@@ -767,7 +767,7 @@ order is idempotent; relying on load order is not. What each layer holds:
 | `zero.fallback` | base.css only: design-system-neutral structural token defaults (radius/size/text ramps, durations, …) so an unstyled page is sane. |
 | `zero.tokens` | Compiled design-system tokens: `:where(:root)` defaults, `@property`-adjacent blocks, theme blocks. |
 | `zero.recipes` | All compiled recipe CSS, plus base.css's few structural necessities (summary marker removal, `cursor: not-allowed`). |
-| `zero.structure` | Three rules: `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, the `[data-visually-hidden]` clip (#54), and a table `column`'s `width: var(--table-column-width, auto)` (#55). |
+| `zero.structure` | `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, the same for a closed dialog popup / drawer panel (`:not([open])`, #51), the `[data-visually-hidden]` clip (#54), and a table `column`'s `width: var(--table-column-width, auto)` (#55). |
 
 `zero.structure` exists because `[hidden]` otherwise relies on the UA
 sheet — the weakest declaration in the document — and all six design

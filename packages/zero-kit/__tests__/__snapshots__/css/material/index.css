@@ -8891,7 +8891,10 @@
         color: var(--color-surface-container-content);
         border: none;
         border-radius: var(--radius-box);
-        inline-size: min(22.5rem, 85vw);
+        box-sizing: border-box;
+        --l-measure: min(22.5rem, 85vw);
+        inline-size: 100%;
+        max-inline-size: var(--l-measure);
     }
 
     [data-scope="drawer"][data-part="panel"][data-state="open"] {
@@ -8905,8 +8908,6 @@
         inset-block-end: 0;
         block-size: 100dvh;
         max-block-size: 100dvh;
-        inline-size: min(22.5rem, 85vw);
-        max-inline-size: none;
         margin: 0;
         border-radius: 0;
     }

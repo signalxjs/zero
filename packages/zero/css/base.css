@@ -166,12 +166,6 @@
         display: none;
     }
 
-    /* Native dialog: closed popups are display:none by the UA already;
-       keep the top-layer margin reset structural. */
-    [data-scope="dialog"][data-part="popup"]:not([open]) {
-        display: none;
-    }
-
     [data-disabled] {
         cursor: not-allowed;
     }
@@ -204,6 +198,21 @@
  */
 @layer zero.structure {
     [data-scope][data-part][hidden]:not([hidden="until-found" i]) {
+        display: none;
+    }
+
+    /*
+     * A closed native <dialog> — Dialog's popup, Drawer's panel. The UA hides
+     * it with `dialog:not([open]) { display: none }`, which is exactly the
+     * weak declaration the `[hidden]` guard above exists for: a recipe's
+     * `display` on the part (a flex panel is the ordinary case) would leave
+     * a closed one painted. Here rather than in `zero.recipes`, where a
+     * skin's equally specific rule loaded later would still win. Exit
+     * transitions are unaffected: a recipe's `display … allow-discrete`
+     * transitions the computed value whichever layer set it.
+     */
+    [data-scope="dialog"][data-part="popup"]:not([open]),
+    [data-scope="drawer"][data-part="panel"]:not([open]) {
         display: none;
     }
 

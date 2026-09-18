@@ -28,7 +28,8 @@ test.beforeEach(async ({ page }) => {
  * `Drawer.Root` renders no element, so there is no demo root to hang parts
  * off — each demo is pinned by the text on its own trigger, and the panel
  * resolves through the `aria-controls` id that trigger publishes (`demo.ts`).
- * The page holds three drawers: start, end, and the inline filters panel.
+ * The page holds the start and end drawers, the measure and hidden-title
+ * demos, and the inline filters panel.
  */
 const startTrigger = (page: Page) => page.getByRole('button', { name: 'Open drawer', exact: true });
 const endTrigger = (page: Page) => page.getByRole('button', { name: 'Open end drawer', exact: true });
@@ -154,3 +155,70 @@ test('the panel is labelled by its Title, or by the label prop when no Title ren
     // Title wins over the label prop; both never render together.
     await expect(start).not.toHaveAttribute('aria-label', /.*/);
 });
+
+test('a visually hidden title still names the panel, and paints nothing (#51, #54)', async ({ page }) => {
+    const trigger = page.getByRole('button', { name: 'Open app menu', exact: true });
+    await trigger.click();
+    const panel = await controlledPopup(page, trigger, 'the app menu trigger');
+    await expect(panel).toHaveAttribute('data-state', 'open');
+    await expect(page.getByRole('dialog', { name: 'App menu', exact: true })).toBeVisible();
+    const title = panel.locator('[data-scope="drawer"][data-part="title"]');
+    await expect(title).toHaveAttribute('data-visually-hidden', '');
+    const box = await title.evaluate((el) => el.getBoundingClientRect().toJSON() as DOMRect);
+    expect(box.width).toBeLessThanOrEqual(1);
+    expect(box.height).toBeLessThanOrEqual(1);
+});
+
+const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
+
+/** What `var(--measure-<key>)` resolves to on this page, in px. */
+const measurePx = (page: Page, key: string) => page.evaluate((k) => {
+    const probe = document.createElement('div');
+    probe.style.cssText = `position:absolute;inline-size:var(--measure-${k})`;
+    document.body.append(probe);
+    const w = probe.getBoundingClientRect().width;
+    probe.remove();
+    return w;
+}, key);
+
+for (const ds of DESIGN_SYSTEMS) {
+    test(`${ds}: measure sizes the modal sheet from the ramp; full spans the viewport; unset keeps the skin's width (#51)`, async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium', 'recipe geometry is engine-independent; chromium walks the six skins');
+        // The file's beforeEach already booted basic on this URL; a same-URL
+        // hash goto would not reload, so leave the page first.
+        await page.goto('about:blank');
+        await bootPage(page, 'drawer', ds);
+        const viewport = page.viewportSize()!.width;
+
+        const wideTrigger = page.getByRole('button', { name: 'Open wide drawer', exact: true });
+        await wideTrigger.click();
+        const wide = await controlledPopup(page, wideTrigger, 'the wide drawer trigger');
+        await expect(wide).toHaveAttribute('data-l-measure', 'md');
+        const expected = Math.min(await measurePx(page, 'md'), viewport);
+        expect(Math.abs((await settledBox(wide, 'the wide panel')).width - expected)).toBeLessThanOrEqual(1);
+        await page.keyboard.press('Escape');
+        await expect(wide).toHaveAttribute('data-state', 'closed');
+
+        const fullTrigger = page.getByRole('button', { name: 'Open full-screen drawer', exact: true });
+        await fullTrigger.click();
+        const full = await controlledPopup(page, fullTrigger, 'the full-screen drawer trigger');
+        expect(Math.abs((await settledBox(full, 'the full-screen panel')).width - viewport)).toBeLessThanOrEqual(1);
+        await page.keyboard.press('Escape');
+        await expect(full).toHaveAttribute('data-state', 'closed');
+
+        // No measure: the skin's own sheet width, narrower than the md rung.
+        await startTrigger(page).click();
+        const start = await controlledPopup(page, startTrigger(page), 'the start drawer trigger');
+        const plain = (await settledBox(start, 'the start panel')).width;
+        expect(plain).toBeGreaterThan(200);
+        expect(plain).toBeLessThan(expected);
+        await page.keyboard.press('Escape');
+        await expect(start).toHaveAttribute('data-state', 'closed');
+
+        // Inline, the same default caps the panel in flow: the skin's width,
+        // not its container's.
+        await inlineTrigger(page).click();
+        const inline = await controlledPopup(page, inlineTrigger(page), 'the inline drawer trigger');
+        expect(Math.abs((await settledBox(inline, 'the inline panel')).width - plain)).toBeLessThanOrEqual(1);
+    });
+}

@@ -4509,7 +4509,17 @@ export const drawer: RecipeInput = {
                 color: 'var(--color-surface-container-content)',
                 border: 'none',
                 borderRadius: 'var(--radius-box)',
-                inlineSize: 'min(22.5rem, 85vw)',
+                // The width is capped by `--l-measure` (Drawer.Panel's
+                // `measure`, via the layout step table); this is the default
+                // an unset `measure` leaves. A cap, not a width, because the
+                // table spells `full` as `none` — valid only for a max. In
+                // flow and as a sheet alike, the panel fills what it is given
+                // up to the measure, as its border box, so `full` never
+                // overflows by its own padding.
+                boxSizing: 'border-box',
+                '--l-measure': 'min(22.5rem, 85vw)',
+                inlineSize: '100%',
+                maxInlineSize: 'var(--l-measure)',
             },
             states: { open: {}, closed: {} },
             selectors: {
@@ -4526,8 +4536,6 @@ export const drawer: RecipeInput = {
                     insetBlockEnd: '0',
                     blockSize: '100dvh',
                     maxBlockSize: '100dvh',
-                    inlineSize: 'min(22.5rem, 85vw)',
-                    maxInlineSize: 'none',
                     margin: '0',
                     borderRadius: '0',
                 },

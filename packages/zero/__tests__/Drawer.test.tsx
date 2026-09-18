@@ -156,6 +156,22 @@ describe('Drawer', () => {
         expect(panel.open).toBe(false);
     });
 
+    it('measure stamps the declared layout attribute on the panel, and only when set (#51)', () => {
+        render(
+            <Drawer.Root>
+                <Drawer.Panel measure="md"><Drawer.Title>Wide</Drawer.Title></Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        expect(part(container, 'panel').getAttribute('data-l-measure')).toBe('md');
+        expectAnatomy(container, drawerAnatomy);
+
+        const plain = document.createElement('div');
+        document.body.appendChild(plain);
+        mount(plain, signal({ open: false }));
+        expect(part(plain, 'panel').hasAttribute('data-l-measure')).toBe(false);
+    });
+
     it('passes the variant axes through on the trigger (the carrier part)', () => {
         render(
             <Drawer.Root>

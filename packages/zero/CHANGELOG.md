@@ -168,6 +168,37 @@
   `formControl`. Inside a `Field.Root` the group is named by the field's
   label (`aria-labelledby`) unless `label` is given.
 
+### Added — Drawer: a panel `measure`, and a closed panel stays hidden (#51)
+
+- **`Drawer.Panel measure`** sizes the panel from the design system's
+  `--measure-*` ramp. It is the `measure` layout attribute
+  (`data-l-measure`, declared in the panel's anatomy as `layout: ['measure']`),
+  the same one Container uses, and not the `size` axis: `size` rides the
+  trigger, which is the carrier part, and the panel does not render inside
+  it, so no trigger-carried axis can reach it. All six skins read
+  `--l-measure` as a cap (`max-inline-size` over `inline-size: 100%`): the
+  panel fills its container inline, or the viewport as a modal sheet, up
+  to the measure. The layout table spells `full` as `none`, which is valid
+  only for a max, so `full` is a full-screen sheet. Each skin
+  declares its previous width as the default, so an unset `measure`
+  renders the width it did before. The panel is now `box-sizing: border-box`
+  in every skin, so `full` never overflows by its own padding; a default
+  panel's outer width is the stated width rather than that width plus
+  padding and border.
+- **A closed `Drawer.Panel` is `display: none` in `css/base.css`, and so is
+  a closed `Dialog.Popup`, now in `@layer zero.structure`.** Dialog's rule
+  used to sit in `zero.recipes`, where a skin's equally specific rule loaded
+  later would still win, and the drawer had none. A recipe's `display` on
+  the part would otherwise keep a closed one painted. Exit transitions are
+  unaffected: `display … allow-discrete` transitions the computed value
+  whichever layer set it.
+- Agentic's other asks are handled elsewhere. The hidden title is
+  `Drawer.Title visuallyHidden` (#54), which the playground now
+  demonstrates and the drawer e2e checks. The enter and exit transitions were
+  already recipe-side on the motion tokens in all six skins, as fades; a
+  directional slide and the responsive inline/modal mode are follow-ups
+  (see #51).
+
 ### Added — `FRAGMENT_VERSION` on the contract, and types for `./css` (#66)
 
 - **`FRAGMENT_VERSION` is exported from `@sigx/zero/contract`** (and the
