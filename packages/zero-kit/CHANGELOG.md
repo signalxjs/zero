@@ -52,6 +52,11 @@
   participation (#53). A vendor-named api can no longer claim those names as
   axis props on toggle-group.
 
+- **`RESERVED_PROPS_BY_SCOPE` follows the roll-out's second part** (zero#74):
+  the disclosure, navigation and form-control scopes gain `id`, `title` and
+  `role` — less `role` on `steps`, `carousel`, `toggle`, `switch`,
+  `checkbox`, `radio-group` and `toggle-group`, whose roots refuse it.
+
 - **`RESERVED_PROPS_BY_SCOPE` follows the pass-through's roll-out** (zero#74):
   the presentational and layout scopes gain `id`, `title` and `role` — less
   `role` where the root refuses it (`alert`, `countdown`, `divider`,

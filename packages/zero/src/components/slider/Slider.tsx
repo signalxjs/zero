@@ -50,7 +50,8 @@ import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import type { WithClass, WithDisabled, WithForm, WithInvalid, WithName, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithForm, WithHtmlAttrs, WithInvalid, WithName, WithVariantAxes } from '../../contract/props.js';
 import { sliderAnatomy } from './anatomy.js';
 
 const SCOPE = sliderAnatomy.scope;
@@ -170,6 +171,7 @@ export type SliderRootProps =
     & WithDisabled
     & WithVariantAxes<'slider'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
@@ -309,6 +311,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-disabled={dataAttr(ctx.disabled())}
@@ -341,12 +344,14 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
     );
 }, { name: 'Slider.Root' });
 
-export type SliderLabelProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the thumbs' and the value text's wiring points at the Label's own. */
+export type SliderLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const SliderLabel = component<SliderLabelProps>(({ props, slots }) => {
     const slider = useSliderContext();
     return () => (
         <label
+            {...htmlAttrs(props)}
             id={slider.ids.label}
             for={slider.ids.control}
             data-scope={SCOPE}
@@ -359,7 +364,8 @@ const SliderLabel = component<SliderLabelProps>(({ props, slots }) => {
     );
 }, { name: 'Slider.Label' });
 
-export type SliderControlProps = WithClass;
+/** Not `id`: the Label's `for` and the value text's point at the control's own. */
+export type SliderControlProps = WithClass & Omit<WithHtmlAttrs, 'id'>;
 
 /** The single-value native projection — an `<input type="range">`. */
 const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmounted }) => {
@@ -391,6 +397,7 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
 
     return () => (
         <input
+            {...htmlAttrs(props)}
             type="range"
             id={slider.ids.control}
             data-scope={SCOPE}
@@ -425,7 +432,7 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
 
 // ── Track / Range / Thumb / marks — the composed projection ──
 
-export type SliderTrackProps = WithClass & Define.Slot<'default'>;
+export type SliderTrackProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 /**
  * The rail. Positions its children (structural inline styles); a pointer
@@ -438,6 +445,7 @@ const SliderTrack = component<SliderTrackProps>(({ props, slots }) => {
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="track"
             data-disabled={dataAttr(slider.disabled())}
@@ -484,7 +492,7 @@ const SliderTrack = component<SliderTrackProps>(({ props, slots }) => {
     );
 }, { name: 'Slider.Track' });
 
-export type SliderRangeProps = WithClass;
+export type SliderRangeProps = WithClass & WithHtmlAttrs;
 
 /** The filled span: lowest → highest thumb; min → value when single. */
 const SliderRange = component<SliderRangeProps>(({ props }) => {
@@ -496,6 +504,7 @@ const SliderRange = component<SliderRangeProps>(({ props }) => {
         const start = slider.percentOf(lo);
         return (
             <div
+                {...htmlAttrs(props)}
                 data-scope={SCOPE}
                 data-part="range"
                 data-disabled={dataAttr(slider.disabled())}
@@ -516,6 +525,8 @@ export type SliderThumbProps =
     /** Accessible name — a multi-thumb slider must name each thumb. */
     & Define.Prop<'label', string, false>
     & WithClass
+    /** Not `role`: a thumb is a `slider`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmounted }) => {
@@ -548,15 +559,17 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
         const value = slider.values()[i] ?? slider.min();
         const { lo, hi } = bounds();
         const disabled = slider.disabled();
+        const attrs = htmlAttrs(props);
         return (
             <div
+                {...attrs}
                 data-scope={SCOPE}
                 data-part="thumb"
                 data-disabled={dataAttr(disabled)}
                 data-focus-visible={dataAttr(focus.visible)}
                 role="slider"
                 tabIndex={disabled ? undefined : 0}
-                aria-label={props.label}
+                aria-label={props.label ?? attrs['aria-label']}
                 aria-orientation="horizontal"
                 // The ALLOWED range, not the rail's: the clamp at the
                 // neighbor is announced, per APG multi-thumb.
@@ -617,7 +630,7 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
     };
 }, { name: 'Slider.Thumb' });
 
-export type SliderValueTextProps = WithClass & Define.Slot<'default', { value: number | number[]; values: number[] }>;
+export type SliderValueTextProps = WithClass & WithHtmlAttrs & Define.Slot<'default', { value: number | number[]; values: number[] }>;
 
 const SliderValueText = component<SliderValueTextProps>(({ props, slots }) => {
     const slider = useSliderContext();
@@ -625,7 +638,7 @@ const SliderValueText = component<SliderValueTextProps>(({ props, slots }) => {
         const value = slider.state.value;
         const values = slider.values();
         return (
-            <output data-scope={SCOPE} data-part="value-text" for={slider.ids.control} class={props.class}>
+            <output {...htmlAttrs(props)} data-scope={SCOPE} data-part="value-text" for={slider.ids.control} class={props.class}>
                 {slots.default?.({ value, values })
                     ?? (Array.isArray(value) ? values.join(' – ') : String(value))}
             </output>

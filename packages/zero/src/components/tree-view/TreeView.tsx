@@ -43,12 +43,13 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type {
     PartProps,
     WithAsChild,
     WithClass,
     WithDisabled,
+    WithHtmlAttrs,
     WithVariantAxes,
 } from '../../contract/props.js';
 import { treeViewAnatomy } from './anatomy.js';
@@ -129,6 +130,7 @@ export type TreeViewRootProps =
     & WithDisabled
     & WithVariantAxes<'tree-view'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
@@ -246,6 +248,7 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-disabled={dataAttr(props.disabled)}
@@ -260,12 +263,13 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
 
 // ── Label ──
 
-export type TreeViewLabelProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the Tree is labelled by the Label's own. */
+export type TreeViewLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const TreeViewLabel = component<TreeViewLabelProps>(({ props, slots }) => {
     const ctx = useTreeViewContext();
     return () => (
-        <div id={ctx.labelId()} data-scope={SCOPE} data-part="label" class={props.class}>
+        <div {...htmlAttrs(props)} id={ctx.labelId()} data-scope={SCOPE} data-part="label" class={props.class}>
             {slots.default?.()}
         </div>
     );
@@ -273,21 +277,29 @@ const TreeViewLabel = component<TreeViewLabelProps>(({ props, slots }) => {
 
 // ── Tree ──
 
-export type TreeViewTreeProps = WithClass & Define.Slot<'default'>;
+/**
+ * Not `role`: this is the `tree`. An app `aria-labelledby` joins the
+ * Label's.
+ */
+export type TreeViewTreeProps = WithClass & Omit<WithHtmlAttrs, 'role'> & Define.Slot<'default'>;
 
 const TreeViewTree = component<TreeViewTreeProps>(({ props, slots }) => {
     const ctx = useTreeViewContext();
-    return () => (
-        <div
-            role="tree"
-            data-scope={SCOPE}
-            data-part="tree"
-            aria-labelledby={ctx.labelId()}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                role="tree"
+                data-scope={SCOPE}
+                data-part="tree"
+                aria-labelledby={[ctx.labelId(), attrs['aria-labelledby']].filter(Boolean).join(' ')}
+                class={props.class}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'TreeView.Tree' });
 
 // ── Item (leaf) ──
@@ -296,6 +308,8 @@ export type TreeViewItemProps =
     & Define.Prop<'value', string, true>
     & WithDisabled
     & WithClass
+    /** Not `role`: an item is a `treeitem`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -326,6 +340,7 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onUnmounted, 
     const isSelected = (): boolean => ctx.selected.value === props.value;
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'item',
         'data-selected': dataAttr(isSelected()),
@@ -378,6 +393,8 @@ export type TreeViewBranchProps =
     & Define.Prop<'value', string, true>
     & WithDisabled
     & WithClass
+    /** Not `role`: a branch is a `treeitem`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onUnmounted, signal }) => {
@@ -415,6 +432,7 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onUnmount
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             role="treeitem"
             data-scope={SCOPE}
             data-part="branch"
@@ -450,6 +468,7 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onUnmount
 
 export type TreeViewBranchTriggerProps =
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -466,6 +485,7 @@ const TreeViewBranchTrigger = component<TreeViewBranchTriggerProps>(({ props, sl
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'branch-trigger',
         'data-state': stateAttr(ctx.isExpanded(value()), 'open', 'closed'),
@@ -506,13 +526,14 @@ const TreeViewBranchTrigger = component<TreeViewBranchTriggerProps>(({ props, sl
 
 // ── BranchIndicator ──
 
-export type TreeViewBranchIndicatorProps = WithClass & Define.Slot<'default'>;
+export type TreeViewBranchIndicatorProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const TreeViewBranchIndicator = component<TreeViewBranchIndicatorProps>(({ props, slots }) => {
     const ctx = useTreeViewContext();
     const branch = useTreeBranchContext();
     return () => (
         <span
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="branch-indicator"
             data-state={stateAttr(ctx.isExpanded(branch.value ?? ''), 'open', 'closed')}
@@ -526,7 +547,8 @@ const TreeViewBranchIndicator = component<TreeViewBranchIndicatorProps>(({ props
 
 // ── BranchContent ──
 
-export type TreeViewBranchContentProps = WithClass & Define.Slot<'default'>;
+/** Not `role`: the content is the branch's `group`. */
+export type TreeViewBranchContentProps = WithClass & Omit<WithHtmlAttrs, 'role'> & Define.Slot<'default'>;
 
 const TreeViewBranchContent = component<TreeViewBranchContentProps>(({ props, slots }) => {
     const ctx = useTreeViewContext();
@@ -534,6 +556,7 @@ const TreeViewBranchContent = component<TreeViewBranchContentProps>(({ props, sl
     const isOpen = (): boolean => ctx.isExpanded(branch.value ?? '');
     return () => (
         <div
+            {...htmlAttrs(props)}
             role="group"
             data-scope={SCOPE}
             data-part="branch-content"

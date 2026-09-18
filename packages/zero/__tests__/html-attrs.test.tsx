@@ -13,9 +13,11 @@ import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
 import { anatomies } from '@sigx/zero/anatomy';
 import {
-    Alert, Avatar, Badge, Box, Breadcrumbs, Button, Card, Center, Chat, Container, Countdown, Divider,
-    Grid, Indicator, Join, Kbd, Navbar, Progress, RadialProgress, Skeleton, Spacer, Spinner, Stack,
-    Stats, Status, Table, Timeline,
+    Accordion, Alert, Avatar, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, Checkbox,
+    Collapsible, Container, Countdown, Diff, Divider, Field, FileUpload, Grid, Indicator, Input, Join,
+    Kbd, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Skeleton,
+    Slider, Spacer, Spinner, Stack, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline,
+    Toggle, ToggleGroup, TreeView,
     htmlAttrs, RESERVED_DATA_ATTRS, FLAG_VOCABULARY, LAYOUT_ATTR_PREFIX, MOD_ATTR_PREFIX,
 } from '@sigx/zero';
 
@@ -338,6 +340,156 @@ describe('the pass-through reaches every part', () => {
                 </Timeline.Item>
             </Timeline.Root>
         ),
+        accordion: () => (
+            <Accordion.Root {...p('root')}>
+                <Accordion.Item {...p('item')} value="a">
+                    <Accordion.Trigger {...p('trigger')}>A</Accordion.Trigger>
+                    <Accordion.Panel {...p('panel')}>Body</Accordion.Panel>
+                </Accordion.Item>
+            </Accordion.Root>
+        ),
+        carousel: () => (
+            <Carousel.Root {...p('root')} label="Photos">
+                <Carousel.Viewport {...p('viewport')}>
+                    <Carousel.Item {...p('item')}>1</Carousel.Item>
+                </Carousel.Viewport>
+                <Carousel.PrevTrigger {...p('prev-trigger')} />
+                <Carousel.NextTrigger {...p('next-trigger')} />
+                <Carousel.IndicatorGroup {...p('indicator-group')}>
+                    <Carousel.Indicator {...p('indicator')} index={0} />
+                </Carousel.IndicatorGroup>
+            </Carousel.Root>
+        ),
+        checkbox: () => <Checkbox.Root {...p('root')}>Accept</Checkbox.Root>,
+        collapsible: () => (
+            <Collapsible.Root {...p('root')}>
+                <Collapsible.Trigger {...p('trigger')}>More</Collapsible.Trigger>
+                <Collapsible.Panel {...p('panel')}>Body</Collapsible.Panel>
+            </Collapsible.Root>
+        ),
+        diff: () => (
+            <Diff.Root {...p('root')}>
+                <Diff.Before {...p('before')}>B</Diff.Before>
+                <Diff.After {...p('after')}>A</Diff.After>
+                <Diff.Handle {...p('handle')} />
+            </Diff.Root>
+        ),
+        field: () => (
+            <Field.Root {...p('root')} invalid>
+                <Field.Label {...p('label')}>Email</Field.Label>
+                <Field.Description {...p('description')}>Work address</Field.Description>
+                <Field.Error {...p('error')}>Required</Field.Error>
+            </Field.Root>
+        ),
+        'file-upload': () => (
+            <FileUpload.Root {...p('root')} defaultFiles={[new File(['x'], 'a.txt')]}>
+                <FileUpload.Label {...p('label')}>Files</FileUpload.Label>
+                <FileUpload.Dropzone {...p('dropzone')}>Drop</FileUpload.Dropzone>
+                <FileUpload.Trigger {...p('trigger')}>Browse</FileUpload.Trigger>
+                <FileUpload.ItemGroup {...p('item-group')}>
+                    {(files: File[]) => files.map((f) => (
+                        <FileUpload.Item {...p('item')} file={f}>
+                            <FileUpload.ItemName {...p('item-name')} />
+                            <FileUpload.ItemSize {...p('item-size')} />
+                            <FileUpload.ItemRemove {...p('item-remove')} />
+                        </FileUpload.Item>
+                    ))}
+                </FileUpload.ItemGroup>
+            </FileUpload.Root>
+        ),
+        input: () => (
+            <Input.Root {...p('root')}>
+                <Input.Label {...p('label')}>Name</Input.Label>
+                <Input.Control {...p('control')}><Input.Input {...p('input')} /></Input.Control>
+            </Input.Root>
+        ),
+        'number-input': () => (
+            <NumberInput.Root {...p('root')}>
+                <NumberInput.Label {...p('label')}>Qty</NumberInput.Label>
+                <NumberInput.Control {...p('control')}>
+                    <NumberInput.DecrementTrigger {...p('decrement-trigger')}>-</NumberInput.DecrementTrigger>
+                    <NumberInput.Input {...p('input')} />
+                    <NumberInput.IncrementTrigger {...p('increment-trigger')}>+</NumberInput.IncrementTrigger>
+                </NumberInput.Control>
+            </NumberInput.Root>
+        ),
+        pagination: () => <Pagination.Root {...p('root')} count={3} />,
+        'radio-group': () => (
+            <RadioGroup.Root {...p('root')}>
+                <RadioGroup.Label {...p('label')}>Plan</RadioGroup.Label>
+                <RadioGroup.Item {...p('item')} value="free">Free</RadioGroup.Item>
+            </RadioGroup.Root>
+        ),
+        'rating-group': () => (
+            <RatingGroup.Root {...p('root')} count={1}>
+                <RatingGroup.Label {...p('label')}>Rating</RatingGroup.Label>
+                <RatingGroup.Control {...p('control')}><RatingGroup.Item {...p('item')} index={1} /></RatingGroup.Control>
+            </RatingGroup.Root>
+        ),
+        // The two slider shapes: a composed track, and the native control.
+        slider: () => (
+            <div>
+                <Slider.Root {...p('root')} defaultValue={[20]}>
+                    <Slider.Label {...p('label')}>Volume</Slider.Label>
+                    <Slider.Track {...p('track')}>
+                        <Slider.Range {...p('range')} />
+                        <Slider.Thumb {...p('thumb')} />
+                    </Slider.Track>
+                    <Slider.ValueText {...p('value-text')} />
+                </Slider.Root>
+                <Slider.Root defaultValue={20}><Slider.Control {...p('control')} /></Slider.Root>
+            </div>
+        ),
+        steps: () => (
+            <Steps.Root {...p('root')}>
+                <Steps.Item {...p('item')} value="a">
+                    <Steps.Indicator {...p('indicator')}>1</Steps.Indicator>
+                    <Steps.Title {...p('title')}>T</Steps.Title>
+                    <Steps.Description {...p('description')}>D</Steps.Description>
+                    <Steps.Separator {...p('separator')} />
+                </Steps.Item>
+            </Steps.Root>
+        ),
+        swap: () => (
+            <Swap.Root {...p('root')}>
+                <Swap.On {...p('on')}>On</Swap.On>
+                <Swap.Off {...p('off')}>Off</Swap.Off>
+            </Swap.Root>
+        ),
+        switch: () => <Switch.Root {...p('root')}>Wi-Fi</Switch.Root>,
+        tabs: () => (
+            <Tabs.Root {...p('root')} defaultValue="a">
+                <Tabs.List {...p('list')}><Tabs.Tab {...p('tab')} value="a">A</Tabs.Tab></Tabs.List>
+                <Tabs.Panel {...p('panel')} value="a">Body</Tabs.Panel>
+            </Tabs.Root>
+        ),
+        textarea: () => (
+            <Textarea.Root {...p('root')}>
+                <Textarea.Label {...p('label')}>Bio</Textarea.Label>
+                <Textarea.Textarea {...p('textarea')} />
+            </Textarea.Root>
+        ),
+        toggle: () => <Toggle {...p('root')} label="Bold">B</Toggle>,
+        'toggle-group': () => (
+            <ToggleGroup.Root {...p('root')} label="Align">
+                <ToggleGroup.Item {...p('item')} value="left">L</ToggleGroup.Item>
+            </ToggleGroup.Root>
+        ),
+        'tree-view': () => (
+            <TreeView.Root {...p('root')} defaultExpandedValues={['src']}>
+                <TreeView.Label {...p('label')}>Files</TreeView.Label>
+                <TreeView.Tree {...p('tree')}>
+                    <TreeView.Branch {...p('branch')} value="src">
+                        <TreeView.BranchTrigger {...p('branch-trigger')}>
+                            <TreeView.BranchIndicator {...p('branch-indicator')} />src
+                        </TreeView.BranchTrigger>
+                        <TreeView.BranchContent {...p('branch-content')}>
+                            <TreeView.Item {...p('item')} value="src/a.ts">a.ts</TreeView.Item>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                </TreeView.Tree>
+            </TreeView.Root>
+        ),
     };
 
     /**
@@ -346,7 +498,16 @@ describe('the pass-through reaches every part', () => {
      */
     const RENDERED_BY_ZERO: Record<string, readonly string[]> = {
         button: ['spinner'],
+        checkbox: ['control', 'indicator', 'label', 'hidden-input'],
         countdown: ['digits'],
+        'file-upload': ['input'],
+        'number-input': ['hidden-input'],
+        pagination: ['item', 'ellipsis', 'prev-trigger', 'next-trigger'],
+        'radio-group': ['item-control', 'item-indicator', 'item-label', 'hidden-input'],
+        'rating-group': ['hidden-input'],
+        slider: ['mark', 'hidden-input'],
+        switch: ['control', 'thumb', 'label', 'hidden-input'],
+        'toggle-group': ['hidden-input'],
     };
 
     /**
@@ -356,16 +517,10 @@ describe('the pass-through reaches every part', () => {
     const SWEPT_ELSEWHERE = ['table'];
 
     /**
-     * The scopes the roll-out has not reached yet (#74 part 2: the parts
-     * that mint their own ids and roles, which need a per-part rule).
-     * Shrinks to nothing.
+     * The scopes the roll-out has not reached yet (#74 part 3: overlays and
+     * listboxes). Shrinks to nothing.
      */
-    const PENDING = [
-        'accordion', 'carousel', 'checkbox', 'collapsible', 'combobox', 'dialog', 'diff',
-        'drawer', 'field', 'file-upload', 'input', 'menu', 'number-input', 'pagination',
-        'popover', 'radio-group', 'rating-group', 'select', 'slider', 'steps', 'swap',
-        'switch', 'tabs', 'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip', 'tree-view',
-    ];
+    const PENDING = ['combobox', 'dialog', 'drawer', 'menu', 'popover', 'select', 'toast', 'tooltip'];
 
     it('accounts for every scope in the anatomy registry', () => {
         const accounted = [...Object.keys(SWEEP), ...SWEPT_ELSEWHERE, ...PENDING].sort();
@@ -448,6 +603,49 @@ describe('the per-part rules', () => {
         );
         expect(q('progress', 'root').getAttribute('aria-labelledby'))
             .toBe(`${q('progress', 'label').id} heading`);
+    });
+
+    it("a tab keeps the id its Panel is labelled by; an app aria-labelledby joins the Panel's", () => {
+        const id: Record<string, unknown> = { id: 'mine' };
+        render(
+            <Tabs.Root defaultValue="a">
+                <Tabs.List aria-label="Settings"><Tabs.Tab {...id} value="a">A</Tabs.Tab></Tabs.List>
+                <Tabs.Panel value="a" aria-labelledby="heading">Body</Tabs.Panel>
+            </Tabs.Root>,
+            container,
+        );
+        const tab = q('tabs', 'tab');
+        expect(tab.id).not.toBe('mine');
+        expect(q('tabs', 'list').getAttribute('aria-label')).toBe('Settings');
+        expect(q('tabs', 'panel').getAttribute('aria-labelledby')).toBe(`${tab.id} heading`);
+    });
+
+    it('a checkbox or switch names its input with aria-*, and addresses its root with the rest', () => {
+        render(
+            <div>
+                <Checkbox.Root aria-label="Accept terms" data-testid="terms" id="terms" />
+                <Switch.Root aria-describedby="hint" data-testid="wifi">Wi-Fi</Switch.Root>
+            </div>,
+            container,
+        );
+        const box = q('checkbox', 'root');
+        expect(box.id).toBe('terms');
+        expect(box.getAttribute('data-testid')).toBe('terms');
+        expect(box.hasAttribute('aria-label')).toBe(false);
+        expect(box.querySelector('input')!.getAttribute('aria-label')).toBe('Accept terms');
+        expect(q('switch', 'root').querySelector('input')!.getAttribute('aria-describedby')).toContain('hint');
+    });
+
+    it('an app aria-label replaces a trigger default; the label prop beats both', () => {
+        render(
+            <Carousel.Root label="Photos">
+                <Carousel.PrevTrigger aria-label="Back" />
+                <Carousel.NextTrigger label="Onward" aria-label="Next" />
+            </Carousel.Root>,
+            container,
+        );
+        expect(q('carousel', 'prev-trigger').getAttribute('aria-label')).toBe('Back');
+        expect(q('carousel', 'next-trigger').getAttribute('aria-label')).toBe('Onward');
     });
 
     it('forwarded attributes ride the asChild bag', () => {

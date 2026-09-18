@@ -100,6 +100,7 @@ export type TextareaRootProps =
     & WithModelModifiers
     & WithVariantAxes<'textarea'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal }) => {
@@ -134,6 +135,7 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...fc.flags()}
@@ -148,12 +150,14 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
 
 // ── Label ──
 
-export type TextareaLabelProps = WithClass & WithVisuallyHidden & Define.Slot<'default'>;
+/** Not `id`: the Field's wiring points at the Label's own. */
+export type TextareaLabelProps = WithClass & WithVisuallyHidden & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const TextareaLabel = component<TextareaLabelProps>(({ props, slots }) => {
     const ctx = useTextareaContext();
     return () => (
         <label
+            {...htmlAttrs(props)}
             id={ctx.labelId()}
             for={ctx.controlId()}
             data-scope={SCOPE}

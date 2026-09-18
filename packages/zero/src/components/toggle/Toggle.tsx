@@ -16,12 +16,13 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild, synthesizesClickFrom } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type {
     PartProps,
     WithAsChild,
     WithClass,
     WithDisabled,
+    WithHtmlAttrs,
     WithVariantAxes,
 } from '../../contract/props.js';
 import { toggleAnatomy } from './anatomy.js';
@@ -37,6 +38,8 @@ export type ToggleRootProps =
     & WithVariantAxes<'toggle'>
     & WithDisabled
     & WithClass
+    /** Not `role`: an asChild toggle is given `button`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -53,56 +56,60 @@ const ToggleRoot = component<ToggleRootProps>(({ props, slots, emit, signal }) =
         isDisabled: () => !!props.disabled,
     });
 
-    const bag = (): PartProps => ({
-        'data-scope': SCOPE,
-        'data-part': 'root',
-        'data-state': stateAttr(state.value, 'on', 'off'),
-        'data-disabled': dataAttr(props.disabled),
-        'data-focus-visible': dataAttr(focus.visible),
-        'aria-pressed': state.value ? 'true' : 'false',
-        'aria-label': props.label,
-        // A native <button disabled> is inert already; an asChild element is
-        // not, so disabled has to be conveyed and enforced by hand there —
-        // and a non-interactive asChild element needs the whole button
-        // contract supplied: role, a tab stop, and Enter/Space activation.
-        'aria-disabled': props.asChild && props.disabled ? 'true' : undefined,
-        role: props.asChild ? 'button' : undefined,
-        tabIndex: props.asChild && !props.disabled ? 0 : undefined,
-        ...variantAttrs(props),
-        ref: (node: HTMLElement | null) => { el = node; },
-        onClick: (e: MouseEvent) => {
-            if (props.disabled) {
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-            state.value = !state.value;
-        },
-        onKeydown: (e: KeyboardEvent) => {
-            if (props.disabled) return;
-            press.onKeydown(e);
-            // Keyboard activation for asChild elements where the platform
-            // won't synthesize a click from this key (a span always; an
-            // anchor on Space). Where it will, ours must stay out of the way
-            // or the press toggles twice.
-            // `!e.repeat`: a held key auto-repeats keydown; a toggle must
-            // flip once per press, not strobe.
-            if (props.asChild && !e.repeat && (e.key === 'Enter' || e.key === ' ') && !synthesizesClickFrom(e.currentTarget, e.key)) {
-                e.preventDefault();
+    const bag = (): PartProps => {
+        const attrs = htmlAttrs(props);
+        return {
+            ...attrs,
+            'data-scope': SCOPE,
+            'data-part': 'root',
+            'data-state': stateAttr(state.value, 'on', 'off'),
+            'data-disabled': dataAttr(props.disabled),
+            'data-focus-visible': dataAttr(focus.visible),
+            'aria-pressed': state.value ? 'true' : 'false',
+            'aria-label': props.label ?? attrs['aria-label'],
+            // A native <button disabled> is inert already; an asChild element is
+            // not, so disabled has to be conveyed and enforced by hand there —
+            // and a non-interactive asChild element needs the whole button
+            // contract supplied: role, a tab stop, and Enter/Space activation.
+            'aria-disabled': props.asChild && props.disabled ? 'true' : undefined,
+            role: props.asChild ? 'button' : undefined,
+            tabIndex: props.asChild && !props.disabled ? 0 : undefined,
+            ...variantAttrs(props),
+            ref: (node: HTMLElement | null) => { el = node; },
+            onClick: (e: MouseEvent) => {
+                if (props.disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
                 state.value = !state.value;
-            }
-        },
-        onKeyup: press.onKeyup,
-        onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: (e: FocusEvent) => {
-            press.onBlur(e);
-            focus.visible = false;
-        },
-        onPointerdown: press.onPointerdown,
-        onPointerup: press.onPointerup,
-        onPointercancel: press.onPointercancel,
-        onPointerleave: press.onPointerleave,
-    });
+            },
+            onKeydown: (e: KeyboardEvent) => {
+                if (props.disabled) return;
+                press.onKeydown(e);
+                // Keyboard activation for asChild elements where the platform
+                // won't synthesize a click from this key (a span always; an
+                // anchor on Space). Where it will, ours must stay out of the way
+                // or the press toggles twice.
+                // `!e.repeat`: a held key auto-repeats keydown; a toggle must
+                // flip once per press, not strobe.
+                if (props.asChild && !e.repeat && (e.key === 'Enter' || e.key === ' ') && !synthesizesClickFrom(e.currentTarget, e.key)) {
+                    e.preventDefault();
+                    state.value = !state.value;
+                }
+            },
+            onKeyup: press.onKeyup,
+            onFocus: () => { focus.visible = isFocusVisible(el); },
+            onBlur: (e: FocusEvent) => {
+                press.onBlur(e);
+                focus.visible = false;
+            },
+            onPointerdown: press.onPointerdown,
+            onPointerup: press.onPointerup,
+            onPointercancel: press.onPointercancel,
+            onPointerleave: press.onPointerleave,
+        };
+    };
 
     return () => {
         const b = bag();

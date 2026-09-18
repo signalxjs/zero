@@ -31,8 +31,8 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import type { Orientation } from '../../contract/data-attrs.js';
 import { renderAsChild, synthesizesClickFrom } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { stepsAnatomy } from './anatomy.js';
 
 const SCOPE = stepsAnatomy.scope;
@@ -81,6 +81,8 @@ export type StepsRootProps =
     & WithVariantAxes<'steps'>
     & WithDisabled
     & WithClass
+    /** Not `role`: the root is the `group`; `label` or `aria-label` names it. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const StepsRoot = component<StepsRootProps>(({ props, slots, emit }) => {
@@ -110,20 +112,24 @@ const StepsRoot = component<StepsRootProps>(({ props, slots, emit }) => {
     };
     defineProvide(useStepsContext, () => ctx);
 
-    return () => (
-        <div
-            role="group"
-            aria-label={props.label}
-            data-scope={SCOPE}
-            data-part="root"
-            data-orientation={orientation()}
-            data-disabled={dataAttr(props.disabled)}
-            {...variantAttrs(props)}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                role="group"
+                aria-label={props.label ?? attrs['aria-label']}
+                data-scope={SCOPE}
+                data-part="root"
+                data-orientation={orientation()}
+                data-disabled={dataAttr(props.disabled)}
+                {...variantAttrs(props)}
+                class={props.class}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Steps.Root' });
 
 // ── Item ──
@@ -132,6 +138,8 @@ export type StepsItemProps =
     & Define.Prop<'value', string, true>
     & WithDisabled
     & WithClass
+    /** Not `role`: an asChild item is made a `button`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -188,6 +196,7 @@ const StepsItem = component<StepsItemProps>(({ props, slots, onUnmounted, signal
     };
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'item',
         'data-state': phase(),
@@ -247,7 +256,7 @@ const StepsItem = component<StepsItemProps>(({ props, slots, onUnmounted, signal
 
 // ── Bands ──
 
-export type StepsPartProps = WithClass & Define.Slot<'default'>;
+export type StepsPartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 // NOT aria-hidden, unlike the separator: the indicator's content is the
 // step's number, which is information ("step 2"), and for an item rendered
@@ -258,6 +267,7 @@ const StepsIndicator = component<StepsPartProps>(({ props, slots }) => {
     const item = useStepsItemContext();
     return () => (
         <span
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="indicator"
             data-state={item.phase()}
@@ -268,11 +278,12 @@ const StepsIndicator = component<StepsPartProps>(({ props, slots }) => {
     );
 }, { name: 'Steps.Indicator' });
 
-const StepsSeparator = component<WithClass>(({ props }) => {
+const StepsSeparator = component<WithClass & WithHtmlAttrs>(({ props }) => {
     const steps = useStepsContext();
     const item = useStepsItemContext();
     return () => (
         <span
+            {...htmlAttrs(props)}
             aria-hidden="true"
             data-scope={SCOPE}
             data-part="separator"
@@ -285,7 +296,7 @@ const StepsSeparator = component<WithClass>(({ props }) => {
 
 const StepsTitle = component<StepsPartProps>(({ props, slots }) => (
     () => (
-        <span data-scope={SCOPE} data-part="title" class={props.class}>
+        <span {...htmlAttrs(props)} data-scope={SCOPE} data-part="title" class={props.class}>
             {slots.default?.()}
         </span>
     )
@@ -293,7 +304,7 @@ const StepsTitle = component<StepsPartProps>(({ props, slots }) => (
 
 const StepsDescription = component<StepsPartProps>(({ props, slots }) => (
     () => (
-        <span data-scope={SCOPE} data-part="description" class={props.class}>
+        <span {...htmlAttrs(props)} data-scope={SCOPE} data-part="description" class={props.class}>
             {slots.default?.()}
         </span>
     )

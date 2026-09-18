@@ -36,7 +36,8 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { createSpinPress } from '../../behaviors/spin.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithFormControl, WithReadonly, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithFormControl, WithHtmlAttrs, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { clamp, snapToStep } from './number.js';
 import { numberInputAnatomy } from './anatomy.js';
 
@@ -126,6 +127,7 @@ export type NumberInputRootProps =
     & WithDisabled
     & WithVariantAxes<'number-input'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 // Decimal syntax only — bare Number() would also accept 0x10/0b10/0o10,
@@ -297,6 +299,7 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-disabled={dataAttr(disabled())}
@@ -325,12 +328,14 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
 
 // ── Label ──
 
-export type NumberInputLabelProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the Field's wiring points at the Label's own. */
+export type NumberInputLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const NumberInputLabel = component<NumberInputLabelProps>(({ props, slots }) => {
     const ctx = useNumberInputContext();
     return () => (
         <label
+            {...htmlAttrs(props)}
             id={ctx.labelId()}
             for={ctx.inputId()}
             data-scope={SCOPE}
@@ -347,12 +352,13 @@ const NumberInputLabel = component<NumberInputLabelProps>(({ props, slots }) => 
 
 // ── Control ──
 
-export type NumberInputControlProps = WithClass & Define.Slot<'default'>;
+export type NumberInputControlProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const NumberInputControl = component<NumberInputControlProps>(({ props, slots }) => {
     const ctx = useNumberInputContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="control"
             data-disabled={dataAttr(ctx.disabled())}
@@ -370,64 +376,74 @@ const NumberInputControl = component<NumberInputControlProps>(({ props, slots })
 
 export type NumberInputInputProps =
     & Define.Prop<'placeholder', string, false>
-    & WithClass;
+    & WithClass
+    /**
+     * Not `id` (the Label's `for` and the triggers' `aria-controls` point at
+     * it) nor `role` (a `spinbutton`). An app `aria-describedby` joins the
+     * Field's.
+     */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>;
 
 const NumberInputInput = component<NumberInputInputProps>(({ props }) => {
     const ctx = useNumberInputContext();
     let el: HTMLInputElement | null = null;
 
-    return () => (
-        <input
-            id={ctx.inputId()}
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            role="spinbutton"
-            data-scope={SCOPE}
-            data-part="input"
-            data-disabled={dataAttr(ctx.disabled())}
-            data-invalid={dataAttr(ctx.invalid())}
-            data-required={dataAttr(ctx.required())}
-            data-readonly={dataAttr(ctx.readonly())}
-            data-focus-visible={dataAttr(ctx.focusVisible.value)}
-            model={ctx.text}
-            placeholder={props.placeholder}
-            disabled={ctx.disabled()}
-            readOnly={ctx.readonly()}
-            required={ctx.required()}
-            aria-valuemin={ctx.min()}
-            aria-valuemax={ctx.max()}
-            /* While a draft is being typed the committed value is stale —
-               announcing it against the visible draft text would read as two
-               different numbers. The draft rides valuetext alone until commit. */
-            aria-valuenow={ctx.draft.current === null ? ctx.state.value ?? undefined : undefined}
-            aria-valuetext={ctx.draft.current !== null
-                ? (ctx.draft.current || undefined)
-                : (ctx.state.value != null ? ctx.displayValue() : undefined)}
-            aria-invalid={ctx.invalid() ? 'true' : undefined}
-            aria-describedby={ctx.describedBy()}
-            class={props.class}
-            ref={(node: HTMLInputElement | null) => {
-                el = node;
-                ctx.setInput(node);
-            }}
-            onKeydown={(e: KeyboardEvent) => ctx.inputKeydown(e)}
-            onWheel={(e: WheelEvent) => {
-                // Focus-gated: a wheel over an unfocused input keeps
-                // scrolling the page.
-                // deltaY 0 is a horizontal scroll — not a step in either
-                // direction.
-                if (!ctx.allowWheel() || e.deltaY === 0 || document.activeElement !== el) return;
-                e.preventDefault();
-                ctx.stepBy(e.deltaY < 0 ? 1 : -1);
-            }}
-            onFocus={() => { ctx.focusVisible.value = isFocusVisible(el); }}
-            onBlur={() => {
-                ctx.focusVisible.value = false;
-                ctx.commit();
-            }}
-        />
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <input
+                {...attrs}
+                id={ctx.inputId()}
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                role="spinbutton"
+                data-scope={SCOPE}
+                data-part="input"
+                data-disabled={dataAttr(ctx.disabled())}
+                data-invalid={dataAttr(ctx.invalid())}
+                data-required={dataAttr(ctx.required())}
+                data-readonly={dataAttr(ctx.readonly())}
+                data-focus-visible={dataAttr(ctx.focusVisible.value)}
+                model={ctx.text}
+                placeholder={props.placeholder}
+                disabled={ctx.disabled()}
+                readOnly={ctx.readonly()}
+                required={ctx.required()}
+                aria-valuemin={ctx.min()}
+                aria-valuemax={ctx.max()}
+                /* While a draft is being typed the committed value is stale —
+                   announcing it against the visible draft text would read as two
+                   different numbers. The draft rides valuetext alone until commit. */
+                aria-valuenow={ctx.draft.current === null ? ctx.state.value ?? undefined : undefined}
+                aria-valuetext={ctx.draft.current !== null
+                    ? (ctx.draft.current || undefined)
+                    : (ctx.state.value != null ? ctx.displayValue() : undefined)}
+                aria-invalid={ctx.invalid() ? 'true' : undefined}
+                aria-describedby={[ctx.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
+                class={props.class}
+                ref={(node: HTMLInputElement | null) => {
+                    el = node;
+                    ctx.setInput(node);
+                }}
+                onKeydown={(e: KeyboardEvent) => ctx.inputKeydown(e)}
+                onWheel={(e: WheelEvent) => {
+                    // Focus-gated: a wheel over an unfocused input keeps
+                    // scrolling the page.
+                    // deltaY 0 is a horizontal scroll — not a step in either
+                    // direction.
+                    if (!ctx.allowWheel() || e.deltaY === 0 || document.activeElement !== el) return;
+                    e.preventDefault();
+                    ctx.stepBy(e.deltaY < 0 ? 1 : -1);
+                }}
+                onFocus={() => { ctx.focusVisible.value = isFocusVisible(el); }}
+                onBlur={() => {
+                    ctx.focusVisible.value = false;
+                    ctx.commit();
+                }}
+            />
+        );
+    };
 }, { name: 'NumberInput.Input' });
 
 // ── Triggers ──
@@ -435,6 +451,7 @@ const NumberInputInput = component<NumberInputInputProps>(({ props }) => {
 export type NumberInputTriggerProps =
     & Define.Prop<'label', string, false>
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -454,41 +471,45 @@ function makeTrigger(direction: 1 | -1, part: 'increment-trigger' | 'decrement-t
         });
         onUnmounted(() => spin.stop());
 
-        const bag = (): PartProps => ({
-            'data-scope': SCOPE,
-            'data-part': part,
-            'data-disabled': dataAttr(triggerDisabled()),
-            // Satellites of the input, not tab stops of their own (APG):
-            // keyboard stepping lives on the spinbutton itself.
-            tabIndex: -1,
-            'aria-label': props.label ?? (direction > 0 ? 'Increment' : 'Decrement'),
-            'aria-controls': ctx.inputId(),
-            'aria-disabled': props.asChild && triggerDisabled() ? 'true' : undefined,
-            ref: (node: HTMLElement | null) => { el = node; },
-            onPointerdown: (e: PointerEvent) => {
-                press.onPointerdown(e);
-                spin.onPointerdown(e);
-                // The spin's preventDefault keeps native focus from moving —
-                // hand it to the spinbutton instead (Combobox.Trigger's
-                // satellite semantics), so keyboard stepping continues where
-                // the pointer left off.
-                if (!triggerDisabled()) ctx.focusInput();
-            },
-            onPointerup: (e: PointerEvent) => {
-                press.onPointerup(e);
-                spin.onPointerup(e);
-            },
-            onPointercancel: (e: PointerEvent) => {
-                press.onPointercancel(e);
-                spin.onPointercancel(e);
-            },
-            onPointerleave: (e: PointerEvent) => {
-                press.onPointerleave(e);
-                spin.onPointerleave(e);
-            },
-            // No onClick stepping: the spin press already stepped on
-            // pointerdown; a click handler would double-step every tap.
-        });
+        const bag = (): PartProps => {
+            const attrs = htmlAttrs(props);
+            return {
+                ...attrs,
+                'data-scope': SCOPE,
+                'data-part': part,
+                'data-disabled': dataAttr(triggerDisabled()),
+                // Satellites of the input, not tab stops of their own (APG):
+                // keyboard stepping lives on the spinbutton itself.
+                tabIndex: -1,
+                'aria-label': props.label ?? attrs['aria-label'] ?? (direction > 0 ? 'Increment' : 'Decrement'),
+                'aria-controls': ctx.inputId(),
+                'aria-disabled': props.asChild && triggerDisabled() ? 'true' : undefined,
+                ref: (node: HTMLElement | null) => { el = node; },
+                onPointerdown: (e: PointerEvent) => {
+                    press.onPointerdown(e);
+                    spin.onPointerdown(e);
+                    // The spin's preventDefault keeps native focus from moving —
+                    // hand it to the spinbutton instead (Combobox.Trigger's
+                    // satellite semantics), so keyboard stepping continues where
+                    // the pointer left off.
+                    if (!triggerDisabled()) ctx.focusInput();
+                },
+                onPointerup: (e: PointerEvent) => {
+                    press.onPointerup(e);
+                    spin.onPointerup(e);
+                },
+                onPointercancel: (e: PointerEvent) => {
+                    press.onPointercancel(e);
+                    spin.onPointercancel(e);
+                },
+                onPointerleave: (e: PointerEvent) => {
+                    press.onPointerleave(e);
+                    spin.onPointerleave(e);
+                },
+                // No onClick stepping: the spin press already stepped on
+                // pointerdown; a click handler would double-step every tap.
+            };
+        };
 
         return () => {
             const b = bag();

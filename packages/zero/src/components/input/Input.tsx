@@ -112,6 +112,7 @@ export type InputRootProps =
     & WithModelModifiers
     & WithVariantAxes<'input'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => {
@@ -148,6 +149,7 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...fc.flags()}
@@ -162,12 +164,14 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
 
 // ── Label ──
 
-export type InputLabelProps = WithClass & WithVisuallyHidden & Define.Slot<'default'>;
+/** Not `id`: the Field's wiring points at the Label's own. */
+export type InputLabelProps = WithClass & WithVisuallyHidden & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const InputLabel = component<InputLabelProps>(({ props, slots }) => {
     const ctx = useInputContext();
     return () => (
         <label
+            {...htmlAttrs(props)}
             id={ctx.labelId()}
             for={ctx.inputId()}
             data-scope={SCOPE}
@@ -185,12 +189,13 @@ const InputLabel = component<InputLabelProps>(({ props, slots }) => {
 
 // ── Control ──
 
-export type InputControlProps = WithClass & Define.Slot<'default'>;
+export type InputControlProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const InputControl = component<InputControlProps>(({ props, slots }) => {
     const ctx = useInputContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="control"
             data-disabled={dataAttr(ctx.disabled())}

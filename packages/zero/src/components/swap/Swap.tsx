@@ -26,8 +26,8 @@ import { defineInjectable, defineProvide } from 'sigx';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { swapAnatomy } from './anatomy.js';
 
 const SCOPE = swapAnatomy.scope;
@@ -56,6 +56,7 @@ export type SwapRootProps =
     & WithDisabled
     & WithVariantAxes<'swap'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal }) => {
@@ -74,9 +75,11 @@ const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal }) => {
 
     return () => {
         const swapState = stateAttr(state.value, 'on', 'off');
+        const attrs = htmlAttrs(props);
         if (!props.interactive) {
             return (
                 <span
+                    {...attrs}
                     data-scope={SCOPE}
                     data-part="root"
                     data-state={swapState}
@@ -93,6 +96,7 @@ const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal }) => {
         }
         return (
             <button
+                {...attrs}
                 type="button"
                 data-scope={SCOPE}
                 data-part="root"
@@ -101,7 +105,7 @@ const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal }) => {
                 data-focus-visible={dataAttr(focus.visible)}
                 disabled={props.disabled}
                 aria-pressed={state.value ? 'true' : 'false'}
-                aria-label={props.label}
+                aria-label={props.label ?? attrs['aria-label']}
                 {...variantAttrs(props)}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; }}
@@ -126,7 +130,7 @@ const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal }) => {
     };
 }, { name: 'Swap.Root' });
 
-export type SwapFaceProps = WithClass & Define.Slot<'default'>;
+export type SwapFaceProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const face = (partName: 'on' | 'off', name: string) =>
     component<SwapFaceProps>(({ props, slots }) => {
@@ -136,6 +140,7 @@ const face = (partName: 'on' | 'off', name: string) =>
             const isActive = partName === 'on' ? on : !on;
             return (
                 <span
+                    {...htmlAttrs(props)}
                     data-scope={SCOPE}
                     data-part={partName}
                     data-state={stateAttr(on, 'on', 'off')}

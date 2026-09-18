@@ -32,7 +32,8 @@ import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
-import type { WithClass, WithDisabled, WithFormControl, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
+import type { HtmlAttrValue, WithClass, WithDisabled, WithFormControl, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { radioGroupAnatomy } from './anatomy.js';
 
 const SCOPE = radioGroupAnatomy.scope;
@@ -82,6 +83,11 @@ export type RadioGroupRootProps<T = unknown> =
     & WithOrientation
     & WithVariantAxes<'radio-group'>
     & WithClass
+    /**
+     * Not `role`: the root is the `radiogroup`. An app `aria-labelledby` /
+     * `aria-describedby` joins the Field's.
+     */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit }) => {
@@ -130,23 +136,27 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit 
         );
     });
 
-    return () => (
-        <div
-            role="radiogroup"
-            data-scope={SCOPE}
-            data-part="root"
-            data-orientation={orientation()}
-            data-disabled={dataAttr(ctx.disabled())}
-            data-invalid={dataAttr(ctx.invalid())}
-            data-required={dataAttr(ctx.required())}
-            aria-labelledby={fc.field.inert ? undefined : fc.labelId()}
-            aria-describedby={fc.describedBy()}
-            {...fc.axisAttrs()}
-            class={props.class}
-        >
-            {slots.default ? slots.default() : items() ? dataContent() : null}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                role="radiogroup"
+                data-scope={SCOPE}
+                data-part="root"
+                data-orientation={orientation()}
+                data-disabled={dataAttr(ctx.disabled())}
+                data-invalid={dataAttr(ctx.invalid())}
+                data-required={dataAttr(ctx.required())}
+                aria-labelledby={[fc.field.inert ? undefined : fc.labelId(), attrs['aria-labelledby']].filter(Boolean).join(' ') || undefined}
+                aria-describedby={[fc.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
+                {...fc.axisAttrs()}
+                class={props.class}
+            >
+                {slots.default ? slots.default() : items() ? dataContent() : null}
+            </div>
+        );
+    };
 }, { name: 'RadioGroup.Root' });
 
 /** The exported root: `T` infers from `items`; the model stays the posted string. */
@@ -162,6 +172,12 @@ export type RadioGroupItemProps =
     & Define.Prop<'value', string, true>
     & WithDisabled
     & WithClass
+    /**
+     * Forwarded attributes, split like Checkbox's: `aria-*` goes to the
+     * hidden radio, `id`, `title` and `data-*` to the item row. Not `role`:
+     * the input is a native radio.
+     */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
@@ -192,78 +208,88 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal, o
         isDisabled: () => disabled(),
     });
 
-    return () => (
-        <label
-            data-scope={SCOPE}
-            data-part="item"
-            data-state={checkedState()}
-            data-disabled={dataAttr(disabled())}
-            data-focus-visible={dataAttr(focus.visible)}
-            class={props.class}
-            onPointerdown={press.onPointerdown}
-            onPointerup={press.onPointerup}
-            onPointercancel={press.onPointercancel}
-            onPointerleave={press.onPointerleave}
-        >
-            <input
-                type="radio"
+    return () => {
+        const rowAttrs: Record<string, HtmlAttrValue> = {};
+        const inputAttrs: Record<string, HtmlAttrValue> = {};
+        for (const [key, value] of Object.entries(htmlAttrs(props))) {
+            (key.startsWith('aria-') ? inputAttrs : rowAttrs)[key] = value;
+        }
+        return (
+            <label
+                {...rowAttrs}
                 data-scope={SCOPE}
-                data-part="hidden-input"
-                style={VISUALLY_HIDDEN_STYLE}
-                name={group.name}
-                form={group.form()}
-                value={props.value}
-                model={group.state}
-                disabled={disabled()}
-                required={group.required()}
-                aria-invalid={group.invalid() ? 'true' : undefined}
-                ref={(node: HTMLInputElement | null) => { inputEl = node; }}
-                onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
-                onBlur={(e: FocusEvent) => {
-                    press.onBlur(e);
-                    focus.visible = false;
-                }}
-                onKeydown={press.onKeydown}
-                onKeyup={press.onKeyup}
-            />
-            <span
-                data-scope={SCOPE}
-                data-part="item-control"
+                data-part="item"
                 data-state={checkedState()}
                 data-disabled={dataAttr(disabled())}
                 data-focus-visible={dataAttr(focus.visible)}
-                ref={(node: HTMLElement | null) => { controlEl = node; }}
+                class={props.class}
+                onPointerdown={press.onPointerdown}
+                onPointerup={press.onPointerup}
+                onPointercancel={press.onPointercancel}
+                onPointerleave={press.onPointerleave}
             >
+                <input
+                    {...inputAttrs}
+                    type="radio"
+                    data-scope={SCOPE}
+                    data-part="hidden-input"
+                    style={VISUALLY_HIDDEN_STYLE}
+                    name={group.name}
+                    form={group.form()}
+                    value={props.value}
+                    model={group.state}
+                    disabled={disabled()}
+                    required={group.required()}
+                    aria-invalid={group.invalid() ? 'true' : undefined}
+                    ref={(node: HTMLInputElement | null) => { inputEl = node; }}
+                    onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
+                    onBlur={(e: FocusEvent) => {
+                        press.onBlur(e);
+                        focus.visible = false;
+                    }}
+                    onKeydown={press.onKeydown}
+                    onKeyup={press.onKeyup}
+                />
                 <span
                     data-scope={SCOPE}
-                    data-part="item-indicator"
+                    data-part="item-control"
                     data-state={checkedState()}
-                />
-            </span>
-            {slots.default
-                ? (
+                    data-disabled={dataAttr(disabled())}
+                    data-focus-visible={dataAttr(focus.visible)}
+                    ref={(node: HTMLElement | null) => { controlEl = node; }}
+                >
                     <span
                         data-scope={SCOPE}
-                        data-part="item-label"
+                        data-part="item-indicator"
                         data-state={checkedState()}
-                        data-disabled={dataAttr(disabled())}
-                    >
-                        {slots.default()}
-                    </span>
-                )
-                : null}
-        </label>
-    );
+                    />
+                </span>
+                {slots.default
+                    ? (
+                        <span
+                            data-scope={SCOPE}
+                            data-part="item-label"
+                            data-state={checkedState()}
+                            data-disabled={dataAttr(disabled())}
+                        >
+                            {slots.default()}
+                        </span>
+                    )
+                    : null}
+            </label>
+        );
+    };
 }, { name: 'RadioGroup.Item' });
 
 // ── Label ──
 
-export type RadioGroupLabelProps = WithClass & Define.Slot<'default'>;
+export type RadioGroupLabelProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const RadioGroupLabel = component<RadioGroupLabelProps>(({ props, slots }) => {
     const group = useRadioGroupContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="label"
             data-disabled={dataAttr(group.disabled())}

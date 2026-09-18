@@ -22,8 +22,8 @@ import { createControllableState, createInertState, type ControllableState } fro
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { diffAnatomy } from './anatomy.js';
 
 const SCOPE = diffAnatomy.scope;
@@ -73,6 +73,7 @@ export type DiffRootProps =
     & Define.Event<'valueChange', number>
     & WithVariantAxes<'diff'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const DiffRoot = component<DiffRootProps>(({ props, slots, emit, onUnmounted }) => {
@@ -120,6 +121,7 @@ const DiffRoot = component<DiffRootProps>(({ props, slots, emit, onUnmounted }) 
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             style={{ position: 'relative', '--diff-percent': `${ctx.value()}%` }}
@@ -132,12 +134,12 @@ const DiffRoot = component<DiffRootProps>(({ props, slots, emit, onUnmounted }) 
     );
 }, { name: 'Diff.Root' });
 
-export type DiffPaneProps = WithClass & Define.Slot<'default'>;
+export type DiffPaneProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 /** The full image — content, not a control. */
 const DiffBefore = component<DiffPaneProps>(({ props, slots }) => {
     return () => (
-        <div data-scope={SCOPE} data-part="before" class={props.class}>
+        <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="before" class={props.class}>
             {slots.default?.()}
         </div>
     );
@@ -146,7 +148,7 @@ const DiffBefore = component<DiffPaneProps>(({ props, slots }) => {
 /** The revealed overlay — recipes clip it to `--diff-percent` logically. */
 const DiffAfter = component<DiffPaneProps>(({ props, slots }) => {
     return () => (
-        <div data-scope={SCOPE} data-part="after" class={props.class}>
+        <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="after" class={props.class}>
             {slots.default?.()}
         </div>
     );
@@ -156,6 +158,8 @@ export type DiffHandleProps =
     /** Accessible name — the handle is a glyph; "Comparison" by default. */
     & Define.Prop<'label', string, false>
     & WithClass
+    /** Not `role`: the handle is the `slider`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const DiffHandle = component<DiffHandleProps>(({ props, slots, signal }) => {
@@ -172,14 +176,16 @@ const DiffHandle = component<DiffHandleProps>(({ props, slots, signal }) => {
 
     return () => {
         const value = diff.value();
+        const attrs = htmlAttrs(props);
         return (
             <div
+                {...attrs}
                 data-scope={SCOPE}
                 data-part="handle"
                 data-focus-visible={dataAttr(focus.visible)}
                 role="slider"
                 tabIndex={0}
-                aria-label={props.label ?? 'Comparison'}
+                aria-label={props.label ?? attrs['aria-label'] ?? 'Comparison'}
                 aria-orientation="horizontal"
                 aria-valuemin={0}
                 aria-valuemax={100}

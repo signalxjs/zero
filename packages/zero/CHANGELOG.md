@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### Added — the attribute pass-through reaches the disclosure, navigation and form-control parts (#74)
+
+- **Every app-written part of Accordion, Carousel, Collapsible, Diff,
+  Pagination, Steps, Swap, Tabs, TreeView, Checkbox, Field, FileUpload,
+  Input, NumberInput, RadioGroup, RatingGroup, Slider, Switch, Textarea,
+  Toggle and ToggleGroup takes `WithHtmlAttrs`** — `<Tabs.List
+  aria-label="Settings">` names its tablist at last. Parts zero renders on
+  its own (hidden inputs, Pagination's buttons, a switch's thumb) have no
+  component to take one.
+- **`Checkbox.Root`, `Switch.Root` and `RadioGroup.Item` split theirs** like
+  `Table.Root`: `aria-*` on the input assistive tech reads (an app
+  `aria-describedby` joins the Field's), `id`/`title`/`data-*` on the row.
+- **Refused by the type:** `role` where it is the component's semantics
+  (tablist/tab/tabpanel, tree/treeitem/group, the `group` roots of Steps
+  and ToggleGroup, the carousel region and slides, the switch, checkbox,
+  radio, toggle, slider-thumb and spinbutton parts, `Field.Error`'s
+  `alert`), and `id` where another part points at it (Labels, Field
+  description and error, disclosure Panels, `Tabs.Tab`/`Panel`, the Field
+  control of NumberInput, RatingGroup, Slider and FileUpload).
+- **Defaults give way, wired references join:** an app `aria-label`
+  replaces an icon trigger's default name (Carousel triggers and dots,
+  `Diff.Handle`, NumberInput steppers, `FileUpload.ItemRemove`, Pagination,
+  a slide's "n of m"); an app `aria-labelledby`/`aria-describedby` joins
+  the one a tab panel, tree, radiogroup, rating control or Field control
+  wires.
+
 ### Added — the attribute pass-through reaches the presentational parts (#74)
 
 - **Every part of Alert, Avatar, Badge, Breadcrumbs, Chat, Countdown,

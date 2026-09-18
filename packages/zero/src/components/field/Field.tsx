@@ -20,8 +20,8 @@ import type { Define } from 'sigx';
 import { createId } from '../../behaviors/create-id.js';
 import { provideFieldContext, useFieldContext, type FieldContext } from '../../behaviors/field.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithInvalid, WithReadonly, WithRequired, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithHtmlAttrs, WithInvalid, WithReadonly, WithRequired, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { fieldAnatomy } from './anatomy.js';
 
 const SCOPE = fieldAnatomy.scope;
@@ -33,6 +33,7 @@ export type FieldRootProps =
     & WithReadonly
     & WithVariantAxes<'field'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const FieldRoot = component<FieldRootProps>(({ props, slots }) => {
@@ -56,6 +57,7 @@ const FieldRoot = component<FieldRootProps>(({ props, slots }) => {
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-disabled={dataAttr(props.disabled)}
@@ -70,12 +72,18 @@ const FieldRoot = component<FieldRootProps>(({ props, slots }) => {
     );
 }, { name: 'Field.Root' });
 
-export type FieldLabelProps = WithClass & WithVisuallyHidden & Define.Slot<'default'>;
+export type FieldLabelProps =
+    & WithClass
+    & WithVisuallyHidden
+    /** Not `id`: the control is labelled by the Label's own. */
+    & Omit<WithHtmlAttrs, 'id'>
+    & Define.Slot<'default'>;
 
 const FieldLabel = component<FieldLabelProps>(({ props, slots }) => {
     const field = useFieldContext();
     return () => (
         <label
+            {...htmlAttrs(props)}
             id={field.ids.label}
             for={field.ids.control}
             data-scope={SCOPE}
@@ -91,23 +99,26 @@ const FieldLabel = component<FieldLabelProps>(({ props, slots }) => {
     );
 }, { name: 'Field.Label' });
 
-export type FieldDescriptionProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the control's `aria-describedby` points at the Description's own. */
+export type FieldDescriptionProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const FieldDescription = component<FieldDescriptionProps>(({ props, slots }) => {
     const field = useFieldContext();
     return () => (
-        <p id={field.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
+        <p {...htmlAttrs(props)} id={field.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
             {slots.default?.()}
         </p>
     );
 }, { name: 'Field.Description' });
 
-export type FieldErrorProps = WithClass & Define.Slot<'default'>;
+/** Not `id` (the control's `aria-describedby` points at it) nor `role` (an `alert`). */
+export type FieldErrorProps = WithClass & Omit<WithHtmlAttrs, 'id' | 'role'> & Define.Slot<'default'>;
 
 const FieldError = component<FieldErrorProps>(({ props, slots }) => {
     const field = useFieldContext();
     return () => (
         <p
+            {...htmlAttrs(props)}
             id={field.ids.error}
             data-scope={SCOPE}
             data-part="error"

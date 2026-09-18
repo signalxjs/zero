@@ -27,8 +27,8 @@ import { createControllableState, createInertState, type ControllableState } fro
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { carouselAnatomy } from './anatomy.js';
 
 const SCOPE = carouselAnatomy.scope;
@@ -90,6 +90,8 @@ export type CarouselRootProps =
     & Define.Prop<'label', string>
     & WithVariantAxes<'carousel'>
     & WithClass
+    /** Not `role`: the root is the carousel `region`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal, onUnmounted }) => {
@@ -177,22 +179,26 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
     defineProvide(useCarouselContext, () => ctx);
     onUnmounted(() => { /* the viewport owns observer teardown */ });
 
-    return () => (
-        <div
-            data-scope={SCOPE}
-            data-part="root"
-            role="region"
-            aria-roledescription="carousel"
-            aria-label={props.label}
-            {...variantAttrs(props)}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                data-scope={SCOPE}
+                data-part="root"
+                role="region"
+                aria-roledescription="carousel"
+                aria-label={props.label ?? attrs['aria-label']}
+                {...variantAttrs(props)}
+                class={props.class}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Carousel.Root' });
 
-export type CarouselViewportProps = WithClass & Define.Slot<'default'>;
+export type CarouselViewportProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 /**
  * The scroll container. The IntersectionObserver lives here — created in
@@ -236,6 +242,7 @@ const CarouselViewport = component<CarouselViewportProps>(({ props, slots, onMou
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="viewport"
             // A scrollable region must be reachable by keyboard (axe
@@ -257,6 +264,8 @@ export type CarouselItemProps =
     /** Accessible name override; defaults to APG's "n of m". */
     & Define.Prop<'label', string, false>
     & WithClass
+    /** Not `role`: a slide is a `group`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const CarouselItem = component<CarouselItemProps>(({ props, slots, onMounted, onUnmounted }) => {
@@ -276,14 +285,16 @@ const CarouselItem = component<CarouselItemProps>(({ props, slots, onMounted, on
 
     return () => {
         const i = carousel.itemIndex(entry);
+        const attrs = htmlAttrs(props);
         return (
             <div
+                {...attrs}
                 data-scope={SCOPE}
                 data-part="item"
                 data-state={stateAttr(carousel.index() === i, 'active', 'inactive')}
                 role="group"
                 aria-roledescription="slide"
-                aria-label={props.label ?? `${i + 1} of ${carousel.count()}`}
+                aria-label={props.label ?? attrs['aria-label'] ?? `${i + 1} of ${carousel.count()}`}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; }}
             >
@@ -297,6 +308,7 @@ export type CarouselTriggerProps =
     /** Accessible name override for an icon-only trigger. */
     & Define.Prop<'label', string, false>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const stepTrigger = (
@@ -316,43 +328,47 @@ const stepTrigger = (
             isDisabled: () => atBound(),
         });
 
-        return () => (
-            <button
-                type="button"
-                data-scope={SCOPE}
-                data-part={partName}
-                data-disabled={dataAttr(atBound())}
-                data-focus-visible={dataAttr(focus.visible)}
-                disabled={atBound()}
-                aria-label={props.label ?? defaultLabel}
-                class={props.class}
-                ref={(node: HTMLElement | null) => { el = node; }}
-                onClick={() => carousel.goTo(carousel.index() + step)}
-                onKeydown={press.onKeydown}
-                onKeyup={press.onKeyup}
-                onPointerdown={press.onPointerdown}
-                onPointerup={press.onPointerup}
-                onPointercancel={press.onPointercancel}
-                onPointerleave={press.onPointerleave}
-                onFocus={() => { focus.visible = isFocusVisible(el); }}
-                onBlur={(e: FocusEvent) => {
-                    press.onBlur(e);
-                    focus.visible = false;
-                }}
-            >
-                {slots.default?.()}
-            </button>
-        );
+        return () => {
+            const attrs = htmlAttrs(props);
+            return (
+                <button
+                    {...attrs}
+                    type="button"
+                    data-scope={SCOPE}
+                    data-part={partName}
+                    data-disabled={dataAttr(atBound())}
+                    data-focus-visible={dataAttr(focus.visible)}
+                    disabled={atBound()}
+                    aria-label={props.label ?? attrs['aria-label'] ?? defaultLabel}
+                    class={props.class}
+                    ref={(node: HTMLElement | null) => { el = node; }}
+                    onClick={() => carousel.goTo(carousel.index() + step)}
+                    onKeydown={press.onKeydown}
+                    onKeyup={press.onKeyup}
+                    onPointerdown={press.onPointerdown}
+                    onPointerup={press.onPointerup}
+                    onPointercancel={press.onPointercancel}
+                    onPointerleave={press.onPointerleave}
+                    onFocus={() => { focus.visible = isFocusVisible(el); }}
+                    onBlur={(e: FocusEvent) => {
+                        press.onBlur(e);
+                        focus.visible = false;
+                    }}
+                >
+                    {slots.default?.()}
+                </button>
+            );
+        };
     }, { name });
 
 const CarouselPrevTrigger = stepTrigger('prev-trigger', -1, 'Previous slide', 'Carousel.PrevTrigger');
 const CarouselNextTrigger = stepTrigger('next-trigger', 1, 'Next slide', 'Carousel.NextTrigger');
 
-export type CarouselIndicatorGroupProps = WithClass & Define.Slot<'default'>;
+export type CarouselIndicatorGroupProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const CarouselIndicatorGroup = component<CarouselIndicatorGroupProps>(({ props, slots }) => {
     return () => (
-        <div data-scope={SCOPE} data-part="indicator-group" class={props.class}>
+        <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="indicator-group" class={props.class}>
             {slots.default?.()}
         </div>
     );
@@ -364,6 +380,7 @@ export type CarouselIndicatorProps =
     /** Accessible name override; defaults to "Go to slide n". */
     & Define.Prop<'label', string, false>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 /** One dot — a plain labelled button, not a tab: no roving tabindex. */
@@ -380,14 +397,16 @@ const CarouselIndicator = component<CarouselIndicatorProps>(({ props, slots, sig
 
     return () => {
         const active = carousel.index() === idx();
+        const attrs = htmlAttrs(props);
         return (
             <button
+                {...attrs}
                 type="button"
                 data-scope={SCOPE}
                 data-part="indicator"
                 data-state={stateAttr(active, 'active', 'inactive')}
                 data-focus-visible={dataAttr(focus.visible)}
-                aria-label={props.label ?? `Go to slide ${idx() + 1}`}
+                aria-label={props.label ?? attrs['aria-label'] ?? `Go to slide ${idx() + 1}`}
                 aria-current={active ? 'true' : undefined}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; }}
