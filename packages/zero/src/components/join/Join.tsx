@@ -15,8 +15,8 @@ import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { PartProps } from '../../contract/props.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithAsChild, WithClass, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithAsChild, WithClass, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import type { Orientation } from '../../contract/data-attrs.js';
 import { joinAnatomy } from './anatomy.js';
 
@@ -34,6 +34,7 @@ export type JoinRootProps =
     & WithOrientation
     & WithVariantAxes<'join'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const JoinRoot = component<JoinRootProps>(({ props, slots }) => {
@@ -41,6 +42,7 @@ const JoinRoot = component<JoinRootProps>(({ props, slots }) => {
     defineProvide(useJoinContext, () => ({ orientation }));
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-orientation={orientation()}
@@ -54,6 +56,7 @@ const JoinRoot = component<JoinRootProps>(({ props, slots }) => {
 
 export type JoinItemProps =
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -61,6 +64,7 @@ const JoinItem = component<JoinItemProps>(({ props, slots }) => {
     const join = useJoinContext();
     return () => {
         const bag: PartProps = {
+            ...htmlAttrs(props),
             'data-scope': SCOPE,
             'data-part': 'item',
             'data-orientation': join.orientation(),

@@ -17,8 +17,8 @@
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { navbarAnatomy } from './anatomy.js';
 
 const SCOPE = navbarAnatomy.scope;
@@ -26,11 +26,13 @@ const SCOPE = navbarAnatomy.scope;
 export type NavbarRootProps =
     & WithVariantAxes<'navbar'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const NavbarRoot = component<NavbarRootProps>(({ props, slots }) => (
     () => (
         <header
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...variantAttrs(props)}
@@ -41,12 +43,12 @@ const NavbarRoot = component<NavbarRootProps>(({ props, slots }) => (
     )
 ), { name: 'Navbar.Root' });
 
-export type NavbarSectionProps = WithClass & Define.Slot<'default'>;
+export type NavbarSectionProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const section = (partName: 'start' | 'center' | 'end', name: string) =>
     component<NavbarSectionProps>(({ props, slots }) => (
         () => (
-            <div data-scope={SCOPE} data-part={partName} class={props.class}>
+            <div {...htmlAttrs(props)} data-scope={SCOPE} data-part={partName} class={props.class}>
                 {slots.default?.()}
             </div>
         )

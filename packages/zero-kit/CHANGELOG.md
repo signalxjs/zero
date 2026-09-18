@@ -52,6 +52,12 @@
   participation (#53). A vendor-named api can no longer claim those names as
   axis props on toggle-group.
 
+- **`RESERVED_PROPS_BY_SCOPE` follows the pass-through's roll-out** (zero#74):
+  the presentational and layout scopes gain `id`, `title` and `role` — less
+  `role` where the root refuses it (`alert`, `countdown`, `divider`,
+  `progress`, `radial-progress`, `spinner`, `status`), which the parity
+  test now reads from `Omit<WithHtmlAttrs, …>`.
+
 - **`RESERVED_PROPS_BY_SCOPE` follows zero's attribute pass-through** (#49):
   `button` gains `form`, `name`, `value`, `id`, `title` and `role`; `card`
   and `table` gain `id`, `title` and `role`. A design-system-wide `as` onto

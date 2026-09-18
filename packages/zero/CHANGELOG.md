@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Added — the attribute pass-through reaches the presentational parts (#74)
+
+- **Every part of Alert, Avatar, Badge, Breadcrumbs, Chat, Countdown,
+  Divider, Indicator, Join, Kbd, Navbar, Progress, RadialProgress, Skeleton,
+  Spinner, Stats, Status, Timeline, Box, Center, Container, Grid, Spacer and
+  Stack takes `WithHtmlAttrs`** (#49's policy): `aria-*`, the app's own
+  `data-*`, `id`, `title` and `role` reach the element, or the asChild bag.
+  An `aria-label` on `Alert.Close` (the README's own example) used to vanish.
+- **A name the part sets itself is refused by the type**, not silently
+  dropped: `Omit<WithHtmlAttrs, 'role'>` on `Divider`, `Spinner`, `Status`,
+  `Countdown.Root`, `Alert.Root` and the progress roots, and `'id'` on
+  `Progress.Label` / `RadialProgress.Label`, whose id the root points at.
+- **A default name gives way to an app `aria-label`**: Spinner's "Loading",
+  `Alert.Close`'s "Close", Breadcrumbs' "Breadcrumb" (the `label` prop still
+  wins). On `Status` and `Countdown.Root` an app `aria-label` is a name like
+  `label` — the dot becomes a named `img`, the countdown a `timer`. An app
+  `aria-labelledby` on `Progress.Root` / `RadialProgress.Root` joins the
+  Label's.
+
 ### Changed — a sized Field sizes its control (#57)
 
 - **A form control with no `size` of its own renders its Field's.**

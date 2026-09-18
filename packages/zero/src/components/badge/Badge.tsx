@@ -16,8 +16,8 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { renderAsChild } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { badgeAnatomy } from './anatomy.js';
 
 const SCOPE = badgeAnatomy.scope;
@@ -25,6 +25,7 @@ const SCOPE = badgeAnatomy.scope;
 export type BadgeRootProps =
     & WithVariantAxes<'badge'>
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -37,6 +38,7 @@ export type BadgeRootProps =
 const BadgeRoot = component<BadgeRootProps>(({ props, slots }) => {
     return () => {
         const bag: PartProps = {
+            ...htmlAttrs(props),
             'data-scope': SCOPE,
             'data-part': 'root',
             ...variantAttrs(props),

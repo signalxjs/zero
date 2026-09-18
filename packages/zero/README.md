@@ -185,24 +185,46 @@ condition pointing at an empty declaration, so the extensionless side-effect
 import typechecks under `noUncheckedSideEffectImports` with no app-side shim.
 
 **Attribute pass-through.** sigx forwards no rest props, so a part only
-renders what it declares. The parts below take `WithHtmlAttrs` and forward
-`aria-*`, the app's own `data-*`, `id`, `title` and `role` onto the element
-they render (into the asChild bag too): `Button.Root` (plus its native
-`form`/`name`/`value`), every `Table` part (`Table.Root` puts `aria-*` and
-`role` on the `<table>` and the rest on its scroll wrapper; `Table.Cell` and
-`Table.HeaderCell` also take `colSpan`/`rowSpan`), and every `Card` part
-(`Card.Root` also takes `asChild`, for a card that is an `<article>`). The
-part's own attributes win where both set one, and a `data-*` name the
-contract owns — `data-scope`/`part`/`state`/`orientation`/`placement`, a
-flag, `data-color`/`size`/`variant`, `data-mod-*`, `data-l-*` — is a compile
-error where TypeScript can see it and throws at runtime either way. Build
-your own forwarding part the same way: intersect `WithHtmlAttrs` into the
-props and spread `htmlAttrs(props)` first.
+renders what it declares. A forwarding part takes `WithHtmlAttrs` and
+forwards `aria-*`, the app's own `data-*`, `id`, `title` and `role` onto the
+element it renders (into the asChild bag too). That covers `Button.Root`
+(plus its native `form`/`name`/`value`), every `Table` part (`Table.Root`
+puts `aria-*` and `role` on the `<table>` and the rest on its scroll
+wrapper; `Table.Cell` and `Table.HeaderCell` also take `colSpan`/`rowSpan`),
+every `Card` part (`Card.Root` also takes `asChild`, for a card that is an
+`<article>`), and every part of Alert, Avatar, Badge, Breadcrumbs, Chat,
+Countdown, Divider, Indicator, Join, Kbd, Navbar, Progress, RadialProgress,
+Skeleton, Spinner, Stats, Status, Timeline and the layout tier (Box, Center,
+Container, Grid, Spacer, Stack). The rest follow in #74.
+
+The part's own attributes win where both set one, with three refinements:
+
+- A name the part always sets itself is refused by the type rather than
+  silently dropped: `role` on `Divider` (a separator), `Spinner` (a
+  `status`), `Status`, `Countdown`, `Alert.Root` (the `alert` region) and the
+  progress roots (a `progressbar`); `id` on `Progress.Label` and
+  `RadialProgress.Label` (the root points at it).
+- A name the part only defaults gives way: an app `aria-label` replaces
+  Spinner's "Loading", `Alert.Close`'s "Close" and Breadcrumbs' "Breadcrumb"
+  (the `label` prop still beats both), and names `Status` (a named dot is an
+  `img`) and `Countdown` (a named countdown is a `timer`) the way `label`
+  does. An app `aria-labelledby` on a progress root joins the Label's.
+- State ARIA stays the component's: `aria-busy` on a loading Skeleton,
+  `aria-current` on the current `Breadcrumbs.Link`, `aria-valuenow`.
+
+A `data-*` name the contract owns — `data-scope`/`part`/`state`/
+`orientation`/`placement`, a flag, `data-color`/`size`/`variant`,
+`data-mod-*`, `data-l-*` — is a compile error where TypeScript can see it
+and throws at runtime either way. Build your own forwarding part the same
+way: intersect `WithHtmlAttrs` into the props (`Omit` the names your part
+owns) and spread `htmlAttrs(props)` first.
 
 ```tsx
 <Button.Root aria-label="Close" data-testid="close" onClick={close}>×</Button.Root>
 <Table.Row data-row-id={row.id}><Table.Cell colSpan={5}>No results</Table.Cell></Table.Row>
 <Card.Root role="region" aria-labelledby="report-title">…</Card.Root>
+<Stack.Root role="list" data-testid="members">…</Stack.Root>
+<Alert.Close aria-label="Dismiss" />
 ```
 
 **Visually hidden, still named.** `Field.Label`, `Input.Label`,

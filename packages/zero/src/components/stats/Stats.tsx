@@ -20,8 +20,8 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import type { Orientation } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { statsAnatomy } from './anatomy.js';
 
 const SCOPE = statsAnatomy.scope;
@@ -38,6 +38,7 @@ export type StatsRootProps =
     & WithOrientation
     & WithVariantAxes<'stats'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const StatsRoot = component<StatsRootProps>(({ props, slots }) => {
@@ -45,6 +46,7 @@ const StatsRoot = component<StatsRootProps>(({ props, slots }) => {
     defineProvide(useStatsContext, () => ({ orientation }));
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-orientation={orientation()}
@@ -56,12 +58,13 @@ const StatsRoot = component<StatsRootProps>(({ props, slots }) => {
     );
 }, { name: 'Stats.Root' });
 
-export type StatsPartProps = WithClass & Define.Slot<'default'>;
+export type StatsPartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const StatsItem = component<StatsPartProps>(({ props, slots }) => {
     const stats = useStatsContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="item"
             data-orientation={stats.orientation()}
@@ -75,7 +78,7 @@ const StatsItem = component<StatsPartProps>(({ props, slots }) => {
 const band = (partName: 'title' | 'value' | 'desc' | 'figure', name: string) =>
     component<StatsPartProps>(({ props, slots }) => {
         return () => (
-            <div data-scope={SCOPE} data-part={partName} class={props.class}>
+            <div {...htmlAttrs(props)} data-scope={SCOPE} data-part={partName} class={props.class}>
                 {slots.default?.()}
             </div>
         );

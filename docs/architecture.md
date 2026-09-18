@@ -643,6 +643,12 @@ type spells the literal ones out as an unassignable brand rather than
 takes for an event) and deliberately declares no `` `data-${string}` ``
 pattern — JSX ignores a pattern member, and the pattern absorbs the literal
 names out of `keyof`, so sigx's `Pick`-based JSX signature would drop them.
+"The part wins" would silently ignore an app value for a name the part
+always sets, so such a part `Omit`s it from the type instead — `role` on a
+Divider, the `id` a progress Label is pointed at by (#74). A name the part
+only defaults (Spinner's "Loading" `aria-label`) reads the app's value
+before its default, and a reference list the part wires (a progressbar's
+`aria-labelledby`) joins the app's rather than replacing it.
 
 All but the layout tier compose `WithVariantAxes<'<scope>'>` — the scope
 literal is constrained to `ZeroScope`, so a typo'd literal

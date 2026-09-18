@@ -18,8 +18,8 @@
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { spinnerAnatomy } from './anatomy.js';
 
 const SCOPE = spinnerAnatomy.scope;
@@ -28,18 +28,24 @@ export type SpinnerRootProps =
     /** Accessible name; defaults to "Loading". */
     & Define.Prop<'label', string, false>
     & WithVariantAxes<'spinner'>
-    & WithClass;
+    & WithClass
+    /** Not `role`: a spinner is a live `status`. */
+    & Omit<WithHtmlAttrs, 'role'>;
 
-const SpinnerRoot = component<SpinnerRootProps>(({ props }) => () => (
-    <span
-        role="status"
-        aria-label={props.label ?? 'Loading'}
-        data-scope={SCOPE}
-        data-part="root"
-        {...variantAttrs(props)}
-        class={props.class}
-    />
-), { name: 'Spinner.Root' });
+const SpinnerRoot = component<SpinnerRootProps>(({ props }) => () => {
+    const attrs = htmlAttrs(props);
+    return (
+        <span
+            {...attrs}
+            role="status"
+            aria-label={props.label ?? attrs['aria-label'] ?? 'Loading'}
+            data-scope={SCOPE}
+            data-part="root"
+            {...variantAttrs(props)}
+            class={props.class}
+        />
+    );
+}, { name: 'Spinner.Root' });
 
 // See Skeleton: single-part scopes still carry `.Root`.
 export const Spinner = compound(SpinnerRoot, { Root: SpinnerRoot });

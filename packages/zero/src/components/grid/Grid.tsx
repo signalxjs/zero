@@ -19,13 +19,15 @@ import type { Define } from 'sigx';
 import { renderAsChild } from '../../contract/as-child.js';
 import { layoutAttrs } from '../../contract/layout-attrs.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
-import type { PartProps, WithAsChild, WithClass } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs } from '../../contract/props.js';
 import { gridAnatomy } from './anatomy.js';
 
 const SCOPE = gridAnatomy.scope;
 
 export type GridRootProps =
     & WithClass
+    & WithHtmlAttrs
     & Define.Prop<'cols', LayoutProp<'cols'>, false>
     & Define.Prop<'track', LayoutProp<'track'>, false>
     & Define.Prop<'gap', LayoutProp<'gap'>, false>
@@ -41,6 +43,7 @@ export type GridRootProps =
 const GridRoot = component<GridRootProps>(({ props, slots }) => {
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...layoutAttrs({
@@ -64,6 +67,7 @@ const GridRoot = component<GridRootProps>(({ props, slots }) => {
 
 export type GridCellProps =
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     /** How many columns to span, or `full` for the whole row. */
     & Define.Prop<'span', LayoutProp<'span'>, false>
@@ -72,6 +76,7 @@ export type GridCellProps =
 const GridCell = component<GridCellProps>(({ props, slots }) => {
     return () => {
         const bag: PartProps = {
+            ...htmlAttrs(props),
             'data-scope': SCOPE,
             'data-part': 'cell',
             ...layoutAttrs({ span: props.span }, gridAnatomy.parts.cell.layout),

@@ -25,7 +25,8 @@ import type { Define } from 'sigx';
 import { renderAsChild } from '../../contract/as-child.js';
 import { layoutAttrs } from '../../contract/layout-attrs.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
-import type { PartProps, WithAsChild, WithClass, WithOrientation } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithOrientation } from '../../contract/props.js';
 import type { Orientation } from '../../contract/data-attrs.js';
 import { stackAnatomy } from './anatomy.js';
 
@@ -39,6 +40,7 @@ const SCOPE = stackAnatomy.scope;
 export type StackRootProps =
     & WithOrientation
     & WithClass
+    & WithHtmlAttrs
     & Define.Prop<'gap', LayoutProp<'gap'>, false>
     & Define.Prop<'gapX', LayoutProp<'gap-x'>, false>
     & Define.Prop<'gapY', LayoutProp<'gap-y'>, false>
@@ -63,6 +65,7 @@ function makeStackRoot(fallbackOrientation: Orientation, name: string) {
         const orientation = (): Orientation => props.orientation ?? fallbackOrientation;
         return () => (
             <div
+                {...htmlAttrs(props)}
                 data-scope={SCOPE}
                 data-part="root"
                 data-orientation={orientation()}
@@ -94,6 +97,7 @@ export const Col = makeStackRoot('vertical', 'Col');
 
 export type StackItemProps =
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     /**
      * Take the leftover room. A boolean rather than the attribute's `0 | 1`,
@@ -106,6 +110,7 @@ export type StackItemProps =
 const StackItem = component<StackItemProps>(({ props, slots }) => {
     return () => {
         const bag: PartProps = {
+            ...htmlAttrs(props),
             'data-scope': SCOPE,
             'data-part': 'item',
             ...layoutAttrs({ grow: props.grow ? '1' : undefined }, stackAnatomy.parts.item.layout),

@@ -15,8 +15,8 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createId } from '../../behaviors/create-id.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { progressAnatomy } from './anatomy.js';
 
 const SCOPE = progressAnatomy.scope;
@@ -49,6 +49,11 @@ export type ProgressRootProps =
     & Define.Prop<'max', number, false>
     & WithVariantAxes<'progress'>
     & WithClass
+    /**
+     * Not `role`: the root is the `progressbar`. An app `aria-labelledby`
+     * joins the Label's rather than replacing it.
+     */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const ProgressRoot = component<ProgressRootProps>(({ props, slots }) => {
@@ -81,52 +86,58 @@ const ProgressRoot = component<ProgressRootProps>(({ props, slots }) => {
     };
     defineProvide(useProgressContext, () => ctx);
 
-    return () => (
-        <div
-            role="progressbar"
-            data-scope={SCOPE}
-            data-part="root"
-            data-state={ctx.state()}
-            aria-valuemin={min()}
-            aria-valuemax={max()}
-            aria-valuenow={value() ?? undefined}
-            aria-labelledby={ctx.ids.label}
-            style={percent() != null ? { '--progress-percent': `${percent()}%` } : undefined}
-            {...variantAttrs(props)}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                role="progressbar"
+                data-scope={SCOPE}
+                data-part="root"
+                data-state={ctx.state()}
+                aria-valuemin={min()}
+                aria-valuemax={max()}
+                aria-valuenow={value() ?? undefined}
+                aria-labelledby={attrs['aria-labelledby'] ? `${ctx.ids.label} ${attrs['aria-labelledby']}` : ctx.ids.label}
+                style={percent() != null ? { '--progress-percent': `${percent()}%` } : undefined}
+                {...variantAttrs(props)}
+                class={props.class}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Progress.Root' });
 
-export type ProgressLabelProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the root is labelled by the Label's own. */
+export type ProgressLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const ProgressLabel = component<ProgressLabelProps>(({ props, slots }) => {
     const progress = useProgressContext();
     return () => (
-        <div id={progress.ids.label} data-scope={SCOPE} data-part="label" class={props.class}>
+        <div {...htmlAttrs(props)} id={progress.ids.label} data-scope={SCOPE} data-part="label" class={props.class}>
             {slots.default?.()}
         </div>
     );
 }, { name: 'Progress.Label' });
 
-export type ProgressTrackProps = WithClass & Define.Slot<'default'>;
+export type ProgressTrackProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const ProgressTrack = component<ProgressTrackProps>(({ props, slots }) => {
     return () => (
-        <div data-scope={SCOPE} data-part="track" class={props.class}>
+        <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="track" class={props.class}>
             {slots.default?.()}
         </div>
     );
 }, { name: 'Progress.Track' });
 
-export type ProgressRangeProps = WithClass;
+export type ProgressRangeProps = WithClass & WithHtmlAttrs;
 
 const ProgressRange = component<ProgressRangeProps>(({ props }) => {
     const progress = useProgressContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="range"
             data-state={progress.state()}
@@ -136,12 +147,12 @@ const ProgressRange = component<ProgressRangeProps>(({ props }) => {
     );
 }, { name: 'Progress.Range' });
 
-export type ProgressValueTextProps = WithClass & Define.Slot<'default'>;
+export type ProgressValueTextProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const ProgressValueText = component<ProgressValueTextProps>(({ props, slots }) => {
     const progress = useProgressContext();
     return () => (
-        <div data-scope={SCOPE} data-part="value-text" class={props.class}>
+        <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="value-text" class={props.class}>
             {slots.default?.() ?? (progress.value() != null ? `${Math.round(progress.percent()!)}%` : null)}
         </div>
     );

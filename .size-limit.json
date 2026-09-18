@@ -96,7 +96,7 @@
     {
         "name": "@sigx/zero/avatar",
         "path": "packages/zero/dist/components/avatar/index.js",
-        "limit": "1650 B",
+        "limit": "1.9 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -312,7 +312,7 @@
     {
         "name": "@sigx/zero/stack",
         "path": "packages/zero/dist/components/stack/index.js",
-        "limit": "2 kB",
+        "limit": "2.2 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -336,7 +336,7 @@
     {
         "name": "@sigx/zero/box",
         "path": "packages/zero/dist/components/box/index.js",
-        "limit": "2 kB",
+        "limit": "2.2 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -360,7 +360,7 @@
     {
         "name": "@sigx/zero/grid",
         "path": "packages/zero/dist/components/grid/index.js",
-        "limit": "2 kB",
+        "limit": "2.2 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -540,7 +540,7 @@
     {
         "name": "@sigx/zero/navbar",
         "path": "packages/zero/dist/components/navbar/index.js",
-        "limit": "1.5 kB",
+        "limit": "1.6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -552,7 +552,7 @@
     {
         "name": "@sigx/zero/breadcrumbs",
         "path": "packages/zero/dist/components/breadcrumbs/index.js",
-        "limit": "1.5 kB",
+        "limit": "1.8 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

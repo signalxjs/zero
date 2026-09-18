@@ -15,8 +15,8 @@
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { countdownAnatomy } from './anatomy.js';
 
 const SCOPE = countdownAnatomy.scope;
@@ -26,23 +26,30 @@ export type CountdownRootProps =
     & Define.Prop<'label', string, false>
     & WithVariantAxes<'countdown'>
     & WithClass
+    /** Not `role`: a named countdown is a `timer`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const CountdownRoot = component<CountdownRootProps>(({ props, slots }) => {
-    return () => (
-        <span
-            data-scope={SCOPE}
-            data-part="root"
-            // role=timer only when named: an unlabelled group of digits is
-            // already readable as text, and a nameless timer role is noise.
-            role={props.label ? 'timer' : undefined}
-            aria-label={props.label}
-            {...variantAttrs(props)}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </span>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        const label = props.label ?? attrs['aria-label'];
+        return (
+            <span
+                {...attrs}
+                data-scope={SCOPE}
+                data-part="root"
+                // role=timer only when named: an unlabelled group of digits is
+                // already readable as text, and a nameless timer role is noise.
+                role={label ? 'timer' : undefined}
+                aria-label={label}
+                {...variantAttrs(props)}
+                class={props.class}
+            >
+                {slots.default?.()}
+            </span>
+        );
+    };
 }, { name: 'Countdown.Root' });
 
 export type CountdownValueProps =
@@ -50,7 +57,8 @@ export type CountdownValueProps =
     & Define.Prop<'value', number>
     /** Minimum digit count, zero-padded (`digits={2}` renders 7 as "07"). */
     & Define.Prop<'digits', number, false>
-    & WithClass;
+    & WithClass
+    & WithHtmlAttrs;
 
 const CountdownValue = component<CountdownValueProps>(({ props }) => {
     return () => {
@@ -58,6 +66,7 @@ const CountdownValue = component<CountdownValueProps>(({ props }) => {
         const text = props.digits ? String(raw).padStart(props.digits, '0') : String(raw);
         return (
             <span
+                {...htmlAttrs(props)}
                 data-scope={SCOPE}
                 data-part="value"
                 style={{ '--countdown-value': String(raw) }}

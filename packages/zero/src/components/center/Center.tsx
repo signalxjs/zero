@@ -16,13 +16,15 @@ import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { layoutAttrs } from '../../contract/layout-attrs.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
-import type { WithClass } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs } from '../../contract/props.js';
 import { centerAnatomy } from './anatomy.js';
 
 const SCOPE = centerAnatomy.scope;
 
 export type CenterRootProps =
     & WithClass
+    & WithHtmlAttrs
     /** Which axis to centre on. Logical, so it follows writing mode. */
     & Define.Prop<'axis', LayoutProp<'axis'>, false>
     & Define.Prop<'pad', LayoutProp<'pad'>, false>
@@ -34,6 +36,7 @@ export type CenterRootProps =
 const CenterRoot = component<CenterRootProps>(({ props, slots }) => {
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...layoutAttrs({

@@ -19,8 +19,8 @@
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { chatAnatomy } from './anatomy.js';
 
 const SCOPE = chatAnatomy.scope;
@@ -32,11 +32,13 @@ export type ChatRootProps =
     & Define.Prop<'placement', ChatPlacement, false>
     & WithVariantAxes<'chat'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const ChatRoot = component<ChatRootProps>(({ props, slots }) => {
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-placement={props.placement ?? 'start'}
@@ -48,12 +50,12 @@ const ChatRoot = component<ChatRootProps>(({ props, slots }) => {
     );
 }, { name: 'Chat.Root' });
 
-export type ChatPartProps = WithClass & Define.Slot<'default'>;
+export type ChatPartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const chatPart = (partName: 'avatar' | 'header' | 'bubble' | 'footer', name: string) =>
     component<ChatPartProps>(({ props, slots }) => {
         return () => (
-            <div data-scope={SCOPE} data-part={partName} class={props.class}>
+            <div {...htmlAttrs(props)} data-scope={SCOPE} data-part={partName} class={props.class}>
                 {slots.default?.()}
             </div>
         );

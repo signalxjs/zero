@@ -26,12 +26,13 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type {
     PartProps,
     WithAsChild,
     WithClass,
     WithDisabled,
+    WithHtmlAttrs,
     WithVariantAxes,
 } from '../../contract/props.js';
 import { alertAnatomy } from './anatomy.js';
@@ -58,6 +59,8 @@ export type AlertRootProps =
     & Define.Event<'openChange', boolean>
     & WithVariantAxes<'alert'>
     & WithClass
+    /** Not `role`: the root is the `alert` live region. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const AlertRoot = component<AlertRootProps>(({ props, slots, emit }) => {
@@ -70,6 +73,7 @@ const AlertRoot = component<AlertRootProps>(({ props, slots, emit }) => {
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             role="alert"
             data-scope={SCOPE}
             data-part="root"
@@ -85,30 +89,30 @@ const AlertRoot = component<AlertRootProps>(({ props, slots, emit }) => {
 
 // ── Icon ──
 
-export type AlertIconProps = WithClass & Define.Slot<'default'>;
+export type AlertIconProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const AlertIcon = component<AlertIconProps>(({ props, slots }) => () => (
     // Decorative: the severity it paints is already carried by the text, and
     // a glyph that announced itself would say it twice.
-    <span aria-hidden="true" data-scope={SCOPE} data-part="icon" class={props.class}>
+    <span {...htmlAttrs(props)} aria-hidden="true" data-scope={SCOPE} data-part="icon" class={props.class}>
         {slots.default?.()}
     </span>
 ), { name: 'Alert.Icon' });
 
 // ── Title / Description ──
 
-export type AlertTitleProps = WithClass & Define.Slot<'default'>;
+export type AlertTitleProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const AlertTitle = component<AlertTitleProps>(({ props, slots }) => () => (
-    <div data-scope={SCOPE} data-part="title" class={props.class}>
+    <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="title" class={props.class}>
         {slots.default?.()}
     </div>
 ), { name: 'Alert.Title' });
 
-export type AlertDescriptionProps = WithClass & Define.Slot<'default'>;
+export type AlertDescriptionProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const AlertDescription = component<AlertDescriptionProps>(({ props, slots }) => () => (
-    <div data-scope={SCOPE} data-part="description" class={props.class}>
+    <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="description" class={props.class}>
         {slots.default?.()}
     </div>
 ), { name: 'Alert.Description' });
@@ -119,6 +123,7 @@ export type AlertCloseProps =
     & Define.Prop<'label', string, false>
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -131,30 +136,35 @@ const AlertClose = component<AlertCloseProps>(({ props, slots, signal }) => {
         isDisabled: () => !!props.disabled,
     });
 
-    const bag = (): PartProps => ({
-        'data-scope': SCOPE,
-        'data-part': 'close',
-        'data-disabled': dataAttr(props.disabled),
-        'data-focus-visible': dataAttr(focus.visible),
-        // The button's own content is usually a glyph, so it needs a name of
-        // its own; "Close" is the conventional one and `label` overrides it.
-        'aria-label': props.label ?? 'Close',
-        onClick: () => {
-            if (!props.disabled) ctx.state.value = false;
-        },
-        onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: (e: FocusEvent) => {
-            press.onBlur(e);
-            focus.visible = false;
-        },
-        onKeydown: press.onKeydown,
-        onKeyup: press.onKeyup,
-        onPointerdown: press.onPointerdown,
-        onPointerup: press.onPointerup,
-        onPointercancel: press.onPointercancel,
-        onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; },
-    });
+    const bag = (): PartProps => {
+        const attrs = htmlAttrs(props);
+        return {
+            ...attrs,
+            'data-scope': SCOPE,
+            'data-part': 'close',
+            'data-disabled': dataAttr(props.disabled),
+            'data-focus-visible': dataAttr(focus.visible),
+            // The button's own content is usually a glyph, so it needs a name of
+            // its own; "Close" is the conventional one, and `label` (or an app
+            // `aria-label`) overrides it.
+            'aria-label': props.label ?? attrs['aria-label'] ?? 'Close',
+            onClick: () => {
+                if (!props.disabled) ctx.state.value = false;
+            },
+            onFocus: () => { focus.visible = isFocusVisible(el); },
+            onBlur: (e: FocusEvent) => {
+                press.onBlur(e);
+                focus.visible = false;
+            },
+            onKeydown: press.onKeydown,
+            onKeyup: press.onKeyup,
+            onPointerdown: press.onPointerdown,
+            onPointerup: press.onPointerup,
+            onPointercancel: press.onPointercancel,
+            onPointerleave: press.onPointerleave,
+            ref: (node: HTMLElement | null) => { el = node; },
+        };
+    };
 
     return () => {
         const b = bag();
