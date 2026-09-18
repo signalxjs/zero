@@ -195,6 +195,11 @@ describe('Textarea', () => {
             expectAnatomy(container, textareaAnatomy);
         });
 
+        it('renders rows from minRows while autosizing, not the rows prop', () => {
+            render(<Textarea.Root rows={6} minRows={2}><Textarea.Textarea /></Textarea.Root>, container);
+            expect(box(container).getAttribute('rows')).toBe('2');
+        });
+
         it('maxRows alone floors at one row and leaves the minimum implicit', () => {
             render(<Textarea.Root maxRows={5}><Textarea.Textarea /></Textarea.Root>, container);
             const el = box(container);
@@ -252,11 +257,11 @@ describe('Textarea', () => {
             let content = 20;
             Object.defineProperty(el, 'scrollHeight', { configurable: true, get: () => content + 8 });
             type(el, 'one');
+            await tick();
             expect(el.style.height).toBe('30px');
-            // A value written from outside an input event re-measures too.
             content = 60;
-            el.value = 'one\ntwo\nthree';
-            el.dispatchEvent(new Event('input'));
+            type(el, 'one\ntwo\nthree');
+            await tick();
             expect(el.style.height).toBe('70px');
         });
 
@@ -283,6 +288,7 @@ describe('Textarea', () => {
             let content = 60;
             Object.defineProperty(el, 'scrollHeight', { configurable: true, get: () => content });
             type(el, 'a\nb\nc');
+            await tick();
             expect(el.style.height).toBe('60px');
             content = 20;
             state.draft = '';

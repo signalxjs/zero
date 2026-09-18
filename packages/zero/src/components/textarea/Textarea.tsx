@@ -116,7 +116,8 @@ export type TextareaRootProps =
     /**
      * Grow with the content, never below this many lines (default 1 when
      * only `maxRows` is set). Setting it, or `maxRows`, turns autosizing on;
-     * `rows` is then ignored.
+     * the element's `rows` then follows it rather than the `rows` prop, so
+     * an engine without `field-sizing` starts at the floor before hydration.
      */
     & Define.Prop<'minRows', number, false>
     /** Grow up to this many lines, then scroll. Unbounded when absent. */
@@ -252,9 +253,11 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
             }
         });
         // A value written from outside an input event — a composer clearing
-        // itself after send — has to re-measure too. Only the fallback
-        // needs it; with `field-sizing` it is one computed-style read.
+        // itself after send — has to re-measure too (in the fallback; with
+        // `field-sizing` a refresh is a no-op). Subscribed only while
+        // autosizing, so a plain textarea's keystrokes cost nothing here.
         effect(() => {
+            if (ctx.autosize() === undefined) return;
             void ctx.state.value;
             autosize?.refresh();
         });
@@ -283,7 +286,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
                 form={ctx.form()}
                 autoComplete={ctx.autocomplete()}
                 maxLength={ctx.maxlength()}
-                rows={ctx.rows()}
+                rows={bounds ? bounds.min : ctx.rows()}
                 data-scope={SCOPE}
                 data-part="textarea"
                 data-disabled={dataAttr(ctx.disabled())}

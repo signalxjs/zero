@@ -8,7 +8,8 @@
   autosizing on (`minRows` defaults to 1, no `maxRows` is unbounded): the
   box grows with its content — soft wraps included, which agentic's
   newline-counting stopgap missed — and scrolls past the upper bound.
-  `rows` is ignored while it is on.
+  While it is on, the element's `rows` follows `minRows` (an engine
+  without `field-sizing` starts at the floor before hydration).
 - **CSS does the growing.** The textarea part renders `data-autosize` and
   the bounds as `--textarea-min-rows` / `--textarea-max-rows`; a new
   `zero.structure` rule in `css/base.css` applies `field-sizing: content`,

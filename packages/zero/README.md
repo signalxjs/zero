@@ -341,7 +341,8 @@ included — never below `minRows` lines, and scrolls past `maxRows`. The
 textarea part renders `data-autosize` and the bounds as
 `--textarea-min-rows` / `--textarea-max-rows`, and `css/base.css` does the
 growing in `@layer zero.structure` with `field-sizing: content` and `lh`
-bounds — so it is right before hydration, and a design system has nothing to
+bounds — so it is right before hydration (the element's `rows` follows
+`minRows` meanwhile, for engines without `field-sizing`), and a design system has nothing to
 write (the rule also sets `resize: none`, since a manual resize would switch
 the growth off). `createAutosize` (on `@sigx/zero/behaviors`) is the runtime
 half: it measures the block padding + border a `border-box` element's bounds

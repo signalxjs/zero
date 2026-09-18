@@ -41,10 +41,15 @@ export function createAutosize(el: HTMLTextAreaElement): Autosize {
     let lastWidth = -1;
     let queued = false;
     let disposed = false;
+    // With `field-sizing` the only thing to measure is the chrome, and the
+    // observer below catches every change to it — so after the first
+    // measurement a refresh has nothing to do.
+    let measured = false;
 
     const fit = (): void => {
         queued = false;
         if (disposed) return;
+        measured = true;
         const cs = getComputedStyle(el);
         const padding = px(cs.paddingTop) + px(cs.paddingBottom);
         const border = px(cs.borderTopWidth) + px(cs.borderBottomWidth);
@@ -64,7 +69,7 @@ export function createAutosize(el: HTMLTextAreaElement): Autosize {
     };
 
     const refresh = (): void => {
-        if (queued || disposed) return;
+        if (queued || disposed || (native && measured)) return;
         queued = true;
         queueMicrotask(fit);
     };
@@ -84,7 +89,9 @@ export function createAutosize(el: HTMLTextAreaElement): Autosize {
         : null;
     observer?.observe(el);
 
-    const onInput = (): void => { if (!native) fit(); };
+    // Coalesced with the model write's refresh: one measurement per task,
+    // still before the frame paints.
+    const onInput = (): void => { if (!native) refresh(); };
     el.addEventListener('input', onInput);
     // A leaf part mounts before its parent inserts the subtree, and a
     // detached element measures as nothing — in the fallback that would
