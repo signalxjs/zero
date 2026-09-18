@@ -85,7 +85,8 @@ export function createAutosize(el: HTMLTextAreaElement): Autosize {
             const width = entries[entries.length - 1]!.contentRect.width;
             if (!native && width === lastWidth) return;
             lastWidth = width;
-            requestAnimationFrame(fit);
+            if (typeof requestAnimationFrame === 'function') requestAnimationFrame(fit);
+            else setTimeout(fit, 0);
         })
         : null;
     observer?.observe(el);
