@@ -125,12 +125,24 @@ function mergeValue(base: unknown, patch: unknown): unknown {
     return patch;
 }
 
-/** The merge rule: objects per key, recursively; `null` deletes; everything else replaces. */
+/**
+ * The merge rule: objects per key, recursively; `null` deletes; everything
+ * else replaces. Keys are DEFINED, never assigned: a patch parsed from JSON
+ * can carry an own `__proto__` key, and `out[key] = …` would hit the legacy
+ * setter and re-prototype the result instead of adding a key.
+ */
 function mergeRecord(base: Plain, patch: Plain): Plain {
     const out: Plain = { ...base };
     for (const [key, value] of Object.entries(patch)) {
         if (value === null) delete out[key];
-        else if (value !== undefined) out[key] = mergeValue(own(base, key), value);
+        else if (value !== undefined) {
+            Object.defineProperty(out, key, {
+                value: mergeValue(own(base, key), value),
+                enumerable: true,
+                writable: true,
+                configurable: true,
+            });
+        }
     }
     return out;
 }

@@ -24,7 +24,7 @@ import {
     layoutRecipes,
     validateDesignSystem,
 } from '@sigx/zero-kit';
-import type { DesignSystemInput, ManifestComponent, RecipeInput, ThemeInput, TokensInput } from '@sigx/zero-kit';
+import type { DesignSystemInput, ManifestComponent, RecipeInput, RecipePatch, ThemeInput, TokensInput } from '@sigx/zero-kit';
 import { designSystem as daisy } from '@sigx/zero-daisyui';
 
 const manifest = {
@@ -132,6 +132,15 @@ describe('extendRecipe — the merge rule', () => {
         expect(JSON.stringify(base)).toBe(before);
         expect(out.parts.root).not.toBe(base.parts.root);
         expect(out.parts.label).toBe(base.parts.label);
+    });
+
+    it('defines a `__proto__` key from a JSON patch rather than re-prototyping the result', () => {
+        const patch = JSON.parse('{ "parts": { "root": { "base": { "__proto__": { "polluted": "yes" } } } } }') as RecipePatch;
+        const out = extendRecipe(base, patch);
+        const decls = out.parts['root']!.base!;
+        expect(Object.getPrototypeOf(decls)).toBe(Object.prototype);
+        expect(Object.hasOwn(decls, '__proto__')).toBe(true);
+        expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
     });
 
     it('refuses a patch naming another scope', () => {
