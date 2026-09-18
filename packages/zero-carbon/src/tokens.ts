@@ -61,8 +61,8 @@ export const variants = [
     'danger-ghost',
 ] as const;
 
-/** Carbon's `hasIconOnly` / `isExpressive`, plus the data table's `useZebraStyles` (#340). */
-export const modifiers = ['icon-only', 'expressive', 'zebra'] as const;
+/** Carbon's `hasIconOnly` / `isExpressive`, the data table's `useZebraStyles` (#340), and countdown's `inline` (#57). */
+export const modifiers = ['icon-only', 'expressive', 'zebra', 'inline'] as const;
 
 export const system = {
     // Carbon is square. Every corner, everywhere.
@@ -166,6 +166,9 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         ...layoutScopes,
         button: { modifiers: ['icon-only', 'expressive'] },
         table: { modifiers: ['zebra'] },
+        // A countdown set inside a sentence (#57). No vendor spelling: the
+        // vendor ships no countdown, so the modifier keeps zero's name.
+        countdown: { modifiers: ['inline'] },
     },
     custom,
     system,

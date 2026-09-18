@@ -142,8 +142,11 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     // The `variant` axis vocabulary — what button's variants.variant keys on.
     // Declared so a recipe typo is a build error, not a minted value.
     variants: ['solid', 'outline', 'soft', 'ghost'],
-    /** Table's zebra striping and hover-highlight (#340) — presence-only, table-scoped. */
-    modifiers: ['zebra', 'hover'],
+    /**
+     * Table's zebra striping and hover-highlight (#340) and countdown's
+     * inline treatment (#57) — presence-only, each narrowed to its scope.
+     */
+    modifiers: ['zebra', 'hover', 'inline'],
     scopes: {
         // The layout tier wires neither colour nor size — every one of its
         // scopes is geometry, and `data-color` on geometry would paint
@@ -151,6 +154,8 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         // axis-coverage audit to report.
         ...layoutScopes,
         table: { modifiers: ['zebra', 'hover'] },
+        // A countdown set inside a sentence (#57).
+        countdown: { modifiers: ['inline'] },
     },
     system,
     systemDark,

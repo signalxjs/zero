@@ -124,11 +124,11 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     variants: ['solid', 'outline', 'soft', 'ghost'],
     /**
      * Presence-only modifiers (#340): table's zebra striping and
-     * hover-highlight — per-instance styling choices, so they are design-
-     * system vocabulary rather than anatomy. `scopes.table` narrows them to
-     * the one scope that styles them.
+     * hover-highlight, and countdown's inline treatment (#57) — per-instance
+     * styling choices, so they are design-system vocabulary rather than
+     * anatomy. `scopes` narrows each to the one scope that styles it.
      */
-    modifiers: ['zebra', 'hover'],
+    modifiers: ['zebra', 'hover', 'inline'],
     /**
      * Per-scope narrowing (#294; docs/architecture.md, "Declared
      * vocabulary") — and this is the repo's
@@ -154,6 +154,8 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         ...layoutScopes,
         badge: { variants: ['solid', 'soft', 'outline'] },
         table: { modifiers: ['zebra', 'hover'] },
+        // A countdown set inside a sentence (#57).
+        countdown: { modifiers: ['inline'] },
         /**
          * A select is a FIELD, and a field filled with the role at full
          * strength stops reading as an input and starts reading as a button —

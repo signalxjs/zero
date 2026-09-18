@@ -1,14 +1,23 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
-import { signal } from 'sigx';
+import { component, signal } from 'sigx';
+import type { JSXElement } from 'sigx';
 import {
     Accordion,
     Checkbox,
+    Combobox,
     Field,
+    FileUpload,
     Input,
+    NumberInput,
     Progress,
     RadioGroup,
+    RatingGroup,
+    Select,
     Slider,
+    Switch,
+    Textarea,
+    ToggleGroup,
     accordionAnatomy,
     checkboxAnatomy,
     fieldAnatomy,
@@ -17,6 +26,8 @@ import {
     sliderAnatomy,
 } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
+
+const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 let container: HTMLElement;
 beforeEach(() => {
@@ -113,6 +124,58 @@ describe('Field (variant axes)', () => {
         const root = container.querySelector<HTMLElement>('[data-scope="field"][data-part="root"]')!;
         expect(root.getAttribute('data-color')).toBe('primary');
         expect(root.getAttribute('data-size')).toBe('lg');
+    });
+
+    // A compact field is `<Field.Root size="xs">`, not a size on every part
+    // (#57): every control that adopts the Field's flags adopts its size too,
+    // unless it states its own. Colour is NOT inherited — the Field's colour
+    // accents its label, a control's colour is its checked/focus fill.
+    const controls: Array<[string, (size?: string) => JSXElement]> = [
+        ['input', (size) => <Input.Root size={size} />],
+        ['textarea', (size) => <Textarea.Root size={size} />],
+        ['checkbox', (size) => <Checkbox.Root size={size} />],
+        ['switch', (size) => <Switch.Root size={size} />],
+        ['radio-group', (size) => <RadioGroup.Root size={size} />],
+        ['slider', (size) => <Slider.Root size={size} />],
+        ['rating-group', (size) => <RatingGroup.Root size={size} />],
+        ['number-input', (size) => <NumberInput.Root size={size} />],
+        ['combobox', (size) => <Combobox.Root size={size} />],
+        ['select', (size) => <Select.Root size={size} />],
+        ['toggle-group', (size) => <ToggleGroup.Root size={size} />],
+        ['file-upload', (size) => <FileUpload.Root size={size} />],
+    ];
+
+    it.each(controls)('%s takes the Field\'s size when it has none of its own', (scope, mount) => {
+        render(<Field.Root size="xs" color="primary">{mount()}</Field.Root>, container);
+        const root = container.querySelector(`[data-scope="${scope}"][data-part="root"]`)!;
+        expect(root.getAttribute('data-size')).toBe('xs');
+        expect(root.hasAttribute('data-color')).toBe(false);
+    });
+
+    it.each(controls)('%s keeps its own size inside a sized Field', (scope, mount) => {
+        render(<Field.Root size="xs">{mount('lg')}</Field.Root>, container);
+        expect(container.querySelector(`[data-scope="${scope}"][data-part="root"]`)!.getAttribute('data-size')).toBe('lg');
+    });
+
+    it.each(controls)('%s renders no size outside a Field, or in an unsized one', (scope, mount) => {
+        render(<>{mount()}<Field.Root>{mount()}</Field.Root></>, container);
+        for (const root of container.querySelectorAll(`[data-scope="${scope}"][data-part="root"]`)) {
+            expect(root.hasAttribute('data-size')).toBe(false);
+        }
+    });
+
+    it('follows the Field\'s size reactively', async () => {
+        const state = signal({ size: 'xs' as string | undefined });
+        const App = component(() => () => <Field.Root size={state.size}><Input.Root /></Field.Root>);
+        render(<App />, container);
+        const root = container.querySelector('[data-scope="input"][data-part="root"]')!;
+        expect(root.getAttribute('data-size')).toBe('xs');
+        state.size = 'lg';
+        await tick();
+        expect(root.getAttribute('data-size')).toBe('lg');
+        state.size = undefined;
+        await tick();
+        expect(root.hasAttribute('data-size')).toBe(false);
     });
 });
 

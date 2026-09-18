@@ -50,9 +50,11 @@ export const vocabulary = {
      * verified 2026-08-05) to that set. The matrix row and `source.url`
      * above still grade BUTTON — `zebra` rides along because the fixture's
      * vocabulary is the package's, and only `icon-only`/`expressive` are
-     * button facts.
+     * button facts. So does countdown's `inline` (zero#57), which keeps
+     * zero's name: Carbon ships no countdown, so there is no vendor spelling
+     * to route it to.
      */
-    modifiers: ['icon-only', 'expressive', 'zebra'],
+    modifiers: ['icon-only', 'expressive', 'zebra', 'inline'],
 } as const;
 
 export const api = defineApi(vocabulary, {

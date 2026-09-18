@@ -36,6 +36,7 @@ adapter would be its own fixture with an `api` declaration.
 | HeroUI | [HeroUI v3](https://www.heroui.com/docs/components/button) (2026-07-29) | `isIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | #179 (shipped) | `packages/zero-heroui` |
 | HeroUI | [HeroUI v3](https://www.heroui.com/docs/components/button) (2026-07-29) | `isPending` | presence-flag | boolean | `mods.pending` | reshaped | #179 (shipped) | `packages/zero-heroui` |
 | HeroUI | [HeroUI v3](https://www.heroui.com/docs/components/button) (2026-07-29) | `isStriped` | presence-flag | boolean | `mods.striped` | reshaped | #179 (shipped) | `packages/zero-heroui` |
+| HeroUI | [HeroUI v3](https://www.heroui.com/docs/components/button) (2026-07-29) | `inline` | presence-flag | boolean | `mods.inline` | unsupported | unmapped — no api declaration | `packages/zero-heroui` |
 | Material 3 | [Material 3 (2026 spec)](https://m3.material.io/styles/color/roles) (2026-07-29) | `color` | enumeration | primary, secondary, tertiary, error, surface, surface-container, surface-container-high, outline, neutral, info, success, warning, accent | `color` | exact | — | `packages/zero-material` |
 | Material 3 | [Material 3 (2026 spec)](https://m3.material.io/styles/color/roles) (2026-07-29) | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | — | `packages/zero-material` |
 | Radix Themes | [@radix-ui/themes v3](https://www.radix-ui.com/themes/docs/components/button) (2026-07-29) | `size` | numeric ramp | 1, 2, 3, 4 | `size` | exact | — | `skills/design-system/conformance/radix.ts` |
@@ -51,6 +52,7 @@ adapter would be its own fixture with an `api` declaration.
 | Carbon | [@carbon/react v11](https://react.carbondesignsystem.com/?path=/docs/components-button--overview) (2026-07-29) | `hasIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | #179 (shipped) | `packages/zero-carbon` |
 | Carbon | [@carbon/react v11](https://react.carbondesignsystem.com/?path=/docs/components-button--overview) (2026-07-29) | `isExpressive` | presence-flag | boolean | `mods.expressive` | reshaped | #179 (shipped) | `packages/zero-carbon` |
 | Carbon | [@carbon/react v11](https://react.carbondesignsystem.com/?path=/docs/components-button--overview) (2026-07-29) | `useZebraStyles` | presence-flag | boolean | `mods.zebra` | reshaped | #179 (shipped) | `packages/zero-carbon` |
+| Carbon | [@carbon/react v11](https://react.carbondesignsystem.com/?path=/docs/components-button--overview) (2026-07-29) | `inline` | presence-flag | boolean | `mods.inline` | unsupported | unmapped — no api declaration | `packages/zero-carbon` |
 
 ## Tier 3 — in-repo coverage (generated from the reports)
 
@@ -64,6 +66,7 @@ api-derived grades where a system declares one.
 | basic | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-basic` |
 | basic | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-basic` |
 | basic | `hover` | presence-flag | boolean | `mods.hover` | exact | `packages/zero-basic` |
+| basic | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-basic` |
 | basic | `zebra` | presence-flag | boolean | `mods.zebra` | exact | `packages/zero-basic` |
 | daisyui | `color` | enumeration | accent, error, info, neutral, primary, secondary, success, warning | `color` | exact | `packages/zero-daisyui` |
 | daisyui | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-daisyui` |
@@ -72,6 +75,7 @@ api-derived grades where a system declares one.
 | daisyui | `block` | presence-flag | boolean | `mods.block` | reshaped | `packages/zero-daisyui` |
 | daisyui | `circle` | presence-flag | boolean | `mods.circle` | reshaped | `packages/zero-daisyui` |
 | daisyui | `hover` | presence-flag | boolean | `mods.hover` | reshaped | `packages/zero-daisyui` |
+| daisyui | `inline` | presence-flag | boolean | `mods.inline` | reshaped | `packages/zero-daisyui` |
 | daisyui | `square` | presence-flag | boolean | `mods.square` | reshaped | `packages/zero-daisyui` |
 | daisyui | `wide` | presence-flag | boolean | `mods.wide` | reshaped | `packages/zero-daisyui` |
 | daisyui | `zebra` | presence-flag | boolean | `mods.zebra` | reshaped | `packages/zero-daisyui` |
@@ -79,19 +83,23 @@ api-derived grades where a system declares one.
 | material | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-material` |
 | material | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-material` |
 | material | `hover` | presence-flag | boolean | `mods.hover` | exact | `packages/zero-material` |
+| material | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-material` |
 | material | `zebra` | presence-flag | boolean | `mods.zebra` | exact | `packages/zero-material` |
 | brutalist | `color` | enumeration | accent, error, info, neutral, primary, secondary, success, warning | `color` | exact | `packages/zero-brutalist` |
 | brutalist | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-brutalist` |
 | brutalist | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-brutalist` |
 | brutalist | `hover` | presence-flag | boolean | `mods.hover` | exact | `packages/zero-brutalist` |
+| brutalist | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-brutalist` |
 | brutalist | `zebra` | presence-flag | boolean | `mods.zebra` | exact | `packages/zero-brutalist` |
 | heroui | `size` | enumeration | sm, md, lg | `size` | exact | `packages/zero-heroui` |
 | heroui | `variant` | enumeration | primary, secondary, tertiary, outline, ghost, danger, danger-soft | `variant` | exact | `packages/zero-heroui` |
 | heroui | `isIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | `packages/zero-heroui` |
+| heroui | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-heroui` |
 | heroui | `isPending` | presence-flag | boolean | `mods.pending` | reshaped | `packages/zero-heroui` |
 | heroui | `isStriped` | presence-flag | boolean | `mods.striped` | reshaped | `packages/zero-heroui` |
 | carbon | `size` | enumeration | sm, md, lg, xl, 2xl | `size` | exact | `packages/zero-carbon` |
 | carbon | `kind` | enumeration | primary, secondary, tertiary, ghost, danger, danger-tertiary, danger-ghost | `variant` | reshaped | `packages/zero-carbon` |
 | carbon | `isExpressive` | presence-flag | boolean | `mods.expressive` | reshaped | `packages/zero-carbon` |
 | carbon | `hasIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | `packages/zero-carbon` |
+| carbon | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-carbon` |
 | carbon | `useZebraStyles` | presence-flag | boolean | `mods.zebra` | reshaped | `packages/zero-carbon` |

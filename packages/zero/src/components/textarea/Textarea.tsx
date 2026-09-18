@@ -26,7 +26,7 @@ import { onFormReset } from '../../behaviors/form-reset.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
 import type {
     TextControlHandle,
     WithClass,
@@ -138,7 +138,7 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
             data-part="root"
             {...fc.flags()}
             data-readonly={dataAttr(fc.readonly())}
-            {...variantAttrs(props)}
+            {...fc.axisAttrs()}
             class={props.class}
         >
             {slots.default?.()}

@@ -11,7 +11,9 @@
  * ```
  *
  * Any zero form control inside adopts the field's control id, disabled/
- * invalid/required flags and `aria-describedby` automatically.
+ * invalid/required flags and `aria-describedby` automatically — and its
+ * `size`, when the control sets none of its own, so a compact field is
+ * `<Field.Root size="xs">` rather than a size on every part.
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
@@ -47,6 +49,7 @@ const FieldRoot = component<FieldRootProps>(({ props, slots }) => {
         invalid: () => !!props.invalid,
         required: () => !!props.required,
         readonly: () => !!props.readonly,
+        size: () => props.size,
         describedBy: () => `${baseId}-desc ${baseId}-error`,
     };
     provideFieldContext(ctx);

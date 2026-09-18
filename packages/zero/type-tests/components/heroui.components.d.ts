@@ -438,6 +438,7 @@ export declare const Swap: SwapAdapted & AdaptedStatics<typeof ZSwap> & { Root: 
 /** countdown — no vendor route; the wired surface keeps zero's names. */
 type CountdownProps = {
     size?: 'sm' | 'md' | 'lg';
+    mods?: { 'inline'?: boolean };
 };
 type CountdownAdapted = Adapted<typeof ZCountdown, ZeroAxisProp, CountdownProps>;
 export declare const Countdown: CountdownAdapted & AdaptedStatics<typeof ZCountdown> & { Root: CountdownAdapted };

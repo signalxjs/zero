@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed — countdown's `inline` modifier in the conformance fixtures (zero#57)
+
+- The HeroUI and Carbon fixtures (`skills/design-system/conformance/`)
+  declare `inline` beside their packages' other modifiers, because a
+  fixture's vocabulary is pinned byte-equal to its package's tokens. It has
+  no api route (neither vendor ships a countdown), so its matrix row grades
+  `unsupported` and it surfaces as `mods={{ inline: true }}`.
+
 ### Changed — Button's `loading` state (#50)
 
 - **`RESERVED_PROPS_BY_SCOPE.button` gains `loading`.** It is

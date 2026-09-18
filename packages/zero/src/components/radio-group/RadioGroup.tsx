@@ -32,7 +32,6 @@ import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
 import type { WithClass, WithDisabled, WithFormControl, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { radioGroupAnatomy } from './anatomy.js';
 
@@ -142,7 +141,7 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit 
             data-required={dataAttr(ctx.required())}
             aria-labelledby={fc.field.inert ? undefined : fc.labelId()}
             aria-describedby={fc.describedBy()}
-            {...variantAttrs(props)}
+            {...fc.axisAttrs()}
             class={props.class}
         >
             {slots.default ? slots.default() : items() ? dataContent() : null}

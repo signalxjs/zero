@@ -87,6 +87,19 @@ focus lands on the trigger / input / the group's tab stop) rather than an
 `aria-required` hint. The runtime
 half is `createFormControl` + `onFormReset` (`@sigx/zero/behaviors`), the
 one `VISUALLY_HIDDEN_STYLE` beside them.
+
+**A sized Field sizes its control.** A control with no `size` of its own
+renders its Field's, the same way it adopts the Field's flags, so a compact
+field is one prop — the label goes with `visuallyHidden`. The control's own
+`size` still wins, and only `size` is inherited: a Field's `color` accents
+its label, not the control.
+
+```tsx
+<Field.Root size="xs">
+    <Field.Label visuallyHidden>Mode for Bash</Field.Label>
+    <Select.Root items={['ask', 'allow', 'deny']} defaultValue="ask" />
+</Field.Root>
+```
 Native-platform first: `<dialog>` +
 top layer (no Portal), the `popover` attribute, `<details>`, real form
 inputs. SSR-safe ids via `app.use(zeroPlugin())` per request.

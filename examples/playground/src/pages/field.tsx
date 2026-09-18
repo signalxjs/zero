@@ -1,6 +1,9 @@
 import { component } from 'sigx';
-import { Checkbox, Field, Input, Switch } from '@sigx/zero';
+import { Checkbox, Field, Input, Select, Switch } from '@sigx/zero';
+import { activeVocabulary } from '../design-systems';
 import type { PageEntry } from './registry';
+
+const MODES = ['ask', 'allow', 'deny'];
 
 const FieldDemos = component(() => () => (
     <>
@@ -62,6 +65,27 @@ const FieldDemos = component(() => () => (
                     <Input.Input placeholder="Search…" />
                 </Input.Control>
             </Input.Root>
+        </Field.Root>
+
+        <h2>Compact</h2>
+        {/*
+          * #57: a field inside a chip. The Field's `size` reaches the control
+          * — every zero control without a size of its own takes the Field's —
+          * so one prop shrinks the select's chrome, and the label stays in
+          * the accessibility tree while it leaves the screen. The step is the
+          * active design system's smallest, read from its manifest: heroui's
+          * ramp starts at `sm`, the recommended one at `xs`.
+          */}
+        <div data-demo="compact-field" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>Bash</span>
+            <Field.Root size={activeVocabulary().sizes[0]}>
+                <Field.Label visuallyHidden>Mode for Bash</Field.Label>
+                <Select.Root items={MODES} defaultValue="ask" />
+            </Field.Root>
+        </div>
+        <Field.Root>
+            <Field.Label>Mode for Read (the default step)</Field.Label>
+            <Select.Root items={MODES} defaultValue="allow" />
         </Field.Root>
     </>
 ), { name: 'FieldDemos' });

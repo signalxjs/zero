@@ -490,12 +490,13 @@ type SwapProps = {
 type SwapAdapted = Adapted<typeof ZSwap, ZeroAxisProp, SwapProps>;
 export declare const Swap: SwapAdapted & AdaptedStatics<typeof ZSwap> & { Root: SwapAdapted };
 
-/** countdown — no vendor route; the wired surface keeps zero's names. */
+/** countdown — inline ← mods.inline. Attributes stay zero-spelled. */
 type CountdownProps = {
     color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    'inline'?: boolean;
 };
-type CountdownAdapted = Adapted<typeof ZCountdown, ZeroAxisProp, CountdownProps>;
+type CountdownAdapted = Adapted<typeof ZCountdown, ZeroAxisProp | 'inline', CountdownProps>;
 export declare const Countdown: CountdownAdapted & AdaptedStatics<typeof ZCountdown> & { Root: CountdownAdapted };
 
 /** diff — no vendor route; the wired surface keeps zero's names. */

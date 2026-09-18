@@ -3185,6 +3185,15 @@ export const stats: RecipeInput = {
     },
 };
 
+/**
+ * A timeline none of whose content sits on the start side: the root carries
+ * no start-placed content among its own items. Child combinators all the way
+ * down, so a timeline nested inside another's content answers only for
+ * itself.
+ */
+const TIMELINE_NO_START = '[data-scope="timeline"][data-part="root"]'
+    + ':not(:has(> [data-scope="timeline"][data-part="item"] > [data-scope="timeline"][data-part="content"][data-placement="start"])) > &';
+
 /** HeroUI timeline: hairline axis, primary dot, quiet content. */
 export const timeline: RecipeInput = {
     component: 'timeline',
@@ -3224,6 +3233,11 @@ export const timeline: RecipeInput = {
                     gridTemplateColumns: 'auto 1fr',
                     flex: '1 1 0%',
                 },
+                // No content on the start side anywhere in this timeline →
+                // the start track collapses instead of holding half the item
+                // empty (#57). Automatic, so there is no prop to forget.
+                [`${TIMELINE_NO_START}[data-orientation="vertical"]`]: { gridTemplateColumns: '0 auto 1fr' },
+                [`${TIMELINE_NO_START}[data-orientation="horizontal"]`]: { gridTemplateRows: '0 auto 1fr' },
             },
         },
         marker: {
@@ -4498,6 +4512,12 @@ export const countdown: RecipeInput = {
             md: {},
             lg: { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
         },
+    },
+    // One line inside a sentence (#57): the surrounding text's size and
+    // weight instead of the display step. What stays is what makes
+    // it a countdown — tabular digits, its ink, the per-tick entry.
+    modifiers: {
+        inline: { root: { base: { fontSize: 'inherit', fontWeight: 'inherit' } } },
     },
     keyframes: { 'zero-heroui-countdown-in': 'from { transform: translateY(0.5em); opacity: 0; }' },
 };

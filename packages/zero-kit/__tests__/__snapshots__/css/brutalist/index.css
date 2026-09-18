@@ -6078,6 +6078,14 @@
         flex: 1 1 0%;
     }
 
+    [data-scope="timeline"][data-part="root"]:not(:has(> [data-scope="timeline"][data-part="item"] > [data-scope="timeline"][data-part="content"][data-placement="start"])) > [data-scope="timeline"][data-part="item"][data-orientation="vertical"] {
+        grid-template-columns: 0 auto 1fr;
+    }
+
+    [data-scope="timeline"][data-part="root"]:not(:has(> [data-scope="timeline"][data-part="item"] > [data-scope="timeline"][data-part="content"][data-placement="start"])) > [data-scope="timeline"][data-part="item"][data-orientation="horizontal"] {
+        grid-template-rows: 0 auto 1fr;
+    }
+
     [data-scope="timeline"][data-part="marker"] {
         inline-size: var(--timeline-marker-size);
         block-size: var(--timeline-marker-size);
@@ -8255,6 +8263,12 @@
 
     [data-scope="countdown"][data-part="root"][data-size="xl"] {
         --countdown-font: var(--text-3xl);
+    }
+
+    [data-scope="countdown"][data-part="root"][data-mod-inline] {
+        font-size: inherit;
+        font-weight: inherit;
+        font-family: inherit;
     }
 
     @media (prefers-reduced-motion: reduce) {

@@ -50,7 +50,6 @@ import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
 import type { WithClass, WithDisabled, WithForm, WithInvalid, WithName, WithVariantAxes } from '../../contract/props.js';
 import { sliderAnatomy } from './anatomy.js';
 
@@ -316,7 +315,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             data-invalid={dataAttr(ctx.invalid())}
             data-focus-visible={dataAttr(focusVisible.visible)}
             style={{ '--slider-percent': `${ctx.percent()}%` }}
-            {...variantAttrs(props)}
+            {...fc.axisAttrs()}
             class={props.class}
         >
             {slots.default?.()}

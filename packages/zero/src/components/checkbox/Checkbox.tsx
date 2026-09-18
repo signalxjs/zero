@@ -25,7 +25,6 @@ import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
 import type { WithClass, WithFormControl, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
 import { checkboxAnatomy } from './anatomy.js';
 
@@ -103,7 +102,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
             data-focus-visible={dataAttr(focus.visible)}
             data-invalid={dataAttr(invalid())}
             data-required={dataAttr(required())}
-            {...variantAttrs(props)}
+            {...fc.axisAttrs()}
             class={props.class}
             onPointerdown={press.onPointerdown}
             onPointerup={press.onPointerup}

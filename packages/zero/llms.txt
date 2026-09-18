@@ -282,7 +282,8 @@ component renders; the root is called out separately where it carries props.
   masks over a background-color ink, and stop the indeterminate loop under
   reduced motion. ValueText defaults to the rounded percent.
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/
-  required down to the control it wraps.
+  required down to the control it wraps, and its `size` when the control
+  sets none (#57): a sized Field is a sized control.
 - Input: Root(model=string)/Label/Control/Input, a single-line text field.
   `type` is text|email|password|search|tel|url only (number is NumberInput;
   the selection and date/time types are not text fields). The model writes
@@ -329,7 +330,9 @@ component renders; the root is called out separately where it carries props.
   which SIDE of the axis it sits on as data-placement from the logical
   start|end pair, so alternating layouts are per-item markup and RTL
   mirrors free. Content and connector also carry data-orientation — a
-  recipe composes side × axis on the element that has both.
+  recipe composes side × axis on the element that has both. A timeline
+  with no start-placed content should reserve no start track: the shipped
+  skins collapse it with a `:has()` rule on the root (#57), no prop.
 - Chat: Root(placement start|end, default START — the reading edge is the
   other party in every messenger; your own rows opt into end)/Avatar/Header/
   Bubble/Footer. One message row, pure content: no state, no ids, no ARIA —
@@ -449,7 +452,10 @@ component renders; the root is called out separately where it carries props.
   real digit text (AT reads "10:04" off the DOM), zero-padded to `digits`
   and clamped at 0. The digits element is KEYED by its text, so each tick
   replaces it and a recipe's enter animation (translate/fade) plays once —
-  collapsed to a cut under reduced motion. No states, no flags.
+  collapsed to a cut under reduced motion. No states, no flags. The
+  shipped skins declare an `inline` modifier (`mods={{ inline: true }}`)
+  for one line inside a sentence: the text's own size and weight instead
+  of the display step (#57).
 - Swap: Root(model=boolean — concept `active`: defaultActive + activeChange,
   daisy's own word; the faces keep data-state on|off)/On/Off — two faces
   over one boolean. BOTH

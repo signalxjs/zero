@@ -241,7 +241,8 @@ describe('the axis-agnostic divergence report', () => {
     it('covers modifiers, which are a value set like any other', () => {
         const heroui = reportFor(herouiDS as DesignSystemInput);
         expect(Object.keys(heroui.divergence).sort()).toEqual(['mods', 'size', 'variant']);
-        expect(heroui.divergence['mods']!.wiredAnywhere).toEqual(['icon-only', 'pending', 'striped']);
+        // countdown's `inline` joined in #57.
+        expect(heroui.divergence['mods']!.wiredAnywhere).toEqual(['icon-only', 'inline', 'pending', 'striped']);
     });
 
     it('lists only components that wire something — wiring nothing is `never`, not divergence', () => {
