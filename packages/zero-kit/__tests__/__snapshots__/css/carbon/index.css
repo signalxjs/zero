@@ -90,6 +90,9 @@
         --text-fixed-xl: var(--text-xl);
         --text-fixed-2xl: var(--text-2xl);
         --text-fixed-3xl: var(--text-3xl);
+        --breakpoint-sm: 672px;
+        --breakpoint-md: 1056px;
+        --breakpoint-lg: 1312px;
     }
 
     @media (prefers-color-scheme: dark) {

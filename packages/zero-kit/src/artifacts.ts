@@ -6,6 +6,7 @@
  * dist/css/tokens.css
  * dist/css/components/<scope>.css
  * dist/css/index.css
+ * dist/css/breakpoints.css  (the breakpoint ramp as `@custom-media` definitions)
  * dist/manifest.json        (DS-level: versioned envelope, themes, declared tokens, per-component wired axes)
  * dist/register.d.ts        (GENERATED ZeroVocabulary augmentation —
  *                            docs/architecture.md, "The register artifact")
@@ -37,6 +38,7 @@ import { compileRegisterDts, compileRegisterJs } from './targets/web/register-dt
 import type { ComponentsEmitOptions } from './targets/web/components-dts.js';
 import { compileComponentsDts, compileComponentsJs } from './targets/web/components-dts.js';
 import { exportedSubpath, nearestPackageDir } from './discover.js';
+import { compileBreakpointsCss } from './targets/web/breakpoints-css.js';
 
 const require = createRequire(import.meta.url);
 
@@ -279,6 +281,9 @@ export async function writeArtifacts(
     }
     await write(join(cssDir, 'index.css'), compiled.indexCss);
     await write(join(cssDir, 'index.d.ts'), CSS_EXPORT_DTS);
+    // Written even for an empty ramp, so the package's `./css/breakpoints`
+    // export always resolves.
+    await write(join(cssDir, 'breakpoints.css'), compileBreakpointsCss(compiled.name, compiled.tokens.breakpoints));
     await write(join(outDir, 'manifest.json'), JSON.stringify(emitted, null, 2));
     await write(join(outDir, 'register.d.ts'), compileRegisterDts(compiled));
     await write(join(outDir, 'register.js'), compileRegisterJs(compiled));

@@ -176,7 +176,7 @@ recommended keys, so absence is never a validation error.
 sigx zero:validate   # tokens, WCAG contrast (a failing pair carries a suggested passing value), recipe structure + content, CSS property spelling (`paddding` is an error naming `padding`)
 sigx zero:validate --report   # what the design system covers, not what's wrong
 sigx zero:audit      # does what it built say what it claims — read from the compiled CSS
-sigx zero:build      # dist/css/index.css + per-component files + manifest + report + audit
+sigx zero:build      # dist/css/index.css + per-component files + breakpoints.css + manifest + report + audit
 ```
 
 `dist/css/index.d.ts` is an empty module: point the `types` condition of the
@@ -243,6 +243,17 @@ to what the manifest declares, and a mistake is a validation error rather
 than a selector that matches nothing. Content checks and
 `fitRecipesToVocabulary` treat it like any other declaration. The lynx
 target drops it and records a report entry.
+
+The ramp is reachable from the app, too. The compiled `:root` declares
+`--breakpoint-<name>` (for `calc()` and JS reads — a custom property cannot
+stand in a media condition), and `dist/css/breakpoints.css` (exported as
+`<ds>/css/breakpoints`) defines `@custom-media --above-<name>
+(min-width: …)` and `--below-<name> (width < …)` for a build step that
+resolves custom media (postcss-custom-media, Lightning CSS
+`drafts.customMedia`): `@import` it into your own stylesheet and write
+`@media (--below-md) { … }`. The same boundaries back `@sigx/zero`'s
+`useMediaQuery({ above | below })`, so app CSS, app JS and recipes agree on
+every pixel.
 
 Unknown parts/states fail the build — the anatomy manifest is the contract.
 So do undeclared token references: a recipe that says `var(--color-brnad)`

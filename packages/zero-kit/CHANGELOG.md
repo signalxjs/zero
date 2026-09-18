@@ -86,6 +86,16 @@
   `ContrastPairDecl` type (barrel and `/define`), and `tokens.schema.json`
   gains the `contrast` array. `suggestContrastFix` also takes a parsed
   culori colour.
+- **The breakpoint ramp in the compiled CSS** (#59). `tokens.css` declares
+  `--breakpoint-<name>` on `:root` (so the manifest's `properties` and the
+  generated register's `property` union carry them too), and
+  `writeArtifacts` emits `dist/css/breakpoints.css` — `@custom-media
+  --above-<name> (min-width: …)` / `--below-<name> (width < …)` for app CSS
+  run through a custom-media build step, written even for an empty ramp so
+  the export always resolves (`compileBreakpointsCss` is exported). Every
+  shipped design system and the `create-zero-ds` scaffold export it as
+  `./css/breakpoints`. `below` is the exact complement of `above` — the
+  convention `@sigx/zero`'s `useMediaQuery` shares.
 
 - **The `measure` token category, and the Container recipe** (#484).
   `SystemTokens.measure`, the `tokens.schema.json` entry (in both the system

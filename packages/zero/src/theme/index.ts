@@ -10,6 +10,7 @@ export {
     listThemes,
     pairOf,
     pickThemeFor,
+    getBreakpoints,
 } from './registry.js';
 
 export type { ThemeController, ThemeControllerOptions } from './theme-state.js';

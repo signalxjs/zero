@@ -148,6 +148,27 @@
   `<label>`s of the same input, and the name concatenates every label, so
   name the control once.
 
+### Added — `useMediaQuery`, and the design system's breakpoints from JS (#59)
+
+- **`useMediaQuery(query | { above, below }, { initial, breakpoints })`**
+  (`@sigx/zero/behaviors`): a media query as a reactive boolean. SSR-safe —
+  the server render and the first client render both read the caller's
+  `initial` (default `false`), and the real match is read on mount, so
+  hydration never mismatches. Context-bound: it throws outside a component's
+  setup, owns its own `MediaQueryList` subscription and detaches on unmount;
+  nothing is module-global. A range resolves against the design system's
+  ramp — `above: 'md'` is the `(min-width: …)` its recipes compile
+  `at: { md }` to, `below: 'md'` the exact complement `(width < …)`, both
+  together the band between — and the names are the closed
+  `ZeroBreakpointName` under a `/register` import. An undeclared breakpoint
+  throws at setup rather than never matching. `breakpointQuery(range)`
+  returns the query string itself.
+- **`getBreakpoints()`** (`@sigx/zero/theme`, portable): the registered
+  design system's breakpoints, name → min-width in declaration order.
+  `ThemeSource` gained `breakpoints`, so every design system's existing
+  `installThemes()` — which passes its whole `tokens` — seeds them with no
+  change; `clearThemes()` drops them with the themes.
+
 ### Fixed — a default-open non-modal Dialog/Drawer server-renders open (#38)
 
 - **`Dialog.Popup` and `Drawer.Panel` emit the native `open` attribute** when

@@ -34,6 +34,7 @@ export function renderPackageJson(ctx: RenderContext): string {
         // import check.
         './css': { types: './dist/css/index.d.ts', default: './dist/css/index.css' },
         './css/tokens': { types: './dist/css/index.d.ts', default: './dist/css/tokens.css' },
+        './css/breakpoints': { types: './dist/css/index.d.ts', default: './dist/css/breakpoints.css' },
         './css/*': { types: './dist/css/index.d.ts', default: './dist/css/components/*.css' },
         './manifest.json': './dist/manifest.json',
         './report.json': './dist/report.json',

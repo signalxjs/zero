@@ -42,6 +42,15 @@ const themes = new Map<string, ThemeInfo>();
 const schemeDefaults: { light?: string; dark?: string } = {};
 
 /**
+ * The design system's breakpoint ramp (name → min-width, declaration order),
+ * seeded by `registerThemes` from the same `tokens` object. Write-once
+ * configuration like the themes, and replaced whole rather than merged: a
+ * ramp is one design system's, and two half-merged ramps would answer
+ * `{ above: 'md' }` with a width neither declared.
+ */
+let breakpoints: Readonly<Record<string, string>> = Object.freeze({});
+
+/**
  * Listeners `clearThemes()` runs after emptying the registry — how the
  * browser theme controller singleton sheds an explicit theme whose design
  * system just left, without this module importing the controller (it imports
@@ -119,6 +128,13 @@ export interface ThemeSource {
     defaultLight?: string;
     /** The `defaultLight` counterpart for system dark. */
     defaultDark?: string;
+    /**
+     * Mobile-first breakpoints, name → min-width (`{ md: '768px' }`), in
+     * ascending order — the declaration the kit compiles `at: { md }` recipe
+     * blocks and `data-l-md-*` layout attributes from. Read by
+     * {@link getBreakpoints} and `useMediaQuery({ above: 'md' })`.
+     */
+    breakpoints?: Record<string, string>;
 }
 
 /**
@@ -153,6 +169,9 @@ export function registerThemes(source: ThemeSource): void {
     }
     if (source.defaultLight) schemeDefaults.light = source.defaultLight;
     if (source.defaultDark) schemeDefaults.dark = source.defaultDark;
+    // Replaced even when absent: a source that declares no ramp must not
+    // inherit the previous design system's.
+    breakpoints = Object.freeze({ ...source.breakpoints });
 }
 
 /**
@@ -186,6 +205,7 @@ export function clearThemes(): void {
     themes.clear();
     delete schemeDefaults.light;
     delete schemeDefaults.dark;
+    breakpoints = Object.freeze({});
     // Theme names are DS-specific, so any explicit choice the surviving
     // browser controller still holds names a theme whose stylesheet just
     // left — reset it to follow-the-system (the listener is registered by the
@@ -205,6 +225,20 @@ export function listThemes(): ThemeInfo[] {
 /** The registered pair of a theme, if any. */
 export function pairOf(name: ZeroThemeNameOrCustom): string | undefined {
     return themes.get(name)?.pair;
+}
+
+/**
+ * The registered design system's breakpoints, name → min-width, in the
+ * ascending order it declared them — the same values its compiled CSS uses
+ * for `@media (min-width: …)` and publishes as `--breakpoint-<name>`. Empty
+ * until a design system's `installThemes()` has run (or when it declares
+ * none). Frozen: the ramp is the design system's, not the caller's.
+ *
+ * Portable (no DOM): a non-browser runtime reads the same ramp to drive its
+ * own responsive logic, where there is no `matchMedia` to ask.
+ */
+export function getBreakpoints(): Readonly<Record<string, string>> {
+    return breakpoints;
 }
 
 /**

@@ -288,6 +288,47 @@ flight) never depended on the paint.
 Announce long operations to AT with your own live region or a
 `Spinner label="Saving…"` beside the button when the design draws nothing.
 
+## Responsive: breakpoints and `useMediaQuery`
+
+The design system owns the breakpoint ramp. JS reads it through the theme
+registry, which its `installThemes()` seeds; CSS reads it through the
+compiled stylesheet — no app restates a pixel.
+
+```tsx
+import { useMediaQuery, getBreakpoints } from '@sigx/zero';
+
+const Shell = component(() => {
+    // `initial` is what the server and the first client render read — pick
+    // the layout the server should emit. The real match arrives on mount.
+    const wide = useMediaQuery({ above: 'md' }, { initial: true });
+    return () => <Drawer.Root modal={!wide.value}>…</Drawer.Root>;
+});
+
+useMediaQuery({ below: 'lg' });                  // (width < <lg>)
+useMediaQuery({ above: 'sm', below: 'lg' });     // the band between
+useMediaQuery('(prefers-reduced-motion: reduce)');
+getBreakpoints();                                // { sm: '640px', md: '768px', lg: '1024px' }
+```
+
+- **SSR-safe.** Never reads `matchMedia` before mount, so server markup and
+  hydration agree; where `matchMedia` does not exist it stays `initial`.
+- **Context-bound.** Call it from a component's setup (it throws elsewhere);
+  each call owns its subscription and detaches on unmount.
+- **The compiler's boundaries.** `above: 'md'` is exactly the
+  `(min-width: …)` a recipe's `at: { md }` compiles to; `below: 'md'` is its
+  complement `(width < …)` — no `767.98px`, no width that matches both. An
+  undeclared name throws (and is a type error under a `/register` import).
+  `breakpointQuery(range)` returns the query string for a `<source media>`
+  or your own `matchMedia`.
+- **From CSS**, the design system's `:root` declares `--breakpoint-<name>`
+  (for `calc()` and `getComputedStyle` — not usable inside `@media`), and
+  `@sigx/<ds>/css/breakpoints` defines `@custom-media --above-<name>` /
+  `--below-<name>` for a build step that resolves custom media
+  (postcss-custom-media, Lightning CSS): `@media (--below-md) { … }`.
+
+On a non-DOM platform `getBreakpoints()` (from `@sigx/zero/theme/registry`)
+is the same ramp; `useMediaQuery` is web-only.
+
 ## Typed vocabulary (opt-in)
 
 The variant-axis props (`color`, `size`, `variant`, `axes`, `mods`) are open unions
