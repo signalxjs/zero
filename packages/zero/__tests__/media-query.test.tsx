@@ -7,7 +7,7 @@ import type { BreakpointRange, MediaQueryInput, MediaQueryMatch, MediaQueryOptio
 
 type Listener = (e: { matches: boolean }) => void;
 
-/** A controllable matchMedia: one list for every query, `fire()` flips it. */
+/** A controllable matchMedia: every query shares ONE list (so `listeners` counts all subscribers), and `fire()` flips it. */
 function fakeMatchMedia(initial: boolean) {
     const listeners = new Set<Listener>();
     const list = {
