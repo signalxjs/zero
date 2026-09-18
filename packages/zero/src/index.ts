@@ -171,10 +171,15 @@ export type {
     TreeViewBranchContentProps,
 } from './components/tree-view/index.js';
 
-export { Combobox, comboboxAnatomy, useComboboxContext, useComboboxGroupContext } from './components/combobox/index.js';
+export { Combobox, comboboxAnatomy, useComboboxContext, useComboboxGroupContext, useComboboxTagContext } from './components/combobox/index.js';
 export type {
     ComboboxRootProps,
     ComboboxControlProps,
+    ComboboxTagsProps,
+    ComboboxTagProps,
+    ComboboxTagLabelProps,
+    ComboboxTagRemoveProps,
+    ComboboxTagSlotProps,
     ComboboxInputProps,
     ComboboxTriggerProps,
     ComboboxPopupProps,

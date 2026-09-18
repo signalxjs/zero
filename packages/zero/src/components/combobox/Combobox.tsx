@@ -37,6 +37,15 @@
  * the visible list is empty. Under `multiple` a selection toggles, clears
  * the input and keeps the popup open.
  *
+ * TAGS (#39): under `multiple` the data expansion renders a `Combobox.Tag`
+ * per chosen value in the control, before the input — its label and a
+ * remove button, or the root's `tag` slot in their place (a per-tag control
+ * such as a mode select). Hand-written roots place `Combobox.Tags` (or
+ * individual `Combobox.Tag`s) themselves. Backspace on an empty input
+ * removes the last value. `allowCustom` commits free text on Enter while no
+ * option is highlighted — the option whose label it matches, else the text
+ * itself — and a custom value posts like any other.
+ *
  * Focus stays in the input; the highlighted option is conveyed via
  * `aria-activedescendant` + `data-highlighted`. ArrowDown/Up open and move,
  * Enter selects, Escape closes, Tab closes without being swallowed, Home/End
@@ -88,6 +97,10 @@ interface ComboboxContext {
     ids: { trigger: string; popup: string };
     placeholder(): string | undefined;
     multiple(): boolean;
+    /** A chosen value's display text — remembered, so a consumer-filtered item that unmounts keeps its tag's label. */
+    tagLabel(key: string): string;
+    /** Deselect one chosen value (a tag's remove). */
+    remove(key: string): void;
     /** Refuses the empty key in single mode — it is the placeholder's. */
     guardKey(key: string): void;
     disabled(): boolean;
@@ -121,6 +134,8 @@ function makeInert(): ComboboxContext {
         ids: { trigger: 'zx-combobox-inert-trigger', popup: 'zx-combobox-inert-popup' },
         placeholder: () => undefined,
         multiple: () => false,
+        tagLabel: (key) => key,
+        remove: () => {},
         guardKey: () => {},
         disabled: () => false,
         invalid: () => false,
@@ -170,6 +185,12 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     /** Rendered as `Combobox.Empty` by the data expansion while nothing is visible. */
     & Define.Prop<'emptyText', string, false>
     & Define.Prop<'multiple', boolean, false>
+    /**
+     * Enter commits the typed text while no option is highlighted: the
+     * option whose label it matches, else the text itself as the value
+     * (narrowed per overload to string models).
+     */
+    & Define.Prop<'allowCustom', boolean, false>
     & Define.Prop<'placeholder', string, false>
     & WithFormControl
     & WithReadonly
@@ -178,7 +199,16 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     & WithVariantAxes<'combobox'>
     & WithClass
     & Define.Slot<'item', { item: T }>
+    /** Per-tag content under `multiple` (data mode) — replaces the label + remove button. */
+    & Define.Slot<'tag', ComboboxTagSlotProps<T>>
     & Define.Slot<'default'>;
+
+/** What a tag's content slot receives: the key, its label, and the data item (absent for a custom value). */
+export interface ComboboxTagSlotProps<T = unknown> {
+    value: string;
+    label: string;
+    item: T | undefined;
+}
 
 /**
  * The implementation's props: the public type plus `itemValue`, which the
@@ -276,7 +306,58 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         }
         return keys;
     };
-    const hiddenKeys = (): string[] => guardKeys(collection.mode() === 'data' ? collection.keys() : listbox.selectedKeys());
+    // Data mode posts every item plus any chosen value the data does not
+    // hold (a custom one, or one from a page not loaded).
+    const hiddenKeys = (): string[] => {
+        if (collection.mode() !== 'data') return guardKeys(listbox.selectedKeys());
+        const keys = collection.keys();
+        const known = new Set(keys);
+        return guardKeys([...keys, ...listbox.selectedKeys().filter((k) => !known.has(k))]);
+    };
+
+    // A tag's label outlives its item: hand-written items are
+    // consumer-filtered, so a chosen one unmounts as the query moves on and
+    // the registry forgets its label — the last one seen stands in.
+    const labels = new Map<string, string>();
+    const tagLabel = (key: string): string => {
+        if (collection.has(key)) {
+            const label = collection.label(key);
+            labels.set(key, label);
+            return label;
+        }
+        return labels.get(key) ?? key;
+    };
+    const remove = (key: string): void => {
+        if (fc.disabled() || fc.readonly()) return;
+        if (!multiple()) {
+            if (listbox.isSelected(key)) listbox.clear();
+            return;
+        }
+        const current = Array.isArray(state.value) ? state.value : [];
+        state.value = current.filter((v) => collection.keyForValue(v) !== key);
+    };
+    // allowCustom: the option (or chosen custom value) whose label the text
+    // names, case-insensitively, else the text itself — a key the collection
+    // does not hold is its own value (`valueForKey`) and its own label.
+    const commitText = (text: string): void => {
+        const lower = text.toLowerCase();
+        const named = (k: string): boolean => tagLabel(k).toLowerCase() === lower;
+        const key = listbox.selectedKeys().find(named)
+            ?? collection.keys().find((k) => !collection.isDisabled(k) && named(k))
+            ?? text;
+        if (!multiple()) {
+            if (key === '') return;
+            state.value = collection.valueForKey(key);
+            inputValue.value = collection.label(key);
+            setOpen(false);
+            return;
+        }
+        if (!listbox.isSelected(key)) {
+            const current = Array.isArray(state.value) ? state.value : [];
+            state.value = [...current, collection.valueForKey(key)];
+        }
+        inputValue.value = '';
+    };
 
     // A close clears the highlight however the open state was written (a
     // consumer's `model:open` included); an open leaves it to the arrows.
@@ -324,6 +405,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
         placeholder: () => props.placeholder,
         multiple,
+        tagLabel,
+        remove,
         guardKey: (key) => { guardKeys([key]); },
         disabled: fc.disabled,
         invalid: fc.invalid,
@@ -353,11 +436,23 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             if (key === 'Enter') {
                 const h = listbox.highlighted.value;
                 if (openState.value && h != null) {
-                    // Only swallow Enter while it means "pick the highlight" —
-                    // otherwise the form submit proceeds.
+                    // Only swallow Enter while it means "pick the highlight"
+                    // or "commit the text" — otherwise the form submit proceeds.
                     e.preventDefault();
                     listbox.select(h);
+                    return;
                 }
+                const text = inputValue.value.trim();
+                if (props.allowCustom && text !== '') {
+                    e.preventDefault();
+                    commitText(text);
+                }
+                return;
+            }
+            if (key === 'Backspace') {
+                // Backspace on an empty input removes the last tag.
+                const keys = listbox.selectedKeys();
+                if (multiple() && inputValue.value === '' && keys.length > 0) remove(keys[keys.length - 1]!);
                 return;
             }
             if (key === 'Escape') {
@@ -429,6 +524,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         return (
         <>
             <ComboboxControl>
+                {multiple()
+                    ? (slots.tag ? <ComboboxTags slots={{ default: (p: ComboboxTagSlotProps) => slots.tag!(p) }} /> : <ComboboxTags />)
+                    : null}
                 <ComboboxInput />
                 <ComboboxTrigger />
             </ComboboxControl>
@@ -515,14 +613,19 @@ export type ComboboxRoot = {
     (props: JsxProps<ComboboxRootProps<unknown, string[]>> & { items?: undefined; defaultValue?: string[]; itemValue?: undefined; multiple: true }): JSXElement;
     // An item model is `T | null`: nothing selected is `null` (the runtime
     // writes it on clear, reset and a platform write), never a fake item.
-    <T>(props: JsxProps<ComboboxRootProps<T, T | null>> & { items: ReadonlyArray<T>; defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
-    <T>(props: JsxProps<ComboboxRootProps<T, T[]>> & { items: ReadonlyArray<T>; defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
+    // `allowCustom` commits the TEXT as the value, so it types only where the
+    // model is a string: hand-written items, string items, a string itemValue.
+    <T>(props: JsxProps<ComboboxRootProps<T, T | null>> & { items: ReadonlyArray<T>; defaultValue?: T | null; itemValue?: undefined; multiple?: false; allowCustom?: CustomFor<T> }): JSXElement;
+    <T>(props: JsxProps<ComboboxRootProps<T, T[]>> & { items: ReadonlyArray<T>; defaultValue?: T[]; itemValue?: undefined; multiple: true; allowCustom?: CustomFor<T> }): JSXElement;
     // A value model is `V | null` for the same reason — V is whatever
     // `itemValue` returns (a number as readily as a string), so no member of
     // it can stand for "nothing selected".
-    <T, V>(props: JsxProps<ComboboxRootProps<T, V | null>> & { items: ReadonlyArray<T>; defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
-    <T, V>(props: JsxProps<ComboboxRootProps<T, V[]>> & { items: ReadonlyArray<T>; defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
+    <T, V>(props: JsxProps<ComboboxRootProps<T, V | null>> & { items: ReadonlyArray<T>; defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false; allowCustom?: CustomFor<V> }): JSXElement;
+    <T, V>(props: JsxProps<ComboboxRootProps<T, V[]>> & { items: ReadonlyArray<T>; defaultValue?: V[]; itemValue: (item: T) => V; multiple: true; allowCustom?: CustomFor<V> }): JSXElement;
 } & FactoryBrands;
+
+/** `allowCustom` is open only to a string model — free text can be nothing else. */
+type CustomFor<M> = [M] extends [string] ? boolean : false;
 
 const ComboboxRoot = ComboboxRootImpl as unknown as ComboboxRoot;
 
@@ -547,6 +650,131 @@ const ComboboxControl = component<ComboboxControlProps>(({ props, slots }) => {
         </div>
     );
 }, { name: 'Combobox.Control' });
+
+// ── Tags / Tag / TagLabel / TagRemove ──
+
+interface ComboboxTagContext {
+    value(): string;
+    label(): string;
+}
+
+export const useComboboxTagContext = defineInjectable<ComboboxTagContext>(() => ({ value: () => '', label: () => '' }));
+
+export type ComboboxTagsProps = Define.Slot<'default', ComboboxTagSlotProps>;
+
+/**
+ * One `Combobox.Tag` per chosen value, in selection order. Renders no
+ * element of its own — the tags sit directly in the control. The scoped
+ * default slot is each tag's content (label + remove when absent).
+ */
+const ComboboxTags = component<ComboboxTagsProps>(({ slots }) => {
+    const combobox = useComboboxContext();
+    return () => (
+        <>
+            {combobox.listbox.selectedKeys().map((key) => (slots.default
+                ? (
+                    <ComboboxTag value={key} key={key}>
+                        {slots.default({ value: key, label: combobox.tagLabel(key), item: combobox.collection.byKey(key) })}
+                    </ComboboxTag>
+                )
+                : <ComboboxTag value={key} key={key} />))}
+        </>
+    );
+}, { name: 'Combobox.Tags' });
+
+export type ComboboxTagProps =
+    /** The chosen value's key (what an item's `value` is). */
+    & Define.Prop<'value', string, true>
+    & WithClass
+    & Define.Slot<'default'>;
+
+const ComboboxTag = component<ComboboxTagProps>(({ props, slots }) => {
+    const combobox = useComboboxContext();
+    const ctx: ComboboxTagContext = {
+        value: () => props.value,
+        label: () => combobox.tagLabel(props.value),
+    };
+    defineProvide(useComboboxTagContext, () => ctx);
+    return () => (
+        <span
+            data-scope={SCOPE}
+            data-part="tag"
+            data-disabled={dataAttr(combobox.disabled())}
+            class={props.class}
+        >
+            {slots.default
+                ? slots.default()
+                : (
+                    <>
+                        <ComboboxTagLabel />
+                        <ComboboxTagRemove />
+                    </>
+                )}
+        </span>
+    );
+}, { name: 'Combobox.Tag' });
+
+export type ComboboxTagLabelProps = WithClass & Define.Slot<'default'>;
+
+/** The tag's text — its label unless children replace it. */
+const ComboboxTagLabel = component<ComboboxTagLabelProps>(({ props, slots }) => {
+    const tag = useComboboxTagContext();
+    return () => (
+        <span data-scope={SCOPE} data-part="tag-label" class={props.class}>
+            {slots.default ? slots.default() : tag.label()}
+        </span>
+    );
+}, { name: 'Combobox.TagLabel' });
+
+export type ComboboxTagRemoveProps =
+    /** Accessible name (default `Remove <label>`). */
+    & Define.Prop<'label', string, false>
+    & WithClass
+    & Define.Slot<'default'>;
+
+const ComboboxTagRemove = component<ComboboxTagRemoveProps>(({ props, slots, signal }) => {
+    const combobox = useComboboxContext();
+    const tag = useComboboxTagContext();
+    let el: HTMLElement | null = null;
+    const focus = signal({ visible: false });
+    const disabled = (): boolean => combobox.disabled() || combobox.readonly();
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: disabled,
+    });
+    return () => (
+        <button
+            type="button"
+            data-scope={SCOPE}
+            data-part="tag-remove"
+            data-disabled={dataAttr(disabled())}
+            data-focus-visible={dataAttr(focus.visible)}
+            aria-label={props.label ?? `Remove ${tag.label()}`}
+            disabled={disabled()}
+            class={props.class}
+            ref={(node: HTMLElement | null) => { el = node; }}
+            onClick={() => {
+                if (disabled()) return;
+                combobox.remove(tag.value());
+                // The button leaves with its tag: focus goes where typing resumes.
+                combobox.focusInput();
+            }}
+            onKeydown={press.onKeydown}
+            onKeyup={press.onKeyup}
+            onFocus={() => { focus.visible = isFocusVisible(el); }}
+            onBlur={(e: FocusEvent) => {
+                press.onBlur(e);
+                focus.visible = false;
+            }}
+            onPointerdown={press.onPointerdown}
+            onPointerup={press.onPointerup}
+            onPointercancel={press.onPointercancel}
+            onPointerleave={press.onPointerleave}
+        >
+            {slots.default ? slots.default() : <span aria-hidden="true">×</span>}
+        </button>
+    );
+}, { name: 'Combobox.TagRemove' });
 
 // ── Input ──
 
@@ -819,6 +1047,10 @@ const ComboboxGroupLabel = component<ComboboxGroupLabelProps>(({ props, slots, o
 export const Combobox = compound(ComboboxRoot, {
     Root: ComboboxRoot,
     Control: ComboboxControl,
+    Tags: ComboboxTags,
+    Tag: ComboboxTag,
+    TagLabel: ComboboxTagLabel,
+    TagRemove: ComboboxTagRemove,
     Input: ComboboxInput,
     Trigger: ComboboxTrigger,
     Popup: ComboboxPopup,

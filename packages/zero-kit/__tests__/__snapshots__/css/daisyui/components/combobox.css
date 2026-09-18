@@ -11,6 +11,7 @@
     [data-scope="combobox"][data-part="control"] {
         display: inline-flex;
         align-items: stretch;
+        flex-wrap: wrap;
         min-width: 13rem;
         box-sizing: border-box;
         height: calc(var(--size-field) * 12);
@@ -62,6 +63,56 @@
 
     [data-scope="combobox"][data-part="input"]::placeholder {
         color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+    }
+
+    [data-scope="combobox"][data-part="tag"] {
+        display: inline-flex;
+        align-items: center;
+        align-self: center;
+        gap: var(--space-2xs);
+        margin: var(--space-2xs);
+        padding: var(--space-2xs) var(--space-sm);
+        background: var(--color-base-200);
+        color: var(--color-base-content);
+        border-radius: var(--radius-selector);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-medium);
+        line-height: var(--leading-none);
+    }
+
+    [data-scope="combobox"][data-part="tag-label"] {
+        white-space: nowrap;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        border-radius: var(--radius-selector);
+        padding: 0 var(--space-2xs);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-focus-visible] {
+        outline: 2px solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 18%, transparent);
     }
 
     [data-scope="combobox"][data-part="trigger"] {
@@ -179,7 +230,7 @@
 
     @scope ([data-scope="combobox"][data-part="root"][data-size="xs"]) to ([data-scope="combobox"][data-part="root"]) {
         [data-scope="combobox"][data-part="control"] {
-            height: calc(var(--size-field) * 8);
+            min-height: calc(var(--size-field) * 8);
         }
 
         [data-scope="combobox"][data-part="input"] {
@@ -190,7 +241,7 @@
 
     @scope ([data-scope="combobox"][data-part="root"][data-size="sm"]) to ([data-scope="combobox"][data-part="root"]) {
         [data-scope="combobox"][data-part="control"] {
-            height: calc(var(--size-field) * 10);
+            min-height: calc(var(--size-field) * 10);
         }
 
         [data-scope="combobox"][data-part="input"] {
@@ -201,7 +252,7 @@
 
     @scope ([data-scope="combobox"][data-part="root"][data-size="md"]) to ([data-scope="combobox"][data-part="root"]) {
         [data-scope="combobox"][data-part="control"] {
-            height: calc(var(--size-field) * 12);
+            min-height: calc(var(--size-field) * 12);
         }
 
         [data-scope="combobox"][data-part="input"] {
@@ -212,7 +263,7 @@
 
     @scope ([data-scope="combobox"][data-part="root"][data-size="lg"]) to ([data-scope="combobox"][data-part="root"]) {
         [data-scope="combobox"][data-part="control"] {
-            height: calc(var(--size-field) * 14);
+            min-height: calc(var(--size-field) * 14);
         }
 
         [data-scope="combobox"][data-part="input"] {
@@ -223,7 +274,7 @@
 
     @scope ([data-scope="combobox"][data-part="root"][data-size="xl"]) to ([data-scope="combobox"][data-part="root"]) {
         [data-scope="combobox"][data-part="control"] {
-            height: calc(var(--size-field) * 16);
+            min-height: calc(var(--size-field) * 16);
         }
 
         [data-scope="combobox"][data-part="input"] {

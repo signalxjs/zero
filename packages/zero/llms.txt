@@ -559,7 +559,8 @@ component renders; the root is called out separately where it carries props.
   viewport `display` behind `&:popover-open`.
 - Combobox: Root(model=value | value[], model:inputValue, model:open, items,
   itemKey, itemLabel, itemValue, itemDisabled, itemGroup, filter, emptyText,
-  multiple, name, form, required, readonly, placeholder)/Control/Input/
+  multiple, allowCustom, name, form, required, readonly, placeholder; `tag`
+  slot)/Control/Tags/Tag(value)/TagLabel/TagRemove(label)/Input/
   Trigger/Popup/Group/GroupLabel/Item(asChild)/ItemIndicator/Empty/
   HiddenInput. The same typed generic root and collection as Select. APG
   editable combobox: focus stays in the real <input> (role=combobox,
@@ -574,7 +575,19 @@ component renders; the root is called out separately where it carries props.
   empty (the data expansion renders it from `emptyText`). A selection fills
   the input with the item's label and closes; under `multiple` it toggles,
   clears the query and stays open. A preset value's label reaches the input
-  from data before any item mounts. The popup is popover="manual" + the
+  from data before any item mounts. TAGS: under `multiple` the data
+  expansion renders a Tag per chosen value in the Control, before the
+  Input: TagLabel + TagRemove (a real <button> in the tab order,
+  aria-label "Remove <label>"; focus returns to the input), or the root's
+  `tag` slot ({ value, label, item }) in their place (per-tag controls).
+  Hand-written roots place <Combobox.Tags /> (scoped default slot, same
+  props) in the Control themselves. A tag keeps its label after a
+  consumer-filtered item unmounts. Backspace on an empty input removes the
+  last value. `allowCustom`: Enter while no option is highlighted commits
+  the trimmed text: a chosen value or option whose label it names
+  (case-insensitive), else the text itself as the value (posted like any
+  other). Under `multiple` it adds a tag and clears the input; single mode
+  sets the value and closes. Typed only for string models. The popup is popover="manual" + the
   dismiss layer (native auto light dismiss would close on a caret click).
   No data-placeholder on the input — use :placeholder-shown. Home/End stay
   with the text caret; no typeahead (typing IS the filter).

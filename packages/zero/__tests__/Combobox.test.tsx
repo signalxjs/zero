@@ -525,4 +525,177 @@ describe('Combobox over the collection (#445)', () => {
         container.querySelectorAll<HTMLElement>('[data-part="item"]')[0]!.click();
         expect(state.values).toEqual([]);
     });
+
+    describe('tags (#39)', () => {
+        const key = (el: HTMLElement, k: string) => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
+        const tags = () => [...container.querySelectorAll<HTMLElement>('[data-part="tag"]')];
+        const input = () => container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+
+        it('the data expansion renders a tag per chosen value in the control, before the input', () => {
+            render(<Combobox.Root items={FRUITS} multiple itemValue={(f) => f.value} defaultValue={['cherry', 'apple']} />, container);
+            expect(tags().map((t) => t.textContent)).toEqual(['Cherry×', 'Apple×']);
+            const control = container.querySelector('[data-part="control"]')!;
+            expect(tags().every((t) => t.parentElement === control)).toBe(true);
+            expect(control.firstElementChild).toBe(tags()[0]);
+            const remove = container.querySelector('[data-part="tag-remove"]')!;
+            expect(remove.tagName).toBe('BUTTON');
+            expect(remove.getAttribute('aria-label')).toBe('Remove Cherry');
+            expectAnatomy(container, comboboxAnatomy);
+        });
+
+        it('single mode renders no tags', () => {
+            render(<Combobox.Root items={FRUITS} itemValue={(f) => f.value} defaultValue="apple" />, container);
+            expect(tags()).toEqual([]);
+        });
+
+        it('a remove button deselects its value and returns focus to the input', () => {
+            const state = signal({ values: ['apple', 'banana'] });
+            render(<Combobox.Root items={FRUITS} multiple itemValue={(f) => f.value} model={[state, 'values']} name="fruit" />, container);
+            container.querySelectorAll<HTMLElement>('[data-part="tag-remove"]')[0]!.click();
+            expect(state.values).toEqual(['banana']);
+            expect(tags().map((t) => t.querySelector('[data-part="tag-label"]')!.textContent)).toEqual(['Banana']);
+            expect(document.activeElement).toBe(input());
+        });
+
+        it('Backspace on an empty input removes the last value; with text it edits the text', () => {
+            const state = signal({ values: ['apple', 'banana'], query: 'x' });
+            render(<Combobox.Root items={FRUITS} multiple itemValue={(f) => f.value} model={[state, 'values']} model:inputValue={[state, 'query']} />, container);
+            key(input(), 'Backspace');
+            expect(state.values).toEqual(['apple', 'banana']);
+            type(input(), '');
+            key(input(), 'Backspace');
+            expect(state.values).toEqual(['apple']);
+            key(input(), 'Backspace');
+            key(input(), 'Backspace');
+            expect(state.values).toEqual([]);
+        });
+
+        it('disabled and readonly tags cannot be removed', () => {
+            const state = signal({ values: ['apple'] });
+            render(
+                <div>
+                    <Combobox.Root items={FRUITS} multiple disabled itemValue={(f) => f.value} model={[state, 'values']} />
+                    <Combobox.Root items={FRUITS} multiple readonly itemValue={(f) => f.value} model={[state, 'values']} />
+                </div>,
+                container,
+            );
+            const removes = container.querySelectorAll<HTMLButtonElement>('[data-part="tag-remove"]');
+            expect([...removes].every((b) => b.disabled)).toBe(true);
+            expect(tags()[0]!.hasAttribute('data-disabled')).toBe(true);
+            for (const i of container.querySelectorAll<HTMLInputElement>('[data-part="input"]')) key(i, 'Backspace');
+            expect(state.values).toEqual(['apple']);
+        });
+
+        it('the tag slot replaces the default content; TagLabel/TagRemove compose inside it', () => {
+            render(
+                <Combobox.Root
+                    items={FRUITS}
+                    multiple
+                    itemValue={(f) => f.value}
+                    defaultValue={['apple']}
+                    slots={{ tag: ({ value, item }) => (
+                        <>
+                            <Combobox.TagLabel />
+                            <em data-mode={value}>{item?.label.length}</em>
+                            <Combobox.TagRemove label="Drop" />
+                        </>
+                    ) }}
+                />,
+                container,
+            );
+            expect(container.querySelector('[data-part="tag-label"]')!.textContent).toBe('Apple');
+            expect(container.querySelector('em[data-mode="apple"]')!.textContent).toBe('5');
+            expect(container.querySelector('[data-part="tag-remove"]')!.getAttribute('aria-label')).toBe('Drop');
+        });
+
+        it('hand-written roots place Combobox.Tags; a filtered-out item keeps its tag label', () => {
+            const state = signal({ values: ['banana'], query: '' });
+            const List = component(() => () => (
+                <>
+                    {FRUIT.filter((f) => f.toLowerCase().includes(state.query.toLowerCase())).map((f) => (
+                        <Combobox.Item value={f.toLowerCase()} key={f}>{f}</Combobox.Item>
+                    ))}
+                </>
+            ), { name: 'List' });
+            render(
+                <Combobox.Root multiple model={[state, 'values']} model:inputValue={[state, 'query']}>
+                    <Combobox.Control>
+                        <Combobox.Tags />
+                        <Combobox.Input />
+                    </Combobox.Control>
+                    <Combobox.Popup><List /></Combobox.Popup>
+                </Combobox.Root>,
+                container,
+            );
+            const label = () => container.querySelector('[data-part="tag-label"]')!.textContent;
+            expect(label()).toBe('Banana');
+            type(input(), 'ch');
+            expect(container.querySelectorAll('[data-part="item"]').length).toBe(1);
+            expect(label()).toBe('Banana');
+        });
+    });
+
+    describe('allowCustom (#39)', () => {
+        const key = (el: HTMLElement, k: string) => {
+            const e = new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+            el.dispatchEvent(e);
+            return e;
+        };
+        const input = () => container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+
+        it('multiple: Enter commits the text as a tag, clears the input, and posts it', () => {
+            const state = signal({ values: [] as string[], query: '' });
+            render(
+                <form>
+                    <Combobox.Root items={['apple', 'banana']} multiple allowCustom model={[state, 'values']} model:inputValue={[state, 'query']} name="tags" />
+                </form>,
+                container,
+            );
+            type(input(), '  kiwi ');
+            const e = key(input(), 'Enter');
+            expect(e.defaultPrevented).toBe(true);
+            expect(state.values).toEqual(['kiwi']);
+            expect(state.query).toBe('');
+            expect(container.querySelector('[data-part="tag-label"]')!.textContent).toBe('kiwi');
+            const hidden = container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!;
+            expect([...hidden.selectedOptions].map((o) => o.value)).toEqual(['kiwi']);
+            // A duplicate is not added twice; text naming an option commits the option.
+            type(input(), 'KIWI');
+            key(input(), 'Enter');
+            type(input(), 'Banana');
+            key(input(), 'Enter');
+            expect(state.values).toEqual(['kiwi', 'banana']);
+        });
+
+        it('Enter with an empty input, or without allowCustom, is left to the form', () => {
+            const state = signal({ values: [] as string[] });
+            render(<Combobox.Root items={['apple']} multiple model={[state, 'values']} />, container);
+            type(input(), 'kiwi');
+            expect(key(input(), 'Enter').defaultPrevented).toBe(false);
+            expect(state.values).toEqual([]);
+            const fresh = document.body.appendChild(document.createElement('div'));
+            render(<Combobox.Root items={['apple']} multiple allowCustom model={[state, 'values']} />, fresh);
+            expect(key(fresh.querySelector<HTMLInputElement>('[data-part="input"]')!, 'Enter').defaultPrevented).toBe(false);
+        });
+
+        it('a highlighted option wins over the text', () => {
+            const state = signal({ values: [] as string[] });
+            render(<Combobox.Root items={['apple', 'apricot']} multiple allowCustom model={[state, 'values']} />, container);
+            type(input(), 'ap');
+            key(input(), 'ArrowDown');
+            key(input(), 'Enter');
+            expect(state.values).toEqual(['apple']);
+        });
+
+        it('single mode: Enter sets the value to the text and closes', () => {
+            const state = signal({ value: '', open: false });
+            render(<Combobox.Root allowCustom model={[state, 'value']} model:open={[state, 'open']}><Combobox.Control><Combobox.Input /></Combobox.Control><Combobox.Popup /></Combobox.Root>, container);
+            type(input(), 'free text');
+            expect(state.open).toBe(true);
+            key(input(), 'Enter');
+            expect(state.value).toBe('free text');
+            expect(state.open).toBe(false);
+            expect(input().value).toBe('free text');
+        });
+    });
 });

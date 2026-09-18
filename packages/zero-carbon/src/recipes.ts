@@ -2219,6 +2219,7 @@ export const combobox: RecipeInput = {
                 ...field01,
                 display: 'inline-flex',
                 alignItems: 'center',
+                flexWrap: 'wrap',
                 minWidth: '12rem',
                 minHeight: '2.5rem',
                 color: 'var(--color-base-content)',
@@ -2258,6 +2259,47 @@ export const combobox: RecipeInput = {
             selectors: {
                 '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
             },
+        },
+        // A chosen value under `multiple` (#39): a chip in the control, before
+        // the input. Symmetric metrics only — the physical-direction lint and
+        // the lynx emitter both refuse a one-sided inset.
+        // Carbon's filter tag: a gray pill whose close button squares off.
+        tag: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                margin: 'var(--space-2xs)',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                background: 'var(--color-base-300)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+            },
+            states: { disabled: {} },
+        },
+        'tag-label': { base: { whiteSpace: 'nowrap' } },
+        'tag-remove': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                borderRadius: '0',
+                padding: '0 var(--space-2xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { '&[data-pressed]:not([data-disabled])': { background: layerActive } },
         },
         trigger: {
             base: {

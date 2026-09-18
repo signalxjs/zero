@@ -9,6 +9,8 @@ const COUNTRIES = [
     'Portugal', 'Sweden', 'Thailand', 'Uruguay',
 ];
 
+const TOOLS = ['browser', 'editor', 'git', 'search', 'shell'];
+
 const ComboboxDemos = component(() => {
     const state = signal({
         country: '',
@@ -73,6 +75,29 @@ const ComboboxDemos = component(() => {
                     </Combobox.Group>
                 </Combobox.Popup>
             </Combobox.Root>
+            <h2>Multiple, with tags</h2>
+            <p>
+                <small>
+                    Under <code>multiple</code> each chosen value is a tag in the
+                    control. Backspace on the empty input removes the last one;
+                    each tag's remove button is a real button.{' '}
+                    <code>allowCustom</code> commits free text on Enter while no
+                    option is highlighted. Every value posts as a repeated
+                    field.
+                </small>
+            </p>
+            <Field.Root>
+                <Field.Label>Tools</Field.Label>
+                <Combobox.Root
+                    multiple
+                    allowCustom
+                    items={TOOLS}
+                    defaultValue={['search', 'shell']}
+                    name="tools"
+                    placeholder="Add a tool…"
+                    emptyText="Press Enter to add it"
+                />
+            </Field.Root>
             <p>
                 <code>readonly</code> and <code>invalid</code> are chrome, not
                 branches you have to write: readonly keeps the value, refuses to

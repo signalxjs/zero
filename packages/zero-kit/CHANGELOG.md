@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed — Combobox tags (#39)
+
+- `RESERVED_PROPS_BY_SCOPE.combobox` gains `allowCustom`. The
+  `button-affordance` rule now covers thirty `<button>` parts, because
+  `combobox.tag-remove` is new.
+
 ### Changed
 
 - **`RESERVED_PROPS_BY_SCOPE['toggle-group']` gains the form contract**

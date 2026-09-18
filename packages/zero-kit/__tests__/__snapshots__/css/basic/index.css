@@ -3679,6 +3679,7 @@
     [data-scope="combobox"][data-part="control"] {
         display: inline-flex;
         align-items: center;
+        flex-wrap: wrap;
         min-width: 12rem;
         background: var(--color-base-100);
         border: var(--border) solid var(--color-base-300);
@@ -3733,6 +3734,56 @@
 
     [data-scope="combobox"][data-part="input"]::placeholder {
         color: color-mix(in oklch, var(--color-base-content) 55%, transparent);
+    }
+
+    [data-scope="combobox"][data-part="tag"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2xs);
+        margin: var(--space-2xs);
+        padding: var(--space-2xs) var(--space-sm);
+        background: var(--combobox-soft);
+        color: var(--color-base-content);
+        border-radius: var(--radius-selector);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-medium);
+        line-height: var(--leading-none);
+    }
+
+    [data-scope="combobox"][data-part="tag-label"] {
+        white-space: nowrap;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        border-radius: var(--radius-selector);
+        padding: 0 var(--space-2xs);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"]:hover:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
     }
 
     [data-scope="combobox"][data-part="trigger"] {

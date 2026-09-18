@@ -122,7 +122,10 @@ children win entirely, and hand-written `Select.Item` children register
 into the same collection. Combobox filters by default — a contains-match on
 the label — `filter` replaces the rule and `filter={false}` shows a
 server-filtered list as is; `Combobox.Empty` renders only while nothing is
-visible. Both post through a real hidden `<select>` (every item as an
+visible. Under `multiple`, Combobox renders each chosen value as a tag in
+the control (`Combobox.Tags` / `Tag` / `TagLabel` / `TagRemove`; the root's
+`tag` slot supplies per-tag content). Backspace on an empty input removes
+the last tag, and `allowCustom` commits free text on Enter. Both post through a real hidden `<select>` (every item as an
 option in data mode, `multiple` under `multiple`). There is no separate
 native select: the hidden `<select>` is the form control, and a native
 projection would be a prop on this anatomy, never a second component.

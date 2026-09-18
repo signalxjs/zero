@@ -1830,6 +1830,7 @@ export const combobox: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
+                flexWrap: 'wrap',
                 minWidth: '12rem',
                 border: 'var(--border) solid var(--hero-line)',
                 borderRadius: 'var(--radius-field)',
@@ -1866,6 +1867,47 @@ export const combobox: RecipeInput = {
             selectors: {
                 '&::placeholder': { color: 'var(--hero-muted)' },
             },
+        },
+        // A chosen value under `multiple` (#39): a chip in the control, before
+        // the input. Symmetric metrics only — the physical-direction lint and
+        // the lynx emitter both refuse a one-sided inset.
+        // HeroUI's flat chip: a base-200 pill.
+        tag: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                margin: 'var(--space-2xs)',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+            },
+            states: { disabled: {} },
+        },
+        'tag-label': { base: { whiteSpace: 'nowrap' } },
+        'tag-remove': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--hero-muted)',
+                font: 'inherit',
+                borderRadius: 'var(--radius-selector)',
+                padding: '0 var(--space-2xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background, color, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)', color: 'var(--color-base-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' } },
         },
         trigger: {
             base: {

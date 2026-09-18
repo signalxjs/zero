@@ -1,7 +1,7 @@
 /**
  * `button-affordance` — the no-UA-chrome rule.
  *
- * zero picks the element each part renders as, and twenty-nine parts across
+ * zero picks the element each part renders as, and thirty parts across
  * the component set render as a real `<button>`. That is an accessibility
  * decision (it is a button, so it is a `<button>`), and it comes with a
  * styling obligation the design system — not zero — owes: a `<button>` that

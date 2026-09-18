@@ -4655,6 +4655,7 @@
     [data-scope="combobox"][data-part="control"] {
         display: inline-flex;
         align-items: center;
+        flex-wrap: wrap;
         min-width: 12rem;
         background: var(--color-surface-container);
         color: var(--color-surface-container-content);
@@ -4699,6 +4700,57 @@
 
     [data-scope="combobox"][data-part="input"]::placeholder {
         color: var(--color-outline);
+    }
+
+    [data-scope="combobox"][data-part="tag"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2xs);
+        margin: var(--space-2xs);
+        padding: var(--space-2xs) var(--space-sm);
+        border: 1px solid var(--color-outline);
+        background: transparent;
+        color: var(--color-surface-container-content);
+        border-radius: var(--radius-selector);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+    }
+
+    [data-scope="combobox"][data-part="tag-label"] {
+        white-space: nowrap;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        border-radius: var(--radius-selector);
+        padding: 0 var(--space-2xs);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
     }
 
     [data-scope="combobox"][data-part="trigger"] {

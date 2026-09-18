@@ -1,8 +1,13 @@
-export { Combobox, useComboboxContext, useComboboxGroupContext } from './Combobox.js';
+export { Combobox, useComboboxContext, useComboboxGroupContext, useComboboxTagContext } from './Combobox.js';
 export type {
     ComboboxRoot,
     ComboboxRootProps,
     ComboboxControlProps,
+    ComboboxTagsProps,
+    ComboboxTagProps,
+    ComboboxTagLabelProps,
+    ComboboxTagRemoveProps,
+    ComboboxTagSlotProps,
     ComboboxInputProps,
     ComboboxTriggerProps,
     ComboboxPopupProps,

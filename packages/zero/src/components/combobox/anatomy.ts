@@ -24,6 +24,30 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         flags: ['disabled', 'invalid', 'required', 'readonly', 'focus-visible'],
         tokens: ['color', 'text', 'size'],
     },
+    // A chosen value, rendered in the control before the input (the data
+    // expansion does so under `multiple`; hand-written roots place
+    // `Combobox.Tags` themselves). The label and the remove button are its
+    // default content; a per-tag slot replaces it.
+    tag: {
+        element: 'span',
+        parent: 'control',
+        flags: ['disabled'],
+        tokens: ['color', 'radius-selector', 'text'],
+    },
+    'tag-label': {
+        element: 'span',
+        parent: 'tag',
+        tokens: ['text'],
+    },
+    // A real button in the tab order (`aria-label="Remove <label>"`) — the
+    // one way to reach a tag other than the last, which Backspace on the
+    // empty input removes.
+    'tag-remove': {
+        element: 'button',
+        parent: 'tag',
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        tokens: ['color'],
+    },
     trigger: {
         element: 'button',
         parent: 'control',

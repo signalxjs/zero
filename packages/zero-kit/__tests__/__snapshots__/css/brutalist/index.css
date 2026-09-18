@@ -3583,6 +3583,7 @@
     [data-scope="combobox"][data-part="control"] {
         display: inline-flex;
         align-items: center;
+        flex-wrap: wrap;
         min-width: 12rem;
         border: var(--border) solid var(--color-base-content);
         border-radius: 0;
@@ -3632,6 +3633,57 @@
     [data-scope="combobox"][data-part="input"]::placeholder {
         color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
         text-transform: uppercase;
+    }
+
+    [data-scope="combobox"][data-part="tag"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2xs);
+        margin: var(--space-2xs);
+        padding: var(--space-2xs) var(--space-xs);
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="combobox"][data-part="tag-label"] {
+        white-space: nowrap;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        padding: 0 var(--space-2xs);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    [data-scope="combobox"][data-part="tag-remove"][data-pressed]:not([data-disabled]) {
+        background: var(--color-base-200);
+        transform: translate(1px, 1px);
     }
 
     [data-scope="combobox"][data-part="trigger"] {
