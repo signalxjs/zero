@@ -20,8 +20,8 @@ import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { accordionAnatomy } from './anatomy.js';
 
 const SCOPE = accordionAnatomy.scope;
@@ -65,6 +65,7 @@ export type AccordionRootProps =
     & WithDisabled
     & WithVariantAxes<'accordion'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const AccordionRoot = component<AccordionRootProps>(({ props, slots, emit }) => {
@@ -91,7 +92,7 @@ const AccordionRoot = component<AccordionRootProps>(({ props, slots, emit }) => 
     defineProvide(useAccordionContext, () => ctx);
 
     return () => (
-        <div data-scope={SCOPE} data-part="root" {...variantAttrs(props)} class={props.class}>
+        <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="root" {...variantAttrs(props)} class={props.class}>
             {slots.default?.()}
         </div>
     );
@@ -103,6 +104,7 @@ export type AccordionItemProps =
     & Define.Prop<'value', string, true>
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const AccordionItem = component<AccordionItemProps>(({ props, slots }) => {
@@ -117,6 +119,7 @@ const AccordionItem = component<AccordionItemProps>(({ props, slots }) => {
 
     return () => (
         <details
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="item"
             data-state={stateAttr(accordion.isOpen(props.value), 'open', 'closed')}
@@ -131,7 +134,7 @@ const AccordionItem = component<AccordionItemProps>(({ props, slots }) => {
 
 // ── Trigger ──
 
-export type AccordionTriggerProps = WithClass & Define.Slot<'default'>;
+export type AccordionTriggerProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const AccordionTrigger = component<AccordionTriggerProps>(({ props, slots, signal }) => {
     const accordion = useAccordionContext();
@@ -145,6 +148,7 @@ const AccordionTrigger = component<AccordionTriggerProps>(({ props, slots, signa
 
     return () => (
         <summary
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="trigger"
             data-state={stateAttr(accordion.isOpen(item.value()), 'open', 'closed')}
@@ -181,13 +185,15 @@ const AccordionTrigger = component<AccordionTriggerProps>(({ props, slots, signa
 
 // ── Panel ──
 
-export type AccordionPanelProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the Trigger's `aria-controls` points at the Panel's own. */
+export type AccordionPanelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const AccordionPanel = component<AccordionPanelProps>(({ props, slots }) => {
     const accordion = useAccordionContext();
     const item = useAccordionItemContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             id={item.ids.panel}
             data-scope={SCOPE}
             data-part="panel"

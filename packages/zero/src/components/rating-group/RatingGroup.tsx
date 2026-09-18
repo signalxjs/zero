@@ -33,7 +33,8 @@ import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import type { WithClass, WithFormControl, WithReadonly, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
+import type { WithClass, WithFormControl, WithHtmlAttrs, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { ratingGroupAnatomy } from './anatomy.js';
 
 const SCOPE = ratingGroupAnatomy.scope;
@@ -110,6 +111,7 @@ export type RatingGroupRootProps =
     & Define.Prop<'itemLabel', (index: number, count: number) => string, false>
     & WithVariantAxes<'rating-group'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
@@ -228,6 +230,7 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-disabled={dataAttr(disabled())}
@@ -256,12 +259,14 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
 
 // ── Label ──
 
-export type RatingGroupLabelProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the control is labelled by the Label's own. */
+export type RatingGroupLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const RatingGroupLabel = component<RatingGroupLabelProps>(({ props, slots }) => {
     const ctx = useRatingGroupContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             id={ctx.labelId()}
             data-scope={SCOPE}
             data-part="label"
@@ -277,28 +282,36 @@ const RatingGroupLabel = component<RatingGroupLabelProps>(({ props, slots }) => 
 
 // ── Control ──
 
-export type RatingGroupControlProps = WithClass & Define.Slot<'default'>;
+/**
+ * Not `id` (the Field's label points at it) nor `role` (the `radiogroup`).
+ * An app `aria-labelledby` / `aria-describedby` joins the component's.
+ */
+export type RatingGroupControlProps = WithClass & Omit<WithHtmlAttrs, 'id' | 'role'> & Define.Slot<'default'>;
 
 const RatingGroupControl = component<RatingGroupControlProps>(({ props, slots }) => {
     const ctx = useRatingGroupContext();
-    return () => (
-        <div
-            id={ctx.controlId()}
-            role="radiogroup"
-            data-scope={SCOPE}
-            data-part="control"
-            data-disabled={dataAttr(ctx.disabled())}
-            data-readonly={dataAttr(ctx.readonly())}
-            data-focus-visible={dataAttr(ctx.focus.visible)}
-            aria-labelledby={ctx.labelId()}
-            aria-describedby={ctx.describedBy()}
-            class={props.class}
-            ref={(node: HTMLElement | null) => ctx.setControl(node)}
-            onPointerleave={() => { ctx.hover.current = null; }}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                id={ctx.controlId()}
+                role="radiogroup"
+                data-scope={SCOPE}
+                data-part="control"
+                data-disabled={dataAttr(ctx.disabled())}
+                data-readonly={dataAttr(ctx.readonly())}
+                data-focus-visible={dataAttr(ctx.focus.visible)}
+                aria-labelledby={[ctx.labelId(), attrs['aria-labelledby']].filter(Boolean).join(' ') || undefined}
+                aria-describedby={[ctx.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
+                class={props.class}
+                ref={(node: HTMLElement | null) => ctx.setControl(node)}
+                onPointerleave={() => { ctx.hover.current = null; }}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'RatingGroup.Control' });
 
 // ── Item ──
@@ -329,6 +342,8 @@ const defaultSymbol = (state: RatingItemSlotProps['state']): string =>
 export type RatingGroupItemProps =
     & Define.Prop<'index', number, true>
     & WithClass
+    /** Not `role`: an item is a `radio`. An app `aria-label` beats `itemLabel`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default', RatingItemSlotProps>;
 
 const RatingGroupItem = component<RatingGroupItemProps>(({ props, slots, onUnmounted, signal }) => {
@@ -365,8 +380,10 @@ const RatingGroupItem = component<RatingGroupItemProps>(({ props, slots, onUnmou
     return () => {
         const state = itemState();
         const slotProps: RatingItemSlotProps = { state, highlighted: isHighlighted() };
+        const attrs = htmlAttrs(props);
         return (
             <span
+                {...attrs}
                 role="radio"
                 data-scope={SCOPE}
                 data-part="item"
@@ -377,7 +394,7 @@ const RatingGroupItem = component<RatingGroupItemProps>(({ props, slots, onUnmou
                 data-focus-visible={dataAttr(focus.visible)}
                 tabIndex={isTabbable() ? 0 : -1}
                 aria-checked={ctx.state.value > 0 && Math.ceil(ctx.state.value) === props.index ? 'true' : 'false'}
-                aria-label={ctx.itemLabel(props.index)}
+                aria-label={attrs['aria-label'] ?? ctx.itemLabel(props.index)}
                 aria-disabled={ctx.disabled() ? 'true' : undefined}
                 class={props.class}
                 ref={(node: HTMLElement | null) => {

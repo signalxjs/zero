@@ -19,8 +19,8 @@ import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { collapsibleAnatomy } from './anatomy.js';
 
 const SCOPE = collapsibleAnatomy.scope;
@@ -50,6 +50,7 @@ export type CollapsibleRootProps =
     & WithDisabled
     & WithVariantAxes<'collapsible'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit }) => {
@@ -68,6 +69,7 @@ const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit })
 
     return () => (
         <details
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-state={stateAttr(state.value, 'open', 'closed')}
@@ -83,7 +85,7 @@ const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit })
 
 // ── Trigger ──
 
-export type CollapsibleTriggerProps = WithClass & Define.Slot<'default'>;
+export type CollapsibleTriggerProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, signal }) => {
     const ctx = useCollapsibleContext();
@@ -96,6 +98,7 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
 
     return () => (
         <summary
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="trigger"
             data-state={stateAttr(ctx.state.value, 'open', 'closed')}
@@ -134,12 +137,14 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
 
 // ── Panel ──
 
-export type CollapsiblePanelProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the Trigger's `aria-controls` points at the Panel's own. */
+export type CollapsiblePanelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const CollapsiblePanel = component<CollapsiblePanelProps>(({ props, slots }) => {
     const ctx = useCollapsibleContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             id={ctx.ids.panel}
             data-scope={SCOPE}
             data-part="panel"

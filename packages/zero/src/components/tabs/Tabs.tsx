@@ -25,9 +25,9 @@ import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { tabsAnatomy } from './anatomy.js';
 import { provideTabsContext, useTabsContext, type TabsActivationMode, type TabsContext } from './context.js';
 
@@ -44,6 +44,7 @@ export type TabsRootProps =
     & WithOrientation
     & WithVariantAxes<'tabs'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const TabsRoot = component<TabsRootProps>(({ props, slots, emit }) => {
@@ -80,6 +81,7 @@ const TabsRoot = component<TabsRootProps>(({ props, slots, emit }) => {
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-orientation={orientation()}
@@ -93,12 +95,14 @@ const TabsRoot = component<TabsRootProps>(({ props, slots, emit }) => {
 
 // ── List ──
 
-export type TabsListProps = WithClass & Define.Slot<'default'>;
+/** Not `role`: the list is the `tablist`. Name it with `aria-label`. */
+export type TabsListProps = WithClass & Omit<WithHtmlAttrs, 'role'> & Define.Slot<'default'>;
 
 const TabsList = component<TabsListProps>(({ props, slots }) => {
     const tabs = useTabsContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="list"
             data-orientation={tabs.orientation()}
@@ -117,6 +121,8 @@ export type TabsTabProps =
     & Define.Prop<'value', string, true>
     & WithDisabled
     & WithClass
+    /** Not `id` or `role`: the Panel is labelled by the `tab`'s own id. */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -154,6 +160,7 @@ const TabsTab = component<TabsTabProps>(({ props, slots, onUnmounted, signal }) 
     };
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         id: tabs.tabId(props.value),
         'data-scope': SCOPE,
         'data-part': 'tab',
@@ -205,28 +212,37 @@ const TabsTab = component<TabsTabProps>(({ props, slots, onUnmounted, signal }) 
 export type TabsPanelProps =
     & Define.Prop<'value', string, true>
     & WithClass
+    /**
+     * Not `id` or `role`: the Tab controls the `tabpanel`'s own id. An app
+     * `aria-labelledby` joins the Tab's.
+     */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
     & Define.Slot<'default'>;
 
 const TabsPanel = component<TabsPanelProps>(({ props, slots }) => {
     const tabs = useTabsContext();
     const isSelected = (): boolean => tabs.state.value === props.value;
 
-    return () => (
-        <div
-            id={tabs.panelId(props.value)}
-            data-scope={SCOPE}
-            data-part="panel"
-            data-state={stateAttr(isSelected(), 'active', 'inactive')}
-            data-orientation={tabs.orientation()}
-            role="tabpanel"
-            aria-labelledby={tabs.tabId(props.value)}
-            hidden={!isSelected()}
-            tabIndex={0}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                id={tabs.panelId(props.value)}
+                data-scope={SCOPE}
+                data-part="panel"
+                data-state={stateAttr(isSelected(), 'active', 'inactive')}
+                data-orientation={tabs.orientation()}
+                role="tabpanel"
+                aria-labelledby={[tabs.tabId(props.value), attrs['aria-labelledby']].filter(Boolean).join(' ')}
+                hidden={!isSelected()}
+                tabIndex={0}
+                class={props.class}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Tabs.Panel' });
 
 export const Tabs = compound(TabsRoot, {

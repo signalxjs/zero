@@ -6,7 +6,7 @@
  * property of that exact name, so `aria-label={{}}` or `data-mod-x` cannot
  * be caught here — those answer to `htmlAttrs` at runtime.)
  */
-import { Alert, Badge, Button, Card, Divider, Progress, Spinner, Stack, Table } from '@sigx/zero';
+import { Alert, Badge, Button, Card, Checkbox, Divider, Field, Progress, Spinner, Stack, Switch, Table, Tabs } from '@sigx/zero';
 
 // ── valid ──
 export const labelled = <Button.Root aria-label="Close" aria-busy={true} aria-describedby="hint">×</Button.Root>;
@@ -34,6 +34,9 @@ export const e4 = <Table.Row data-scope="x">x</Table.Row>;
 export const e5 = <Button.Root title={1}>x</Button.Root>;
 // @ts-expect-error — colSpan is a number
 export const e6 = <Table.Cell colSpan="3">x</Table.Cell>;
+export const tabs = <Tabs.List aria-label="Settings" data-testid="tabs"><Tabs.Tab value="a" title="A">A</Tabs.Tab></Tabs.List>;
+export const check = <Checkbox.Root id="terms" title="Terms" aria-label="Accept" data-testid="terms" />;
+
 // ── refused: the name is the part's own (#74) ──
 // @ts-expect-error — a divider IS a separator
 export const r1 = <Divider role="presentation" />;
@@ -45,3 +48,9 @@ export const r3 = <Alert.Root role="status">x</Alert.Root>;
 export const r4 = <Progress.Label id="mine">x</Progress.Label>;
 // @ts-expect-error — the contract's own data-* stays refused on every part
 export const r5 = <Badge data-variant="soft">x</Badge>;
+// @ts-expect-error — the Panel is labelled by the tab's own id
+export const r6 = <Tabs.Tab value="a" id="mine">A</Tabs.Tab>;
+// @ts-expect-error — the input is the `switch`
+export const r7 = <Switch.Root role="checkbox" />;
+// @ts-expect-error — the control is labelled by the Label's own id
+export const r8 = <Field.Label id="mine">Email</Field.Label>;

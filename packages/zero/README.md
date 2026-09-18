@@ -194,23 +194,40 @@ wrapper; `Table.Cell` and `Table.HeaderCell` also take `colSpan`/`rowSpan`),
 every `Card` part (`Card.Root` also takes `asChild`, for a card that is an
 `<article>`), and every part of Alert, Avatar, Badge, Breadcrumbs, Chat,
 Countdown, Divider, Indicator, Join, Kbd, Navbar, Progress, RadialProgress,
-Skeleton, Spinner, Stats, Status, Timeline and the layout tier (Box, Center,
-Container, Grid, Spacer, Stack). The rest follow in #74.
+Skeleton, Spinner, Stats, Status, Timeline, the layout tier (Box, Center,
+Container, Grid, Spacer, Stack), the disclosure and navigation scopes
+(Accordion, Carousel, Collapsible, Diff, Pagination, Steps, Swap, Tabs,
+TreeView) and the form controls (Checkbox, Field, FileUpload, Input,
+NumberInput, RadioGroup, RatingGroup, Slider, Switch, Textarea, Toggle,
+ToggleGroup). Overlays and listboxes follow in #74. Parts zero renders on
+its own (a hidden input, Pagination's page buttons, a switch thumb) have no
+component to take an attribute. `Checkbox.Root`, `Switch.Root` and
+`RadioGroup.Item` split theirs like `Table.Root`: `aria-*` goes to the input
+assistive tech reads, `id`/`title`/`data-*` to the row.
 
 The part's own attributes win where both set one, with three refinements:
 
 - A name the part always sets itself is refused by the type rather than
-  silently dropped: `role` on `Divider` (a separator), `Spinner` (a
-  `status`), `Status`, `Countdown`, `Alert.Root` (the `alert` region) and the
-  progress roots (a `progressbar`); `id` on `Progress.Label` and
-  `RadialProgress.Label` (the root points at it).
+  silently dropped: `role` wherever the role is the component's semantics
+  (`Divider`, `Spinner`, `Status`, `Countdown`, `Alert.Root`, the progress
+  roots, `Tabs.List`/`Tab`/`Panel`, the TreeView tree and its items,
+  `Steps.Root`/`Item`, `Carousel.Root`/`Item`, `Diff.Handle`, the switch,
+  checkbox, radio, toggle, slider-thumb and spinbutton parts), and `id`
+  wherever another part points at it (every Label, `Field.Description`/
+  `Error`, the disclosure Panels, `Tabs.Tab`/`Panel`, the Field control of
+  NumberInput, RatingGroup, Slider and FileUpload).
 - A name the part only defaults gives way: an app `aria-label` replaces
-  Spinner's "Loading", `Alert.Close`'s "Close" and Breadcrumbs' "Breadcrumb"
-  (the `label` prop still beats both), and names `Status` (a named dot is an
-  `img`) and `Countdown` (a named countdown is a `timer`) the way `label`
-  does. An app `aria-labelledby` on a progress root joins the Label's.
+  Spinner's "Loading", Breadcrumbs' "Breadcrumb", Pagination's
+  "Pagination" and every icon trigger's default (`Alert.Close`, the
+  Carousel triggers and dots, `Diff.Handle`, the NumberInput steppers,
+  `FileUpload.ItemRemove`, a Carousel slide's "n of m") — the `label` prop
+  still beats both — and names `Status` (a named dot is an `img`) and
+  `Countdown` (a named countdown is a `timer`) the way `label` does. An app
+  `aria-labelledby`/`aria-describedby` joins the one the part wires (a
+  progressbar's, a tab panel's, a tree's, a control's Field description).
 - State ARIA stays the component's: `aria-busy` on a loading Skeleton,
-  `aria-current` on the current `Breadcrumbs.Link`, `aria-valuenow`.
+  `aria-current` on the current `Breadcrumbs.Link`, `aria-valuenow`,
+  `aria-expanded`, `aria-selected`, `aria-checked`, `aria-pressed`.
 
 A `data-*` name the contract owns — `data-scope`/`part`/`state`/
 `orientation`/`placement`, a flag, `data-color`/`size`/`variant`,
@@ -225,6 +242,8 @@ owns) and spread `htmlAttrs(props)` first.
 <Card.Root role="region" aria-labelledby="report-title">…</Card.Root>
 <Stack.Root role="list" data-testid="members">…</Stack.Root>
 <Alert.Close aria-label="Dismiss" />
+<Tabs.List aria-label="Settings">…</Tabs.List>
+<Checkbox.Root aria-label="Accept terms" data-testid="terms" />
 ```
 
 **Visually hidden, still named.** `Field.Label`, `Input.Label`,

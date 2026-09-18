@@ -18,8 +18,8 @@ import { createControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { paginationAnatomy } from './anatomy.js';
 
 const SCOPE = paginationAnatomy.scope;
@@ -96,7 +96,8 @@ export type PaginationRootProps =
     & Define.Prop<'nextLabel', string, false>
     & WithVariantAxes<'pagination'>
     & WithDisabled
-    & WithClass;
+    & WithClass
+    & WithHtmlAttrs;
 
 interface TriggerPressBag {
     onKeydown: (e: KeyboardEvent) => void;
@@ -231,21 +232,25 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
         );
     };
 
-    return () => (
-        <nav
-            aria-label={props.label ?? 'Pagination'}
-            data-scope={SCOPE}
-            data-part="root"
-            data-disabled={dataAttr(props.disabled)}
-            {...variantAttrs(props)}
-            class={props.class}
-        >
-            {stepper('prev-trigger')}
-            {paginationRow(page(), count(), intAtLeast(props.siblingCount ?? 1, 0), intAtLeast(props.boundaryCount ?? 1, 0))
-                .map((entry) => (typeof entry === 'number' ? item(entry) : ellipsis()))}
-            {stepper('next-trigger')}
-        </nav>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <nav
+                {...attrs}
+                aria-label={props.label ?? attrs['aria-label'] ?? 'Pagination'}
+                data-scope={SCOPE}
+                data-part="root"
+                data-disabled={dataAttr(props.disabled)}
+                {...variantAttrs(props)}
+                class={props.class}
+            >
+                {stepper('prev-trigger')}
+                {paginationRow(page(), count(), intAtLeast(props.siblingCount ?? 1, 0), intAtLeast(props.boundaryCount ?? 1, 0))
+                    .map((entry) => (typeof entry === 'number' ? item(entry) : ellipsis()))}
+                {stepper('next-trigger')}
+            </nav>
+        );
+    };
 }, { name: 'Pagination.Root' });
 
 export const Pagination = compound(PaginationRoot, {

@@ -40,12 +40,14 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
 import { renderAsChild, synthesizesClickFrom } from '../../contract/as-child.js';
+import { htmlAttrs } from '../../contract/props.js';
 import type {
     PartProps,
     WithAsChild,
     WithClass,
     WithDisabled,
     WithFormControl,
+    WithHtmlAttrs,
     WithOrientation,
     WithVariantAxes,
 } from '../../contract/props.js';
@@ -103,6 +105,12 @@ export type ToggleGroupRootProps<M = string | string[]> =
     & WithVariantAxes<'toggle-group'>
     & WithFormControl
     & WithClass
+    /**
+     * Not `role`: the root is the `group`. An app `aria-label` names it when
+     * `label` does not; an app `aria-labelledby` / `aria-describedby` joins
+     * the component's.
+     */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emit, onMounted, onUnmounted }) => {
@@ -201,53 +209,57 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
     });
     onUnmounted(() => detachReset());
 
-    return () => (
-        <div
-            role="group"
-            aria-label={props.label}
-            aria-labelledby={fc.field.inert || props.label !== undefined ? undefined : fc.labelId()}
-            aria-describedby={fc.describedBy()}
-            data-scope={SCOPE}
-            data-part="root"
-            data-orientation={orientation()}
-            {...fc.flags()}
-            {...fc.axisAttrs()}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { rootEl = node; }}
-        >
-            {slots.default?.()}
-            {fc.hasName()
-                ? (
-                    <select
-                        data-scope={SCOPE}
-                        data-part="hidden-input"
-                        style={VISUALLY_HIDDEN_STYLE}
-                        {...fc.hiddenAttrs()}
-                        multiple={!!props.multiple}
-                        required={fc.required()}
-                        tabIndex={-1}
-                        aria-hidden="true"
-                        ref={(node: HTMLSelectElement | null) => { hidden = node; }}
-                        // The platform's bubble would anchor to a 1px element:
-                        // cancel it and land focus where the user can act.
-                        onInvalid={(e: Event) => { e.preventDefault(); tabStop()?.focus(); }}
-                        // The platform writes the hidden select itself (form
-                        // restoration): its selection flows back into the model.
-                        onChange={() => {
-                            if (!hidden) return;
-                            const on = Array.from(hidden.options)
-                                .filter((o) => o.selected && (props.multiple || o.value !== ''))
-                                .map((o) => o.value);
-                            state.value = props.multiple ? on : on[0] ?? '';
-                        }}
-                    >
-                        {props.multiple ? null : <option value="" selected={selected().length === 0} />}
-                        {selected().map((v) => <option value={v} selected key={v}>{v}</option>)}
-                    </select>
-                )
-                : null}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                role="group"
+                aria-label={props.label ?? attrs['aria-label']}
+                aria-labelledby={[fc.field.inert || props.label !== undefined ? undefined : fc.labelId(), attrs['aria-labelledby']].filter(Boolean).join(' ') || undefined}
+                aria-describedby={[fc.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
+                data-scope={SCOPE}
+                data-part="root"
+                data-orientation={orientation()}
+                {...fc.flags()}
+                {...fc.axisAttrs()}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { rootEl = node; }}
+            >
+                {slots.default?.()}
+                {fc.hasName()
+                    ? (
+                        <select
+                            data-scope={SCOPE}
+                            data-part="hidden-input"
+                            style={VISUALLY_HIDDEN_STYLE}
+                            {...fc.hiddenAttrs()}
+                            multiple={!!props.multiple}
+                            required={fc.required()}
+                            tabIndex={-1}
+                            aria-hidden="true"
+                            ref={(node: HTMLSelectElement | null) => { hidden = node; }}
+                            // The platform's bubble would anchor to a 1px element:
+                            // cancel it and land focus where the user can act.
+                            onInvalid={(e: Event) => { e.preventDefault(); tabStop()?.focus(); }}
+                            // The platform writes the hidden select itself (form
+                            // restoration): its selection flows back into the model.
+                            onChange={() => {
+                                if (!hidden) return;
+                                const on = Array.from(hidden.options)
+                                    .filter((o) => o.selected && (props.multiple || o.value !== ''))
+                                    .map((o) => o.value);
+                                state.value = props.multiple ? on : on[0] ?? '';
+                            }}
+                        >
+                            {props.multiple ? null : <option value="" selected={selected().length === 0} />}
+                            {selected().map((v) => <option value={v} selected key={v}>{v}</option>)}
+                        </select>
+                    )
+                    : null}
+            </div>
+        );
+    };
 }, { name: 'ToggleGroup.Root' });
 
 /** The exported root: the model's shape follows `multiple`. */
@@ -264,6 +276,8 @@ export type ToggleGroupItemProps =
     & Define.Prop<'value', string, true>
     & WithDisabled
     & WithClass
+    /** Not `role`: an asChild item is given `button`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -312,6 +326,7 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onUnmou
     };
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'item',
         'data-state': stateAttr(isOn(), 'on', 'off'),

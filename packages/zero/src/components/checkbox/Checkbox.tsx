@@ -25,7 +25,8 @@ import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import type { WithClass, WithFormControl, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
+import type { HtmlAttrValue, WithClass, WithFormControl, WithHtmlAttrs, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
 import { checkboxAnatomy } from './anatomy.js';
 
 const SCOPE = checkboxAnatomy.scope;
@@ -40,6 +41,13 @@ export type CheckboxRootProps =
     & WithModelModifiers
     & WithVariantAxes<'checkbox'>
     & WithClass
+    /**
+     * Forwarded attributes, split: `aria-*` goes to the hidden input (the
+     * control assistive tech reads; an app `aria-describedby` joins the
+     * Field's), `id`, `title` and `data-*` to the root. Not `role`: the
+     * input is a native checkbox.
+     */
+    & Omit<WithHtmlAttrs, 'role'>
     /**
      * Hide the label from sight and keep it as the control's name — for a
      * checkbox whose row, not its own text, says what it is. Renders the
@@ -93,76 +101,88 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
         isDisabled: () => disabled(),
     });
 
-    return () => (
-        <label
-            data-scope={SCOPE}
-            data-part="root"
-            data-state={checkedState()}
-            data-disabled={dataAttr(disabled())}
-            data-focus-visible={dataAttr(focus.visible)}
-            data-invalid={dataAttr(invalid())}
-            data-required={dataAttr(required())}
-            {...fc.axisAttrs()}
-            class={props.class}
-            onPointerdown={press.onPointerdown}
-            onPointerup={press.onPointerup}
-            onPointercancel={press.onPointercancel}
-            onPointerleave={press.onPointerleave}
-        >
-            <input
-                type="checkbox"
-                id={fc.field.inert ? undefined : fc.controlId()}
+    return () => {
+        // Split like Table.Root's: `aria-*` names the control — the input
+        // assistive tech reads — and `id`, `title` and `data-*` land on the
+        // root the app addresses.
+        const rootAttrs: Record<string, HtmlAttrValue> = {};
+        const inputAttrs: Record<string, HtmlAttrValue> = {};
+        for (const [key, value] of Object.entries(htmlAttrs(props))) {
+            (key.startsWith('aria-') ? inputAttrs : rootAttrs)[key] = value;
+        }
+        return (
+            <label
+                {...rootAttrs}
                 data-scope={SCOPE}
-                data-part="hidden-input"
-                style={VISUALLY_HIDDEN_STYLE}
-                model={state}
-                modelModifiers={timingModifiers(props.modelModifiers)}
-                disabled={disabled()}
-                required={required()}
-                name={fc.name()}
-                form={fc.form()}
-                value={itemValue()}
-                aria-invalid={invalid() ? 'true' : undefined}
-                aria-describedby={fc.describedBy()}
-                ref={(node: HTMLInputElement | null) => { inputEl = node; }}
-                onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
-                onBlur={(e: FocusEvent) => {
-                    press.onBlur(e);
-                    focus.visible = false;
-                }}
-                onKeydown={press.onKeydown}
-                onKeyup={press.onKeyup}
-            />
-            <span
-                data-scope={SCOPE}
-                data-part="control"
+                data-part="root"
                 data-state={checkedState()}
                 data-disabled={dataAttr(disabled())}
                 data-focus-visible={dataAttr(focus.visible)}
                 data-invalid={dataAttr(invalid())}
-                ref={(node: HTMLElement | null) => { controlEl = node; }}
+                data-required={dataAttr(required())}
+                {...fc.axisAttrs()}
+                class={props.class}
+                onPointerdown={press.onPointerdown}
+                onPointerup={press.onPointerup}
+                onPointercancel={press.onPointercancel}
+                onPointerleave={press.onPointerleave}
             >
+                <input
+                    {...inputAttrs}
+                    type="checkbox"
+                    id={fc.field.inert ? undefined : fc.controlId()}
+                    data-scope={SCOPE}
+                    data-part="hidden-input"
+                    style={VISUALLY_HIDDEN_STYLE}
+                    model={state}
+                    modelModifiers={timingModifiers(props.modelModifiers)}
+                    disabled={disabled()}
+                    required={required()}
+                    name={fc.name()}
+                    form={fc.form()}
+                    value={itemValue()}
+                    aria-invalid={invalid() ? 'true' : undefined}
+                    aria-describedby={[fc.describedBy(), inputAttrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
+                    ref={(node: HTMLInputElement | null) => { inputEl = node; }}
+                    onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
+                    onBlur={(e: FocusEvent) => {
+                        press.onBlur(e);
+                        focus.visible = false;
+                    }}
+                    onKeydown={press.onKeydown}
+                    onKeyup={press.onKeyup}
+                />
                 <span
                     data-scope={SCOPE}
-                    data-part="indicator"
+                    data-part="control"
                     data-state={checkedState()}
-                />
-            </span>
-            {slots.default
-                ? (
+                    data-disabled={dataAttr(disabled())}
+                    data-focus-visible={dataAttr(focus.visible)}
+                    data-invalid={dataAttr(invalid())}
+                    ref={(node: HTMLElement | null) => { controlEl = node; }}
+                >
                     <span
                         data-scope={SCOPE}
-                        data-part="label"
+                        data-part="indicator"
                         data-state={checkedState()}
-                        data-disabled={dataAttr(disabled())}
-                        data-visually-hidden={dataAttr(props.hideLabel)}
-                    >
-                        {slots.default()}
-                    </span>
-                )
-                : null}
-        </label>
-    );
+                    />
+                </span>
+                {slots.default
+                    ? (
+                        <span
+                            data-scope={SCOPE}
+                            data-part="label"
+                            data-state={checkedState()}
+                            data-disabled={dataAttr(disabled())}
+                            data-visually-hidden={dataAttr(props.hideLabel)}
+                        >
+                            {slots.default()}
+                        </span>
+                    )
+                    : null}
+            </label>
+        );
+    };
 }, { name: 'Checkbox.Root' });
 
 export const Checkbox = compound(CheckboxRoot, {
