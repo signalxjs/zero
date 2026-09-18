@@ -906,6 +906,20 @@ are owned by their provider. The playground works around it explicitly —
 capture the theme before `clearThemes()`, re-apply after `installThemes()`
 if the incoming system defines the same name.
 
+**Breakpoints ride the same seed.** `ThemeSource.breakpoints` is the
+declaration's ramp, so `registerThemes(tokens)` stores it with no
+design-system change and `getBreakpoints()` hands it back (portable — a
+non-DOM runtime reads the same ramp). `useMediaQuery({ above: 'md' })`
+(`behaviors/media-query.ts`, web only) resolves against it with the
+compiler's own boundaries: `above` is the `(min-width: X)` a recipe's
+`at: { md }` compiles to, `below` its exact complement `(width < X)`, so
+no width matches both. The first render — server and client — reads the
+caller's `initial`, never `matchMedia`, so hydration cannot mismatch; the
+real match arrives on mount. The CSS side is the kit's:
+`--breakpoint-<name>` on `:root`, and `dist/css/breakpoints.css` as
+`@custom-media --above-<name>` / `--below-<name>` for a build step to
+resolve.
+
 **FOUC handling** is one line: `themeInitScript()` returns an inline IIFE
 for `<head>` that reads the persisted explicit choice from `localStorage`
 and stamps `data-theme` before first paint. The *system* preference needs

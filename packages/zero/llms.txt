@@ -689,6 +689,11 @@ instead of multiplying into a rule per combination.
   ascending -- declaration order is emission order. `prefers-dark` is the
   SYSTEM preference, NOT a `[data-theme]` dark theme. Stop a looping
   animation under `reduced-motion` (`animation: none`); never shorten it.
+- The ramp reaches the app: `--breakpoint-<name>` on `:root`,
+  `<ds>/css/breakpoints` (`@custom-media --above-<name>` / `--below-<name>`),
+  and in JS `getBreakpoints()` plus `useMediaQuery({ above | below },
+  { initial })` from @sigx/zero -- SSR-safe (reads `initial` until mount),
+  call it in setup. `above` = `(min-width: X)`, `below` = `(width < X)`.
 
 ## Authoring a design system (@sigx/zero-kit)
 

@@ -22,6 +22,7 @@ import type {
     Responsive,
     LayoutProp,
     LayoutProps,
+    BreakpointRange,
 } from '@sigx/zero';
 import type { Equal, MustBeTrue } from '../assert.js';
 
@@ -105,6 +106,13 @@ const typoBreakpoint: Responsive<'sm' | 'md'> = { mdd: 'md' };
 const badValue: Responsive<'sm' | 'md'> = { md: 'enormous' };
 
 type BreakpointsAreClosed = MustBeTrue<Equal<ZeroBreakpointName, 'sm' | 'md' | 'lg'>>;
+
+// `useMediaQuery({ above: 'md' })` / `breakpointQuery` take the same closed
+// names: a typo is a compile error here, not a query that never matches.
+const aboveMd: BreakpointRange = { above: 'md' };
+const band: BreakpointRange = { above: 'sm', below: 'lg' };
+// @ts-expect-error — `xl` is not a breakpoint this design system declares
+const belowXl: BreakpointRange = { below: 'xl' };
 
 // ── layout props follow the vocabulary's own `responsive` flag ──
 //

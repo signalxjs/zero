@@ -46,6 +46,8 @@ installThemes();   // registers the `basic` / `basic-dark` themes
 ```
 
 Granular imports: `@sigx/zero-basic/css/tokens`, `@sigx/zero-basic/css/tabs`, ….
+The breakpoint ramp as custom media (`@media (--above-md)`, `(--below-md)`)
+for a build step that resolves them: `@sigx/zero-basic/css/breakpoints`.
 
 ## Writing direction
 

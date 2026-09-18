@@ -159,6 +159,20 @@ function rootDecls(
 }
 
 /**
+ * `--breakpoint-<name>: <min-width>` for each declared breakpoint — the ramp
+ * made readable from app CSS and JS (`getComputedStyle(root)`), in
+ * declaration order. Theme-independent, so `:root` only.
+ *
+ * A custom property cannot stand in a media query's condition
+ * (`@media (min-width: var(--breakpoint-md))` is invalid): these are for
+ * `calc()`, container sizing and reading the ramp. Conditions go through
+ * `breakpoints.css`'s custom media or `useMediaQuery`.
+ */
+function breakpointDecls(breakpoints: Record<string, string> | undefined): string[] {
+    return Object.entries(breakpoints ?? {}).map(([name, width]) => `--breakpoint-${name}: ${width};`);
+}
+
+/**
  * `@property` registrations for declared roles (typed, animatable theme
  * switches) and for declared custom tokens that carry a `syntax`.
  * Initial values come from the default light theme. Derivatives are not
@@ -348,7 +362,10 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
     // so an explicit theme wins regardless of source order, and a nested
     // `[data-theme]` element re-themes its subtree via inheritance. App CSS
     // is unlayered, so it still wins over everything here.
-    const blocks: string[] = [block(':where(:root)', rootDecls(light, dark, roles, nonColorLight))];
+    const blocks: string[] = [block(':where(:root)', [
+        ...rootDecls(light, dark, roles, nonColorLight),
+        ...breakpointDecls(input.breakpoints),
+    ])];
 
     if (schemeDivergent.size > 0) {
         blocks.push(

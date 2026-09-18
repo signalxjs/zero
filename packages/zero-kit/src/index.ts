@@ -32,6 +32,7 @@ export type {
 } from './tokens.js';
 export { defineTokens } from './tokens.js';
 export { compileTokensCss } from './targets/web/tokens-css.js';
+export { compileBreakpointsCss } from './targets/web/breakpoints-css.js';
 
 export type { TypeScale } from './scale.js';
 export { generateTypeScale } from './scale.js';

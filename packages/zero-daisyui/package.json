@@ -33,6 +33,10 @@
             "types": "./dist/css/index.d.ts",
             "default": "./dist/css/tokens.css"
         },
+        "./css/breakpoints": {
+            "types": "./dist/css/index.d.ts",
+            "default": "./dist/css/breakpoints.css"
+        },
         "./css/*": {
             "types": "./dist/css/index.d.ts",
             "default": "./dist/css/components/*.css"
