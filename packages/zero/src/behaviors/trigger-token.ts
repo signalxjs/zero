@@ -18,8 +18,6 @@ export interface TriggerToken {
     query: string;
 }
 
-const SPACE = /\s/;
-
 /**
  * The token under `caret` in `text`, or `null`.
  *
@@ -41,12 +39,11 @@ export function triggerTokenAt(text: string, caret: number, trigger: string | Re
     const rest = /^\S*/.exec(text.slice(caret))![0];
     if (typeof trigger === 'string') {
         if (trigger === '') return null;
-        const at = upTo.lastIndexOf(trigger);
-        if (at === -1) return null;
-        if (at > 0 && !SPACE.test(upTo.charAt(at - 1))) return null;
-        const query = upTo.slice(at + trigger.length);
-        if (SPACE.test(query)) return null;
-        return { start: at, end: caret + rest.length, prefix: trigger, query };
+        // The word the caret is in must START with the trigger — a later
+        // trigger character inside it (`@a@b`) is part of the query.
+        const at = upTo.search(/\S*$/);
+        if (!upTo.startsWith(trigger, at)) return null;
+        return { start: at, end: caret + rest.length, prefix: trigger, query: upTo.slice(at + trigger.length) };
     }
     const anchored = new RegExp(`(?:${trigger.source})$`, trigger.flags.replace(/[gy]/g, ''));
     const match = anchored.exec(upTo);

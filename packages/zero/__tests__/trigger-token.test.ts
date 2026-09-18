@@ -12,6 +12,11 @@ describe('triggerTokenAt (#58)', () => {
         expect(triggerTokenAt('me@example', 10, '@')).toBeNull();
     });
 
+    it('a later trigger inside the word is part of the query', () => {
+        expect(triggerTokenAt('@a@b', 4, '@')).toEqual({ start: 0, end: 4, prefix: '@', query: 'a@b' });
+        expect(triggerTokenAt('x @a@b', 6, '@')).toEqual({ start: 2, end: 6, prefix: '@', query: 'a@b' });
+    });
+
     it('ends at whitespace: a space after the query closes the token', () => {
         expect(triggerTokenAt('@al ', 4, '@')).toBeNull();
         expect(triggerTokenAt('@al there', 9, '@')).toBeNull();
