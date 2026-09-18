@@ -355,7 +355,10 @@ export function componentFindings(c: LegibilityCase, waived?: AuditWaiver[]): Au
             // The same signature rule: a component-wide "these look alike"
             // needs every owner to have said so, by either mechanism.
             if (owners.every((p) => skipsPair(c, p, a, b) || declaresSame(c, p, a, b))) {
-                waived?.push(waiver(finding, 'sameAs', `every owner (${owners.join(', ')}) declares "${a}" and "${b}" alike`));
+                const alike = owners.filter((p) => !skipsPair(c, p, a, b));
+                const skipping = owners.filter((p) => skipsPair(c, p, a, b));
+                waived?.push(waiver(finding, 'sameAs', `${alike.join(', ')} declare${alike.length === 1 ? 's' : ''} "${a}" and "${b}" alike`
+                    + (skipping.length ? `; ${skipping.join(', ')} skip${skipping.length === 1 ? 's' : ''} the pair` : '')));
                 continue;
             }
             if (presenceDiffers(c, owners, a, b)) {

@@ -1063,8 +1063,10 @@ export function validateDesignSystem<R extends RolesDecl>(
     }
 
     // ── Recipe state coverage ──
+    // Read off the web resolution, like `validateRecipes` above: a state a
+    // `targets.web` section styles, skips or declares alike is addressed.
     const byScope = new Map(manifest.components.map((c) => [c.scope, c]));
-    for (const recipe of ds.recipes) {
+    for (const recipe of ds.recipes.map((r) => resolveRecipeForTarget(r, 'web'))) {
         const component = byScope.get(recipe.component);
         if (!component) continue; // already an error above
         for (const [partName, styles] of Object.entries(recipe.parts)) {

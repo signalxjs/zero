@@ -386,6 +386,10 @@ describe('coverage', () => {
         expect(alike.errors).toEqual([]);
         expect(alike.warnings).not.toContainEqual(expect.stringContaining(unstyled));
 
+        // …including from a `targets.web` section, which is what the web build reads.
+        const perTarget = check({ component: 'tabs', parts: { tab }, targets: { web: { sameAs: { tab: { inactive: 'active' } } } } });
+        expect(perTarget.warnings).not.toContainEqual(expect.stringContaining(unstyled));
+
         const bad = check({
             component: 'tabs',
             parts: { tab },

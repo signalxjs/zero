@@ -382,7 +382,10 @@ describe('the guard\'s own teeth', () => {
                 { root: ['checked', 'unchecked', 'indeterminate'] },
             );
             expect(componentFindings(every, waived)).toEqual([]);
-            expect(waived.find((w) => w.rule === 'state-legibility/component')?.waivedBy.mechanism).toBe('sameAs');
+            const component = waived.find((w) => w.rule === 'state-legibility/component')!;
+            expect(component.waivedBy.mechanism).toBe('sameAs');
+            // The detail says which owner did which — a skip is not a claim of likeness.
+            expect(component.waivedBy.detail).toBe('control, indicator, label declare "checked" and "indeterminate" alike; root skips the pair');
         });
     });
 
