@@ -44,6 +44,35 @@
 - The README's "loading button" composition (`disabled` +
   `mods={{ loading: true }}`) is retired in favour of the prop.
 
+### Added — `createVirtualList`: windowing with stick-to-bottom (#56)
+
+- **`createVirtualList({ count, key, estimateSize, gap, overscan,
+  stickToBottom, threshold, initialCount })`** (`@sigx/zero/behaviors`)
+  decides which rows of a long list to render. It returns:
+  - the window, `rows()`: `{ index, key, start, size }` per row;
+  - the padding that stands in for the rest, `before()` / `after()`;
+  - `totalSize()` and `count()`;
+  - `following()`;
+  - refs for the viewport, the list and each row (`measureRef(key)`, stable
+    per key);
+  - `scrollToIndex(i, align)` and `scrollToEnd()`.
+
+  Behavior:
+  - Rows are measured in the task they render in, then observed from the
+    next frame. Observing them inside the ResizeObserver's own callback is
+    what WebKit reports as a "loop completed with undelivered
+    notifications" error.
+  - Heights are remembered by key.
+  - The row being read stays still across prepends and across
+    re-measurements above it.
+  - With `stickToBottom`, the list follows the tail until the reader scrolls
+    up. Only an upward scroll lets go.
+  - SSR-safe: before mount it renders the first `initialCount` rows, or the
+    last ones under `stickToBottom`.
+  - Context-bound: it throws outside a component's setup.
+- Integrating it into the collection core's listbox (Select/Combobox over
+  long collections) is tracked in #96.
+
 ### Added — a lifecycle family in the governed states (#42)
 
 - **`STATE_VOCABULARY.lifecycle`: `running`, `paused`, `denied`,

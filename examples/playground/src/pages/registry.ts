@@ -49,6 +49,7 @@ import { countdownPage } from './countdown';
 import { diffPage } from './diff';
 import { timelinePage } from './timeline';
 import { chatPage } from './chat';
+import { virtualListPage } from './virtual-list';
 import { radialProgressPage } from './radial-progress';
 import { joinPage } from './join';
 import { navbarPage } from './navbar';
@@ -142,6 +143,7 @@ export const pages: PageEntry[] = [
     diffPage,
     timelinePage,
     chatPage,
+    virtualListPage,
     progressPage,
     radialProgressPage,
     sizeRampPage,
