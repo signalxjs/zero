@@ -266,10 +266,10 @@ export function checkFragment(input: FragmentCheckInput): FragmentCheckResult {
         error('every component in a fragment needs a "scope" — defineAnatomy().toJSON() emits one');
     }
 
-    // The version literal is hand-written on purpose — importing
-    // FRAGMENT_VERSION would drag the kit into the data entry's runtime graph
-    // (see docs/building-your-own-component.md §4). This is what makes that
-    // safe: the literal is checked here instead of in a consumer's build.
+    // The entry reads the version from `@sigx/zero/contract` (or writes the
+    // literal) — never from the kit, which would drag a devDependency into
+    // the data entry's runtime graph (docs/building-your-own-component.md
+    // §4). Either way it is checked here instead of in a consumer's build.
     if (pack.fragment.version !== FRAGMENT_VERSION) {
         error(
             `fragment declares version ${String(pack.fragment.version)} but this kit speaks ${FRAGMENT_VERSION}`

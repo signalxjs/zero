@@ -1070,14 +1070,15 @@ the architecture facts, briefly:
   nothing shipped that pairing.
 - **The authoring side has a gate of its own.** `sigx zero:fragment`, run in
   a component package, emits `dist/fragment.json` and checks what would
-  otherwise surface in an adopter's build: the `version` literal against
+  otherwise surface in an adopter's build: the declared `version` against
   `FRAGMENT_VERSION`, the schema, the merge, `"files"` coverage of the
   declared path, recipes confined to declared parts and scopes, the
   `componentExportName` root export, and a hostile-vocabulary probe (fitted
   to no colour roles and no size ramp, does the pack still compile — and
-  still paint). It is the reason the `version` literal is safe to
-  hand-write, and the reason the kit is a devDependency of every component
-  package.
+  still paint). It is why a fragment's `version` can come from zero's copy
+  of `FRAGMENT_VERSION` (`@sigx/zero/contract`, parity-tested against the
+  kit's) or a hand-written literal, and why the kit is a devDependency of
+  every component package.
 - **A diagnostic about someone else's recipe says so.** An adopted pack's
   recipes are compiled as the design system's own, which means its
   diagnostics are too. `ValidationIssue` carries a structured `scope`

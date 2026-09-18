@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added — `FRAGMENT_VERSION` on the contract, and types for `./css` (#66)
+
+- **`FRAGMENT_VERSION` is exported from `@sigx/zero/contract`** (and the
+  barrel). An ecosystem package's `./fragment` entry must load without
+  `@sigx/zero-kit` — a devDependency — so it had to hand-write the literal;
+  zero is its peer, and now carries the constant (parity-tested against the
+  kit's copy). `@sigx/zero-ext-example` reads it from here.
+- **`@sigx/zero/css` has a `types` condition** (`css/base.d.ts`, an empty
+  module). The specifier has no `.css` extension, so a bundler's `*.css`
+  ambient module never matched it and `noUncheckedSideEffectImports`
+  (TypeScript 6's default) rejected the import without an app-side shim.
+  The six skins' `./css`, `./css/tokens` and `./css/*` get the same.
+
 ### Fixed — a default-open non-modal Dialog/Drawer server-renders open (#38)
 
 - **`Dialog.Popup` and `Drawer.Panel` emit the native `open` attribute** when

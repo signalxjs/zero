@@ -19,12 +19,15 @@
 import type { ManifestComponent, ZeroManifest } from './contract.js';
 import {
     FLAG_VOCABULARY,
+    FRAGMENT_VERSION,
     PLACEMENT_VOCABULARY,
     LAYOUT_ATTR_NAMES,
     STATE_NAMES,
     STATE_SYNONYMS,
     TOKEN_KEY_PATTERN,
 } from './contract.js';
+
+export { FRAGMENT_VERSION };
 
 /**
  * The shape of a bare or scoped npm specifier, optionally with subpath
@@ -43,14 +46,6 @@ const PACKAGE_SPECIFIER_PATTERN = /^(@[a-z0-9~][\w.~-]*\/)?[a-z0-9~][\w.~-]*(\/[
  */
 const CSS_BREAKOUT = /[{};\n\r]/;
 
-/**
- * The version of the fragment CONTRACT this kit understands. A fragment
- * declares the version it was built against; the merge hard-errors on a
- * missing or unknown one, because an unversioned fragment merges whatever
- * contract era it came from — a pre-`hiddenIn` fragment used to slide
- * straight through (#317 item 5).
- */
-export const FRAGMENT_VERSION = 1;
 
 /** A model concept: a camelCase identifier (it becomes the stem of two prop names). */
 const MODEL_CONCEPT_PATTERN = /^[a-z][A-Za-z0-9]*$/;

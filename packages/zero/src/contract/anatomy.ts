@@ -186,6 +186,16 @@ export const defaultPropOf = (concept: string): string => `default${concept.char
 /** `open` → `openChange`: the change event of a model concept. */
 export const changeEventOf = (concept: string): string => `${concept}Change`;
 
+/**
+ * The version of the manifest-fragment contract — the `version` an ecosystem
+ * package's fragment (`{ version, package, components }`) declares. The kit's
+ * `mergeManifests` hard-errors on a missing or unknown one. Exported here as
+ * well as from the kit (parity-tested) because a `./fragment` entry must load
+ * without the kit, which is a devDependency: this module is the one place a
+ * fragment can read the constant from at runtime.
+ */
+export const FRAGMENT_VERSION = 1;
+
 export interface PartJSON extends PartSpec {
     name: string;
     /**

@@ -152,6 +152,8 @@ describe.each(BRIEFS)('scaffold --brief %s', (brief) => {
         const outDir = tempDir();
         await runStandardBuild({ designSystem, manifest, outDir, logger: silent });
         expect(existsSync(join(outDir, 'css', 'index.css'))).toBe(true);
+        // The `types` target of the package's `./css*` exports (#66).
+        expect(existsSync(join(outDir, 'css', 'index.d.ts'))).toBe(true);
         expect(existsSync(join(outDir, 'register.d.ts'))).toBe(true);
         expect(existsSync(join(outDir, 'manifest.json'))).toBe(true);
         expect(existsSync(join(outDir, 'lynx'))).toBe(false);

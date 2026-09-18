@@ -10,6 +10,13 @@
  * across package boundaries, and the JSX prop surface.
  */
 import '@sigx/zero-basic/register';
+// The stylesheet exports resolve for tsc too (#66): they are extensionless,
+// so no `*.css` ambient module matches them, and the base config turns on
+// `noUncheckedSideEffectImports` — each resolves to its declared empty module.
+import '@sigx/zero/css';
+import '@sigx/zero-basic/css';
+import '@sigx/zero-basic/css/tokens';
+import '@sigx/zero-basic/css/button';
 import { component } from 'sigx';
 import { Badge, Button, Collapsible, Select, Switch, Tabs } from '@sigx/zero';
 

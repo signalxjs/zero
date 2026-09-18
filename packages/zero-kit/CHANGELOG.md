@@ -13,6 +13,16 @@
   scope the base does not style throws, and so does `addRecipes` for a
   scope it does. An unmodified layout tier is regenerated from the derived
   tokens. Declared public hooks on skins are split out to #73.
+- **`FRAGMENT_VERSION` and `ManifestFragment` on `@sigx/zero-kit/define`**
+  (#66), the `node:`-free subpath, for an ecosystem package's authoring
+  code. Its `./fragment` runtime entry imports the constant from
+  `@sigx/zero/contract` instead (the kit is a devDependency there); the
+  kit's copy moved into the parity-tested `contract.ts`.
+- **`writeArtifacts` emits `dist/css/index.d.ts`** (#66) — an empty module,
+  the `types` target for a design system's extensionless stylesheet exports
+  (`./css`, `./css/tokens`, `./css/*`), which otherwise fail TypeScript's
+  side-effect-import check. The six skins and `create-zero-ds`'s
+  `package.json` template point at it.
 
 - **The `measure` token category, and the Container recipe** (#484).
   `SystemTokens.measure`, the `tokens.schema.json` entry (in both the system
