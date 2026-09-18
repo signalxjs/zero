@@ -20,10 +20,12 @@ import { attributeFindings, packagesByScope } from '../manifest.js';
 import type { AuditRuleId } from '../audit/index.js';
 import { compileDesignSystem } from '../design-system.js';
 import type { CommandEnv, LoadedInputs } from './shared.js';
-import { ecosystemOptionsFrom, loadInputs } from './shared.js';
+import { commandEntry, ecosystemOptionsFrom, loadInputs } from './shared.js';
 
 export interface AuditCommandOptions {
     entry: string;
+    /** An installed design system to check instead — its `./design-system` export. */
+    package?: string;
     manifest?: string;
     /** Ecosystem manifest fragments to merge into the base manifest. */
     extraManifest?: string[];
@@ -42,7 +44,7 @@ export interface AuditCommandOptions {
 export async function runAudit(env: CommandEnv, opts: AuditCommandOptions): Promise<void> {
     const inputs = await loadInputs(
         env,
-        opts.entry,
+        commandEntry(env.cwd, opts.entry, opts.package),
         opts.manifest,
         opts.extraManifest ?? [],
         ecosystemOptionsFrom(env, opts),

@@ -19,7 +19,7 @@ import { join } from 'node:path';
 import { parseArgs, ParseError } from '@sigx/args';
 import type { ArgsShape } from '@sigx/args';
 import plugin from '../src/plugin.js';
-import { loadManifest } from '../src/commands/shared.js';
+import { commandEntry, loadManifest, packageDesignSystemEntry } from '../src/commands/shared.js';
 
 /** A throwaway project directory; `detect` only ever reads from disk. */
 function projectDir(files: Record<string, string>): string {
@@ -182,6 +182,35 @@ describe('loadManifest diagnostics', () => {
         await expect(loadManifest(dir, '@sigx/nope/manifest.json')).rejects.toThrow(
             /cannot resolve the anatomy manifest "@sigx\/nope\/manifest\.json"/,
         );
+    });
+});
+
+describe('--package: an installed design system by name (#37)', () => {
+    // A consumer app — `@sigx/zero` plus a skin, no design system of its
+    // own — checks the one it uses without reaching into node_modules.
+    const installed = (exportsMap: Record<string, unknown>) => projectDir({
+        'package.json': pkg({ devDependencies: { '@acme/skin': '1.0.0', '@sigx/zero-kit': '*' } }),
+        'node_modules/@acme/skin/package.json': JSON.stringify({ name: '@acme/skin', exports: exportsMap }),
+    });
+
+    it.each(['zero:validate', 'zero:audit'])('%s takes --package, and leaves the entry default alone', (command) => {
+        const shape = shapeOf(command);
+        expect(parseArgs(['--package', '@acme/skin'], shape).args.package).toBe('@acme/skin');
+        expect(parseArgs([], shape).args.package).toBeUndefined();
+    });
+
+    it('resolves <package>/design-system through the exports map', () => {
+        const dir = installed({ './design-system': { types: './dist/design-system.d.ts', import: './dist/design-system.js' } });
+        const entry = join(dir, 'node_modules', '@acme', 'skin', 'dist', 'design-system.js');
+        expect(packageDesignSystemEntry(dir, '@acme/skin')).toBe(entry);
+        expect(commandEntry(dir, './dist/design-system.js', '@acme/skin')).toBe(entry);
+        expect(commandEntry(dir, './dist/design-system.js')).toBe('./dist/design-system.js');
+    });
+
+    it('names a package that is not installed, and one that exports no ./design-system', () => {
+        const dir = installed({ '.': './dist/index.js' });
+        expect(() => packageDesignSystemEntry(dir, '@acme/missing')).toThrow(/@acme\/missing is not installed/);
+        expect(() => packageDesignSystemEntry(dir, '@acme/skin')).toThrow(/exports no "\.\/design-system", so it cannot be validated/);
     });
 });
 

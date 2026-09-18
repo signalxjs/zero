@@ -527,10 +527,10 @@ CLI discovers it there and offers its commands in any directory that looks like
 a design-system package.
 
 ```
-sigx zero:validate [entry] [--manifest <path>] [--extra-manifest <path>]...
+sigx zero:validate [entry | --package <pkg>] [--manifest <path>] [--extra-manifest <path>]...
                    [--strict] [--report] [--report-json <path>] [--diff <path>]
                    [--log <path>]
-sigx zero:audit    [entry] [--manifest <path>] [--extra-manifest <path>]...
+sigx zero:audit    [entry | --package <pkg>] [--manifest <path>] [--extra-manifest <path>]...
                    [--strict] [--rule <id>]... [--json <path>]
 sigx zero:build    [entry] [--manifest <path>] [--extra-manifest <path>]...
                    [--out <dir>]
@@ -542,6 +542,23 @@ defaults to `@sigx/zero/manifest.json` resolved from the current directory, so
 the contract checked is the one the project ships; it takes either a path or a
 module specifier. `--strict` turns warnings into a failure — the flag to use in
 CI.
+
+**An app can check the design system it consumes.** `--package <pkg>` loads
+an installed design system's `./design-system` export (every shipped skin and
+every `create-zero-ds` scaffold has one) instead of a path, so the command
+reads "check the skin I use" rather than reaching into `node_modules`:
+
+```bash
+npm install -D @sigx/zero-kit @sigx/cli    # the validator; never enters the bundle
+npx sigx zero:validate --package @sigx/zero-daisyui --strict
+```
+
+The kit is still the dependency that turns the command on: the `sigx` CLI
+discovers plugins from a project's *direct* dependencies only, so there is
+nothing an app depending on `@sigx/zero` alone could activate — and the
+validator's own dependencies (ajv, culori) do not belong in the runtime
+package. Ecosystem discovery runs against the app's dependencies, so the
+check also covers the ecosystem components the app installs.
 
 `--extra-manifest` (repeatable, path or module specifier) merges an ecosystem
 **manifest fragment** into the base manifest instead of replacing it — how a

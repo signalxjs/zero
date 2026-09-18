@@ -10,16 +10,17 @@
  * `process.cwd()`, so a hosted shell can run a command for another directory.
  */
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { Logger } from '@sigx/cli/plugin';
 import type { ZeroManifest } from '../contract.js';
 import type { DesignSystemInput } from '../design-system.js';
 import type { ManifestFragment } from '../manifest.js';
 import { attributeFindings, mergeManifests, packagesByScope, whereWithOwner } from '../manifest.js';
 import type { EcosystemOptions, EcosystemPack } from '../discover.js';
-import { resolveEcosystem } from '../discover.js';
+import { exportedSubpath, installedPackageDir, resolveEcosystem } from '../discover.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import { validateDesignSystem } from '../resolve/validate.js';
 
@@ -122,6 +123,34 @@ export async function loadManifest(cwd: string, explicit?: string, extras: strin
     return fragments.length > 0
         ? mergeManifests(base.parsed as ZeroManifest, ...fragments)
         : base.parsed as ZeroManifest;
+}
+
+/**
+ * An installed design system's compiled input, by package name — its
+ * `./design-system` export, read from the exports map rather than through
+ * `require.resolve`, which asks for the `require` condition an ESM package
+ * does not declare (`discover.ts` records that dead end at length). What
+ * `--package` resolves, so a consumer app checks the design system it USES
+ * without reaching into `node_modules` layout; `zero:extend` finds its input
+ * the same way. `what` finishes the "cannot be …" sentence of the error.
+ */
+export function packageDesignSystemEntry(cwd: string, name: string, what = 'validated'): string {
+    const dir = installedPackageDir(cwd, name);
+    if (!dir) throw new Error(`[zero-kit] ${name} is not installed in ${cwd}`);
+    const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as Record<string, unknown>;
+    const subpath = exportedSubpath(pkg, './design-system');
+    if (!subpath) {
+        throw new Error(
+            `[zero-kit] ${name} exports no "./design-system", so it cannot be ${what} —`
+            + ' it needs @sigx/zero-kit 0.3 or newer',
+        );
+    }
+    return resolve(dir, subpath);
+}
+
+/** The entry a command loads: `--package`'s export when given, else the path. */
+export function commandEntry(cwd: string, entry: string, pkg?: string): string {
+    return pkg ? packageDesignSystemEntry(cwd, pkg) : entry;
 }
 
 export async function loadDesignSystem(cwd: string, entry: string): Promise<DesignSystemInput> {

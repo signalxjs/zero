@@ -39,7 +39,7 @@ import { attributeFindings, packagesByScope, whereWithOwner } from '../manifest.
 import { compileRegisterDts, compileRegisterJs } from '../targets/web/register-dts.js';
 import { validateDesignSystem } from '../resolve/validate.js';
 import type { CommandEnv } from './shared.js';
-import { loadManifest } from './shared.js';
+import { loadManifest, packageDesignSystemEntry } from './shared.js';
 
 export interface ExtendCommandOptions {
     /** The installed design system to extend, by package name. */
@@ -73,22 +73,10 @@ export function extendedCss(
 }
 
 export async function runExtend(env: CommandEnv, opts: ExtendCommandOptions): Promise<void> {
-    const dsDir = installedPackageDir(env.cwd, opts.ds);
-    if (!dsDir) throw new Error(`[zero-kit] ${opts.ds} is not installed in ${env.cwd}`);
+    // The design system's own compiled input, through its public export.
+    const entry = packageDesignSystemEntry(env.cwd, opts.ds, 'extended');
+    const dsDir = installedPackageDir(env.cwd, opts.ds)!;
     const dsPkg = JSON.parse(readFileSync(join(dsDir, 'package.json'), 'utf8')) as Record<string, unknown>;
-
-    // The design system's own compiled input, through its public export —
-    // resolved by reading the exports map rather than with `require.resolve`,
-    // which asks for the `require` condition an ESM package does not declare
-    // (`discover.ts` records that dead end at length).
-    const subpath = exportedSubpath(dsPkg, './design-system');
-    if (!subpath) {
-        throw new Error(
-            `[zero-kit] ${opts.ds} exports no "./design-system", so it cannot be extended —`
-            + ' it needs @sigx/zero-kit 0.3 or newer',
-        );
-    }
-    const entry = resolve(dsDir, subpath);
     const mod = (await import(pathToFileURL(entry).href)) as Record<string, unknown>;
     const designSystem = (mod['designSystem'] ?? mod['default']) as DesignSystemInput | undefined;
     if (!designSystem?.name || !designSystem.tokens) {
