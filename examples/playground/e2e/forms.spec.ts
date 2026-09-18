@@ -40,7 +40,7 @@ test('a real FormData carries every control, omits the disabled one, includes fo
     await pickBanana(page);
     await submit(page).click();
     await expect(posted(page)).not.toHaveText('—');
-    const data = JSON.parse((await posted(page).textContent())!) as Record<string, string>;
+    const data = JSON.parse((await posted(page).textContent())!) as Record<string, string | string[]>;
     expect(data).toMatchObject({
         'form-fruit': 'banana',
         'form-email': 'me@example.com',
@@ -50,6 +50,9 @@ test('a real FormData carries every control, omits the disabled one, includes fo
         'form-stars': '3',
         'form-volume': '40',
         'form-outside': 'associated',
+        // ToggleGroup (#53): one field in single mode, repeated under multiple.
+        'form-layout': 'grid',
+        'form-marks': 'bold',
     });
     // Unchecked and disabled controls never post.
     expect(data).not.toHaveProperty('form-terms');
@@ -57,6 +60,26 @@ test('a real FormData carries every control, omits the disabled one, includes fo
     // An unnamed RadioGroup keeps a generated grouping name for arrow-key
     // roving but is owned by no form (form=""), so nothing posts under it.
     expect(Object.keys(data).filter((k) => k.startsWith('zx-'))).toEqual([]);
+});
+
+test('a multiple ToggleGroup posts a repeated field per pressed value; reset restores it', async ({ page }) => {
+    const marks = demoPosting(page, 'toggle-group', 'form-marks');
+    const layout = demoPosting(page, 'toggle-group', 'form-layout');
+    await pickBanana(page);
+    await marks('item').nth(1).click();
+    await layout('item').nth(0).click();
+    await submit(page).click();
+    await expect(posted(page)).not.toHaveText('—');
+    const data = JSON.parse((await posted(page).textContent())!) as Record<string, string | string[]>;
+    expect(data['form-marks']).toEqual(['bold', 'italic']);
+    expect(data['form-layout']).toBe('list');
+
+    await reset(page).click();
+    await expect(marks('item').nth(1)).toHaveAttribute('data-state', 'off');
+    await expect(layout('item').nth(1)).toHaveAttribute('data-state', 'on');
+    await pickBanana(page);
+    await submit(page).click();
+    await expect.poll(async () => JSON.parse((await posted(page).textContent())!)['form-marks']).toBe('bold');
 });
 
 test('reset restores every default the user can see, styled parts included', async ({ page }) => {

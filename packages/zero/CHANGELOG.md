@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added — ToggleGroup posts to forms (#53)
+
+- **`ToggleGroup.Root` takes the form contract** (`name`, `form`,
+  `disabled`, `invalid`, `required` — `WithFormControl`) and answers to a
+  `Field.Root` for all of them. With a `name` it renders a new
+  `hidden-input` part — a real, visually-hidden `<select>`, Select's regime —
+  so a segmented control in a `<form>` posts before hydration: one field in
+  single mode, a repeated field per pressed value under `multiple`.
+  `required` is a platform constraint (the invalid focus lands on the
+  group's tab stop), a disabled group never posts, `form="id"` associates it
+  from outside, and the owning form's `reset()` restores `defaultValue`.
+- **Anatomy:** `toggle-group` gains the `hidden-input` part (`element:
+  'select'`, rendered only while `name` is set), the root gains the
+  `invalid` and `required` flags, and the value model is marked
+  `formControl`. Inside a `Field.Root` the group is named by the field's
+  label (`aria-labelledby`) unless `label` is given.
+
 ### Added — `FRAGMENT_VERSION` on the contract, and types for `./css` (#66)
 
 - **`FRAGMENT_VERSION` is exported from `@sigx/zero/contract`** (and the

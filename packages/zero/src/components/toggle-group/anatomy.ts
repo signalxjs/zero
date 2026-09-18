@@ -9,11 +9,15 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * on-state as a presence flag for compound selectors
  * (`[data-part="item"][data-selected]` composes with other flags where a
  * `data-state` match cannot).
+ *
+ * `hidden-input` is Select's: a real, visually-hidden `<select>` holding the
+ * pressed values, rendered only while the root carries a `name` — one field
+ * in single mode, repeated fields under `multiple`.
  */
 export const toggleGroupAnatomy = defineAnatomy('toggle-group', {
     root: {
         element: 'div',
-        flags: ['disabled'],
+        flags: ['disabled', 'invalid', 'required'],
         tokens: ['color', 'radius-field', 'size'],
     },
     item: {
@@ -24,9 +28,13 @@ export const toggleGroupAnatomy = defineAnatomy('toggle-group', {
         tokens: ['color', 'text'],
         asChild: true,
     },
+    'hidden-input': {
+        element: 'select',
+        parent: 'root',
+    },
 }, {
     orientation: true,
     models: [
-        { concept: 'value', type: 'string', multiple: true },
+        { concept: 'value', type: 'string', multiple: true, formControl: true },
     ],
 });

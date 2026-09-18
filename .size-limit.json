@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "38.4 kB",
+        "limit": "38.7 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -144,7 +144,7 @@
     {
         "name": "@sigx/zero/toggle-group",
         "path": "packages/zero/dist/components/toggle-group/index.js",
-        "limit": "3.5 kB",
+        "limit": "4.6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

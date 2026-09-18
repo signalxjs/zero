@@ -80,9 +80,11 @@ the string a native radio group posts.
 of them. A control posts only while it carries a `name`; a disabled control
 never posts; `form="id"` associates it from outside the form's subtree; and
 the owning form's `reset()` restores the component default into the model
-and the DOM. Select and Combobox post through a real, visually-hidden
-`<select>`, so `required` is a platform constraint (the invalid focus lands
-on the trigger / input) rather than an `aria-required` hint. The runtime
+and the DOM. Select, Combobox and ToggleGroup post through a real,
+visually-hidden `<select>` — one field in single mode, a repeated field per
+value under `multiple` — so `required` is a platform constraint (the invalid
+focus lands on the trigger / input / the group's tab stop) rather than an
+`aria-required` hint. The runtime
 half is `createFormControl` + `onFormReset` (`@sigx/zero/behaviors`), the
 one `VISUALLY_HIDDEN_STYLE` beside them.
 Native-platform first: `<dialog>` +

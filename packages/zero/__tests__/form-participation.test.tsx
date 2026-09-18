@@ -19,7 +19,7 @@ import { signal } from 'sigx';
 import type { JSXElement } from 'sigx';
 import {
     Checkbox, Combobox, FileUpload, Input, NumberInput,
-    RadioGroup, RatingGroup, Select, Slider, Switch, Textarea,
+    RadioGroup, RatingGroup, Select, Slider, Switch, Textarea, ToggleGroup,
 } from '@sigx/zero';
 
 interface MountOpts {
@@ -160,6 +160,20 @@ const rows: Row[] = [
         committed: 'banana',
         defaultEntry: 'apple',
         model: { initial: 'apple', committed: 'banana' },
+        validates: true,
+    },
+    {
+        scope: 'toggle-group',
+        mount: (o) => (
+            <ToggleGroup.Root name={o.name} form={o.form} disabled={o.disabled} required={o.required} defaultValue={o.withDefault ? 'left' : undefined} model={o.model as never}>
+                <ToggleGroup.Item value="left">Left</ToggleGroup.Item>
+                <ToggleGroup.Item value="right">Right</ToggleGroup.Item>
+            </ToggleGroup.Root>
+        ),
+        commit: (root) => { root.querySelectorAll<HTMLElement>('[data-scope="toggle-group"][data-part="item"]')[1]!.click(); },
+        committed: 'right',
+        defaultEntry: 'left',
+        model: { initial: 'left', committed: 'right' },
         validates: true,
     },
     {
@@ -361,6 +375,43 @@ describe('the hidden select is a real form control', () => {
         );
         expect(form.checkValidity()).toBe(false);
         expect(document.activeElement).toBe(q(form, '[data-scope="combobox"][data-part="input"]'));
+    });
+
+    it('ToggleGroup: the platform invalid event lands focus on the group\'s tab stop', () => {
+        const form = mountForm(
+            <ToggleGroup.Root name="align" required>
+                <ToggleGroup.Item value="left" disabled>Left</ToggleGroup.Item>
+                <ToggleGroup.Item value="right">Right</ToggleGroup.Item>
+            </ToggleGroup.Root>,
+        );
+        const hidden = q<HTMLSelectElement>(form, '[data-scope="toggle-group"][data-part="hidden-input"]');
+        expect(hidden.tagName).toBe('SELECT');
+        expect(form.checkValidity()).toBe(false);
+        expect(document.activeElement).toBe(form.querySelectorAll('[data-scope="toggle-group"][data-part="item"]')[1]);
+    });
+
+    it('ToggleGroup multiple: one selected option per pressed value, reset restores the default', async () => {
+        // happy-dom's FormData reads a <select> by `value` alone, so the
+        // repeated entries are asserted on the options here; the forms e2e
+        // spec reads them from a real FormData in three engines.
+        const state = signal({ v: ['bold'] as string[] });
+        const form = mountForm(
+            <ToggleGroup.Root multiple name="marks" defaultValue={['bold']} model={[state, 'v']}>
+                <ToggleGroup.Item value="bold">Bold</ToggleGroup.Item>
+                <ToggleGroup.Item value="italic">Italic</ToggleGroup.Item>
+            </ToggleGroup.Root>,
+        );
+        const hidden = q<HTMLSelectElement>(form, '[data-scope="toggle-group"][data-part="hidden-input"]');
+        const posted = (): string[] => Array.from(hidden.selectedOptions).map((o) => o.value);
+        expect(hidden.multiple).toBe(true);
+        expect(posted()).toEqual(['bold']);
+        form.querySelectorAll<HTMLElement>('[data-scope="toggle-group"][data-part="item"]')[1]!.click();
+        expect(posted()).toEqual(['bold', 'italic']);
+        form.reset();
+        await tick();
+        expect(state.v).toEqual(['bold']);
+        await Promise.resolve();
+        expect(posted()).toEqual(['bold']);
     });
 
     it('renders no hidden control without a name', () => {

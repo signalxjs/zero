@@ -50,9 +50,13 @@ function page() {
                     <Select.Item value="dog">Dog</Select.Item>
                 </Select.Popup>
             </Select.Root>
-            <ToggleGroup.Root defaultValue="b">
+            <ToggleGroup.Root defaultValue="b" name="align">
                 <ToggleGroup.Item value="a">A</ToggleGroup.Item>
                 <ToggleGroup.Item value="b">B</ToggleGroup.Item>
+            </ToggleGroup.Root>
+            <ToggleGroup.Root multiple defaultValue={['x', 'y']} name="marks">
+                <ToggleGroup.Item value="x">X</ToggleGroup.Item>
+                <ToggleGroup.Item value="y">Y</ToggleGroup.Item>
             </ToggleGroup.Root>
             <NumberInput.Root name="qty" defaultValue={3} min={0} max={9}>
                 <NumberInput.Label>Qty</NumberInput.Label>
@@ -284,6 +288,10 @@ describe('SSR', () => {
         // model (registration order stands in for DOM order).
         expect(html).toMatch(/data-scope="toggle-group"[^>]*data-part="item"[^>]*data-state="off"[^>]*tabindex="-1"/i);
         expect(html).toMatch(/data-scope="toggle-group"[^>]*data-part="item"[^>]*data-state="on"[^>]*tabindex="0"/i);
+        // …and posts pre-hydration like Select (#53): one field in single
+        // mode, a selected option per pressed value under `multiple`.
+        expect(html).toMatch(/<select[^>]*data-scope="toggle-group"[^>]*data-part="hidden-input"[^>]*name="align"[^>]*>[\s\S]*?<option value="b"[^>]*selected/);
+        expect(html).toMatch(/<select[^>]*data-scope="toggle-group"[^>]*data-part="hidden-input"[^>]*name="marks"[^>]*multiple[^>]*>[\s\S]*?<option value="x"[^>]*selected[\s\S]*?<option value="y"[^>]*selected/);
         // The number input posts pre-hydration and renders the committed value.
         expect(html).toMatch(/data-scope="number-input"[^>]*data-part="hidden-input"[^>]*value="3"/);
         // The draft binds with model= (#455): the server emits the resting value.
