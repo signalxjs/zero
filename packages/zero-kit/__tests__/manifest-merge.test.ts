@@ -161,6 +161,16 @@ describe('mergeManifests', () => {
             .toThrow(/state "levitating"/);
     });
 
+    it('accepts a job lifecycle from the loading + lifecycle families, and names the lifecycle synonyms (#42)', () => {
+        // A tool-call card: waiting, executing, held, refused, stopped, done, failed.
+        const card = withPart({ states: ['loading', 'running', 'paused', 'denied', 'cancelled', 'complete', 'error'] });
+        expect(() => mergeManifests(baseManifest(), card)).not.toThrow();
+        expect(() => mergeManifests(baseManifest(), withPart({ states: ['suspended'] })))
+            .toThrow(/state "suspended".*use "paused"/s);
+        expect(() => mergeManifests(baseManifest(), withPart({ states: ['rejected'] })))
+            .toThrow(/state "rejected".*use "denied"/s);
+    });
+
     it('rejects a fragment placement outside the placement vocabulary', () => {
         expect(() => mergeManifests(baseManifest(), withPart({ placements: ['center'] })))
             .toThrow(/placement "center"/);

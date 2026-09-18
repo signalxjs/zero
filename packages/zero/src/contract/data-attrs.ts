@@ -93,6 +93,18 @@ export const STATE_VOCABULARY = {
     loading: ['loading', 'loaded', 'complete', 'error'],
     /** Graded fill — the rating star. */
     fill: ['full', 'half', 'empty'],
+    /**
+     * Work in flight — a job, a tool call, a deploy (#42). The phases the
+     * loading family cannot say: work that is executing (`running`, not
+     * `active`, which is one-of-many activation), held (`paused`), refused
+     * before it ran (`denied`), or stopped before it finished
+     * (`cancelled`). The wait before work starts stays `loading`, and the
+     * outcomes stay `complete` / `error`, so a job's lifecycle is the two
+     * families together. None of these is `closed`: that is disclosure.
+     * `running` and `paused` are the platform's own spellings
+     * (`animation-play-state`).
+     */
+    lifecycle: ['running', 'paused', 'denied', 'cancelled'],
 } as const;
 
 /** Every governed `data-state` value, flat — the membership check's set. */
@@ -124,6 +136,15 @@ export const STATE_SYNONYMS: Record<string, string> = {
     finished: 'complete',
     failed: 'error',
     errored: 'error',
+    'in-progress': 'running',
+    executing: 'running',
+    started: 'running',
+    suspended: 'paused',
+    rejected: 'denied',
+    refused: 'denied',
+    declined: 'denied',
+    canceled: 'cancelled',
+    aborted: 'cancelled',
 };
 
 /**

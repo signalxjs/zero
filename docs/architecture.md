@@ -90,15 +90,19 @@ anatomy's `states` must be a member, and a new state value is a contract
 change there first. The vocabulary is grouped into families — presence
 (`open|closed`), selection (`checked|unchecked|indeterminate`), activation
 (`active|inactive`), toggle (`on|off`), loading
-(`loading|loaded|complete|error`), fill (`full|half|empty`) — but the
-families are documentation, not a per-part constraint: membership is checked
-against the union, so progress may legitimately mix `loading|complete` with
-`indeterminate`. A companion `STATE_SYNONYMS` table maps the spellings the
-vocabulary deliberately does *not* contain (`expanded → open`,
-`mixed → indeterminate`, `busy → loading`, …) to the member that means the
-same thing — purely diagnostic, so a governance failure is actionable rather
-than a scavenger hunt. The table is mirrored in zero-kit (parity-tested) so
-`mergeManifests` says the same thing to ecosystem fragments.
+(`loading|loaded|complete|error`), fill (`full|half|empty`), lifecycle
+(`running|paused|denied|cancelled`, #42 — work in flight: a job, tool call
+or deploy says `running` rather than borrowing `active`, and a refusal is
+`denied` rather than `closed`) — but the families are documentation, not a
+per-part constraint: membership is checked against the union, so progress
+may legitimately mix `loading|complete` with `indeterminate`, and a job's
+full lifecycle is `loading` + lifecycle + `complete|error`. A companion
+`STATE_SYNONYMS` table maps the spellings the vocabulary deliberately does
+*not* contain (`expanded → open`, `mixed → indeterminate`, `busy → loading`,
+`suspended → paused`, …) to the member that means the same thing — purely
+diagnostic, so a governance failure is actionable rather than a scavenger
+hunt. The table is mirrored in zero-kit (parity-tested) so `mergeManifests`
+says the same thing to ecosystem fragments.
 
 **Flags are a closed shared vocabulary.** `FLAG_VOCABULARY`: `disabled`,
 `highlighted`, `selected`, `invalid`, `required`, `readonly`, `placeholder`,

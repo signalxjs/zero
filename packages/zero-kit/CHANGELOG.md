@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added — the lifecycle state family (#42)
+
+- The kit's `STATE_VOCABULARY` / `STATE_SYNONYMS` mirror zero's new
+  lifecycle family (`running|paused|denied|cancelled`) and its synonyms.
+  Ecosystem fragments that declare these states now pass `mergeManifests`,
+  and the emitted `manifest.json` carries the family under
+  `attributeSpec.stateVocabulary`.
+
 ### Changed — Combobox tags (#39)
 
 - `RESERVED_PROPS_BY_SCOPE.combobox` gains `allowCustom`. The
