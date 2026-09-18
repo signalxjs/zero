@@ -16,7 +16,7 @@ export const row = <Table.Row data-row-id="r1" aria-rowindex={2}><Table.Cell col
 export const header = <Table.HeaderCell colSpan={2} id="h">H</Table.HeaderCell>;
 export const region = <Card.Root role="region" aria-labelledby="t"><Card.Title id="t">Title</Card.Title></Card.Root>;
 // The roll-out (#74): every part, asChild bags included.
-export const badge = <Badge asChild id="b" title="Unread" data-testid="b">{(bag: object) => <a {...bag}>3</a>}</Badge>;
+export const badge = <Badge asChild id="b" title="Unread" data-testid="b">{(bag: Record<string, unknown>) => <a {...bag}>3</a>}</Badge>;
 export const layout = <Stack.Root role="list" id="s"><Stack.Item role="listitem" data-row-id={1}>x</Stack.Item></Stack.Root>;
 export const alert = <Alert.Root id="quota" title="Quota"><Alert.Close aria-label="Dismiss" /></Alert.Root>;
 export const labelled2 = <Progress.Root aria-labelledby="h" id="p"><Progress.Label title="Upload">Upload</Progress.Label></Progress.Root>;
