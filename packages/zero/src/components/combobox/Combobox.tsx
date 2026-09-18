@@ -482,7 +482,10 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             if (textEl === el && el.ownerDocument.activeElement === el) el.setSelectionRange(next.caret, next.caret);
         });
         syncToken(true);
-        emit('insert', { value: collection.valueForKey(key), label, text } as never);
+        // The implementation's `M` is `unknown`, so the payload's value type
+        // is `NonNullable<unknown>`; only that field is asserted, the shape
+        // stays checked.
+        emit('insert', { value: collection.valueForKey(key) as NonNullable<unknown>, label, text });
     };
 
     const triggerKeydown = (e: KeyboardEvent): boolean => {
