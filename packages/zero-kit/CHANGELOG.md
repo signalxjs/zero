@@ -71,6 +71,12 @@
   `data-color` no longer wires every role to keep the guards quiet.
   `packFromModule` (and so `sigx zero:fragment`) refuses a foreign scope,
   an unknown key or a non-empty list.
+- **`sigx zero:validate --package <pkg>` / `zero:audit --package <pkg>`**
+  (#37). A consumer app checks the design system it uses by name — the
+  installed package's `./design-system` export, resolved through its exports
+  map like `zero:extend --ds` (which now shares the helper) — instead of a
+  path into `node_modules`. The kit stays the devDependency that enables
+  the command: the `sigx` CLI loads plugins from direct dependencies only.
 
 - **`extendDesignSystem` and `extendRecipe`: derive a design system from
   another** (#60). On `/define` and the barrel. A derived system patches

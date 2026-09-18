@@ -18,10 +18,19 @@ import { join } from 'node:path';
 import { a, definePlugin } from '@sigx/cli/plugin';
 
 /** Shared flag declarations — identical across the three commands. */
+// Mirrors `DEFAULT_ENTRY` in commands/shared.ts, which this module cannot
+// import eagerly (commands load lazily); a test holds the two equal.
 const entryArg = a
     .positional()
     .default('./dist/design-system.js')
     .describe('Compiled ES module exporting `designSystem` (or default)');
+
+// A consumer app checks the design system it USES by name, rather than
+// reaching into `node_modules` for its compiled entry (#37).
+const packageArg = a
+    .string()
+    .valueHint('package')
+    .describe('Check an installed design system instead of <entry> — resolves <package>/design-system');
 
 const manifestArg = a
     .string()
@@ -114,6 +123,7 @@ export default definePlugin({
             aliases: ['validate'],
             args: {
                 entry: entryArg,
+                package: packageArg,
                 manifest: manifestArg,
                 extraManifest: extraManifestArg,
                 ecosystem: ecosystemArg,
@@ -143,6 +153,7 @@ export default definePlugin({
                 const { runValidate } = await import('./commands/validate.js');
                 await runValidate(ctx, {
                     entry: ctx.args.entry,
+                    package: ctx.args.package,
                     manifest: ctx.args.manifest,
                     extraManifest: ctx.args.extraManifest,
                     ecosystem: ctx.args.ecosystem,
@@ -204,6 +215,7 @@ export default definePlugin({
             aliases: ['audit'],
             args: {
                 entry: entryArg,
+                package: packageArg,
                 manifest: manifestArg,
                 extraManifest: extraManifestArg,
                 ecosystem: ecosystemArg,
@@ -224,6 +236,7 @@ export default definePlugin({
                 const { runAudit } = await import('./commands/audit.js');
                 await runAudit(ctx, {
                     entry: ctx.args.entry,
+                    package: ctx.args.package,
                     manifest: ctx.args.manifest,
                     extraManifest: ctx.args.extraManifest,
                     ecosystem: ctx.args.ecosystem,

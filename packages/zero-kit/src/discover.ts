@@ -260,11 +260,40 @@ export function installedPackageDir(fromDir: string, name: string): string | und
  *
  * `undefined` means the subpath is not exported, which is a fact worth
  * reporting rather than papering over: a consumer cannot reach it either.
+ *
+ * Resolving by hand means enforcing by hand what Node's resolver would: a
+ * target is package-relative (`./…`) and has no `.`, `..` or
+ * `node_modules` segment after it — nor a `:` anywhere, which on Windows
+ * lets `./C:/…` name another drive — so a package.json cannot point a
+ * caller that imports the result outside its own directory. Such a target throws,
+ * as Node's `ERR_INVALID_PACKAGE_TARGET` does.
  */
 export function exportedSubpath(pkg: Record<string, unknown>, subpath: string): string | undefined {
+    const target = exportTarget(pkg, subpath);
+    if (target === undefined) return undefined;
+    const segments = target.split(/[\\/]/).slice(1);
+    const escapes = (s: string): boolean =>
+        s === '' || s === '.' || s === '..' || s.toLowerCase() === 'node_modules' || s.includes(':');
+    if (!target.startsWith('./') || segments.some(escapes)) {
+        throw new Error(
+            `[zero-kit] ${String(pkg['name'] ?? 'a package')} exports "${subpath}" as "${target}", which is not a path inside the package`,
+        );
+    }
+    return target;
+}
+
+function exportTarget(pkg: Record<string, unknown>, subpath: string): string | undefined {
     const resolveCondition = (value: unknown): string | undefined => {
         if (typeof value === 'string') return value;
-        if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+        // A fallback array: the first entry that resolves, as Node takes it.
+        if (Array.isArray(value)) {
+            for (const entry of value) {
+                const found = resolveCondition(entry);
+                if (found) return found;
+            }
+            return undefined;
+        }
+        if (typeof value !== 'object' || value === null) return undefined;
         const conditions = value as Record<string, unknown>;
         for (const key of ['import', 'node', 'default']) {
             const found = resolveCondition(conditions[key]);
@@ -276,7 +305,8 @@ export function exportedSubpath(pkg: Record<string, unknown>, subpath: string): 
     const exports = pkg['exports'];
     // A bare string, or a bare conditions object, IS the root and nothing else.
     if (typeof exports === 'string') return subpath === '.' ? exports : undefined;
-    if (typeof exports !== 'object' || exports === null || Array.isArray(exports)) return undefined;
+    if (Array.isArray(exports)) return subpath === '.' ? resolveCondition(exports) : undefined;
+    if (typeof exports !== 'object' || exports === null) return undefined;
 
     const map = exports as Record<string, unknown>;
     const isSubpathMap = Object.keys(map).some((key) => key.startsWith('.'));

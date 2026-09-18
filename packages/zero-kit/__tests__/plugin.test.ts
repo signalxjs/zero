@@ -19,7 +19,7 @@ import { join } from 'node:path';
 import { parseArgs, ParseError } from '@sigx/args';
 import type { ArgsShape } from '@sigx/args';
 import plugin from '../src/plugin.js';
-import { loadManifest } from '../src/commands/shared.js';
+import { DEFAULT_ENTRY, commandEntry, loadManifest, packageDesignSystemEntry } from '../src/commands/shared.js';
 
 /** A throwaway project directory; `detect` only ever reads from disk. */
 function projectDir(files: Record<string, string>): string {
@@ -182,6 +182,53 @@ describe('loadManifest diagnostics', () => {
         await expect(loadManifest(dir, '@sigx/nope/manifest.json')).rejects.toThrow(
             /cannot resolve the anatomy manifest "@sigx\/nope\/manifest\.json"/,
         );
+    });
+});
+
+describe('--package: an installed design system by name (#37)', () => {
+    // A consumer app — `@sigx/zero` plus a skin, no design system of its
+    // own — checks the one it uses without reaching into node_modules.
+    const installed = (exportsMap: Record<string, unknown>) => projectDir({
+        'package.json': pkg({ devDependencies: { '@acme/skin': '1.0.0', '@sigx/zero-kit': '*' } }),
+        'node_modules/@acme/skin/package.json': JSON.stringify({ name: '@acme/skin', exports: exportsMap }),
+    });
+
+    it.each(['zero:validate', 'zero:audit'])('%s takes --package, and leaves the entry default alone', (command) => {
+        const shape = shapeOf(command);
+        expect(parseArgs(['--package', '@acme/skin'], shape).args.package).toBe('@acme/skin');
+        expect(parseArgs([], shape).args.package).toBeUndefined();
+        // `commandEntry` tells "no entry given" by this default.
+        expect(parseArgs([], shape).args.entry).toBe(DEFAULT_ENTRY);
+    });
+
+    it('resolves <package>/design-system through the exports map', () => {
+        const dir = installed({ './design-system': { types: './dist/design-system.d.ts', import: './dist/design-system.js' } });
+        const entry = join(dir, 'node_modules', '@acme', 'skin', 'dist', 'design-system.js');
+        expect(packageDesignSystemEntry(dir, '@acme/skin')).toBe(entry);
+        expect(commandEntry(dir, './dist/design-system.js', '@acme/skin', 'validated')).toBe(entry);
+        expect(commandEntry(dir, './dist/design-system.js', undefined, 'validated')).toBe('./dist/design-system.js');
+    });
+
+    it('names a package that is not installed, and one that exports no ./design-system', () => {
+        const dir = installed({ '.': './dist/index.js' });
+        expect(() => packageDesignSystemEntry(dir, '@acme/missing')).toThrow(/@acme\/missing is not installed/);
+        expect(() => packageDesignSystemEntry(dir, '@acme/skin')).toThrow(/exports no "\.\/design-system", so it cannot be validated/);
+        // The error speaks the running command's verb, and names the fix.
+        expect(() => commandEntry(dir, DEFAULT_ENTRY, '@acme/skin', 'audited'))
+            .toThrow(/so it cannot be audited — upgrade @acme\/skin to a version that exports it/);
+    });
+
+    it('refuses an entry and --package together rather than ignoring one', () => {
+        const dir = installed({ './design-system': './dist/design-system.js' });
+        expect(() => commandEntry(dir, './mine.js', '@acme/skin', 'validated')).toThrow(/an entry or --package, not both/);
+    });
+
+    it('refuses an export target that leaves the package, as Node would', () => {
+        // Resolved by hand, so Node's ERR_INVALID_PACKAGE_TARGET is enforced here.
+        for (const target of ['../evil.js', './dist/../../evil.js', 'dist/design-system.js', './node_modules/x/ds.js', './C:/evil.js']) {
+            const dir = installed({ './design-system': { import: target } });
+            expect(() => packageDesignSystemEntry(dir, '@acme/skin'), target).toThrow(/is not a path inside the package/);
+        }
     });
 });
 

@@ -11,11 +11,13 @@ import { auditDesignSystem } from '../audit/index.js';
 import { iterationEntryFrom } from '../resolve/iteration.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import type { CommandEnv } from './shared.js';
-import { ecosystemOptionsFrom, loadInputs } from './shared.js';
+import { commandEntry, ecosystemOptionsFrom, loadInputs } from './shared.js';
 import { recordIteration, resolveIterationLogPath } from './iteration-log.js';
 
 export interface ValidateOptions {
     entry: string;
+    /** An installed design system to check instead — its `./design-system` export. */
+    package?: string;
     manifest?: string;
     /** Ecosystem manifest fragments to merge into the base manifest. */
     extraManifest?: string[];
@@ -120,7 +122,7 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
 
     const { ds, manifest, result } = await loadInputs(
         env,
-        opts.entry,
+        commandEntry(env.cwd, opts.entry, opts.package, 'validated'),
         opts.manifest,
         opts.extraManifest ?? [],
         ecosystemOptionsFrom(env, opts),
