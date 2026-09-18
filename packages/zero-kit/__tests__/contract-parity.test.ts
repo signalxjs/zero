@@ -81,6 +81,9 @@ const SHARED: Record<string, [unknown, unknown]> = {
     LAYOUT_VOCABULARY: [zero.LAYOUT_VOCABULARY, kit.LAYOUT_VOCABULARY],
     LAYOUT_ATTR_NAMES: [[...zero.LAYOUT_ATTR_NAMES].sort(), [...kit.LAYOUT_ATTR_NAMES].sort()],
     SPACE_STEPS: [zero.SPACE_STEPS, kit.SPACE_STEPS],
+    // The fragment contract version: the kit's merge checks it, zero's copy
+    // is what a fragment's runtime entry imports (the kit is a devDep there).
+    FRAGMENT_VERSION: [zero.FRAGMENT_VERSION, kit.FRAGMENT_VERSION],
 };
 
 /**

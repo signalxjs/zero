@@ -29,9 +29,12 @@ export function renderPackageJson(ctx: RenderContext): string {
         // this design system once it is published.
         './design-system': { types: './dist/design-system.d.ts', import: './dist/design-system.js' },
         './register': { types: './dist/register.d.ts', import: './dist/register.js' },
-        './css': './dist/css/index.css',
-        './css/tokens': './dist/css/tokens.css',
-        './css/*': './dist/css/components/*.css',
+        // Extensionless stylesheet exports carry the empty declaration the
+        // kit writes, or `import '<pkg>/css'` fails TypeScript's side-effect
+        // import check.
+        './css': { types: './dist/css/index.d.ts', default: './dist/css/index.css' },
+        './css/tokens': { types: './dist/css/index.d.ts', default: './dist/css/tokens.css' },
+        './css/*': { types: './dist/css/index.d.ts', default: './dist/css/components/*.css' },
         './manifest.json': './dist/manifest.json',
         './report.json': './dist/report.json',
     };

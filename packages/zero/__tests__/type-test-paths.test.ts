@@ -37,12 +37,17 @@ const paths = baseConfig.compilerOptions.paths;
 // (type-tests/tsconfig.base.json has no baseUrl).
 const candidateRoot = join(pkgRoot, 'type-tests');
 
-/** TS subpath exports: everything whose `types` target is a declaration file. */
+/**
+ * TS subpath exports: everything whose `types` target is an emitted
+ * declaration file. `./css` is excluded by that test: its `types` is the
+ * static empty module beside the stylesheet (`css/base.d.ts`), which has no
+ * source twin to map.
+ */
 const typedSubpaths = Object.entries(exportsMap)
     .filter((entry): entry is [string, { types: string }] =>
         typeof entry[1] === 'object' && typeof entry[1].types === 'string')
     .map(([key, value]) => ({ key, types: value.types }))
-    .filter(({ key }) => key !== '.');
+    .filter(({ key, types }) => key !== '.' && types.startsWith('./dist/'));
 
 describe('type-tests paths map covers the export surface', () => {
     it('maps the package root to source', () => {

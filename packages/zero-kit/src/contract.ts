@@ -406,6 +406,17 @@ export const VARIANT_AXES: Record<string, string> = {
 export const MOD_ATTR_PREFIX = 'data-mod-';
 
 /**
+ * The version of the fragment CONTRACT this kit understands. A fragment
+ * declares the version it was built against; the merge hard-errors on a
+ * missing or unknown one, because an unversioned fragment merges whatever
+ * contract era it came from — a pre-`hiddenIn` fragment used to slide
+ * straight through (#317 item 5). Mirrors `FRAGMENT_VERSION` in
+ * `@sigx/zero/contract` (parity-tested), which is where a fragment's
+ * runtime entry reads it: the kit is a devDependency there.
+ */
+export const FRAGMENT_VERSION = 1;
+
+/**
  * The shared boolean-flag vocabulary. Mirrors `FLAG_VOCABULARY` in
  * `@sigx/zero/contract` (parity-tested): `mergeManifests` holds ecosystem
  * fragments to it — the "no synonyms" rule, enforced on the surface the

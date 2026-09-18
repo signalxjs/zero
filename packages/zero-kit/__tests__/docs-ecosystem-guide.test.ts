@@ -16,6 +16,7 @@ import { describe, it, expect } from 'vitest';
 import { mergeManifests } from '@sigx/zero-kit';
 import type { ManifestComponent, ManifestFragment } from '@sigx/zero-kit';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
+import { FRAGMENT_VERSION } from '@sigx/zero/contract';
 import type { Anatomy } from '@sigx/zero/anatomy';
 
 const GUIDE = resolve(process.cwd(), 'docs/building-your-own-component.md');
@@ -62,7 +63,7 @@ describe('docs/building-your-own-component.md', () => {
 
     it('§4 publishes a fragment a design system can actually merge', () => {
         const stepperAnatomy = evaluate<Anatomy>(snippetExpression('stepperAnatomy'), { defineAnatomy });
-        const fragment = evaluate<ManifestFragment>(snippetExpression('fragment'), { stepperAnatomy });
+        const fragment = evaluate<ManifestFragment>(snippetExpression('fragment'), { stepperAnatomy, FRAGMENT_VERSION });
 
         const base = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
         const merged = mergeManifests(base, fragment);

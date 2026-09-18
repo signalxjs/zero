@@ -27,7 +27,7 @@
  */
 
 import { execSync } from 'child_process';
-import { mkdirSync, readFileSync, rmSync, writeFileSync, readdirSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync, readdirSync } from 'fs';
 import { gunzipSync } from 'zlib';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -213,6 +213,9 @@ function main() {
                     strict: true,
                     esModuleInterop: true,
                     skipLibCheck: true,
+                    // The stylesheet exports must resolve to a declaration
+                    // for an app that checks side-effect imports (#66).
+                    noUncheckedSideEffectImports: true,
                     noEmit: true,
                 },
                 include: ['src'],
@@ -308,6 +311,27 @@ function main() {
             '// @ts-expect-error — a typo must be rejected under the register module',
             "const typo: ColorValueFor<'button'> = 'primry';",
             'export { wired, fill, typo, partClass, CLASS_GRAMMAR_VERSION, createListController, registerThemes };',
+            '',
+        ].join('\n')
+    );
+
+    // The extensionless stylesheet exports carry a `types` condition, so
+    // they typecheck as side-effect imports without an app-side shim; and
+    // the fragment contract version is reachable without the kit barrel —
+    // from zero (a fragment entry's runtime source) and from /define (#66).
+    writeFileSync(
+        join(appDir, 'src', 'css-check.ts'),
+        [
+            "import '@sigx/zero/css';",
+            "import '@sigx/zero-basic/css';",
+            "import '@sigx/zero-basic/css/tokens';",
+            "import '@sigx/zero-basic/css/button';",
+            "import '@sigx/zero-daisyui/css';",
+            "import { FRAGMENT_VERSION } from '@sigx/zero/contract';",
+            "import { FRAGMENT_VERSION as KIT_FRAGMENT_VERSION } from '@sigx/zero-kit/define';",
+            "import type { ManifestFragment } from '@sigx/zero-kit/define';",
+            "export const fragment: ManifestFragment = { version: FRAGMENT_VERSION, package: '@acme/x', components: [] };",
+            'export const same: boolean = FRAGMENT_VERSION === KIT_FRAGMENT_VERSION;',
             '',
         ].join('\n')
     );
@@ -419,6 +443,11 @@ function main() {
         run(`node ${name}/build.mjs`, { cwd: appDir });
         const css = join(appDir, name, 'dist', 'css', 'index.css');
         if (readFileSync(css, 'utf-8').trim() === '') throw new Error(`${name}: dist/css/index.css is empty`);
+        // The `types` target the scaffolded package.json points its
+        // stylesheet exports at — written by the kit, not the template.
+        if (!existsSync(join(appDir, name, 'dist', 'css', 'index.d.ts'))) {
+            throw new Error(`${name}: dist/css/index.d.ts (the ./css exports' types) was not written`);
+        }
         if (targets.includes('lynx')) {
             const lynx = join(appDir, name, 'dist', 'lynx', 'index.css');
             if (readFileSync(lynx, 'utf-8').trim() === '') throw new Error(`${name}: dist/lynx/index.css is empty`);

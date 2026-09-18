@@ -179,6 +179,11 @@ sigx zero:audit      # does what it built say what it claims — read from the c
 sigx zero:build      # dist/css/index.css + per-component files + manifest + report + audit
 ```
 
+`dist/css/index.d.ts` is an empty module: point the `types` condition of the
+package's extensionless stylesheet exports (`./css`, `./css/tokens`,
+`./css/*`) at it, as the shipped skins and `create-zero-ds` do, or
+`import '<pkg>/css'` fails TypeScript's side-effect-import check.
+
 Conditional styles live in `parts.<part>.at`, keyed by a declared breakpoint
 (`@media (min-width: …)`), a built-in preference query (`reduced-motion`,
 `hover-none`, `prefers-dark`, `forced-colors`, `print`) or a raw `@` prelude
@@ -528,10 +533,14 @@ contract helpers — see zero's "Building your own components") and publishes a
 `version` is the fragment contract version (`FRAGMENT_VERSION`) and is
 required — the merge hard-errors on a missing or unknown one, so a fragment
 built against an older contract fails by name instead of merging silently.
+A `./fragment` runtime entry imports the constant from `@sigx/zero/contract`
+(zero is its peer; the kit is only a devDependency), and authoring code can
+take it — with the `ManifestFragment` type — from the `node:`-free
+`@sigx/zero-kit/define`.
 
 `sigx zero:fragment`, run inside the component package, emits
 `dist/fragment.json` and checks what would otherwise fail in an adopter's
-build: the `version` literal against `FRAGMENT_VERSION`, the schema, the
+build: the declared `version` against `FRAGMENT_VERSION`, the schema, the
 merge against the installed `@sigx/zero`, that the declared path is inside
 `"files"` (strictly for an exact path or a directory prefix like `dist` or
 `dist/**`; a glob it cannot model is assumed to ship), that recipes style only

@@ -74,7 +74,10 @@
             "types": "./dist/components/menu/index.d.ts",
             "import": "./dist/components/menu/index.js"
         },
-        "./css": "./css/base.css",
+        "./css": {
+            "types": "./css/base.d.ts",
+            "default": "./css/base.css"
+        },
         "./manifest.json": "./dist/manifest.json",
         "./field": {
             "types": "./dist/components/field/index.d.ts",

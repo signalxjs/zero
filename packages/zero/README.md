@@ -149,6 +149,10 @@ prohibits name-from-content, so the value text inside the trigger can never
 name it, and TreeView's typeahead matches the accessible text of a branch
 row (skipping `aria-hidden` decoration such as the default indicator glyph).
 
+`@sigx/zero/css` (like every design system's `./css`) carries a `types`
+condition pointing at an empty declaration, so the extensionless side-effect
+import typechecks under `noUncheckedSideEffectImports` with no app-side shim.
+
 `css/base.css` also declares `--print-ink`, the ink a print fallback draws
 with. Paper is not theme-aware — `print-color-adjust: economy` drops background
 paint, so a mark drawn as a background comes back as a glyph, and every
@@ -247,7 +251,9 @@ same behaviors, held to the same conformance assertion:
   `FLAG_VOCABULARY`, placements of `PLACEMENT_VOCABULARY`, layout attributes
   of `LAYOUT_VOCABULARY` — and
   `mergeManifests` enforces all four on published fragments, so an ecosystem
-  scope cannot invent synonyms either.
+  scope cannot invent synonyms either. `FRAGMENT_VERSION` is the version a
+  fragment declares — here so a package's `./fragment` entry can read it at
+  runtime without the kit, which is only its devDependency.
 - `@sigx/zero/behaviors` — controllable state, SSR-safe ids, roving tabindex,
   dismissal, focus management (`createFocusRestore`, `focusFirst`,
   `getTabbables`), list/tree registration with listbox-highlight stepping

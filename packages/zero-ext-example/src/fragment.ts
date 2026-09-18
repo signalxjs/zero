@@ -8,7 +8,7 @@
 import type { RecipeInput } from '@sigx/zero-kit';
 // The contract subpath stays runtime-light (no components, no sigx runtime),
 // which is what keeps this entry importable from a Node build script.
-import { RECOMMENDED_ROLE_LIST } from '@sigx/zero/contract';
+import { FRAGMENT_VERSION, RECOMMENDED_ROLE_LIST } from '@sigx/zero/contract';
 import { stepperAnatomy } from './anatomy.js';
 
 /**
@@ -18,12 +18,12 @@ import { stepperAnatomy } from './anatomy.js';
  * every downstream artifact records.
  */
 export const fragment = {
-    // The fragment contract version this package was built against
-    // (`FRAGMENT_VERSION` in @sigx/zero-kit) — a literal rather than the
-    // constant, because the kit import must stay type-only for this entry to
-    // remain loadable without the kit at runtime. mergeManifests hard-errors
-    // on a mismatch, which is the point: a stale fragment fails by name.
-    version: 1,
+    // The fragment contract version this package was built against — read
+    // from zero's contract (a peer, so present at runtime), never from the
+    // kit, whose import must stay type-only for this entry to load without
+    // it. mergeManifests hard-errors on a mismatch, which is the point: a
+    // stale fragment fails by name.
+    version: FRAGMENT_VERSION,
     package: '@sigx/zero-ext-example',
     components: [stepperAnatomy.toJSON()],
 };

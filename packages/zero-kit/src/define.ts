@@ -47,6 +47,12 @@ export { explainFit, fitRecipes, fitRecipesToVocabulary } from './fit.js';
 export type { CompoundVariantPatch, DesignSystemExtension, PartStylesPatch, Patch, RecipePatch, RecipeTargetPatch } from './extend.js';
 export { extendDesignSystem, extendRecipe } from './extend.js';
 
+// The fragment contract, for an ecosystem package's authoring code. Its
+// `./fragment` runtime entry reads the constant from `@sigx/zero/contract`
+// instead: the kit is a devDependency there.
+export type { ManifestFragment } from './manifest.js';
+export { FRAGMENT_VERSION } from './manifest.js';
+
 export type { DesignSystemInput } from './design-system.js';
 export { defineDesignSystem } from './design-system.js';
 

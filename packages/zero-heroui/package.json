@@ -22,9 +22,18 @@
             "types": "./dist/components.d.ts",
             "import": "./dist/components.js"
         },
-        "./css": "./dist/css/index.css",
-        "./css/tokens": "./dist/css/tokens.css",
-        "./css/*": "./dist/css/components/*.css",
+        "./css": {
+            "types": "./dist/css/index.d.ts",
+            "default": "./dist/css/index.css"
+        },
+        "./css/tokens": {
+            "types": "./dist/css/index.d.ts",
+            "default": "./dist/css/tokens.css"
+        },
+        "./css/*": {
+            "types": "./dist/css/index.d.ts",
+            "default": "./dist/css/components/*.css"
+        },
         "./manifest.json": "./dist/manifest.json",
         "./report.json": "./dist/report.json",
         "./audit.json": "./dist/audit.json"

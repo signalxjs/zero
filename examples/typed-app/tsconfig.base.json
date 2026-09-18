@@ -9,6 +9,10 @@
         "jsxImportSource": "sigx",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
+        // Explicit rather than trusting the compiler default: the stylesheet
+        // exports must resolve to a declaration, or `import '<pkg>/css'` is
+        // an error in an app that checks side-effect imports.
+        "noUncheckedSideEffectImports": true,
         // Deliberately attempted as `false` and documented as `true`: every
         // `@sigx/*` type below is the EMITTED dist/ artifact resolved
         // through package exports (build first), and an app's tsc should be

@@ -71,7 +71,7 @@ export {
 } from './layout-attrs.js';
 
 export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint, ModelSpec, ModelJSON } from './anatomy.js';
-export { defineAnatomy, defaultPropOf, changeEventOf } from './anatomy.js';
+export { defineAnatomy, defaultPropOf, changeEventOf, FRAGMENT_VERSION } from './anatomy.js';
 
 export {
     CLASS_GRAMMAR_VERSION,

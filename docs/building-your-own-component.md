@@ -90,8 +90,10 @@ and presence-only, `hidden` exactly where `hiddenIn` says. Runner-agnostic.
 ## 4. Publish the fragment (and the pack)
 
 ```ts
+import { FRAGMENT_VERSION } from '@sigx/zero/contract';
+
 export const fragment = {
-    version: 1,                           // the contract version — required
+    version: FRAGMENT_VERSION,            // the contract version — required
     package: '@acme/zero-stepper',        // your npm specifier — required
     components: [stepperAnatomy.toJSON()],
 };
@@ -99,10 +101,12 @@ export const fragment = {
 export const recipes: RecipeInput[] = [{ component: 'acme-stepper', /* … */ }];
 ```
 
-`version` is a **literal, not an import**. `FRAGMENT_VERSION` lives in
-`@sigx/zero-kit`, and this entry must stay importable from a design system's
-Node build script without dragging the kit into your runtime graph — so the
-number is written out and checked at the boundary instead: `mergeManifests`
+`version` comes from **`@sigx/zero/contract`, not the kit**. This entry must
+stay importable from a design system's Node build script without dragging
+`@sigx/zero-kit` (your devDependency) into your runtime graph, and zero — your
+peer — carries the same constant (the kit's copy is parity-tested against
+it; `@sigx/zero-kit/define` re-exports it for authoring code). A hand-written
+literal works too. Either way it is checked at the boundary: `mergeManifests`
 rejects a fragment that declares none, and rejects one built against a
 version it no longer speaks, rather than merging a stale anatomy silently.
 
@@ -112,8 +116,9 @@ version it no longer speaks, rather than merging a stale anatomy silently.
 the module and checks the things that otherwise fail in *someone else's*
 build:
 
-- the `version` literal still matches the kit's `FRAGMENT_VERSION` — this
-  check is what makes hand-writing it safe;
+- the declared `version` still matches the kit's `FRAGMENT_VERSION` — this
+  check is what catches a zero/kit pair that has drifted apart, or a stale
+  hand-written literal;
 - the JSON validates against `schemas/fragment.schema.json`, and
   `mergeManifests` accepts it against the installed `@sigx/zero`: flags,
   governed states, placements, `hiddenIn`, the part tree, and a scope nobody

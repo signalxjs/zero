@@ -135,6 +135,19 @@ export function buildDsManifest(compiled: CompiledDesignSystem): DesignSystemMan
 }
 
 /**
+ * The `types` target of a design system's extensionless stylesheet exports
+ * (`./css`, `./css/tokens`, `./css/*`). `import '@acme/ds/css'` has no `.css`
+ * extension, so a bundler's `*.css` ambient module never matches it, and
+ * under `noUncheckedSideEffectImports` (TypeScript 6's default) an
+ * unresolved side-effect import is an error. An empty module is the honest
+ * declaration: a stylesheet has no bindings.
+ */
+export const CSS_EXPORT_DTS = [
+    '// A stylesheet: imported for its side effect, it has no bindings.',
+    'export {};',
+].join('\n');
+
+/**
  * `report` is a parameter rather than something built here because
  * `buildReport` needs the authoring input and the anatomy manifest, neither of
  * which survives into `CompiledDesignSystem`. Optional, so a caller that wants
@@ -188,6 +201,7 @@ export async function writeArtifacts(
         await write(join(componentsDir, `${scope}.css`), css);
     }
     await write(join(cssDir, 'index.css'), compiled.indexCss);
+    await write(join(cssDir, 'index.d.ts'), CSS_EXPORT_DTS);
     await write(join(outDir, 'manifest.json'), JSON.stringify(emitted, null, 2));
     await write(join(outDir, 'register.d.ts'), compileRegisterDts(compiled));
     await write(join(outDir, 'register.js'), compileRegisterJs(compiled));
