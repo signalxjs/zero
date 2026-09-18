@@ -18,6 +18,8 @@ import { join } from 'node:path';
 import { a, definePlugin } from '@sigx/cli/plugin';
 
 /** Shared flag declarations — identical across the three commands. */
+// Mirrors `DEFAULT_ENTRY` in commands/shared.ts, which this module cannot
+// import eagerly (commands load lazily); a test holds the two equal.
 const entryArg = a
     .positional()
     .default('./dist/design-system.js')

@@ -19,7 +19,7 @@ import { join } from 'node:path';
 import { parseArgs, ParseError } from '@sigx/args';
 import type { ArgsShape } from '@sigx/args';
 import plugin from '../src/plugin.js';
-import { commandEntry, loadManifest, packageDesignSystemEntry } from '../src/commands/shared.js';
+import { DEFAULT_ENTRY, commandEntry, loadManifest, packageDesignSystemEntry } from '../src/commands/shared.js';
 
 /** A throwaway project directory; `detect` only ever reads from disk. */
 function projectDir(files: Record<string, string>): string {
@@ -197,6 +197,8 @@ describe('--package: an installed design system by name (#37)', () => {
         const shape = shapeOf(command);
         expect(parseArgs(['--package', '@acme/skin'], shape).args.package).toBe('@acme/skin');
         expect(parseArgs([], shape).args.package).toBeUndefined();
+        // `commandEntry` tells "no entry given" by this default.
+        expect(parseArgs([], shape).args.entry).toBe(DEFAULT_ENTRY);
     });
 
     it('resolves <package>/design-system through the exports map', () => {
@@ -211,8 +213,14 @@ describe('--package: an installed design system by name (#37)', () => {
         const dir = installed({ '.': './dist/index.js' });
         expect(() => packageDesignSystemEntry(dir, '@acme/missing')).toThrow(/@acme\/missing is not installed/);
         expect(() => packageDesignSystemEntry(dir, '@acme/skin')).toThrow(/exports no "\.\/design-system", so it cannot be validated/);
-        // The error speaks the running command's verb.
-        expect(() => commandEntry(dir, './x.js', '@acme/skin', 'audited')).toThrow(/so it cannot be audited/);
+        // The error speaks the running command's verb, and names the fix.
+        expect(() => commandEntry(dir, DEFAULT_ENTRY, '@acme/skin', 'audited'))
+            .toThrow(/so it cannot be audited — upgrade @acme\/skin to a version that exports it/);
+    });
+
+    it('refuses an entry and --package together rather than ignoring one', () => {
+        const dir = installed({ './design-system': './dist/design-system.js' });
+        expect(() => commandEntry(dir, './mine.js', '@acme/skin', 'validated')).toThrow(/an entry or --package, not both/);
     });
 
     it('refuses an export target that leaves the package, as Node would', () => {

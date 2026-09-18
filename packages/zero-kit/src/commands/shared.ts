@@ -142,18 +142,27 @@ export function packageDesignSystemEntry(cwd: string, name: string, what = 'vali
     if (!subpath) {
         throw new Error(
             `[zero-kit] ${name} exports no "./design-system", so it cannot be ${what} —`
-            + ' it needs @sigx/zero-kit 0.3 or newer',
+            + ` upgrade ${name} to a version that exports it (design systems built with @sigx/zero-kit 0.3 or newer do)`,
         );
     }
     return resolve(dir, subpath);
 }
 
+/** The positional `entry` every command defaults to — a design system package's own build output. */
+export const DEFAULT_ENTRY = './dist/design-system.js';
+
 /**
  * The entry a command loads: `--package`'s export when given, else the path.
  * `what` names the command's verb for the error (`validated`, `audited`).
+ * Both at once is refused rather than one silently ignored — the positional
+ * has a default, so only a non-default value is known to be the user's.
  */
 export function commandEntry(cwd: string, entry: string, pkg: string | undefined, what: string): string {
-    return pkg ? packageDesignSystemEntry(cwd, pkg, what) : entry;
+    if (!pkg) return entry;
+    if (entry !== DEFAULT_ENTRY) {
+        throw new Error(`[zero-kit] pass an entry or --package, not both — got "${entry}" and --package ${pkg}`);
+    }
+    return packageDesignSystemEntry(cwd, pkg, what);
 }
 
 export async function loadDesignSystem(cwd: string, entry: string): Promise<DesignSystemInput> {
