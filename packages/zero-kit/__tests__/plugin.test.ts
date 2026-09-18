@@ -225,7 +225,7 @@ describe('--package: an installed design system by name (#37)', () => {
 
     it('refuses an export target that leaves the package, as Node would', () => {
         // Resolved by hand, so Node's ERR_INVALID_PACKAGE_TARGET is enforced here.
-        for (const target of ['../evil.js', './dist/../../evil.js', 'dist/design-system.js', './node_modules/x/ds.js']) {
+        for (const target of ['../evil.js', './dist/../../evil.js', 'dist/design-system.js', './node_modules/x/ds.js', './C:/evil.js']) {
             const dir = installed({ './design-system': { import: target } });
             expect(() => packageDesignSystemEntry(dir, '@acme/skin'), target).toThrow(/is not a path inside the package/);
         }

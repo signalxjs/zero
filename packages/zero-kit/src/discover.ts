@@ -263,15 +263,18 @@ export function installedPackageDir(fromDir: string, name: string): string | und
  *
  * Resolving by hand means enforcing by hand what Node's resolver would: a
  * target is package-relative (`./…`) and has no `.`, `..` or
- * `node_modules` segment after it, so a package.json cannot point a caller
- * that imports the result outside its own directory. Such a target throws,
+ * `node_modules` segment after it — nor a `:` anywhere, which on Windows
+ * lets `./C:/…` name another drive — so a package.json cannot point a
+ * caller that imports the result outside its own directory. Such a target throws,
  * as Node's `ERR_INVALID_PACKAGE_TARGET` does.
  */
 export function exportedSubpath(pkg: Record<string, unknown>, subpath: string): string | undefined {
     const target = exportTarget(pkg, subpath);
     if (target === undefined) return undefined;
     const segments = target.split(/[\\/]/).slice(1);
-    if (!target.startsWith('./') || segments.some((s) => s === '' || s === '.' || s === '..' || s.toLowerCase() === 'node_modules')) {
+    const escapes = (s: string): boolean =>
+        s === '' || s === '.' || s === '..' || s.toLowerCase() === 'node_modules' || s.includes(':');
+    if (!target.startsWith('./') || segments.some(escapes)) {
         throw new Error(
             `[zero-kit] ${String(pkg['name'] ?? 'a package')} exports "${subpath}" as "${target}", which is not a path inside the package`,
         );
