@@ -26,8 +26,18 @@ import { onFormReset } from '../../behaviors/form-reset.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithFormControl, WithModelModifiers, WithReadonly, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type {
+    TextControlHandle,
+    WithClass,
+    WithFormControl,
+    WithHtmlAttrs,
+    WithModelModifiers,
+    WithReadonly,
+    WithTextControlEvents,
+    WithVariantAxes,
+    WithVisuallyHidden,
+} from '../../contract/props.js';
 import { textareaAnatomy } from './anatomy.js';
 
 const SCOPE = textareaAnatomy.scope;
@@ -161,52 +171,99 @@ const TextareaLabel = component<TextareaLabelProps>(({ props, slots }) => {
 
 // ── Textarea ──
 
+/** What `<Textarea.Textarea ref={…}>` receives — the element, and `focus()`. */
+export type TextareaHandle = TextControlHandle<HTMLTextAreaElement>;
+
 export type TextareaTextareaProps =
     & Define.Prop<'placeholder', string, false>
-    & WithClass;
+    & WithTextControlEvents
+    /**
+     * Forwarded attributes (`aria-*`, `data-*`, `title`, `role`) — what a
+     * combobox-style composer sets on its control. Not `id`: the control's
+     * id is the form contract's (the Label and the Field point at it), as is
+     * `aria-invalid` (the `invalid` prop). An app `aria-describedby` joins
+     * the Field's rather than replacing it.
+     */
+    & Omit<WithHtmlAttrs, 'id'>
+    & WithClass
+    & Define.Expose<TextareaHandle>;
 
-const TextareaTextarea = component<TextareaTextareaProps>(({ props, onMounted, onUnmounted }) => {
+const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMounted, onUnmounted }) => {
     const ctx = useTextareaContext();
     let el: HTMLTextAreaElement | null = null;
 
+    // The app's onInput is attached at mount, not in the JSX: sigx appends
+    // the model's own listener after every declared prop, so a JSX onInput
+    // would run BEFORE the model took the value. Registered later, it runs
+    // after — the handler reads the new value from its model.
+    const onInput = (e: Event): void => props.onInput?.(e);
+    let detachInput = (): void => {};
+
     let detachReset = (): void => {};
     onMounted(() => {
+        const node = el;
+        node?.addEventListener('input', onInput);
+        detachInput = () => node?.removeEventListener('input', onInput);
         detachReset = onFormReset(() => el, () => {
             ctx.state.value = ctx.defaultValue();
             if (el) el.value = ctx.state.value;
         });
     });
-    onUnmounted(() => detachReset());
+    onUnmounted(() => {
+        detachReset();
+        detachInput();
+    });
 
-    return () => (
-        <textarea
-            id={ctx.controlId()}
-            name={ctx.name()}
-            form={ctx.form()}
-            autoComplete={ctx.autocomplete()}
-            maxLength={ctx.maxlength()}
-            rows={ctx.rows()}
-            data-scope={SCOPE}
-            data-part="textarea"
-            data-disabled={dataAttr(ctx.disabled())}
-            data-invalid={dataAttr(ctx.invalid())}
-            data-required={dataAttr(ctx.required())}
-            data-readonly={dataAttr(ctx.readonly())}
-            data-focus-visible={dataAttr(ctx.focusVisible.value)}
-            model={ctx.state}
-            modelModifiers={ctx.modifiers()}
-            placeholder={props.placeholder}
-            disabled={ctx.disabled()}
-            readOnly={ctx.readonly()}
-            required={ctx.required()}
-            aria-invalid={ctx.invalid() ? 'true' : undefined}
-            aria-describedby={ctx.describedBy()}
-            class={props.class}
-            ref={(node: HTMLTextAreaElement | null) => { el = node; }}
-            onFocus={() => { ctx.focusVisible.value = isFocusVisible(el); }}
-            onBlur={() => { ctx.focusVisible.value = false; }}
-        />
-    );
+    expose({
+        get element() { return el; },
+        focus: (options?: FocusOptions) => el?.focus(options),
+    });
+
+    return () => {
+        const attrs = htmlAttrs(props);
+        const describedBy = [ctx.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined;
+        return (
+            <textarea
+                {...attrs}
+                id={ctx.controlId()}
+                name={ctx.name()}
+                form={ctx.form()}
+                autoComplete={ctx.autocomplete()}
+                maxLength={ctx.maxlength()}
+                rows={ctx.rows()}
+                data-scope={SCOPE}
+                data-part="textarea"
+                data-disabled={dataAttr(ctx.disabled())}
+                data-invalid={dataAttr(ctx.invalid())}
+                data-required={dataAttr(ctx.required())}
+                data-readonly={dataAttr(ctx.readonly())}
+                data-focus-visible={dataAttr(ctx.focusVisible.value)}
+                model={ctx.state}
+                modelModifiers={ctx.modifiers()}
+                placeholder={props.placeholder}
+                disabled={ctx.disabled()}
+                readOnly={ctx.readonly()}
+                required={ctx.required()}
+                aria-invalid={ctx.invalid() ? 'true' : undefined}
+                aria-describedby={describedBy}
+                class={props.class}
+                ref={(node: HTMLTextAreaElement | null) => { el = node; }}
+                onBeforeinput={props.onBeforeinput}
+                onKeydown={props.onKeydown}
+                onKeyup={props.onKeyup}
+                onCompositionstart={props.onCompositionstart}
+                onCompositionend={props.onCompositionend}
+                onFocus={(e: FocusEvent) => {
+                    ctx.focusVisible.value = isFocusVisible(el);
+                    props.onFocus?.(e);
+                }}
+                onBlur={(e: FocusEvent) => {
+                    ctx.focusVisible.value = false;
+                    props.onBlur?.(e);
+                }}
+            />
+        );
+    };
 }, { name: 'Textarea.Textarea' });
 
 export const Textarea = compound(TextareaRoot, {

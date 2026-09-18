@@ -225,6 +225,28 @@ holds for Checkbox.
 <Switch.Root hideLabel>Airplane mode</Switch.Root>
 ```
 
+**Text controls.** `Input.Input` and `Textarea.Textarea` are what an app
+builds a composer, a search box or an autocomplete on, so they forward the
+native `onKeydown`/`onKeyup`, `onBeforeinput`/`onInput`,
+`onCompositionstart`/`onCompositionend` and `onFocus`/`onBlur` to the element
+(`WithTextControlEvents`) — `preventDefault()` works there, and `onInput`
+runs after the model has the new value. They also forward `aria-*`,
+`data-*`, `title` and `role` (a combobox-style composer's ARIA), but not
+`id` or `aria-invalid`, which belong to the form contract; an app
+`aria-describedby` joins the Field's. Their `ref` receives a handle —
+`{ element, focus() }` — for what only the element can do: the caret, the
+selection, measuring.
+
+```tsx
+let composer: TextareaHandle | null = null;
+<Textarea.Textarea
+    role="combobox" aria-expanded={open()} aria-controls="mentions"
+    onKeydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+    ref={(h) => { composer = h; }}
+/>
+composer?.element?.setSelectionRange(caret, caret);
+```
+
 `css/base.css` also declares `--print-ink`, the ink a print fallback draws
 with. Paper is not theme-aware — `print-color-adjust: economy` drops background
 paint, so a mark drawn as a background comes back as a glyph, and every
