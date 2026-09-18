@@ -587,6 +587,19 @@ describe('recipe.schema.json', () => {
         }))).toBe(false);
     });
 
+    it('accepts composes, and closes its shape', () => {
+        expect(validateRecipe(asJson({
+            component: 'card',
+            parts: { root: {} },
+            composes: { button: { within: 'footer', parts: { root: { base: { flex: '1' } } } } },
+        }))).toBe(true);
+        expect(validateRecipe(asJson({
+            component: 'card',
+            parts: { root: {} },
+            composes: { button: { size: 'sm', parts: { root: {} } } },
+        }))).toBe(false);
+    });
+
     it('rejects a CSS value that is neither string nor number', () => {
         expect(validateRecipe(asJson({
             component: 'tabs',

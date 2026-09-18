@@ -316,6 +316,11 @@ function* declarations(recipe: RecipeInput): Generator<{ path: string; props: Cs
             yield* fromPart(`compoundVariants[${i}].parts.${part}`, styles);
         }
     }
+    for (const [scope, composed] of Object.entries(recipe.composes ?? {})) {
+        for (const [part, styles] of Object.entries(composed.parts)) {
+            yield* fromPart(`composes.${scope}.parts.${part}`, styles);
+        }
+    }
 }
 
 /** Custom properties a recipe defines itself, so referencing them is fine. */

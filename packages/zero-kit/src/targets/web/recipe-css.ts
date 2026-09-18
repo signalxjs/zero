@@ -139,9 +139,9 @@ function emitPartStyles(
     registry: ConditionRegistry,
     pseudoSuffix = '',
     path: readonly Condition[] = [],
+    where = `recipe for "${component.scope}"."${partName}"`,
 ): void {
     const part = findPart(component, partName);
-    const where = `recipe for "${component.scope}"."${partName}"`;
     const rule = (selector: string, props: CssProps) =>
         push(sink, path, `${selector} {\n${declBlock(props, '    ', where)}\n}`);
 
@@ -172,7 +172,7 @@ function emitPartStyles(
     }
     for (const [key, nested] of Object.entries(styles.at ?? {})) {
         const condition = resolveCondition(key, context, where, registry);
-        emitPartStyles(component, partName, nested, baseSelector, sink, context, registry, pseudoSuffix, [...path, condition]);
+        emitPartStyles(component, partName, nested, baseSelector, sink, context, registry, pseudoSuffix, [...path, condition], where);
     }
 }
 
@@ -208,6 +208,44 @@ export function compileRecipeCss(
     for (const [partName, styles] of Object.entries(recipe.parts)) {
         const { host, suffix } = partProjection(component, partName);
         emitPartStyles(component, partName, styles, partSelector(component.scope, host), sink, context, registry, suffix);
+    }
+
+    // Nested scopes styled in context — see `RecipeInput.composes`. After the
+    // component's own parts and before its axis rules: the (0,4,0) context
+    // selector already outranks the nested recipe, so order only matters
+    // among this recipe's own rules.
+    for (const [scope, composed] of Object.entries(recipe.composes ?? {})) {
+        const where = `recipe for "${component.scope}" composes "${scope}"`;
+        if (scope === component.scope) {
+            throw new Error(`[zero-kit] ${where}: a component cannot compose itself — style its own parts in \`parts\``);
+        }
+        const nested = context.components?.get(scope);
+        if (!nested) {
+            throw new Error(
+                context.components
+                    ? `[zero-kit] ${where}: "${scope}" is not a component the manifest declares`
+                    : `[zero-kit] ${where}: composes needs the manifest — compile through compileDesignSystem, or pass context.components`,
+            );
+        }
+        const within = composed.within ?? carrierPart(component);
+        const known = (c: ManifestComponent) => c.parts.map((p) => p.name).join(', ');
+        if (!component.parts.some((p) => p.name === within)) {
+            throw new Error(`[zero-kit] ${where}: within "${within}" is not a part of "${component.scope}" (known: ${known(component)})`);
+        }
+        if (findPart(component, within).pseudo) {
+            throw new Error(`[zero-kit] ${where}: "${within}" is a pseudo-element part, which cannot contain another component`);
+        }
+        const container = partSelector(component.scope, within);
+        for (const [partName, styles] of Object.entries(composed.parts)) {
+            if (!nested.parts.some((p) => p.name === partName)) {
+                throw new Error(`[zero-kit] ${where}: "${partName}" is not a part of "${scope}" (known: ${known(nested)})`);
+            }
+            const { host, suffix } = partProjection(nested, partName);
+            emitPartStyles(
+                nested, partName, styles, `${container} ${partSelector(scope, host)}`, sink, context, registry, suffix, [],
+                `${where}."${partName}"`,
+            );
+        }
     }
 
     // One resolver for every axis-narrowed emission: flat on the carrier, an

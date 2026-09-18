@@ -17,7 +17,7 @@
 import type { ManifestComponent, ManifestPart } from '../contract.js';
 import { AXIS_VALUE_PATTERN, TOKEN_CATEGORIES, TOKEN_KEY_PATTERN, systemNodeAt, tokenProperty } from '../contract.js';
 import type { CssProps, RecipeContext } from '../recipes.js';
-import { BUILTIN_CONDITIONS } from '../recipes.js';
+import { BELOW_PREFIX, BUILTIN_CONDITIONS } from '../recipes.js';
 import { generateTypeScale } from '../scale.js';
 import type { SystemTokens, ThemeSystem, TypographyDecl } from '../tokens.js';
 
@@ -146,6 +146,18 @@ export function resolveCondition(
             tier: TIER.breakpoint,
             ordinal: Object.keys(breakpoints).indexOf(key),
         };
+    } else if (key.startsWith(BELOW_PREFIX) && Object.hasOwn(breakpoints, key.slice(BELOW_PREFIX.length))) {
+        // The exact complement of the breakpoint's own `min-width` rule —
+        // range syntax, so no `767.98px` epsilon. Sorted after every
+        // min-width breakpoint and NARROWEST LAST: `below-sm` is the more
+        // specific range, so it must follow (and beat) `below-md`.
+        const names = Object.keys(breakpoints);
+        const name = key.slice(BELOW_PREFIX.length);
+        condition = {
+            prelude: `@media (width < ${breakpoints[name]})`,
+            tier: TIER.breakpoint,
+            ordinal: names.length + (names.length - 1 - names.indexOf(name)),
+        };
     } else if (Object.hasOwn(BUILTIN_CONDITIONS, key)) {
         condition = {
             prelude: BUILTIN_CONDITIONS[key]!,
@@ -158,7 +170,7 @@ export function resolveCondition(
         const declared = Object.keys(breakpoints);
         throw new Error(
             `[zero-kit] ${where} uses unknown condition "${key}"\n` +
-            `  declared breakpoints: ${declared.length ? declared.join(', ') : '(none — declare them in tokens.breakpoints)'}\n` +
+            `  declared breakpoints: ${declared.length ? `${declared.join(', ')} (and ${declared.map((b) => BELOW_PREFIX + b).join(', ')} below them)` : '(none — declare them in tokens.breakpoints)'}\n` +
             `  built-ins: ${Object.keys(BUILTIN_CONDITIONS).join(', ')}\n` +
             `  or start the key with "@" for a raw prelude, e.g. "@container (min-width: 30rem)"`,
         );

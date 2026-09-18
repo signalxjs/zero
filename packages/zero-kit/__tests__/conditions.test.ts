@@ -101,6 +101,47 @@ describe('condition keys', () => {
     });
 });
 
+/*
+ * `below-<breakpoint>` (#63): a desktop-first design system states its
+ * narrow-viewport rules from the same tokens, instead of hand-writing
+ * `max-width: 767.98px`. The range form is the exact complement of the
+ * breakpoint's own `(min-width: …)`, so there is no epsilon to get wrong.
+ */
+describe('below-<breakpoint> keys', () => {
+    const css = compile({
+        component: 'tabs',
+        parts: {
+            tab: {
+                base: { padding: '1rem' },
+                at: {
+                    'below-sm': { base: { padding: '0.25rem' } },
+                    lg: { base: { padding: '2rem' } },
+                    'below-md': { base: { padding: '0.5rem' } },
+                },
+            },
+        },
+    });
+    const at = (needle: string) => css.indexOf(needle);
+
+    it('resolves to the range complement of the declared breakpoint', () => {
+        expect(css).toContain('@media (width < 768px)');
+        expect(css).toContain('@media (width < 640px)');
+    });
+
+    it('sorts after every min-width breakpoint, narrowest last', () => {
+        expect(at('@media (min-width: 1024px)')).toBeLessThan(at('@media (width < 768px)'));
+        // `below-sm` is the narrower range, so it follows — and beats — `below-md`.
+        expect(at('@media (width < 768px)')).toBeLessThan(at('@media (width < 640px)'));
+    });
+
+    it('rejects below- of an undeclared breakpoint, listing the below- keys', () => {
+        expect(() => compile({
+            component: 'tabs',
+            parts: { tab: { at: { 'below-xl': { base: { color: 'red' } } } } },
+        })).toThrow(/unknown condition "below-xl"[\s\S]*below-sm, below-md, below-lg/);
+    });
+});
+
 describe('emission order', () => {
     const css = compile({
         component: 'tabs',
@@ -258,6 +299,14 @@ describe('breakpoint declarations', () => {
     it('rejects a name that collides with a built-in condition', () => {
         expect(errors({ 'reduced-motion': '640px' })).toContainEqual(
             expect.stringContaining('collides with the built-in'),
+        );
+    });
+
+    it('rejects a breakpoint named with the below- prefix', () => {
+        // `below-md` is the max-width condition under `md`; a breakpoint
+        // spelled that way would shadow it.
+        expect(errors({ sm: '640px', 'below-lg': '900px' })).toContainEqual(
+            expect.stringContaining('the prefix of a max-width condition'),
         );
     });
 

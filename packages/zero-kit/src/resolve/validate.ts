@@ -44,7 +44,7 @@ import {
 } from '../contract.js';
 import type { RolesDecl } from '../tokens.js';
 import { validateApi } from '../api.js';
-import { BUILTIN_CONDITIONS, resolveRecipeForTarget } from '../recipes.js';
+import { BELOW_PREFIX, BUILTIN_CONDITIONS, resolveRecipeForTarget } from '../recipes.js';
 import type { DesignSystemInput } from '../design-system.js';
 import { compileDesignSystem } from '../design-system.js';
 import { validateRecipes } from './validate-recipes.js';
@@ -891,6 +891,13 @@ export function validateDesignSystem<R extends RolesDecl>(
             error(
                 'tokens.breakpoints',
                 `"${name}" collides with the built-in condition of the same name — rename the breakpoint`,
+            );
+        }
+        if (name.startsWith(BELOW_PREFIX)) {
+            error(
+                'tokens.breakpoints',
+                `"${name}" starts with "${BELOW_PREFIX}", the prefix of a max-width condition `
+                + `(at: { '${BELOW_PREFIX}md': … } is everything narrower than md) — rename the breakpoint`,
             );
         }
         if (name === BASE_BREAKPOINT_KEY) {

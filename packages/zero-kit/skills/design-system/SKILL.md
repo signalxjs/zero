@@ -244,7 +244,8 @@ component's anatomy). No component code is ever written or changed.
    }
    ```
    A key is a breakpoint declared in `tokens.breakpoints` (emitted as
-   `@media (min-width: …)`), a built-in (`reduced-motion`, `hover-none`,
+   `@media (min-width: …)`), `below-<breakpoint>` for everything narrower
+   than one (`@media (width < …)`), a built-in (`reduced-motion`, `hover-none`,
    `prefers-dark`, `forced-colors`, `print`), or anything starting with `@`,
    used as a raw prelude. Anything else is a hard error listing what was available.
    - Author **mobile-first**: breakpoints are `min-width`, so `base` is the

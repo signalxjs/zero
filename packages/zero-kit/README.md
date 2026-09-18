@@ -215,7 +215,34 @@ Conditional styles live in `parts.<part>.at`, keyed by a declared breakpoint
 (`@container`, `@supports`, `@starting-style`). Nesting composes the
 at-rules, and because `variants` hold the same shape, responsive variants
 need nothing extra. Author mobile-first — breakpoints are `min-width`, and
-declaration order is emission order.
+declaration order is emission order. A desktop-first rule is `below-<name>`:
+`at: { 'below-md': … }` compiles to `@media (width < 48rem)`, the exact
+complement of the `md` rule, resolved from the same tokens. That means no
+hand-written `767.98px`. Below-rules sort after every breakpoint, narrowest
+last, and a breakpoint may not be named `below-*`.
+
+A recipe may style another scope **in context** with `composes`. This covers
+a composer's embedded button and the buttons in a card's footer:
+
+```ts
+defineRecipe({
+    component: 'card',
+    parts: { /* … */ },
+    composes: {
+        button: { within: 'footer', parts: { root: { base: { flex: '1' }, states: { hover: { filter: 'none' } } } } },
+    },
+});
+```
+
+This compiles to `[data-scope="card"][data-part="footer"] [data-scope="button"][data-part="root"]`
+in card's own stylesheet, and outranks button's own base and axis rules.
+`within` defaults to the carrier part. The nested scope must be one the
+manifest declares, and `within` must be one of card's parts. Every part and
+state resolves against the nested scope's anatomy, so a pack stays confined
+to what the manifest declares, and a mistake is a validation error rather
+than a selector that matches nothing. Content checks and
+`fitRecipesToVocabulary` treat it like any other declaration. The lynx
+target drops it and records a report entry.
 
 Unknown parts/states fail the build — the anatomy manifest is the contract.
 So do undeclared token references: a recipe that says `var(--color-brnad)`

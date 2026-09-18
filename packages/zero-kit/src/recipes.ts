@@ -3,6 +3,7 @@
  * `PartStyles`) and the condition vocabulary. Target-neutral: nothing here
  * emits CSS. The web emitter lives in `targets/web/recipe-css.ts`.
  */
+import type { ManifestComponent } from './contract.js';
 
 export type CssProps = Record<string, string | number>;
 
@@ -21,6 +22,9 @@ export interface PartStyles {
      *   (`'@container (min-width: 20rem)'`, `'@supports (…)'`,
      *   `'@starting-style'`)
      * - a name in the design system's `breakpoints` → `@media (min-width: …)`
+     * - `below-<breakpoint>` → `@media (width < …)`, the exact complement of
+     *   that breakpoint's rule — desktop-first styling from the same tokens,
+     *   never a hand-written `767.98px`
      * - a built-in: see `BUILTIN_CONDITIONS`
      * - anything else is a hard error listing what was available
      *
@@ -57,10 +61,34 @@ export const BUILTIN_CONDITIONS: Readonly<Record<string, string>> = {
     'starting-style': '@starting-style',
 };
 
+/**
+ * The prefix of a max-width condition key: `below-md` is everything narrower
+ * than the `md` breakpoint. Reserved — a breakpoint may not be named with it.
+ */
+export const BELOW_PREFIX = 'below-';
+
 /** Compile-time context a recipe needs beyond its own component anatomy. */
 export interface RecipeContext {
     /** The design system's declared breakpoints, in mobile-first order. */
     breakpoints?: Record<string, string>;
+    /**
+     * The manifest's anatomies by scope — what `composes` resolves a nested
+     * scope's parts and states against. `compileDesignSystem` passes it.
+     */
+    components?: ReadonlyMap<string, ManifestComponent>;
+}
+
+/**
+ * One nested scope a recipe styles in context — see `RecipeInput.composes`.
+ */
+export interface ComposedScope {
+    /**
+     * The part of THIS component the nested scope sits inside. Defaults to
+     * the carrier part (`root`, else the first part).
+     */
+    within?: string;
+    /** The nested scope's parts → styles; states resolve through ITS anatomy. */
+    parts: Record<string, PartStyles>;
 }
 
 export interface RecipeInput {
@@ -93,6 +121,22 @@ export interface RecipeInput {
         match: Record<string, string | true>;
         parts: Record<string, PartStyles>;
     }>;
+    /**
+     * Other scopes this component contains, styled in context: nested scope →
+     * where it sits and how its parts look there. A composer's embedded
+     * button, a card's footer actions. Compiles to
+     * `[data-scope="<this>"][data-part="<within>"] [data-scope="<nested>"][data-part="<part>"]`,
+     * which outranks the nested recipe's own base and axis rules, so the
+     * context wins.
+     *
+     * Validated against the manifest like `parts` is: the nested scope must
+     * be declared (and not be this one), `within` must be a part of this
+     * component, and every part and state must be the nested scope's own —
+     * a pack stays confined to what the manifest declares, but not blind to
+     * what it contains. Web only: the lynx target drops it with a report
+     * entry.
+     */
+    composes?: Record<string, ComposedScope>;
     /** Values applied when the axis attribute is absent (CSS-only defaults). */
     defaultVariants?: Record<string, string>;
     /** name → raw keyframes body (`from { … } to { … }`). */
