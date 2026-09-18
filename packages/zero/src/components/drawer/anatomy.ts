@@ -17,10 +17,10 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * either: `:modal` is the platform's own spelling of exactly that split.
  *
  * Width is `measure` on the panel (`data-l-measure`, the design system's
- * `--measure-*` ramp), consumed by the recipes as `--l-measure`: the exact
- * width of an inline panel, the cap of a modal sheet that otherwise spans
- * the viewport — so `full` is a full-screen sheet. Unset, each design
- * system's own panel width applies.
+ * `--measure-*` ramp), consumed by the recipes as `--l-measure`, a cap: the
+ * panel fills its container inline, or the viewport as a modal sheet, up to
+ * it — so `full` is a full-screen sheet. Unset, each design system's own
+ * panel width applies.
  *
  * No `description` part and a `label` prop instead: a drawer is a
  * container (navigation, filters, a cart), not a message — it often has no

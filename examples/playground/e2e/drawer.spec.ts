@@ -212,5 +212,13 @@ for (const ds of DESIGN_SYSTEMS) {
         const plain = (await settledBox(start, 'the start panel')).width;
         expect(plain).toBeGreaterThan(200);
         expect(plain).toBeLessThan(expected);
+        await page.keyboard.press('Escape');
+        await expect(start).toHaveAttribute('data-state', 'closed');
+
+        // Inline, the same default caps the panel in flow: the skin's width,
+        // not its container's.
+        await inlineTrigger(page).click();
+        const inline = await controlledPopup(page, inlineTrigger(page), 'the inline drawer trigger');
+        expect(Math.abs((await settledBox(inline, 'the inline panel')).width - plain)).toBeLessThanOrEqual(1);
     });
 }

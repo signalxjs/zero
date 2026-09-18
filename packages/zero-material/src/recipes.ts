@@ -4509,14 +4509,17 @@ export const drawer: RecipeInput = {
                 color: 'var(--color-surface-container-content)',
                 border: 'none',
                 borderRadius: 'var(--radius-box)',
-                // The width is `--l-measure` (Drawer.Panel's `measure`, via
-                // the layout step table); this is the default an unset
-                // `measure` leaves. Inline, it is the exact width — the
-                // border box, so `full` never overflows by its own padding.
+                // The width is capped by `--l-measure` (Drawer.Panel's
+                // `measure`, via the layout step table); this is the default
+                // an unset `measure` leaves. A cap, not a width, because the
+                // table spells `full` as `none` — valid only for a max. In
+                // flow and as a sheet alike, the panel fills what it is given
+                // up to the measure, as its border box, so `full` never
+                // overflows by its own padding.
                 boxSizing: 'border-box',
                 '--l-measure': 'min(22.5rem, 85vw)',
-                inlineSize: 'var(--l-measure)',
-                maxInlineSize: '100%',
+                inlineSize: '100%',
+                maxInlineSize: 'var(--l-measure)',
             },
             states: { open: {}, closed: {} },
             selectors: {
@@ -4533,10 +4536,6 @@ export const drawer: RecipeInput = {
                     insetBlockEnd: '0',
                     blockSize: '100dvh',
                     maxBlockSize: '100dvh',
-                    // A sheet spans the viewport up to the measure, so
-                    // `full` (`none`) is the whole viewport.
-                    inlineSize: '100%',
-                    maxInlineSize: 'var(--l-measure)',
                     margin: '0',
                     borderRadius: '0',
                 },

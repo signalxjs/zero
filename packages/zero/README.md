@@ -175,9 +175,10 @@ row (skipping `aria-hidden` decoration such as the default indicator glyph).
 **Drawer width is `measure`.** `Drawer.Panel measure="md"` sizes the panel
 from the design system's `--measure-*` ramp — Container's layout attribute,
 not the `size` axis, which rides the trigger and cannot reach a panel that
-is not inside it. An inline panel is exactly that wide; a modal sheet spans
-the viewport up to it, so `measure="full"` is a full-screen sheet. Unset,
-each design system keeps its own drawer width.
+is not inside it. The measure is a cap: the panel fills the space it is given
+up to it — its container inline, the viewport as a modal sheet — so
+`measure="full"` is a full-screen sheet. Unset, each design system keeps its
+own drawer width.
 
 `@sigx/zero/css` (like every design system's `./css`) carries a `types`
 condition pointing at an empty declaration, so the extensionless side-effect

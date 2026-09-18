@@ -232,10 +232,10 @@ const DrawerTrigger = component<DrawerTriggerProps>(({ props, slots, signal }) =
 export type DrawerPanelProps =
     & WithClass
     /**
-     * The panel's width, from the design system's `--measure-*` ramp: an
-     * inline panel is exactly that wide, a modal sheet spans the viewport
-     * up to it (`full` — the whole viewport). Unset, the design system's
-     * own drawer width.
+     * The panel's width cap, from the design system's `--measure-*` ramp:
+     * the panel fills its container (inline) or the viewport (modal) up to
+     * it, so `full` is a full-screen sheet. Unset, the design system's own
+     * drawer width.
      */
     & Define.Prop<'measure', LayoutProp<'measure'>, false>
     & Define.Slot<'default'>;

@@ -176,8 +176,10 @@
   the same one Container uses, and not the `size` axis: `size` rides the
   trigger, which is the carrier part, and the panel does not render inside
   it, so no trigger-carried axis can reach it. All six skins read
-  `--l-measure`. An inline panel is exactly that wide. A modal sheet spans
-  the viewport up to it, so `full` is a full-screen sheet. Each skin
+  `--l-measure` as a cap (`max-inline-size` over `inline-size: 100%`): the
+  panel fills its container inline, or the viewport as a modal sheet, up
+  to the measure. The layout table spells `full` as `none`, which is valid
+  only for a max, so `full` is a full-screen sheet. Each skin
   declares its previous width as the default, so an unset `measure`
   renders the width it did before. The panel is now `box-sizing: border-box`
   in every skin, so `full` never overflows by its own padding; a default
