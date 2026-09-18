@@ -59,6 +59,7 @@ interface ToggleGroupContext {
     state: ControllableState<string | string[]>;
     /** The pressed values, whatever the model's shape. */
     selected(): string[];
+    multiple(): boolean;
     list: ListController;
     orientation(): Orientation;
     disabled(): boolean;
@@ -70,6 +71,7 @@ function makeInert(): ToggleGroupContext {
     return {
         state: createInertState<string | string[]>(''),
         selected: () => [],
+        multiple: () => false,
         list: createListController(),
         orientation: () => 'horizontal',
         disabled: () => false,
@@ -113,10 +115,11 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-toggle-group' });
     // The pressed values under either shape — a string model reads as a
-    // one-element list (empty when '').
+    // one-element list (empty when ''); a consumer-written array is
+    // de-duplicated, so the hidden select never posts a value twice.
     const selected = (): string[] => {
         const v = state.value;
-        if (Array.isArray(v)) return v;
+        if (Array.isArray(v)) return [...new Set(v)];
         return v !== '' ? [v] : [];
     };
     const list = createListController();
@@ -148,6 +151,7 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
     const ctx: ToggleGroupContext = {
         state,
         selected,
+        multiple: () => !!props.multiple,
         list,
         orientation,
         disabled: fc.disabled,
@@ -268,6 +272,11 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onUnmou
     const group = useToggleGroupContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    // '' is the single-mode model's "nothing pressed" (and the hidden
+    // select's placeholder): an item carrying it could never read as on.
+    if (props.value === '' && !group.multiple()) {
+        throw new Error('[zero] ToggleGroup: an item valued "" is reserved for "nothing pressed" in single mode — give it a non-empty value');
+    }
 
     const disabled = (): boolean => !!props.disabled || group.disabled();
     const press = createPressFeedback({

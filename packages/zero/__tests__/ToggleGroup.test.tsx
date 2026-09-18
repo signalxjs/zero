@@ -171,6 +171,27 @@ describe('ToggleGroup', () => {
         expectAnatomy(container, toggleGroupAnatomy);
     });
 
+    it('refuses an item valued "" in single mode — it is the empty sentinel', () => {
+        expect(() => render(
+            <ToggleGroup.Root>
+                <ToggleGroup.Item value="">None</ToggleGroup.Item>
+            </ToggleGroup.Root>,
+            container,
+        )).toThrow(/reserved/);
+    });
+
+    it('de-duplicates a consumer-written multiple model', () => {
+        const state = signal({ v: ['a', 'a'] });
+        render(
+            <ToggleGroup.Root multiple name="m" model={() => state.v}>
+                <ToggleGroup.Item value="a">A</ToggleGroup.Item>
+            </ToggleGroup.Root>,
+            container,
+        );
+        const hidden = container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!;
+        expect(Array.from(hidden.options).map((o) => o.value)).toEqual(['a']);
+    });
+
     it('label names the role=group container', () => {
         render(
             <ToggleGroup.Root label="Alignment">
