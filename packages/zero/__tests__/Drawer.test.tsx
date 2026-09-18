@@ -130,6 +130,31 @@ describe('Drawer', () => {
         expect(state.open).toBe(false);
     });
 
+    it('non-modal and open on first render: open in markup, then show()/close() own it', async () => {
+        const state = signal({ open: true });
+        render(
+            <Drawer.Root model={[state, 'open']} modal={false} label="Nav">
+                <Drawer.Trigger>Menu</Drawer.Trigger>
+                <Drawer.Panel>Links</Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        const panel = part(container, 'panel') as HTMLDialogElement;
+        expect(panel.hasAttribute('open')).toBe(true);
+
+        // Later flips go through show()/close() — the render never re-writes
+        // `open`, so it cannot close the element behind the model's back.
+        state.open = false;
+        await tick();
+        expect(panel.open).toBe(false);
+        state.open = true;
+        await tick();
+        expect(panel.open).toBe(true);
+        state.open = false;
+        await tick();
+        expect(panel.open).toBe(false);
+    });
+
     it('passes the variant axes through on the trigger (the carrier part)', () => {
         render(
             <Drawer.Root>

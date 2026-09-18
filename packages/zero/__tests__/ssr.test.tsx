@@ -234,10 +234,14 @@ function page() {
 
 // The per-request app factory pattern: a fresh app with zeroPlugin() gives
 // each render its own id generator, so ids are deterministic per request.
-function renderPage(): Promise<string> {
-    const app = defineApp(page());
+function renderApp(root: Parameters<typeof defineApp>[0]): Promise<string> {
+    const app = defineApp(root);
     app.use(zeroPlugin());
     return renderToString(app);
+}
+
+function renderPage(): Promise<string> {
+    return renderApp(page());
 }
 
 describe('SSR', () => {
@@ -292,5 +296,47 @@ describe('SSR', () => {
         expect(html).toMatch(/data-scope="tree-view"[^>]*data-part="branch"[^>]*data-state="open"/);
         expect(html).toMatch(/data-scope="tree-view"[^>]*data-part="item"[^>]*data-selected=""[^>]*tabindex="0"/i);
         expect(html).toMatch(/aria-level="2"/);
+    });
+
+    // A non-modal dialog open on first render is plain markup — the server
+    // emits `open` so the page paints it open instead of flashing open at
+    // hydration (#38). A modal one stays closed: the top layer is a
+    // `showModal()` call, never markup.
+    it('emits the open attribute for a default-open non-modal Dialog and Drawer only', async () => {
+        const inlineDrawer = await renderApp(
+            <Drawer.Root defaultOpen modal={false} label="Nav">
+                <Drawer.Panel>Links</Drawer.Panel>
+            </Drawer.Root>,
+        );
+        expect(inlineDrawer).toMatch(/<dialog[^>]*data-state="open"/);
+        expect(inlineDrawer).toMatch(/<dialog[^>]*\sopen/);
+
+        const inlineDialog = await renderApp(
+            <Dialog.Root defaultOpen modal={false}>
+                <Dialog.Popup>Find</Dialog.Popup>
+            </Dialog.Root>,
+        );
+        expect(inlineDialog).toMatch(/<dialog[^>]*\sopen/);
+
+        const modalDrawer = await renderApp(
+            <Drawer.Root defaultOpen label="Nav">
+                <Drawer.Panel>Links</Drawer.Panel>
+            </Drawer.Root>,
+        );
+        expect(modalDrawer).not.toMatch(/<dialog[^>]*\sopen/);
+
+        const modalDialog = await renderApp(
+            <Dialog.Root defaultOpen>
+                <Dialog.Popup>Hi</Dialog.Popup>
+            </Dialog.Root>,
+        );
+        expect(modalDialog).not.toMatch(/<dialog[^>]*\sopen/);
+
+        const closedInline = await renderApp(
+            <Drawer.Root modal={false} label="Nav">
+                <Drawer.Panel>Links</Drawer.Panel>
+            </Drawer.Root>,
+        );
+        expect(closedInline).not.toMatch(/<dialog[^>]*\sopen/);
     });
 });

@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Fixed — a default-open non-modal Dialog/Drawer server-renders open (#38)
+
+- **`Dialog.Popup` and `Drawer.Panel` emit the native `open` attribute** when
+  the dialog is non-modal and open on first render. Before, `open` was only
+  ever applied by `show()` after mount, so an inline `Drawer` sidebar (or a
+  non-modal Dialog) whose model started `true` shipped as a closed
+  `<dialog>`, painted closed, and flashed open at hydration — a layout shift
+  on every full page load. The attribute is captured once at setup: after
+  mount `show()`/`close()` remain its only writers, so a later render can
+  never close the element behind the model's back. A modal dialog is
+  unchanged — the top layer is a `showModal()` call, never markup, so it
+  still renders closed on the server.
+
 ### Added — a `measure` token category, and Container (#484)
 
 - **`--measure-*`** joins `TOKEN_CATEGORIES`: page-scale widths, recommended
