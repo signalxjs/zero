@@ -68,11 +68,13 @@ describe('breakpointQuery', () => {
     });
 
     it('throws on an undeclared breakpoint, naming the declared ones', () => {
-        expect(() => breakpointQuery({ above: 'xl' })).toThrow(/"xl" is not declared — the design system declares sm, md, lg/);
+        expect(() => breakpointQuery({ above: 'xl' })).toThrow(/"xl" is not declared — the ramp declares sm, md, lg/);
         // Inherited names are not breakpoints.
         expect(() => breakpointQuery({ above: 'toString' })).toThrow(/not declared/);
+        // An explicit ramp is named as a ramp, not as the design system's.
+        expect(() => breakpointQuery({ above: 'md' }, { tablet: '50em' })).toThrow(/the ramp declares tablet$/);
         clearThemes();
-        expect(() => breakpointQuery({ below: 'md' })).toThrow(/installThemes\(\)/);
+        expect(() => breakpointQuery({ below: 'md' })).toThrow(/the ramp is empty: call your design system's installThemes\(\)/);
     });
 
     it('throws on an empty range', () => {

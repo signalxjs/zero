@@ -77,8 +77,8 @@ export function breakpointQuery(
             throw new Error(
                 `[zero] breakpoint "${name}" is not declared — `
                 + (declared.length > 0
-                    ? `the design system declares ${declared.join(', ')}`
-                    : 'no breakpoints are registered: call your design system\'s installThemes(), or pass `breakpoints`'),
+                    ? `the ramp declares ${declared.join(', ')}`
+                    : 'the ramp is empty: call your design system\'s installThemes(), or pass `breakpoints`'),
             );
         }
         return value;
