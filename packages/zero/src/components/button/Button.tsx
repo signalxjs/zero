@@ -18,12 +18,15 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type {
     PartProps,
     WithAsChild,
     WithClass,
     WithDisabled,
+    WithForm,
+    WithHtmlAttrs,
+    WithName,
     WithVariantAxes,
 } from '../../contract/props.js';
 import { buttonAnatomy } from './anatomy.js';
@@ -35,6 +38,15 @@ export type ButtonRootProps =
     & WithDisabled
     & WithClass
     & WithAsChild
+    & WithHtmlAttrs
+    /**
+     * The native button's own form attributes: `name`/`value` post with a
+     * submitter, `form` associates it with a form by id. They land on the
+     * built-in `<button>`; an asChild element carries its own.
+     */
+    & WithName
+    & WithForm
+    & Define.Prop<'value', string, false>
     /**
      * Defaults to `button`. The native default is `submit`, which silently
      * posts the enclosing form — a footgun for a component people reach for
@@ -65,6 +77,8 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
     });
 
     const bag = (): PartProps => ({
+        // First, so the part's own attributes win on any name both set.
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'root',
         'data-disabled': dataAttr(props.disabled),
@@ -73,7 +87,9 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
         // so disabled has to be conveyed and enforced by hand there.
         // The literal string: ARIA is string-valued, and a boolean true
         // serializes to an empty attribute, which reads as aria-disabled="".
-        'aria-disabled': props.asChild && props.disabled ? 'true' : undefined,
+        // Spread only when it applies, so an app's own `aria-disabled` (the
+        // focusable-disabled pattern) survives otherwise.
+        ...(props.asChild && props.disabled ? { 'aria-disabled': 'true' as const } : {}),
         ...variantAttrs(props),
         ref: (node: HTMLElement | null) => { el = node; },
         onClick: (e: MouseEvent) => {
@@ -111,6 +127,9 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
         return (
             <button
                 type={props.type ?? 'button'}
+                name={props.name}
+                value={props.value}
+                form={props.form}
                 class={props.class}
                 disabled={props.disabled}
                 {...b}

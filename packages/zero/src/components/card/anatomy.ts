@@ -9,7 +9,8 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * it does nothing on a plain `div`, and giving `root` a `role` to make it work
  * would turn every card on a page into a landmark the reader has to walk past.
  * A card that needs a name is an `<article>` or a `<section>` the consumer
- * writes; zero styles the inside of it.
+ * writes — `asChild` on `root`, or `role`/`aria-labelledby` forwarded onto
+ * it — and zero styles the inside of it.
  *
  * `header`/`body`/`footer` are the layout bands, `title`/`description` the
  * text inside the header. All five are optional — a card is often just `root`
@@ -19,6 +20,7 @@ export const cardAnatomy = defineAnatomy('card', {
     root: {
         element: 'div',
         tokens: ['color', 'radius-box', 'size'],
+        asChild: true,
     },
     header: {
         element: 'div',

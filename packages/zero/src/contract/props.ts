@@ -13,6 +13,8 @@ import type { Orientation } from './data-attrs.js';
 // types the asChild bag with DOM event shapes); re-exported from its
 // historical home so no import site changes.
 export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX } from './variant-attrs.js';
+export { htmlAttrs, RESERVED_DATA_ATTRS } from './html-attrs.js';
+export type { WithHtmlAttrs, HtmlAttrValue } from './html-attrs.js';
 
 /** Arbitrary extra classes appended to the part's root element. */
 export type WithClass = Define.Prop<'class', string, false>;

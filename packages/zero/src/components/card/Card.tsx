@@ -19,8 +19,9 @@
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { renderAsChild } from '../../contract/as-child.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { cardAnatomy } from './anatomy.js';
 
 const SCOPE = cardAnatomy.scope;
@@ -28,15 +29,31 @@ const SCOPE = cardAnatomy.scope;
 export type CardRootProps =
     & WithVariantAxes<'card'>
     & WithClass
-    & Define.Slot<'default'>;
+    & WithHtmlAttrs
+    /**
+     * Render the card as your own element — the `<article>` or `<section>`
+     * a card that needs a name is (see `anatomy.ts`). The slot receives the
+     * bag; spread it.
+     */
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
 
-const CardRoot = component<CardRootProps>(({ props, slots }) => () => (
-    <div data-scope={SCOPE} data-part="root" {...variantAttrs(props)} class={props.class}>
-        {slots.default?.()}
-    </div>
-), { name: 'Card.Root' });
+const CardRoot = component<CardRootProps>(({ props, slots }) => () => {
+    const bag: PartProps = {
+        ...htmlAttrs(props),
+        'data-scope': SCOPE,
+        'data-part': 'root',
+        ...variantAttrs(props),
+    };
+    if (props.asChild) return renderAsChild(slots.default, bag);
+    return (
+        <div {...bag} class={props.class}>
+            {slots.default?.(bag)}
+        </div>
+    );
+}, { name: 'Card.Root' });
 
-export type CardPartProps = WithClass & Define.Slot<'default'>;
+export type CardPartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 /**
  * The four plain bands and the description are the same component with a
@@ -45,7 +62,7 @@ export type CardPartProps = WithClass & Define.Slot<'default'>;
  */
 function makePart(part: string, element: 'div' | 'h3' | 'p', name: string) {
     return component<CardPartProps>(({ props, slots }) => () => {
-        const bag = { 'data-scope': SCOPE, 'data-part': part, class: props.class };
+        const bag = { ...htmlAttrs(props), 'data-scope': SCOPE, 'data-part': part, class: props.class };
         const children = slots.default?.();
         if (element === 'h3') return <h3 {...bag}>{children}</h3>;
         if (element === 'p') return <p {...bag}>{children}</p>;

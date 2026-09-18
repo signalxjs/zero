@@ -54,6 +54,27 @@
 - A controlled parent that refuses the close (its model stays `true`) gets
   no `close` event: only a close that took is reported.
 
+### Added — the attribute pass-through (#49)
+
+- **`WithHtmlAttrs` + `htmlAttrs(props)`** (`@sigx/zero/contract`, also on
+  `./contract/core`): the policy for the everyday attributes a part does not
+  model. A forwarding part renders `aria-*`, the app's own `data-*`, `id`,
+  `title` and `role` on its element (and in its asChild bag); its own
+  attributes win where both set one. A `data-*` name the anatomy contract
+  owns (`RESERVED_DATA_ATTRS` — scope/part/state/orientation/placement, every
+  flag, color/size/variant — plus the `data-mod-`/`data-l-` prefixes) throws,
+  as does a value the attribute cannot carry (`id`/`title`/`role` take a
+  string; an `aria-*` boolean renders as its `"true"`/`"false"` token); the
+  literal reserved names are compile errors too.
+- **Forwarding parts:** `Button.Root`, every `Table` part and every `Card`
+  part. `Table.Root` routes `aria-*` and `role` to the `<table>` (the element
+  assistive tech reads) and the rest to its scroll wrapper.
+- **`Button.Root`** declares the native `form`, `name` and `value`.
+- **`Table.Cell` / `Table.HeaderCell`** declare `colSpan` / `rowSpan`
+  (`TableCellProps`, `TableCellSpanProps`).
+- **`Card.Root` takes `asChild`** — render the `<article>`/`<section>` a
+  named card is; `cardAnatomy.root` declares `asChild: true`.
+
 ### Fixed — a default-open non-modal Dialog/Drawer server-renders open (#38)
 
 - **`Dialog.Popup` and `Drawer.Panel` emit the native `open` attribute** when

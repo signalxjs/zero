@@ -60,6 +60,10 @@ function rootPropsOf(scope: string): string[] {
         WithRequired: ['required'],
         WithReadonly: ['readonly'],
         WithFormControl: ['name', 'form', 'invalid', 'required'],
+        // The attribute pass-through (#49): its `aria-*`/`data-*` names can
+        // never be an `as` (API_PROP_PATTERN spells no hyphen), but these
+        // three can.
+        WithHtmlAttrs: ['id', 'title', 'role'],
     };
     for (const [fragment, names] of Object.entries(FRAGMENTS)) {
         if (new RegExp(`\\b${fragment}\\b`).test(block)) for (const n of names) props.add(n);

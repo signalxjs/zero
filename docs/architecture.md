@@ -613,6 +613,20 @@ axis values are skipped *before* the guards (a narrowed bag has optional
 members); falsy mods are skipped (presence-only — `false` and `undefined`
 both mean absent).
 
+`htmlAttrs` (`packages/zero/src/contract/html-attrs.ts`) is the other
+pass-through, for the attributes a part does not model: `aria-*`, the app's
+`data-*`, `id`, `title`, `role`. sigx hands a component every prop but
+forwards none, and TypeScript never reports a hyphenated JSX attribute as
+excess — so before it an `aria-label` on a part compiled and vanished. A
+forwarding part intersects `WithHtmlAttrs` and spreads `htmlAttrs(props)`
+FIRST, so its own attributes win. The contract-owned `data-*` names
+(`RESERVED_DATA_ATTRS`, plus the `data-mod-`/`data-l-` prefixes) throw; the
+type spells the literal ones out as an unassignable brand rather than
+`never` (an optional `never` reads as `undefined`, which sigx's `EventNames`
+takes for an event) and deliberately declares no `` `data-${string}` ``
+pattern — JSX ignores a pattern member, and the pattern absorbs the literal
+names out of `keyof`, so sigx's `Pick`-based JSX signature would drop them.
+
 All but the layout tier compose `WithVariantAxes<'<scope>'>` — the scope
 literal is constrained to `ZeroScope`, so a typo'd literal
 (`WithVariantAxes<'buton'>`) is a compile error rather than a silently

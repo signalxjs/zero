@@ -9,6 +9,11 @@
   participation (#53). A vendor-named api can no longer claim those names as
   axis props on toggle-group.
 
+- **`RESERVED_PROPS_BY_SCOPE` follows zero's attribute pass-through** (#49):
+  `button` gains `form`, `name`, `value`, `id`, `title` and `role`; `card`
+  and `table` gain `id`, `title` and `role`. A design-system-wide `as` onto
+  one of those names would now shadow a forwarded attribute there.
+
 ### Added
 
 - **`extendDesignSystem` and `extendRecipe`: derive a design system from
