@@ -266,7 +266,7 @@ and keeps the full literal narrowing without a `satisfies` reimplementation.
 
 ### `fitRecipesToVocabulary`
 
-The one thing on `/define` that is not a `define*` helper. Given a recipe
+Not a `define*` helper, but on `/define` all the same. Given a recipe
 list and a `TokensInput`, it returns the recipes fitted to what the tokens
 declare: `variants.color` keeps declared roles only; `variants.size`,
 `variants.variant`, custom axes and `modifiers` keep declared values once
@@ -280,6 +280,65 @@ recipes that already fit — every in-repo skin round-trips deep-equal.
 `explainFit` returns the counts instead of the recipes. The scaffold's
 generated `src/recipes.ts` is its caller; delete the call once the recipes
 speak the design system's own vocabulary.
+
+## Extending a design system
+
+A design system derived from another — a product skin on top of
+`@sigx/zero-daisyui` — must still compile **one recipe per scope**: a second
+recipe for a scope the base styles is a compile error. `extendDesignSystem`
+patches the base as data instead, from `/define`:
+
+```ts
+import { designSystem as daisy } from '@sigx/zero-daisyui';
+import { extendDesignSystem } from '@sigx/zero-kit/define';
+
+export const designSystem = extendDesignSystem(daisy, {
+    name: 'control-room',
+    tokens: {
+        custom: { 'ag-line': { syntax: '<color>' } },
+        themes: { light: null, dark: null, dim: null, /* … */ 'control-room': controlRoom },
+        defaultLight: 'control-room',
+    },
+    recipes: {
+        button: { parts: { root: { base: { boxShadow: 'none' }, states: { 'focus-visible': ring } } } },
+        'toggle-group': { parts: { item: { selectors: { '&[data-orientation="horizontal"] + &': null } } } },
+    },
+    addRecipes: [...myFragmentPack],
+    css: [appCss],
+});
+```
+
+The merge rule is one rule everywhere: plain objects merge per key,
+recursively (per part, per state, selector and `at` condition, per axis
+value, per modifier, per theme, per token); arrays and scalars replace; and
+`null` deletes the key — the way to undo something the base does rather
+than counter it with a second declaration. Two sections are special:
+`compoundVariants` are addressed by `match` (a patch entry whose match
+equals a base entry's merges into it, any other is appended, one left with
+no parts is dropped), and a recipe's `css` hatch concatenates. `targets.web`
+/ `targets.lynx` are patched by the same rule.
+
+- `recipes` patches scopes the base styles; a patch for a scope it does not
+  style throws (a typo would otherwise be a silent no-op), and `null` drops
+  the base's recipe.
+- `addRecipes` adds scopes the base does not style; one it already styles
+  throws.
+- `css` entries are appended after the base's; `api` is carried unchanged
+  unless patched (`null` drops it).
+- The layout tier is generated from tokens, so where the base carries it
+  unmodified it is regenerated from the derived tokens — a changed
+  breakpoint or role reaches the layout step table. A base whose layout
+  recipes differ from the generated ones keeps its own.
+
+`extendRecipe(base, patch)` is the per-recipe half, for a design system
+assembling its list by hand. Both return new objects and never mutate the
+base.
+
+A patch can reach anything in the base today — a custom property the base
+sets, a keyframe name, a pseudo-element selector — and what it reaches is
+only as stable as the base's source. Declared public hooks on a skin, and a
+validator warning for a patch that relies on an undeclared one, are tracked
+in #73.
 
 ## Deriving a palette
 
