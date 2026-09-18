@@ -16,13 +16,15 @@ import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { layoutAttrs } from '../../contract/layout-attrs.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
-import type { WithClass } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs } from '../../contract/props.js';
 import { containerAnatomy } from './anatomy.js';
 
 const SCOPE = containerAnatomy.scope;
 
 export type ContainerRootProps =
     & WithClass
+    & WithHtmlAttrs
     /** The maximum width, from the design system's `--measure-*` ramp. */
     & Define.Prop<'measure', LayoutProp<'measure'>, false>
     & Define.Prop<'pad', LayoutProp<'pad'>, false>
@@ -33,6 +35,7 @@ export type ContainerRootProps =
 const ContainerRoot = component<ContainerRootProps>(({ props, slots }) => {
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...layoutAttrs({

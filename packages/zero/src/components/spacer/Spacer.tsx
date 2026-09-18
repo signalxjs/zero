@@ -15,19 +15,22 @@ import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { layoutAttrs } from '../../contract/layout-attrs.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
-import type { WithClass } from '../../contract/props.js';
+import { htmlAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs } from '../../contract/props.js';
 import { spacerAnatomy } from './anatomy.js';
 
 const SCOPE = spacerAnatomy.scope;
 
 export type SpacerRootProps =
     & WithClass
+    & WithHtmlAttrs
     /** A fixed size instead of flexing. Absent means "take what is left". */
     & Define.Prop<'space', LayoutProp<'space'>, false>;
 
 const SpacerRoot = component<SpacerRootProps>(({ props }) => {
     return () => (
         <div
+            {...htmlAttrs(props)}
             // Decorative by definition: it holds room, never content, so it
             // is hidden from the accessibility tree rather than announced as
             // an empty group.

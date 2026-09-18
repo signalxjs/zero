@@ -24,8 +24,8 @@ import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { renderAsChild } from '../../contract/as-child.js';
 import { stateAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { breadcrumbsAnatomy } from './anatomy.js';
 
 const SCOPE = breadcrumbsAnatomy.scope;
@@ -35,12 +35,15 @@ export type BreadcrumbsRootProps =
     & Define.Prop<'label', string, false>
     & WithVariantAxes<'breadcrumbs'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const BreadcrumbsRoot = component<BreadcrumbsRootProps>(({ props, slots }) => (
-    () => (
+const BreadcrumbsRoot = component<BreadcrumbsRootProps>(({ props, slots }) => () => {
+    const attrs = htmlAttrs(props);
+    return (
         <nav
-            aria-label={props.label ?? 'Breadcrumb'}
+            {...attrs}
+            aria-label={props.label ?? attrs['aria-label'] ?? 'Breadcrumb'}
             data-scope={SCOPE}
             data-part="root"
             {...variantAttrs(props)}
@@ -48,14 +51,14 @@ const BreadcrumbsRoot = component<BreadcrumbsRootProps>(({ props, slots }) => (
         >
             {slots.default?.()}
         </nav>
-    )
-), { name: 'Breadcrumbs.Root' });
+    );
+}, { name: 'Breadcrumbs.Root' });
 
-export type BreadcrumbsPartProps = WithClass & Define.Slot<'default'>;
+export type BreadcrumbsPartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const BreadcrumbsList = component<BreadcrumbsPartProps>(({ props, slots }) => (
     () => (
-        <ol data-scope={SCOPE} data-part="list" class={props.class}>
+        <ol {...htmlAttrs(props)} data-scope={SCOPE} data-part="list" class={props.class}>
             {slots.default?.()}
         </ol>
     )
@@ -63,7 +66,7 @@ const BreadcrumbsList = component<BreadcrumbsPartProps>(({ props, slots }) => (
 
 const BreadcrumbsItem = component<BreadcrumbsPartProps>(({ props, slots }) => (
     () => (
-        <li data-scope={SCOPE} data-part="item" class={props.class}>
+        <li {...htmlAttrs(props)} data-scope={SCOPE} data-part="item" class={props.class}>
             {slots.default?.()}
         </li>
     )
@@ -74,11 +77,13 @@ export type BreadcrumbsLinkProps =
     /** This is the page the user is on: `aria-current="page"` + `data-state="active"`. */
     & Define.Prop<'current', boolean, false>
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
 const BreadcrumbsLink = component<BreadcrumbsLinkProps>(({ props, slots }) => {
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'link',
         'data-state': stateAttr(props.current, 'active', 'inactive'),
@@ -102,7 +107,7 @@ const BreadcrumbsLink = component<BreadcrumbsLinkProps>(({ props, slots }) => {
 
 const BreadcrumbsSeparator = component<BreadcrumbsPartProps>(({ props, slots }) => (
     () => (
-        <span aria-hidden="true" data-scope={SCOPE} data-part="separator" class={props.class}>
+        <span {...htmlAttrs(props)} aria-hidden="true" data-scope={SCOPE} data-part="separator" class={props.class}>
             {slots.default ? slots.default() : '/'}
         </span>
     )

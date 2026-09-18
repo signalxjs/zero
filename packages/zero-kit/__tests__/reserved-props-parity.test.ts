@@ -66,7 +66,13 @@ function rootPropsOf(scope: string): string[] {
         WithHtmlAttrs: ['id', 'title', 'role'],
     };
     for (const [fragment, names] of Object.entries(FRAGMENTS)) {
-        if (new RegExp(`\\b${fragment}\\b`).test(block)) for (const n of names) props.add(n);
+        if (!new RegExp(`\\b${fragment}\\b`).test(block)) continue;
+        // A part that sets one of the names itself refuses it from the app
+        // (`Omit<WithHtmlAttrs, 'role'>` on a Divider, #74), and a refused
+        // name is not a prop an `as` could shadow.
+        const omitted = new RegExp(`Omit<${fragment},\\s*([^>]+)>`).exec(block)?.[1] ?? '';
+        const refused = new Set([...omitted.matchAll(/'([^']+)'/g)].map((m) => m[1]!));
+        for (const n of names) if (!refused.has(n)) props.add(n);
     }
     if (block.includes('Define.Model')) props.add('value');
     return [...props].sort();

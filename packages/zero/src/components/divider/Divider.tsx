@@ -15,8 +15,8 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import type { Orientation } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { dividerAnatomy } from './anatomy.js';
 
 const SCOPE = dividerAnatomy.scope;
@@ -24,12 +24,15 @@ const SCOPE = dividerAnatomy.scope;
 export type DividerRootProps =
     & Define.Prop<'orientation', Orientation, false>
     & WithVariantAxes<'divider'>
-    & WithClass;
+    & WithClass
+    /** Not `role`: a divider IS a separator. */
+    & Omit<WithHtmlAttrs, 'role'>;
 
 const DividerRoot = component<DividerRootProps>(({ props }) => {
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
     return () => (
         <div
+            {...htmlAttrs(props)}
             role="separator"
             aria-orientation={orientation() === 'vertical' ? 'vertical' : undefined}
             data-scope={SCOPE}

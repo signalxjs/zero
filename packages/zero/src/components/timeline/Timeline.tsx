@@ -23,8 +23,8 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import type { Orientation } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { timelineAnatomy } from './anatomy.js';
 
 const SCOPE = timelineAnatomy.scope;
@@ -44,6 +44,7 @@ export type TimelineRootProps =
     & WithOrientation
     & WithVariantAxes<'timeline'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const TimelineRoot = component<TimelineRootProps>(({ props, slots }) => {
@@ -51,6 +52,7 @@ const TimelineRoot = component<TimelineRootProps>(({ props, slots }) => {
     defineProvide(useTimelineContext, () => ({ orientation }));
     return () => (
         <ul
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-orientation={orientation()}
@@ -62,12 +64,13 @@ const TimelineRoot = component<TimelineRootProps>(({ props, slots }) => {
     );
 }, { name: 'Timeline.Root' });
 
-export type TimelinePartProps = WithClass & Define.Slot<'default'>;
+export type TimelinePartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const TimelineItem = component<TimelinePartProps>(({ props, slots }) => {
     const timeline = useTimelineContext();
     return () => (
         <li
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="item"
             data-orientation={timeline.orientation()}
@@ -81,6 +84,7 @@ const TimelineItem = component<TimelinePartProps>(({ props, slots }) => {
 const TimelineMarker = component<TimelinePartProps>(({ props, slots }) => {
     return () => (
         <div
+            {...htmlAttrs(props)}
             aria-hidden="true"
             data-scope={SCOPE}
             data-part="marker"
@@ -91,10 +95,11 @@ const TimelineMarker = component<TimelinePartProps>(({ props, slots }) => {
     );
 }, { name: 'Timeline.Marker' });
 
-const TimelineConnector = component<WithClass>(({ props }) => {
+const TimelineConnector = component<WithClass & WithHtmlAttrs>(({ props }) => {
     const timeline = useTimelineContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             aria-hidden="true"
             data-scope={SCOPE}
             data-part="connector"
@@ -107,12 +112,14 @@ const TimelineConnector = component<WithClass>(({ props }) => {
 export type TimelineContentProps =
     & Define.Prop<'placement', TimelinePlacement, false>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const TimelineContent = component<TimelineContentProps>(({ props, slots }) => {
     const timeline = useTimelineContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="content"
             data-placement={props.placement ?? 'end'}

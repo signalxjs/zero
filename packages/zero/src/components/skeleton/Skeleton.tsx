@@ -19,8 +19,8 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState } from '../../behaviors/controllable.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { skeletonAnatomy } from './anatomy.js';
 
 const SCOPE = skeletonAnatomy.scope;
@@ -31,6 +31,7 @@ export type SkeletonRootProps =
     & Define.Event<'loadingChange', boolean>
     & WithVariantAxes<'skeleton'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const SkeletonRoot = component<SkeletonRootProps>(({ props, slots, emit }) => {
@@ -42,6 +43,7 @@ const SkeletonRoot = component<SkeletonRootProps>(({ props, slots, emit }) => {
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-state={state.value ? 'loading' : 'loaded'}

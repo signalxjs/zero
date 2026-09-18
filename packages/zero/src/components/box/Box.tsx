@@ -12,8 +12,8 @@ import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { layoutAttrs } from '../../contract/layout-attrs.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { boxAnatomy } from './anatomy.js';
 
 const SCOPE = boxAnatomy.scope;
@@ -21,6 +21,7 @@ const SCOPE = boxAnatomy.scope;
 export type BoxRootProps =
     & WithVariantAxes<'box'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Prop<'pad', LayoutProp<'pad'>, false>
     & Define.Prop<'padX', LayoutProp<'pad-x'>, false>
     & Define.Prop<'padY', LayoutProp<'pad-y'>, false>
@@ -29,6 +30,7 @@ export type BoxRootProps =
 const BoxRoot = component<BoxRootProps>(({ props, slots }) => {
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...variantAttrs(props)}

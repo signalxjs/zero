@@ -15,8 +15,8 @@
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { indicatorAnatomy, INDICATOR_PLACEMENTS } from './anatomy.js';
 
 const SCOPE = indicatorAnatomy.scope;
@@ -27,11 +27,13 @@ export type IndicatorPlacement = typeof INDICATOR_PLACEMENTS[number];
 export type IndicatorRootProps =
     & WithVariantAxes<'indicator'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const IndicatorRoot = component<IndicatorRootProps>(({ props, slots }) => {
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...variantAttrs(props)}
@@ -45,11 +47,13 @@ const IndicatorRoot = component<IndicatorRootProps>(({ props, slots }) => {
 export type IndicatorItemProps =
     & Define.Prop<'placement', IndicatorPlacement, false>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const IndicatorItem = component<IndicatorItemProps>(({ props, slots }) => {
     return () => (
         <span
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="item"
             data-placement={props.placement ?? 'top-end'}

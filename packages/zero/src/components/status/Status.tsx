@@ -19,8 +19,8 @@
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { statusAnatomy } from './anatomy.js';
 
 const SCOPE = statusAnatomy.scope;
@@ -28,20 +28,28 @@ const SCOPE = statusAnatomy.scope;
 export type StatusRootProps =
     & Define.Prop<'label', string, false>
     & WithVariantAxes<'status'>
-    & WithClass;
+    & WithClass
+    /** Not `role`: a named status is an `img`, an unnamed one is hidden. */
+    & Omit<WithHtmlAttrs, 'role'>;
 
 const StatusRoot = component<StatusRootProps>(({ props }) => {
-    return () => (
-        <span
-            role={props.label ? 'img' : undefined}
-            aria-label={props.label || undefined}
-            aria-hidden={props.label ? undefined : 'true'}
-            data-scope={SCOPE}
-            data-part="root"
-            {...variantAttrs(props)}
-            class={props.class}
-        />
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        // An app `aria-label` names the dot the way `label` does.
+        const label = props.label || attrs['aria-label'];
+        return (
+            <span
+                {...attrs}
+                role={label ? 'img' : undefined}
+                aria-label={label || undefined}
+                aria-hidden={label ? undefined : 'true'}
+                data-scope={SCOPE}
+                data-part="root"
+                {...variantAttrs(props)}
+                class={props.class}
+            />
+        );
+    };
 }, { name: 'Status.Root' });
 
 // One part, but still a compound: every scope in the anatomy exports

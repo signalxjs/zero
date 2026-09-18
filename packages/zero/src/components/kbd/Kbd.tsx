@@ -14,8 +14,8 @@
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
-import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { kbdAnatomy } from './anatomy.js';
 
 const SCOPE = kbdAnatomy.scope;
@@ -23,11 +23,13 @@ const SCOPE = kbdAnatomy.scope;
 export type KbdRootProps =
     & WithVariantAxes<'kbd'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const KbdRoot = component<KbdRootProps>(({ props, slots }) => {
     return () => (
         <kbd
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...variantAttrs(props)}

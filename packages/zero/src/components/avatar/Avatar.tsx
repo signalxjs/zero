@@ -17,9 +17,9 @@
  */
 import { component, compound, defineInjectable, defineProvide, watch } from 'sigx';
 import type { Define } from 'sigx';
-import { variantAttrs } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import type { PartProps, WithAsChild, WithClass, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { avatarAnatomy } from './anatomy.js';
 
 const SCOPE = avatarAnatomy.scope;
@@ -43,6 +43,7 @@ export type AvatarRootProps =
     & Define.Event<'statusChange', AvatarStatus>
     & WithVariantAxes<'avatar'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const AvatarRoot = component<AvatarRootProps>(({ props, slots, emit, signal }) => {
@@ -59,6 +60,7 @@ const AvatarRoot = component<AvatarRootProps>(({ props, slots, emit, signal }) =
 
     return () => (
         <span
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             data-state={ctx.status()}
@@ -79,6 +81,7 @@ export type AvatarImageProps =
     // avatar that is genuinely decorative next to a visible name.
     & Define.Prop<'alt', string, true>
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -113,6 +116,7 @@ const AvatarImage = component<AvatarImageProps>(({ props, slots, onMounted }) =>
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'image',
         'data-state': avatar.status(),
@@ -136,12 +140,13 @@ const AvatarImage = component<AvatarImageProps>(({ props, slots, onMounted }) =>
 
 // ── Fallback ──
 
-export type AvatarFallbackProps = WithClass & Define.Slot<'default'>;
+export type AvatarFallbackProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const AvatarFallback = component<AvatarFallbackProps>(({ props, slots }) => {
     const avatar = useAvatarContext();
     return () => (
         <span
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="fallback"
             data-state={avatar.status()}
