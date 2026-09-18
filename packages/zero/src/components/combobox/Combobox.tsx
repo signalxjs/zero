@@ -73,12 +73,14 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
+import { htmlAttrs } from '../../contract/props.js';
 import type {
     PartProps,
     WithAsChild,
     WithClass,
     WithDisabled,
     WithFormControl,
+    WithHtmlAttrs,
     WithReadonly,
     WithVariantAxes,
 } from '../../contract/props.js';
@@ -197,6 +199,7 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & WithVariantAxes<'combobox'>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'item', { item: T }>
     /** Per-tag content under `multiple` (data mode) — replaces the label + remove button. */
     & Define.Slot<'tag', ComboboxTagSlotProps<T>>
@@ -552,6 +555,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
             {...fc.flags()}
@@ -630,12 +634,13 @@ const ComboboxRoot = ComboboxRootImpl as unknown as ComboboxRoot;
 
 // ── Control ──
 
-export type ComboboxControlProps = WithClass & Define.Slot<'default'>;
+export type ComboboxControlProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const ComboboxControl = component<ComboboxControlProps>(({ props, slots }) => {
     const combobox = useComboboxContext();
     return () => (
         <div
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="control"
             data-state={stateAttr(combobox.open.value, 'open', 'closed')}
@@ -685,6 +690,7 @@ export type ComboboxTagProps =
     /** The chosen value's key (what an item's `value` is). */
     & Define.Prop<'value', string, true>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const ComboboxTag = component<ComboboxTagProps>(({ props, slots }) => {
@@ -696,6 +702,7 @@ const ComboboxTag = component<ComboboxTagProps>(({ props, slots }) => {
     defineProvide(useComboboxTagContext, () => ctx);
     return () => (
         <span
+            {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="tag"
             data-disabled={dataAttr(combobox.disabled())}
@@ -713,13 +720,13 @@ const ComboboxTag = component<ComboboxTagProps>(({ props, slots }) => {
     );
 }, { name: 'Combobox.Tag' });
 
-export type ComboboxTagLabelProps = WithClass & Define.Slot<'default'>;
+export type ComboboxTagLabelProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 /** The tag's text — its label unless children replace it. */
 const ComboboxTagLabel = component<ComboboxTagLabelProps>(({ props, slots }) => {
     const tag = useComboboxTagContext();
     return () => (
-        <span data-scope={SCOPE} data-part="tag-label" class={props.class}>
+        <span {...htmlAttrs(props)} data-scope={SCOPE} data-part="tag-label" class={props.class}>
             {slots.default ? slots.default() : tag.label()}
         </span>
     );
@@ -729,6 +736,7 @@ export type ComboboxTagRemoveProps =
     /** Accessible name (default `Remove <label>`). */
     & Define.Prop<'label', string, false>
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const ComboboxTagRemove = component<ComboboxTagRemoveProps>(({ props, slots, signal }) => {
@@ -741,82 +749,95 @@ const ComboboxTagRemove = component<ComboboxTagRemoveProps>(({ props, slots, sig
         getElement: () => el,
         isDisabled: disabled,
     });
-    return () => (
-        <button
-            type="button"
-            data-scope={SCOPE}
-            data-part="tag-remove"
-            data-disabled={dataAttr(disabled())}
-            data-focus-visible={dataAttr(focus.visible)}
-            aria-label={props.label ?? `Remove ${tag.label()}`}
-            disabled={disabled()}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { el = node; }}
-            onClick={() => {
-                if (disabled()) return;
-                combobox.remove(tag.value());
-                // The button leaves with its tag: focus goes where typing resumes.
-                combobox.focusInput();
-            }}
-            onKeydown={press.onKeydown}
-            onKeyup={press.onKeyup}
-            onFocus={() => { focus.visible = isFocusVisible(el); }}
-            onBlur={(e: FocusEvent) => {
-                press.onBlur(e);
-                focus.visible = false;
-            }}
-            onPointerdown={press.onPointerdown}
-            onPointerup={press.onPointerup}
-            onPointercancel={press.onPointercancel}
-            onPointerleave={press.onPointerleave}
-        >
-            {slots.default ? slots.default() : <span aria-hidden="true">×</span>}
-        </button>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <button
+                {...attrs}
+                type="button"
+                data-scope={SCOPE}
+                data-part="tag-remove"
+                data-disabled={dataAttr(disabled())}
+                data-focus-visible={dataAttr(focus.visible)}
+                aria-label={props.label ?? attrs['aria-label'] ?? `Remove ${tag.label()}`}
+                disabled={disabled()}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; }}
+                onClick={() => {
+                    if (disabled()) return;
+                    combobox.remove(tag.value());
+                    // The button leaves with its tag: focus goes where typing resumes.
+                    combobox.focusInput();
+                }}
+                onKeydown={press.onKeydown}
+                onKeyup={press.onKeyup}
+                onFocus={() => { focus.visible = isFocusVisible(el); }}
+                onBlur={(e: FocusEvent) => {
+                    press.onBlur(e);
+                    focus.visible = false;
+                }}
+                onPointerdown={press.onPointerdown}
+                onPointerup={press.onPointerup}
+                onPointercancel={press.onPointercancel}
+                onPointerleave={press.onPointerleave}
+            >
+                {slots.default ? slots.default() : <span aria-hidden="true">×</span>}
+            </button>
+        );
+    };
 }, { name: 'Combobox.TagRemove' });
 
 // ── Input ──
 
 export type ComboboxInputProps =
     & Define.Prop<'placeholder', string, false>
-    & WithClass;
+    & WithClass
+    /**
+     * Not `id`/`role`: the Field's label and the popup point at the input,
+     * which is the `combobox`. An app `aria-describedby` joins the Field's.
+     */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>;
 
 const ComboboxInput = component<ComboboxInputProps>(({ props }) => {
     const combobox = useComboboxContext();
     let el: HTMLElement | null = null;
 
-    return () => (
-        <input
-            id={combobox.inputId()}
-            type="text"
-            data-scope={SCOPE}
-            data-part="input"
-            data-state={stateAttr(combobox.open.value, 'open', 'closed')}
-            data-disabled={dataAttr(combobox.disabled())}
-            data-invalid={dataAttr(combobox.invalid())}
-            data-required={dataAttr(combobox.required())}
-            data-readonly={dataAttr(combobox.readonly())}
-            data-focus-visible={dataAttr(combobox.inputFocusVisible.value)}
-            role="combobox"
-            aria-expanded={combobox.open.value ? 'true' : 'false'}
-            aria-controls={combobox.ids.popup}
-            aria-autocomplete="list"
-            aria-activedescendant={combobox.listbox.activeDescendant(combobox.open.value)}
-            aria-invalid={combobox.invalid() ? 'true' : undefined}
-            aria-describedby={combobox.describedBy()}
-            placeholder={props.placeholder ?? combobox.placeholder()}
-            value={combobox.inputValue.value}
-            disabled={combobox.disabled()}
-            readOnly={combobox.readonly()}
-            required={combobox.required()}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { el = node; combobox.setInput(node); }}
-            onInput={(e: Event) => { combobox.onInput((e.target as HTMLInputElement).value); }}
-            onKeydown={(e: KeyboardEvent) => { combobox.inputKeydown(e); }}
-            onFocus={() => { combobox.inputFocusVisible.value = isFocusVisible(el); }}
-            onBlur={() => { combobox.inputFocusVisible.value = false; }}
-        />
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <input
+                {...attrs}
+                id={combobox.inputId()}
+                type="text"
+                data-scope={SCOPE}
+                data-part="input"
+                data-state={stateAttr(combobox.open.value, 'open', 'closed')}
+                data-disabled={dataAttr(combobox.disabled())}
+                data-invalid={dataAttr(combobox.invalid())}
+                data-required={dataAttr(combobox.required())}
+                data-readonly={dataAttr(combobox.readonly())}
+                data-focus-visible={dataAttr(combobox.inputFocusVisible.value)}
+                role="combobox"
+                aria-expanded={combobox.open.value ? 'true' : 'false'}
+                aria-controls={combobox.ids.popup}
+                aria-autocomplete="list"
+                aria-activedescendant={combobox.listbox.activeDescendant(combobox.open.value)}
+                aria-invalid={combobox.invalid() ? 'true' : undefined}
+                aria-describedby={[combobox.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
+                placeholder={props.placeholder ?? combobox.placeholder()}
+                value={combobox.inputValue.value}
+                disabled={combobox.disabled()}
+                readOnly={combobox.readonly()}
+                required={combobox.required()}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; combobox.setInput(node); }}
+                onInput={(e: Event) => { combobox.onInput((e.target as HTMLInputElement).value); }}
+                onKeydown={(e: KeyboardEvent) => { combobox.inputKeydown(e); }}
+                onFocus={() => { combobox.inputFocusVisible.value = isFocusVisible(el); }}
+                onBlur={() => { combobox.inputFocusVisible.value = false; }}
+            />
+        );
+    };
 }, { name: 'Combobox.Input' });
 
 // ── Trigger ──
@@ -825,6 +846,8 @@ export type ComboboxTriggerProps =
     /** Accessible name for the disclosure button (default "Show options"). */
     & Define.Prop<'label', string, false>
     & WithClass
+    /** Not `id`: the trigger's own is minted with the root's. */
+    & Omit<WithHtmlAttrs, 'id'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -837,36 +860,40 @@ const ComboboxTrigger = component<ComboboxTriggerProps>(({ props, slots, signal 
         isDisabled: () => combobox.disabled(),
     });
 
-    const bag = (): PartProps => ({
-        id: combobox.ids.trigger,
-        'data-scope': SCOPE,
-        'data-part': 'trigger',
-        'data-state': stateAttr(combobox.open.value, 'open', 'closed'),
-        'data-disabled': dataAttr(combobox.disabled()),
-        'data-focus-visible': dataAttr(focus.visible),
-        // Focus lives in the input; the button is a pointer affordance.
-        tabIndex: -1,
-        'aria-label': props.label ?? 'Show options',
-        'aria-expanded': combobox.open.value ? 'true' : 'false',
-        'aria-controls': combobox.ids.popup,
-        onClick: () => {
-            if (combobox.disabled() || combobox.readonly()) return;
-            combobox.open.value = !combobox.open.value;
-            combobox.focusInput();
-        },
-        onKeydown: press.onKeydown,
-        onKeyup: press.onKeyup,
-        onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: (e: FocusEvent) => {
-            press.onBlur(e);
-            focus.visible = false;
-        },
-        onPointerdown: press.onPointerdown,
-        onPointerup: press.onPointerup,
-        onPointercancel: press.onPointercancel,
-        onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; combobox.setTrigger(node); },
-    });
+    const bag = (): PartProps => {
+        const attrs = htmlAttrs(props);
+        return {
+            ...attrs,
+            id: combobox.ids.trigger,
+            'data-scope': SCOPE,
+            'data-part': 'trigger',
+            'data-state': stateAttr(combobox.open.value, 'open', 'closed'),
+            'data-disabled': dataAttr(combobox.disabled()),
+            'data-focus-visible': dataAttr(focus.visible),
+            // Focus lives in the input; the button is a pointer affordance.
+            tabIndex: -1,
+            'aria-label': props.label ?? attrs['aria-label'] ?? 'Show options',
+            'aria-expanded': combobox.open.value ? 'true' : 'false',
+            'aria-controls': combobox.ids.popup,
+            onClick: () => {
+                if (combobox.disabled() || combobox.readonly()) return;
+                combobox.open.value = !combobox.open.value;
+                combobox.focusInput();
+            },
+            onKeydown: press.onKeydown,
+            onKeyup: press.onKeyup,
+            onFocus: () => { focus.visible = isFocusVisible(el); },
+            onBlur: (e: FocusEvent) => {
+                press.onBlur(e);
+                focus.visible = false;
+            },
+            onPointerdown: press.onPointerdown,
+            onPointerup: press.onPointerup,
+            onPointercancel: press.onPointercancel,
+            onPointerleave: press.onPointerleave,
+            ref: (node: HTMLElement | null) => { el = node; combobox.setTrigger(node); },
+        };
+    };
 
     return () => {
         const b = bag();
@@ -881,7 +908,11 @@ const ComboboxTrigger = component<ComboboxTriggerProps>(({ props, slots, signal 
 
 // ── Popup ──
 
-export type ComboboxPopupProps = WithClass & Define.Slot<'default'>;
+export type ComboboxPopupProps =
+    & WithClass
+    /** Not `id`/`role`: the input points at the popup, which is the `listbox`. */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
+    & Define.Slot<'default'>;
 
 const ComboboxPopup = component<ComboboxPopupProps>(({ props, slots, onMounted }) => {
     const combobox = useComboboxContext();
@@ -889,22 +920,26 @@ const ComboboxPopup = component<ComboboxPopupProps>(({ props, slots, onMounted }
 
     onMounted(() => { syncPopover(() => el, () => combobox.open.value); });
 
-    return () => (
-        <div
-            id={combobox.ids.popup}
-            data-scope={SCOPE}
-            data-part="popup"
-            data-state={stateAttr(combobox.open.value, 'open', 'closed')}
-            popover="manual"
-            role="listbox"
-            aria-multiselectable={combobox.multiple() ? 'true' : undefined}
-            aria-labelledby={combobox.inputId()}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { el = node; combobox.setPopup(node); }}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                id={combobox.ids.popup}
+                data-scope={SCOPE}
+                data-part="popup"
+                data-state={stateAttr(combobox.open.value, 'open', 'closed')}
+                popover="manual"
+                role="listbox"
+                aria-multiselectable={combobox.multiple() ? 'true' : undefined}
+                aria-labelledby={attrs['aria-labelledby'] ? `${combobox.inputId()} ${attrs['aria-labelledby']}` : combobox.inputId()}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; combobox.setPopup(node); }}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Combobox.Popup' });
 
 // ── Item ──
@@ -914,6 +949,8 @@ export type ComboboxItemProps =
     & Define.Prop<'textValue', string, false>
     & WithDisabled
     & WithClass
+    /** Not `id`/`role`: the input's active descendant is the item's id, an `option`. */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -957,6 +994,7 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
     onUnmounted(() => item.unregister());
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         ...item.bag(),
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,
@@ -985,14 +1023,15 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
 
 // ── Empty ──
 
-export type ComboboxEmptyProps = WithClass & Define.Slot<'default'>;
+/** Not `role`: the empty state is `presentation` inside the listbox. */
+export type ComboboxEmptyProps = WithClass & Omit<WithHtmlAttrs, 'role'> & Define.Slot<'default'>;
 
 /** Renders its content only while the visible list is empty. */
 const ComboboxEmpty = component<ComboboxEmptyProps>(({ props, slots }) => {
     const combobox = useComboboxContext();
     return () => (combobox.listbox.isEmpty()
         ? (
-            <div data-scope={SCOPE} data-part="empty" role="presentation" class={props.class}>
+            <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="empty" role="presentation" class={props.class}>
                 {slots.default?.()}
             </div>
         )
@@ -1005,7 +1044,11 @@ export const useComboboxGroupContext = defineInjectable<GroupPresence>(
     () => createGroupPresence('zx-combobox-group-inert-label', { label: false }),
 );
 
-export type ComboboxGroupProps = WithClass & Define.Slot<'default'>;
+export type ComboboxGroupProps =
+    & WithClass
+    /** Not `role`: the part is the `group`. An app `aria-labelledby` joins the GroupLabel's. */
+    & Omit<WithHtmlAttrs, 'role'>
+    & Define.Slot<'default'>;
 
 /**
  * The optgroup equivalent — `role="group"` inside the listbox, named by its
@@ -1016,20 +1059,28 @@ const ComboboxGroup = component<ComboboxGroupProps>(({ props, slots, signal }) =
     const baseId = createId('zx-combobox-group');
     const ctx = createGroupPresence(`${baseId}-label`, signal({ label: false }));
     defineProvide(useComboboxGroupContext, () => ctx);
-    return () => (
-        <div
-            data-scope={SCOPE}
-            data-part="group"
-            role="group"
-            aria-labelledby={ctx.labelPresent() ? ctx.labelId : undefined}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                data-scope={SCOPE}
+                data-part="group"
+                role="group"
+                aria-labelledby={[
+                    ctx.labelPresent() ? ctx.labelId : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
+                class={props.class}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Combobox.Group' });
 
-export type ComboboxGroupLabelProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the group is labelled by the GroupLabel's own. */
+export type ComboboxGroupLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const ComboboxGroupLabel = component<ComboboxGroupLabelProps>(({ props, slots, onUnmounted }) => {
     const group = useComboboxGroupContext();
@@ -1037,7 +1088,7 @@ const ComboboxGroupLabel = component<ComboboxGroupLabelProps>(({ props, slots, o
     // No role: the label must stay in the accessibility tree for the group's
     // aria-labelledby to compute a name from it.
     return () => (
-        <div id={group.labelId} data-scope={SCOPE} data-part="group-label" class={props.class}>
+        <div {...htmlAttrs(props)} id={group.labelId} data-scope={SCOPE} data-part="group-label" class={props.class}>
             {slots.default?.()}
         </div>
     );

@@ -37,8 +37,8 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { drawerAnatomy } from './anatomy.js';
 
 const SCOPE = drawerAnatomy.scope;
@@ -176,6 +176,7 @@ const DrawerRoot = component<DrawerRootProps>(({ props, slots, emit, signal }) =
 export type DrawerTriggerProps =
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithVariantAxes<'drawer'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
@@ -190,6 +191,7 @@ const DrawerTrigger = component<DrawerTriggerProps>(({ props, slots, signal }) =
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'trigger',
         ...variantAttrs(props),
@@ -238,6 +240,8 @@ export type DrawerPanelProps =
      * drawer width.
      */
     & Define.Prop<'measure', LayoutProp<'measure'>, false>
+    /** Not `id`: the Trigger points at the panel's own. */
+    & Omit<WithHtmlAttrs, 'id'>
     & Define.Slot<'default'>;
 
 const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) => {
@@ -279,53 +283,62 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
         });
     });
 
-    return () => (
-        <dialog
-            id={drawer.ids.panel}
-            data-scope={SCOPE}
-            data-part="panel"
-            data-state={stateAttr(drawer.state.value, 'open', 'closed')}
-            open={openInMarkup}
-            data-placement={drawer.placement()}
-            // Written directly rather than through `layoutAttrs`: `measure`
-            // is not responsive, so the type already closes the value set,
-            // and the helper's vocabulary table would triple this entry.
-            data-l-measure={props.measure}
-            aria-labelledby={drawer.titlePresent() ? drawer.ids.title : undefined}
-            aria-label={drawer.titlePresent() ? undefined : drawer.label()}
-            class={props.class}
-            ref={(node: HTMLDialogElement | null) => { el = node; }}
-            onClose={() => {
-                // Still open in the model means zero did not start this
-                // close: a native close() or a <form method="dialog">.
-                drawer.requestClose('programmatic', el?.returnValue || undefined);
-            }}
-            onCancel={(e: Event) => {
-                // Native Escape: let the model decide. Prevent the default
-                // close and route through state so non-dismissible drawers
-                // stay open and controlled parents stay authoritative.
-                e.preventDefault();
-                if (drawer.dismissible()) drawer.requestClose('escape');
-            }}
-            onClick={(e: MouseEvent) => {
-                // A ::backdrop click targets the <dialog> element itself —
-                // but so does a click on the panel's own padding. Geometry
-                // decides: only a pointer position outside the panel's box
-                // can be the scrim. Modal only — an inline drawer has no
-                // backdrop at all.
-                if (!drawer.modal() || !drawer.dismissible()) return;
-                if (!el || e.target !== el) return;
-                // A keyboard-synthesized click carries no geometry.
-                if (e.detail === 0) return;
-                const rect = el.getBoundingClientRect();
-                const inside = e.clientX >= rect.left && e.clientX <= rect.right
-                    && e.clientY >= rect.top && e.clientY <= rect.bottom;
-                if (!inside) drawer.requestClose('backdrop');
-            }}
-        >
-            {slots.default?.()}
-        </dialog>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <dialog
+                {...attrs}
+                id={drawer.ids.panel}
+                data-scope={SCOPE}
+                data-part="panel"
+                data-state={stateAttr(drawer.state.value, 'open', 'closed')}
+                open={openInMarkup}
+                data-placement={drawer.placement()}
+                // Written directly rather than through `layoutAttrs`: `measure`
+                // is not responsive, so the type already closes the value set,
+                // and the helper's vocabulary table would triple this entry.
+                data-l-measure={props.measure}
+                // An app's own references join the Title's; an app
+                // `aria-label` stands in for `label`.
+                aria-labelledby={[
+                    drawer.titlePresent() ? drawer.ids.title : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
+                aria-label={drawer.titlePresent() ? undefined : drawer.label() ?? attrs['aria-label']}
+                class={props.class}
+                ref={(node: HTMLDialogElement | null) => { el = node; }}
+                onClose={() => {
+                    // Still open in the model means zero did not start this
+                    // close: a native close() or a <form method="dialog">.
+                    drawer.requestClose('programmatic', el?.returnValue || undefined);
+                }}
+                onCancel={(e: Event) => {
+                    // Native Escape: let the model decide. Prevent the default
+                    // close and route through state so non-dismissible drawers
+                    // stay open and controlled parents stay authoritative.
+                    e.preventDefault();
+                    if (drawer.dismissible()) drawer.requestClose('escape');
+                }}
+                onClick={(e: MouseEvent) => {
+                    // A ::backdrop click targets the <dialog> element itself —
+                    // but so does a click on the panel's own padding. Geometry
+                    // decides: only a pointer position outside the panel's box
+                    // can be the scrim. Modal only — an inline drawer has no
+                    // backdrop at all.
+                    if (!drawer.modal() || !drawer.dismissible()) return;
+                    if (!el || e.target !== el) return;
+                    // A keyboard-synthesized click carries no geometry.
+                    if (e.detail === 0) return;
+                    const rect = el.getBoundingClientRect();
+                    const inside = e.clientX >= rect.left && e.clientX <= rect.right
+                        && e.clientY >= rect.top && e.clientY <= rect.bottom;
+                    if (!inside) drawer.requestClose('backdrop');
+                }}
+            >
+                {slots.default?.()}
+            </dialog>
+        );
+    };
 }, { name: 'Drawer.Panel' });
 
 // ── Title ──
@@ -334,7 +347,12 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
  * `visuallyHidden` keeps the title as the drawer's accessible name while
  * something else carries the visible heading — a brand row, an icon bar.
  */
-export type DrawerTitleProps = WithClass & WithVisuallyHidden & Define.Slot<'default'>;
+export type DrawerTitleProps =
+    & WithClass
+    & WithVisuallyHidden
+    /** Not `id`: the panel is labelled by the Title's own. */
+    & Omit<WithHtmlAttrs, 'id'>
+    & Define.Slot<'default'>;
 
 const DrawerTitle = component<DrawerTitleProps>(({ props, slots, onUnmounted }) => {
     const drawer = useDrawerContext();
@@ -347,6 +365,7 @@ const DrawerTitle = component<DrawerTitleProps>(({ props, slots, onUnmounted }) 
     });
     return () => (
         <h2
+            {...htmlAttrs(props)}
             id={drawer.ids.title}
             data-scope={SCOPE}
             data-part="title"
@@ -365,6 +384,7 @@ export type DrawerCloseProps =
     & Define.Prop<'value', string, false>
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -378,6 +398,7 @@ const DrawerClose = component<DrawerCloseProps>(({ props, slots, signal }) => {
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'close',
         // The native spelling rides along too: an asChild <button> keeps

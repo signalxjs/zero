@@ -185,25 +185,24 @@ condition pointing at an empty declaration, so the extensionless side-effect
 import typechecks under `noUncheckedSideEffectImports` with no app-side shim.
 
 **Attribute pass-through.** sigx forwards no rest props, so a part only
-renders what it declares. A forwarding part takes `WithHtmlAttrs` and
+renders what it declares. Every part an app writes takes `WithHtmlAttrs` and
 forwards `aria-*`, the app's own `data-*`, `id`, `title` and `role` onto the
-element it renders (into the asChild bag too). That covers `Button.Root`
-(plus its native `form`/`name`/`value`), every `Table` part (`Table.Root`
-puts `aria-*` and `role` on the `<table>` and the rest on its scroll
-wrapper; `Table.Cell` and `Table.HeaderCell` also take `colSpan`/`rowSpan`),
-every `Card` part (`Card.Root` also takes `asChild`, for a card that is an
-`<article>`), and every part of Alert, Avatar, Badge, Breadcrumbs, Chat,
-Countdown, Divider, Indicator, Join, Kbd, Navbar, Progress, RadialProgress,
-Skeleton, Spinner, Stats, Status, Timeline, the layout tier (Box, Center,
-Container, Grid, Spacer, Stack), the disclosure and navigation scopes
-(Accordion, Carousel, Collapsible, Diff, Pagination, Steps, Swap, Tabs,
-TreeView) and the form controls (Checkbox, Field, FileUpload, Input,
-NumberInput, RadioGroup, RatingGroup, Slider, Switch, Textarea, Toggle,
-ToggleGroup). Overlays and listboxes follow in #74. Parts zero renders on
-its own (a hidden input, Pagination's page buttons, a switch thumb) have no
-component to take an attribute. `Checkbox.Root`, `Switch.Root` and
-`RadioGroup.Item` split theirs like `Table.Root`: `aria-*` goes to the input
-assistive tech reads, `id`/`title`/`data-*` to the row.
+element it renders (into the asChild bag too) — `Button.Root` also declares
+its native `form`/`name`/`value`, `Table.Cell`/`Table.HeaderCell` take
+`colSpan`/`rowSpan`, and `Card.Root` takes `asChild` for a card that is an
+`<article>`. Where the attributes land:
+
+- **On the part's own element**, for nearly every part. A fragment root
+  (`Dialog.Root`, `Drawer.Root`, `Popover.Root`, `Tooltip.Root`,
+  `Menu.Root`, `Menu.Sub`, `Combobox.Tags`) renders no element and takes
+  none: the Trigger and the popup each carry their own.
+- **Split, where the part wraps the element assistive tech reads**:
+  `Table.Root` puts `aria-*` and `role` on the `<table>` and the rest on its
+  scroll wrapper; `Checkbox.Root`, `Switch.Root` and `RadioGroup.Item` put
+  `aria-*` on their input and `id`/`title`/`data-*` on the row.
+- **Nowhere**, for parts zero renders on its own — hidden inputs,
+  Pagination's page buttons, a switch thumb, a dialog backdrop, an item
+  indicator. There is no component to take an attribute.
 
 The part's own attributes win where both set one, with three refinements:
 
@@ -212,22 +211,33 @@ The part's own attributes win where both set one, with three refinements:
   (`Divider`, `Spinner`, `Status`, `Countdown`, `Alert.Root`, the progress
   roots, `Tabs.List`/`Tab`/`Panel`, the TreeView tree and its items,
   `Steps.Root`/`Item`, `Carousel.Root`/`Item`, `Diff.Handle`, the switch,
-  checkbox, radio, toggle, slider-thumb and spinbutton parts), and `id`
-  wherever another part points at it (every Label, `Field.Description`/
-  `Error`, the disclosure Panels, `Tabs.Tab`/`Panel`, the Field control of
-  NumberInput, RatingGroup, Slider and FileUpload).
+  checkbox, radio, toggle, slider-thumb and spinbutton parts, every popup
+  but `Drawer.Panel` (a native `<dialog>`), the Select trigger and Combobox
+  input (a `combobox`), every menu item, option, group and separator,
+  `Toast.Root`/`Viewport`),
+  and `id` wherever another part points at it (every Label and Title, the
+  descriptions, `Field.Error`, the disclosure Panels, `Tabs.Tab`/`Panel`,
+  every popup, `Menu.Trigger`/`SubTrigger`, the Select trigger and items,
+  the Combobox input, trigger and items, the Field control of NumberInput,
+  RatingGroup, Slider and FileUpload). `Dialog.Popup`'s role is the Root's
+  `role` prop.
 - A name the part only defaults gives way: an app `aria-label` replaces
   Spinner's "Loading", Breadcrumbs' "Breadcrumb", Pagination's
   "Pagination" and every icon trigger's default (`Alert.Close`, the
   Carousel triggers and dots, `Diff.Handle`, the NumberInput steppers,
-  `FileUpload.ItemRemove`, a Carousel slide's "n of m") — the `label` prop
+  `FileUpload.ItemRemove`, a Carousel slide's "n of m", `Toast.Close`,
+  the toast viewport's "Notifications", `Combobox.Trigger`/`TagRemove`,
+  `Select.Trigger`) — the `label` prop
   still beats both — and names `Status` (a named dot is an `img`) and
   `Countdown` (a named countdown is a `timer`) the way `label` does. An app
   `aria-labelledby`/`aria-describedby` joins the one the part wires (a
-  progressbar's, a tab panel's, a tree's, a control's Field description).
+  progressbar's, a tab panel's, a tree's, a control's Field description, a
+  popup's title and description, a group's label, a tooltip trigger's
+  popup).
 - State ARIA stays the component's: `aria-busy` on a loading Skeleton,
   `aria-current` on the current `Breadcrumbs.Link`, `aria-valuenow`,
-  `aria-expanded`, `aria-selected`, `aria-checked`, `aria-pressed`.
+  `aria-expanded`, `aria-selected`, `aria-checked`, `aria-pressed`,
+  `aria-controls`, `aria-haspopup`, `aria-activedescendant`, `aria-modal`.
 
 A `data-*` name the contract owns — `data-scope`/`part`/`state`/
 `orientation`/`placement`, a flag, `data-color`/`size`/`variant`,
@@ -244,6 +254,7 @@ owns) and spread `htmlAttrs(props)` first.
 <Alert.Close aria-label="Dismiss" />
 <Tabs.List aria-label="Settings">…</Tabs.List>
 <Checkbox.Root aria-label="Accept terms" data-testid="terms" />
+<Dialog.Popup aria-describedby="terms-summary" data-testid="confirm">…</Dialog.Popup>
 ```
 
 **Visually hidden, still named.** `Field.Label`, `Input.Label`,

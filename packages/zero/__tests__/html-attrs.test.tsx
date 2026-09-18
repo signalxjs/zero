@@ -14,12 +14,14 @@ import { component, signal } from 'sigx';
 import { anatomies } from '@sigx/zero/anatomy';
 import {
     Accordion, Alert, Avatar, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, Checkbox,
-    Collapsible, Container, Countdown, Diff, Divider, Field, FileUpload, Grid, Indicator, Input, Join,
-    Kbd, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Skeleton,
-    Slider, Spacer, Spinner, Stack, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline,
-    Toggle, ToggleGroup, TreeView,
+    Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, Field, FileUpload, Grid,
+    Indicator, Input, Join, Kbd, Menu, Navbar, NumberInput, Pagination, Popover, Progress,
+    RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spacer, Spinner, Stack, Stats,
+    Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
+    TreeView, createToaster,
     htmlAttrs, RESERVED_DATA_ATTRS, FLAG_VOCABULARY, LAYOUT_ATTR_PREFIX, MOD_ATTR_PREFIX,
 } from '@sigx/zero';
+import type { ToastData } from '@sigx/zero';
 
 describe('htmlAttrs', () => {
     it('forwards aria-*, data-*, id, title and role — nothing else', () => {
@@ -219,6 +221,8 @@ describe('forwarding parts', () => {
  */
 describe('the pass-through reaches every part', () => {
     const p = (part: string) => ({ 'data-probe': part });
+
+    const sweepToaster = createToaster({ duration: Infinity });
 
     const SWEEP: Record<string, () => unknown> = {
         alert: () => (
@@ -490,6 +494,123 @@ describe('the pass-through reaches every part', () => {
                 </TreeView.Tree>
             </TreeView.Root>
         ),
+        // The empty state renders only in a listbox with nothing to show.
+        combobox: () => (
+            <div>
+                <Combobox.Root {...p('root')} multiple defaultValue={['apple']} defaultOpen>
+                    <Combobox.Control {...p('control')}>
+                        <Combobox.Tag {...p('tag')} value="apple">
+                            <Combobox.TagLabel {...p('tag-label')} />
+                            <Combobox.TagRemove {...p('tag-remove')} />
+                        </Combobox.Tag>
+                        <Combobox.Input {...p('input')} />
+                        <Combobox.Trigger {...p('trigger')} />
+                    </Combobox.Control>
+                    <Combobox.Popup {...p('popup')}>
+                        <Combobox.Group {...p('group')}>
+                            <Combobox.GroupLabel {...p('group-label')}>Fruit</Combobox.GroupLabel>
+                            <Combobox.Item {...p('item')} value="apple">Apple</Combobox.Item>
+                        </Combobox.Group>
+                    </Combobox.Popup>
+                </Combobox.Root>
+                <Combobox.Root defaultOpen>
+                    <Combobox.Control><Combobox.Input /></Combobox.Control>
+                    <Combobox.Popup><Combobox.Empty {...p('empty')}>None</Combobox.Empty></Combobox.Popup>
+                </Combobox.Root>
+            </div>
+        ),
+        dialog: () => (
+            <Dialog.Root defaultOpen>
+                <Dialog.Trigger {...p('trigger')}>Open</Dialog.Trigger>
+                <Dialog.Popup {...p('popup')}>
+                    <Dialog.Title {...p('title')}>T</Dialog.Title>
+                    <Dialog.Description {...p('description')}>D</Dialog.Description>
+                    <Dialog.Footer {...p('footer')}>
+                        <Dialog.Cancel {...p('cancel')}>Cancel</Dialog.Cancel>
+                        <Dialog.Close {...p('close')}>OK</Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Popup>
+            </Dialog.Root>
+        ),
+        drawer: () => (
+            <Drawer.Root defaultOpen>
+                <Drawer.Trigger {...p('trigger')}>Menu</Drawer.Trigger>
+                <Drawer.Panel {...p('panel')}>
+                    <Drawer.Title {...p('title')}>Nav</Drawer.Title>
+                    <Drawer.Close {...p('close')}>Close</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>
+        ),
+        // The two trigger shapes: a menu button, and a context surface.
+        menu: () => (
+            <div>
+                <Menu.Root defaultOpen>
+                    <Menu.Trigger {...p('trigger')}>Actions</Menu.Trigger>
+                    <Menu.Popup {...p('popup')}>
+                        <Menu.Group {...p('group')}>
+                            <Menu.GroupLabel {...p('group-label')}>File</Menu.GroupLabel>
+                            <Menu.Item {...p('item')} value="rename">Rename</Menu.Item>
+                        </Menu.Group>
+                        <Menu.Separator {...p('separator')} />
+                        <Menu.CheckboxItem {...p('checkbox-item')} value="wrap">Wrap</Menu.CheckboxItem>
+                        <Menu.RadioGroup defaultValue="name">
+                            <Menu.RadioItem {...p('radio-item')} value="name">Name</Menu.RadioItem>
+                        </Menu.RadioGroup>
+                        <Menu.Sub defaultOpen>
+                            <Menu.SubTrigger {...p('sub-trigger')}>More</Menu.SubTrigger>
+                            <Menu.SubPopup {...p('sub-popup')}><Menu.Item value="a">A</Menu.Item></Menu.SubPopup>
+                        </Menu.Sub>
+                    </Menu.Popup>
+                </Menu.Root>
+                <Menu.Root>
+                    <Menu.ContextTrigger {...p('context-trigger')}>Surface</Menu.ContextTrigger>
+                    <Menu.Popup><Menu.Item value="x">X</Menu.Item></Menu.Popup>
+                </Menu.Root>
+            </div>
+        ),
+        popover: () => (
+            <Popover.Root defaultOpen>
+                <Popover.Trigger {...p('trigger')}>Open</Popover.Trigger>
+                <Popover.Popup {...p('popup')}>
+                    <Popover.Title {...p('title')}>T</Popover.Title>
+                    <Popover.Close {...p('close')}>Close</Popover.Close>
+                </Popover.Popup>
+            </Popover.Root>
+        ),
+        select: () => (
+            <Select.Root {...p('root')} defaultOpen>
+                <Select.Trigger {...p('trigger')}>
+                    <Select.Value {...p('value')} />
+                    <Select.Indicator {...p('indicator')} />
+                </Select.Trigger>
+                <Select.Popup {...p('popup')}>
+                    <Select.Group {...p('group')}>
+                        <Select.GroupLabel {...p('group-label')}>Fruit</Select.GroupLabel>
+                        <Select.Item {...p('item')} value="apple">Apple</Select.Item>
+                    </Select.Group>
+                </Select.Popup>
+            </Select.Root>
+        ),
+        toast: () => (
+            <Toast.Viewport {...p('viewport')} toaster={sweepToaster}>
+                {(td: ToastData) => (
+                    // `key` before the spread: after one, the automatic JSX
+                    // runtime falls back to `createElement`, which sigx has not.
+                    <Toast.Root key={td.id} {...p('root')} toast={td}>
+                        <Toast.Title {...p('title')}>{td.title}</Toast.Title>
+                        <Toast.Description {...p('description')}>D</Toast.Description>
+                        <Toast.Action {...p('action')}>Undo</Toast.Action>
+                        <Toast.Close {...p('close')} />
+                    </Toast.Root>
+                )}
+            </Toast.Viewport>
+        ),
+        tooltip: () => (
+            <Tooltip.Root defaultOpen>
+                <Tooltip.Trigger {...p('trigger')}>Save</Tooltip.Trigger>
+                <Tooltip.Popup {...p('popup')}>Save the document</Tooltip.Popup>
+            </Tooltip.Root>
+        ),
     };
 
     /**
@@ -499,6 +620,11 @@ describe('the pass-through reaches every part', () => {
     const RENDERED_BY_ZERO: Record<string, readonly string[]> = {
         button: ['spinner'],
         checkbox: ['control', 'indicator', 'label', 'hidden-input'],
+        combobox: ['item-indicator', 'hidden-input'],
+        dialog: ['backdrop'],
+        drawer: ['backdrop'],
+        menu: ['item-indicator'],
+        select: ['item-indicator', 'hidden-input'],
         countdown: ['digits'],
         'file-upload': ['input'],
         'number-input': ['hidden-input'],
@@ -516,21 +642,21 @@ describe('the pass-through reaches every part', () => {
      */
     const SWEPT_ELSEWHERE = ['table'];
 
-    /**
-     * The scopes the roll-out has not reached yet (#74 part 3: overlays and
-     * listboxes). Shrinks to nothing.
-     */
-    const PENDING = ['combobox', 'dialog', 'drawer', 'menu', 'popover', 'select', 'toast', 'tooltip'];
-
     it('accounts for every scope in the anatomy registry', () => {
-        const accounted = [...Object.keys(SWEEP), ...SWEPT_ELSEWHERE, ...PENDING].sort();
+        const accounted = [...Object.keys(SWEEP), ...SWEPT_ELSEWHERE].sort();
         expect(accounted).toEqual(Object.keys(anatomies).sort());
     });
 
-    it.each(Object.keys(SWEEP))('%s: every part forwards to its own element', (scope) => {
+    it.each(Object.keys(SWEEP))('%s: every part forwards to its own element', async (scope) => {
         const container = document.createElement('div');
         document.body.appendChild(container);
         render(SWEEP[scope]!() as never, container);
+        if (scope === 'toast') {
+            sweepToaster.create({ title: 'Saved' });
+            // A toast mounts a frame after it is queued.
+            await new Promise<void>((resolve) =>
+                requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0))));
+        }
         const probed = [...container.querySelectorAll<HTMLElement>('[data-probe]')];
         for (const el of probed) {
             expect(el.getAttribute('data-scope'), `data-probe="${el.dataset.probe}"`).toBe(scope);
@@ -646,6 +772,37 @@ describe('the per-part rules', () => {
         );
         expect(q('carousel', 'prev-trigger').getAttribute('aria-label')).toBe('Back');
         expect(q('carousel', 'next-trigger').getAttribute('aria-label')).toBe('Onward');
+    });
+
+    it("an overlay popup keeps its id and role; the app's references join the ones it wires", async () => {
+        const owned: Record<string, unknown> = { id: 'mine', role: 'region' };
+        render(
+            <Dialog.Root defaultOpen>
+                <Dialog.Popup {...owned} aria-describedby="extra" data-testid="confirm">
+                    <Dialog.Title>Delete?</Dialog.Title>
+                    <Dialog.Description>Gone for good.</Dialog.Description>
+                </Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+        // The Description registers its presence at mount.
+        await Promise.resolve();
+        const popup = q('dialog', 'popup');
+        expect(popup.id).not.toBe('mine');
+        expect(popup.getAttribute('role')).not.toBe('region');
+        expect(popup.getAttribute('data-testid')).toBe('confirm');
+        expect(popup.getAttribute('aria-describedby')).toBe(`${q('dialog', 'description').id} extra`);
+    });
+
+    it("a tooltip's trigger joins the popup's id with an app aria-describedby while it shows", () => {
+        render(
+            <Tooltip.Root defaultOpen>
+                <Tooltip.Trigger aria-describedby="hint">Save</Tooltip.Trigger>
+                <Tooltip.Popup>Save the document</Tooltip.Popup>
+            </Tooltip.Root>,
+            container,
+        );
+        expect(q('tooltip', 'trigger').getAttribute('aria-describedby')).toBe(`${q('tooltip', 'popup').id} hint`);
     });
 
     it('forwarded attributes ride the asChild bag', () => {

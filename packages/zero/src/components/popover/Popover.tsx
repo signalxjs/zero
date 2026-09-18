@@ -27,8 +27,8 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { popoverAnatomy } from './anatomy.js';
 
 const SCOPE = popoverAnatomy.scope;
@@ -114,6 +114,7 @@ const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal })
 export type PopoverTriggerProps =
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithVariantAxes<'popover'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
@@ -128,6 +129,7 @@ const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal })
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'trigger',
         ...variantAttrs(props),
@@ -167,7 +169,11 @@ const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal })
 
 // ── Popup ──
 
-export type PopoverPopupProps = WithClass & Define.Slot<'default'>;
+export type PopoverPopupProps =
+    & WithClass
+    /** Not `id`/`role`: the Trigger points at the popup, which is a `dialog`. */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
+    & Define.Slot<'default'>;
 
 const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) => {
     const popover = usePopoverContext();
@@ -198,32 +204,41 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
         });
     });
 
-    return () => (
-        <div
-            id={popover.ids.popup}
-            data-scope={SCOPE}
-            data-part="popup"
-            data-state={stateAttr(popover.state.value, 'open', 'closed')}
-            popover="auto"
-            role="dialog"
-            tabIndex={-1}
-            aria-labelledby={popover.titlePresent() ? popover.ids.title : undefined}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { el = node; popover.setPopup(node); }}
-            onToggle={(e: Event) => {
-                // Native light dismiss / Escape → model.
-                const open = (e as ToggleEvent).newState === 'open';
-                if (popover.state.value !== open) popover.state.value = open;
-            }}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                id={popover.ids.popup}
+                data-scope={SCOPE}
+                data-part="popup"
+                data-state={stateAttr(popover.state.value, 'open', 'closed')}
+                popover="auto"
+                role="dialog"
+                tabIndex={-1}
+                // An app's own references join the Title's.
+                aria-labelledby={[
+                    popover.titlePresent() ? popover.ids.title : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; popover.setPopup(node); }}
+                onToggle={(e: Event) => {
+                    // Native light dismiss / Escape → model.
+                    const open = (e as ToggleEvent).newState === 'open';
+                    if (popover.state.value !== open) popover.state.value = open;
+                }}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Popover.Popup' });
 
 // ── Title ──
 
-export type PopoverTitleProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the popup is labelled by the Title's own. */
+export type PopoverTitleProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const PopoverTitle = component<PopoverTitleProps>(({ props, slots, onUnmounted }) => {
     const popover = usePopoverContext();
@@ -235,7 +250,7 @@ const PopoverTitle = component<PopoverTitleProps>(({ props, slots, onUnmounted }
         popover.setTitlePresent(false);
     });
     return () => (
-        <h3 id={popover.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
+        <h3 {...htmlAttrs(props)} id={popover.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
             {slots.default?.()}
         </h3>
     );
@@ -246,6 +261,7 @@ const PopoverTitle = component<PopoverTitleProps>(({ props, slots, onUnmounted }
 export type PopoverCloseProps =
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -259,6 +275,7 @@ const PopoverClose = component<PopoverCloseProps>(({ props, slots, signal }) => 
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'close',
         'data-disabled': dataAttr(props.disabled),

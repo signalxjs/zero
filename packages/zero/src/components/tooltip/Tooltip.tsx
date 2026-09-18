@@ -23,8 +23,8 @@ import { createDismissable } from '../../behaviors/dismiss.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { tooltipAnatomy } from './anatomy.js';
 
 const SCOPE = tooltipAnatomy.scope;
@@ -145,6 +145,8 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
 export type TooltipTriggerProps =
     & WithDisabled
     & WithClass
+    /** An app `aria-describedby` joins the popup's while it shows. */
+    & WithHtmlAttrs
     & WithVariantAxes<'tooltip'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
@@ -152,21 +154,28 @@ export type TooltipTriggerProps =
 const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
     const tooltip = useTooltipContext();
 
-    const bag = (): PartProps => ({
-        'data-scope': SCOPE,
-        'data-part': 'trigger',
-        ...variantAttrs(props),
-        'data-state': stateAttr(tooltip.state.value, 'open', 'closed'),
-        'data-disabled': dataAttr(props.disabled),
-        'aria-describedby': tooltip.state.value ? tooltip.ids.popup : undefined,
-        onPointerenter: () => tooltip.show(),
-        onPointerleave: () => tooltip.hide(),
-        onFocus: () => tooltip.show(true),
-        onBlur: () => tooltip.hide(),
-        // Escape is handled by the dismiss layer in Root (document-level,
-        // WCAG 1.4.13) — no trigger-local keydown needed.
-        ref: (node: HTMLElement | null) => tooltip.setAnchor(node),
-    });
+    const bag = (): PartProps => {
+        const attrs = htmlAttrs(props);
+        return {
+            ...attrs,
+            'data-scope': SCOPE,
+            'data-part': 'trigger',
+            ...variantAttrs(props),
+            'data-state': stateAttr(tooltip.state.value, 'open', 'closed'),
+            'data-disabled': dataAttr(props.disabled),
+            'aria-describedby': [
+                tooltip.state.value ? tooltip.ids.popup : undefined,
+                attrs['aria-describedby'],
+            ].filter(Boolean).join(' ') || undefined,
+            onPointerenter: () => tooltip.show(),
+            onPointerleave: () => tooltip.hide(),
+            onFocus: () => tooltip.show(true),
+            onBlur: () => tooltip.hide(),
+            // Escape is handled by the dismiss layer in Root (document-level,
+            // WCAG 1.4.13) — no trigger-local keydown needed.
+            ref: (node: HTMLElement | null) => tooltip.setAnchor(node),
+        };
+    };
 
     return () => {
         const b = bag();
@@ -181,7 +190,8 @@ const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
 
 // ── Popup ──
 
-export type TooltipPopupProps = WithClass & Define.Slot<'default'>;
+/** Not `id`/`role`: the Trigger is described by the popup, a `tooltip`. */
+export type TooltipPopupProps = WithClass & Omit<WithHtmlAttrs, 'id' | 'role'> & Define.Slot<'default'>;
 
 const TooltipPopup = component<TooltipPopupProps>(({ props, slots, onMounted }) => {
     const tooltip = useTooltipContext();
@@ -200,6 +210,7 @@ const TooltipPopup = component<TooltipPopupProps>(({ props, slots, onMounted }) 
 
     return () => (
         <div
+            {...htmlAttrs(props)}
             id={tooltip.ids.popup}
             data-scope={SCOPE}
             data-part="popup"

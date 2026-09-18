@@ -34,8 +34,8 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { dialogAnatomy } from './anatomy.js';
 
 const SCOPE = dialogAnatomy.scope;
@@ -187,6 +187,7 @@ const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) =
 export type DialogTriggerProps =
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithVariantAxes<'dialog'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
@@ -201,6 +202,7 @@ const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal }) =
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'trigger',
         ...variantAttrs(props),
@@ -240,7 +242,11 @@ const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal }) =
 
 // ── Popup ──
 
-export type DialogPopupProps = WithClass & Define.Slot<'default'>;
+export type DialogPopupProps =
+    & WithClass
+    /** Not `id`/`role`: the Trigger points at the popup's id, and `role` is the Root's. */
+    & Omit<WithHtmlAttrs, 'id' | 'role'>
+    & Define.Slot<'default'>;
 
 const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) => {
     const dialog = useDialogContext();
@@ -282,53 +288,64 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
         });
     });
 
-    return () => (
-        <dialog
-            id={dialog.ids.popup}
-            data-scope={SCOPE}
-            data-part="popup"
-            data-state={stateAttr(dialog.state.value, 'open', 'closed')}
-            open={openInMarkup}
-            role={dialog.role() === 'alertdialog' ? 'alertdialog' : undefined}
-            aria-labelledby={dialog.titlePresent() ? dialog.ids.title : undefined}
-            aria-describedby={dialog.descriptionPresent() ? dialog.ids.description : undefined}
-            class={props.class}
-            ref={(node: HTMLDialogElement | null) => { el = node; }}
-            onClose={() => {
-                // Still open in the model means zero did not start this
-                // close: a native close() or a <form method="dialog">.
-                dialog.requestClose('programmatic', el?.returnValue || undefined);
-            }}
-            onCancel={(e: Event) => {
-                // Native Escape: let the model decide. Prevent the default
-                // close and route through state so non-dismissible dialogs
-                // stay open and controlled parents stay authoritative.
-                e.preventDefault();
-                if (dialog.dismissible()) dialog.requestClose('escape');
-            }}
-            onClick={(e: MouseEvent) => {
-                // A ::backdrop click targets the <dialog> element itself —
-                // but so does a click on the dialog's own padding. Geometry
-                // decides: only a pointer position outside the dialog's box
-                // can be the backdrop. Modal only — a non-modal dialog has
-                // no backdrop at all. An alertdialog never light-dismisses:
-                // the pattern exists to interrupt, so the answer has to be
-                // one of its actions (APG; Radix AlertDialog behaves the
-                // same). Escape stays live via `cancel` above.
-                if (dialog.role() === 'alertdialog') return;
-                if (!dialog.modal() || !dialog.dismissible()) return;
-                if (!el || e.target !== el) return;
-                // A keyboard-synthesized click carries no geometry.
-                if (e.detail === 0) return;
-                const rect = el.getBoundingClientRect();
-                const inside = e.clientX >= rect.left && e.clientX <= rect.right
-                    && e.clientY >= rect.top && e.clientY <= rect.bottom;
-                if (!inside) dialog.requestClose('backdrop');
-            }}
-        >
-            {slots.default?.()}
-        </dialog>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <dialog
+                {...attrs}
+                id={dialog.ids.popup}
+                data-scope={SCOPE}
+                data-part="popup"
+                data-state={stateAttr(dialog.state.value, 'open', 'closed')}
+                open={openInMarkup}
+                role={dialog.role() === 'alertdialog' ? 'alertdialog' : undefined}
+                // An app's own references join the Title's and Description's.
+                aria-labelledby={[
+                    dialog.titlePresent() ? dialog.ids.title : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
+                aria-describedby={[
+                    dialog.descriptionPresent() ? dialog.ids.description : undefined,
+                    attrs['aria-describedby'],
+                ].filter(Boolean).join(' ') || undefined}
+                class={props.class}
+                ref={(node: HTMLDialogElement | null) => { el = node; }}
+                onClose={() => {
+                    // Still open in the model means zero did not start this
+                    // close: a native close() or a <form method="dialog">.
+                    dialog.requestClose('programmatic', el?.returnValue || undefined);
+                }}
+                onCancel={(e: Event) => {
+                    // Native Escape: let the model decide. Prevent the default
+                    // close and route through state so non-dismissible dialogs
+                    // stay open and controlled parents stay authoritative.
+                    e.preventDefault();
+                    if (dialog.dismissible()) dialog.requestClose('escape');
+                }}
+                onClick={(e: MouseEvent) => {
+                    // A ::backdrop click targets the <dialog> element itself —
+                    // but so does a click on the dialog's own padding. Geometry
+                    // decides: only a pointer position outside the dialog's box
+                    // can be the backdrop. Modal only — a non-modal dialog has
+                    // no backdrop at all. An alertdialog never light-dismisses:
+                    // the pattern exists to interrupt, so the answer has to be
+                    // one of its actions (APG; Radix AlertDialog behaves the
+                    // same). Escape stays live via `cancel` above.
+                    if (dialog.role() === 'alertdialog') return;
+                    if (!dialog.modal() || !dialog.dismissible()) return;
+                    if (!el || e.target !== el) return;
+                    // A keyboard-synthesized click carries no geometry.
+                    if (e.detail === 0) return;
+                    const rect = el.getBoundingClientRect();
+                    const inside = e.clientX >= rect.left && e.clientX <= rect.right
+                        && e.clientY >= rect.top && e.clientY <= rect.bottom;
+                    if (!inside) dialog.requestClose('backdrop');
+                }}
+            >
+                {slots.default?.()}
+            </dialog>
+        );
+    };
 }, { name: 'Dialog.Popup' });
 
 // ── Title / Description ──
@@ -337,7 +354,12 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
  * `visuallyHidden` keeps the title as the dialog's accessible name while
  * something else carries the visible heading — a brand row, an icon bar.
  */
-export type DialogTitleProps = WithClass & WithVisuallyHidden & Define.Slot<'default'>;
+export type DialogTitleProps =
+    & WithClass
+    & WithVisuallyHidden
+    /** Not `id`: the popup is labelled by the Title's own. */
+    & Omit<WithHtmlAttrs, 'id'>
+    & Define.Slot<'default'>;
 
 const DialogTitle = component<DialogTitleProps>(({ props, slots, onUnmounted }) => {
     const dialog = useDialogContext();
@@ -350,6 +372,7 @@ const DialogTitle = component<DialogTitleProps>(({ props, slots, onUnmounted }) 
     });
     return () => (
         <h2
+            {...htmlAttrs(props)}
             id={dialog.ids.title}
             data-scope={SCOPE}
             data-part="title"
@@ -361,7 +384,8 @@ const DialogTitle = component<DialogTitleProps>(({ props, slots, onUnmounted }) 
     );
 }, { name: 'Dialog.Title' });
 
-export type DialogDescriptionProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the popup is described by the Description's own. */
+export type DialogDescriptionProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const DialogDescription = component<DialogDescriptionProps>(({ props, slots, onUnmounted }) => {
     const dialog = useDialogContext();
@@ -373,7 +397,7 @@ const DialogDescription = component<DialogDescriptionProps>(({ props, slots, onU
         dialog.setDescriptionPresent(false);
     });
     return () => (
-        <p id={dialog.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
+        <p {...htmlAttrs(props)} id={dialog.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
             {slots.default?.()}
         </p>
     );
@@ -381,12 +405,12 @@ const DialogDescription = component<DialogDescriptionProps>(({ props, slots, onU
 
 // ── Footer ──
 
-export type DialogFooterProps = WithClass & Define.Slot<'default'>;
+export type DialogFooterProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 /** The action row — the shared `footer` part every platform's dialog has. */
 const DialogFooter = component<DialogFooterProps>(({ props, slots }) => (
     () => (
-        <footer data-scope={SCOPE} data-part="footer" class={props.class}>
+        <footer {...htmlAttrs(props)} data-scope={SCOPE} data-part="footer" class={props.class}>
             {slots.default?.()}
         </footer>
     )
@@ -402,6 +426,7 @@ export type DialogCloseProps =
     & Define.Prop<'value', string, false>
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -415,6 +440,7 @@ const DialogClose = component<DialogCloseProps>(({ props, slots, signal }) => {
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'close',
         // The native spelling rides along too: an asChild <button> keeps
@@ -455,6 +481,7 @@ const DialogClose = component<DialogCloseProps>(({ props, slots, signal }) => {
 export type DialogCancelProps =
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -474,6 +501,7 @@ const DialogCancel = component<DialogCancelProps>(({ props, slots, signal }) => 
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'cancel',
         'data-disabled': dataAttr(props.disabled),

@@ -38,8 +38,8 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import { htmlAttrs, variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { toastAnatomy } from './anatomy.js';
 import { createToaster, useToaster, type Toaster, type ToastData } from './toaster.js';
 
@@ -126,6 +126,8 @@ export type ToastViewportProps =
     & Define.Prop<'label', string, false>
     & Define.Prop<'toaster', Toaster, false>
     & WithClass
+    /** Not `role`: the viewport is a named `region` landmark. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default', ToastData>;
 
 const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted }) => {
@@ -149,37 +151,41 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted }
         });
     });
 
-    return () => (
-        <ol
-            data-scope={SCOPE}
-            data-part="viewport"
-            data-placement={placement()}
-            popover="manual"
-            role="region"
-            aria-label={props.label ?? 'Notifications'}
-            tabIndex={-1}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { el = node; }}
-            onPointerenter={() => manager().pause()}
-            onPointerleave={() => manager().resume()}
-            onFocusin={() => manager().pause()}
-            onFocusout={(e: FocusEvent) => {
-                if (!el?.contains(e.relatedTarget as Node | null)) manager().resume();
-            }}
-        >
-            {manager().toasts().map((t) =>
-                slots.default
-                    ? renderToastSlot(slots.default, t)
-                    : (
-                        <ToastRoot toast={t} key={t.id}>
-                            {t.title ? <ToastTitle>{t.title}</ToastTitle> : null}
-                            {t.description ? <ToastDescription>{t.description}</ToastDescription> : null}
-                            {t.action ? <ToastAction onClick={() => t.action?.onClick?.()}>{t.action.label}</ToastAction> : null}
-                            <ToastClose>✕</ToastClose>
-                        </ToastRoot>
-                    ))}
-        </ol>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <ol
+                {...attrs}
+                data-scope={SCOPE}
+                data-part="viewport"
+                data-placement={placement()}
+                popover="manual"
+                role="region"
+                aria-label={props.label ?? attrs['aria-label'] ?? 'Notifications'}
+                tabIndex={-1}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; }}
+                onPointerenter={() => manager().pause()}
+                onPointerleave={() => manager().resume()}
+                onFocusin={() => manager().pause()}
+                onFocusout={(e: FocusEvent) => {
+                    if (!el?.contains(e.relatedTarget as Node | null)) manager().resume();
+                }}
+            >
+                {manager().toasts().map((t) =>
+                    slots.default
+                        ? renderToastSlot(slots.default, t)
+                        : (
+                            <ToastRoot toast={t} key={t.id}>
+                                {t.title ? <ToastTitle>{t.title}</ToastTitle> : null}
+                                {t.description ? <ToastDescription>{t.description}</ToastDescription> : null}
+                                {t.action ? <ToastAction onClick={() => t.action?.onClick?.()}>{t.action.label}</ToastAction> : null}
+                                <ToastClose>✕</ToastClose>
+                            </ToastRoot>
+                        ))}
+            </ol>
+        );
+    };
 }, { name: 'Toast.Viewport' });
 
 // ── Root ──
@@ -188,6 +194,12 @@ export type ToastRootProps =
     & Define.Prop<'toast', ToastData, true>
     & WithVariantAxes<'toast'>
     & WithClass
+    /**
+     * Not `role`: a toast is a `status` or an `alert` (`toast({ role })`).
+     * An app `aria-labelledby`/`aria-describedby` joins the Title's and
+     * Description's.
+     */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
@@ -255,58 +267,70 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
     // The queue's per-toast colour is the common path (`toast({ color })`);
     // an explicit prop on a composed root wins over it, and both flow through
     // the shared `variantAttrs` guard rather than a hand-rolled attribute.
-    return () => (
-        <li
-            data-scope={SCOPE}
-            data-part="root"
-            data-state={stateAttr(props.toast.open, 'open', 'closed')}
-            {...variantAttrs({
-                color: props.color ?? props.toast.color,
-                size: props.size,
-                variant: props.variant,
-                axes: props.axes,
-                mods: props.mods,
-            })}
-            data-placement={viewport.placement()}
-            role={props.toast.role === 'alert' ? 'alert' : 'status'}
-            aria-atomic="true"
-            aria-labelledby={present.title ? ids.title : undefined}
-            aria-describedby={present.description ? ids.description : undefined}
-            style={{
-                '--toast-index': String(Math.max(0, index())),
-                '--toast-count': String(viewport.toaster().toasts().length),
-            }}
-            class={props.class}
-            ref={(node: HTMLElement | null) => { el = node; }}
-        >
-            {slots.default?.()}
-        </li>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <li
+                {...attrs}
+                data-scope={SCOPE}
+                data-part="root"
+                data-state={stateAttr(props.toast.open, 'open', 'closed')}
+                {...variantAttrs({
+                    color: props.color ?? props.toast.color,
+                    size: props.size,
+                    variant: props.variant,
+                    axes: props.axes,
+                    mods: props.mods,
+                })}
+                data-placement={viewport.placement()}
+                role={props.toast.role === 'alert' ? 'alert' : 'status'}
+                aria-atomic="true"
+                aria-labelledby={[
+                    present.title ? ids.title : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
+                aria-describedby={[
+                    present.description ? ids.description : undefined,
+                    attrs['aria-describedby'],
+                ].filter(Boolean).join(' ') || undefined}
+                style={{
+                    '--toast-index': String(Math.max(0, index())),
+                    '--toast-count': String(viewport.toaster().toasts().length),
+                }}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; }}
+            >
+                {slots.default?.()}
+            </li>
+        );
+    };
 }, { name: 'Toast.Root' });
 
 // ── Title / Description ──
 
-export type ToastTitleProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the toast is labelled by the Title's own. */
+export type ToastTitleProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const ToastTitle = component<ToastTitleProps>(({ props, slots, onUnmounted }) => {
     const item = useToastItemContext();
     item.setTitlePresent(true);
     onUnmounted(() => item.setTitlePresent(false));
     return () => (
-        <div id={item.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
+        <div {...htmlAttrs(props)} id={item.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
             {slots.default?.()}
         </div>
     );
 }, { name: 'Toast.Title' });
 
-export type ToastDescriptionProps = WithClass & Define.Slot<'default'>;
+/** Not `id`: the toast is described by the Description's own. */
+export type ToastDescriptionProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const ToastDescription = component<ToastDescriptionProps>(({ props, slots, onUnmounted }) => {
     const item = useToastItemContext();
     item.setDescriptionPresent(true);
     onUnmounted(() => item.setDescriptionPresent(false));
     return () => (
-        <div id={item.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
+        <div {...htmlAttrs(props)} id={item.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
             {slots.default?.()}
         </div>
     );
@@ -318,6 +342,7 @@ export type ToastActionProps =
     & Define.Event<'click', MouseEvent>
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -330,6 +355,7 @@ const ToastAction = component<ToastActionProps>(({ props, slots, emit, signal })
     });
 
     const bag = (): PartProps => ({
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'action',
         'data-disabled': dataAttr(props.disabled),
@@ -369,6 +395,7 @@ export type ToastCloseProps =
     & Define.Prop<'label', string, false>
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -381,31 +408,35 @@ const ToastClose = component<ToastCloseProps>(({ props, slots, signal }) => {
         isDisabled: () => !!props.disabled,
     });
 
-    const bag = (): PartProps => ({
-        'data-scope': SCOPE,
-        'data-part': 'close',
-        'data-disabled': dataAttr(props.disabled),
-        'data-focus-visible': dataAttr(focus.visible),
-        // The button's own content is usually a glyph, so it needs a name of
-        // its own; "Close" is the conventional one and `label` overrides it
-        // (Alert.Close's pattern).
-        'aria-label': props.label ?? 'Close',
-        onClick: () => {
-            if (!props.disabled) item.dismiss();
-        },
-        onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: (e: FocusEvent) => {
-            press.onBlur(e);
-            focus.visible = false;
-        },
-        onKeydown: press.onKeydown,
-        onKeyup: press.onKeyup,
-        onPointerdown: press.onPointerdown,
-        onPointerup: press.onPointerup,
-        onPointercancel: press.onPointercancel,
-        onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; },
-    });
+    const bag = (): PartProps => {
+        const attrs = htmlAttrs(props);
+        return {
+            ...attrs,
+            'data-scope': SCOPE,
+            'data-part': 'close',
+            'data-disabled': dataAttr(props.disabled),
+            'data-focus-visible': dataAttr(focus.visible),
+            // The button's own content is usually a glyph, so it needs a name of
+            // its own; "Close" is the conventional one, and `label` (or an app
+            // `aria-label`) overrides it (Alert.Close's pattern).
+            'aria-label': props.label ?? attrs['aria-label'] ?? 'Close',
+            onClick: () => {
+                if (!props.disabled) item.dismiss();
+            },
+            onFocus: () => { focus.visible = isFocusVisible(el); },
+            onBlur: (e: FocusEvent) => {
+                press.onBlur(e);
+                focus.visible = false;
+            },
+            onKeydown: press.onKeydown,
+            onKeyup: press.onKeyup,
+            onPointerdown: press.onPointerdown,
+            onPointerup: press.onPointerup,
+            onPointercancel: press.onPointercancel,
+            onPointerleave: press.onPointerleave,
+            ref: (node: HTMLElement | null) => { el = node; },
+        };
+    };
 
     return () => {
         const b = bag();
