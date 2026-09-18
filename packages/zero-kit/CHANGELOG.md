@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **`RESERVED_PROPS_BY_SCOPE['toggle-group']` gains the form contract**
+  (`name`, `form`, `invalid`, `required`), following ToggleGroup's new form
+  participation (#53). A vendor-named api can no longer claim those names as
+  axis props on toggle-group.
+
 ### Added
 
 - **`extendDesignSystem` and `extendRecipe`: derive a design system from

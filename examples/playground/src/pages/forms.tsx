@@ -1,7 +1,7 @@
 import { component, signal } from 'sigx';
 import {
     Button, Checkbox, Combobox, Field, Input, NumberInput,
-    RadioGroup, RatingGroup, Select, Slider, Switch, Textarea,
+    RadioGroup, RatingGroup, Select, Slider, Switch, Textarea, ToggleGroup,
 } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
@@ -31,15 +31,21 @@ const FormsDemos = component(() => {
         e.preventDefault();
         const entries = [...new FormData(e.target as HTMLFormElement).entries()]
             .filter((entry): entry is [string, string] => typeof entry[1] === 'string');
-        state.posted = JSON.stringify(Object.fromEntries(entries));
+        // A repeated field (a `multiple` ToggleGroup) reads as an array.
+        const posted: Record<string, string | string[]> = {};
+        for (const [k, v] of entries) {
+            const prev = posted[k];
+            posted[k] = prev === undefined ? v : Array.isArray(prev) ? [...prev, v] : [prev, v];
+        }
+        state.posted = JSON.stringify(posted);
     };
 
     return () => (
         <>
             <p>
                 <small>
-                    Every control posts through the platform: the Select and
-                    Combobox through a real, visually-hidden <code>&lt;select&gt;</code>{' '}
+                    Every control posts through the platform: the Select,
+                    Combobox and ToggleGroup through a real, visually-hidden <code>&lt;select&gt;</code>{' '}
                     (so <code>required</code> is a browser constraint), the rest
                     through their own native element. Submit with the fruit
                     empty to see validation land on the trigger; Reset restores
@@ -88,6 +94,20 @@ const FormsDemos = component(() => {
                     <RadioGroup.Item value="a">Unnamed A</RadioGroup.Item>
                     <RadioGroup.Item value="b">Unnamed B</RadioGroup.Item>
                 </RadioGroup.Root>
+                <Field.Root>
+                    <Field.Label>Layout</Field.Label>
+                    <ToggleGroup.Root name="form-layout" defaultValue="grid">
+                        <ToggleGroup.Item value="list">List</ToggleGroup.Item>
+                        <ToggleGroup.Item value="grid">Grid</ToggleGroup.Item>
+                    </ToggleGroup.Root>
+                </Field.Root>
+                <Field.Root>
+                    <Field.Label>Marks</Field.Label>
+                    <ToggleGroup.Root name="form-marks" multiple defaultValue={['bold']}>
+                        <ToggleGroup.Item value="bold">Bold</ToggleGroup.Item>
+                        <ToggleGroup.Item value="italic">Italic</ToggleGroup.Item>
+                    </ToggleGroup.Root>
+                </Field.Root>
                 <Checkbox.Root name="form-terms" value="yes">Agree to the form terms</Checkbox.Root>
                 {' '}
                 <Switch.Root name="form-notify" defaultChecked>Email me</Switch.Root>

@@ -628,7 +628,12 @@ component renders; the root is called out separately where it carries props.
   deselectable=false. Arrow keys rove focus (orientation- and RTL-aware,
   one tab stop: first enabled on item, else first enabled) WITHOUT changing
   selection; click/Space/Enter toggle. Item mirrors toggle's on|off and
-  doubles it as a data-selected presence flag.
+  doubles it as a data-selected presence flag. Takes the form contract
+  (name, form, disabled, invalid, required — adopts a Field.Root): with a
+  `name` it posts through a visually-hidden <select> (hidden-input, only
+  the pressed values as options) — one field in single mode, repeated
+  fields under `multiple`; required blocks submit and focuses the group's
+  tab stop; form reset() restores defaultValue.
 
 Named models (first used by Combobox; the convention for every multi-state
 component): a component has exactly ONE unnamed `model` — its essential

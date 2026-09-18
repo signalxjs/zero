@@ -19,11 +19,21 @@
  * Items do not wrap the standalone Toggle: group items need list
  * registration and group value semantics Toggle doesn't have. They share the
  * `on|off` visual contract instead, so recipes can mirror styles.
+ *
+ * FORM PARTICIPATION is Select's: a real, visually-hidden `<select>`
+ * (`hidden-input`) rendered only while `name` is set — one field in single
+ * mode, a repeated field per pressed value under `multiple` — so the group
+ * posts before hydration, `required` is a platform constraint (the invalid
+ * focus lands on the group's tab stop) and a form `reset()` restores the
+ * default.
  */
-import { component, compound, defineInjectable, defineProvide } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define, JSXElement } from 'sigx';
 import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
+import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { createListController, type ListController, type ListItem } from '../../behaviors/list.js';
 import { createRovingKeydown } from '../../behaviors/roving.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -36,6 +46,7 @@ import type {
     WithAsChild,
     WithClass,
     WithDisabled,
+    WithFormControl,
     WithOrientation,
     WithVariantAxes,
 } from '../../contract/props.js';
@@ -89,16 +100,18 @@ export type ToggleGroupRootProps<M = string | string[]> =
     & Define.Prop<'label', string, false>
     & WithOrientation
     & WithVariantAxes<'toggle-group'>
-    & WithDisabled
+    & WithFormControl
     & WithClass
     & Define.Slot<'default'>;
 
-const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emit }) => {
+const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emit, onMounted, onUnmounted }) => {
+    const seed = (): string | string[] => (props.defaultValue !== undefined ? props.defaultValue : props.multiple ? [] : '');
     const state = createControllableState<string | string[]>(
         () => props.model,
-        props.defaultValue !== undefined ? props.defaultValue : props.multiple ? [] : '',
+        seed(),
         (v) => emit('valueChange', v),
     );
+    const fc = createFormControl({ props: () => props, idBase: 'zx-toggle-group' });
     // The pressed values under either shape — a string model reads as a
     // one-element list (empty when '').
     const selected = (): string[] => {
@@ -108,6 +121,7 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
     };
     const list = createListController();
     let rootEl: HTMLElement | null = null;
+    let hidden: HTMLSelectElement | null = null;
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
 
     const isRtl = (): boolean => {
@@ -136,7 +150,7 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
         selected,
         list,
         orientation,
-        disabled: () => !!props.disabled,
+        disabled: fc.disabled,
         toggle: (value) => {
             const current = selected();
             const on = current.includes(value);
@@ -152,19 +166,79 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
     };
     defineProvide(useToggleGroupContext, () => ctx);
 
+    // The hidden select holds only the pressed values (items are hand-written
+    // and register after this root renders, so a registry read here would be
+    // stale) and follows the model a microtask later — after the render has
+    // inserted the options, and after a form reset has deselected them.
+    const syncHidden = (): void => {
+        queueMicrotask(() => {
+            if (!hidden) return;
+            const on = new Set(selected());
+            for (const o of Array.from(hidden.options)) o.selected = o.value !== '' && on.has(o.value);
+            if (!props.multiple && on.size === 0) hidden.value = '';
+        });
+    };
+    // The group's one tab stop — where the invalid focus lands.
+    const tabStop = (): HTMLElement | null => {
+        const on = selected();
+        const enabled = list.enabledItems();
+        return (enabled.find((i) => on.includes(i.value)) ?? enabled[0])?.el() ?? null;
+    };
+    let detachReset = (): void => {};
+    onMounted(() => {
+        effect(() => { selected(); syncHidden(); });
+        // Without a name there is no hidden select — an item is a <button>,
+        // form-associated like any control, so reset still restores.
+        detachReset = onFormReset(() => hidden ?? (list.items()[0]?.el() as HTMLButtonElement | null) ?? null, () => {
+            state.value = seed();
+            syncHidden();
+        });
+    });
+    onUnmounted(() => detachReset());
+
     return () => (
         <div
             role="group"
             aria-label={props.label}
+            aria-labelledby={fc.field.inert || props.label !== undefined ? undefined : fc.labelId()}
+            aria-describedby={fc.describedBy()}
             data-scope={SCOPE}
             data-part="root"
             data-orientation={orientation()}
-            data-disabled={dataAttr(props.disabled)}
+            {...fc.flags()}
             {...variantAttrs(props)}
             class={props.class}
             ref={(node: HTMLElement | null) => { rootEl = node; }}
         >
             {slots.default?.()}
+            {fc.hasName()
+                ? (
+                    <select
+                        data-scope={SCOPE}
+                        data-part="hidden-input"
+                        style={VISUALLY_HIDDEN_STYLE}
+                        {...fc.hiddenAttrs()}
+                        multiple={!!props.multiple}
+                        required={fc.required()}
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        ref={(node: HTMLSelectElement | null) => { hidden = node; }}
+                        // The platform's bubble would anchor to a 1px element:
+                        // cancel it and land focus where the user can act.
+                        onInvalid={(e: Event) => { e.preventDefault(); tabStop()?.focus(); }}
+                        // The platform writes the hidden select itself (form
+                        // restoration): its selection flows back into the model.
+                        onChange={() => {
+                            if (!hidden) return;
+                            const on = Array.from(hidden.options).filter((o) => o.selected && o.value !== '').map((o) => o.value);
+                            state.value = props.multiple ? on : on[0] ?? '';
+                        }}
+                    >
+                        {props.multiple ? null : <option value="" selected={selected().length === 0} />}
+                        {selected().map((v) => <option value={v} selected key={v}>{v}</option>)}
+                    </select>
+                )
+                : null}
         </div>
     );
 }, { name: 'ToggleGroup.Root' });

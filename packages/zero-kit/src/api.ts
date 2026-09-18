@@ -303,7 +303,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     timeline: [],
     toast: ['toast'],
     toggle: ['defaultPressed', 'label', 'value'],
-    'toggle-group': ['defaultValue', 'deselectable', 'label', 'loop', 'multiple', 'value'],
+    'toggle-group': ['defaultValue', 'deselectable', 'form', 'invalid', 'label', 'loop', 'multiple', 'name', 'required', 'value'],
     tooltip: ['closeDelay', 'defaultOpen', 'offset', 'openDelay', 'placement', 'positionStrategy', 'value'],
     'tree-view': ['defaultExpandedValues', 'defaultValue', 'value'],
 };
