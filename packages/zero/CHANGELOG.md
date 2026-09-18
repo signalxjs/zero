@@ -15,6 +15,27 @@
   (TypeScript 6's default) rejected the import without an app-side shim.
   The six skins' `./css`, `./css/tokens` and `./css/*` get the same.
 
+### Added — Dialog/Drawer report why they closed (#52)
+
+- **A `close` event on `Dialog.Root` and `Drawer.Root`**, fired once per
+  close, right after `openChange(false)`, with `{ reason, value? }`.
+  `reason` names what closed it: `close` / `cancel` (the part that was
+  activated — Drawer has no `cancel`), `escape` (the native `cancel`, or the
+  non-modal dismiss layer), `backdrop` (a `::backdrop` click), or
+  `programmatic` (every close zero did not start: the parent writing the
+  model, a native `close()`, a `<form method="dialog">` submission).
+  `openChange` keeps its `boolean` payload — the model naming rule pins it —
+  so the reason travels on its own event, the way Menu's `select` sits
+  beside its `openChange`.
+- **`value` on `Dialog.Close` and `Drawer.Close`** comes back as the
+  detail's `value` — `<button value>` inside `<form method="dialog">`, as a
+  prop. A native close zero did not start carries the element's non-empty
+  `returnValue` instead, which is reset on every open so a stale one never
+  reads as the current close's. A confirm dialog reads
+  `detail.value === 'confirm'` instead of keeping a flag beside its model.
+- A controlled parent that refuses the close (its model stays `true`) gets
+  no `close` event: only a close that took is reported.
+
 ### Fixed — a default-open non-modal Dialog/Drawer server-renders open (#38)
 
 - **`Dialog.Popup` and `Drawer.Panel` emit the native `open` attribute** when

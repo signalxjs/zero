@@ -137,3 +137,32 @@ test('the popup is labelled by its Title — and only when a Title is rendered',
     const find = await controlledPopup(page, findTrigger(page), 'the find bar trigger');
     await expect(find).not.toHaveAttribute('aria-labelledby', /.*/);
 });
+
+test('the close event reports why: native Escape, a valued Close, Cancel (#52)', async ({ page }) => {
+    const trigger = page.getByRole('button', { name: 'Delete file…', exact: true });
+    const readout = page.locator('[data-demo="close-reason"]');
+    await expect(readout).toHaveText('Last close: none yet');
+
+    // Escape in a real engine is the native `cancel` event, routed through
+    // the model — the reason must survive that detour.
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    const popup = await controlledPopup(page, trigger, 'the alert dialog trigger');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await page.keyboard.press('Escape');
+    await expect(popup).toHaveAttribute('data-state', 'closed');
+    await expect(readout).toHaveText('Last close: escape');
+
+    // The destructive action carries its value back with the close; the
+    // native close event that follows the requested close adds no second
+    // report.
+    await trigger.click();
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await popup.getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(popup).toHaveAttribute('data-state', 'closed');
+    await expect(readout).toHaveText('Last close: close · delete');
+
+    await trigger.click();
+    await popup.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(readout).toHaveText('Last close: cancel');
+});

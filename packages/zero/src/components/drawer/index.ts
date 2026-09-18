@@ -6,5 +6,7 @@ export type {
     DrawerTitleProps,
     DrawerCloseProps,
     DrawerPlacement,
+    DrawerCloseReason,
+    DrawerCloseDetail,
 } from './Drawer.js';
 export { drawerAnatomy } from './anatomy.js';

@@ -21,8 +21,12 @@
  * non-event for furniture), closes on Escape through the dismissable
  * behavior, and covers focus restore itself since `show()` provides
  * neither. See `anatomy.ts` for the placement and labelling decisions.
+ *
+ * Every close is reported with its reason on the `close` event, after
+ * `openChange(false)` — Dialog's contract, minus the `cancel` part a drawer
+ * does not have.
  */
-import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
@@ -41,8 +45,28 @@ const SCOPE = drawerAnatomy.scope;
 /** Which reading edge the panel sits on — the logical pair. */
 export type DrawerPlacement = 'start' | 'end';
 
+/**
+ * What closed the drawer — Dialog's reasons without `cancel`: `close` the
+ * `Drawer.Close` part, `escape` the native `cancel` or the inline dismiss
+ * layer, `backdrop` a scrim click, and `programmatic` every close zero did
+ * not initiate (a model write, a native `close()`, a `<form method="dialog">`).
+ */
+export type DrawerCloseReason = 'close' | 'escape' | 'backdrop' | 'programmatic';
+
+/** The `close` event's detail — why the drawer closed, and with what value. */
+export interface DrawerCloseDetail {
+    reason: DrawerCloseReason;
+    /**
+     * The closing `Drawer.Close`'s `value`, or — for a native close zero did
+     * not initiate — the element's non-empty `returnValue`. Absent otherwise.
+     */
+    value?: string;
+}
+
 interface DrawerContext {
     state: ControllableState<boolean>;
+    /** Close for a reason: the one write path every zero-owned close takes. */
+    requestClose(reason: DrawerCloseReason, value?: string): void;
     modal(): boolean;
     dismissible(): boolean;
     placement(): DrawerPlacement;
@@ -54,8 +78,10 @@ interface DrawerContext {
 }
 
 function makeInert(): DrawerContext {
+    const state = createInertState<boolean>(false);
     return {
-        state: createInertState<boolean>(false),
+        state,
+        requestClose: () => { state.value = false; },
         modal: () => true,
         dismissible: () => true,
         placement: () => 'start',
@@ -74,6 +100,11 @@ export type DrawerRootProps =
     & Define.Model<boolean>
     & Define.Prop<'defaultOpen', boolean, false>
     & Define.Event<'openChange', boolean>
+    /**
+     * Fires once per close, after `openChange(false)`, with the reason and
+     * the closing control's `value` — see `DrawerCloseDetail`.
+     */
+    & Define.Event<'close', DrawerCloseDetail>
     & Define.Prop<'modal', boolean, false>
     & Define.Prop<'dismissible', boolean, false>
     /** Which reading edge the panel sits on. Default `start`. */
@@ -93,8 +124,32 @@ const DrawerRoot = component<DrawerRootProps>(({ props, slots, emit, signal }) =
     // the render pass is invisible to the already-rendered panel (the same
     // deferral Dialog documents on its `present` signal).
     const present = signal({ title: false });
+
+    // Dialog's close hand-off, verbatim: a requested close reports its own
+    // reason, any other open → closed flip is `programmatic` (see Dialog.Root).
+    let requested = false;
+    const requestClose = (reason: DrawerCloseReason, value?: string): void => {
+        if (!state.value) return;
+        requested = true;
+        state.value = false;
+        if (state.value) {
+            requested = false;
+            return;
+        }
+        emit('close', value === undefined ? { reason } : { reason, value });
+    };
+    watch(
+        () => state.value,
+        (open, wasOpen) => {
+            if (open || !wasOpen) return;
+            if (requested) requested = false;
+            else emit('close', { reason: 'programmatic' });
+        },
+    );
+
     const ctx: DrawerContext = {
         state,
+        requestClose,
         modal: () => props.modal ?? true,
         dismissible: () => props.dismissible ?? true,
         placement: () => props.placement ?? 'start',
@@ -185,7 +240,7 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
     createDismissable({
         getElement: () => el,
         isOpen: () => drawer.state.value && !drawer.modal() && drawer.dismissible(),
-        dismiss: () => { drawer.state.value = false; },
+        dismiss: () => drawer.requestClose('escape'),
         outsidePress: false,
     });
 
@@ -203,6 +258,9 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
             const node = el;
             if (!node || typeof node.showModal !== 'function') return;
             if (open && !node.open) {
+                // A stale result from the last close must not read as this
+                // one's (`close` reports a non-empty returnValue).
+                node.returnValue = '';
                 if (drawer.modal()) node.showModal();
                 else node.show();
             } else if (!open && node.open) {
@@ -223,13 +281,17 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
             aria-label={drawer.titlePresent() ? undefined : drawer.label()}
             class={props.class}
             ref={(node: HTMLDialogElement | null) => { el = node; }}
-            onClose={() => { drawer.state.value = false; }}
+            onClose={() => {
+                // Still open in the model means zero did not start this
+                // close: a native close() or a <form method="dialog">.
+                drawer.requestClose('programmatic', el?.returnValue || undefined);
+            }}
             onCancel={(e: Event) => {
                 // Native Escape: let the model decide. Prevent the default
                 // close and route through state so non-dismissible drawers
                 // stay open and controlled parents stay authoritative.
                 e.preventDefault();
-                if (drawer.dismissible()) drawer.state.value = false;
+                if (drawer.dismissible()) drawer.requestClose('escape');
             }}
             onClick={(e: MouseEvent) => {
                 // A ::backdrop click targets the <dialog> element itself —
@@ -244,7 +306,7 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                 const rect = el.getBoundingClientRect();
                 const inside = e.clientX >= rect.left && e.clientX <= rect.right
                     && e.clientY >= rect.top && e.clientY <= rect.bottom;
-                if (!inside) drawer.state.value = false;
+                if (!inside) drawer.requestClose('backdrop');
             }}
         >
             {slots.default?.()}
@@ -275,6 +337,8 @@ const DrawerTitle = component<DrawerTitleProps>(({ props, slots, onUnmounted }) 
 // ── Close ──
 
 export type DrawerCloseProps =
+    /** Reported as the `close` event's `value` when this button closes the drawer. */
+    & Define.Prop<'value', string, false>
     & WithDisabled
     & WithClass
     & WithAsChild
@@ -295,7 +359,7 @@ const DrawerClose = component<DrawerCloseProps>(({ props, slots, signal }) => {
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
         onClick: () => {
-            if (!props.disabled) drawer.state.value = false;
+            if (!props.disabled) drawer.requestClose('close', props.value);
         },
         onFocus: () => { focus.visible = isFocusVisible(el); },
         onBlur: (e: FocusEvent) => {

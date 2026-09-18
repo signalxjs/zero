@@ -8,5 +8,7 @@ export type {
     DialogFooterProps,
     DialogCloseProps,
     DialogCancelProps,
+    DialogCloseReason,
+    DialogCloseDetail,
 } from './Dialog.js';
 export { dialogAnatomy } from './anatomy.js';
