@@ -133,6 +133,14 @@ that, not this summary.
 native input so they post pre-hydration. Design systems normally hide it
 visually while keeping it focusable, rather than `display: none`.
 
+VISUALLY HIDDEN (#54) is NOT a flag and not a state: a part whose anatomy
+declares `visuallyHidden: true` (field/input/textarea `label`, dialog/drawer
+`title`, switch/checkbox `label`) renders `data-visually-hidden` when the
+consumer asks (`visuallyHidden` on the part; `hideLabel` on Switch.Root and
+Checkbox.Root), and zero's css/base.css clips it in `@layer zero.structure`.
+A design system writes nothing for it and cannot undo it. `VisuallyHidden`
+(asChild; no scope, no anatomy) hides arbitrary content the same way.
+
 THE FORM CONTRACT (#441): every posting control takes `name`, `form`,
 `disabled`, `invalid`, `required` (and `readonly` where the platform has
 it), each the prop OR its Field's. It posts only while it has a `name`; a

@@ -16,6 +16,14 @@
 
 ### Added
 
+- **`visuallyHidden` on a manifest part** (zero#54). `AnatomyJSON` and
+  `manifest.schema.json` accept the declaration zero's anatomies now carry.
+  It marks a part that can render `data-visually-hidden`, which zero's
+  `base.css` clips in `@layer zero.structure`, so a recipe has nothing to
+  style. It is not a flag. `visually-hidden` joins the mirrored
+  `RESERVED_AXES`, and `hideLabel` joins the reserved root props of
+  `switch` and `checkbox`.
+
 - **`extendDesignSystem` and `extendRecipe`: derive a design system from
   another** (#60). On `/define` and the barrel. A derived system patches
   its base's tokens, recipes and api as data and still compiles one recipe

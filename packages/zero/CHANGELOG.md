@@ -75,6 +75,38 @@
 - **`Card.Root` takes `asChild`** — render the `<article>`/`<section>` a
   named card is; `cardAnatomy.root` declares `asChild: true`.
 
+### Added — visually hidden labels and titles, and `VisuallyHidden` (#54)
+
+- **`visuallyHidden` on `Field.Label`, `Input.Label`, `Textarea.Label`,
+  `Dialog.Title` and `Drawer.Title`, and `hideLabel` on `Switch.Root` and
+  `Checkbox.Root`** (for their `label` part). The part leaves the screen and
+  stays in the accessibility tree, so the label still names its control and
+  the title still names its popup. It renders `data-visually-hidden`.
+- **`css/base.css` clips `[data-visually-hidden]` in `@layer zero.structure`**,
+  beside the `[hidden]` guard, for the same reason: a label recipe's
+  `display`, `margin` or padding in `zero.recipes` cannot put the box back,
+  and a design system has nothing to write. The selector is not
+  scope-qualified, so an app can stamp the attribute on any element.
+- **`PartSpec.visuallyHidden`** declares which parts offer it, and the
+  manifest carries it. It is deliberately **not a flag**: it is a
+  presentation request rather than a state, so it is not in
+  `FLAG_VOCABULARY`, mints no selector, and the contrast and
+  state-legibility tooling never cross it. `expectAnatomy` fails
+  `data-visually-hidden` on a part that does not declare it, or with a
+  value other than `""`. `visually-hidden` joins `RESERVED_AXES`, so no
+  design system can declare an axis that renders the same attribute.
+- **`VisuallyHidden`** (`@sigx/zero/visually-hidden`, and the barrel) hides
+  content that is not a part, such as an icon button's text, with the same
+  attribute. `asChild` is supported. It is not a scope and has no anatomy,
+  like `ThemeProvider`, because there is nothing in it for a design system
+  to style.
+- `WithVisuallyHidden` joins the contract prop types. `renderAsChild`
+  accepts any attribute bag, not only `PartProps`, so it can serve
+  `VisuallyHidden`.
+- README: how `Field` and `Switch` share one accessible name. Both are
+  `<label>`s of the same input, and the name concatenates every label, so
+  name the control once.
+
 ### Fixed — a default-open non-modal Dialog/Drawer server-renders open (#38)
 
 - **`Dialog.Popup` and `Drawer.Panel` emit the native `open` attribute** when

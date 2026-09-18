@@ -30,6 +30,7 @@ export const switchAnatomy = defineAnatomy('switch', {
         states: ['checked', 'unchecked'],
         flags: ['disabled'],
         tokens: ['color', 'text'],
+        visuallyHidden: true,
     },
     'hidden-input': {
         element: 'input',

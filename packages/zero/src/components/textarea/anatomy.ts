@@ -23,6 +23,7 @@ export const textareaAnatomy = defineAnatomy('textarea', {
         parent: 'root',
         flags: ['disabled', 'invalid', 'required'],
         tokens: ['color', 'text'],
+        visuallyHidden: true,
     },
     textarea: {
         element: 'textarea',

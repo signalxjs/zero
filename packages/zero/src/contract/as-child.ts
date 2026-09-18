@@ -15,7 +15,11 @@ import type { PartProps } from './props.js';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SlotAccessor = ((scopedProps?: any) => any) | undefined;
 
-export function renderAsChild(slot: SlotAccessor, bag: PartProps): unknown {
+/**
+ * `bag` is a part's `PartProps` everywhere but `VisuallyHidden`, which is no
+ * part (no scope) and spreads its one attribute through the same seam.
+ */
+export function renderAsChild(slot: SlotAccessor, bag: PartProps | object): unknown {
     const out = slot?.(bag);
     if (out == null) return null;
     const items = Array.isArray(out) ? out : [out];

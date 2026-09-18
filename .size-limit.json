@@ -514,6 +514,18 @@
         ]
     },
     {
+        "name": "@sigx/zero/visually-hidden",
+        "path": "packages/zero/dist/components/visually-hidden/index.js",
+        "limit": "0.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
         "name": "@sigx/zero/join",
         "path": "packages/zero/dist/components/join/index.js",
         "limit": "2 kB",

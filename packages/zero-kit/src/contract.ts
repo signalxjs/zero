@@ -504,7 +504,7 @@ export const PLACEMENT_VOCABULARY = [
  * WITHIN the kit either.
  */
 export const RESERVED_AXES: ReadonlySet<string> = new Set([
-    'scope', 'part', 'state', 'orientation', ...FLAG_VOCABULARY,
+    'scope', 'part', 'state', 'orientation', 'visually-hidden', ...FLAG_VOCABULARY,
 ]);
 
 /**
@@ -644,6 +644,14 @@ export interface ManifestPart {
     hiddenIn?: readonly string[];
     tokens?: readonly string[];
     asChild?: boolean;
+    /**
+     * True when the consumer can hide the part from sight while it keeps its
+     * accessible role (`Field.Label visuallyHidden`). The part then renders
+     * `data-visually-hidden`, which zero's `css/base.css` clips in
+     * `@layer zero.structure` — nothing for a recipe to style, and never a
+     * flag: the state tooling does not cross it.
+     */
+    visuallyHidden?: boolean;
     /**
      * Present when the part renders no element of its own on the web and
      * projects onto a pseudo-element of another part (dialog's `backdrop` →

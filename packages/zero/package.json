@@ -274,6 +274,10 @@
         "./diff": {
             "types": "./dist/components/diff/index.d.ts",
             "import": "./dist/components/diff/index.js"
+        },
+        "./visually-hidden": {
+            "types": "./dist/components/visually-hidden/index.d.ts",
+            "import": "./dist/components/visually-hidden/index.js"
         }
     },
     "files": [

@@ -160,6 +160,18 @@ export function expectAnatomyElements(
             // Checked against the part's declared subset above — here it must
             // only not fall through into the flag walk.
             if (attr === 'data-placement') continue;
+            // A presentation request, not a flag: declared per part
+            // (`visuallyHidden`) and presence-only, but never a member of the
+            // flag vocabulary the state tooling crosses.
+            if (attr === 'data-visually-hidden') {
+                if (!spec.visuallyHidden) {
+                    fail(anatomy, `part "${partName}" renders data-visually-hidden but does not declare visuallyHidden`);
+                }
+                if (el.getAttribute(attr) !== '') {
+                    fail(anatomy, `data-visually-hidden on part "${partName}" must be presence-only, got "${el.getAttribute(attr)}"`);
+                }
+                continue;
+            }
             // Layout attributes are declared contract data like placements,
             // but namespaced, so they are recognised by prefix and then
             // checked against the part's own `layout` list. A name under the

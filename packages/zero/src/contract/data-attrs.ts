@@ -18,6 +18,12 @@
  *   `[data-part="item"][data-highlighted][data-disabled]`.
  * - `data-orientation="horizontal|vertical"` on parts that need
  *   directional CSS.
+ * - `data-visually-hidden` — presence-only, on a part whose `PartSpec`
+ *   declares `visuallyHidden` and whose consumer asked for it: hidden from
+ *   sight, kept in the accessibility tree. NOT a flag — it is a presentation
+ *   request, not a state, so recipes never select it and the state tooling
+ *   never crosses it. `css/base.css` clips it in `@layer zero.structure`,
+ *   where no recipe can undo it.
  * - Contract variant axes pass through as `data-color` / `data-size` /
  *   `data-variant` — zero attaches no styling to them.
  * - Layout attributes render under the `data-l-` prefix

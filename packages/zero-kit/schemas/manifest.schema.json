@@ -321,6 +321,10 @@
                     "description": "True when the part supports asChild composition.",
                     "type": "boolean"
                 },
+                "visuallyHidden": {
+                    "description": "True when the consumer can hide the part from sight while it keeps its accessible role (a label that still names its control). The part then renders data-visually-hidden, which zero's base.css clips in @layer zero.structure \u2014 nothing for a recipe to style, and not a flag.",
+                    "type": "boolean"
+                },
                 "pseudo": {
                     "description": "Present when the part renders no element of its own on the web and projects onto a pseudo-element of another part (dialog's backdrop \u2192 popup's ::backdrop). Consumers compose [data-part=\"<of>\"]<state fragments><selector> \u2014 pseudo-element last, because attributes can only narrow the host.",
                     "type": "object",

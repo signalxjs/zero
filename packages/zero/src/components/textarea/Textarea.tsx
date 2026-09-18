@@ -27,7 +27,7 @@ import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithFormControl, WithModelModifiers, WithReadonly, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithFormControl, WithModelModifiers, WithReadonly, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { textareaAnatomy } from './anatomy.js';
 
 const SCOPE = textareaAnatomy.scope;
@@ -138,7 +138,7 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
 
 // ── Label ──
 
-export type TextareaLabelProps = WithClass & Define.Slot<'default'>;
+export type TextareaLabelProps = WithClass & WithVisuallyHidden & Define.Slot<'default'>;
 
 const TextareaLabel = component<TextareaLabelProps>(({ props, slots }) => {
     const ctx = useTextareaContext();
@@ -151,6 +151,7 @@ const TextareaLabel = component<TextareaLabelProps>(({ props, slots }) => {
             data-disabled={dataAttr(ctx.disabled())}
             data-invalid={dataAttr(ctx.invalid())}
             data-required={dataAttr(ctx.required())}
+            data-visually-hidden={dataAttr(props.visuallyHidden)}
             class={props.class}
         >
             {slots.default?.()}

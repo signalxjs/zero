@@ -26,6 +26,7 @@ export const inputAnatomy = defineAnatomy('input', {
         parent: 'root',
         flags: ['disabled', 'invalid', 'required'],
         tokens: ['color', 'text'],
+        visuallyHidden: true,
     },
     control: {
         element: 'div',

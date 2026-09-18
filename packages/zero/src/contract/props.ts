@@ -150,6 +150,15 @@ export type WithOrientation = Define.Prop<'orientation', Orientation, false>;
 export type WithAsChild = Define.Prop<'asChild', boolean, false>;
 
 /**
+ * Hide the part from sight while it keeps its accessible role — a label that
+ * still names its control, a title that still names its dialog. Renders
+ * `data-visually-hidden`, which `css/base.css` clips in `@layer
+ * zero.structure`. Offered only by parts whose anatomy declares
+ * `visuallyHidden`.
+ */
+export type WithVisuallyHidden = Define.Prop<'visuallyHidden', boolean, false>;
+
+/**
  * The spreadable bag an `asChild` slot receives — everything the built-in
  * element would have carried. Explicit spreading over cloning magic: it is
  * SSR-trivial and visible in user code.
