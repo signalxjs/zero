@@ -253,4 +253,30 @@
     [data-scope="table"][data-part="column"] {
         width: var(--table-column-width, auto);
     }
+
+    /*
+     * An autosizing textarea (#88): `Textarea.Root minRows`/`maxRows`. The
+     * box grows with its content — soft wraps included, which counting
+     * newlines into `rows` never saw — between the row bounds the part
+     * publishes, and scrolls past the upper one. The platform does the
+     * growing (`field-sizing: content`); where it cannot, `createAutosize`
+     * measures `scrollHeight` instead and writes the height inline, and these
+     * bounds still clamp it.
+     *
+     * The bounds are `lh`, so a row is whatever line height the skin chose.
+     * `--textarea-block-chrome` is the block padding + border when the
+     * element is `border-box` (0 when it is `content-box`) — CSS cannot read a
+     * recipe's padding, so the runtime measures it on mount; before that it
+     * is 0 and a border-box box is short by its own chrome. No max bound
+     * leaves `max-block-size` invalid at computed-value time, i.e. `none`.
+     *
+     * `resize: none`, because a manual resize writes an inline height and
+     * silently switches the growth off for good.
+     */
+    [data-scope="textarea"][data-part="textarea"][data-autosize] {
+        field-sizing: content;
+        resize: none;
+        min-block-size: calc(var(--textarea-min-rows, 1) * 1lh + var(--textarea-block-chrome, 0px));
+        max-block-size: calc(var(--textarea-max-rows) * 1lh + var(--textarea-block-chrome, 0px));
+    }
 }

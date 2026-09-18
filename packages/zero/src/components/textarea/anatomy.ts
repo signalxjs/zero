@@ -11,6 +11,11 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *
  * No `hidden-input` either: a `<textarea>` is a form control and carries its
  * own `name` (see the Input anatomy for why the other form scopes differ).
+ *
+ * The `textarea` part offers `autosize` (`Textarea.Root minRows`/`maxRows`):
+ * it then renders `data-autosize` and its row bounds as
+ * `--textarea-min-rows`/`--textarea-max-rows`, and `css/base.css` grows it in
+ * `@layer zero.structure` — nothing for a recipe to style.
  */
 export const textareaAnatomy = defineAnatomy('textarea', {
     root: {
@@ -30,6 +35,7 @@ export const textareaAnatomy = defineAnatomy('textarea', {
         parent: 'root',
         flags: ['disabled', 'invalid', 'required', 'readonly', 'focus-visible'],
         tokens: ['color', 'text', 'size', 'radius-field'],
+        autosize: true,
     },
 }, {
     models: [

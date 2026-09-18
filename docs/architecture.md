@@ -773,7 +773,7 @@ order is idempotent; relying on load order is not. What each layer holds:
 | `zero.fallback` | base.css only: design-system-neutral structural token defaults (radius/size/text ramps, durations, …) so an unstyled page is sane. |
 | `zero.tokens` | Compiled design-system tokens: `:where(:root)` defaults, `@property`-adjacent blocks, theme blocks. |
 | `zero.recipes` | All compiled recipe CSS, plus base.css's few structural necessities (summary marker removal, `cursor: not-allowed`). |
-| `zero.structure` | `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, the same for a closed dialog popup / drawer panel (`:not([open])`, #51), the `[data-visually-hidden]` clip (#54), and a table `column`'s `width: var(--table-column-width, auto)` (#55). |
+| `zero.structure` | `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, the same for a closed dialog popup / drawer panel (`:not([open])`, #51), the `[data-visually-hidden]` clip (#54), a table `column`'s `width: var(--table-column-width, auto)` (#55), and an autosizing textarea's `field-sizing: content` with `lh` row bounds (#88). |
 
 `zero.structure` exists because `[hidden]` otherwise relies on the UA
 sheet — the weakest declaration in the document — and all six design
@@ -792,6 +792,14 @@ The column width is there because it is app data reaching the screen, which
 no skin should be able to forget. It is a custom property rather than an
 inline `width`, so a later responsive rule in the same layer can take it
 back without `!important`.
+The autosizing textarea is there for the same reason as the column width:
+the app asked for it (`minRows`/`maxRows`), so no skin should be able to
+forget it or out-specify it. `data-autosize` is declared per part
+(`PartSpec.autosize`) like `data-visually-hidden`. The bounds are `lh` rows
+plus `--textarea-block-chrome`, the block padding + border the runtime
+measures for a `border-box` element — the one number CSS cannot read from a
+recipe. Where `field-sizing` is unsupported, `createAutosize` writes the
+measured height inline and the same bounds clamp it.
 
 **App CSS sits outside or after the four layers** (#63). Unlayered, it
 beats them all. Layered, the app states `@layer zero, app;` first in its

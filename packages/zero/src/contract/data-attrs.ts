@@ -27,6 +27,11 @@
  *   state tooling never crosses it. `css/base.css` clips every
  *   `[data-visually-hidden]` in `@layer zero.structure`, where no recipe can
  *   undo it.
+ * - `data-autosize` — presence-only: the part grows with its content
+ *   between the row bounds it publishes as `--textarea-min-rows` /
+ *   `--textarea-max-rows`. Declared per part (`PartSpec.autosize`) and, like
+ *   `data-visually-hidden`, a presentation request rather than a flag:
+ *   `css/base.css` sizes it in `@layer zero.structure`.
  * - Contract variant axes pass through as `data-color` / `data-size` /
  *   `data-variant` — zero attaches no styling to them.
  * - Layout attributes render under the `data-l-` prefix

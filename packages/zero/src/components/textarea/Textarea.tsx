@@ -14,15 +14,25 @@
  * and the same Field adoption.
  *
  * Resize is left to the design system (`resize: vertical` is the usual
- * choice). Zero does not auto-size the box: growing it means measuring
- * scrollHeight against a collapsed height every keystroke, which is a layout
- * behavior, not an anatomy one.
+ * choice) — unless the box autosizes:
+ *
+ * ```tsx
+ * <Textarea.Root model={() => state.draft} minRows={1} maxRows={8}>…</Textarea.Root>
+ * ```
+ *
+ * `minRows`/`maxRows` (either one turns it on) render `data-autosize` and the
+ * bounds as `--textarea-min-rows`/`--textarea-max-rows` on the control, and
+ * `css/base.css` does the growing with `field-sizing: content` in
+ * `@layer zero.structure` — no skin has anything to write, and the box is
+ * right before hydration. `createAutosize` measures the chrome the bounds
+ * need and, on an engine without `field-sizing`, the height itself.
  */
-import { component, compound, defineInjectable, defineProvide } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define, ModelModifiers } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
+import { createAutosize, type Autosize } from '../../behaviors/autosize.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
@@ -52,6 +62,8 @@ interface TextareaContext {
     autocomplete(): string | undefined;
     maxlength(): number | undefined;
     rows(): number | undefined;
+    /** The autosize bounds, or `undefined` when the box keeps its `rows`. */
+    autosize(): AutosizeBounds | undefined;
     controlId(): string;
     labelId(): string | undefined;
     describedBy(): string | undefined;
@@ -72,6 +84,7 @@ function makeInert(): TextareaContext {
         autocomplete: () => undefined,
         maxlength: () => undefined,
         rows: () => undefined,
+        autosize: () => undefined,
         controlId: () => 'zx-textarea-inert',
         labelId: () => undefined,
         describedBy: () => undefined,
@@ -81,6 +94,11 @@ function makeInert(): TextareaContext {
         readonly: () => false,
         focusVisible: { value: false },
     };
+}
+
+interface AutosizeBounds {
+    min: number;
+    max: number | undefined;
 }
 
 export const useTextareaContext = defineInjectable<TextareaContext>(() => makeInert());
@@ -95,6 +113,15 @@ export type TextareaRootProps =
     & Define.Prop<'autocomplete', string, false>
     & Define.Prop<'maxlength', number, false>
     & Define.Prop<'rows', number, false>
+    /**
+     * Grow with the content, never below this many lines (default 1 when
+     * only `maxRows` is set). Setting it, or `maxRows`, turns autosizing on;
+     * the element's `rows` then follows it rather than the `rows` prop, so
+     * an engine without `field-sizing` starts at the floor before hydration.
+     */
+    & Define.Prop<'minRows', number, false>
+    /** Grow up to this many lines, then scroll. Unbounded when absent. */
+    & Define.Prop<'maxRows', number, false>
     & WithFormControl
     & WithReadonly
     & WithModelModifiers
@@ -122,6 +149,15 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
         autocomplete: () => props.autocomplete,
         maxlength: () => props.maxlength,
         rows: () => props.rows,
+        autosize: () => {
+            if (props.minRows == null && props.maxRows == null) return undefined;
+            // Whole rows, at least one — the `rows` attribute takes nothing
+            // else — and a max below the min is the min. A non-finite max
+            // (`Infinity`) is no bound; a non-finite min is the default.
+            const min = Number.isFinite(props.minRows) ? Math.max(1, Math.floor(props.minRows!)) : 1;
+            const max = Number.isFinite(props.maxRows) ? Math.max(min, Math.floor(props.maxRows!)) : undefined;
+            return { min, max };
+        },
         controlId: fc.controlId,
         labelId: fc.labelId,
         describedBy: fc.describedBy,
@@ -204,6 +240,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
     let detachInput = (): void => {};
 
     let detachReset = (): void => {};
+    let autosize: Autosize | null = null;
     onMounted(() => {
         const node = el;
         node?.addEventListener('input', onInput);
@@ -211,11 +248,31 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
         detachReset = onFormReset(() => el, () => {
             ctx.state.value = ctx.defaultValue();
             if (el) el.value = ctx.state.value;
+            autosize?.refresh();
+        });
+        effect(() => {
+            const on = ctx.autosize() !== undefined;
+            if (on && !autosize && el) autosize = createAutosize(el);
+            else if (!on && autosize) {
+                autosize.dispose();
+                autosize = null;
+            }
+        });
+        // A value written from outside an input event — a composer clearing
+        // itself after send — has to re-measure too (in the fallback; with
+        // `field-sizing` a refresh is a no-op). Subscribed only while
+        // autosizing, so a plain textarea's keystrokes cost nothing here.
+        effect(() => {
+            if (ctx.autosize() === undefined) return;
+            void ctx.state.value;
+            autosize?.refresh();
         });
     });
     onUnmounted(() => {
         detachReset();
         detachInput();
+        autosize?.dispose();
+        autosize = null;
     });
 
     expose({
@@ -226,6 +283,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
     return () => {
         const attrs = htmlAttrs(props);
         const describedBy = [ctx.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined;
+        const bounds = ctx.autosize();
         return (
             <textarea
                 {...attrs}
@@ -234,7 +292,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
                 form={ctx.form()}
                 autoComplete={ctx.autocomplete()}
                 maxLength={ctx.maxlength()}
-                rows={ctx.rows()}
+                rows={bounds ? bounds.min : ctx.rows()}
                 data-scope={SCOPE}
                 data-part="textarea"
                 data-disabled={dataAttr(ctx.disabled())}
@@ -242,6 +300,11 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
                 data-required={dataAttr(ctx.required())}
                 data-readonly={dataAttr(ctx.readonly())}
                 data-focus-visible={dataAttr(ctx.focusVisible.value)}
+                data-autosize={dataAttr(bounds)}
+                style={bounds ? {
+                    '--textarea-min-rows': String(bounds.min),
+                    '--textarea-max-rows': bounds.max == null ? undefined : String(bounds.max),
+                } : undefined}
                 model={ctx.state}
                 modelModifiers={ctx.modifiers()}
                 placeholder={props.placeholder}

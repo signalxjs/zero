@@ -45,6 +45,8 @@ export type { FormControl, FormControlOptions, FormControlProps, FormControlFlag
 export { onFormReset } from './form-reset.js';
 export type { FormOwned } from './form-reset.js';
 export { VISUALLY_HIDDEN_STYLE } from './visually-hidden.js';
+export { createAutosize } from './autosize.js';
+export type { Autosize } from './autosize.js';
 
 export { createCollection, defaultItemKey, defaultItemLabel, segmentBy } from './collection.js';
 export type { Collection, CollectionEntry, CollectionOptions, CollectionSegment } from './collection.js';

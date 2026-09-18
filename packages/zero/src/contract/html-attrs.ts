@@ -26,7 +26,10 @@ const LAYOUT_PREFIX = 'data-l-';
 /**
  * The `data-*` attributes the anatomy contract owns — `data-scope`,
  * `data-part`, `data-state`, `data-orientation`, `data-placement`, every flag,
- * and the three named axes. A design system selects on every one of them, so
+ * the three named axes, and `data-autosize` (a part renders it from its own
+ * props — an app's would be overridden, or dropped when the part turns it
+ * off). `data-visually-hidden` is deliberately not here: an app may stamp it
+ * on any element of its own. A design system selects on every one of them, so
  * an app writing `data-state="open"` from outside would make the skin's
  * `[data-state="open"]` rules match something the component never said.
  * The `data-mod-` and `data-l-` namespaces are owned too (by `mods` and the
@@ -38,6 +41,7 @@ export const RESERVED_DATA_ATTRS: ReadonlySet<string> = new Set([
     'data-state',
     'data-orientation',
     'data-placement',
+    'data-autosize',
     ...FLAG_VOCABULARY.map((flag) => `data-${flag}`),
     ...Object.values(VARIANT_AXES),
 ]);
@@ -57,7 +61,7 @@ export interface ReservedByZero {
 }
 
 type ReservedDataAttr =
-    | 'data-scope' | 'data-part' | 'data-state' | 'data-orientation' | 'data-placement'
+    | 'data-scope' | 'data-part' | 'data-state' | 'data-orientation' | 'data-placement' | 'data-autosize'
     | `data-${typeof FLAG_VOCABULARY[number]}`
     | 'data-color' | 'data-size' | 'data-variant';
 

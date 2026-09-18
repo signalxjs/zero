@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+### Added — Textarea autosize (#88)
+
+- **`Textarea.Root` takes `minRows` / `maxRows`.** Either one turns
+  autosizing on (`minRows` defaults to 1, no `maxRows` is unbounded): the
+  box grows with its content — soft wraps included, which agentic's
+  newline-counting stopgap missed — and scrolls past the upper bound.
+  While it is on, the element's `rows` follows `minRows` (an engine
+  without `field-sizing` starts at the floor before hydration).
+- **CSS does the growing.** The textarea part renders `data-autosize` and
+  the bounds as `--textarea-min-rows` / `--textarea-max-rows`; a new
+  `zero.structure` rule in `css/base.css` applies `field-sizing: content`,
+  `min-`/`max-block-size` in `lh`, and `resize: none`. The box is right
+  before hydration, and no design system writes a line of it.
+- **`createAutosize`** (`@sigx/zero/behaviors`) is the runtime half. It
+  measures the block padding + border a `border-box` element's bounds must
+  add and publishes it as `--textarea-block-chrome` (CSS cannot read a
+  recipe's padding), and where `field-sizing` is unsupported it measures
+  `scrollHeight` and writes the height inline — on input, on a model write
+  from outside (a composer clearing after send), on a form reset and on a
+  width change.
+- **Contract:** `PartSpec.autosize` (textarea's `textarea` part declares
+  it), mirrored in the kit's manifest types and schema. Like
+  `visuallyHidden` it is a presentation request, not a flag:
+  `expectAnatomy` fails `data-autosize` on a part that does not declare it
+  or when it is not presence-only, `autosize` joins `RESERVED_AXES`, and
+  `htmlAttrs` refuses an app's `data-autosize` like any contract-owned
+  `data-*`.
+
 ### Added — the attribute pass-through reaches the disclosure, navigation and form-control parts (#74)
 
 - **Every app-written part of Accordion, Carousel, Collapsible, Diff,

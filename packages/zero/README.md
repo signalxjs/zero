@@ -335,6 +335,29 @@ let composer: TextareaHandle | null = null;
 composer?.element?.setSelectionRange(caret, caret);
 ```
 
+**Autosize.** `Textarea.Root` takes `minRows` / `maxRows` (either one turns
+it on; `minRows` defaults to 1): the box grows with its content — soft wraps
+included — never below `minRows` lines, and scrolls past `maxRows`. The
+textarea part renders `data-autosize` and the bounds as
+`--textarea-min-rows` / `--textarea-max-rows`, and `css/base.css` does the
+growing in `@layer zero.structure` with `field-sizing: content` and `lh`
+bounds — so it is right before hydration (the element's `rows` follows
+`minRows` meanwhile, for engines without `field-sizing`), and a design system has nothing to
+write (the rule also sets `resize: none`, since a manual resize would switch
+the growth off). `createAutosize` (on `@sigx/zero/behaviors`) is the runtime
+half: it measures the block padding + border a `border-box` element's bounds
+must add (`--textarea-block-chrome`), and on an engine without
+`field-sizing` it measures `scrollHeight` and writes the height inline. Like
+`visuallyHidden`, it is a presentation request declared by the anatomy
+(`autosize: true`), not a flag.
+
+```tsx
+<Textarea.Root model={() => state.draft} minRows={1} maxRows={8}>
+    <Textarea.Label visuallyHidden>Message</Textarea.Label>
+    <Textarea.Textarea placeholder="Write a message…" />
+</Textarea.Root>
+```
+
 `css/base.css` also declares `--print-ink`, the ink a print fallback draws
 with. Paper is not theme-aware — `print-color-adjust: economy` drops background
 paint, so a mark drawn as a background comes back as a glyph, and every
