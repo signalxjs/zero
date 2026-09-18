@@ -156,7 +156,7 @@
     {
         "name": "@sigx/zero/number-input",
         "path": "packages/zero/dist/components/number-input/index.js",
-        "limit": "4.65 kB",
+        "limit": "4.7 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -168,7 +168,7 @@
     {
         "name": "@sigx/zero/rating-group",
         "path": "packages/zero/dist/components/rating-group/index.js",
-        "limit": "3.35 kB",
+        "limit": "3.4 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

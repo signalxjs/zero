@@ -5,7 +5,9 @@
  * Controls inject the context and, when a real provider exists, adopt its
  * ids and flags — so `<Field.Root><Field.Label/><Checkbox.Root/></Field.Root>`
  * wires `for`/`aria-describedby`/`data-invalid` automatically, and a bare
- * control still works against the inert fallback.
+ * control still works against the inert fallback. The Field's `size` rides
+ * along the same way: a control with no `size` of its own renders the
+ * Field's, so `<Field.Root size="xs">` is a compact field, control included.
  */
 import { defineInjectable, defineProvide } from 'sigx';
 
@@ -17,6 +19,8 @@ export interface FieldContext {
     invalid(): boolean;
     required(): boolean;
     readonly(): boolean;
+    /** The Field's `size` — a control without its own renders this one. */
+    size(): string | undefined;
     /** Space-separated description/error ids for `aria-describedby`. */
     describedBy(): string | undefined;
 }
@@ -28,6 +32,7 @@ const INERT_FIELD: FieldContext = {
     invalid: () => false,
     required: () => false,
     readonly: () => false,
+    size: () => undefined,
     describedBy: () => undefined,
 };
 

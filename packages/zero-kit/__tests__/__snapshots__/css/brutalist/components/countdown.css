@@ -73,6 +73,12 @@
         --countdown-font: var(--text-3xl);
     }
 
+    [data-scope="countdown"][data-part="root"][data-mod-inline] {
+        font-size: inherit;
+        font-weight: inherit;
+        font-family: inherit;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="countdown"][data-part="digits"] {
             animation: none;

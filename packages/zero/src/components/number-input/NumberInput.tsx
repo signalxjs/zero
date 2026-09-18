@@ -36,7 +36,6 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { createSpinPress } from '../../behaviors/spin.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithFormControl, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { clamp, snapToStep } from './number.js';
 import { numberInputAnatomy } from './anatomy.js';
@@ -304,7 +303,7 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
             data-invalid={dataAttr(invalid())}
             data-required={dataAttr(ctx.required())}
             data-readonly={dataAttr(readonly())}
-            {...variantAttrs(props)}
+            {...fc.axisAttrs()}
             class={props.class}
         >
             {slots.default?.()}

@@ -5,6 +5,7 @@
 import { adapt } from '@sigx/zero/adapt';
 import { Button as ZButton } from '@sigx/zero/button';
 import { Table as ZTable } from '@sigx/zero/table';
+import { Countdown as ZCountdown } from '@sigx/zero/countdown';
 
 export const Button = /* @__PURE__ */ adapt(ZButton, {
     props: {
@@ -21,6 +22,12 @@ export const Table = /* @__PURE__ */ adapt(ZTable, {
     props: {
         'hover': { modifier: 'hover' },
         'zebra': { modifier: 'zebra' },
+    },
+});
+
+export const Countdown = /* @__PURE__ */ adapt(ZCountdown, {
+    props: {
+        'inline': { modifier: 'inline' },
     },
 });
 
@@ -76,5 +83,4 @@ export { Drawer } from '@sigx/zero/drawer';
 export { FileUpload } from '@sigx/zero/file-upload';
 export { Carousel } from '@sigx/zero/carousel';
 export { Swap } from '@sigx/zero/swap';
-export { Countdown } from '@sigx/zero/countdown';
 export { Diff } from '@sigx/zero/diff';

@@ -33,7 +33,6 @@ import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import { variantAttrs } from '../../contract/props.js';
 import type { WithClass, WithFormControl, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { ratingGroupAnatomy } from './anatomy.js';
 
@@ -235,7 +234,7 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
             data-invalid={dataAttr(ctx.invalid())}
             data-required={dataAttr(ctx.required())}
             data-readonly={dataAttr(readonly())}
-            {...variantAttrs(props)}
+            {...fc.axisAttrs()}
             class={props.class}
         >
             {slots.default?.()}

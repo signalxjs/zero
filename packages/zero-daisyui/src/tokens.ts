@@ -175,11 +175,18 @@ export const modifiers = ['wide', 'block', 'square', 'circle', 'active'] as cons
  */
 export const tableModifiers = ['zebra', 'hover'] as const;
 
+/**
+ * A countdown set inside a sentence (#57). daisy's own `.countdown` sets no
+ * display size — it takes the text utilities around it — so `inline` is the
+ * daisy-faithful look, spelled as the opt-out from this skin's display step.
+ */
+export const countdownModifiers = ['inline'] as const;
+
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
     custom,
     variants,
-    modifiers: [...modifiers, ...tableModifiers],
+    modifiers: [...modifiers, ...tableModifiers, ...countdownModifiers],
     /**
      * daisyUI's own ramp — Tailwind's, which daisy is authored against.
      *
@@ -210,6 +217,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
             modifiers: [...modifiers],
         },
         table: { modifiers: [...tableModifiers] },
+        countdown: { modifiers: [...countdownModifiers] },
         tabs: { variants: [...tabVariants] },
     },
     system,

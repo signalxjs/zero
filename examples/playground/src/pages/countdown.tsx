@@ -1,6 +1,6 @@
 import { component } from 'sigx';
 import { Countdown } from '@sigx/zero';
-import { pickRole } from '../design-systems';
+import { pickMod, pickRole } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const CountdownDemos = component(({ signal, onMounted, onUnmounted }) => {
@@ -14,6 +14,10 @@ const CountdownDemos = component(({ signal, onMounted, onUnmounted }) => {
         }, 1000);
     });
     onUnmounted(() => clearInterval(timer));
+    const inlineMods = (): Record<string, boolean> | undefined => {
+        const mod = pickMod('inline');
+        return mod ? { [mod]: true } : undefined;
+    };
 
     return () => (
         <>
@@ -37,6 +41,21 @@ const CountdownDemos = component(({ signal, onMounted, onUnmounted }) => {
                     <Countdown.Value value={41} digits={2} />m{' '}
                     <Countdown.Value value={7} digits={2} />s
                 </Countdown.Root>
+            </p>
+            {/*
+              * #57: one line inside a sentence. The `inline` modifier trades
+              * the display step for the surrounding text's size and weight;
+              * picked from the live vocabulary like every other modifier, so
+              * a skin that did not declare it would get no attribute at all.
+              */}
+            <p>
+                Inline: the pairing code expires in{' '}
+                <Countdown.Root label="Pairing code expires in" mods={inlineMods()}>
+                    <Countdown.Value value={Math.floor(state.seconds / 60)} digits={2} />
+                    :
+                    <Countdown.Value value={state.seconds % 60} digits={2} />
+                </Countdown.Root>
+                , then request a new one.
             </p>
         </>
     );

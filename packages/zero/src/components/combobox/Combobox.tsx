@@ -73,7 +73,6 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
-import { variantAttrs } from '../../contract/props.js';
 import type {
     PartProps,
     WithAsChild,
@@ -557,7 +556,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             data-part="root"
             {...fc.flags()}
             data-readonly={dataAttr(ctx.readonly())}
-            {...variantAttrs(props)}
+            {...fc.axisAttrs()}
             class={props.class}
         >
             {/* Explicit children win ENTIRELY over `items` — no merging. */}

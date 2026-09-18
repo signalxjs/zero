@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Changed — a sized Field sizes its control (#57)
+
+- **A form control with no `size` of its own renders its Field's.**
+  `<Field.Root size="xs">` used to shrink only the label and messages, so a
+  compact field (a mode select inside a chip) had to size the control
+  separately or be forced from app CSS. Input, Textarea, Checkbox, Switch,
+  RadioGroup, Slider, RatingGroup, NumberInput, Combobox, Select,
+  ToggleGroup and FileUpload now take the Field's `size` exactly as they
+  take its `disabled`/`invalid`/`required`/`readonly`: the prop wins, else
+  the Field's. Only `size` is inherited — a Field's `color` accents its
+  label, and a control's colour is its own checked or focus fill. With
+  `Field.Label visuallyHidden` (#54), that is the whole compact field.
+- **`FieldContext.size()`** carries the Field's size (the inert fallback
+  returns `undefined`), and **`FormControl.axisAttrs()`**
+  (`createFormControl`) returns the Root's `variantAttrs` with that
+  fallback applied. An ecosystem control built on `createFormControl`
+  spreads `axisAttrs()` instead of `variantAttrs(props)` to join in; a
+  hand-built `FieldContext` must now provide `size`.
+
 ### Added — Button `loading`, and the link-button answer (#50)
 
 - **`Button.Root` takes `loading`**: `data-state="loading"`,

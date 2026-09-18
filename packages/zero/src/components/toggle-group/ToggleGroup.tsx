@@ -40,7 +40,6 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
 import { renderAsChild, synthesizesClickFrom } from '../../contract/as-child.js';
-import { variantAttrs } from '../../contract/props.js';
 import type {
     PartProps,
     WithAsChild,
@@ -212,7 +211,7 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
             data-part="root"
             data-orientation={orientation()}
             {...fc.flags()}
-            {...variantAttrs(props)}
+            {...fc.axisAttrs()}
             class={props.class}
             ref={(node: HTMLElement | null) => { rootEl = node; }}
         >

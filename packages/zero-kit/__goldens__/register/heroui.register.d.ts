@@ -567,7 +567,7 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** countdown — size wired. */
+            /** countdown — size, mods.inline wired. */
             'countdown': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
                 color: never;
@@ -575,7 +575,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
-                mods: Record<string, never>;
+                mods: { 'inline': boolean };
             };
             /** diff — size wired. */
             'diff': {

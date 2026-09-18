@@ -40,9 +40,11 @@ export const vocabulary = {
      * heroui.com/docs/components/table, verified 2026-08-05) to that set.
      * The matrix row and `source.url` above still grade BUTTON —
      * `striped` rides along because the fixture's vocabulary is the
-     * package's, and only `icon-only`/`pending` are button facts.
+     * package's, and only `icon-only`/`pending` are button facts. So does
+     * countdown's `inline` (zero#57), which keeps zero's name: HeroUI ships
+     * no countdown, so there is no vendor spelling to route it to.
      */
-    modifiers: ['icon-only', 'pending', 'striped'],
+    modifiers: ['icon-only', 'pending', 'striped', 'inline'],
 } as const;
 
 export const api = defineApi(vocabulary, {

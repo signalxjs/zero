@@ -148,8 +148,8 @@ export const systemDark = {
  */
 export const variants = ['primary', 'secondary', 'tertiary', 'outline', 'ghost', 'danger', 'danger-soft'] as const;
 
-/** HeroUI's `isIconOnly` / `isPending`, plus table's `isStriped` (#340). */
-export const modifiers = ['icon-only', 'pending', 'striped'] as const;
+/** HeroUI's `isIconOnly` / `isPending`, table's `isStriped` (#340), and countdown's `inline` (#57). */
+export const modifiers = ['icon-only', 'pending', 'striped', 'inline'] as const;
 
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
@@ -174,6 +174,9 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         ...layoutScopes,
         button: { modifiers: ['icon-only', 'pending'] },
         table: { modifiers: ['striped'] },
+        // A countdown set inside a sentence (#57). No vendor spelling: the
+        // vendor ships no countdown, so the modifier keeps zero's name.
+        countdown: { modifiers: ['inline'] },
     },
     custom,
     system,

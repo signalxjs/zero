@@ -29,6 +29,28 @@ const TimelineDemos = component(() => () => (
                 <Timeline.Content>The design-system rewrite</Timeline.Content>
             </Timeline.Item>
         </Timeline.Root>
+        {/*
+          * #57: nothing on the start side, so the skins collapse the start
+          * track (a `:has()` rule on the root, no prop) — the events sit
+          * against the axis instead of past an empty half of the item.
+          */}
+        <p>No start content — the start column collapses on its own:</p>
+        <Timeline.Root>
+            <Timeline.Item>
+                <Timeline.Marker />
+                <Timeline.Content>Task queued</Timeline.Content>
+                <Timeline.Connector />
+            </Timeline.Item>
+            <Timeline.Item>
+                <Timeline.Marker />
+                <Timeline.Content>Agent picked it up</Timeline.Content>
+                <Timeline.Connector />
+            </Timeline.Item>
+            <Timeline.Item>
+                <Timeline.Marker />
+                <Timeline.Content>Waiting for approval</Timeline.Content>
+            </Timeline.Item>
+        </Timeline.Root>
         <p>Horizontal — the process strip:</p>
         <Timeline.Root orientation="horizontal">
             <Timeline.Item>

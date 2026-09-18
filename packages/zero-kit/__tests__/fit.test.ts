@@ -92,7 +92,7 @@ describe("zero-basic's recipes fit riso's tokens (roles: {}, sizes: [], fused va
             "droppedColorValues": 408,
             "droppedCompounds": 0,
             "droppedDefaults": 9,
-            "droppedModifiers": 2,
+            "droppedModifiers": 3,
             "droppedSizeValues": 254,
             "droppedVariantBlocks": 3,
             "droppedVariantValues": 5,

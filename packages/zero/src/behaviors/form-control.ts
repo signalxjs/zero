@@ -13,6 +13,9 @@
  * The regime, stated once:
  * - A control's flags are the prop OR the Field's (`disabled`, `invalid`,
  *   `required`, `readonly`); the Field supplies ids and `aria-describedby`.
+ * - A control's `size` is the prop, else the Field's (`axisAttrs()`): the
+ *   Field's size means the whole field, so the control's chrome follows its
+ *   label rather than staying at the base step beside a shrunken one.
  * - A hidden control renders ONLY when `name` is set and carries `disabled`
  *   and `form` (`hiddenAttrs()`), so a disabled control never posts and the
  *   `form` attribute associates from outside the form's subtree. A hidden
@@ -24,6 +27,8 @@
 import { createId } from './create-id.js';
 import { useFieldContext, type FieldContext } from './field.js';
 import { dataAttr } from '../contract/data-attrs.js';
+import type { ColorValue, SizeScale } from '../contract/tokens.js';
+import { variantAttrs } from '../contract/variant-attrs.js';
 
 export interface FormControlProps {
     name?: string;
@@ -32,6 +37,11 @@ export interface FormControlProps {
     invalid?: boolean;
     required?: boolean;
     readonly?: boolean;
+    color?: ColorValue;
+    size?: SizeScale;
+    variant?: string;
+    axes?: Record<string, string | undefined>;
+    mods?: Record<string, boolean | undefined>;
 }
 
 export interface FormControlOptions {
@@ -68,6 +78,8 @@ export interface FormControl {
     readonly(): boolean;
     /** The three flags every form-control root declares. */
     flags(): FormControlFlags;
+    /** The Root's variant attributes (`variantAttrs`), `size` falling back to the Field's. */
+    axisAttrs(): Record<string, string | undefined>;
     /** A hidden control's wiring: name, form, disabled. Render it only when `hasName()`. */
     hiddenAttrs(): { name: string | undefined; form: string | undefined; disabled: boolean };
 }
@@ -106,6 +118,16 @@ export function createFormControl(opts: FormControlOptions): FormControl {
             'data-invalid': dataAttr(invalid()),
             'data-required': dataAttr(required()),
         }),
+        axisAttrs: () => {
+            const own = p();
+            return variantAttrs({
+                color: own.color,
+                size: own.size ?? field.size(),
+                variant: own.variant,
+                axes: own.axes,
+                mods: own.mods,
+            });
+        },
         hiddenAttrs: () => ({
             name: name(),
             form: form(),

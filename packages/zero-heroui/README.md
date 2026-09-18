@@ -91,6 +91,18 @@ rejected. The runtime is data only: one generated `adapt()` call for Button
 rendered attributes are unchanged — the recipes and every existing consumer
 are untouched.
 
+## Countdown in a sentence, and one-sided timelines
+
+`<Countdown.Root mods={{ inline: true }}>` sets a countdown inside running
+text: it takes the sentence's size and weight instead of the display
+step, and keeps its tabular digits, its ink and the per-tick entry (#57). A
+Timeline whose content never sits on the start side collapses the start track
+on its own — a `:has()` rule on the root, no prop — so the events sit against
+the axis instead of past an empty half of each item.
+
+HeroUI ships no countdown, so the modifier has no vendor name: on
+`./components` it stays `mods={{ inline: true }}`.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors
