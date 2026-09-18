@@ -31,6 +31,9 @@ describe('triggerTokenAt (#58)', () => {
         expect(triggerTokenAt('see #iss', 8, re)).toEqual({ start: 3, end: 8, prefix: ' #', query: 'iss' });
         expect(triggerTokenAt('#iss', 4, re)).toEqual({ start: 0, end: 4, prefix: '#', query: 'iss' });
         expect(triggerTokenAt('a#iss', 5, re)).toBeNull();
+        // Group 1 is the contract: without one (or when it sat out), no token.
+        expect(triggerTokenAt('#iss', 4, /#\w*/)).toBeNull();
+        expect(triggerTokenAt('#', 1, /#(\w+)?/)).toBeNull();
         // A global flag does not make the match stateful.
         const g = /[@#](\w*)/g;
         expect(triggerTokenAt('#a', 2, g)).toEqual(triggerTokenAt('#a', 2, g));

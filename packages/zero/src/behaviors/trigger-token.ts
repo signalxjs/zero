@@ -33,6 +33,8 @@ const SPACE = /\s/;
  * group is the query, and whatever of the match precedes the query is the
  * prefix a commit keeps: with `/(?:^|\s)[@#](\w*)/` the query is the `\w*`
  * and the prefix is `@`, `#`, or either one after the whitespace it matched.
+ * A pattern with no first group — or one that did not take part in the
+ * match — yields no token; spell an empty query `(\w*)`, not `(\w+)?`.
  */
 export function triggerTokenAt(text: string, caret: number, trigger: string | RegExp): TriggerToken | null {
     const upTo = text.slice(0, caret);
@@ -49,7 +51,10 @@ export function triggerTokenAt(text: string, caret: number, trigger: string | Re
     const anchored = new RegExp(`(?:${trigger.source})$`, trigger.flags.replace(/[gy]/g, ''));
     const match = anchored.exec(upTo);
     if (!match) return null;
-    const query = match[1] ?? '';
+    // No first group (or one that did not take part) is a mis-specified
+    // trigger: fail closed rather than open on every match.
+    const query = match[1];
+    if (query === undefined) return null;
     const whole = match[0];
     // The query is the tail of the match by construction (the caret ends
     // both); anything else is a pattern this cannot split, so no token.
