@@ -126,7 +126,7 @@ function rootDecls(
     roles: RolesDecl,
     nonColorLight: Record<string, string>,
 ): string[] {
-    if (!dark || dark === light) {
+    if (!dark) {
         return [
             `color-scheme: ${light.colorScheme};`,
             ...colorDecls(light, roles),
@@ -287,10 +287,13 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
     const roles = resolveRoles(input.roles);
     const light = input.themes[input.defaultLight];
     if (!light) throw new Error(`[zero-kit] defaultLight theme "${input.defaultLight}" is not in themes`);
-    const dark = input.defaultDark ? input.themes[input.defaultDark] : undefined;
-    if (input.defaultDark && !dark) {
+    if (input.defaultDark && !input.themes[input.defaultDark]) {
         throw new Error(`[zero-kit] defaultDark theme "${input.defaultDark}" is not in themes`);
     }
+    // Naming one theme as both defaults is a single-scheme design system.
+    const dark = input.defaultDark && input.defaultDark !== input.defaultLight
+        ? input.themes[input.defaultDark]
+        : undefined;
 
     const nonColorLight = nonColorFor(input, light);
     const nonColorDark = dark ? nonColorFor(input, dark) : {};

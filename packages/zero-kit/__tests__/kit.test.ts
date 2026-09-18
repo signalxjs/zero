@@ -461,6 +461,27 @@ describe('extensible color roles', () => {
         expect(result.errors.some((e) => e.message.includes('"mystery" is not in the declared vocabulary'))).toBe(true);
     });
 
+    it('errors when a distinct light/dark default pair is not a light and a dark theme (#61)', () => {
+        // Two dark defaults would ship `color-scheme: light dark` over a
+        // `light-dark()` pair whose light side is dark — the mismatch the
+        // single-scheme path exists to avoid.
+        const dark = basicTokens.themes['basic-dark']!;
+        const tokens = { ...basicTokens, themes: { night: dark, dusk: { ...dark } }, defaultLight: 'night', defaultDark: 'dusk' };
+        const result = validateDesignSystem({ ...basicDS, tokens }, manifest);
+        expect(result.errors.some((e) => e.message.includes('defaultLight "night" is colorScheme "dark"'))).toBe(true);
+
+        const swapped = { ...basicTokens, defaultLight: 'basic-dark', defaultDark: 'basic' };
+        const messages = validateDesignSystem({ ...basicDS, tokens: swapped }, manifest).errors.map((e) => e.message);
+        expect(messages.some((m) => m.includes('defaultDark "basic" is colorScheme "light"'))).toBe(true);
+
+        // One scheme — omitted or the same theme twice — is not a pair.
+        for (const defaultDark of [undefined, 'night']) {
+            const single = { ...basicTokens, themes: { night: dark }, defaultLight: 'night', defaultDark };
+            const errors = validateDesignSystem({ ...basicDS, tokens: single }, manifest).errors;
+            expect(errors.filter((e) => e.message.includes('defaultLight') || e.message.includes('defaultDark'))).toEqual([]);
+        }
+    });
+
     it('matches custom-token spellings with and without the -- prefix', () => {
         const mixed = defineTokens({
             roles: { brand: {} },
