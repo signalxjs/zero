@@ -767,7 +767,7 @@ order is idempotent; relying on load order is not. What each layer holds:
 | `zero.fallback` | base.css only: design-system-neutral structural token defaults (radius/size/text ramps, durations, …) so an unstyled page is sane. |
 | `zero.tokens` | Compiled design-system tokens: `:where(:root)` defaults, `@property`-adjacent blocks, theme blocks. |
 | `zero.recipes` | All compiled recipe CSS, plus base.css's few structural necessities (summary marker removal, `cursor: not-allowed`). |
-| `zero.structure` | Two rules: `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, and the `[data-visually-hidden]` clip (#54). |
+| `zero.structure` | Three rules: `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, the `[data-visually-hidden]` clip (#54), and a table `column`'s `width: var(--table-column-width, auto)` (#55). |
 
 `zero.structure` exists because `[hidden]` otherwise relies on the UA
 sheet — the weakest declaration in the document — and all six design
@@ -782,6 +782,10 @@ The visually-hidden clip sits there for the same reason: a label recipe's
 `data-visually-hidden` is a presentation request, not a flag. Parts declare
 it (`PartSpec.visuallyHidden`), `expectAnatomy` checks it, and the state
 tooling never crosses it.
+The column width is there because it is app data reaching the screen, which
+no skin should be able to forget. It is a custom property rather than an
+inline `width`, so a later responsive rule in the same layer can take it
+back without `!important`.
 
 **App CSS sits outside or after the four layers** (#63). Unlayered, it
 beats them all. Layered, the app states `@layer zero, app;` first in its

@@ -297,7 +297,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     steps: ['defaultStep', 'label', 'loop', 'value'],
     swap: ['defaultActive', 'interactive', 'label', 'value'],
     switch: ['defaultChecked', 'form', 'hideLabel', 'invalid', 'name', 'required', 'value'],
-    table: ['id', 'role', 'title'],
+    table: ['columns', 'id', 'role', 'title'],
     tabs: ['activationMode', 'defaultValue', 'loop', 'value'],
     textarea: ['autocomplete', 'defaultValue', 'form', 'invalid', 'maxlength', 'name', 'readonly', 'required', 'rows', 'value'],
     timeline: [],

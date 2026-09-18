@@ -131,3 +131,91 @@ describe('Table', () => {
         expect(root.getAttribute('data-mod-hover')).toBe('');
     });
 });
+
+describe('Table column spec (#55)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    const all = (name: string) => [...container.querySelectorAll<HTMLElement>(selector('table', name))];
+    const columns = [
+        { label: 'Time', width: '100px' },
+        { label: 'What' },
+        { key: 'age', label: 'Age', width: '60px', align: 'end' as const },
+    ];
+
+    it('renders the widths as a colgroup before the head, and the header row from the labels', () => {
+        render(
+            <Table.Root columns={columns}>
+                <Table.Caption>History</Table.Caption>
+                <Table.Head />
+                <Table.Body>
+                    <Table.Row>
+                        <Table.Cell column={0}>09:12</Table.Cell>
+                        <Table.Cell column={1}>Deployed</Table.Cell>
+                        <Table.Cell column="age">3m</Table.Cell>
+                    </Table.Row>
+                </Table.Body>
+            </Table.Root>,
+            container,
+        );
+        expectAnatomy(container, tableAnatomy);
+        const table = part(container, 'table');
+        // The content model: caption, then colgroup, then thead.
+        expect([...table.children].map((c) => c.tagName)).toEqual(['CAPTION', 'COLGROUP', 'THEAD', 'TBODY']);
+        // A custom property, never a width literal — a responsive rule can
+        // take it back without !important.
+        const width = (c: HTMLElement) => c.style.getPropertyValue('--table-column-width');
+        const align = (c: HTMLElement) => c.style.getPropertyValue('--table-cell-align');
+        expect(all('column').map(width)).toEqual(['100px', '', '60px']);
+        expect(all('header-cell').map((c) => c.textContent)).toEqual(['Time', 'What', 'Age']);
+        expect(all('header-cell').map(align)).toEqual(['', '', 'end']);
+        expect(all('cell').map(align)).toEqual(['', '', 'end']);
+    });
+
+    it('explicit head children win; a header cell naming its column defaults to the label', () => {
+        render(
+            <Table.Root columns={columns}>
+                <Table.Head>
+                    <Table.Row>
+                        <Table.HeaderCell column={0}>When</Table.HeaderCell>
+                        <Table.HeaderCell column={1} />
+                        <Table.HeaderCell column="age" />
+                    </Table.Row>
+                </Table.Head>
+            </Table.Root>,
+            container,
+        );
+        expect(all('header-cell').map((c) => c.textContent)).toEqual(['When', 'What', 'Age']);
+        expect(all('column')).toHaveLength(3);
+    });
+
+    it('renders no colgroup and no default row without a spec', () => {
+        render(
+            <Table.Root>
+                <Table.Head />
+                <Table.Body><Table.Row><Table.Cell>x</Table.Cell></Table.Row></Table.Body>
+            </Table.Root>,
+            container,
+        );
+        expect(all('colgroup')).toHaveLength(0);
+        expect(all('header-cell')).toHaveLength(0);
+        expect(part(container, 'cell').style.getPropertyValue('--table-cell-align')).toBe('');
+    });
+
+    it('throws on a column the spec does not have', () => {
+        expect(() => render(
+            <Table.Root columns={columns}>
+                <Table.Body><Table.Row><Table.Cell column="size">x</Table.Cell></Table.Row></Table.Body>
+            </Table.Root>,
+            container,
+        )).toThrow(/column "size" is not in Table.Root's columns/);
+        expect(() => render(
+            <Table.Root columns={columns}>
+                <Table.Body><Table.Row><Table.Cell column={3}>x</Table.Cell></Table.Row></Table.Body>
+            </Table.Root>,
+            document.createElement('div'),
+        )).toThrow(/column 3 is not in/);
+    });
+});

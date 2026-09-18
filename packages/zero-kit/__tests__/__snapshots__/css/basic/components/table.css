@@ -1,5 +1,6 @@
 @layer zero.recipes {
     [data-scope="table"][data-part="root"] {
+        --table-cell-align: start;
         --table-accent: var(--color-base-content);
         --table-pad-block: var(--space-sm);
         --table-pad-inline: var(--space-md);
@@ -45,7 +46,7 @@
 
     [data-scope="table"][data-part="header-cell"] {
         padding: var(--table-pad-block) var(--table-pad-inline);
-        text-align: start;
+        text-align: var(--table-cell-align);
         font-family: var(--font-mono);
         font-weight: var(--weight-medium);
         font-size: var(--text-xs);
@@ -55,7 +56,7 @@
 
     [data-scope="table"][data-part="cell"] {
         padding: var(--table-pad-block) var(--table-pad-inline);
-        text-align: start;
+        text-align: var(--table-cell-align);
         font-variant-numeric: tabular-nums;
     }
 

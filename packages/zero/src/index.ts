@@ -316,8 +316,8 @@ export type {
     DrawerCloseReason,
     DrawerCloseDetail,
 } from './components/drawer/index.js';
-export { Table, tableAnatomy } from './components/table/index.js';
-export type { TableRootProps, TablePartProps, TableRowProps, TableHeaderCellProps, TableCellProps, TableCellSpanProps } from './components/table/index.js';
+export { Table, tableAnatomy, useTableContext } from './components/table/index.js';
+export type { TableRootProps, TablePartProps, TableRowProps, TableHeaderCellProps, TableCellProps, TableCellSpanProps, TableCellColumnProps, TableColumn } from './components/table/index.js';
 
 export { FileUpload, fileUploadAnatomy, acceptsFile, formatBytes, useFileUploadContext } from './components/file-upload/index.js';
 export type {

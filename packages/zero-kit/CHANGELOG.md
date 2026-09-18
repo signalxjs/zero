@@ -10,6 +10,11 @@
   no api route (neither vendor ships a countdown), so its matrix row grades
   `unsupported` and it surfaces as `mods={{ inline: true }}`.
 
+### Changed — Table's column spec (#55)
+
+- **`RESERVED_PROPS_BY_SCOPE.table` gains `columns`**, Table.Root's new
+  column spec (#55).
+
 ### Changed — Button's `loading` state (#50)
 
 - **`RESERVED_PROPS_BY_SCOPE.button` gains `loading`.** It is

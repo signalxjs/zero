@@ -8007,6 +8007,7 @@
 
 @layer zero.recipes {
     [data-scope="table"][data-part="root"] {
+        --table-cell-align: start;
         --table-accent: var(--color-base-content);
         --table-pad-block: var(--space-sm);
         --table-pad-inline: var(--space-md);
@@ -8050,7 +8051,7 @@
 
     [data-scope="table"][data-part="header-cell"] {
         padding: var(--table-pad-block) var(--table-pad-inline);
-        text-align: start;
+        text-align: var(--table-cell-align);
         font-weight: var(--weight-semibold);
         font-size: var(--text-xs);
         color: color-mix(in oklab, var(--table-accent) 60%, transparent);
@@ -8058,7 +8059,7 @@
 
     [data-scope="table"][data-part="cell"] {
         padding: var(--table-pad-block) var(--table-pad-inline);
-        text-align: start;
+        text-align: var(--table-cell-align);
     }
 
     [data-scope="table"][data-part="root"][data-color="primary"] {

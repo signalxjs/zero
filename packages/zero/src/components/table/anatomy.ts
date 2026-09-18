@@ -25,6 +25,13 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * dead parts. `row` declares `parent: 'table'` rather than head/body/foot —
  * the parent names the containing part, and a row is contained by whichever
  * section it sits in, all of which sit in the table.
+ *
+ * `colgroup` / `column` are the column spec's widths (`Table.Root`'s
+ * `columns`), rendered by `Table.Head` just before the `<thead>` — the
+ * content model's place for them. The width rides `--table-column-width` on
+ * each `<col>` and a `zero.structure` rule applies it, so a design system
+ * never has to remember to; alignment rides `--table-cell-align` on the
+ * cells that name their column, which the cell recipes read.
  */
 export const tableAnatomy = defineAnatomy('table', {
     root: {
@@ -55,6 +62,14 @@ export const tableAnatomy = defineAnatomy('table', {
         element: 'tfoot',
         parent: 'table',
         tokens: ['color', 'text'],
+    },
+    colgroup: {
+        element: 'colgroup',
+        parent: 'table',
+    },
+    column: {
+        element: 'col',
+        parent: 'colgroup',
     },
     row: {
         element: 'tr',
