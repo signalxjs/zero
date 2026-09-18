@@ -36,6 +36,7 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
+import type { LayoutProp } from '../../contract/layout-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { drawerAnatomy } from './anatomy.js';
@@ -228,7 +229,16 @@ const DrawerTrigger = component<DrawerTriggerProps>(({ props, slots, signal }) =
 
 // ── Panel ──
 
-export type DrawerPanelProps = WithClass & Define.Slot<'default'>;
+export type DrawerPanelProps =
+    & WithClass
+    /**
+     * The panel's width, from the design system's `--measure-*` ramp: an
+     * inline panel is exactly that wide, a modal sheet spans the viewport
+     * up to it (`full` — the whole viewport). Unset, the design system's
+     * own drawer width.
+     */
+    & Define.Prop<'measure', LayoutProp<'measure'>, false>
+    & Define.Slot<'default'>;
 
 const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) => {
     const drawer = useDrawerContext();
@@ -277,6 +287,10 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
             data-state={stateAttr(drawer.state.value, 'open', 'closed')}
             open={openInMarkup}
             data-placement={drawer.placement()}
+            // Written directly rather than through `layoutAttrs`: `measure`
+            // is not responsive, so the type already closes the value set,
+            // and the helper's vocabulary table would triple this entry.
+            data-l-measure={props.measure}
             aria-labelledby={drawer.titlePresent() ? drawer.ids.title : undefined}
             aria-label={drawer.titlePresent() ? undefined : drawer.label()}
             class={props.class}

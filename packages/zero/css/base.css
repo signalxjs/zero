@@ -167,8 +167,11 @@
     }
 
     /* Native dialog: closed popups are display:none by the UA already;
-       keep the top-layer margin reset structural. */
-    [data-scope="dialog"][data-part="popup"]:not([open]) {
+       keep the top-layer margin reset structural. Drawer's panel is the
+       same <dialog>, and a recipe's `display` would otherwise leave a
+       closed one painted. */
+    [data-scope="dialog"][data-part="popup"]:not([open]),
+    [data-scope="drawer"][data-part="panel"]:not([open]) {
         display: none;
     }
 

@@ -38,7 +38,10 @@
         border-radius: 0;
         background: var(--color-base-100);
         color: var(--color-base-content);
-        inline-size: min(20rem, 85vw);
+        box-sizing: border-box;
+        --l-measure: min(20rem, 85vw);
+        inline-size: var(--l-measure);
+        max-inline-size: 100%;
     }
 
     [data-scope="drawer"][data-part="panel"][data-state="open"] {
@@ -52,8 +55,8 @@
         inset-block-end: 0;
         block-size: 100dvh;
         max-block-size: 100dvh;
-        inline-size: min(20rem, 85vw);
-        max-inline-size: none;
+        inline-size: 100%;
+        max-inline-size: var(--l-measure);
         margin: 0;
         border-radius: 0;
         border: none;

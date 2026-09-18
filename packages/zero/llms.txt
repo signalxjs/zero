@@ -507,7 +507,14 @@ component renders; the root is called out separately where it carries props.
   Dialog's click geometry. modal={false} = INLINE: renders in flow via
   show(), no dismiss trap (outside clicks are a non-event), Escape still
   closes through the dismissable behavior, focus restore covered by zero
-  since show() provides neither.
+  since show() provides neither. Panel(measure) sizes the panel from the
+  --measure-* ramp (layout attribute data-l-measure, NOT the size axis —
+  size rides the trigger, which the panel is not inside): recipes read
+  --l-measure as the exact width of an inline panel and the max width of a
+  modal sheet that otherwise spans the viewport (border-box), so `full` is
+  a full-screen sheet; each recipe declares its own default --l-measure on
+  the panel. A closed panel is display:none structurally (base.css), like
+  Dialog's popup.
 - Steps: Root(model=step value, defaultStep, loop, label, orientation)/
   Item(value,asChild)/Indicator/Separator/Title/Description — the wizard
   step rail, promoted from the ecosystem ext-stepper pattern (the

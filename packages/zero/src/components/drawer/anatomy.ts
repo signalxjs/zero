@@ -16,6 +16,12 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * mirrors free. Distinguishing modal from inline in CSS needs no attribute
  * either: `:modal` is the platform's own spelling of exactly that split.
  *
+ * Width is `measure` on the panel (`data-l-measure`, the design system's
+ * `--measure-*` ramp), consumed by the recipes as `--l-measure`: the exact
+ * width of an inline panel, the cap of a modal sheet that otherwise spans
+ * the viewport — so `full` is a full-screen sheet. Unset, each design
+ * system's own panel width applies.
+ *
  * No `description` part and a `label` prop instead: a drawer is a
  * container (navigation, filters, a cart), not a message — it often has no
  * visible heading at all, which is why the accessible name can come from
@@ -34,6 +40,11 @@ export const drawerAnatomy = defineAnatomy('drawer', {
         element: 'dialog',
         states: ['open', 'closed'],
         placements: ['start', 'end'],
+        // The panel's width, from the `--measure-*` ramp — Container's
+        // reasoning for a layout attribute over the `size` axis, plus one of
+        // Drawer's own: `size` rides the trigger (the carrier), and the
+        // panel is not inside it, so no trigger-carried axis can reach it.
+        layout: ['measure'],
         tokens: ['color'],
     },
     backdrop: {

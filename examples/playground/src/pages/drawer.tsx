@@ -37,6 +37,25 @@ const DrawerDemos = component(() => () => (
                 <Drawer.Close>Close details</Drawer.Close>
             </Drawer.Panel>
         </Drawer.Root>
+        <p>
+            <code>measure</code> sizes the panel from the design system's{' '}
+            <code>--measure-*</code> ramp: a modal sheet spans the viewport up
+            to it, so <code>full</code> is the whole viewport.
+        </p>
+        <Drawer.Root placement="end">
+            <Drawer.Trigger>Open wide drawer</Drawer.Trigger>
+            <Drawer.Panel measure="md">
+                <Drawer.Title>Wide inspector</Drawer.Title>
+                <Drawer.Close>Close wide drawer</Drawer.Close>
+            </Drawer.Panel>
+        </Drawer.Root>
+        <Drawer.Root>
+            <Drawer.Trigger>Open full-screen drawer</Drawer.Trigger>
+            <Drawer.Panel measure="full">
+                <Drawer.Title>Full-screen sheet</Drawer.Title>
+                <Drawer.Close>Close full-screen drawer</Drawer.Close>
+            </Drawer.Panel>
+        </Drawer.Root>
         <p>Inline (non-modal) — furniture, not a popup:</p>
         <Drawer.Root modal={false} label="Filters">
             <Drawer.Trigger>Open filters</Drawer.Trigger>
