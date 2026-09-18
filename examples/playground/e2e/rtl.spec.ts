@@ -1,6 +1,6 @@
 /**
  * The inline axis, in a real engine and in the other writing direction
- * (signalxjs/zero#277, #290).
+ * (andtii/zero-wip#277, #290).
  *
  * Until this file there was no RTL coverage in CI at all. Everything the repo
  * knew about direction had been established by hand: #278's fix was verified

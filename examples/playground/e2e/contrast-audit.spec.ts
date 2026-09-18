@@ -1,6 +1,6 @@
 /**
  * State-matrix contrast audit — the dynamic half of the split-pair problem
- * (signalxjs/zero#116, #118, #119).
+ * (andtii/zero-wip#116, #118, #119).
  *
  * The token validator contrast-checks declared role PAIRS; it cannot see what
  * the recipe cascade produces when states combine. This audit can. It runs two
@@ -11,7 +11,7 @@
  *    each state × flag pair), across every design system × theme, it renders
  *    the attribute combination against the compiled CSS and checks the computed
  *    text color against the effective background;
- * 2. **indicator paint** (signalxjs/zero#228) — the same check for parts whose
+ * 2. **indicator paint** (andtii/zero-wip#228) — the same check for parts whose
  *    entire job is paint rather than text: the checkbox tick, the radio dot,
  *    the switch thumb, the progress range, the select/tree chevrons, the
  *    rating star. Text legibility cannot see these at all — an indicator

@@ -1,6 +1,6 @@
 /**
  * DS-generic smoke: the invariants every design system owes, in a real engine
- * (signalxjs/zero#206, #209).
+ * (andtii/zero-wip#206, #209).
  *
  * Every other spec in this suite pins ONE design system in `beforeEach` and
  * never touches the toolbar. That is the right shape for an interaction spec —

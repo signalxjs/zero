@@ -1204,16 +1204,16 @@ Honesty section. These are the edges the tree knows about today:
   (#97's original shape) — targets are still in-tree modules under
   `zero-kit/src/targets/`.
 - **Open contract directions, by issue:**
-  [#280](https://github.com/signalxjs/zero/issues/280) (should overlay
+  [#27](https://github.com/signalxjs/zero/issues/27) (should overlay
   triggers show their overlay is open),
-  [#286](https://github.com/signalxjs/zero/issues/286) (`tokens.roles` is
+  [#28](https://github.com/signalxjs/zero/issues/28) (`tokens.roles` is
   both palette and colour vocabulary, so a token-only role reads as a
   declared axis value),
-  [#197](https://github.com/signalxjs/zero/issues/197) /
-  [#199](https://github.com/signalxjs/zero/issues/199) (ancestor-scoped
+  [#23](https://github.com/signalxjs/zero/issues/23) /
+  [#24](https://github.com/signalxjs/zero/issues/24) (ancestor-scoped
   axes, responsive axis values),
-  [#11](https://github.com/signalxjs/zero/issues/11) (`eject`),
-  [#17](https://github.com/signalxjs/zero/issues/17) (first publish — the
+  [#10](https://github.com/signalxjs/zero/issues/10) (`eject`),
+  [#13](https://github.com/signalxjs/zero/issues/13) (first publish — the
   standing deadline that made every breaking change above free).
 
 ## 11. History — the RFCs and where they went

@@ -124,7 +124,7 @@ export default definePlugin({
                 // MISSING_VALUE parse error, so `--report` and `--report=json`
                 // cannot be the same flag. Collapses to
                 // `--report[=text|json]` once signalxjs/terminal#102 lands —
-                // tracked here as #177.
+                // tracked here as signalxjs/zero#22.
                 report: a.boolean().default(false).describe('Print a coverage report'),
                 reportJson: a
                     .string()
@@ -214,7 +214,7 @@ export default definePlugin({
                     .multiple()
                     .describe('Run only this rule (repeatable; default every rule — unknown names list the known ones)'),
                 // The same two-flag shape as `--report`/`--report-json`, for the
-                // same reason (#177): a value flag cannot also be bare.
+                // same reason (signalxjs/zero#22): a value flag cannot also be bare.
                 json: a
                     .string()
                     .valueHint('path')
