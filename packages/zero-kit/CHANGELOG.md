@@ -16,6 +16,22 @@
 
 ### Added
 
+- **`composes`: a recipe styles a declared nested scope in context** (#63).
+  `composes: { button: { within: 'footer', parts: { root: … } } }` compiles
+  to `[data-scope="card"][data-part="footer"] [data-scope="button"][data-part="root"]`
+  in the host's stylesheet, and outranks the nested recipe. The nested scope,
+  `within` and every nested part and state are checked against the manifest
+  (`RecipeContext.components`, passed by `compileDesignSystem`). Content
+  checks and `fitRecipesToVocabulary` cover it, it is in
+  `recipe.schema.json`, and the lynx target drops it with a report entry.
+  Borrowing the nested recipe's own axis values is #91.
+
+- **`below-<breakpoint>` condition keys in `at`** (#63). `at: { 'below-md': … }`
+  compiles to `@media (width < …)` from the design system's own breakpoint
+  tokens: the exact complement of the `md` rule, with no hand-written
+  `767.98px`. Below-rules sort after every breakpoint, narrowest last. A
+  breakpoint named `below-*` is now a validation error.
+
 - **`visuallyHidden` on a manifest part** (zero#54). `AnatomyJSON` and
   `manifest.schema.json` accept the declaration zero's anatomies now carry.
   It marks a part that can render `data-visually-hidden`, which zero's
