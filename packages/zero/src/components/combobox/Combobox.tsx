@@ -65,7 +65,8 @@
  * while there is one and something matches (or `emptyText` says nothing
  * does); the first option is highlighted, so Enter or Tab commits at once.
  * A commit replaces the whole token with the trigger, the label and a space
- * (through the editing stack, so it undoes), puts the caret after it and
+ * — the one already following the token if there is one, never two —
+ * through the editing stack, so it undoes; puts the caret after it and
  * emits `insert`; there is no selection, so `model` is not written. While
  * the popup is open the textarea is an ARIA combobox and Arrow keys, Enter,
  * Tab and Escape are its — the app's own `onKeydown` does not see them.
@@ -455,8 +456,12 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         const token = trig.token;
         if (!el || !token) return;
         const label = collection.label(key);
-        const text = `${token.prefix}${label} `;
-        const next = replaceToken(el.value, token, text);
+        // One space after the label — the one already there, if a space
+        // follows the token (the caret steps over it), else a new one.
+        const spaced = /[ \t]/.test(el.value.charAt(token.end));
+        const text = `${token.prefix}${label}${spaced ? '' : ' '}`;
+        const replaced = replaceToken(el.value, token, text);
+        const next = { text: replaced.text, caret: replaced.caret + (spaced ? 1 : 0) };
         el.focus();
         el.setSelectionRange(token.start, token.end);
         let inserted = false;
@@ -539,6 +544,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
                         claimed = false;
                         textEl = null;
                         trig.token = null;
+                        trig.textId = '';
                     },
                 };
                 return claim;

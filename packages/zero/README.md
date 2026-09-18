@@ -158,7 +158,8 @@ highlighted. While it is open the textarea is an ARIA combobox (`role`,
 Escape belong to it — the app's own `onKeydown` does not see them, so a
 composer's Enter-to-send only sends while the list is closed. Shift+Enter
 is still a line break. A commit replaces the whole token with the trigger,
-the label and a space through the editing stack (it undoes), keeps the
+the label and a space (reusing one that already follows — never two)
+through the editing stack (it undoes), keeps the
 caret after it and emits `insert` (`{ value, label, text }`). There is no
 selection: `model` is never written, and nothing posts but the textarea. A
 press on the list never takes focus from the textarea. The popup anchors to

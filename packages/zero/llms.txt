@@ -626,7 +626,8 @@ component renders; the root is called out separately where it carries props.
   aria-expanded, aria-activedescendant (aria-autocomplete=list and
   aria-controls always); ArrowUp/Down, Enter, Tab (unmodified) and Escape
   are consumed before the app's onKeydown. A commit replaces the whole token
-  with trigger + label + space via insertText (undoable), restores the caret
+  with trigger + label + space (reusing a following space, never two) via
+  insertText (undoable), restores the caret
   after it and emits `insert` ({ value, label, text }); `model` is never
   written. Mousedown on the popup is prevented, so focus stays in the
   textarea. Anchored to the textarea, not the caret.

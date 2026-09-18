@@ -134,7 +134,26 @@ describe('Combobox trigger mode (#58)', () => {
         await tick();
         key(h.el, 'Tab');
         await tick();
-        expect(h.el.value).toBe('@Grace  and');
+        // The space already there is the one after the label — never two —
+        // and the caret steps over it.
+        expect(h.el.value).toBe('@Grace and');
+        expect(h.el.selectionStart).toBe(7);
+        expect(h.inserts.at(-1)?.text).toBe('@Grace');
+    });
+
+    it('the textarea unmounting drops the popup\'s label reference', async () => {
+        const state = signal({ show: true });
+        const App = component(() => () => (
+            <Combobox.Root trigger="@" items={PEOPLE} itemLabel={(p) => p.name}>
+                {state.show ? <Textarea.Root><Textarea.Textarea /></Textarea.Root> : null}
+            </Combobox.Root>
+        ));
+        render(<App />, container);
+        const popup = container.querySelector<HTMLElement>('[data-scope="combobox"][data-part="popup"]')!;
+        expect(popup.getAttribute('aria-labelledby')).toBe(container.querySelector('textarea')!.id);
+        state.show = false;
+        await tick();
+        expect(popup.hasAttribute('aria-labelledby')).toBe(false);
     });
 
     it('Shift+Enter is still a line break', async () => {

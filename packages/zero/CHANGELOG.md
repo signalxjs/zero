@@ -21,8 +21,9 @@
   - the keys — ArrowUp/Down, Enter, Tab and Escape while the list is open,
     handled before the app's `onKeydown` (which does not see them); a
     shifted Enter is still a line break;
-  - the commit — the whole token replaced by trigger + label + space
-    through `insertText` (so it undoes), with a fallback that writes the
+  - the commit — the whole token replaced by trigger + label + space (a
+    space already following it is reused, never doubled) through
+    `insertText` (so it undoes), with a fallback that writes the
     value and dispatches `input`. The caret lands after it, and
     **`onInsert`** (`ComboboxInsertDetail`: `{ value, label, text }`)
     fires. There is no selection: `model` is not written, and nothing posts
