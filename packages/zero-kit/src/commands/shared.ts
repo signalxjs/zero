@@ -71,6 +71,11 @@ function fragmentFile(cwd: string, spec: string, logger: EcosystemLogger): strin
             + ' "sigx-zero" field, which it does not declare (or it is not installed); name the fragment subpath or file instead',
         );
     }
+    // The same segment rules `exportedSubpath` holds a target to: a subpath
+    // names something inside the package, never `..` out of it.
+    if (subpath.split('/').some((s) => s === '' || s === '.' || s === '..' || s.toLowerCase() === 'node_modules' || s.includes(':'))) {
+        throw new Error(`the manifest fragment "${spec}" is not a subpath inside ${name}`);
+    }
     const require = createRequire(resolve(cwd, 'package.json'));
     try {
         return require.resolve(spec);

@@ -309,6 +309,8 @@ describe('--extra-manifest: a JSON file, a fragment module, or a package (#33)',
             'node_modules/@acme/feed/package.json': JSON.stringify({ name: '@acme/feed', exports: { './fragment': { import: '../../evil.mjs' } } }),
         });
         await expect(loadManifest(dir, './m.json', ['@acme/feed/fragment'])).rejects.toThrow(/is not a path inside the package/);
+        // …and the specifier's own subpath is held to the same segments.
+        await expect(loadManifest(dir, './m.json', ['@acme/feed/../../m.json'])).rejects.toThrow(/is not a subpath inside @acme\/feed/);
     });
 
     it('never falls back from a bare name to the package\'s main entry', async () => {
