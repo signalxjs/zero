@@ -29,7 +29,8 @@
   beside its `openChange`.
 - **`value` on `Dialog.Close` and `Drawer.Close`** comes back as the
   detail's `value` — `<button value>` inside `<form method="dialog">`, as a
-  prop. A native close zero did not start carries the element's non-empty
+  prop, and it renders as the button's native `value` attribute too, so an
+  `asChild` button keeps that semantics. A native close zero did not start carries the element's non-empty
   `returnValue` instead, which is reset on every open so a stale one never
   reads as the current close's. A confirm dialog reads
   `detail.value === 'confirm'` instead of keeping a flag beside its model.
