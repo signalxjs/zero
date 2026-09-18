@@ -275,7 +275,8 @@ type ComboboxRootImplProps = ComboboxRootProps & Define.Prop<'itemValue', (item:
 
 const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
     // Trigger mode is a shape, not a state: read once, like the data mode.
-    const triggerMode = props.trigger !== undefined;
+    // An empty trigger could never start a token, so it is no trigger.
+    const triggerMode = props.trigger !== undefined && props.trigger !== '';
     const multiple = (): boolean => !triggerMode && !!props.multiple;
     // Explicit children win ENTIRELY over `items`: with a default slot the
     // data is not rendered, so the collection must not hold it either — the
@@ -366,7 +367,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     const guardKeys = (keys: string[]): string[] => {
         // The key AND the value: an explicit itemKey can hide an itemValue of
         // '' — which the core reads as nothing selected, so it never selects.
-        if (!multiple() && keys.some((k) => k === '' || collection.valueForKey(k) === '')) {
+        // Trigger mode has no selection, so no placeholder to collide with.
+        if (!triggerMode && !multiple() && keys.some((k) => k === '' || collection.valueForKey(k) === '')) {
             throw new Error('[zero] Combobox: an item keyed or valued "" is reserved for the placeholder in single mode — give it a non-empty itemKey / itemValue');
         }
         return keys;
@@ -776,7 +778,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             {/* Explicit children win ENTIRELY over `items` — no merging —
                 except in trigger mode, where they are the textarea. */}
             {triggerMode
-                ? <>{slots.default?.()}{items() ? (guardKeys(collection.keys()), dataPopup()) : null}</>
+                ? <>{slots.default?.()}{items() ? dataPopup() : null}</>
                 : slots.default ? slots.default() : items() ? dataContent() : null}
             {!triggerMode && fc.hasName()
                 ? (

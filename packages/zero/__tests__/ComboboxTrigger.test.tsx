@@ -286,6 +286,32 @@ describe('Combobox trigger mode (#58)', () => {
         expect(html).toMatch(/data-scope="combobox"[^>]*data-part="popup"[^>]*data-state="closed"/);
     });
 
+    it('an item keyed "" is fine here — there is no placeholder sentinel to collide with', async () => {
+        const got: unknown[] = [];
+        render(
+            <Combobox.Root trigger="@" items={['', 'Ada']} onInsert={(d) => got.push(d.label)}>
+                <Textarea.Root><Textarea.Textarea /></Textarea.Root>
+            </Combobox.Root>,
+            container,
+        );
+        const el = container.querySelector('textarea')!;
+        typeInto(el, '@ad');
+        await tick();
+        key(el, 'Enter');
+        await tick();
+        expect(got).toEqual(['Ada']);
+    });
+
+    it('an empty trigger is no trigger: the ordinary composition renders', () => {
+        render(
+            <Combobox.Root trigger="" items={['Ada']}>
+                <Textarea.Root><Textarea.Textarea /></Textarea.Root>
+            </Combobox.Root>,
+            container,
+        );
+        expect(container.querySelector('textarea')!.hasAttribute('aria-autocomplete')).toBe(false);
+    });
+
     it('leaves a plain Combobox untouched: no binding without a trigger', () => {
         const spy = vi.fn();
         render(

@@ -23,8 +23,10 @@ export interface TextControlClaim {
      */
     keydown(e: KeyboardEvent): boolean;
     /**
-     * The text or the caret may have moved: after input (`edited`, and the
-     * model already has the value), keyup and click.
+     * The text or the caret may have moved: after input (`edited`), keyup
+     * and click. Read the text and the caret from the element (`setElement`),
+     * not from the control's model — under a `lazy` or `debounce` modifier
+     * the model deliberately lags the element.
      */
     sync(edited?: boolean): void;
     blur(e: FocusEvent): void;
