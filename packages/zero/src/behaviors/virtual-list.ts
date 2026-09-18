@@ -398,7 +398,12 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
     };
 
     const listRef = (el: HTMLElement | null): void => {
+        if (list === el) return;
         list = el;
+        // The offset is in the old list's coordinates: re-read it (0 with no
+        // list) and re-sync, so the window never runs on a stale one.
+        readOffset();
+        schedule();
     };
 
     const measureRef = (key: string): ((el: Element | null) => void) => {

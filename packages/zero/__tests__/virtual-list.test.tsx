@@ -96,7 +96,7 @@ function mount(options: Partial<VirtualListOptions> = {}, tall: (n: number) => n
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
         const height = this.tagName === 'LI' ? Number(this.getAttribute('data-h')) : 0;
         // The list scrolls with the content: its top is -scrollTop.
-        const top = this.tagName === 'OL' ? -scrollTop : 0;
+        const top = this.tagName === 'OL' ? listTop - scrollTop : 0;
         return { top, bottom: top + height, height, left: 0, right: 0, width: 0, x: 0, y: top, toJSON() {} } as DOMRect;
     });
 
@@ -113,6 +113,8 @@ function mount(options: Partial<VirtualListOptions> = {}, tall: (n: number) => n
 }
 
 const restores: Array<() => void> = [];
+/** Content above the list inside the viewport (a "load earlier" button), in px. */
+let listTop = 0;
 
 /** Shadow a geometry property on `HTMLElement.prototype` for this test. */
 function stub(name: string, get: (this: HTMLElement) => number, set?: (this: HTMLElement, value: number) => void): void {
@@ -133,6 +135,7 @@ afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     for (const restore of restores.splice(0)) restore();
+    listTop = 0;
     document.body.innerHTML = '';
 });
 
@@ -237,6 +240,22 @@ describe('createVirtualList — the window', () => {
         // `auto` leaves a row that is already in view alone.
         t.v.scrollToIndex(49, 'auto');
         expect(t.viewport.scrollTop).toBe(1000 + 20 - VIEWPORT);
+    });
+
+    it('accounts for content above the list, and drops that offset with the list', async () => {
+        listTop = 50;
+        const t = mount();
+        await flush();
+        t.scrollTo(650); // 600px into the list: row 30, minus 2 overscan
+        await flush();
+        expect(t.v.before()).toBe(28 * 20);
+        // With no list, scroll coordinates are the viewport's own again —
+        // not the old list's, 50px off.
+        t.v.listRef(null);
+        await flush();
+        t.scrollTo(600);
+        await flush();
+        expect(t.v.before()).toBe(28 * 20);
     });
 
     it('detaches on unmount', async () => {
