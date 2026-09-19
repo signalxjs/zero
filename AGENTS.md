@@ -393,7 +393,8 @@ Publishing is handled by `scripts/publish.js` in topological order.
   fragment-rooted scopes (dialog, menu, popover, tooltip) the props live on
   the Trigger, which renders the carrier part.
 - A non-carrier part that takes an axis prop of its own declares it:
-  `carries: ['color']` on `timeline.marker` (#94). It renders the attribute
+  `carries: ['color']` on `timeline.marker` (#94) and `steps.item` (#112).
+  It renders the attribute
   itself, the compiler lets the nearest carrier win, and `expectAnatomy`
   fails a `data-color`/`data-size`/`data-variant` on any part that is
   neither the carrier nor declares it. Named axes only, never on the carrier.

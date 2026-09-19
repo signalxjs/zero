@@ -38,9 +38,9 @@
   primary|secondary|accent|neutral|info|success|warning|error,
   size = xs|sm|md|lg|xl, variant = design-system-defined), on the scope's
   CARRIER part (root, else the first part). A part that declares `carries`
-  in its anatomy (timeline's marker: ['color']) re-carries that axis: it
-  takes the prop and renders the attribute itself, and the nearest carrier
-  wins.
+  in its anatomy (timeline's marker, steps' item: ['color']) re-carries
+  that axis: it takes the prop and renders the attribute itself, and the
+  nearest carrier wins.
 - Layout attributes render under the data-l- prefix from a CLOSED
   vocabulary zero owns (gap, gap-x, gap-y, pad, pad-x, pad-y, align,
   justify, wrap, cols, span, track, grow, axis, space). A part declares
@@ -562,7 +562,7 @@ component renders; the root is called out separately where it carries props.
   showing moves to the trigger. A closed panel is display:none structurally (base.css), like
   Dialog's popup.
 - Steps: Root(model=step value, defaultStep, loop, label, orientation)/
-  Item(value,asChild)/Indicator/Separator/Title/Description — the wizard
+  Item(value,color,asChild)/Indicator/Separator/Title/Description — the wizard
   step rail, promoted from the ecosystem ext-stepper pattern (the
   zero-ext-example package REMAINS as the ecosystem acceptance test).
   role="group" + aria-label; arrow keys rove focus without changing the
@@ -574,7 +574,11 @@ component renders; the root is called out separately where it carries props.
   timeline's connector — carries only complete|inactive (complete once
   its OWN item is complete; an active item's separator is inactive: the
   walk has reached it, not crossed it). Title/description carry no
-  states; style them through the item's state.
+  states; style them through the item's state. Item RE-CARRIES the colour
+  axis (anatomy `carries: ['color']`, #112): Item(color) renders data-color
+  on the item and outranks the root's, so one step paints its own tone
+  (daisy's step-error) and everything inside it follows; an item without
+  one follows the root. Key the colour values on `item` in the recipe.
 - Pagination: Root(model=page, count, siblingCount, boundaryCount, label,
   prevLabel/nextLabel) — options-driven: the row derives from count + the
   model, so zero renders item buttons, aria-hidden ellipses and the

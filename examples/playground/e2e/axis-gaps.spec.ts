@@ -68,6 +68,52 @@ test.describe('a timeline marker re-carries the colour axis (#94)', () => {
     }
 });
 
+/** Each step's painted ink: its disc's fill and digit, and the title's ink. */
+const stepInks = (root: Locator): Promise<string[]> =>
+    root.locator('[data-scope="steps"][data-part="item"]').evaluateAll((items) =>
+        items.map((item) => {
+            const disc = getComputedStyle(item.querySelector('[data-part="indicator"]')!);
+            return `${disc.backgroundColor} / ${disc.color} / ${getComputedStyle(item).color}`;
+        }));
+
+test.describe('a step re-carries the colour axis (#112)', () => {
+    test.beforeEach(({}, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium', 'cascade resolution is not engine-specific — one engine is enough');
+    });
+
+    // The four skins with a colour axis, as for the timeline marker above.
+    for (const ds of ['basic', 'daisyui', 'material', 'brutalist']) {
+        test(`${ds}: a step's own colour outranks the rail's, and a bare step follows the rail`, async ({ page }) => {
+            await bootPage(page, 'steps', ds);
+            const rail = rootLabelled(page, 'steps', 'Deploy failed');
+            await expect(rail).toHaveAttribute('data-color', 'neutral');
+            const items = rail.locator('[data-scope="steps"][data-part="item"]');
+            await expect(items.nth(2)).toHaveAttribute('data-color', 'error');
+            await expect(items.nth(2)).toHaveAttribute('data-state', 'active');
+            for (const bare of [0, 3]) await expect(items.nth(bare)).not.toHaveAttribute('data-color', /.*/);
+            const inks = await stepInks(rail);
+
+            // The control: a copy of the same rail with every step's own
+            // colour removed — what the root alone paints, step for step.
+            const control = await rail.evaluate((root) => {
+                const probe = root.cloneNode(true) as HTMLElement;
+                probe.querySelectorAll('[data-part="item"]').forEach((i) => i.removeAttribute('data-color'));
+                root.after(probe);
+                const out = [...probe.querySelectorAll('[data-part="item"]')].map((item) => {
+                    const disc = getComputedStyle(item.querySelector('[data-part="indicator"]')!);
+                    return `${disc.backgroundColor} / ${disc.color} / ${getComputedStyle(item).color}`;
+                });
+                probe.remove();
+                return out;
+            });
+            expect(inks[0], 'a complete step without a colour of its own paints the rail\'s').toBe(control[0]);
+            expect(inks[3], 'an inactive step without a colour of its own paints the rail\'s').toBe(control[3]);
+            // The active step is where every skin spends the accent (the disc's fill).
+            expect(inks[2], 'the step\'s own colour, not the rail\'s').not.toBe(control[2]);
+        });
+    }
+});
+
 test.describe('small axis gaps (#57)', () => {
     test.beforeEach(({}, testInfo) => {
         test.skip(

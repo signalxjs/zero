@@ -217,9 +217,11 @@ the carrier itself, which carries every axis already. Never on a `pseudo`
 part, which renders no element to hold the attribute. `expectAnatomy` fails a
 named-axis attribute on any part that is neither the carrier nor declares it,
 and `mergeManifests` holds fragments to the same rules. It generalises:
-daisy's `step-primary` is per step, the same shape, and a scope adopts it by
-declaring `carries` on the part and taking the prop there — the compiler,
-the emitters and the audits read the declaration, not the scope.
+daisy's `step-primary` is per step, the same shape, and steps' `item` adopted
+it (#112) by declaring `carries` on the part and taking the prop there —
+`<Steps.Item color="error">` paints that step's disc, bridge and title while
+the root colours the rail. The compiler, the emitters and the audits read the
+declaration, not the scope.
 
 **`hiddenIn` is a styling fact.** A part the runtime hides with the `hidden`
 attribute in some state declares those states (`hiddenIn: ['error']` on
@@ -523,7 +525,12 @@ carrier can never contain (a top-layer popup of a rootless scope) drops the
 dead carrier-anchored copy, and the dead-rule validator counts its rules as
 alive. Nothing changes in the skins that key the part already: all four
 colour-bearing ones keyed `variants.color.<c>.marker` before the contract had
-a word for it. Lynx needs nothing new either. Its runtime stamps axis classes
+a word for it. Steps (#112) had keyed its colour on the root, so adopting
+`carries` there was recipe work: the four skins moved `variants.color.<c>`
+from `root` to `item`. The values are custom properties the disc, bridge and
+title inherit, so a root colour reaches every step through the carrier's
+donut exactly as it reached them by inheritance before, and a step's own
+value outranks it. Lynx needs nothing new either. Its runtime stamps axis classes
 from the nearest provider ([§10](#10-known-limitations-and-open-directions)),
 and a re-carrier is one more provider.
 
@@ -788,8 +795,9 @@ deliberate cost of an out-of-tree scope. For the four rootless scopes the
 axis props sit on the **Trigger**, not the fragment Root, matching where the
 compiler anchors the rules ([§3.3](#33-compilation)). A part that re-carries
 an axis takes that one prop from the same scope's vocabulary
-(`WithColor<'timeline'>` on `Timeline.Marker`) and renders the attribute
-itself; it composes nothing else of the surface.
+(`WithColor<'timeline'>` on `Timeline.Marker`, `WithColor<'steps'>` on
+`Steps.Item`) and renders the attribute itself; it composes nothing else of
+the surface.
 
 One typing behavior worth naming because assertions depend on it: sigx's
 JSX prop surface **strips `never`-valued props** from the parameter type, so
@@ -1459,7 +1467,7 @@ checking a fraction of what it claimed.)
 | Typed-app capstone | `examples/typed-app` (CI, after build) | The consumer side: three isolated programs against **emitted `dist/`** through real package exports — register narrowing, the no-register components surface, and carbon's values remap. |
 | Interaction e2e (22 specs) | `examples/playground/e2e/` — press-feedback, dialog, drawer, popover, tooltip, menu-submenu, context-menu, combobox, select, toast-presence, tabs, tree-view, slider, number-input, rating-group, carousel, diff | Real-browser contracts (chromium/firefox/webkit, plus reduced-motion and forced-colors projects), under the **locator law** (`e2e/demo.ts`): a part is located through a named root, never page-wide selectors or cross-demo positional indexing. |
 | Static contrast matrix | `zero-kit/src/audit/contrast/` via the `contrast/*` audit rules; `contrast-static.test.ts` (the six skins at zero `contrast/*` errors and a named set of unmeasured reasons each; one red fixture per browser finding — #210, #116, #211, #207 — and one per `unmeasured` reason), `contrast-selector.test.ts`, `contrast-cascade.test.ts` | The browser contrast audit's two matrices computed from **compiled CSS**: the same cell product (ported, the indicator chains now derived from the part tree), a three-valued selector matcher for the emitted grammar, a computed-style model for what a reading depends on, the same compositing and floors. Every cell the reader cannot judge is `unmeasured` with a closed reason and reported as `info` — never a pass. Reachable by a design system built outside this repo. |
-| Contrast audit | `e2e/contrast-audit.spec.ts` | Two matrices over every state combination × skin × theme: text legibility for text-bearing parts and indicator paint for parts whose job is paint, measured in their real ancestor chains (derived from the part tree); each skin's wired axis surface rides the text matrix, and a mark on a part that re-carries a colour axis (#94, timeline's marker) is measured once per wired colour with the attribute on the part itself (`axisHost`: the nearest re-carrier in the chain, else the root); 3:1 hard floor, 2:1 for `disabled` measured pre-fade. The ground truth the static matrix answers to. |
+| Contrast audit | `e2e/contrast-audit.spec.ts` | Two matrices over every state combination × skin × theme: text legibility for text-bearing parts and indicator paint for parts whose job is paint, measured in their real ancestor chains (derived from the part tree); each skin's wired axis surface rides the text matrix, and a mark on a part that re-carries a colour axis (#94, timeline's marker) is measured once per wired colour with the attribute on the part itself (`axisHost`: the nearest re-carrier in the chain, else the root) — as is text on or inside such a part (#112, steps' item: the active title, the disc's digit), even in a scope with no variant, where colour is otherwise left to the token validator; 3:1 hard floor, 2:1 for `disabled` measured pre-fade. The ground truth the static matrix answers to. |
 | Contrast parity gate | `e2e/contrast-audit.spec.ts`, the parity block in every `contrast:` / `indicator contrast:` test, plus `reference media` | The static matrix against the browser matrix on every cell the static side CLAIMS: one cell product (the spec imports `textCells`/`axisCellsFor`/`indicatorCellsFor`/`cellKey` from the kit — a reading the static side does not list, or a claim the browser has no reading for, is a disagreement), painted-at-all agrees, ratios agree to `max(0.15, 2%)` (8-bit premultiplied canvas compositing of a translucent wash over a dark surface), floor verdicts agree except within tolerance of the floor (annotated). The measured share is pinned per skin from BOTH ends (`STATIC_COVERAGE`, +5 points of headroom): the estimate can neither retreat into `unmeasured` unnoticed nor quietly claim more. `reference media` holds the chromium project to `REFERENCE_MEDIA`. Its first run found three misreads in the estimate — `calc()` border widths read as zero, the UA stylesheet's `buttontext` on real form controls, and `color-mix()` inventing a hue for an achromatic endpoint — all fixed in the kit, never by bending the browser side. |
 | DS smoke | `e2e/ds-smoke.spec.ts` | All six skins: `hidden` computes `display: none`, no undeclared axis/mod value renders, the runtime swap leaves one live stylesheet and re-seeds vocabulary + themes, boot logs no console error. |
 | Reduced motion / RTL | `e2e/reduced-motion.spec.ts`, `e2e/rtl.spec.ts` | The two loops (Skeleton, Spinner) assert `animation-name` running under chromium **and** `none` under reduced-motion — both directions, or a never-animating recipe passes; RTL measures rendered boxes across all six skins, complementing the physical-direction lint's `transform` blind spot ([§5](#5-the-compiler-and-css-architecture)). |

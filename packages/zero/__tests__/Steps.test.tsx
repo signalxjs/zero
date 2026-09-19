@@ -12,6 +12,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { Steps, stepsAnatomy } from '@sigx/zero';
+import type { PartProps } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 const selector = (name: string) => `[data-scope="steps"][data-part="${name}"]`;
@@ -146,5 +147,44 @@ describe('Steps', () => {
         const root = container.querySelector<HTMLElement>(selector('root'))!;
         expect(root.getAttribute('data-color')).toBe('primary');
         expect(root.getAttribute('data-size')).toBe('lg');
+    });
+
+    it('an item re-carries the colour axis: its own data-color, beside the root\'s (#112)', () => {
+        render(
+            <Steps.Root defaultStep="b" color="primary" label="Steps">
+                <Steps.Item value="a" color="error">
+                    <Steps.Indicator>1</Steps.Indicator>
+                    <Steps.Separator />
+                </Steps.Item>
+                <Steps.Item value="b"><Steps.Indicator>2</Steps.Indicator></Steps.Item>
+            </Steps.Root>,
+            container,
+        );
+        // The anatomy declares it, so expectAnatomy lets the attribute through.
+        expect(stepsAnatomy.parts.item.carries).toEqual(['color']);
+        expectAnatomy(container, stepsAnatomy);
+        const [coloured, bare] = items(container);
+        expect(coloured!.getAttribute('data-color')).toBe('error');
+        // No colour of its own → no attribute: the item follows the root.
+        expect(bare!.hasAttribute('data-color')).toBe(false);
+        // Only the item carries it — the parts inside reach it through the cascade.
+        for (const name of ['indicator', 'separator'] as const) {
+            expect(container.querySelector(selector(name))!.hasAttribute('data-color')).toBe(false);
+        }
+        expect(container.querySelector(selector('root'))!.getAttribute('data-color')).toBe('primary');
+    });
+
+    it('an asChild item carries its colour onto the child', () => {
+        render(
+            <Steps.Root defaultStep="a" label="Steps">
+                <Steps.Item value="a" color="success" asChild>
+                    {(p: PartProps) => <a href="#a" {...p}>A</a>}
+                </Steps.Item>
+            </Steps.Root>,
+            container,
+        );
+        expect(items(container)[0]!.tagName).toBe('A');
+        expect(items(container)[0]!.getAttribute('data-color')).toBe('success');
+        expectAnatomy(container, stepsAnatomy);
     });
 });

@@ -50,6 +50,35 @@ const StepsDemos = component(() => {
                     <Steps.Title>Ship</Steps.Title>
                 </Steps.Item>
             </Steps.Root>
+            {/*
+              * #112: an item RE-CARRIES the colour axis. The root's colour
+              * paints the whole rail; an Item's own `color` outranks it for
+              * that one step — disc, bridge and title — and an Item without
+              * one keeps following the root. `pickRole` returns nothing on
+              * the colourless skins, so there every step is the default one.
+              */}
+            <p>Per-step tone — a step's own colour outranks the rail's:</p>
+            <Steps.Root defaultStep="deploy" color={pickRole('neutral')} label="Pipeline">
+                <Steps.Item value="lint">
+                    <Steps.Indicator>1</Steps.Indicator>
+                    <Steps.Title>Lint</Steps.Title>
+                    <Steps.Separator />
+                </Steps.Item>
+                <Steps.Item value="test" color={pickRole('success')}>
+                    <Steps.Indicator>2</Steps.Indicator>
+                    <Steps.Title>Tests passed</Steps.Title>
+                    <Steps.Separator />
+                </Steps.Item>
+                <Steps.Item value="deploy" color={pickRole('error')}>
+                    <Steps.Indicator>3</Steps.Indicator>
+                    <Steps.Title>Deploy failed</Steps.Title>
+                    <Steps.Separator />
+                </Steps.Item>
+                <Steps.Item value="verify">
+                    <Steps.Indicator>4</Steps.Indicator>
+                    <Steps.Title>Verify</Steps.Title>
+                </Steps.Item>
+            </Steps.Root>
         </>
     );
 }, { name: 'StepsDemos' });

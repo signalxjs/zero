@@ -3,6 +3,7 @@
         --steps-accent: var(--color-primary);
         --steps-accent-content: var(--color-primary-content);
         --steps-accent-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+        --steps-complete-ink: color-mix(in oklab, var(--steps-accent) 70%, var(--color-base-content));
         --steps-ind: calc(var(--size-selector) * 7);
         --steps-font: var(--text-sm);
     }
@@ -93,8 +94,8 @@
     }
 
     [data-scope="steps"][data-part="indicator"][data-state="complete"] {
-        background: color-mix(in oklch, var(--steps-accent) 20%, var(--color-base-100));
-        color: color-mix(in oklab, var(--steps-accent) 70%, var(--color-base-content));
+        background: color-mix(in oklab, var(--steps-accent) 20%, var(--color-base-100));
+        color: var(--steps-complete-ink);
     }
 
     [data-scope="steps"][data-part="indicator"][data-state="inactive"] {
@@ -140,54 +141,6 @@
         font-weight: var(--weight-normal);
     }
 
-    [data-scope="steps"][data-part="root"][data-color="primary"] {
-        --steps-accent: var(--color-primary);
-        --steps-accent-content: var(--color-primary-content);
-        --steps-accent-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
-    }
-
-    [data-scope="steps"][data-part="root"][data-color="secondary"] {
-        --steps-accent: var(--color-secondary);
-        --steps-accent-content: var(--color-secondary-content);
-        --steps-accent-ink: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
-    }
-
-    [data-scope="steps"][data-part="root"][data-color="accent"] {
-        --steps-accent: var(--color-accent);
-        --steps-accent-content: var(--color-accent-content);
-        --steps-accent-ink: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
-    }
-
-    [data-scope="steps"][data-part="root"][data-color="neutral"] {
-        --steps-accent: var(--color-neutral);
-        --steps-accent-content: var(--color-neutral-content);
-        --steps-accent-ink: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
-    }
-
-    [data-scope="steps"][data-part="root"][data-color="info"] {
-        --steps-accent: var(--color-info);
-        --steps-accent-content: var(--color-info-content);
-        --steps-accent-ink: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
-    }
-
-    [data-scope="steps"][data-part="root"][data-color="success"] {
-        --steps-accent: var(--color-success);
-        --steps-accent-content: var(--color-success-content);
-        --steps-accent-ink: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
-    }
-
-    [data-scope="steps"][data-part="root"][data-color="warning"] {
-        --steps-accent: var(--color-warning);
-        --steps-accent-content: var(--color-warning-content);
-        --steps-accent-ink: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
-    }
-
-    [data-scope="steps"][data-part="root"][data-color="error"] {
-        --steps-accent: var(--color-error);
-        --steps-accent-content: var(--color-error-content);
-        --steps-accent-ink: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
-    }
-
     [data-scope="steps"][data-part="root"][data-size="xs"] {
         --steps-ind: calc(var(--size-selector) * 5);
         --steps-font: var(--text-xs);
@@ -204,5 +157,133 @@
     [data-scope="steps"][data-part="root"][data-size="xl"] {
         --steps-ind: calc(var(--size-selector) * 9);
         --steps-font: var(--text-md);
+    }
+
+    [data-scope="steps"][data-part="item"][data-color="primary"] {
+        --steps-accent: var(--color-primary);
+        --steps-accent-content: var(--color-primary-content);
+        --steps-accent-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+        --steps-complete-ink: color-mix(in oklab, var(--color-primary) 70%, var(--color-base-content));
+    }
+
+    [data-scope="steps"][data-part="item"][data-color="secondary"] {
+        --steps-accent: var(--color-secondary);
+        --steps-accent-content: var(--color-secondary-content);
+        --steps-accent-ink: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+        --steps-complete-ink: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+    }
+
+    [data-scope="steps"][data-part="item"][data-color="accent"] {
+        --steps-accent: var(--color-accent);
+        --steps-accent-content: var(--color-accent-content);
+        --steps-accent-ink: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+        --steps-complete-ink: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+    }
+
+    [data-scope="steps"][data-part="item"][data-color="neutral"] {
+        --steps-accent: var(--color-neutral);
+        --steps-accent-content: var(--color-neutral-content);
+        --steps-accent-ink: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+        --steps-complete-ink: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+    }
+
+    [data-scope="steps"][data-part="item"][data-color="info"] {
+        --steps-accent: var(--color-info);
+        --steps-accent-content: var(--color-info-content);
+        --steps-accent-ink: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+        --steps-complete-ink: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+    }
+
+    [data-scope="steps"][data-part="item"][data-color="success"] {
+        --steps-accent: var(--color-success);
+        --steps-accent-content: var(--color-success-content);
+        --steps-accent-ink: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+        --steps-complete-ink: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+    }
+
+    [data-scope="steps"][data-part="item"][data-color="warning"] {
+        --steps-accent: var(--color-warning);
+        --steps-accent-content: var(--color-warning-content);
+        --steps-accent-ink: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+        --steps-complete-ink: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="steps"][data-part="item"][data-color="error"] {
+        --steps-accent: var(--color-error);
+        --steps-accent-content: var(--color-error-content);
+        --steps-accent-ink: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+        --steps-complete-ink: color-mix(in oklab, var(--color-error) 70%, var(--color-base-content));
+    }
+
+    @scope ([data-scope="steps"][data-part="root"][data-color="primary"]) to ([data-scope="steps"][data-part="root"]) {
+        [data-scope="steps"][data-part="item"] {
+            --steps-accent: var(--color-primary);
+            --steps-accent-content: var(--color-primary-content);
+            --steps-accent-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+            --steps-complete-ink: color-mix(in oklab, var(--color-primary) 70%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="steps"][data-part="root"][data-color="secondary"]) to ([data-scope="steps"][data-part="root"]) {
+        [data-scope="steps"][data-part="item"] {
+            --steps-accent: var(--color-secondary);
+            --steps-accent-content: var(--color-secondary-content);
+            --steps-accent-ink: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+            --steps-complete-ink: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="steps"][data-part="root"][data-color="accent"]) to ([data-scope="steps"][data-part="root"]) {
+        [data-scope="steps"][data-part="item"] {
+            --steps-accent: var(--color-accent);
+            --steps-accent-content: var(--color-accent-content);
+            --steps-accent-ink: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+            --steps-complete-ink: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="steps"][data-part="root"][data-color="neutral"]) to ([data-scope="steps"][data-part="root"]) {
+        [data-scope="steps"][data-part="item"] {
+            --steps-accent: var(--color-neutral);
+            --steps-accent-content: var(--color-neutral-content);
+            --steps-accent-ink: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+            --steps-complete-ink: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="steps"][data-part="root"][data-color="info"]) to ([data-scope="steps"][data-part="root"]) {
+        [data-scope="steps"][data-part="item"] {
+            --steps-accent: var(--color-info);
+            --steps-accent-content: var(--color-info-content);
+            --steps-accent-ink: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+            --steps-complete-ink: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="steps"][data-part="root"][data-color="success"]) to ([data-scope="steps"][data-part="root"]) {
+        [data-scope="steps"][data-part="item"] {
+            --steps-accent: var(--color-success);
+            --steps-accent-content: var(--color-success-content);
+            --steps-accent-ink: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+            --steps-complete-ink: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="steps"][data-part="root"][data-color="warning"]) to ([data-scope="steps"][data-part="root"]) {
+        [data-scope="steps"][data-part="item"] {
+            --steps-accent: var(--color-warning);
+            --steps-accent-content: var(--color-warning-content);
+            --steps-accent-ink: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+            --steps-complete-ink: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="steps"][data-part="root"][data-color="error"]) to ([data-scope="steps"][data-part="root"]) {
+        [data-scope="steps"][data-part="item"] {
+            --steps-accent: var(--color-error);
+            --steps-accent-content: var(--color-error-content);
+            --steps-accent-ink: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+            --steps-complete-ink: color-mix(in oklab, var(--color-error) 70%, var(--color-base-content));
+        }
     }
 }

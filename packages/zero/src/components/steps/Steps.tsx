@@ -20,6 +20,10 @@
  * here orientation-aware), click/Space/Enter select, one tab stop on the
  * active step, and `complete` derives from registration order — DOM order.
  * See `anatomy.ts` for the promotion notes and the state decisions.
+ *
+ * `color` on the Root colours the whole rail; `color` on one Item colours
+ * that step alone (#112) — the anatomy declares the item re-carries the
+ * axis, and the design system's compiled CSS lets the nearest carrier win.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -32,7 +36,7 @@ import { dataAttr } from '../../contract/data-attrs.js';
 import type { Orientation } from '../../contract/data-attrs.js';
 import { renderAsChild, synthesizesClickFrom } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithColor, WithDisabled, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { stepsAnatomy } from './anatomy.js';
 
 const SCOPE = stepsAnatomy.scope;
@@ -134,8 +138,14 @@ const StepsRoot = component<StepsRootProps>(({ props, slots, emit }) => {
 
 // ── Item ──
 
+/**
+ * The item takes the scope's colour vocabulary for itself (#112) — typed per
+ * scope like the Root's, so it narrows under a `/register` module and is
+ * `never` where the design system declares no colour axis.
+ */
 export type StepsItemProps =
     & Define.Prop<'value', string, true>
+    & WithColor<'steps'>
     & WithDisabled
     & WithClass
     /** Not `role`: an asChild item is made a `button`. */
@@ -201,6 +211,7 @@ const StepsItem = component<StepsItemProps>(({ props, slots, onUnmounted, signal
         'data-part': 'item',
         'data-state': phase(),
         'data-orientation': steps.orientation(),
+        'data-color': props.color,
         'data-disabled': dataAttr(disabled()),
         'data-focus-visible': dataAttr(focus.visible),
         tabIndex: isTabbable() ? 0 : -1,

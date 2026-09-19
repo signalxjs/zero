@@ -398,7 +398,8 @@ type StepsProps = {
     size?: 'sm' | 'md' | 'lg';
 };
 type StepsAdapted = Adapted<typeof ZSteps, ZeroAxisProp, StepsProps>;
-export declare const Steps: StepsAdapted & AdaptedStatics<typeof ZSteps> & { Root: StepsAdapted };
+type StepsItemAdapted = Adapted<typeof ZSteps.Item, 'color', Record<never, never>>;
+export declare const Steps: StepsAdapted & Omit<AdaptedStatics<typeof ZSteps>, 'Item'> & { Root: StepsAdapted; Item: StepsItemAdapted };
 
 /** drawer — no vendor route; the wired surface keeps zero's names. */
 type DrawerProps = {

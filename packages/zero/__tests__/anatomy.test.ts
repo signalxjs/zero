@@ -231,5 +231,6 @@ describe('anatomy registry', () => {
             }
         }
         expect(carrying).toContain('timeline.marker');
+        expect(carrying).toContain('steps.item');
     });
 });

@@ -5132,6 +5132,20 @@ export const pagination: RecipeInput = {
 };
 
 /**
+ * The complete step's digit: the role hue deepened toward base-content, on
+ * the disc's 20% tint of that role — `roleInk`'s per-role keep, capped at
+ * 70%. The cap is the primary story: 95% on the tint measured 2.96:1 under
+ * nord's muted primary (the static contrast matrix, #403). The per-role part
+ * arrived with per-step colour (#112), when the matrix first measured every
+ * role here: a flat 70% put nord's muted accent/success/warning at 2.2–2.6:1
+ * and the dark themes' neutral (darker than the page) at 1.7–2.0:1, and
+ * `ROLE_INK_KEEP` already knew how much hue each of those can keep.
+ */
+const stepInk = (accent: string, role: string): string =>
+    `color-mix(in oklab, ${accent} `
+    + `${Math.min(ROLE_INK_KEEP[role as keyof typeof roles] ?? 55, 70)}%, var(--color-base-content))`;
+
+/**
  * Steps — daisy's steps translated to the richer rail: bold numbered discs
  * on base-200, the walked disc and line refilled with the accent pair
  * (primary by default; daisy colours completed steps, and `roleInk` keeps
@@ -5143,6 +5157,9 @@ export const steps: RecipeInput = {
         '--steps-accent': 'var(--color-primary)',
         '--steps-accent-content': 'var(--color-primary-content)',
         '--steps-accent-ink': roleInk('primary'),
+        // Read through the accent, so it resolves on the element that sets
+        // it; a colour on the item restates it for that role.
+        '--steps-complete-ink': stepInk('var(--steps-accent)', 'primary'),
         '--steps-ind': 'calc(var(--size-selector) * 7)',
         '--steps-font': 'var(--text-sm)',
     },
@@ -5214,11 +5231,14 @@ export const steps: RecipeInput = {
             },
             states: {
                 active: { background: 'var(--steps-accent)', color: 'var(--steps-accent-content)' },
-                // Ink deepened toward base-content: the 95% role ink on a 20%
-                // tint measured 2.96:1 under nord's muted primary (the static
-                // contrast matrix, #403); 70% keeps the hue and clears the floor
-                // in every theme.
-                complete: { background: 'color-mix(in oklch, var(--steps-accent) 20%, var(--color-base-100))', color: 'color-mix(in oklab, var(--steps-accent) 70%, var(--color-base-content))' },
+                // Ink deepened toward base-content, per role (`stepInk`). The
+                // tint mixes in OKLAB: daisy's light base-100 is
+                // `oklch(100% 0 0)`, whose 0 hue the browser interpolates as
+                // written, so an OKLCH mix swung every role's tint toward red
+                // (warning's yellow came out pink) — which the browser parity
+                // check caught once per-step colour put all eight roles on
+                // the disc (#112).
+                complete: { background: 'color-mix(in oklab, var(--steps-accent) 20%, var(--color-base-100))', color: 'var(--steps-complete-ink)' },
                 inactive: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
             },
         },
@@ -5267,10 +5287,15 @@ export const steps: RecipeInput = {
         },
     },
     variants: {
-        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+        // Keyed on the ITEM, not the root (#112): the item re-carries
+        // `color`, so a step's own value outranks the rail's, and the
+        // disc, bridge and title inside it inherit whichever won. A root
+        // colour still reaches every item through the carrier's donut.
+        color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
             '--steps-accent': `var(--color-${c})`,
             '--steps-accent-content': `var(--color-${c}-content)`,
             '--steps-accent-ink': roleInk(c),
+            '--steps-complete-ink': stepInk(`var(--color-${c})`, c),
         } } }])),
         size: {
             xs: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 5)', '--steps-font': 'var(--text-xs)' } } },
