@@ -181,6 +181,7 @@ export type {
     ComboboxTagRemoveProps,
     ComboboxTagSlotProps,
     ComboboxInsertDetail,
+    ComboboxItemInsertContext,
     ComboboxInputProps,
     ComboboxTriggerProps,
     ComboboxPopupProps,

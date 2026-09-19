@@ -162,7 +162,14 @@ composer's Enter-to-send only sends while the list is closed. Shift+Enter
 is still a line break. A commit replaces the whole token with the trigger,
 the label and a space (reusing one that already follows — never two)
 through the editing stack (it undoes), keeps the
-caret after it and emits `insert` (`{ value, label, text }`). There is no
+caret after it and emits `insert` (`{ value, label, text }`).
+`itemInsert` replaces that default text (#107). It gets
+`{ item, value, key, label, prefix, query }` and returns what goes in, which
+is inserted as returned: no space is added, none is stepped over, and the
+caret lands after it. Use it for a mention stored as an id, no trailing
+space, or an emoji for a `:` trigger:
+`` itemInsert={({ prefix, label, value }) => `${prefix}[${label}](user:${value.id})`} ``.
+`item` is `undefined` for a hand-written option. There is no
 selection: `model` is never written, and nothing posts but the textarea. A
 press on the list never takes focus from the textarea. The data expansion
 renders only the popup; hand-written items go in a `Combobox.Popup` of your
