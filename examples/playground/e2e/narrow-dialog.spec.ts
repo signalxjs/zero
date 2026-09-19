@@ -40,10 +40,13 @@ for (const ds of DESIGN_SYSTEMS) {
         await expect(popup).toHaveAttribute('data-state', 'open');
         const box = await settledBox(popup, `${ds}: the open dialog popup`);
         // The border box, as the engine paints it — padding and border
-        // included, whatever `box-sizing` the recipe chose.
-        expect(box.x, `${ds}: the popup's left edge`).toBeGreaterThanOrEqual(0);
-        expect(box.x + box.width, `${ds}: the popup's right edge`).toBeLessThanOrEqual(PHONE.width);
-        expect(box.y, `${ds}: the popup's top edge`).toBeGreaterThanOrEqual(0);
-        expect(box.y + box.height, `${ds}: the popup's bottom edge`).toBeLessThanOrEqual(PHONE.height);
+        // included, whatever `box-sizing` the recipe chose. Half a pixel of
+        // slack: `boundingBox()` is fractional, and a centred box can land
+        // on a sub-pixel edge; the defect this catches is 18px, not 0.3.
+        const slack = 0.5;
+        expect(box.x, `${ds}: the popup's left edge`).toBeGreaterThanOrEqual(-slack);
+        expect(box.x + box.width, `${ds}: the popup's right edge`).toBeLessThanOrEqual(PHONE.width + slack);
+        expect(box.y, `${ds}: the popup's top edge`).toBeGreaterThanOrEqual(-slack);
+        expect(box.y + box.height, `${ds}: the popup's bottom edge`).toBeLessThanOrEqual(PHONE.height + slack);
     });
 }
