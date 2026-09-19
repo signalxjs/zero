@@ -639,6 +639,41 @@ a[data-scope="button"][data-part="root"] { color: revert-layer; text-decoration:
 recipe included. Every shipped button recipe sets `text-decoration: none`, so
 the underline reverts to none rather than the browser's link default.
 
+**The confirm dialog.** A destructive confirm is `Dialog.Root
+role="alertdialog"` — no backdrop dismiss, initial focus on the
+least-destructive action — with the dependents as the description's own
+list and the destructive action as the app's own `Button` in its danger
+colour. It is not a dialog part: a skin paints `Dialog.Close` and
+`Dialog.Cancel` as the quiet pair, and the one button that must not look
+quiet is yours. Make it a `type="submit"` inside a `<form method="dialog">`
+and the platform closes the dialog for you, with the submitter's `value` as
+the `close` event's `value` (reason `programmatic`, since zero did not start
+it). `Dialog.Cancel` is `type="button"`, so it sits in the same form:
+
+```tsx
+<Dialog.Root role="alertdialog" onClose={(d) => { if (d.value === 'delete') remove(); }}>
+    <Dialog.Trigger>Delete workspace…</Dialog.Trigger>
+    <Dialog.Popup aria-describedby="dependents">
+        <Dialog.Title>Delete "acme"?</Dialog.Title>
+        <Dialog.Description>This cannot be undone. It also removes:</Dialog.Description>
+        <ul id="dependents"><li>3 members' access</li><li>2 shared folders</li></ul>
+        <form method="dialog">
+            <Dialog.Footer>
+                <Dialog.Cancel>Keep workspace</Dialog.Cancel>
+                <Button.Root type="submit" value="delete" color="error">Delete workspace</Button.Root>
+            </Dialog.Footer>
+        </form>
+    </Dialog.Popup>
+</Dialog.Root>
+```
+
+`Dialog.Description` is a `<p>`, so the dependents are its sibling list,
+and the popup's `aria-describedby` joins the list's id to the description's
+(#74) — a reader hears both. Where a quiet destructive action is fine,
+`Dialog.Close value="delete"` reports `{ reason: 'close', value: 'delete' }`
+with no form at all. Either way the model needs no flag beside it: the
+close says what happened.
+
 ## Responsive: breakpoints and `useMediaQuery`
 
 The design system owns the breakpoint ramp. JS reads it through the theme
