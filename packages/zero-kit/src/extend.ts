@@ -29,11 +29,11 @@
  * in its package's runtime graph (the barrel re-exports `designSystem`), so
  * this graph may reach only relative modules (`ds-runtime-imports.test.ts`).
  *
- * Deliberately NOT here — declared public hooks on a skin (custom
- * properties, keyframes, pseudo-element parts a derived system may rely on)
- * and the validator warning for a patch that reaches a base's private name.
- * Tracked in #73; a patch can reference anything today, and whatever it
- * references is only as stable as the base's source.
+ * What a patch may RELY on is the base's declared hooks (`RecipeInput.hooks`,
+ * #73). A patch can still reach anything; `extendDesignSystem` records what it
+ * patched as `derivedFrom`, and `validateDesignSystem` reads that to warn when
+ * a patch reaches a name the base keeps private — a custom property, a
+ * keyframe or a drawn pseudo-element that is not a hook.
  */
 import type { DesignSystemApi } from './api.js';
 import type { DesignSystemInput } from './design-system.js';
@@ -109,6 +109,30 @@ export interface DesignSystemExtension {
      * base's api is carried unchanged.
      */
     api?: Patch<DesignSystemApi> | null;
+}
+
+/** One patched scope, as `extendDesignSystem` recorded it. */
+export interface DerivedRecipe {
+    /**
+     * The base's recipe as the patch found it — after the layout tier's
+     * regeneration, before the patch. Its `hooks` are what the patch may rely
+     * on; everything else it sets, draws or animates is private.
+     */
+    base: RecipeInput;
+    /** The patch that was applied to it. */
+    patch: RecipePatch;
+}
+
+/**
+ * Provenance of a derived design system (#73): what it was derived from and
+ * which recipes came from a patch. Data on the result, never compiled — the
+ * validator reads it to tell a patch's own names from the base's private ones.
+ */
+export interface DesignSystemDerivation {
+    /** The base design system's name. */
+    name: string;
+    /** Patched scope → the base recipe and the patch. Dropped (`null`) scopes are absent. */
+    patches: Record<string, DerivedRecipe>;
 }
 
 type Plain = Record<string, unknown>;
@@ -253,6 +277,8 @@ export function extendDesignSystem<R extends RolesDecl, T extends SystemTokens>(
     }
 
     const recipes: RecipeInput[] = [];
+    // Null prototype: a scope named `constructor` passes the scope grammar.
+    const derived: Record<string, DerivedRecipe> = Object.create(null) as Record<string, DerivedRecipe>;
     for (const recipe of base.recipes) {
         const scope = recipe.component;
         let current = recipe;
@@ -265,8 +291,10 @@ export function extendDesignSystem<R extends RolesDecl, T extends SystemTokens>(
         }
         const patch = patches[scope];
         if (patch === null) continue;
-        if (patch !== undefined) recipes.push(extendRecipe(current, patch));
-        else recipes.push(current);
+        if (patch !== undefined) {
+            recipes.push(extendRecipe(current, patch));
+            derived[scope] = { base: current, patch };
+        } else recipes.push(current);
     }
 
     const styled = new Set(recipes.map((r) => r.component));
@@ -296,5 +324,6 @@ export function extendDesignSystem<R extends RolesDecl, T extends SystemTokens>(
         recipes,
         ...(css.length > 0 ? { css } : {}),
         ...(api ? { api } : {}),
+        derivedFrom: { name: base.name, patches: derived },
     };
 }

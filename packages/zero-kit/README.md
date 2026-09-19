@@ -402,11 +402,65 @@ no parts is dropped), and a recipe's `css` hatch concatenates. `targets.web`
 assembling its list by hand. Both return new objects and never mutate the
 base.
 
-A patch can reach anything in the base today — a custom property the base
-sets, a keyframe name, a pseudo-element selector — and what it reaches is
-only as stable as the base's source. Declared public hooks on a skin, and a
-validator warning for a patch that relies on an undeclared one, are tracked
-in #73.
+### Public hooks — what a patch may rely on
+
+A patch can reach anything in the base: a custom property the base sets, a
+keyframe name, a pseudo-element it draws. What it reaches is only as stable
+as the base's source, so a recipe declares which of its names are **public**
+(#73), beside what it declares:
+
+```ts
+defineRecipe({
+    component: 'collapsible',
+    hooks: {
+        // name → what it means; each must be set or read by the recipe
+        properties: { '--collapsible-accent': 'The accent of the open trigger.' },
+        // each must be a key of `keyframes`
+        keyframes: ['my-reveal'],
+        // generated-content pseudo-elements only (::before, ::after), per part;
+        // each must be drawn by a `selectors` key on that part
+        pseudo: { trigger: ['::after'] },
+    },
+    tokens: { '--collapsible-accent': 'var(--color-primary)' },
+    keyframes: { 'my-reveal': 'from { opacity: 0 }' },
+    parts: {
+        trigger: { selectors: { '&::after': { content: '""' /* the chevron */ } } },
+        // …
+    },
+});
+```
+
+Hooks are metadata: they never reach the CSS. `validateDesignSystem` errors
+on a hook that names nothing the recipe has, and the DS manifest carries them
+as `components[scope].hooks`, where tooling and the docs site read the public
+surface. `extendRecipe` patches `hooks` like any other section.
+
+`extendDesignSystem` records its provenance on the result: `derivedFrom: {
+name, patches }`, each patched scope with the base recipe as the patch found
+it and the patch itself. `validateDesignSystem` reads it and **warns** (rule
+`private-name`) for every base-private name a patch reaches — a custom
+property the base recipe sets or reads that is not a hook (the token grammar,
+runtime and medium properties are contract, never private), a base keyframe a
+patch names in `animation` / `animation-name` or redefines, and a
+`::before` / `::after` the base draws on a part where it is not a hook:
+
+```
+recipes.switch: references --switch-p, private to "daisyui" — not a declared hook
+```
+
+A warning, not an error: relying on a private name is a stability risk across
+the base's releases, not a broken build. Platform pseudo-elements
+(`::placeholder`, `::-webkit-slider-thumb`) are nobody's private name and are
+never flagged. Selector shapes (`[data-scope="table"][data-part="body"] > &`)
+have no hook grammar on purpose — key a patch on the part and the states the
+anatomy declares, which are already the contract. Hooks carry no `since`:
+lockstep versioning makes the kit version the stability marker.
+
+The six in-repo skins declare their component-level colour and metric
+properties (button, switch, badge, table, card, timeline, toggle-group,
+skeleton, collapsible, as each skin has them), plus zero-daisyui's
+`zero-daisy-pop` dialog keyframe and its collapsible trigger's `::after`
+chevron.
 
 ## Deriving a palette
 

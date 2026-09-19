@@ -139,6 +139,14 @@ const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => (
 
 export const button: RecipeInput = {
     component: 'button',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--btn-accent': 'The fill of the solid variant.',
+            '--btn-on-accent': 'The ink on --btn-accent.',
+            '--btn-soft': 'The soft fill (soft variant, unfilled hover).',
+        },
+    },
     tokens: {
         '--btn-accent': 'var(--color-primary)',
         '--btn-on-accent': 'var(--color-primary-content)',
@@ -361,6 +369,13 @@ const disclosureSizes: Record<string, Record<string, PartStyles>> = {
 
 export const collapsible: RecipeInput = {
     component: 'collapsible',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--disclosure-accent': 'The accent of the open trigger.',
+            '--disclosure-on-accent': 'The ink on --disclosure-accent.',
+        },
+    },
     tokens: disclosureTokens,
     parts: {
         root: withPresence(disclosurePresence, { base: { ...inked, boxShadow: 'var(--shadow-sm)' }, states: { open: {}, closed: {} } }),
@@ -783,6 +798,15 @@ export const select: RecipeInput = {
 // ── Selection controls ────────────────────────────────────────────────────
 export const switchRecipe: RecipeInput = {
     component: 'switch',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--switch-width': 'The track width.',
+            '--switch-height': 'The track height.',
+            '--switch-accent': 'The checked track fill.',
+            '--switch-on-accent': 'The ink on --switch-accent.',
+        },
+    },
     // The accent default lives in `tokens:` so the un-attributed render IS the
     // primary variant and `variants.color` only rebinds a custom property —
     // the toast shape.
@@ -1991,6 +2015,13 @@ export const toggle: RecipeInput = {
  */
 export const toggleGroup: RecipeInput = {
     component: 'toggle-group',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--toggle-group-accent': 'The fill of an on item.',
+            '--toggle-group-on-accent': 'The ink on --toggle-group-accent.',
+        },
+    },
     tokens: {
         '--toggle-group-accent': 'var(--color-primary)',
         '--toggle-group-on-accent': 'var(--color-primary-content)',
@@ -2631,6 +2662,13 @@ export const textarea: RecipeInput = {
 /** A card is a slab: the ink frame, the hard shadow, square corners. */
 export const card: RecipeInput = {
     component: 'card',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--card-pad': 'The card padding.',
+            '--card-accent': 'The accent colour.',
+        },
+    },
     tokens: { '--card-pad': 'var(--space-lg)', '--card-accent': 'var(--color-base-content)' },
     parts: {
         root: {
@@ -2779,6 +2817,13 @@ export const alert: RecipeInput = {
 /** A badge is a stamp: square corners, full ink frame, mono uppercase. */
 export const badge: RecipeInput = {
     component: 'badge',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--badge-fill': 'The badge fill.',
+            '--badge-ink': 'The badge ink.',
+        },
+    },
     tokens: { '--badge-fill': 'var(--color-base-200)', '--badge-ink': 'var(--color-base-content)' },
     parts: {
         root: {
@@ -2856,6 +2901,12 @@ export const divider: RecipeInput = {
  */
 export const skeleton: RecipeInput = {
     component: 'skeleton',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--skeleton-fill': 'The placeholder fill.',
+        },
+    },
     tokens: { '--skeleton-fill': 'var(--color-base-200)' },
     parts: {
         root: {
@@ -3172,6 +3223,13 @@ const TIMELINE_NO_START = '[data-scope="timeline"][data-part="root"]'
 /** Timeline — square markers on a slab axis; the content is a stamped box. */
 export const timeline: RecipeInput = {
     component: 'timeline',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--timeline-accent': 'The marker and connector accent.',
+            '--timeline-marker-size': 'The marker diameter.',
+        },
+    },
     tokens: { '--timeline-accent': 'var(--color-base-content)', '--timeline-marker-size': 'calc(var(--size-selector) * 3)' },
     parts: {
         root: {
@@ -4112,6 +4170,17 @@ export const drawer: RecipeInput = {
  */
 export const table: RecipeInput = {
     component: 'table',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--table-cell-align': 'Cell text alignment; zero writes it inline from the column spec.',
+            '--table-accent': 'The accent colour.',
+            '--table-accent-ink': 'The ink on --table-accent.',
+            '--table-pad-block': 'Cell block padding.',
+            '--table-pad-inline': 'Cell inline padding.',
+            '--table-font': 'The table font size.',
+        },
+    },
     tokens: {
         // The column spec's alignment (#55): a cell that names an aligned
         // column overrides it inline; everything else reads `start`.

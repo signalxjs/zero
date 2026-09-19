@@ -337,6 +337,52 @@
                             "$ref": "#/$defs/axisValues"
                         }
                     }
+                },
+                "hooks": {
+                    "description": "The recipe's declared public hooks (#73): the names a design system derived from this one (extendDesignSystem) may rely on. Absent when the recipe declares none \u2014 every name it sets, draws or animates is then private.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "minProperties": 1,
+                    "properties": {
+                        "properties": {
+                            "description": "Component-level custom properties a derived system may read or set: name \u2192 what it means.",
+                            "type": "object",
+                            "minProperties": 1,
+                            "propertyNames": {
+                                "pattern": "^--[A-Za-z0-9_-]+$"
+                            },
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        },
+                        "keyframes": {
+                            "description": "Keyframe names a derived system may reference in `animation`.",
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$"
+                            }
+                        },
+                        "pseudo": {
+                            "description": "Part \u2192 the generated-content pseudo-elements the recipe draws on it that a derived system may restyle.",
+                            "type": "object",
+                            "minProperties": 1,
+                            "propertyNames": {
+                                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                            },
+                            "additionalProperties": {
+                                "type": "array",
+                                "minItems": 1,
+                                "items": {
+                                    "enum": [
+                                        "::before",
+                                        "::after"
+                                    ]
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

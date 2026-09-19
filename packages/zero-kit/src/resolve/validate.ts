@@ -20,6 +20,9 @@
  * - Recipe coverage: recipes only touch known components/parts/states
  *   (compile already hard-errors); every declared machine state of a styled
  *   part is addressed or explicitly listed in `skipStates`.
+ * - Declared hooks (#73): each `hooks` entry names something its recipe has
+ *   (error); for a design system `extendDesignSystem` derived, a patch that
+ *   reaches a name the base keeps private is a warning (`resolve/hooks.ts`).
  */
 import { converter, interpolate, parse, wcagContrast } from 'culori';
 import type { Color } from 'culori';
@@ -48,6 +51,7 @@ import { BELOW_PREFIX, BUILTIN_CONDITIONS, resolveRecipeForTarget } from '../rec
 import type { DesignSystemInput } from '../design-system.js';
 import { compileDesignSystem } from '../design-system.js';
 import { validateRecipes } from './validate-recipes.js';
+import { hookIssues, privateNameIssues } from './hooks.js';
 import { tokenVocabulary } from './vocabulary.js';
 import { formatOklch, solveContentLightness } from '../palette.js';
 import { tryBakeColorValue } from './color-bake.js';
@@ -1061,6 +1065,11 @@ export function validateDesignSystem<R extends RolesDecl>(
     for (const issue of validateRecipes(ds.recipes.map((r) => resolveRecipeForTarget(r, 'web')), manifest, vocabulary)) {
         (issue.level === 'error' ? errors : warnings).push(issue);
     }
+
+    // ── Declared hooks (#73): each names something its recipe has; and, for
+    //    a derived design system, a patch that reaches past them is flagged ──
+    errors.push(...hookIssues(ds.recipes));
+    if (ds.derivedFrom) warnings.push(...privateNameIssues(ds.derivedFrom, vocabulary.names));
 
     // ── Recipe state coverage ──
     // Read off the web resolution, like `validateRecipes` above: a state a
