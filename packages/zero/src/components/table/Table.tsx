@@ -44,7 +44,7 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { dataAttr } from '../../contract/data-attrs.js';
-import { isBreakpointName } from '../../contract/breakpoint-name.js';
+import { BASE_BREAKPOINT_KEY, isBreakpointName } from '../../contract/breakpoint-name.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { HtmlAttrValue, WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
@@ -103,7 +103,7 @@ const stackRole = (ctx: TableContext, role: string): string | undefined => (ctx.
  */
 function stackAttr(stack: string | undefined): string | undefined {
     if (stack !== undefined && !isBreakpointName(stack)) {
-        throw new Error(`[zero] layout: "${stack}" is not a value of "stack" (expected a kebab-case breakpoint name other than "base")`);
+        throw new Error(`[zero] layout: "${stack}" is not a value of "stack" (expected a kebab-case breakpoint name other than "${BASE_BREAKPOINT_KEY}")`);
     }
     return stack;
 }
