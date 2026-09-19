@@ -144,6 +144,12 @@ export type _navbar = MustBeTrue<CheckColorSize<PropsOf<typeof Navbar.Root>>>;
 export type _breadcrumbs = MustBeTrue<CheckColorSize<PropsOf<typeof Breadcrumbs.Root>>>;
 export type _pagination = MustBeTrue<CheckColorSize<PropsOf<typeof Pagination.Root>>>;
 export type _steps = MustBeTrue<CheckColorSize<PropsOf<typeof Steps.Root>>>;
+// A step RE-CARRIES the colour axis (#112), the same shape as the marker.
+export type _stepsItem = MustBeTrue<[
+    Equal<Axis<PropsOf<typeof Steps.Item>, 'color'>, BasicColor>,
+    Equal<Axis<PropsOf<typeof Steps.Item>, 'size'>, 'absent'>,
+    Equal<Axis<PropsOf<typeof Steps.Item>, 'variant'>, 'absent'>,
+][number] extends true ? true : false>;
 export type _table = MustBeTrue<CheckColorSize<PropsOf<typeof Table.Root>>>;
 export type _fileUpload = MustBeTrue<CheckColorSize<PropsOf<typeof FileUpload.Root>>>;
 export type _carousel = MustBeTrue<CheckColorSize<PropsOf<typeof Carousel.Root>>>;

@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Changed — the text matrix measures a re-carried colour (zero#112)
+
+- **`axisCellsFor` adds one text cell per wired colour for every text part
+  on or inside a part that re-carries `color`**, with the attribute on that
+  part (`axisHost`), in a scope that wires no variant. Colour alone is
+  otherwise left to the token validator, which checks each role against its
+  own `-content` — but a re-carried role is used as INK on the page and on a
+  tint of itself, which no token pair covers. The static matrix and the
+  browser audit share the cells, so both measure them. The first adopter is
+  `steps.item`: basic, material and brutalist cleared the floors as
+  shipped; daisyUI failed 6 cells and was fixed in its recipe (see its
+  README). Timeline adds nothing here: its marker holds no text.
+- The design-system skill and the README say that a re-carried axis is keyed
+  on the part, and name `steps.item` beside `timeline.marker`.
+
 ### Changed — `dock` gains `sheet`: the drawer panel's regime (zero#83)
 
 - **`LAYOUT_VOCABULARY.dock` is `inline | sheet`** (mirroring zero). The

@@ -5323,7 +5323,11 @@ export const steps: RecipeInput = {
         },
     },
     variants: {
-        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+        // Keyed on the ITEM, not the root (#112): the item re-carries
+        // `color`, so a step's own value outranks the rail's, and the
+        // disc, bridge and title inside it inherit whichever won. A root
+        // colour still reaches every item through the carrier's donut.
+        color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
             '--steps-accent': `var(--color-${c})`,
             '--steps-accent-content': `var(--color-${c}-content)`,
             '--steps-accent-ink': softInk(c),

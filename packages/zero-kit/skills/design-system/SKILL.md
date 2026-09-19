@@ -820,11 +820,14 @@ component's anatomy). No component code is ever written or changed.
      reaches the popup, because zero has no portals. Don't look for a per-part
      restriction in `tokens.scopes`; there isn't one, and `parts` is rejected
      by name to keep it that way (docs/architecture.md, "Declared vocabulary").
-     (A part whose anatomy declares `carries` — timeline's `marker` carries
-     `color` — takes the SAME axis per instance: `<Timeline.Marker
-     color="error">`. That is one vocabulary on a second carrier, not a
-     second vocabulary; just key your `variants.color.<c>` values on the
-     part, and the compiler lets the nearest carrier win.)
+     (A part whose anatomy declares `carries` — timeline's `marker` and
+     steps' `item` carry `color` — takes the SAME axis per instance:
+     `<Timeline.Marker color="error">`, `<Steps.Item color="error">`. That
+     is one vocabulary on a second carrier, not a second vocabulary; just
+     key your `variants.color.<c>` values on the part, not the root — a
+     root-keyed value leaves the part's own attribute matching nothing,
+     which `axis-coverage` reports — and the compiler lets the nearest
+     carrier win.)
    - **`dist/register.d.ts` is generated, never authored.** `writeArtifacts`
      emits it (with `dist/register.js`) from the compiled system: it augments
      `@sigx/zero`'s `ZeroVocabulary`, so an app that adds

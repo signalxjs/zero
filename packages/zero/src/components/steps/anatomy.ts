@@ -25,6 +25,14 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * deliberately carry no states: recipes that want an emphasized active
  * title reach it through the item's state, which the part tree makes a
  * bounded descendant selector.
+ *
+ * The item RE-CARRIES the colour axis (`PartSpec.carries`, #112, the
+ * mechanism #94 introduced for timeline's marker): a `color` on
+ * `Steps.Item` renders `data-color` on that item and outranks the root's,
+ * so one step can say "error" while the rail stays primary — daisyUI's
+ * per-step `step-error`. Everything inside the item (indicator,
+ * separator, title) follows the item's value; an item without one
+ * follows the root.
  */
 export const stepsAnatomy = defineAnatomy('steps', {
     root: {
@@ -37,6 +45,9 @@ export const stepsAnatomy = defineAnatomy('steps', {
         parent: 'root',
         states: ['active', 'complete', 'inactive'],
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        // Per-step colour (#112): the item re-carries `color`, so one step's
+        // disc and bridge can paint a tone of their own.
+        carries: ['color'],
         tokens: ['color', 'radius-selector', 'size', 'text'],
         asChild: true,
     },

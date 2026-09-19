@@ -4,11 +4,14 @@
  * color` paints one entry's dot while the root keeps its own colour — and
  * this file holds every stage of the pipeline that had to learn the fact:
  * the merge, the validator, the compiler, the components artifact, the
- * axis-coverage rule and the contrast matrix.
+ * axis-coverage rule and the contrast matrix. Steps' item (#112) is the
+ * second: a re-carrier with TEXT on and inside it, which the text matrix
+ * measures per wired colour.
  */
 import { describe, it, expect } from 'vitest';
 import {
     auditDesignSystem,
+    axisCellsFor,
     axisHost,
     carriersOf,
     compileComponentsDts,
@@ -319,6 +322,46 @@ describe('the contrast matrix measures the marker\'s own colour on the marker', 
     it('every shipped basic cell clears the floor', () => {
         const result = auditDesignSystem(basicDS as DesignSystemInput, manifest, { rules: ['contrast/indicator'] });
         const carried = result.contrast.themes.flatMap((t) => t.cells).filter((c) => c.scope === 'timeline' && c.axes);
+        expect(carried.length).toBeGreaterThan(0);
+        expect(carried.filter((c) => c.verdict === 'fail')).toEqual([]);
+    });
+});
+
+describe('the text matrix measures a step\'s own colour on the step (#112)', () => {
+    const compiled = compileDesignSystem(basicDS as DesignSystemInput, manifest);
+    const steps = manifest.components.find((c) => c.scope === 'steps')!;
+
+    it('steps\' item declares it re-carries colour', () => {
+        expect(steps.parts.find((p) => p.name === 'item')!.carries).toEqual(['color']);
+    });
+
+    it('adds one cell per wired colour for every text part on or inside the re-carrier, with the attribute on it', () => {
+        const cells = axisCellsFor(compiled.components, manifest.components).filter((c) => c.scope === 'steps');
+        // Steps wires no variant, so these are the ONLY axis cells it has —
+        // colour alone is otherwise left to the token validator.
+        expect(new Set(cells.map((c) => c.part))).toEqual(new Set(['item', 'indicator', 'title', 'description']));
+        for (const part of ['item', 'indicator', 'title', 'description']) {
+            expect(new Set(cells.filter((c) => c.part === part).map((c) => c.axes!.color)))
+                .toEqual(new Set(compiled.components.steps!.color));
+        }
+        for (const cell of cells) expect(cell.chain![axisHost(cell.chain!, 'color')]!.part).toBe('item');
+    });
+
+    it('adds nothing for a colour-only scope with no re-carrier, nor for text outside the re-carrier', () => {
+        // Timeline's marker re-carries colour but holds no text; its content
+        // sits beside the marker, not inside it.
+        expect(axisCellsFor(compiled.components, manifest.components).some((c) => c.scope === 'timeline')).toBe(false);
+        const rail = railAnatomy.toJSON() as ManifestComponent;
+        const cells = axisCellsFor({ 'acme-rail': { color: ['primary', 'error'] } }, [
+            { ...rail, parts: rail.parts.map((p) => ({ ...p, tokens: ['text'] })) },
+        ]);
+        // `label` is text beside the re-carrying row, reached from the root alone.
+        expect(new Set(cells.map((c) => c.part))).toEqual(new Set(['row', 'bubble']));
+    });
+
+    it('every shipped basic cell clears the floor', () => {
+        const result = auditDesignSystem(basicDS as DesignSystemInput, manifest, { rules: ['contrast/text'] });
+        const carried = result.contrast.themes.flatMap((t) => t.cells).filter((c) => c.scope === 'steps' && c.key.includes('color='));
         expect(carried.length).toBeGreaterThan(0);
         expect(carried.filter((c) => c.verdict === 'fail')).toEqual([]);
     });

@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added — per-step colour: `Steps.Item color` (#112)
+
+- **`steps.item` re-carries the colour axis** (`carries: ['color']`, the
+  mechanism #94 introduced for `Timeline.Marker`). `Steps.Item` takes
+  `color` (`WithColor<'steps'>`: narrowed by a `/register` module, `never`
+  where the design system declares no colour axis) and renders `data-color`
+  on the item — also on an `asChild` element. `<Steps.Item color="error">`
+  paints one step while `<Steps.Root color>` paints the rest: the nearest
+  carrier wins, and an item without a colour follows the root. Everything
+  inside the item — indicator, separator, title — follows the item's value.
+  Anatomy change: `steps.item` gains `carries`, so `expectAnatomy` accepts
+  `data-color` there and nowhere else below the root.
+
 ### Added — the drawer sheet keeps its box through the exit, and four skins slide it (#83)
 
 - **`Drawer.Panel` stamps its regime, `data-l-dock="sheet|inline"`**:

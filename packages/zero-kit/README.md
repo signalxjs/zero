@@ -128,7 +128,8 @@ part *inside* a re-carrier in a donut rooted on it. The nearest carrier wins,
 and a part with no value of its own follows the carrier — which is why the
 `:not([attr])` default twin is never re-emitted, and why modifiers and
 compounds stay on the carrier. Nothing to author: key the values on the part,
-as every shipped skin already keys `variants.color.<c>.marker`. The
+as every shipped skin keys `variants.color.<c>.marker` and, since zero#112,
+`variants.color.<c>.item` for `steps.item`. The
 `axis-coverage` rule reports a scope that wires the axis without keying the
 re-carrying part, and the components artifact gives the member (`Marker`) the
 carrier's vendor surface for the axes it carries.
@@ -1045,7 +1046,9 @@ CSS: the same two matrices (text legibility over every text-bearing part in
 every renderable state combination plus the wired axis surface; indicator
 paint over the parts whose job is paint, each in its real ancestor chain —
 and, for a mark on a part that re-carries a colour axis, once per wired
-colour with the attribute on that part),
+colour with the attribute on that part; text on or inside such a part is
+measured per wired colour the same way, even in a scope that wires no
+variant — steps' item, zero#112),
 the same cell keys, the same colour math (premultiplied, 8-bit rounded where
 a canvas would round), the same floors — 3:1, the 4.5:1 AA band as a
 warning for text (one finding per part and theme, the worst cell named; the

@@ -854,9 +854,11 @@ downstream platform's build.
   axis as a prop of its own and renders the attribute on itself, beside the
   scope's carrier — `timeline.marker` carries `color`, so
   `<Timeline.Marker color="error">` paints one entry's dot while
-  `<Timeline.Root color="neutral">` paints the rest. The nearest carrier
-  wins: a design system's compiled CSS lets the part's own value outrank
-  the carrier's, and a part without one follows the carrier.
+  `<Timeline.Root color="neutral">` paints the rest; `steps.item` carries
+  `color` too (#112), so `<Steps.Item color="error">` paints one step's
+  disc, bridge and title. The nearest carrier wins: a design system's
+  compiled CSS lets the part's own value outrank the carrier's, and a part
+  without one follows the carrier.
 - A part's `parent` names the same-scope part it renders inside — the
   anatomy's part TREE, from which tooling derives real ancestor chains
   (the contrast audit builds its measurement DOM from it) instead of

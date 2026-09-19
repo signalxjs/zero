@@ -255,6 +255,16 @@ export function derivedChainAncestors(component: ManifestComponent, part: Manife
  * the pairs measure nothing the singles do not. The one that matters is
  * HeroUI's `pending`, which is `opacity: 0.7` on the root — a group fade that
  * changes every ratio underneath it.
+ *
+ * **A re-carried colour is measured even without a variant (#112).** A part
+ * that re-carries `color` (the anatomy's `carries` — steps' `item`) puts a
+ * role's value where the carrier's colour-alone rationale above never looked:
+ * the recipe keys `variants.color.<c>` on that part, and the text on or
+ * inside it (the step's active title, the complete disc's digit) uses the
+ * role as INK, which no token pair covers. So a scope with no colour-bearing
+ * axis still gets one cell per wired colour for every text part on or below
+ * a part that re-carries it, with the attribute on that part (`axisHost`) —
+ * the text-matrix twin of the indicator matrix's re-carried cells (#94).
  */
 export function axisCellsFor(
     components: Record<string, WiredAxes>,
@@ -263,7 +273,10 @@ export function axisCellsFor(
     const out: Cell[] = [];
     for (const [scope, wired] of Object.entries(components)) {
         const fused = colourBearingAxes(wired);
-        if (Object.keys(fused).length === 0) continue;
+        if (Object.keys(fused).length === 0) {
+            out.push(...carriedColourCells(scope, wired, anatomy));
+            continue;
+        }
         if (wired.color?.length) fused.color = wired.color;
 
         const component = anatomy.find((c) => c.scope === scope);
@@ -304,6 +317,26 @@ export function axisCellsFor(
                     }
                 }
             }
+        }
+    }
+    return out;
+}
+
+/** The re-carried colour cells of a scope with no colour-bearing axis — see `axisCellsFor`. */
+function carriedColourCells(scope: string, wired: WiredAxes, anatomy: readonly ManifestComponent[]): Cell[] {
+    const colours = wired.color ?? [];
+    const component = anatomy.find((c) => c.scope === scope);
+    if (colours.length === 0 || !component) return [];
+    const carrier = carrierPart(component);
+    const out: Cell[] = [];
+    for (const part of component.parts) {
+        if (part.name === carrier || !part.tokens?.includes('text')) continue;
+        const ancestors = derivedChainAncestors(component, part);
+        if (!ancestors) continue;
+        const chain = chainFor(component, [...ancestors, part.name]);
+        if (axisHost(chain, 'color') === 0) continue;
+        for (const color of colours) {
+            for (const combo of restingCombos(part)) out.push({ scope, part: part.name, ...combo, axes: { color }, chain });
         }
     }
     return out;

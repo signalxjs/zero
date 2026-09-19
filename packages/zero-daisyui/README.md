@@ -118,6 +118,10 @@ Timeline whose content never sits on the start side collapses the start track
 on its own — a `:has()` rule on the root, no prop — so the events sit against
 the axis instead of past an empty half of each item.
 
+On `./components` the modifier is a boolean prop like the `btn-*` set:
+`<Countdown inline>`. daisy's own `.countdown` sets no display size at all,
+so `inline` is also the daisy-faithful look.
+
 ## Per-entry timeline colour
 
 `<Timeline.Marker color="error">` colours one entry's dot while the Root's
@@ -132,9 +136,24 @@ the ring still draws the whole dot.
 On `./components`, `Timeline.Marker` takes the same `color` union as the
 Root.
 
-On `./components` the modifier is a boolean prop like the `btn-*` set:
-`<Countdown inline>`. daisy's own `.countdown` sets no display size at all,
-so `inline` is also the daisy-faithful look.
+## Per-step colour
+
+`<Steps.Item color="error">` colours one step — its disc, the bridge toward
+the next step and its title — while the Root's `color` paints the rest of the
+rail (#112), daisy's `step-error` on one `step`. The item re-carries the
+colour axis, so the recipe keys its colour on `item`; a root colour reaches
+every step exactly as before.
+
+Measuring every role on a step for the first time found the complete disc's
+digit unreadable in six cells: nord's muted `accent`, `success` and `warning`
+(2.2–2.6:1) and the dark themes' `neutral`, which is darker than the page
+(1.7–2.0:1). The digit now keeps the same share of each role's hue as
+`roleInk` does, capped at the 70% primary always had, so the default digit is
+unchanged. The disc's tint also mixes in OKLAB now: the light theme's
+`oklch(100% 0 0)` page has a 0 hue that an OKLCH mix interpolates toward, so
+every tint in the light theme leaned red — warning's came out pink.
+
+On `./components`, `Steps.Item` takes the same `color` union as the Root.
 
 ## Deriving from this skin: the public hooks
 
