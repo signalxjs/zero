@@ -55,6 +55,7 @@ import { radialProgressPage } from './radial-progress';
 import { joinPage } from './join';
 import { navbarPage } from './navbar';
 import { navListPage } from './nav-list';
+import { appShellPage } from './app-shell';
 import { breadcrumbsPage } from './breadcrumbs';
 import { paginationPage } from './pagination';
 import { stepsPage } from './steps';
@@ -126,6 +127,7 @@ export const pages: PageEntry[] = [
     treeViewPage,
     navbarPage,
     navListPage,
+    appShellPage,
     breadcrumbsPage,
     paginationPage,
     stepsPage,

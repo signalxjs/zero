@@ -692,6 +692,42 @@ timeline marker's construction, and what keeps a dot that follows a solid
 pill visible on that pill's own fill — and the contrast audit measures it
 per colour. The dot is `aria-hidden`: the pill's text is the label.
 
+**The app shell.** A composition, not a component (#133): `Navbar` for the
+top bar, a responsive `Drawer` for the sidebar with a `NavList` inside it,
+and a `Container` for `<main>`. `Drawer.Root` renders no element, so it
+wraps the whole shell and its trigger can sit in the bar; at or above
+`md` the panel docks open in flow and the trigger hides, below it the
+navigation is a sheet the trigger opens — from the design system's own
+breakpoint, correct before any script runs. The navigation is rendered
+once:
+
+```tsx
+<Drawer.Root modal={{ below: 'md' }}>
+    <Navbar.Root>
+        <Navbar.Start>
+            <Drawer.Trigger aria-label="Open navigation">☰</Drawer.Trigger>
+            <strong>Acme</strong>
+        </Navbar.Start>
+        <Navbar.End>…</Navbar.End>
+    </Navbar.Root>
+    <Row align="start" gap="none">
+        <Drawer.Panel measure="xs">
+            <Drawer.Title visuallyHidden>Navigation</Drawer.Title>
+            <NavList.Root label="Main">…</NavList.Root>
+            <Drawer.Close>Close navigation</Drawer.Close>
+        </Drawer.Panel>
+        <Stack.Item grow asChild>
+            {(p) => <main {...p}><Container measure="md" padY="lg">…</Container></main>}
+        </Stack.Item>
+    </Row>
+</Drawer.Root>
+```
+
+The page keeps one banner (the Navbar's `<header>`, at document scope) and
+one navigation landmark (NavList's `<nav>`) in both regimes. Page CSS
+sits outside or after the four layers — `@layer zero, app;` first in the
+app's entry stylesheet (docs/architecture.md, "App CSS").
+
 **The link button.** A link that looks like a button is `asChild` over an
 `<a>`. It is a real link, with middle-click, "copy link" and the right role,
 and it wears the button's anatomy and recipe:

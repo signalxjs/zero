@@ -191,6 +191,11 @@ sheet enters from its reading edge, measured early in the entry (#83). It
 exists because a `transform` has no logical spelling, so the kit's
 physical-direction lint cannot see it — the two checks are complementary, not
 redundant;
+the **app-shell spec** (`e2e/app-shell.spec.ts`, #133) — the Navbar +
+responsive Drawer + NavList + Container composition, three engines: the
+same NavList is the docked sidebar beside `<main>` at `md` and a sheet
+below it, the trigger in the bar hides when docked, and the shell keeps one
+header and one navigation landmark either way;
 the **narrow-dialog spec** (`e2e/narrow-dialog.spec.ts`, #101) — chromium
 only, one page load per design system at a 400px viewport, it opens the
 modal dialog and asserts the popup's *border box* sits inside the viewport
