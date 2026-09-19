@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { renderToString } from '@sigx/server-renderer';
 import { component, defineApp, signal } from 'sigx';
-import { Combobox, Textarea, caretAnchor, comboboxAnatomy, textareaAnatomy, zeroPlugin } from '@sigx/zero';
+import { Combobox, Input, Textarea, caretAnchor, comboboxAnatomy, inputAnatomy, textareaAnatomy, zeroPlugin } from '@sigx/zero';
 import type { ComboboxInsertDetail, TextAnchor } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
@@ -15,8 +15,8 @@ const PEOPLE: Person[] = [
     { id: 'grace', name: 'Grace' },
 ];
 
-/** Type into the textarea the way a keystroke does: value, caret, input. */
-function typeInto(el: HTMLTextAreaElement, text: string, caret = text.length) {
+/** Type into the control the way a keystroke does: value, caret, input. */
+function typeInto(el: HTMLTextAreaElement | HTMLInputElement, text: string, caret = text.length) {
     el.value = text;
     el.setSelectionRange(caret, caret);
     el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -394,6 +394,153 @@ describe('Combobox trigger mode (#58)', () => {
             typeInto(h.el, 'hi @a');
             await tick();
             expect(h.popup.style.left).toBe('100px');
+        });
+    });
+
+    describe('Input.Input as the control (#106)', () => {
+        const COMMANDS = ['deploy', 'describe', 'help'];
+        function inputHarness(anchor?: TextAnchor) {
+            const state = signal({ line: '', open: false });
+            const inserts: ComboboxInsertDetail<string>[] = [];
+            const ran: string[] = [];
+            render(
+                <Combobox.Root trigger="/" items={COMMANDS} anchor={anchor} model:open={[state, 'open']} onInsert={(d) => inserts.push(d)}>
+                    <Input.Root model={[state, 'line']} name="command">
+                        <Input.Label>Command</Input.Label>
+                        <Input.Control>
+                            <Input.Input
+                                onKeydown={(e: KeyboardEvent) => {
+                                    if (e.key === 'Enter') { e.preventDefault(); ran.push(state.line); }
+                                }}
+                            />
+                        </Input.Control>
+                    </Input.Root>
+                </Combobox.Root>,
+                container,
+            );
+            return {
+                state,
+                inserts,
+                ran,
+                el: container.querySelector<HTMLInputElement>('[data-scope="input"][data-part="input"]')!,
+                popup: container.querySelector<HTMLElement>('[data-scope="combobox"][data-part="popup"]')!,
+                items: () => [...container.querySelectorAll<HTMLElement>('[data-scope="combobox"][data-part="item"]')],
+            };
+        }
+
+        it('the input is the control: autocomplete ARIA at rest, a combobox while open', async () => {
+            const h = inputHarness();
+            expect(h.el.getAttribute('aria-autocomplete')).toBe('list');
+            expect(h.el.hasAttribute('role')).toBe(false);
+            expect(h.popup.getAttribute('aria-labelledby')).toBe(h.el.id);
+            typeInto(h.el, '/de');
+            await tick();
+            expect(h.state.open).toBe(true);
+            expect(h.el.getAttribute('role')).toBe('combobox');
+            expect(h.el.getAttribute('aria-expanded')).toBe('true');
+            expect(h.items().map((i) => i.textContent)).toEqual(['deploy', 'describe']);
+            expect(h.el.getAttribute('aria-activedescendant')).toBe(h.items()[0]!.id);
+            expectAnatomy(container, comboboxAnatomy);
+            expectAnatomy(container, inputAnatomy);
+        });
+
+        it('Enter commits into the line; the app sees Enter only while the list is closed', async () => {
+            const h = inputHarness();
+            typeInto(h.el, 'run /des');
+            await tick();
+            const enter = key(h.el, 'Enter');
+            await tick();
+            expect(enter.defaultPrevented).toBe(true);
+            expect(h.ran).toEqual([]);
+            expect(h.el.value).toBe('run /describe ');
+            expect(h.state.line).toBe('run /describe ');
+            expect(h.el.selectionStart).toBe(14);
+            expect(h.inserts).toEqual([{ value: 'describe', label: 'describe', text: '/describe ' }]);
+            expect(h.state.open).toBe(false);
+            key(h.el, 'Enter');
+            expect(h.ran).toEqual(['run /describe ']);
+        });
+
+        it('a caret move re-reads the token; Escape dismisses until the next edit', async () => {
+            const h = inputHarness();
+            typeInto(h.el, '/he and more', 3);
+            await tick();
+            expect(h.state.open).toBe(true);
+            h.el.setSelectionRange(8, 8);
+            h.el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            await tick();
+            expect(h.state.open).toBe(false);
+            typeInto(h.el, '/h');
+            await tick();
+            key(h.el, 'Escape');
+            await tick();
+            expect(h.state.open).toBe(false);
+            typeInto(h.el, '/he');
+            await tick();
+            expect(h.state.open).toBe(true);
+        });
+
+        it('caretAnchor measures a single line: the list opens under the input, at the token', async () => {
+            const box = { left: 100, top: 200, width: 300, height: 40 };
+            vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+                const r = this.tagName === 'SPAN' ? { left: 58, top: 11, width: 9, height: 18 }
+                    : this.tagName === 'INPUT' ? box : { left: 0, top: 0, width: 0, height: 0 };
+                return { ...r, x: r.left, y: r.top, right: r.left + r.width, bottom: r.top + r.height, toJSON: () => ({}) } as DOMRect;
+            });
+            try {
+                const h = inputHarness(caretAnchor);
+                typeInto(h.el, 'go /d');
+                await tick();
+                expect(h.popup.style.left).toBe('158px');
+                // Below the input's box, not the glyph: an input is one line.
+                expect(h.popup.style.top).toBe('244px');
+            } finally {
+                vi.restoreAllMocks();
+            }
+        });
+
+        it('the first control claims — an input before a textarea keeps it', () => {
+            render(
+                <Combobox.Root trigger="@" items={PEOPLE} itemLabel={(p) => p.name}>
+                    <Input.Root><Input.Input /></Input.Root>
+                    <Textarea.Root><Textarea.Textarea /></Textarea.Root>
+                </Combobox.Root>,
+                container,
+            );
+            expect(container.querySelector('input')!.getAttribute('aria-autocomplete')).toBe('list');
+            expect(container.querySelector('textarea')!.hasAttribute('aria-autocomplete')).toBe(false);
+        });
+
+        it('an input that unmounts releases the claim', async () => {
+            const state = signal({ show: true });
+            const App = component(() => () => (
+                <Combobox.Root trigger="@" items={PEOPLE} itemLabel={(p) => p.name}>
+                    {state.show ? <Input.Root><Input.Input /></Input.Root> : null}
+                </Combobox.Root>
+            ));
+            render(<App />, container);
+            const popup = container.querySelector<HTMLElement>('[data-scope="combobox"][data-part="popup"]')!;
+            expect(popup.getAttribute('aria-labelledby')).toBe(container.querySelector('input')!.id);
+            state.show = false;
+            await tick();
+            expect(popup.hasAttribute('aria-labelledby')).toBe(false);
+        });
+
+        it('server-renders the autocomplete wiring on the input', async () => {
+            const app = defineApp(
+                <Combobox.Root trigger="/" items={COMMANDS}>
+                    <Input.Root name="command"><Input.Input /></Input.Root>
+                </Combobox.Root>,
+            );
+            app.use(zeroPlugin());
+            const html = await renderToString(app);
+            expect(html).toMatch(/<input[^>]*aria-autocomplete="list"[^>]*aria-controls="[^"]+-popup"/);
+            expect(html).not.toMatch(/<input[^>]*role=/);
+        });
+
+        it('an Input outside a trigger-mode Combobox is untouched', () => {
+            render(<Input.Root><Input.Input /></Input.Root>, container);
+            expect(container.querySelector('input')!.hasAttribute('aria-autocomplete')).toBe(false);
         });
     });
 

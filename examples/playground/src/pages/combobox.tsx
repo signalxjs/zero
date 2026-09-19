@@ -1,5 +1,5 @@
 import { component, signal } from 'sigx';
-import { Combobox, Field, Textarea, caretAnchor } from '@sigx/zero';
+import { Combobox, Field, Input, Textarea, caretAnchor } from '@sigx/zero';
 import { virtualListbox } from '@sigx/zero/virtual-listbox';
 import { DemoRow } from '../demo/Section';
 import { STATIONS } from './fixtures';
@@ -12,6 +12,8 @@ const COUNTRIES = [
 ];
 
 const TOOLS = ['browser', 'editor', 'git', 'search', 'shell'];
+
+const COMMANDS = ['clear', 'deploy', 'describe', 'help', 'history'];
 
 const AGENTS = [
     { id: 'atlas', name: 'Atlas' },
@@ -28,6 +30,8 @@ const ComboboxDemos = component(() => {
         message: '',
         mentioned: [] as string[],
         sent: '',
+        command: '',
+        ran: '',
     });
 
     return () => (
@@ -163,6 +167,28 @@ const ComboboxDemos = component(() => {
                 </Textarea.Root>
             </Combobox.Root>
             <p><small>Mentioned: <code>{state.mentioned.join(', ') || '—'}</code> · Sent: <code>{state.sent || '—'}</code></small></p>
+            <p>
+                Single-line, the control is an <code>Input.Input</code> (#106):
+                a command line where <code>/</code> completes a command, and
+                Enter runs the line while the list is closed.
+            </p>
+            <Combobox.Root trigger="/" items={COMMANDS} anchor={caretAnchor}>
+                <Input.Root model={() => state.command}>
+                    <Input.Label>Command (/ to complete)</Input.Label>
+                    <Input.Control>
+                        <Input.Input
+                            placeholder="Type / for a command…"
+                            onKeydown={(e: KeyboardEvent) => {
+                                if (e.key !== 'Enter' || e.isComposing) return;
+                                e.preventDefault();
+                                state.ran = state.command;
+                                state.command = '';
+                            }}
+                        />
+                    </Input.Control>
+                </Input.Root>
+            </Combobox.Root>
+            <p><small>Ran: <code>{state.ran || '—'}</code></small></p>
             <p>
                 <code>readonly</code> and <code>invalid</code> are chrome, not
                 branches you have to write: readonly keeps the value, refuses to

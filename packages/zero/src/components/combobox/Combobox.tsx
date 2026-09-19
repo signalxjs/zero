@@ -47,8 +47,9 @@
  * itself — and a custom value posts like any other.
  *
  * TRIGGER MODE (#58): with `trigger` (`'@'`, or a RegExp) the control is
- * the `Textarea.Textarea` composed inside the root rather than an input —
- * an `@mention` over a message box:
+ * the `Textarea.Textarea` — or, single-line, the `Input.Input` (#106) —
+ * composed inside the root rather than an input: an `@mention` over a
+ * message box, a `/command` in a command line:
  *
  * ```tsx
  * <Combobox.Root trigger="@" items={people} itemLabel={(p) => p.name} onInsert={(d) => …}>
@@ -245,8 +246,9 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     & Define.Prop<'estimateItemSize', number, false>
     /**
      * Trigger mode (#58): autocomplete a token typed into the
-     * `Textarea.Textarea` inside the root — `'@'` for mentions, or a RegExp
-     * matched before the caret whose first group is the query. Read at setup.
+     * `Textarea.Textarea` or `Input.Input` (#106) inside the root — `'@'`
+     * for mentions, `'/'` for commands, or a RegExp matched before the caret
+     * whose first group is the query. Read at setup.
      */
     & Define.Prop<'trigger', string | RegExp, false>
     /**

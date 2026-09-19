@@ -1,11 +1,11 @@
 /**
  * The seam a text control offers to an ancestor that drives it — a
- * trigger-mode Combobox (#58) turning the `Textarea.Textarea` inside it into
- * the combobox's control.
+ * trigger-mode Combobox (#58) turning the `Textarea.Textarea` (or the
+ * `Input.Input`, #106) inside it into the combobox's control.
  *
  * The ancestor provides a binding; the control CLAIMS it at setup (the first
- * control to ask wins, so a second textarea nested somewhere below — inside
- * an option, say — stays an ordinary textarea), then renders the claim's
+ * control to ask wins, so a second control nested somewhere below — inside
+ * an option, say — stays an ordinary one), then renders the claim's
  * attributes over its own, lets the claim see each key before the app's
  * handler, and reports every change of text or caret. Everything the
  * ancestor needs from the element arrives through `setElement`, at mount.

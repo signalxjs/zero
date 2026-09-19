@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added — trigger mode over `Input.Input` (#106)
+
+- **A trigger-mode Combobox can drive a single-line `Input.Input`** as it
+  drives a `Textarea.Textarea`: a chat line or a command bar with
+  `/`-commands. `Input.Input` claims the same text-control binding. It
+  carries the ARIA, the combobox sees each key before the app's
+  `onKeydown`, and the token is re-read on input, keyup, click and blur.
+  Enter commits while the list is open and reaches the app (or submits the
+  form) only while it is closed. The first control inside the root to
+  claim the binding wins, whichever kind it is. `caretAnchor` measures an
+  input inline and spans its box's height, so the list opens under the
+  line, at the token.
+
 ### Added — trigger mode anchors at the caret: `anchor={caretAnchor}` (#105)
 
 - **`Combobox.Root anchor`** (trigger mode): where the list opens. Without

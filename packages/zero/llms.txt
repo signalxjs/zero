@@ -665,7 +665,9 @@ component renders; the root is called out separately where it carries props.
   with the text caret; no typeahead (typing IS the filter).
   TRIGGER MODE (#58): `trigger="@"` (or a RegExp matched before the caret,
   group 1 = the query) makes the Textarea.Textarea composed INSIDE the Root
-  the control — @mentions in a composer. Same scope, same Popup/Item/Group/
+  the control — @mentions in a composer — or, single-line, an Input.Input
+  (#106: /commands in a command bar; the same binding, the first control
+  to claim it wins). Same scope, same Popup/Item/Group/
   Empty parts, so no new recipe; no Control/Input/Trigger/HiddenInput
   render. The token at the caret (trigger at text start or after
   whitespace, then non-whitespace) is the query (model:inputValue). Opens
