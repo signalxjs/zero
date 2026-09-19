@@ -272,11 +272,19 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
     const openInMarkup = !dialog.modal() && dialog.state.value ? true : undefined;
 
     onMounted(() => {
-        effect(() => {
-            const open = dialog.state.value;
+        const sync = (open: boolean) => {
             const node = el;
             if (!node || typeof node.showModal !== 'function') return;
             if (open && !node.open) {
+                // A popup below another element mounts before its parent
+                // has inserted the subtree, and `showModal()` on a detached
+                // element throws (#102). By the next microtask it is in the
+                // document — autosize's reasoning — so a dialog open at
+                // mount opens then, if the model still says so.
+                if (!node.isConnected) {
+                    queueMicrotask(() => { if (node.isConnected) sync(dialog.state.value); });
+                    return;
+                }
                 // A stale result from the last close must not read as this
                 // one's (`close` reports a non-empty returnValue).
                 node.returnValue = '';
@@ -285,7 +293,8 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
             } else if (!open && node.open) {
                 node.close();
             }
-        });
+        };
+        effect(() => sync(dialog.state.value));
     });
 
     return () => {

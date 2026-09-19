@@ -4,7 +4,7 @@ import type { DialogCloseDetail } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const DialogDemos = component(() => {
-    const state = signal({ dialogOpen: false, findOpen: false, lastClose: 'none yet' });
+    const state = signal({ dialogOpen: false, findOpen: false, lastClose: 'none yet', restored: false, restoredOpen: false });
     const onAlertClose = (d: DialogCloseDetail): void => {
         state.lastClose = d.value === undefined ? d.reason : `${d.reason} · ${d.value}`;
     };
@@ -68,6 +68,35 @@ const DialogDemos = component(() => {
                 </Dialog.Popup>
             </Dialog.Root>
             <p data-demo="close-reason">Last close: {state.lastClose}</p>
+
+            <h2>Open at mount</h2>
+            <p>
+                A dialog whose model is already <code>true</code> when it
+                mounts — a page restoring <code>?pick=1</code>, a hydrated
+                SSR page. The popup mounts before its parent has inserted it,
+                and <code>showModal()</code> on a detached element throws, so
+                zero defers the call a microtask (#102). Mounted on demand
+                here rather than at page boot, so the rest of the page stays
+                reachable.
+            </p>
+            <button type="button" data-demo="mount-open" onClick={() => { state.restoredOpen = true; state.restored = true; }}>
+                Mount an open dialog
+            </button>
+            {state.restored ? (
+                <div data-demo="restored">
+                    <Dialog.Root model={() => state.restoredOpen} onOpenChange={(open: boolean) => { if (!open) state.restored = false; }}>
+                        <Dialog.Popup>
+                            <Dialog.Title>Restored open</Dialog.Title>
+                            <Dialog.Description>
+                                This dialog was open when it mounted.
+                            </Dialog.Description>
+                            <Dialog.Footer>
+                                <Dialog.Close>Close</Dialog.Close>
+                            </Dialog.Footer>
+                        </Dialog.Popup>
+                    </Dialog.Root>
+                </div>
+            ) : null}
         </>
     );
 }, { name: 'DialogDemos' });

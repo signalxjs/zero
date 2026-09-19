@@ -166,3 +166,22 @@ test('the close event reports why: native Escape, a valued Close, Cancel (#52)',
     await popup.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(readout).toHaveText('Last close: cancel');
 });
+
+test('a dialog whose model is already open at mount opens, and throws nothing (#102)', async ({ page }) => {
+    // The popup mounts before its parent inserts the subtree, so a
+    // synchronous `showModal()` hits a detached element — which every real
+    // engine refuses with InvalidStateError. The demo mounts the dialog on
+    // demand with its model already `true`, the issue's exact shape.
+    const errors: string[] = [];
+    page.on('pageerror', (error) => { errors.push(error.message); });
+    page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+    await page.locator('[data-demo="mount-open"]').click();
+    const popup = page.locator('[data-demo="restored"] [data-scope="dialog"][data-part="popup"]');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await expect(popup).toBeVisible();
+    expect(await popup.evaluate((el) => el.matches(':modal'))).toBe(true);
+    expect(errors).toEqual([]);
+    // And it is a working dialog: Close takes it down and unmounts the demo.
+    await popup.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(page.locator('[data-demo="restored"]')).toHaveCount(0);
+});

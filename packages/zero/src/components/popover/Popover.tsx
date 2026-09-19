@@ -180,14 +180,23 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
     let el: HTMLElement | null = null;
 
     onMounted(() => {
-        effect(() => {
-            const open = popover.state.value;
+        const sync = (open: boolean) => {
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
             if (!node) return;
             if (typeof node.showPopover === 'function') {
                 const showing = node.matches(':popover-open');
-                if (open && !showing) node.showPopover();
-                else if (!open && showing) node.hidePopover!();
+                if (open && !showing) {
+                    // A popup below another element mounts before its parent
+                    // has inserted the subtree, and `showPopover()` on a
+                    // detached element throws (#102) — Dialog's deferral.
+                    if (!node.isConnected) {
+                        queueMicrotask(() => { if (node.isConnected) sync(popover.state.value); });
+                        return;
+                    }
+                    node.showPopover();
+                } else if (!open && showing) {
+                    node.hidePopover!();
+                }
             }
             // A dialog-role popup receives focus on open (APG): the first
             // tabbable, or the popup itself (tabIndex -1 below). After
@@ -201,7 +210,8 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
                     if (popover.state.value && node.isConnected) focusFirst(node);
                 }, 0);
             }
-        });
+        };
+        effect(() => sync(popover.state.value));
     });
 
     return () => {
