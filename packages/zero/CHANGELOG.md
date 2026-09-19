@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+> Upgrading from 0.2.0-beta.1? [`docs/upgrading.md`](../../docs/upgrading.md)
+> has the before/after for every breaking change below.
+
 ### Added — trigger mode: `itemInsert`, the text a commit inserts (#107)
 
 - **`Combobox.Root itemInsert`** (trigger mode) replaces the default

@@ -10,6 +10,10 @@ artifact compiled by [`@sigx/zero-kit`](https://npmjs.com/package/@sigx/zero-kit
 npm install @sigx/zero sigx
 ```
 
+Coming from 0.2.0-beta.1? The
+[upgrade guide](https://github.com/signalxjs/zero/blob/main/docs/upgrading.md)
+has a before/after for every breaking change.
+
 ```tsx
 import { Dialog } from '@sigx/zero/dialog';
 import '@sigx/zero/css';               // layer order + token fallbacks

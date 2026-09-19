@@ -12,6 +12,10 @@ build pipeline as one function).
 npm install -D @sigx/zero-kit @sigx/cli
 ```
 
+Coming from 0.2.0-beta.1? The
+[upgrade guide](https://github.com/signalxjs/zero/blob/main/docs/upgrading.md)
+has a before/after for every breaking change, the kit's included.
+
 `@sigx/cli` provides the `sigx` binary; the kit plugs its `zero:build` /
 `zero:validate` commands into it on install (see [CLI](#cli) below). Install it
 alongside — a package manager only links the executables of *direct*
