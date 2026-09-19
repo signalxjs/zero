@@ -295,6 +295,11 @@ export function pickRole(...preferred: string[]): string | undefined {
     return pickDeclared(activeVocabulary().colors, preferred);
 }
 
+/** Pick a `size` value from the active design system's declared ramp. */
+export function pickSize(...preferred: string[]): string | undefined {
+    return pickDeclared(activeVocabulary().sizes, preferred);
+}
+
 /** Pick a `variant` value from the active design system's declared variants. */
 export function pickVariant(...preferred: string[]): string | undefined {
     return pickDeclared(activeVocabulary().variants, preferred);

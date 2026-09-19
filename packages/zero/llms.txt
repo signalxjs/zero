@@ -128,7 +128,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-57 components ship today. Every part each renders is listed below, in
+58 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -531,6 +531,16 @@ component renders; the root is called out separately where it carries props.
   content too, so the consumer wraps the actual link set in its own
   labelled <nav> inside a section. start/end are the logical pair, so RTL
   mirrors free.
+- NavList: Root(label)/Group/Heading/List/Item/Link(current,asChild)/Icon/
+  Meta (#132) — the sidebar's navigation list, and the <nav> Navbar points
+  at: exactly the links. Root is a labelled <nav> landmark over <ul> lists;
+  Link is an <a> whose `current` renders aria-current="page" +
+  data-state="active" (Breadcrumbs' rule: the current page is the
+  activation STATE, never a flag; the others are `inactive`). Group is a
+  role="group" named by its Heading (ids wired for you); Icon is
+  aria-hidden; Meta is the trailing slot (a Badge count, a Kbd hint) skins
+  push to the far edge. No behaviour: the router passes `current` in.
+  Renders inside a responsive Drawer.Panel as it renders anywhere.
 - Breadcrumbs: Root(label)/List/Item/Link(current,asChild)/Separator — the
   APG breadcrumb pattern: <nav aria-label="Breadcrumb"> around an <ol>
   (order IS the meaning). The current page's link carries
@@ -786,7 +796,7 @@ value, `model:inputValue` = text, `model:open` = open.
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
 Divider, EmptyState, Field, Indicator, Input, Join, Kbd, Menu, NumberInput,
-Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
+Navbar, NavList, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
 Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
 Table, FileUpload, Carousel, Swap, Countdown, Diff and TreeView;

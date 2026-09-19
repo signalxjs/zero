@@ -301,6 +301,8 @@ export { Join, joinAnatomy, useJoinContext } from './components/join/index.js';
 export type { JoinRootProps, JoinItemProps } from './components/join/index.js';
 
 export { Navbar, navbarAnatomy } from './components/navbar/index.js';
+export { NavList, navListAnatomy } from './components/nav-list/index.js';
+export type { NavListRootProps, NavListPartProps, NavListLinkProps } from './components/nav-list/index.js';
 export type { NavbarRootProps, NavbarSectionProps } from './components/navbar/index.js';
 
 export { Breadcrumbs, breadcrumbsAnatomy } from './components/breadcrumbs/index.js';

@@ -3810,6 +3810,90 @@ export const navbar: RecipeInput = {
 };
 
 /**
+ * NavList (zero#132) — HeroUI's sidebar rows: the muted ink at rest, a
+ * base-200 wash on hover, and the current page in the primary on its soft
+ * tint. No colour axis here (`roles: {}`).
+ */
+export const navList: RecipeInput = {
+    component: 'nav-list',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-lg)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        group: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+        },
+        heading: {
+            base: { ...label, padding: '0 var(--space-md)', fontSize: 'var(--text-xs)', color: 'var(--hero-muted)' },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: { base: { display: 'block' } },
+        link: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                textDecoration: 'none',
+                color: 'var(--hero-muted)',
+                padding: 'var(--space-sm) var(--space-md)',
+                borderRadius: 'var(--radius-field)',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-tight)',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
+                active: { background: 'color-mix(in oklab, var(--hero-primary) 15%, transparent)', color: 'var(--hero-primary)' },
+                inactive: {},
+                ...focusRing,
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                inlineSize: '1.25em',
+                justifyContent: 'center',
+                flex: 'none',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        meta: {
+            base: {
+                marginInlineStart: 'auto',
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--hero-muted)',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } }, link: { base: { padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } }, link: { base: { padding: 'var(--space-md) var(--space-lg)' } } },
+        },
+    },
+};
+
+/**
  * Breadcrumbs — HeroUI's muted-foreground trail: quiet links that rise to
  * full foreground on hover, the current crumb full foreground. Size-only.
  */
@@ -4845,7 +4929,7 @@ export const recipes: RecipeInput[] = [
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps, drawer,
+    navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,
     carousel,

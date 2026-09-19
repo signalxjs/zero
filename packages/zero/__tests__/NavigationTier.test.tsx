@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { PartProps } from '@sigx/zero';
-import { Breadcrumbs, breadcrumbsAnatomy, Navbar, navbarAnatomy, Pagination, paginationAnatomy } from '@sigx/zero';
+import { Badge, Breadcrumbs, breadcrumbsAnatomy, Navbar, navbarAnatomy, NavList, navListAnatomy, Pagination, paginationAnatomy } from '@sigx/zero';
 import { signal } from 'sigx';
 import { expectAnatomy } from './helpers';
 
@@ -77,6 +77,124 @@ describe('Navbar', () => {
         expect(root.getAttribute('data-color')).toBe('primary');
         expect(root.getAttribute('data-size')).toBe('lg');
         expectAnatomy(container, navbarAnatomy);
+    });
+});
+
+describe('NavList (#132)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    function mount(current: string) {
+        render(
+            <NavList.Root label="Main" color="primary">
+                <NavList.Group>
+                    <NavList.Heading>Workspace</NavList.Heading>
+                    <NavList.List>
+                        <NavList.Item>
+                            <NavList.Link href="/inbox" current={current === '/inbox'}>
+                                <NavList.Icon>✉</NavList.Icon>
+                                Inbox
+                                <NavList.Meta><Badge>12</Badge></NavList.Meta>
+                            </NavList.Link>
+                        </NavList.Item>
+                        <NavList.Item>
+                            <NavList.Link href="/sent" current={current === '/sent'}>Sent</NavList.Link>
+                        </NavList.Item>
+                    </NavList.List>
+                </NavList.Group>
+                <NavList.List>
+                    <NavList.Item>
+                        <NavList.Link asChild current={current === '/settings'}>
+                            {(p: PartProps) => <a href="/settings" {...p}>Settings</a>}
+                        </NavList.Link>
+                    </NavList.Item>
+                </NavList.List>
+            </NavList.Root>,
+            container,
+        );
+    }
+
+    it('is a named navigation landmark over lists, with the current page as the active link', () => {
+        mount('/inbox');
+        expectAnatomy(container, navListAnatomy);
+        const root = part(container, 'nav-list', 'root');
+        expect(root.tagName).toBe('NAV');
+        expect(root.getAttribute('aria-label')).toBe('Main');
+        expect(root.getAttribute('data-color')).toBe('primary');
+        const links = [...container.querySelectorAll('[data-scope="nav-list"][data-part="link"]')];
+        expect(links.map((l) => l.getAttribute('data-state'))).toEqual(['active', 'inactive', 'inactive']);
+        expect(links.map((l) => l.getAttribute('aria-current'))).toEqual(['page', null, null]);
+        // Breadcrumbs' rule: the current page is the activation STATE, never a flag.
+        expect(links[0]!.hasAttribute('data-current')).toBe(false);
+    });
+
+    it('a group is named by its heading, ids wired without the consumer', async () => {
+        mount('/sent');
+        // The reference is written a microtask after the heading mounts.
+        await new Promise((r) => setTimeout(r, 0));
+        const group = part(container, 'nav-list', 'group');
+        const heading = part(container, 'nav-list', 'heading');
+        expect(group.getAttribute('role')).toBe('group');
+        expect(heading.id).toBeTruthy();
+        expect(group.getAttribute('aria-labelledby')).toBe(heading.id);
+    });
+
+    it('a group without a heading references nothing — no dangling aria-labelledby', async () => {
+        render(
+            <NavList.Root label="Main">
+                <NavList.Group aria-label="Pinned">
+                    <NavList.List><NavList.Item><NavList.Link href="/a">A</NavList.Link></NavList.Item></NavList.List>
+                </NavList.Group>
+                <NavList.Group>
+                    <NavList.List><NavList.Item><NavList.Link href="/b">B</NavList.Link></NavList.Item></NavList.List>
+                </NavList.Group>
+            </NavList.Root>,
+            container,
+        );
+        await new Promise((r) => setTimeout(r, 0));
+        const groups = container.querySelectorAll('[data-scope="nav-list"][data-part="group"]');
+        expect(groups[0]!.getAttribute('aria-label')).toBe('Pinned');
+        expect(groups[0]!.hasAttribute('aria-labelledby')).toBe(false);
+        expect(groups[1]!.hasAttribute('aria-labelledby')).toBe(false);
+        expectAnatomy(container, navListAnatomy);
+    });
+
+    it('the icon is decorative, meta holds a composed Badge, and asChild keeps the router\'s anchor', () => {
+        mount('/settings');
+        expect(part(container, 'nav-list', 'icon').getAttribute('aria-hidden')).toBe('true');
+        expect(part(container, 'nav-list', 'meta').querySelector('[data-scope="badge"]')).not.toBeNull();
+        const settings = [...container.querySelectorAll('[data-scope="nav-list"][data-part="link"]')].at(-1)!;
+        expect(settings.tagName).toBe('A');
+        expect(settings.getAttribute('href')).toBe('/settings');
+        expect(settings.getAttribute('data-state')).toBe('active');
+        expect(settings.getAttribute('aria-current')).toBe('page');
+    });
+
+    it('server-renders the landmark, the group name and the current link', async () => {
+        const { defineApp } = await import('sigx');
+        const { renderToString } = await import('@sigx/server-renderer');
+        const { zeroPlugin } = await import('@sigx/zero');
+        const app = defineApp(
+            <NavList.Root label="Main">
+                <NavList.Group>
+                    <NavList.Heading>Workspace</NavList.Heading>
+                    <NavList.List><NavList.Item><NavList.Link href="/inbox" current>Inbox</NavList.Link></NavList.Item></NavList.List>
+                </NavList.Group>
+            </NavList.Root>,
+        );
+        app.use(zeroPlugin());
+        const html = await renderToString(app);
+        expect(html).toMatch(/<nav[^>]*aria-label="Main"[^>]*data-scope="nav-list"/);
+        expect(html).toMatch(/role="group"/);
+        // The group's name is written once the heading has mounted (a
+        // microtask after, on the client); the server render never writes a
+        // reference that could dangle, so any it does write must resolve.
+        for (const [, id] of html.matchAll(/aria-labelledby="([^"]+)"/g)) expect(html).toContain(`id="${id}"`);
+        expect(html).toMatch(/<div[^>]*id="zx-nav-list-heading[^"]*"[^>]*data-part="heading"/);
+        expect(html).toMatch(/<a[^>]*data-part="link"[^>]*data-state="active"[^>]*aria-current="page"/);
     });
 });
 

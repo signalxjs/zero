@@ -11,8 +11,9 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * to. `<header>` scoped to the document is the *banner* landmark — the
  * page-level bar this component is — and the actual link set gets its
  * `<nav>` from the consumer, INSIDE a section, wrapped around exactly the
- * links and nothing else. Zero cannot know which section holds the links,
- * so the one landmark it can honestly emit is the banner.
+ * links and nothing else — `NavList` (#132) is that `<nav>`. Zero cannot
+ * know which section holds the links, so the one landmark it can honestly
+ * emit here is the banner.
  *
  * No states, no flags, no behavior: the bar is pure composition — three
  * optional sections on a flex row the recipes lay out. `start`/`end` are the

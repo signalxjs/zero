@@ -4217,6 +4217,97 @@ export const navbar: RecipeInput = {
 };
 
 /**
+ * NavList (zero#132) — Carbon's side-nav: square rows on the layer, the
+ * hover wash, and the current page marked by the interactive rule at its
+ * reading edge over a selected layer — the tab's answer, one level down.
+ * No colour axis (`roles: {}`).
+ */
+export const navList: RecipeInput = {
+    component: 'nav-list',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-lg)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        group: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+        },
+        heading: {
+            base: {
+                padding: '0 var(--space-lg)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: { base: { display: 'block' } },
+        link: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                textDecoration: 'none',
+                color: 'var(--color-base-content)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                borderRadius: '0',
+                borderInlineStart: '3px solid transparent',
+                lineHeight: 'var(--leading-tight)',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { background: layerHover },
+                active: { background: layerActive, borderInlineStartColor: 'var(--carbon-interactive)', fontWeight: 'var(--weight-semibold)' },
+                inactive: {},
+                ...focusRing,
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                inlineSize: '1.25em',
+                justifyContent: 'center',
+                flex: 'none',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        meta: {
+            base: {
+                marginInlineStart: 'auto',
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } }, link: { base: { padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } }, link: { base: { padding: 'var(--space-md) var(--space-xl)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)' } }, link: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
+            '2xl': { root: { base: { fontSize: 'var(--text-xl)' } }, link: { base: { padding: 'var(--space-xl) var(--space-2xl)' } } },
+        },
+    },
+};
+
+/**
  * Breadcrumbs — Carbon's breadcrumb: body-compact links in the secondary
  * text ink, underline only on hover, the current page in full text ink
  * with weight. Size-only; the focus ring is the shared `--carbon-focus`.
@@ -5320,7 +5411,7 @@ export const recipes: RecipeInput[] = [
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps, drawer,
+    navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,
     carousel,

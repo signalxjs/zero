@@ -4326,6 +4326,112 @@ export const navbar: RecipeInput = {
 };
 
 /**
+ * NavList (zero#132) — Material's navigation drawer items: pill rows, a
+ * state-layer wash on hover, and the active item as the secondary
+ * container with its on-colour — the same pair the role axis remaps.
+ */
+export const navList: RecipeInput = {
+    component: 'nav-list',
+    hooks: {
+        properties: {
+            '--nav-accent': 'The active item\'s ink.',
+            '--nav-tint': 'The active item\'s container.',
+            '--nav-ink': 'The resting item ink.',
+        },
+    },
+    tokens: {
+        '--nav-accent': 'var(--color-secondary)',
+        '--nav-tint': 'var(--color-secondary-soft)',
+        '--nav-ink': 'var(--color-base-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-lg)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        group: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+        },
+        heading: {
+            base: {
+                ...label,
+                padding: '0 var(--space-lg)',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: { base: { display: 'block' } },
+        link: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                textDecoration: 'none',
+                color: 'var(--nav-ink)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                borderRadius: '9999px',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-tight)',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { background: 'color-mix(in oklab, var(--color-base-content) 8%, transparent)' },
+                active: { background: 'var(--nav-tint)', color: 'var(--nav-accent)' },
+                inactive: {},
+                ...focusRing,
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                inlineSize: '1.5em',
+                justifyContent: 'center',
+                flex: 'none',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        meta: {
+            base: {
+                marginInlineStart: 'auto',
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--nav-accent': `var(--color-${c})`,
+            '--nav-tint': `var(--color-${c}-soft)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)' } }, link: { base: { padding: 'var(--space-2xs) var(--space-md)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } }, link: { base: { padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } }, link: { base: { padding: 'var(--space-md) var(--space-xl)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)' } }, link: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
+        },
+    },
+};
+
+/**
  * Breadcrumbs — Material's label-large trail: on-surface-variant links that
  * rise to on-surface under the pointer, the current page in on-surface with
  * medium weight. No underlines — Material separates interactivity by tone,
@@ -5516,7 +5622,7 @@ export const recipes: RecipeInput[] = [
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps, drawer,
+    navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,
     carousel,

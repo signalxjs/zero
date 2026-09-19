@@ -279,6 +279,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     join: ['id', 'role', 'title'],
     kbd: ['id', 'role', 'title'],
     menu: ['closeOnSelect', 'defaultOpen', 'offset', 'placement', 'positionStrategy', 'value'],
+    'nav-list': ['id', 'label', 'title'],
     navbar: ['id', 'role', 'title'],
     'number-input': ['allowWheel', 'clampOnBlur', 'defaultValue', 'form', 'format', 'id', 'invalid', 'max', 'min', 'name', 'parse', 'readonly', 'required', 'role', 'step', 'title', 'value'],
     pagination: ['boundaryCount', 'count', 'defaultPage', 'id', 'label', 'nextLabel', 'prevLabel', 'role', 'siblingCount', 'title', 'value'],

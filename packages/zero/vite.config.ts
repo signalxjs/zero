@@ -63,6 +63,7 @@ export default defineLibConfig({
         'components/radial-progress/index': 'src/components/radial-progress/index.ts',
         'components/join/index': 'src/components/join/index.ts',
         'components/navbar/index': 'src/components/navbar/index.ts',
+        'components/nav-list/index': 'src/components/nav-list/index.ts',
         'components/breadcrumbs/index': 'src/components/breadcrumbs/index.ts',
         'components/pagination/index': 'src/components/pagination/index.ts',
         'components/steps/index': 'src/components/steps/index.ts',

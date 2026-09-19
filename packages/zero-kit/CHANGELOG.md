@@ -11,6 +11,11 @@
   vendor-named api cannot claim them as axis props there. Every skin's
   goldens gain the scope.
 
+### Changed — `RESERVED_PROPS_BY_SCOPE` gains `nav-list` (zero#132)
+
+- The new scope's root props (`id`, `label`, `title`; the root refuses
+  `role`) are reserved. Every skin's goldens gain the scope.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE.combobox` gains `anchor` (zero#105) and `itemInsert` (zero#107)
 
 - The trigger-mode Combobox's new `anchor` prop (where its list opens) and

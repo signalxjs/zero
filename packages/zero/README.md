@@ -35,7 +35,7 @@ Select · Switch · Checkbox · RadioGroup · Slider · Progress ·
 Field · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · EmptyState · Badge · Divider ·
 Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · RadialProgress · Join ·
-Navbar · Breadcrumbs · Pagination · Steps · Drawer · Table · FileUpload · Carousel · Swap · Countdown · Diff
+Navbar · NavList · Breadcrumbs · Pagination · Steps · Drawer · Table · FileUpload · Carousel · Swap · Countdown · Diff
 Stack (Row/Col) · Spacer · Grid · Center · Box · Container
 
 All state is one two-way `model` prop (sigx `Define.Model`) — bind a signal
@@ -368,6 +368,37 @@ Alert: an alert announces itself (`role="alert"`) and can be dismissed; an
 empty state is the page's content while there is none, read in flow, and
 stays until the content arrives. No role of its own (pass `role="status"`
 to have a failure announced), no open/closed — presence is your `if`.
+
+**NavList: the sidebar's navigation list** (#132) — and the `<nav>` a
+Navbar deliberately does not carry (its `<header>` holds a logo, a search
+field, an account menu; the landmark for *exactly the links* is this). A
+labelled `<nav>` over groups of links, the current page as
+`aria-current="page"` and `data-state="active"` — Breadcrumbs' rule, one
+level down: the current page is the activation state, never a flag — an
+`Icon` in front and a `Meta` slot at the far edge for a count or a key hint:
+
+```tsx
+<NavList.Root label="Main">
+    <NavList.Group>
+        <NavList.Heading>Workspace</NavList.Heading>
+        <NavList.List>
+            <NavList.Item>
+                <NavList.Link href="/inbox" current={route() === '/inbox'}>
+                    <NavList.Icon>✉</NavList.Icon>
+                    Inbox
+                    <NavList.Meta><Badge>12</Badge></NavList.Meta>
+                </NavList.Link>
+            </NavList.Item>
+        </NavList.List>
+    </NavList.Group>
+</NavList.Root>
+```
+
+No behaviour: which link is current is the router's knowledge, passed in;
+`Link` is `asChild` for a router's own anchor. A `Group` is a `role="group"`
+named by its `Heading` with the ids wired for you. It renders inside a
+responsive `Drawer.Panel` (`modal={{ below: 'md' }}`) as it renders
+anywhere — the drawer decides whether the sidebar is docked or a sheet.
 
 **Attribute pass-through.** sigx forwards no rest props, so a part only
 renders what it declares. Every part an app writes takes `WithHtmlAttrs` and

@@ -45,6 +45,24 @@
   design systems style it; `RESERVED_PROPS_BY_SCOPE` gains the scope.
 - Size: `@sigx/zero/empty-state` 1.6 kB; the full barrel 47.7 → 47.9 kB.
 
+### Added — NavList (#132)
+
+- **A new component, `NavList`** (`@sigx/zero/nav-list` and the barrel):
+  the navigation list a sidebar is made of, and the `<nav>` Navbar's
+  `<header>` deliberately does not carry. Parts: `root` (a labelled `<nav>`
+  landmark, the carrier; `role` refused), `group` (`role="group"`, named by
+  its `heading` through an id minted SSR-safe — the reference is written
+  only while a heading is rendered, so it never dangles; a group without
+  one takes `aria-label`), `heading`, `list` (`<ul>`),
+  `item`, `link` (`<a>`, `asChild`; `current` renders `aria-current="page"`
+  + `data-state="active"`, the rest `inactive` — Breadcrumbs' rule, the
+  current page is the activation state and never a flag), `icon`
+  (`aria-hidden`) and `meta`, the trailing slot every skin pushes to the far
+  edge. No behaviour: the router passes `current` in. All six design
+  systems style it; `RESERVED_PROPS_BY_SCOPE` gains the scope.
+- Size: `@sigx/zero/nav-list` 2 kB; the full barrel 47.9 → 48.2 kB (over EmptyState); the
+  anatomy tooling entry 3.6 → 3.7 kB.
+
 ### Added — trigger mode: `itemInsert`, the text a commit inserts (#107)
 
 - **`Combobox.Root itemInsert`** (trigger mode) replaces the default
