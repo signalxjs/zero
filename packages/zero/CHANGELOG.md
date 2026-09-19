@@ -51,7 +51,9 @@
   the navigation list a sidebar is made of, and the `<nav>` Navbar's
   `<header>` deliberately does not carry. Parts: `root` (a labelled `<nav>`
   landmark, the carrier; `role` refused), `group` (`role="group"`, named by
-  its `heading` through ids minted SSR-safe), `heading`, `list` (`<ul>`),
+  its `heading` through an id minted SSR-safe — the reference is written
+  only while a heading is rendered, so it never dangles; a group without
+  one takes `aria-label`), `heading`, `list` (`<ul>`),
   `item`, `link` (`<a>`, `asChild`; `current` renders `aria-current="page"`
   + `data-state="active"`, the rest `inactive` — Breadcrumbs' rule, the
   current page is the activation state and never a flag), `icon`

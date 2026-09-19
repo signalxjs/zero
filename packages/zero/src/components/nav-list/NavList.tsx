@@ -68,6 +68,7 @@ export type NavListPartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'
 
 interface NavListGroupContext {
     headingId: string;
+    setHeadingPresent(present: boolean): void;
 }
 
 const useNavListGroup = defineInjectable<NavListGroupContext | null>(() => null);
@@ -75,19 +76,34 @@ const useNavListGroup = defineInjectable<NavListGroupContext | null>(() => null)
 /**
  * A section of the sidebar. `role="group"`, named by its Heading through
  * `aria-labelledby` — the heading's id is minted here (SSR-safe) and
- * provided down, so a group with a Heading is named without the consumer
- * wiring ids. An app `aria-labelledby` wins; an app `role` wins.
+ * provided down, and the reference is written only while a Heading is
+ * actually rendered (Dialog's `titlePresent` seam), so a group without one
+ * never points at an element that does not exist. A group with no Heading
+ * is an unnamed group; give it `aria-label` if it needs a name. An app
+ * `aria-labelledby` or `role` wins. Server-rendered, the reference lands at
+ * hydration (nothing re-renders on the server after the heading registers),
+ * which is the same shape as a Dialog's title reference.
  */
-const NavListGroup = component<NavListPartProps>(({ props, slots }) => {
+const NavListGroup = component<NavListPartProps>(({ props, slots, signal }) => {
     const headingId = createId('zx-nav-list-heading');
-    defineProvide(useNavListGroup, () => ({ headingId }));
+    // Written from Heading one microtask after its setup — a write made
+    // during the render pass is invisible to the already-rendered group
+    // (Dialog's reasoning for its `present` flags).
+    const present = signal({ heading: false });
+    defineProvide(useNavListGroup, () => ({
+        headingId,
+        setHeadingPresent: (p) => { present.heading = p; },
+    }));
     return () => {
         const attrs = htmlAttrs(props);
+        const labelledBy = typeof attrs['aria-labelledby'] === 'string'
+            ? attrs['aria-labelledby']
+            : present.heading ? headingId : undefined;
         return (
             <div
                 {...attrs}
                 role={typeof attrs.role === 'string' ? attrs.role : 'group'}
-                aria-labelledby={typeof attrs['aria-labelledby'] === 'string' ? attrs['aria-labelledby'] : headingId}
+                aria-labelledby={labelledBy}
                 data-scope={SCOPE}
                 data-part="group"
                 class={props.class}
@@ -98,8 +114,14 @@ const NavListGroup = component<NavListPartProps>(({ props, slots }) => {
     };
 }, { name: 'NavList.Group' });
 
-const NavListHeading = component<NavListPartProps>(({ props, slots }) => {
+const NavListHeading = component<NavListPartProps>(({ props, slots, onUnmounted }) => {
     const group = useNavListGroup();
+    let alive = true;
+    queueMicrotask(() => { if (alive) group?.setHeadingPresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        group?.setHeadingPresent(false);
+    });
     return () => {
         const attrs = htmlAttrs(props);
         return (

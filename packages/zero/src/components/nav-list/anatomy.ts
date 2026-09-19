@@ -17,9 +17,11 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * is the `<nav>` it points at — exactly the links, and nothing else. Give
  * it a `label` when a page has more than one navigation landmark.
  *
- * `group` is optional structure with an optional `heading`: a section of
- * the sidebar ("Projects", "Settings"). It is a `role="group"` named by its
- * heading, not a nested `<nav>` — one landmark per sidebar. `icon` is
+ * `group` is optional structure: a section of the sidebar ("Projects",
+ * "Settings"), a `role="group"` and not a nested `<nav>` — one landmark per
+ * sidebar. Its `heading` names it (`aria-labelledby`, written only while a
+ * heading is rendered, so the reference never dangles); a group without one
+ * is unnamed, and takes `aria-label` if it needs a name. `icon` is
  * decorative; `meta` is the trailing slot (an unread count as a `Badge`, a
  * `Kbd` hint) that every skin pushes to the far edge.
  */
