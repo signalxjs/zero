@@ -569,6 +569,16 @@ describe('recipe.schema.json', () => {
         }
     });
 
+    it('holds a composes entry to composing something — non-empty parts or axes (#91)', () => {
+        const recipe = (composes: unknown) => ({ component: 'card', parts: {}, composes });
+        expect(validateRecipe(recipe({ button: { axes: { size: 'sm' } } }))).toBe(true);
+        expect(validateRecipe(recipe({ button: { parts: { root: {} } } }))).toBe(true);
+        expect(validateRecipe(recipe({ button: { within: 'footer' } }))).toBe(false);
+        expect(validateRecipe(recipe({ button: { parts: {}, axes: {} } }))).toBe(false);
+        const conditioned = { component: 'card', parts: {}, compoundVariants: [{ match: { size: 'sm' }, parts: {}, composes: { button: { axes: { size: 'xs' } } } }] };
+        expect(validateRecipe(conditioned)).toBe(true);
+    });
+
     it('rejects a recipe without a component', () => {
         expect(validateRecipe(asJson({ parts: { root: { base: { color: 'red' } } } }))).toBe(false);
     });

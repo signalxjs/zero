@@ -616,7 +616,7 @@ Other compilation facts a reader needs:
     outer `:scope`. `e2e/composes.spec.ts` holds all of it in Chromium,
     Firefox and WebKit.
 
-  Lynx drops every form, one report entry per nested scope (the class
+  Lynx drops every form, one report entry per occurrence (the class
   grammar has no cross-scope descendant). The nested component keeps its
   own recipe.
 - Everything lands inside `@layer zero.recipes`; `@keyframes` are emitted

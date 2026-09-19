@@ -486,8 +486,9 @@ export function compileLynxRecipeCss(
     // `composes` in every form — explicit parts, borrowed axis values (#91)
     // and a compound's conditioned compositions — is a descendant selector
     // across two scopes, which the class grammar has no form for. Dropped
-    // with one entry per nested scope; the nested component keeps its own
-    // recipe, including the rules a borrowing host would have re-used.
+    // with one report entry per occurrence (the top-level entry and each
+    // compound's, by path); the nested component keeps its own recipe,
+    // including the rules a borrowing host would have re-used.
     const composed = [
         ...Object.keys(recipe.composes ?? {}).map((nested) => `composes["${nested}"]`),
         ...(recipe.compoundVariants ?? []).flatMap((cv, i) =>

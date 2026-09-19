@@ -30,7 +30,7 @@
     `composes` is kept.
   - `fitRecipesToVocabulary` drops a borrowed value the vocabulary does not
     admit for the nested scope.
-  - The lynx target drops every form, with one report entry each.
+  - The lynx target drops every form, one report entry per occurrence.
   - `recipe.schema.json` declares all of it (`$defs.composes`,
     `$defs.composedScope`).
 
