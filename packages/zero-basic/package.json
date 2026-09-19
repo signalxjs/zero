@@ -68,7 +68,7 @@
         "@sigx/zero": "workspace:^",
         "@sigx/zero-ext-example": "workspace:*",
         "@sigx/zero-kit": "workspace:^",
-        "typescript": "^6.0.3"
+        "typescript": "^7.0.2"
     },
     "publishConfig": {
         "access": "public"
