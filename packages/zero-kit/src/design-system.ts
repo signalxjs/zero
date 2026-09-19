@@ -103,7 +103,7 @@ export interface CompiledComponentAxes {
     hooks?: CompiledHooks;
 }
 
-/** `RecipeHooks` as the manifest carries it: only non-empty sections, arrays copied. */
+/** `RecipeHooks` as the manifest carries it: only non-empty sections, lists copied and deduplicated. */
 export interface CompiledHooks {
     properties?: Record<string, string>;
     keyframes?: string[];
@@ -114,9 +114,9 @@ function compileHooks(hooks: RecipeHooks | undefined): CompiledHooks | undefined
     if (!hooks) return undefined;
     const out: CompiledHooks = {};
     if (hooks.properties && Object.keys(hooks.properties).length > 0) out.properties = { ...hooks.properties };
-    if (hooks.keyframes && hooks.keyframes.length > 0) out.keyframes = [...hooks.keyframes];
+    if (hooks.keyframes && hooks.keyframes.length > 0) out.keyframes = [...new Set(hooks.keyframes)];
     const pseudo = Object.entries(hooks.pseudo ?? {}).filter(([, list]) => list.length > 0);
-    if (pseudo.length > 0) out.pseudo = Object.fromEntries(pseudo.map(([part, list]) => [part, [...list]]));
+    if (pseudo.length > 0) out.pseudo = Object.fromEntries(pseudo.map(([part, list]) => [part, [...new Set(list)]]));
     return Object.keys(out).length > 0 ? out : undefined;
 }
 

@@ -359,6 +359,7 @@
                             "description": "Keyframe names a derived system may reference in `animation`.",
                             "type": "array",
                             "minItems": 1,
+                            "uniqueItems": true,
                             "items": {
                                 "type": "string",
                                 "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$"
@@ -374,6 +375,7 @@
                             "additionalProperties": {
                                 "type": "array",
                                 "minItems": 1,
+                                "uniqueItems": true,
                                 "items": {
                                     "enum": [
                                         "::before",
