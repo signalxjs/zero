@@ -157,6 +157,25 @@ describe('the web compiler: the nearest carrier wins', () => {
         expect(out.indexOf(`@scope (${row}`)).toBeGreaterThan(out.indexOf(`@scope (${r}`));
     });
 
+    it('bounds a re-carrier\'s donut at EVERY re-carrier of the axis, so two in one chain never overlap', () => {
+        const nestedAnatomy = defineAnatomy('acme-thread', {
+            'root': { element: 'div' },
+            'group': { element: 'div', parent: 'root', carries: ['color'] },
+            'row': { element: 'div', parent: 'group', carries: ['color'] },
+            'bubble': { element: 'div', parent: 'row' },
+        });
+        const thread = mergeManifests(manifest, { version: 1, package: '@acme/zero-thread', components: [nestedAnatomy.toJSON() as ManifestComponent] })
+            .components.find((c) => c.scope === 'acme-thread')!;
+        const out = compileRecipeCss({
+            component: 'acme-thread',
+            parts: {},
+            variants: { color: { error: { bubble: { base: { color: 'red' } } } } },
+        }, thread);
+        const [r, group, row] = ['root', 'group', 'row'].map((p) => sel('acme-thread', p));
+        expect(out).toContain(`@scope (${row}[data-color="error"]) to (${r}, ${group}, ${row}) {`);
+        expect(out).toContain(`@scope (${group}[data-color="error"]) to (${r}, ${group}, ${row}) {`);
+    });
+
     it('drops the dead carrier-anchored rule for a top-layer re-carrier, and emits its own', () => {
         const out = compileRecipeCss({
             component: 'acme-float',

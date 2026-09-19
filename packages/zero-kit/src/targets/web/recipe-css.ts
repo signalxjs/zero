@@ -258,8 +258,9 @@ export function compileRecipeCss(
     // itself — `[marker][data-color="v"]` at (0,3,0) outranks the carrier's
     // donut rule at (0,2,0) — and an `@scope` donut rooted on it for a part
     // inside it, which scoping proximity resolves to the nearer carrier. The
-    // lower bound is the scope's carrier (a nested instance) or the same
-    // part again (a nested re-carrier, which answers for its own subtree).
+    // lower bound is the scope's carrier (a nested instance) or any part that
+    // re-carries the axis (a nested re-carrier, which answers for its own
+    // subtree).
     // Never for the `:not([attr])` default twin: a part with no value of its
     // own follows its carrier, which is the whole point.
     //
@@ -298,7 +299,12 @@ export function compileRecipeCss(
                 deferred.push(() => emitPartStyles(component, partName, styles, anchorSelector, sink, context, registry, suffix, []));
                 continue;
             }
-            const prelude = `@scope (${anchorSelector}) to (${partSelector(component.scope, carrierPart(component))}, ${partSelector(component.scope, anchor)})`;
+            // Bounded by the carrier and by EVERY part that re-carries this
+            // axis — a nested re-carrier, of the same part or another,
+            // answers for its own subtree, so two re-carriers' donuts never
+            // overlap and emission order cannot decide between them.
+            const bounds = [carrierPart(component), ...component.parts.filter((p) => p.carries?.includes(carried!)).map((p) => p.name)];
+            const prelude = `@scope (${anchorSelector}) to (${bounds.map((p) => partSelector(component.scope, p)).join(', ')})`;
             deferred.push(() => emitPartStyles(
                 component, partName, styles, partSelector(component.scope, host), sink, context, registry, suffix,
                 [resolveCondition(prelude, context, where, registry)],
