@@ -99,6 +99,7 @@ export {
     NOT_RENDERED_ON_WEB,
     PAINT_ONLY_PART,
     axisCellsFor,
+    axisHost,
     axisTag,
     cellKey,
     chainFor,

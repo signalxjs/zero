@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Added — a part may re-carry an axis: per-entry Timeline colour (#94)
+
+- **`PartSpec.carries`** (`CarriedAxis`: `color | size | variant`) declares
+  that a part other than the scope's carrier takes a named axis as a prop
+  of its own and renders the attribute on itself — a second carrier in one
+  scope. The nearest carrier wins: a value on the part outranks the
+  carrier's, and a part without one still follows the carrier (the kit
+  compiles it; see `@sigx/zero-kit`). Emitted into `manifest.json`.
+- **`Timeline.Marker color`** — the first re-carrier. The marker's
+  anatomy declares `carries: ['color']`, and `Timeline.Marker` takes
+  `color` (typed `WithColor<'timeline'>`: narrowed by a `/register`
+  module, `never` where the design system declares no colour axis) and
+  renders `data-color` on the marker. `<Timeline.Root color="neutral">`
+  still colours every dot; `<Timeline.Marker color="error">` colours one.
+  New `TimelineMarkerProps` export.
+- **`expectAnatomy`** fails a `data-color` / `data-size` / `data-variant`
+  on a part that is neither the carrier nor declares it carries that axis
+  — declared rather than exempted, like `placements`.
+- **`adapt`** takes `members`: a compound member that re-carries an axis
+  (`Timeline.Marker`) is adapted with its own routes, so a design system's
+  `./components` module can give it the carrier's vendor prop name.
+
 ### Added — Combobox trigger mode: @mentions over a Textarea (#58)
 
 - **`Combobox.Root trigger`** (`'@'`, any string, or a RegExp matched

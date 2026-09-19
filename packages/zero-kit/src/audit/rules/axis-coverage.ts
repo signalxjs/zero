@@ -31,8 +31,18 @@
  * shipped skin wires it on a handful of scopes by decision. The
  * value-coverage rules judge the variant vocabulary a design system DOES
  * declare.
+ *
+ * ── RE-CARRIED AXES (#94) ────────────────────────────────────────────────────
+ * A part that re-carries an axis (the anatomy's `carries`: `Timeline.Marker`
+ * takes `color`) accepts it at runtime too, and its own value only reaches
+ * the rules that target it or a part inside it — a rule on the carrier alone
+ * is anchored on the carrier's attribute. So a scope that wires the axis but
+ * keys no value on the re-carrying part offers a prop that does nothing:
+ * the same gap, one part down, reported as `scope.part.axis`.
  */
+import { carriersOf } from '../../contract.js';
 import { offeredFor } from '../../design-system.js';
+import { resolveRecipeForTarget } from '../../recipes.js';
 import type { AuditContext } from '../context.js';
 import type { AuditFinding, AuditWaiver, RuleOutput } from '../types.js';
 
@@ -78,6 +88,32 @@ export function axisCoverage(ctx: AuditContext): RuleOutput {
                     + `the generated type is \`never\`. Wire the axis in the recipe, or declare it out of `
                     + `existence for this scope with tokens.scopes.${scope}.${axis === 'color' ? 'colors' : 'sizes'}: [].`,
             });
+        }
+
+        // The re-carrying parts: the scope wires the axis, but does any
+        // value's rule reach the part through its OWN attribute?
+        const recipe = ctx.recipes.get(scope);
+        if (!recipe) continue;
+        const variants = resolveRecipeForTarget(recipe, 'web').variants ?? {};
+        for (const part of component.parts) {
+            for (const axis of CHECKED_AXES) {
+                if (!part.carries?.includes(axis) || wired[axis].length === 0) continue;
+                const reached = Object.values(variants[axis] ?? {}).some((parts) =>
+                    Object.keys(parts).some((styled) => component.parts.some((p) => p.name === styled)
+                        && carriersOf(component, styled, axis).includes(part.name)));
+                if (reached) continue;
+                findings.push({
+                    rule: 'axis-coverage',
+                    severity: 'warning',
+                    where: `${scope}.${part.name}.${axis}`,
+                    scope,
+                    part: part.name,
+                    axis,
+                    message: `${scope}.${part.name}.${axis}: the "${part.name}" part re-carries ${axis} (its anatomy's \`carries\`) `
+                        + `and this design system wires ${axis} for the scope, but no \`variants.${axis}\` value styles "${part.name}" `
+                        + `or a part inside it — its own \`data-${axis}\` matches nothing. Key the values on "${part.name}" in the recipe.`,
+                });
+            }
         }
     }
     return { findings, waived };

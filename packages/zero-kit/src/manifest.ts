@@ -25,6 +25,8 @@ import {
     STATE_NAMES,
     STATE_SYNONYMS,
     TOKEN_KEY_PATTERN,
+    VARIANT_AXES,
+    carrierPart,
 } from './contract.js';
 
 export { FRAGMENT_VERSION };
@@ -177,6 +179,30 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                         if (!LAYOUT_ATTR_NAMES.has(attr)) {
                             throw new Error(`[zero-kit] ${at(part.name)} declares layout attribute "${attr}", which is not in the layout vocabulary [${[...LAYOUT_ATTR_NAMES].join(', ')}]`);
                         }
+                    }
+                }
+                if (part.carries !== undefined) {
+                    // A second carrier in one scope (#94): only the named
+                    // axes (a custom axis is design-system vocabulary the
+                    // fragment cannot promise), never on the carrier (it
+                    // carries every axis already) and never on a pseudo part
+                    // (it renders no element to hold the attribute).
+                    if (!Array.isArray(part.carries) || part.carries.length === 0) {
+                        throw new Error(`[zero-kit] ${at(part.name)} has a "carries" that is not a non-empty array — omit the key when the part re-carries nothing`);
+                    }
+                    for (const axis of part.carries) {
+                        if (!Object.hasOwn(VARIANT_AXES, axis)) {
+                            throw new Error(`[zero-kit] ${at(part.name)} declares it carries "${axis}", which is not a named axis [${Object.keys(VARIANT_AXES).join(', ')}] — a custom axis is design-system vocabulary`);
+                        }
+                    }
+                    if (new Set(part.carries).size !== part.carries.length) {
+                        throw new Error(`[zero-kit] ${at(part.name)} lists an axis in "carries" twice`);
+                    }
+                    if (part.name === carrierPart(component)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} is the scope's carrier — it carries every axis already, so "carries" would declare a second carrier on the same element`);
+                    }
+                    if (part.pseudo) {
+                        throw new Error(`[zero-kit] ${at(part.name)} is a pseudo part — it renders no element to carry an attribute`);
                     }
                 }
                 for (const state of part.hiddenIn ?? []) {

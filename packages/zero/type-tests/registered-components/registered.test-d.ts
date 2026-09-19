@@ -130,6 +130,13 @@ export type _status = MustBeTrue<CheckColorSize<PropsOf<typeof Status.Root>>>;
 export type _indicator = MustBeTrue<CheckColorSize<PropsOf<typeof Indicator.Root>>>;
 export type _stats = MustBeTrue<CheckColorSize<PropsOf<typeof Stats.Root>>>;
 export type _timeline = MustBeTrue<CheckColorSize<PropsOf<typeof Timeline.Root>>>;
+// A part that RE-CARRIES an axis (#94): the marker's own `color` narrows to
+// the same scope entry as the root's, and it carries nothing else.
+export type _timelineMarker = MustBeTrue<[
+    Equal<Axis<PropsOf<typeof Timeline.Marker>, 'color'>, BasicColor>,
+    Equal<Axis<PropsOf<typeof Timeline.Marker>, 'size'>, 'absent'>,
+    Equal<Axis<PropsOf<typeof Timeline.Marker>, 'variant'>, 'absent'>,
+][number] extends true ? true : false>;
 export type _chat = MustBeTrue<CheckColorSize<PropsOf<typeof Chat.Root>>>;
 export type _radialProgress = MustBeTrue<CheckColorSize<PropsOf<typeof RadialProgress.Root>>>;
 export type _join = MustBeTrue<CheckColorSize<PropsOf<typeof Join.Root>>>;

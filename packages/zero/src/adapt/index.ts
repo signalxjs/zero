@@ -51,6 +51,13 @@ export type AdaptRoute =
  */
 export interface AdaptSpec {
     props: Record<string, AdaptRoute>;
+    /**
+     * Compound members that RE-CARRY an axis (#94, the anatomy's `carries`)
+     * and so read a routed prop themselves — `Timeline.Marker` under a vendor
+     * colour name. Static name → that member's own spec (the carrier's routes
+     * for the carried axes). Every other member passes through by identity.
+     */
+    members?: Record<string, AdaptSpec>;
 }
 
 /**
@@ -204,8 +211,10 @@ function propsView(props: Record<string, unknown>, routing: Routing): Record<str
  * view substituted. Compound statics are carried over by enumeration, with
  * self-references remapped — `compound()` is `Object.assign(main, sub)`, so
  * `Button.Root === Button`, and the adapted namespace keeps that shape
- * (`adapted.Root === adapted`). Non-carrier parts pass through by identity:
- * only the part carrying the variant attributes reads them.
+ * (`adapted.Root === adapted`). Non-carrier parts pass through by identity —
+ * only the part carrying the variant attributes reads them — except the
+ * members `spec.members` names, which re-carry an axis and are adapted
+ * with their own routes.
  */
 export function adapt<TBase extends AnyComponentFactory>(base: TBase, spec: AdaptSpec): TBase {
     const meta = getComponentMeta(base);
@@ -229,7 +238,10 @@ export function adapt<TBase extends AnyComponentFactory>(base: TBase, spec: Adap
     for (const key of Object.keys(base)) {
         if (key.startsWith('__')) continue; // brands belong to the wrapped factory itself
         const value = (base as Record<string, unknown>)[key];
-        (wrapped as unknown as Record<string, unknown>)[key] = value === (base as unknown) ? wrapped : value;
+        const member = spec.members?.[key];
+        (wrapped as unknown as Record<string, unknown>)[key] = value === (base as unknown)
+            ? wrapped
+            : member ? adapt(value as AnyComponentFactory, member) : value;
     }
     return wrapped as unknown as TBase;
 }

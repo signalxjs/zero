@@ -58,6 +58,17 @@ Timeline whose content never sits on the start side collapses the start track
 on its own — a `:has()` rule on the root, no prop — so the events sit against
 the axis instead of past an empty half of each item.
 
+## Per-entry timeline colour
+
+`<Timeline.Marker color="error">` colours one entry's dot while the Root's
+`color` paints the rest (#94) — the marker re-carries the colour axis. A
+coloured dot is the role's fill inside a ring in the role's `-content` ink:
+a light role on a light page, or a dark one on a dark page, has no edge of
+its own, while one half of the role's pair clears 3:1 against the page —
+which the contrast audit now measures for every colour and theme. An
+uncoloured marker is the same solid dot as before, and under forced colours
+the ring still draws the whole dot.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors

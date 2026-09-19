@@ -389,6 +389,11 @@ Publishing is handled by `scripts/publish.js` in topological order.
   component carries the axis surface (`WithVariantAxes`); for the
   fragment-rooted scopes (dialog, menu, popover, tooltip) the props live on
   the Trigger, which renders the carrier part.
+- A non-carrier part that takes an axis prop of its own declares it:
+  `carries: ['color']` on `timeline.marker` (#94). It renders the attribute
+  itself, the compiler lets the nearest carrier win, and `expectAnatomy`
+  fails a `data-color`/`data-size`/`data-variant` on any part that is
+  neither the carrier nor declares it. Named axes only, never on the carrier.
 - A part the runtime hides with the `hidden` attribute in some state declares
   it: `hiddenIn: ['error']` on `avatar.image`. It is a styling fact — a rule
   for a hidden state can never paint, so identical CSS across it and a visible

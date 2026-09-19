@@ -348,7 +348,8 @@ type TimelineProps = {
     size?: 'sm' | 'md' | 'lg';
 };
 type TimelineAdapted = Adapted<typeof ZTimeline, ZeroAxisProp, TimelineProps>;
-export declare const Timeline: TimelineAdapted & AdaptedStatics<typeof ZTimeline> & { Root: TimelineAdapted };
+type TimelineMarkerAdapted = Adapted<typeof ZTimeline.Marker, 'color', Record<never, never>>;
+export declare const Timeline: TimelineAdapted & Omit<AdaptedStatics<typeof ZTimeline>, 'Marker'> & { Root: TimelineAdapted; Marker: TimelineMarkerAdapted };
 
 /** chat — no vendor route; the wired surface keeps zero's names. */
 type ChatProps = {

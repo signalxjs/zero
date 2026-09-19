@@ -70,7 +70,7 @@ export {
     SPACE_STEPS,
 } from './layout-attrs.js';
 
-export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint, ModelSpec, ModelJSON } from './anatomy.js';
+export type { Anatomy, AnatomyJSON, CarriedAxis, PartSpec, PartJSON, PartPseudo, TokenHint, ModelSpec, ModelJSON } from './anatomy.js';
 export { defineAnatomy, defaultPropOf, changeEventOf, FRAGMENT_VERSION } from './anatomy.js';
 
 export {

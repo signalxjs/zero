@@ -6,6 +6,7 @@
 export {
     AXIS_CELL_BUDGET,
     axisCellsFor,
+    axisHost,
     axisTag,
     cellKey,
     chainFor,

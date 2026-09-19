@@ -114,6 +114,38 @@ describe('expectAnatomy (public conformance helper)', () => {
     });
 });
 
+describe('expectAnatomy re-carried axes (#94)', () => {
+    const carried = defineAnatomy('demo-rail', {
+        'root': { element: 'ol' },
+        'dot': { element: 'span', parent: 'root', carries: ['color'] },
+        'label': { element: 'span', parent: 'root' },
+    });
+    const rail = (dot: Record<string, string>, label: Record<string, string> = {}): HTMLElement => {
+        const root = document.createElement('ol');
+        root.setAttribute('data-scope', 'demo-rail');
+        root.setAttribute('data-part', 'root');
+        root.setAttribute('data-color', 'neutral');
+        for (const [name, attrs] of [['dot', dot], ['label', label]] as const) {
+            const el = document.createElement('span');
+            el.setAttribute('data-scope', 'demo-rail');
+            el.setAttribute('data-part', name);
+            for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+            root.append(el);
+        }
+        return mount(root);
+    };
+
+    it('passes a named axis on the carrier and on a part that declares it carries it', () => {
+        expect(() => expectAnatomy(rail({ 'data-color': 'error' }), carried)).not.toThrow();
+    });
+
+    it('fails a named axis the part does not declare it carries', () => {
+        // The dot carries colour, not size; the label carries nothing.
+        expect(() => expectAnatomy(rail({ 'data-size': 'lg' }), carried)).toThrow(/renders data-size but is not the carrier/);
+        expect(() => expectAnatomy(rail({}, { 'data-color': 'error' }), carried)).toThrow(/"label" renders data-color/);
+    });
+});
+
 describe('expectAnatomy placements (declared contract data, not a blanket exemption)', () => {
     const placed = defineAnatomy('demo-float', {
         'anchor': { element: 'button' },

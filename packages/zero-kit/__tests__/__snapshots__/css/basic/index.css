@@ -6265,6 +6265,7 @@
 @layer zero.recipes {
     [data-scope="timeline"][data-part="root"] {
         --timeline-accent: var(--color-base-content);
+        --timeline-ring: var(--timeline-accent);
         --timeline-marker-size: calc(var(--size-selector) * 3);
     }
 
@@ -6310,7 +6311,7 @@
         box-sizing: border-box;
         border-radius: 50%;
         background: var(--timeline-accent);
-        border: calc(var(--timeline-marker-size) / 2) solid var(--timeline-accent);
+        border: calc(var(--timeline-marker-size) / 6) solid var(--timeline-ring);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -6382,51 +6383,99 @@
         align-self: start;
     }
 
+    [data-scope="timeline"][data-part="marker"][data-color="primary"] {
+        --timeline-accent: var(--color-primary);
+        --timeline-ring: var(--color-primary-content);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="secondary"] {
+        --timeline-accent: var(--color-secondary);
+        --timeline-ring: var(--color-secondary-content);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="accent"] {
+        --timeline-accent: var(--color-accent);
+        --timeline-ring: var(--color-accent-content);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="neutral"] {
+        --timeline-accent: var(--color-neutral);
+        --timeline-ring: var(--color-neutral-content);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="info"] {
+        --timeline-accent: var(--color-info);
+        --timeline-ring: var(--color-info-content);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="success"] {
+        --timeline-accent: var(--color-success);
+        --timeline-ring: var(--color-success-content);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="warning"] {
+        --timeline-accent: var(--color-warning);
+        --timeline-ring: var(--color-warning-content);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="error"] {
+        --timeline-accent: var(--color-error);
+        --timeline-ring: var(--color-error-content);
+    }
+
     @scope ([data-scope="timeline"][data-part="root"][data-color="primary"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-accent: var(--color-primary);
+            --timeline-ring: var(--color-primary-content);
         }
     }
 
     @scope ([data-scope="timeline"][data-part="root"][data-color="secondary"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-accent: var(--color-secondary);
+            --timeline-ring: var(--color-secondary-content);
         }
     }
 
     @scope ([data-scope="timeline"][data-part="root"][data-color="accent"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-accent: var(--color-accent);
+            --timeline-ring: var(--color-accent-content);
         }
     }
 
     @scope ([data-scope="timeline"][data-part="root"][data-color="neutral"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-accent: var(--color-neutral);
+            --timeline-ring: var(--color-neutral-content);
         }
     }
 
     @scope ([data-scope="timeline"][data-part="root"][data-color="info"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-accent: var(--color-info);
+            --timeline-ring: var(--color-info-content);
         }
     }
 
     @scope ([data-scope="timeline"][data-part="root"][data-color="success"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-accent: var(--color-success);
+            --timeline-ring: var(--color-success-content);
         }
     }
 
     @scope ([data-scope="timeline"][data-part="root"][data-color="warning"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-accent: var(--color-warning);
+            --timeline-ring: var(--color-warning-content);
         }
     }
 
     @scope ([data-scope="timeline"][data-part="root"][data-color="error"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-accent: var(--color-error);
+            --timeline-ring: var(--color-error-content);
         }
     }
 
@@ -6467,6 +6516,12 @@
 
         [data-scope="timeline"][data-part="content"] {
             font-size: var(--text-md);
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="timeline"][data-part="marker"] {
+            border-width: calc(var(--timeline-marker-size) / 2);
         }
     }
 }

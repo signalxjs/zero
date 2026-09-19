@@ -212,4 +212,24 @@ describe('anatomy registry', () => {
             }
         }
     });
+
+    it('a re-carried axis is a named axis, on a rendered part other than the carrier', () => {
+        // `carries` (#94) makes a second carrier in one scope. The carrier
+        // itself carries every axis already, a pseudo part renders no element
+        // to put the attribute on, and a custom axis is design-system
+        // vocabulary no anatomy can promise.
+        const carrying: string[] = [];
+        for (const anatomy of Object.values(anatomies)) {
+            const carrier = 'root' in anatomy.parts ? 'root' : anatomy.partNames()[0];
+            for (const [name, part] of Object.entries<{ carries?: readonly string[]; pseudo?: unknown }>(anatomy.parts)) {
+                if (!part.carries) continue;
+                carrying.push(`${anatomy.scope}.${name}`);
+                expect(part.carries.length, `${anatomy.scope}.${name}: empty carries — omit it`).toBeGreaterThan(0);
+                expect(name, `${anatomy.scope}.${name}: the carrier re-carries nothing`).not.toBe(carrier);
+                expect(part.pseudo, `${anatomy.scope}.${name}: a pseudo part cannot carry an attribute`).toBeUndefined();
+                for (const axis of part.carries) expect(['color', 'size', 'variant']).toContain(axis);
+            }
+        }
+        expect(carrying).toContain('timeline.marker');
+    });
 });

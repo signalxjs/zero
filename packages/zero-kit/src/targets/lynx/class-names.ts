@@ -10,6 +10,8 @@
  * Grammar version 2 — see zero's copy for the full table and the axis
  * push-down rule (the runtime stamps axis/modifier classes on every part
  * from carrier context, so this target never emits a combinator for them).
+ * A part that re-carries an axis (`carries`, zero#94) is one more provider
+ * in that context — nearest wins — so it changes nothing emitted here.
  */
 
 export const CLASS_GRAMMAR_VERSION = 2;

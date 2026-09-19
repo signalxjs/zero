@@ -37,6 +37,13 @@ export interface PartPseudo {
     selector: string;
 }
 
+/**
+ * A named variant axis a non-carrier part may re-carry (`PartSpec.carries`).
+ * Closed to the three with named props: a custom axis is design-system
+ * vocabulary, so no anatomy can promise to carry it.
+ */
+export type CarriedAxis = 'color' | 'size' | 'variant';
+
 export interface PartSpec {
     /**
      * Default rendered element, e.g. 'button', 'dialog', 'input'. For a
@@ -122,6 +129,25 @@ export interface PartSpec {
      * reads as a fact where there is none.
      */
     layout?: readonly string[];
+    /**
+     * The named variant axes this part RE-CARRIES (#94): besides the
+     * scope's carrier (`root`, else the first part), this part takes the
+     * axis as a prop of its own and renders the attribute on itself —
+     * `Timeline.Marker color="success"` → `data-color="success"` on the
+     * marker, one dot recoloured while the rest of the timeline keeps the
+     * root's colour.
+     *
+     * The nearest carrier wins, which is the semantics the `@scope` donut
+     * already gives nested scopes: the recipe compiler emits every
+     * `variants.<axis>.<value>` rule that targets this part (or a part inside
+     * it) a second time, anchored on this part's own attribute, so a value on
+     * the part outranks the carrier's and a part without one still follows
+     * the carrier. Only the named axes (`color`, `size`, `variant`) — a
+     * custom axis is design-system vocabulary the anatomy cannot know — and
+     * never on the carrier itself, which carries every axis already. A part
+     * that re-carries nothing OMITS the key, on the `hiddenIn` reasoning.
+     */
+    carries?: readonly CarriedAxis[];
     /** Contract token groups that typically style this part. */
     tokens?: readonly TokenHint[];
     /** True when the part supports `asChild`. */

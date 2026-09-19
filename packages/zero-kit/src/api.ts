@@ -597,7 +597,22 @@ export interface CompiledComponentApi {
     singlePart: boolean;
     /** vendor prop → routing, keys sorted for deterministic emission. */
     props: Record<string, CompiledApiRoute>;
+    /**
+     * Compound members other than the carrier that RE-CARRY an axis (#94,
+     * the anatomy's `carries`): the member's static name (`Marker`, the
+     * PascalCase part name) → its part and the axes it carries. The emitters
+     * give each one the carrier's surface for those axes, intersected with
+     * what this component wires — `Timeline.Marker` takes the colour prop
+     * under the vendor's name and narrowed like the Root's, and loses it
+     * outright where the design system has no colour axis. Absent when no
+     * part re-carries, so every other component's entry is unchanged.
+     */
+    members?: Record<string, { part: string; axes: string[] }>;
 }
+
+/** `'item-indicator'` → `ItemIndicator` — a part's compound static, by zero's naming convention. */
+const memberName = (part: string): string =>
+    part.split('-').map((word) => word[0]!.toUpperCase() + word.slice(1)).join('');
 
 /**
  * Filter the declaration down to one component's wired surface. Callers with
@@ -643,9 +658,17 @@ export function deriveComponentApi(
         props[entry.as ?? name] = { modifier: name };
     }
 
+    const members: Record<string, { part: string; axes: string[] }> = {};
+    const carrier = carrierPart(component);
+    for (const part of component.parts) {
+        if (part.name === carrier || !part.carries?.length) continue;
+        members[memberName(part.name)] = { part: part.name, axes: [...part.carries] };
+    }
+
     return {
-        carrier: carrierPart(component),
+        carrier,
         singlePart: component.parts.length === 1,
         props: Object.fromEntries(Object.entries(props).sort(([a], [b]) => a.localeCompare(b))),
+        ...(Object.keys(members).length > 0 ? { members } : {}),
     };
 }

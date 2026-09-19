@@ -86,6 +86,20 @@ describe('compileLynxRecipeCss', () => {
         expectFlatCompounds(css);
     });
 
+    it('a re-carried axis (zero#94) needs nothing new: the push-down compound already serves it', () => {
+        // The runtime stamps the NEAREST provider's value, and a re-carrying
+        // part is one — so one flat rule per value, whichever element
+        // supplied it, and none of the web's extra own-value rules.
+        const timeline = anatomies.timeline.toJSON() as ManifestComponent;
+        const { css } = compile({
+            component: 'timeline',
+            parts: {},
+            variants: { color: { error: { marker: { base: { '--timeline-accent': 'red' } } } } },
+        }, timeline);
+        expect(css.match(/\.zx-timeline__marker\.zx-a-color-error \{/g)).toHaveLength(1);
+        expectFlatCompounds(css);
+    });
+
     it('compound variants are longer compounds; modifiers use zx-m-*', () => {
         const { css } = compile({
             component: 'button',

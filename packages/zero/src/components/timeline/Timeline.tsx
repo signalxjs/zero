@@ -9,7 +9,7 @@
  *         <Timeline.Connector />
  *     </Timeline.Item>
  *     <Timeline.Item>
- *         <Timeline.Marker>★</Timeline.Marker>
+ *         <Timeline.Marker color="success">★</Timeline.Marker>
  *         <Timeline.Content placement="start">v2.0 shipped</Timeline.Content>
  *     </Timeline.Item>
  * </Timeline.Root>
@@ -19,12 +19,16 @@
  * process strip is the variant. Marker and connector are `aria-hidden`
  * decoration: the reader gets each event from the content text, and hearing
  * "star" between two of them is noise, not information.
+ *
+ * `color` on the Root colours every marker; `color` on one Marker colours that
+ * marker alone (#94) — the anatomy declares the marker re-carries the axis,
+ * and the design system's compiled CSS lets the nearest carrier win.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import type { Orientation } from '../../contract/data-attrs.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithColor, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { timelineAnatomy } from './anatomy.js';
 
 const SCOPE = timelineAnatomy.scope;
@@ -81,13 +85,21 @@ const TimelineItem = component<TimelinePartProps>(({ props, slots }) => {
     );
 }, { name: 'Timeline.Item' });
 
-const TimelineMarker = component<TimelinePartProps>(({ props, slots }) => {
+/**
+ * The marker takes the scope's colour vocabulary for itself — typed per
+ * scope like the Root's, so it narrows under a `/register` module and is
+ * `never` where the design system declares no colour axis.
+ */
+export type TimelineMarkerProps = WithColor<'timeline'> & TimelinePartProps;
+
+const TimelineMarker = component<TimelineMarkerProps>(({ props, slots }) => {
     return () => (
         <div
             {...htmlAttrs(props)}
             aria-hidden="true"
             data-scope={SCOPE}
             data-part="marker"
+            data-color={props.color}
             class={props.class}
         >
             {slots.default?.()}

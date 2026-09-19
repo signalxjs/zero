@@ -78,7 +78,8 @@ export interface AuditFinding {
     /**
      * Where the finding points, in `ValidationIssue`'s dotted spelling:
      * `scope` (a component-level legibility finding), `scope.part`, or
-     * `scope.axis` (a coverage finding about one scope) — and, for the one
+     * `scope.axis` (a coverage finding about one scope), `scope.part.axis`
+     * (a coverage finding about a part that re-carries the axis, #94) — and, for the one
      * rule that speaks at design-system level (`axis-value-coverage/unused`),
      * `axis.value` (`color.primary`, `size.2xl`), where `scope` is absent.
      * Read the structured fields beside it rather than parsing this.

@@ -91,6 +91,10 @@ export function expectAnatomyElements(
     }
     const axisAttrs = new Set((options.axes ?? []).map((axis) => `data-${axis}`));
     if (elements.length === 0) fail(anatomy, 'no parts rendered for this scope');
+    // The scope's carrier — the kit's `carrierPart` rule: `root`, else the
+    // first declared part. A named axis attribute anywhere else must be one
+    // the part declares it re-carries (#94).
+    const carrier = Object.prototype.hasOwnProperty.call(anatomy.parts, 'root') ? 'root' : anatomy.partNames()[0];
 
     for (const el of elements) {
         const partName = el.getAttribute('data-part');
@@ -152,6 +156,19 @@ export function expectAnatomyElements(
             }
             if (!found) {
                 fail(anatomy, `part "${partName}" renders outside its declared parent "${spec.parent}" — no ancestor carries data-part="${spec.parent}"`);
+            }
+        }
+
+        // The named axes live on the carrier. Another part renders one only
+        // when its anatomy declares it re-carries that axis (`carries`) —
+        // declared rather than exempted, like `placements`: an undeclared
+        // `data-color` on a part is a value no design system compiles a rule
+        // for.
+        if (partName !== carrier) {
+            for (const [axis, attr] of Object.entries(VARIANT_AXES)) {
+                if (el.getAttribute(attr) !== null && !(spec.carries ?? []).includes(axis as 'color')) {
+                    fail(anatomy, `part "${partName}" renders ${attr} but is not the carrier ("${carrier}") and does not declare it carries "${axis}"`);
+                }
             }
         }
 

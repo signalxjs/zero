@@ -7664,6 +7664,42 @@
         align-self: start;
     }
 
+    [data-scope="timeline"][data-part="marker"][data-color="primary"] {
+        --timeline-accent: var(--color-primary);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="secondary"] {
+        --timeline-accent: var(--color-secondary);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="tertiary"] {
+        --timeline-accent: var(--color-tertiary);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="error"] {
+        --timeline-accent: var(--color-error);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="neutral"] {
+        --timeline-accent: var(--color-neutral);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="info"] {
+        --timeline-accent: var(--color-info);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="success"] {
+        --timeline-accent: var(--color-success);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="warning"] {
+        --timeline-accent: var(--color-warning);
+    }
+
+    [data-scope="timeline"][data-part="marker"][data-color="accent"] {
+        --timeline-accent: var(--color-accent);
+    }
+
     @scope ([data-scope="timeline"][data-part="root"][data-color="primary"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-accent: var(--color-primary);
