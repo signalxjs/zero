@@ -73,7 +73,8 @@ const stepInks = (root: Locator): Promise<string[]> =>
     root.locator('[data-scope="steps"][data-part="item"]').evaluateAll((items) =>
         items.map((item) => {
             const disc = getComputedStyle(item.querySelector('[data-part="indicator"]')!);
-            return `${disc.backgroundColor} / ${disc.color} / ${getComputedStyle(item).color}`;
+            const title = getComputedStyle(item.querySelector('[data-part="title"]') ?? item);
+            return `${disc.backgroundColor} / ${disc.color} / ${title.color}`;
         }));
 
 test.describe('a step re-carries the colour axis (#112)', () => {
@@ -101,7 +102,8 @@ test.describe('a step re-carries the colour axis (#112)', () => {
                 root.after(probe);
                 const out = [...probe.querySelectorAll('[data-part="item"]')].map((item) => {
                     const disc = getComputedStyle(item.querySelector('[data-part="indicator"]')!);
-                    return `${disc.backgroundColor} / ${disc.color} / ${getComputedStyle(item).color}`;
+                    const title = getComputedStyle(item.querySelector('[data-part="title"]') ?? item);
+                    return `${disc.backgroundColor} / ${disc.color} / ${title.color}`;
                 });
                 probe.remove();
                 return out;
