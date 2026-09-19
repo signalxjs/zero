@@ -234,7 +234,7 @@ describe('the components artifact: a re-carrying member takes the carrier\'s sur
     const toned = (): DesignSystemInput => ({
         ...(basicDS as DesignSystemInput),
         name: 'toned',
-        api: defineApi({ roles: (basicDS as DesignSystemInput).tokens.roles }, { color: { as: 'tone' } }),
+        api: defineApi({ color: { as: 'tone' } }),
     });
 
     it('records the member on the compiled api', () => {

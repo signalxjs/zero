@@ -165,8 +165,9 @@ export function expectAnatomyElements(
         // `data-color` on a part is a value no design system compiles a rule
         // for.
         if (partName !== carrier) {
+            const carries: readonly string[] = spec.carries ?? [];
             for (const [axis, attr] of Object.entries(VARIANT_AXES)) {
-                if (el.getAttribute(attr) !== null && !(spec.carries ?? []).includes(axis as 'color')) {
+                if (el.getAttribute(attr) !== null && !carries.includes(axis)) {
                     fail(anatomy, `part "${partName}" renders ${attr} but is not the carrier ("${carrier}") and does not declare it carries "${axis}"`);
                 }
             }

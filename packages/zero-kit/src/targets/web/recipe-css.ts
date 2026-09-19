@@ -270,6 +270,9 @@ export function compileRecipeCss(
     // browser needs neither, but a reader that ranks equal-specificity scoped
     // rules by order (the static contrast matrix) reads the same winner.
     const deferred: Array<() => void> = [];
+    // The axes some part of this scope re-carries — empty for all but a
+    // handful of scopes, so the common path never walks the part tree.
+    const recarried = new Set(component.parts.flatMap((p) => p.carries ?? []));
     const emitVariantStyles = (
         partName: string,
         styles: PartStyles,
@@ -278,7 +281,7 @@ export function compileRecipeCss(
     ): void => {
         const { host, suffix } = partProjection(component, partName);
         const where = `recipe for "${component.scope}"."${partName}"`;
-        const own = carried === undefined ? [] : carriersOf(component, host, carried);
+        const own = carried === undefined || !recarried.has(carried) ? [] : carriersOf(component, host, carried);
         // The carrier's reading, as always — unless the part can never sit
         // under the carrier (a top-layer popup) and a re-carrier is the only
         // thing that reaches it, where the carrier-anchored rule is dead CSS.
