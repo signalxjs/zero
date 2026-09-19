@@ -91,7 +91,7 @@ interface DrawerContext {
     requestClose(reason: DrawerCloseReason, value?: string): void;
     modal(): boolean;
     /** The responsive drawer's breakpoint, fixed at setup; `undefined` otherwise. */
-    dock: string | undefined;
+    dock: ZeroBreakpointName | undefined;
     /** Its `(min-width: …)` query — what "docked" means, asked of the viewport now. */
     dockQuery: string | undefined;
     /** Docked: a responsive drawer at or above its breakpoint — pinned open inline. */
