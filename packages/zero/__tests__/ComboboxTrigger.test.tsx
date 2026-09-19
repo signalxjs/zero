@@ -369,6 +369,24 @@ describe('Combobox trigger mode (#58)', () => {
             expect(h.popup.style.left).toBe('151px');
         });
 
+        it('under rtl a placement beside the token keeps its block alignment', async () => {
+            stub();
+            const state = signal({ draft: '' });
+            render(
+                <Combobox.Root trigger="@" items={PEOPLE} itemLabel={(p) => p.name} anchor={caretAnchor} placement="right-start">
+                    <Textarea.Root model={[state, 'draft']}><Textarea.Textarea /></Textarea.Root>
+                </Combobox.Root>,
+                container,
+            );
+            const el = container.querySelector('textarea')!;
+            el.style.direction = 'rtl';
+            typeInto(el, 'hi @a');
+            await tick();
+            const popup = container.querySelector<HTMLElement>('[data-scope="combobox"][data-part="popup"]')!;
+            expect(popup.getAttribute('data-placement')).toBe('right-start');
+            expect(popup.style.top).toBe('236px');
+        });
+
         it('a vertical writing mode falls back to the box', async () => {
             stub();
             const h = harness({ anchor: caretAnchor });

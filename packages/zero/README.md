@@ -174,9 +174,10 @@ own line, however tall the composer is. `caretAnchor` (from
 mirror of the textarea: the same font, padding, width and wrapping. It
 re-measures only when the text or width changes, and follows the page's and
 the textarea's scroll. It is passed in, so a composer that docks to the box
-never ships it (about 0.6 kB brotli). Under `rtl` the placement's alignment
-mirrors, so the default `bottom-start` puts the list's right edge at the
-`@` and it opens leftwards. A vertical `writing-mode` falls back to the box.
+never ships it (about 0.6 kB brotli). Under `rtl` a placement above or
+below mirrors its alignment, so the default `bottom-start` puts the list's
+right edge at the `@` and it opens leftwards. A vertical `writing-mode`
+falls back to the box.
 Any `(control, index) => PositionAnchor | null` works as an `anchor`; the
 index is the token's first character.
 

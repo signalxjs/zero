@@ -256,8 +256,9 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
      * beside the token being typed, measured in the control; it is passed
      * in, so only a composer that anchors at the caret ships the
      * measurement. Given the control and the index of the token's first
-     * character; `null` falls back to the box. Under `rtl` the placement's
-     * alignment mirrors (`bottom-start` opens leftwards from the token).
+     * character; `null` falls back to the box. Under `rtl` a placement above
+     * or below mirrors its alignment (`bottom-start` opens leftwards from the
+     * token).
      */
     & Define.Prop<'anchor', TextAnchor, false>
     /** Trigger mode: an option replaced the token. */
@@ -774,10 +775,11 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         isOpen: () => openState.value,
         placement: () => {
             const placement = props.placement ?? 'bottom-start';
-            if (!mirrored) return placement;
+            // Only above or below is the alignment inline: beside, `start`
+            // and `end` align the block axis, which rtl does not turn.
+            if (!mirrored || !/^(top|bottom)-/.test(placement)) return placement;
             return placement.endsWith('-start') ? placement.replace('-start', '-end') as Placement
-                : placement.endsWith('-end') ? placement.replace('-end', '-start') as Placement
-                    : placement;
+                : placement.replace('-end', '-start') as Placement;
         },
         offset: () => 4,
         strategy: props.positionStrategy,

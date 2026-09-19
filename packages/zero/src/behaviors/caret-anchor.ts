@@ -122,15 +122,18 @@ export function caretAnchor(el: HTMLTextAreaElement | HTMLInputElement, index: n
     const computed = el.ownerDocument.defaultView!.getComputedStyle(el);
     if (computed.writingMode && !computed.writingMode.startsWith('horizontal')) return null;
     const multiline = el.tagName === 'TEXTAREA';
-    let key = '';
+    // What the last measurement was of — compared, never concatenated, so a
+    // scroll-driven read costs nothing in the length of the text.
+    let value: string | null = null;
+    let width = -1;
     let point: CaretPoint = { x: 0, y: 0, height: 0 };
     const clamp = (n: number, min: number, max: number): number => Math.min(Math.max(n, min), Math.max(min, max));
     return {
         getBoundingClientRect() {
-            const next = `${index}|${el.clientWidth}|${el.value}`;
-            if (next !== key) {
+            if (el.value !== value || el.clientWidth !== width) {
                 point = measureCaret(el, index);
-                key = next;
+                value = el.value;
+                width = el.clientWidth;
             }
             const box = el.getBoundingClientRect();
             const x = clamp(box.left + point.x - el.scrollLeft, box.left, box.right);

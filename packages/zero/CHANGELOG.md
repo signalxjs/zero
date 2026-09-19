@@ -13,7 +13,8 @@
   it is used. Any `(control, index) => PositionAnchor | null` works; the
   index is the token's first character, past any whitespace a RegExp
   trigger's prefix matched.
-  - **Under `rtl` the placement's alignment mirrors** for such an anchor:
+  - **Under `rtl` a placement above or below mirrors its alignment** for
+    such an anchor:
     `bottom-start` becomes `bottom-end`, so the list's right edge (its
     inline start) sits at the `@` and it opens in the reading direction.
     `data-placement` reports the physical result.

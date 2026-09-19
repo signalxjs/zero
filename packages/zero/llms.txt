@@ -684,9 +684,9 @@ component renders; the root is called out separately where it carries props.
   padding, width, wrapping, direction) measures it, re-measured only when
   the text or width changes, following the page's and the textarea's
   scroll, clamped to the box. Opt-in by import, so a box-docked composer
-  never ships it. Under rtl the placement alignment mirrors (bottom-start →
-  bottom-end: the list's right edge at the @). A vertical writing-mode
-  falls back to the box. Any `(control, index) => PositionAnchor | null`
+  never ships it. Under rtl a top/bottom placement's alignment mirrors
+  (bottom-start → bottom-end: the list's right edge at the @). A vertical
+  writing-mode falls back to the box. Any `(control, index) => PositionAnchor | null`
   works.
 - NumberInput: Root(model=number|null, defaultValue: number|null, min, max, step, allowWheel,
   clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
