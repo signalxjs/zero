@@ -5368,10 +5368,11 @@ export const steps: RecipeInput = {
 
 /**
  * Drawer — Dialog's machinery on an edge sheet: the same overlay costume
- * (hairline + the one honest `lg` shadow), faded in rather than slid (a
- * transform has no logical spelling; opacity needs no RTL correction). The
- * base render is the INLINE mode — a bordered panel in flow — and `:modal`
- * is the top-layer edge sheet, pinned with logical insets.
+ * (hairline + the one honest `lg` shadow), faded in rather than slid — this
+ * house's popups rise a few pixels at most, and a sheet crossing the whole
+ * viewport is travel it does not do (#83 keeps it a fade). The base render is
+ * the INLINE mode — a bordered panel in flow — and `data-l-dock="sheet"` is
+ * the top-layer edge sheet, pinned with logical insets.
  */
 export const drawer: RecipeInput = {
     component: 'drawer',
@@ -5409,13 +5410,14 @@ export const drawer: RecipeInput = {
             states: { open: {}, closed: {} },
             selectors: {
                 /**
-                 * The platform's own spelling of "this open is the modal
-                 * one": `:modal`. The base styles above are the INLINE
-                 * render (`show()` keeps the panel in flow); this block is
-                 * the top-layer edge sheet. Logical insets pin the edge, so
-                 * RTL mirrors free.
+                 * The top-layer edge sheet, keyed on the regime
+                 * (`data-l-dock="sheet"`) rather than `:modal`, which stops
+                 * matching the moment `close()` runs — so the sheet keeps its
+                 * box through the exit (#83). The base styles above are the
+                 * INLINE render. Logical insets pin the edge, so RTL mirrors
+                 * free.
                  */
-                '&:modal': {
+                '&[data-l-dock="sheet"]': {
                     position: 'fixed',
                     insetBlockStart: '0',
                     insetBlockEnd: '0',
@@ -5424,8 +5426,8 @@ export const drawer: RecipeInput = {
                     margin: '0',
                     borderRadius: '0',
                 },
-                '&[data-placement="start"]:modal': { insetInlineStart: '0', insetInlineEnd: 'auto' },
-                '&[data-placement="end"]:modal': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+                '&[data-placement="start"][data-l-dock="sheet"]': { insetInlineStart: '0', insetInlineEnd: 'auto' },
+                '&[data-placement="end"][data-l-dock="sheet"]': { insetInlineStart: 'auto', insetInlineEnd: '0' },
             },
         }),
         backdrop: {

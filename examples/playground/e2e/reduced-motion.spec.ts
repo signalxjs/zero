@@ -100,3 +100,42 @@ for (const ds of DESIGN_SYSTEMS) {
         });
     }
 }
+
+/**
+ * The modal drawer sheet's slide (#83), in the skins that slide. A one-shot
+ * transition rather than a loop, so the question is simpler than above: under
+ * reduced motion there must be no `translate` transition at all, and the
+ * sheet is at rest the moment it opens. Both directions again — in `chromium`
+ * the slide must be running, or the reduced-motion half passes for a skin
+ * that never slid.
+ */
+const SLIDES = ['daisyui', 'material', 'heroui', 'carbon'] as const;
+
+for (const ds of SLIDES) {
+    test(`${ds}: the drawer sheet's slide answers prefers-reduced-motion`, async ({ page }, testInfo) => {
+        const reduced = testInfo.project.name === 'reduced-motion';
+        test.skip(
+            !reduced && testInfo.project.name !== 'chromium',
+            'two projects are the whole point; the other engines add nothing here',
+        );
+        await bootPage(page, 'drawer', ds);
+        const trigger = page.getByRole('button', { name: 'Open drawer', exact: true });
+        const slide = await trigger.evaluate(async (btn: HTMLElement) => {
+            btn.click();
+            await new Promise((r) => setTimeout(r, 0));
+            const panel = document.getElementById(btn.getAttribute('aria-controls')!)!;
+            const t = panel.getAnimations().find((a) => (a as CSSTransition).transitionProperty === 'translate');
+            return {
+                duration: t ? (t.effect!.getComputedTiming().duration as number) : null,
+                translate: getComputedStyle(panel).translate,
+            };
+        });
+        if (reduced) {
+            expect(slide.duration, `${ds}: the sheet still slides under reduced motion`).toBeNull();
+            expect(slide.translate).toBe('none');
+        } else {
+            expect(slide.duration, `${ds}: the sheet does not slide, so the reduced-motion half proves nothing`).not.toBeNull();
+            expect(slide.duration!).toBeGreaterThan(100);
+        }
+    });
+}

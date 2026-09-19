@@ -5311,9 +5311,45 @@ export const steps: RecipeInput = {
 };
 
 /**
+ * The modal sheet's slide (#83): in from its edge, back out to it.
+ *
+ * `translate` is physical, so the travel is a custom property that flips with
+ * the placement AND the direction — off the reading start is leftward in LTR
+ * and rightward in RTL (the `rtl` hedge, as everywhere here). Keyed on
+ * `data-l-dock="sheet"`, the regime, which holds through the exit where
+ * `:modal` does not, so the slide-out leaves from the sheet's own box.
+ * Opacity stays at 1: the travel is the transition. Each direction rides the
+ * transition declared at its destination; reduced motion drops both.
+ */
+const sheetSlide = (enter: string, exit: string): PartStyles => {
+    const sheet = '&[data-l-dock="sheet"]';
+    const open = `${sheet}[data-state="open"]`;
+    const travel = (tempo: string): string => {
+        const duration = tempo.split(' ')[0];
+        return `translate ${tempo}, display ${duration} allow-discrete, overlay ${duration} allow-discrete`;
+    };
+    return {
+        base: { '--drawer-travel': '-100%' },
+        selectors: {
+            '&[data-placement="end"]': { '--drawer-travel': '100%' },
+            [`&[data-placement="start"]${rtl}`]: { '--drawer-travel': '100%' },
+            [`&[data-placement="end"]${rtl}`]: { '--drawer-travel': '-100%' },
+            [sheet]: { opacity: '1', translate: 'var(--drawer-travel) 0', transition: travel(exit) },
+            [open]: { translate: 'none', transition: travel(enter) },
+        },
+        at: {
+            'starting-style': { selectors: { [open]: { opacity: '1', translate: 'var(--drawer-travel) 0' } } },
+            'reduced-motion': { selectors: { [sheet]: { transition: 'none' }, [open]: { transition: 'none' } } },
+        },
+    };
+};
+
+/**
  * Drawer — daisy's drawer-side as a native <dialog> edge sheet: base-100
- * paper, no border (daisy separates the drawer with the scrim), faded in.
- * Base render is the inline mode; `:modal` is the top-layer edge sheet.
+ * paper, no border (daisy separates the drawer with the scrim), sliding in
+ * from its edge the way daisy's drawer-side does (`translate` over 0.3s,
+ * #83). Base render is the inline mode; `data-l-dock="sheet"` is the
+ * top-layer edge sheet.
  */
 export const drawer: RecipeInput = {
     component: 'drawer',
@@ -5328,7 +5364,10 @@ export const drawer: RecipeInput = {
                 ...focusRing,
             },
         },
-        panel: withPresence(popupPresence('none'), {
+        panel: withPresence(withPresence(popupPresence('none'), sheetSlide(
+            'var(--duration-slow) var(--ease-standard)',
+            'var(--duration-slow) var(--ease-standard)',
+        )), {
             base: {
                 padding: 'var(--space-lg)',
                 background: 'var(--color-base-100)',
@@ -5351,13 +5390,14 @@ export const drawer: RecipeInput = {
             states: { open: {}, closed: {} },
             selectors: {
                 /**
-                 * The platform's own spelling of "this open is the modal
-                 * one": `:modal`. The base styles above are the INLINE
-                 * render (`show()` keeps the panel in flow); this block is
-                 * the top-layer edge sheet. Logical insets pin the edge, so
-                 * RTL mirrors free.
+                 * The top-layer edge sheet, keyed on the regime
+                 * (`data-l-dock="sheet"`) rather than `:modal`, which stops
+                 * matching the moment `close()` runs — so the sheet keeps its
+                 * box through the exit (#83). The base styles above are the
+                 * INLINE render. Logical insets pin the edge, so RTL mirrors
+                 * free.
                  */
-                '&:modal': {
+                '&[data-l-dock="sheet"]': {
                     position: 'fixed',
                     insetBlockStart: '0',
                     insetBlockEnd: '0',
@@ -5366,8 +5406,8 @@ export const drawer: RecipeInput = {
                     margin: '0',
                     borderRadius: '0',
                 },
-                '&[data-placement="start"]:modal': { insetInlineStart: '0', insetInlineEnd: 'auto' },
-                '&[data-placement="end"]:modal': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+                '&[data-placement="start"][data-l-dock="sheet"]': { insetInlineStart: '0', insetInlineEnd: 'auto' },
+                '&[data-placement="end"][data-l-dock="sheet"]': { insetInlineStart: 'auto', insetInlineEnd: '0' },
             },
         }),
         backdrop: {

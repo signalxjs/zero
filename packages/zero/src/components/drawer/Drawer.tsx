@@ -130,7 +130,7 @@ export const useDrawerContext = defineInjectable<DrawerContext>(() => makeInert(
 /**
  * `data-l-<bp>-dock="inline"` on a responsive drawer's trigger, panel and
  * close; nothing otherwise. Written directly rather than through
- * `layoutAttrs` for `measure`'s reason (the value set is one literal), and
+ * `layoutAttrs` for `measure`'s reason (a fixed literal), and
  * the breakpoint needs no grammar check here: `useMediaQuery` already threw
  * at setup for a name the design system did not declare, and the kit holds
  * declared names to kebab-case.
@@ -427,6 +427,9 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                 data-state={stateAttr(drawer.docked() || drawer.state.value, 'open', 'closed')}
                 open={openInMarkup}
                 {...dockAttrs(drawer)}
+                // The regime, not the open state — it holds through a sheet's
+                // exit, where `:modal` has already stopped matching (#83).
+                data-l-dock={drawer.modal() ? 'sheet' : 'inline'}
                 data-placement={drawer.placement()}
                 // Written directly rather than through `layoutAttrs`: `measure`
                 // is not responsive, so the type already closes the value set,

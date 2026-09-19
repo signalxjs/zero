@@ -171,6 +171,9 @@ test('a visually hidden title still names the panel, and paints nothing (#51, #5
 
 const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
+/** The skins whose modal sheet slides (#83); basic and brutalist keep the fade. */
+const SLIDES: ReadonlySet<string> = new Set(['daisyui', 'material', 'heroui', 'carbon']);
+
 /** What `var(--measure-<key>)` resolves to on this page, in px. */
 const measurePx = (page: Page, key: string) => page.evaluate((k) => {
     const probe = document.createElement('div');
@@ -220,5 +223,62 @@ for (const ds of DESIGN_SYSTEMS) {
         await inlineTrigger(page).click();
         const inline = await controlledPopup(page, inlineTrigger(page), 'the inline drawer trigger');
         expect(Math.abs((await settledBox(inline, 'the inline panel')).width - plain)).toBeLessThanOrEqual(1);
+    });
+}
+
+/**
+ * The exit keeps the sheet's box (#83). The sheet's geometry used to be keyed
+ * on `:modal`, which stops matching the moment `close()` runs — while the
+ * panel is still in the top layer for its exit — so it fell back to the
+ * inline box mid-exit. Now it is keyed on the regime (`data-l-dock="sheet"`).
+ *
+ * Measured paused late in the exit (95% of its time — the exit curves
+ * accelerate, so half the time is a fraction of the travel), from a close
+ * started INSIDE the page so no round trip can outlast a ~110ms exit. Chromium only: `overlay` is what
+ * keeps a closing dialog in the top layer at all, and elsewhere the exit is
+ * instant (#17).
+ */
+for (const ds of DESIGN_SYSTEMS) {
+    test(`${ds}: a closing sheet keeps its box through the exit${SLIDES.has(ds) ? ', sliding out to its edge' : ''} (#83)`, async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium', 'only Chromium transitions `overlay`, so only there is an exit to measure (#17)');
+        await page.goto('about:blank');
+        await bootPage(page, 'drawer', ds);
+        const trigger = startTrigger(page);
+        await trigger.click();
+        const panel = await controlledPopup(page, trigger, 'the start drawer trigger');
+        const open = await settledBox(panel, 'the open start sheet');
+
+        const mid = await panel.evaluate(async (el) => {
+            el.querySelector<HTMLElement>('[data-scope="drawer"][data-part="close"]')!.click();
+            await new Promise((r) => setTimeout(r, 0));
+            const running = el.getAnimations();
+            for (const a of running) {
+                a.pause();
+                a.currentTime = (a.effect!.getComputedTiming().duration as number) * 0.95;
+            }
+            const r = el.getBoundingClientRect();
+            return {
+                running: running.length,
+                state: el.getAttribute('data-state'),
+                position: getComputedStyle(el).position,
+                x: r.x,
+                width: r.width,
+                height: r.height,
+            };
+        });
+        expect(mid.state).toBe('closed');
+        expect(mid.running, `${ds}: no exit transition is running to measure`).toBeGreaterThan(0);
+        const viewport = page.viewportSize()!;
+        expect(mid.position, `${ds}: mid-exit the sheet fell back to the inline geometry`).toBe('fixed');
+        expect(mid.height).toBeGreaterThanOrEqual(viewport.height - 2);
+        expect(Math.abs(mid.width - open.width)).toBeLessThanOrEqual(1);
+        if (SLIDES.has(ds)) {
+            // Most of the way out, toward the reading start (the left edge in LTR).
+            expect(mid.x).toBeLessThan(open.x - open.width / 4);
+            expect(mid.x).toBeGreaterThan(open.x - open.width);
+        } else {
+            // A fade: the box does not move at all.
+            expect(Math.abs(mid.x - open.x)).toBeLessThanOrEqual(1);
+        }
     });
 }

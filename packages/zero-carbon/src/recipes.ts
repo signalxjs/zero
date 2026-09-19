@@ -4443,15 +4443,55 @@ export const steps: RecipeInput = {
 };
 
 /**
+ * The modal sheet's slide (#83): in from its edge, back out to it.
+ *
+ * `translate` is physical, so the travel is a custom property that flips with
+ * the placement AND the direction — off the reading start is leftward in LTR
+ * and rightward in RTL (the `rtl` hedge, as everywhere here). Keyed on
+ * `data-l-dock="sheet"`, the regime, which holds through the exit where
+ * `:modal` does not, so the slide-out leaves from the sheet's own box.
+ * Opacity stays at 1: the travel is the transition. Each direction rides the
+ * transition declared at its destination; reduced motion drops both.
+ */
+const sheetSlide = (enter: string, exit: string): PartStyles => {
+    const sheet = '&[data-l-dock="sheet"]';
+    const open = `${sheet}[data-state="open"]`;
+    const travel = (tempo: string): string => {
+        const duration = tempo.split(' ')[0];
+        return `translate ${tempo}, display ${duration} allow-discrete, overlay ${duration} allow-discrete`;
+    };
+    return {
+        base: { '--drawer-travel': '-100%' },
+        selectors: {
+            '&[data-placement="end"]': { '--drawer-travel': '100%' },
+            [`&[data-placement="start"]${rtl}`]: { '--drawer-travel': '100%' },
+            [`&[data-placement="end"]${rtl}`]: { '--drawer-travel': '-100%' },
+            [sheet]: { opacity: '1', translate: 'var(--drawer-travel) 0', transition: travel(exit) },
+            [open]: { translate: 'none', transition: travel(enter) },
+        },
+        at: {
+            'starting-style': { selectors: { [open]: { opacity: '1', translate: 'var(--drawer-travel) 0' } } },
+            'reduced-motion': { selectors: { [sheet]: { transition: 'none' }, [open]: { transition: 'none' } } },
+        },
+    };
+};
+
+/**
  * Drawer — Carbon's side panel: the $layer-01 sheet with a single line on
- * its inner edge, square of course, faded in. Base render is the inline
- * mode; `:modal` is the top-layer edge sheet. Size-only, on the trigger.
+ * its inner edge, square of course, sliding in from its edge on the
+ * productive entrance curve and out on the exit one (#83). Base render is
+ * the inline mode; `data-l-dock="sheet"` is the top-layer edge sheet —
+ * the regime rather than `:modal`, so it keeps its box through the exit.
+ * Size-only, on the trigger.
  */
 export const drawer: RecipeInput = {
     component: 'drawer',
     parts: {
         trigger: ghostTrigger,
-        panel: withPresence(popupPresence('none'), {
+        panel: withPresence(withPresence(popupPresence('none'), sheetSlide(
+            'var(--duration-slow) var(--ease-decelerate)',
+            'var(--duration-normal) var(--ease-accelerate)',
+        )), {
             base: {
                 padding: 'var(--space-lg)',
                 background: 'var(--color-base-200)',
@@ -4473,7 +4513,7 @@ export const drawer: RecipeInput = {
             },
             states: { open: {}, closed: {} },
             selectors: {
-                '&:modal': {
+                '&[data-l-dock="sheet"]': {
                     position: 'fixed',
                     insetBlockStart: '0',
                     insetBlockEnd: '0',
@@ -4484,12 +4524,12 @@ export const drawer: RecipeInput = {
                     border: 'none',
                     boxShadow: 'var(--shadow-xl)',
                 },
-                '&[data-placement="start"]:modal': {
+                '&[data-placement="start"][data-l-dock="sheet"]': {
                     insetInlineStart: '0',
                     insetInlineEnd: 'auto',
                     borderInlineEnd: 'var(--border) solid var(--carbon-line)',
                 },
-                '&[data-placement="end"]:modal': {
+                '&[data-placement="end"][data-l-dock="sheet"]': {
                     insetInlineStart: 'auto',
                     insetInlineEnd: '0',
                     borderInlineStart: 'var(--border) solid var(--carbon-line)',

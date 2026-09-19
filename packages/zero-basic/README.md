@@ -22,7 +22,8 @@ UIs people read all day.
   wear a 2px margin marker over a soft wash rather than a solid fill.
 - **Borders, not shadows; ink, not motion** — nothing moves on hover, pressed
   feedback is instantaneous ink density, overlays enter with a 4px rise and
-  fade out with no travel. Meta-text is mono; numbers are tabular everywhere.
+  fade out with no travel. The drawer sheet fades too, rather than sliding
+  across the viewport (#83). Meta-text is mono; numbers are tabular everywhere.
 - **Marks are drawn ink, not typeset glyphs** — the checkbox tick and the
   rating star are geometry that interpolates, so a mark's weight is Monograph's
   and not the reader's font's, and it draws itself out of the corner rather than

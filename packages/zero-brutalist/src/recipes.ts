@@ -4082,8 +4082,9 @@ export const steps: RecipeInput = {
 /**
  * Drawer — a slab hinged on the page edge: full-weight rule on the inner
  * edge only (the outer edge IS the viewport), no radius anywhere, faded in
- * because nothing in this house glides. Base render is the inline mode;
- * `:modal` is the top-layer edge sheet.
+ * because nothing in this house glides (#83 keeps it a fade). Base render is
+ * the inline mode; `data-l-dock="sheet"` is the top-layer edge sheet — the
+ * regime rather than `:modal`, so the sheet keeps its box through the exit.
  */
 export const drawer: RecipeInput = {
     component: 'drawer',
@@ -4108,7 +4109,7 @@ export const drawer: RecipeInput = {
             },
             states: { open: {}, closed: {} },
             selectors: {
-                '&:modal': {
+                '&[data-l-dock="sheet"]': {
                     position: 'fixed',
                     insetBlockStart: '0',
                     insetBlockEnd: '0',
@@ -4118,12 +4119,12 @@ export const drawer: RecipeInput = {
                     borderRadius: '0',
                     border: 'none',
                 },
-                '&[data-placement="start"]:modal': {
+                '&[data-placement="start"][data-l-dock="sheet"]': {
                     insetInlineStart: '0',
                     insetInlineEnd: 'auto',
                     borderInlineEnd: 'calc(var(--border) * 2) solid var(--color-base-content)',
                 },
-                '&[data-placement="end"]:modal': {
+                '&[data-placement="end"][data-l-dock="sheet"]': {
                     insetInlineStart: 'auto',
                     insetInlineEnd: '0',
                     borderInlineStart: 'calc(var(--border) * 2) solid var(--color-base-content)',

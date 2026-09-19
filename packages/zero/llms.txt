@@ -527,7 +527,12 @@ component renders; the root is called out separately where it carries props.
   visible heading). The panel stamps data-placement="start|end" from the
   LOGICAL pair (an edge panel anchors to the reading direction); recipes
   pin it with inset-inline-* so RTL mirrors free, and distinguish modal
-  from inline with the platform's own :modal pseudo-class. modal (default)
+  from inline with data-l-dock="sheet|inline" on the panel (#83) — the
+  regime, not the open state, so unlike :modal it holds through a sheet's
+  exit and the sheet keeps its box while it leaves. material, daisyui,
+  heroui and carbon slide the sheet (translate over --drawer-travel, flipped
+  by placement and :dir(rtl), dropped under reduced motion); basic and
+  brutalist fade. modal (default)
   = showModal(): focus trap, Escape via cancel, scrim click dismisses by
   Dialog's click geometry. modal={false} = INLINE: renders in flow via
   show(), no dismiss trap (outside clicks are a non-event), Escape still

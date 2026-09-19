@@ -13,8 +13,14 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * anchors to the reading direction (a navigation drawer sits at the
  * reading start in both directions), so spelling it physically would be
  * wrong in one of them; recipes pin it with `inset-inline-*` and RTL
- * mirrors free. Distinguishing modal from inline in CSS needs no attribute
- * either: `:modal` is the platform's own spelling of exactly that split.
+ * mirrors free.
+ *
+ * Modal from inline is `data-l-dock="sheet|inline"` on the panel (#83), not
+ * `:modal`. The platform's pseudo-class stops matching the moment `close()`
+ * runs, while the panel is still in the top layer for its exit transition —
+ * so geometry keyed on it fell back to the inline box mid-exit, and a slide
+ * out would travel from the wrong place. The attribute is the regime, not
+ * the open state, so it holds through the exit.
  *
  * Width is `measure` on the panel (`data-l-measure`, the design system's
  * `--measure-*` ramp), consumed by the recipes as `--l-measure`, a cap: the

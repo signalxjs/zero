@@ -49,6 +49,9 @@ import { demoLabelled, rootLabelled, settledBox } from './demo';
 
 const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
+/** The skins whose modal drawer sheet slides (#83); basic and brutalist keep the fade. */
+const SLIDES: ReadonlySet<string> = new Set(['daisyui', 'material', 'heroui', 'carbon']);
+
 /**
  * Boot with one design system pinned, then turn the document around.
  *
@@ -229,6 +232,50 @@ for (const ds of DESIGN_SYSTEMS) {
                 + 'determinate fill on this same element already does',
             ).toBeLessThan(early.x);
         });
+
+        /**
+         * The modal drawer sheet slides in from its READING edge (#83) — the
+         * right edge for `start` under RTL, the left for `end`. `translate`
+         * is physical, so the travel is a direction-flipped custom property,
+         * and only a box measured mid-entry can say it flipped.
+         *
+         * Opened from inside the page and seeked through `getAnimations()`
+         * to 5% of the entry's time — early, because the entry curves
+         * decelerate and most of the travel is spent in the first half — so
+         * no round trip can outlast the transition.
+         * basic and brutalist keep the fade: there, no travel may exist.
+         */
+        for (const [label, placement] of [['Open drawer', 'start'], ['Open end drawer', 'end']] as const) {
+            test(`the ${placement} drawer sheet enters from its reading edge`, async ({ page }) => {
+                const trigger = page.getByRole('button', { name: label, exact: true });
+                const mid = await trigger.evaluate(async (btn: HTMLElement) => {
+                    btn.click();
+                    await new Promise((r) => setTimeout(r, 0));
+                    const panel = document.getElementById(btn.getAttribute('aria-controls')!)!;
+                    const running = panel.getAnimations();
+                    const slide = running.find((a) => (a as CSSTransition).transitionProperty === 'translate');
+                    if (!slide) return null;
+                    for (const a of running) a.pause();
+                    slide.currentTime = (slide.effect!.getComputedTiming().duration as number) * 0.05;
+                    const r = panel.getBoundingClientRect();
+                    return { left: r.left, right: r.right, width: r.width };
+                });
+                if (!SLIDES.has(ds)) {
+                    expect(mid, `${ds}: keeps the fade — a sheet that travels is a design change (#83)`).toBeNull();
+                    return;
+                }
+                expect(mid, `${ds}: the sheet does not slide`).not.toBeNull();
+                const vw = page.viewportSize()!.width;
+                if (placement === 'start') {
+                    // Reading start is the RIGHT edge: early in, it overhangs it.
+                    expect(mid!.right).toBeGreaterThan(vw + mid!.width / 4);
+                    expect(mid!.left).toBeLessThan(vw);
+                } else {
+                    expect(mid!.left).toBeLessThan(-mid!.width / 4);
+                    expect(mid!.right).toBeGreaterThan(0);
+                }
+            });
+        }
 
         /**
          * The submenu chevron. Material declines to draw one at all — its

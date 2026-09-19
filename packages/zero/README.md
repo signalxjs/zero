@@ -247,6 +247,17 @@ up to it — its container inline, the viewport as a modal sheet — so
 `measure="full"` is a full-screen sheet. Unset, each design system keeps its
 own drawer width.
 
+**The regime is `data-l-dock` on the panel** (#83): `sheet` for a modal
+drawer, `inline` for `modal={false}`, and for a responsive one whichever side
+of its breakpoint the viewport is on. Unlike `:modal`, which stops matching
+the moment `close()` runs, it holds through a sheet's exit, so a design
+system keys the sheet's geometry on `[data-l-dock="sheet"]` and the sheet
+keeps its box while it leaves. That is what lets material, daisyUI, HeroUI
+and Carbon slide the sheet in from its edge and back out to it (the travel
+flips with the placement and with `dir="rtl"`; reduced motion drops it), while
+basic and brutalist keep the fade. Outside Chromium the exit is instant —
+`overlay` is Chromium-only (#17).
+
 **One drawer for both regimes: `modal={{ below: 'md' }}`.** A modal sheet
 below the design system's `md`, the panel docked open inline at or above it —
 an app shell's navigation rendered once, not twice (#82).
