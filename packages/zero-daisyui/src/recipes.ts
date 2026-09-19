@@ -2579,6 +2579,13 @@ export const avatar: RecipeInput = {
         },
     },
     variants: {
+        // The shape axis (zero#129) — one declaration on the root, whose
+        // `overflow: hidden` clips the image and the fallback alike. `rounded` is daisy's selector radius; the default is the circle.
+        shape: {
+            circle: { root: { base: { borderRadius: '9999px' } } },
+            square: { root: { base: { borderRadius: '0' } } },
+            rounded: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+        },
         // daisy colours the RING, not the fallback — that is what its avatar
         // does, and the fallback stays neutral so initials read the same
         // whichever role is chosen.

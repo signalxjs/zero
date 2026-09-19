@@ -1594,6 +1594,14 @@ export const avatar: RecipeInput = {
         },
     },
     variants: {
+        // The shape axis (zero#129) — one declaration on the root, whose
+        // `overflow: hidden` clips the image and the fallback alike. Every radius token here is 0, so `rounded` is a fixed
+        // corner in proportion to the avatar — otherwise it would be `square`.
+        shape: {
+            circle: { root: { base: { borderRadius: '9999px' } } },
+            square: { root: { base: { borderRadius: '0' } } },
+            rounded: { root: { base: { borderRadius: 'calc(var(--avatar-size) / 8)' } } },
+        },
         // A flat fill in the role itself — brutalism has no tints, so the
         // fallback takes the full colour and its own content ink.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {

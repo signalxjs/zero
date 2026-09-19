@@ -40,6 +40,18 @@
         display: grid;
     }
 
+    [data-scope="avatar"][data-part="root"][data-shape="circle"] {
+        border-radius: 9999px;
+    }
+
+    [data-scope="avatar"][data-part="root"][data-shape="square"] {
+        border-radius: 0;
+    }
+
+    [data-scope="avatar"][data-part="root"][data-shape="rounded"] {
+        border-radius: var(--radius-selector);
+    }
+
     [data-scope="avatar"][data-part="root"][data-color="primary"] {
         --avatar-ring: var(--color-primary);
     }

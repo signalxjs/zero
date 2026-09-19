@@ -106,6 +106,14 @@ interface Vocabulary {
     themes: string[];
     /** scope → the variant values that scope wires (empty = none). */
     scopeVariants: Record<string, string[]>;
+    /**
+     * The design system's own axes (`tokens.axes`, zero#129) → scope → the
+     * values that scope wires. Read per scope for `data-variant`'s reason: a
+     * custom axis is declared design-system-wide and wired where a recipe
+     * keys it, so `data-shape` on a scope that wires no shape matches
+     * nothing.
+     */
+    scopeAxes: Record<string, Record<string, string[]>>;
 }
 
 function vocabularyOf(id: string): Vocabulary {
@@ -128,6 +136,14 @@ function vocabularyOf(id: string): Vocabulary {
          */
         scopeVariants: Object.fromEntries(
             Object.entries(manifest.components).map(([scope, wired]) => [scope, [...wired.variant]]),
+        ),
+        scopeAxes: Object.fromEntries(
+            Object.keys(manifest.tokens.axes).map((axis) => [
+                axis,
+                Object.fromEntries(
+                    Object.entries(manifest.components).map(([scope, wired]) => [scope, [...(wired.axes[axis] ?? [])]]),
+                ),
+            ]),
         ),
     };
 }
@@ -315,6 +331,22 @@ const readAxes = (page: Page, vocabulary: Vocabulary): Promise<RenderedAxes> =>
                 const name = attribute.name.slice('data-mod-'.length);
                 if (!declared.modifiers.includes(name)) {
                     undeclared.push(`${where(el)} ${attribute.name}`);
+                }
+            }
+            // A custom axis the design system declares (`data-shape`, zero#129)
+            // is held to the SCOPE's wired values, like `data-variant`. An
+            // axis no design system declares (the extensible-axes page's
+            // `data-density`) is an app's own attribute and is not judged.
+            if (scope !== null) {
+                for (const [axis, byScope] of Object.entries(declared.scopeAxes)) {
+                    const value = el.getAttribute(`data-${axis}`);
+                    if (value === null) continue;
+                    const wired = byScope[scope] ?? [];
+                    if (!wired.includes(value)) {
+                        undeclared.push(
+                            `${where(el)} data-${axis}="${value}" — ${scope} wires ${wired.length > 0 ? wired.join(' | ') : `no ${axis}`}`,
+                        );
+                    }
                 }
             }
         }

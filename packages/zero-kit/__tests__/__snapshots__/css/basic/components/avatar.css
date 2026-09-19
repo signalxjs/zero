@@ -43,6 +43,18 @@
         display: grid;
     }
 
+    [data-scope="avatar"][data-part="root"][data-shape="circle"] {
+        border-radius: 9999px;
+    }
+
+    [data-scope="avatar"][data-part="root"][data-shape="square"] {
+        border-radius: 0;
+    }
+
+    [data-scope="avatar"][data-part="root"][data-shape="rounded"] {
+        border-radius: var(--radius-selector);
+    }
+
     [data-scope="avatar"][data-part="root"][data-color="primary"] {
         --avatar-accent: var(--color-primary-soft);
         --avatar-on-accent: var(--color-primary);
@@ -60,7 +72,7 @@
 
     [data-scope="avatar"][data-part="root"][data-color="neutral"] {
         --avatar-accent: var(--color-neutral-soft);
-        --avatar-on-accent: var(--color-neutral);
+        --avatar-on-accent: var(--color-base-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="info"] {
@@ -75,7 +87,7 @@
 
     [data-scope="avatar"][data-part="root"][data-color="warning"] {
         --avatar-accent: var(--color-warning-soft);
-        --avatar-on-accent: var(--color-warning);
+        --avatar-on-accent: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
     }
 
     [data-scope="avatar"][data-part="root"][data-color="error"] {

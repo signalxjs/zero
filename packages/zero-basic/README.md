@@ -70,6 +70,14 @@ which the contrast audit now measures for every colour and theme. An
 uncoloured marker is the same solid dot as before, and under forced colours
 the ring still draws the whole dot.
 
+## Avatar shape
+
+`<Avatar.Root axes={{ shape: 'square' }}>` picks `circle`, `square` or
+`rounded` (#129) — a custom axis this design system declares in
+`tokens.axes` and wires on avatar alone, so the `/register` module types
+`axes.shape` there and nowhere else. One declaration on the root, whose
+`overflow: hidden` clips the image and the initials alike. `rounded` is the selector radius, which is also the un-attributed default here.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors

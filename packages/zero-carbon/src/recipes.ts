@@ -2028,6 +2028,14 @@ export const avatar: RecipeInput = {
         },
     },
     variants: {
+        // The shape axis (zero#129) — one declaration on the root, whose
+        // `overflow: hidden` clips the image and the fallback alike. Carbon's radii are 0 (square is its default), so `rounded`
+        // is a fixed corner in proportion to the avatar.
+        shape: {
+            circle: { root: { base: { borderRadius: '9999px' } } },
+            square: { root: { base: { borderRadius: '0' } } },
+            rounded: { root: { base: { borderRadius: 'calc(var(--avatar-size) / 8)' } } },
+        },
         size: {
             sm: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 8)', '--avatar-text': 'var(--text-xs)' } } },
             // `md` is the un-attributed render — the defaults in `tokens:`

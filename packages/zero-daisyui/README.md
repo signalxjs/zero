@@ -169,6 +169,14 @@ dialog popup's `zero-daisy-pop` keyframe; and the collapsible trigger's
 keyframes, the menu's checkmark `::after` — is private and may change in any
 release; `validateDesignSystem` warns when a patch touches one.
 
+## Avatar shape
+
+`<Avatar.Root axes={{ shape: 'square' }}>` picks `circle`, `square` or
+`rounded` (#129) — a custom axis this design system declares in
+`tokens.axes` and wires on avatar alone, so the `/register` module types
+`axes.shape` there and nowhere else. One declaration on the root, whose
+`overflow: hidden` clips the image and the initials alike. `rounded` is daisy's selector radius; unset, the avatar is the circle it always was.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors
