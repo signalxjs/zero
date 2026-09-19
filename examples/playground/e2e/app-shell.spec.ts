@@ -8,13 +8,16 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { controlledPopup } from './demo';
+import { controlledPopup, settledBox } from './demo';
 
 const WIDE = { width: 1280, height: 720 };
 const NARROW = { width: 600, height: 720 };
 
 const shell = (page: Page) => page.locator('[data-demo="app-shell"]');
-/** By its label — `getByRole` skips a hidden trigger, and it is hidden when docked. */
+/**
+ * By its part, within the shell's own root — not `getByRole`, which skips
+ * hidden elements, and the trigger is hidden whenever the panel is docked.
+ */
 const trigger = (page: Page) => shell(page).locator('[data-scope="drawer"][data-part="trigger"]');
 const navList = (page: Page) => shell(page).locator('[data-scope="nav-list"][data-part="root"]');
 
@@ -32,8 +35,8 @@ test('wide: the sidebar is docked in flow beside main, the bar has no menu butto
     await expect(navList(page)).toBeVisible();
     await expect(trigger(page)).toBeHidden();
     // Side by side: the panel's right edge is at or left of main's left edge.
-    const panelBox = (await panel.boundingBox())!;
-    const mainBox = (await shell(page).locator('main').boundingBox())!;
+    const panelBox = await settledBox(panel, 'the docked sidebar');
+    const mainBox = await settledBox(shell(page).locator('main'), 'the shell main');
     expect(panelBox.x + panelBox.width).toBeLessThanOrEqual(mainBox.x + 1);
     expect(await navList(page).evaluate((el) => el.closest('[data-part="panel"]') !== null)).toBe(true);
 });
