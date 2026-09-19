@@ -128,7 +128,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-56 components ship today. Every part each renders is listed below, in
+57 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -325,6 +325,16 @@ component renders; the root is called out separately where it carries props.
   alert is silent at load and one inserted later is announced. Close sets the
   model false and the runtime sets `hidden` (anatomy: hiddenIn: ['closed']),
   so design systems never paint `closed`. Icon is aria-hidden.
+- EmptyState: Root/Icon/Title/Description/Actions (#131) — what stands where
+  the content would be: nothing yet, nothing found, nothing reachable. No
+  state and no behaviour (presence is the consumer's `if`); no role of its
+  own (pass `role="status"` to have a failure announced); Title takes
+  asChild so it can be the heading the page's outline wants; Icon is
+  aria-hidden; Actions is a band for the consumer's own Button.Root (or a
+  `Button.Root asChild` over an <a>). The tone is the `color` axis, Alert's
+  answer: a failure is `error`, an offline notice `warning`. Not an Alert —
+  an alert announces itself and can be dismissed; an empty state is the
+  page's content while there is none.
 - Badge: Root/Dot — the carrier IS the text-bearing part, which is why it is
   the one scope that can wire its own `variant` vocabulary against the
   contrast audit's one-element probe. asChild. Dot (#130) is an optional
@@ -775,7 +785,7 @@ value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
-Divider, Field, Indicator, Input, Join, Kbd, Menu, NumberInput,
+Divider, EmptyState, Field, Indicator, Input, Join, Kbd, Menu, NumberInput,
 Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
 Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,

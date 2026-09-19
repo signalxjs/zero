@@ -3886,6 +3886,94 @@ export const alert: RecipeInput = {
 };
 
 /**
+ * EmptyState (zero#131) — what stands where the content would be. A
+ * centred column on a dashed hairline: the frame says "something goes
+ * here" without pretending to be a card. The tone is the colour axis, as
+ * Alert's is: the icon takes the role and the frame its soft tint, so a
+ * failure reads as one at a glance and an empty list stays quiet.
+ */
+export const emptyState: RecipeInput = {
+    component: 'empty-state',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--empty-accent': 'The icon ink.',
+            '--empty-tint': 'The frame fill.',
+            '--empty-line': 'The frame\'s dashed line.',
+        },
+    },
+    tokens: {
+        '--empty-accent': 'color-mix(in oklch, var(--color-base-content) 55%, transparent)',
+        '--empty-tint': 'transparent',
+        '--empty-line': 'var(--color-base-300)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-2xl) var(--space-xl)',
+                background: 'var(--empty-tint)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) dashed var(--empty-line)',
+                borderRadius: 'var(--radius-box)',
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                color: 'var(--empty-accent)',
+                fontSize: 'var(--text-2xl)',
+                lineHeight: 'var(--leading-none)',
+                marginBlockEnd: 'var(--space-xs)',
+            },
+        },
+        title: {
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-md)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                maxInlineSize: '36ch',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                color: 'color-mix(in oklch, var(--color-base-content) 78%, transparent)',
+            },
+        },
+        actions: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: 'var(--space-sm)',
+                marginBlockStart: 'var(--space-sm)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--empty-accent': softInk(c),
+            '--empty-tint': `var(--color-${c}-soft)`,
+            '--empty-line': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-md) var(--space-md)', gap: 'var(--space-2xs)' } }, icon: { base: { fontSize: 'var(--text-lg)' } }, title: { base: { fontSize: 'var(--text-xs)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-lg) var(--space-lg)', gap: 'var(--space-xs)' } }, icon: { base: { fontSize: 'var(--text-xl)' } }, title: { base: { fontSize: 'var(--text-sm)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'calc(var(--space-2xl) * 1.5) var(--space-2xl)', gap: 'var(--space-md)' } }, icon: { base: { fontSize: 'var(--text-3xl)' } }, title: { base: { fontSize: 'var(--text-lg)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { padding: 'calc(var(--space-2xl) * 2) var(--space-2xl)', gap: 'var(--space-lg)' } }, icon: { base: { fontSize: 'var(--text-3xl)' } }, title: { base: { fontSize: 'var(--text-xl)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
  * Badge — the one content-tier scope that wires its own `variant`, and the
  * repo's first caller of `tokens.scopes` (#294; docs/architecture.md,
  * "Declared vocabulary"). zero-basic
@@ -6234,7 +6322,7 @@ export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
-    card, alert, badge, divider, skeleton, spinner,
+    card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
     table,

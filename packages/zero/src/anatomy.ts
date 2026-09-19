@@ -47,6 +47,7 @@ import { containerAnatomy } from './components/container/anatomy.js';
 import { spinnerAnatomy } from './components/spinner/anatomy.js';
 import { kbdAnatomy } from './components/kbd/anatomy.js';
 import { statusAnatomy } from './components/status/anatomy.js';
+import { emptyStateAnatomy } from './components/empty-state/anatomy.js';
 import { indicatorAnatomy } from './components/indicator/anatomy.js';
 import { statsAnatomy } from './components/stats/anatomy.js';
 import { timelineAnatomy } from './components/timeline/anatomy.js';
@@ -73,7 +74,7 @@ export {
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
     stackAnatomy, spacerAnatomy, gridAnatomy, centerAnatomy, boxAnatomy, containerAnatomy,
-    kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy,
+    kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy, emptyStateAnatomy,
     radialProgressAnatomy, joinAnatomy,
     navbarAnatomy, breadcrumbsAnatomy, paginationAnatomy, stepsAnatomy, drawerAnatomy,
     tableAnatomy, fileUploadAnatomy, carouselAnatomy, swapAnatomy, countdownAnatomy, diffAnatomy,
@@ -119,6 +120,7 @@ export const anatomies = {
     spinner: spinnerAnatomy,
     kbd: kbdAnatomy,
     status: statusAnatomy,
+    'empty-state': emptyStateAnatomy,
     indicator: indicatorAnatomy,
     stats: statsAnatomy,
     timeline: timelineAnatomy,

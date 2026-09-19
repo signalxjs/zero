@@ -2893,6 +2893,69 @@ export const alert: RecipeInput = {
     },
 };
 
+/**
+ * EmptyState (zero#131) — HeroUI ships none; this is its card idiom with
+ * the content centred: the hairline, the box radius, the icon in the
+ * primary and the body in the muted ink. No colour axis here (`roles: {}`),
+ * so a failure's tone is the app's own icon and copy.
+ */
+export const emptyState: RecipeInput = {
+    component: 'empty-state',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-2xl) var(--space-xl)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                color: 'var(--hero-primary)',
+                fontSize: 'var(--text-3xl)',
+                lineHeight: 'var(--leading-none)',
+                marginBlockEnd: 'var(--space-xs)',
+            },
+        },
+        title: {
+            base: { ...label, margin: '0', fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-semibold)', lineHeight: 'var(--leading-tight)' },
+        },
+        description: {
+            base: {
+                maxInlineSize: '36ch',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        actions: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: 'var(--space-sm)',
+                marginBlockStart: 'var(--space-sm)',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { padding: 'var(--space-lg)', gap: 'var(--space-xs)' } }, icon: { base: { fontSize: 'var(--text-2xl)' } }, title: { base: { fontSize: 'var(--text-md)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'calc(var(--space-2xl) * 1.5) var(--space-2xl)', gap: 'var(--space-md)' } }, icon: { base: { fontSize: 'var(--text-3xl)' } }, title: { base: { fontSize: 'var(--text-xl)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 /** HeroUI's chip: a pill in base-200, muted ink, the hairline around it. */
 export const badge: RecipeInput = {
     component: 'badge',
@@ -4780,7 +4843,7 @@ export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
-    card, alert, badge, divider, skeleton, spinner,
+    card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
     table,

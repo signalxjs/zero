@@ -14,7 +14,7 @@ import { component, signal } from 'sigx';
 import { anatomies } from '@sigx/zero/anatomy';
 import {
     Accordion, Alert, Avatar, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, Checkbox,
-    Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, Field, FileUpload, Grid,
+    Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, EmptyState, Field, FileUpload, Grid,
     Indicator, Input, Join, Kbd, Menu, Navbar, NumberInput, Pagination, Popover, Progress,
     RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spacer, Spinner, Stack, Stats,
     Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
@@ -232,6 +232,14 @@ describe('the pass-through reaches every part', () => {
                 <Alert.Description {...p('description')}>D</Alert.Description>
                 <Alert.Close {...p('close')} />
             </Alert.Root>
+        ),
+        'empty-state': () => (
+            <EmptyState.Root {...p('root')}>
+                <EmptyState.Icon {...p('icon')}>∅</EmptyState.Icon>
+                <EmptyState.Title {...p('title')}>T</EmptyState.Title>
+                <EmptyState.Description {...p('description')}>D</EmptyState.Description>
+                <EmptyState.Actions {...p('actions')}>A</EmptyState.Actions>
+            </EmptyState.Root>
         ),
         avatar: () => (
             <Avatar.Root {...p('root')}>

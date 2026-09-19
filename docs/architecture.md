@@ -254,7 +254,7 @@ would render it as an element.
 
 **The registry is typed closed.** `anatomies` in
 `packages/zero/src/anatomy.ts` is declared `as const satisfies
-Record<string, Anatomy>` — 56 components — so `ZeroScope` is a closed literal
+Record<string, Anatomy>` — 57 components — so `ZeroScope` is a closed literal
 union. That closure is load-bearing: the generated register artifact asserts
 its scope keys against it at compile time ([§3.5](#35-the-register-artifact)),
 which is what makes a typo'd or version-skewed scope a compile error instead
@@ -1519,7 +1519,7 @@ Honesty section. These are the edges the tree knows about today:
 - **The dual-controller theme desync** ([§6](#6-the-theme-model)) is known
   and deliberately unfixed; consumers that swap design systems at runtime
   carry the playground's capture/re-apply pattern.
-- **The component surface is finite.** Fifty-six components, skewed to
+- **The component surface is finite.** Fifty-seven components, skewed to
   primitives plus the content, navigation, layout and behavior tiers; there
   is no DatePicker and no data grid (Table ships the semantic anatomy, not
   sorting or virtualization). The ecosystem path

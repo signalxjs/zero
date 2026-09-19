@@ -3275,6 +3275,72 @@ export const alert: RecipeInput = {
     },
 };
 
+/**
+ * EmptyState (zero#131) — Carbon's empty-state pattern: an illustration,
+ * a heading and a body ranged left on the layer, with the actions below.
+ * No colour axis (`roles: {}`); the icon takes the interactive ink.
+ */
+export const emptyState: RecipeInput = {
+    component: 'empty-state',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-2xl) var(--space-xl)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-box)',
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                color: 'var(--carbon-interactive)',
+                fontSize: 'var(--text-3xl)',
+                lineHeight: 'var(--leading-none)',
+                marginBlockEnd: 'var(--space-xs)',
+            },
+        },
+        title: {
+            base: {
+                margin: '0',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-lg)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                maxInlineSize: '40ch',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+            },
+        },
+        actions: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 'var(--space-sm)',
+                marginBlockStart: 'var(--space-md)',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { padding: 'var(--space-lg)', gap: 'var(--space-xs)' } }, icon: { base: { fontSize: 'var(--text-2xl)' } }, title: { base: { fontSize: 'var(--text-md)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'calc(var(--space-2xl) * 1.5) var(--space-2xl)', gap: 'var(--space-md)' } }, icon: { base: { fontSize: 'var(--text-3xl)' } }, title: { base: { fontSize: 'var(--text-xl)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { padding: 'calc(var(--space-2xl) * 2) var(--space-2xl)', gap: 'var(--space-lg)' } }, icon: { base: { fontSize: 'var(--text-3xl)' } }, title: { base: { fontSize: 'var(--text-2xl)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+            '2xl': { root: { base: { padding: 'calc(var(--space-2xl) * 2.5) var(--space-2xl)', gap: 'var(--space-lg)' } }, icon: { base: { fontSize: 'var(--text-3xl)' } }, title: { base: { fontSize: 'var(--text-3xl)' } }, description: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 /** Carbon's tag: a square-cornered chip on the layer above the surface. */
 export const badge: RecipeInput = {
     component: 'badge',
@@ -5252,7 +5318,7 @@ export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
-    card, alert, badge, divider, skeleton, spinner,
+    card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
     table,

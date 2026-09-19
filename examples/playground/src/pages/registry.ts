@@ -38,6 +38,7 @@ import { collapsiblePage } from './collapsible';
 import { treeViewPage } from './tree-view';
 import { avatarPage } from './avatar';
 import { cardPage, alertPage, badgePage, dividerPage } from './content-tier';
+import { emptyStatePage } from './empty-state';
 import { skeletonPage, spinnerPage } from './loading';
 import { kbdPage } from './kbd';
 import { statusPage } from './status';
@@ -129,6 +130,7 @@ export const pages: PageEntry[] = [
     avatarPage,
     cardPage,
     alertPage,
+    emptyStatePage,
     badgePage,
     dividerPage,
     skeletonPage,

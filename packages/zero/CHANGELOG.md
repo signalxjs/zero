@@ -31,6 +31,20 @@
   change: `expectAnatomy` accepts `data-color` on the dot and nowhere else
   below the root.
 
+### Added — EmptyState (#131)
+
+- **A new component, `EmptyState`** (`@sigx/zero/empty-state` and the
+  barrel): what stands where the content would be — nothing yet, nothing
+  found, nothing reachable. Parts: `root` (the carrier), `icon`
+  (`aria-hidden`), `title` (`asChild`, so it can be the heading the page's
+  outline wants), `description` and `actions`, a band for the consumer's
+  own `Button.Root`s. The tone is the `color` axis — a failure is `error`,
+  an offline notice `warning` — the way Alert says it. No state, no model,
+  no flags: presence is the consumer's `if`, and it takes no role of its own
+  (an app passes `role="status"` to have a failure announced). All six
+  design systems style it; `RESERVED_PROPS_BY_SCOPE` gains the scope.
+- Size: `@sigx/zero/empty-state` 1.6 kB; the full barrel 47.65 → 47.85 kB.
+
 ### Added — trigger mode: `itemInsert`, the text a commit inserts (#107)
 
 - **`Combobox.Root itemInsert`** (trigger mode) replaces the default

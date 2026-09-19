@@ -3294,6 +3294,88 @@ export const alert: RecipeInput = {
     },
 };
 
+/**
+ * EmptyState (zero#131) — Material's empty-state guidance is an
+ * illustration, a headline and a body on the surface itself, no frame: a
+ * centred column on the low surface container, the icon in the role.
+ */
+export const emptyState: RecipeInput = {
+    component: 'empty-state',
+    hooks: {
+        properties: {
+            '--empty-accent': 'The icon ink.',
+            '--empty-tint': 'The surface fill.',
+        },
+    },
+    tokens: {
+        '--empty-accent': 'var(--color-secondary)',
+        '--empty-tint': 'var(--color-surface-container)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-2xl) var(--space-xl)',
+                background: 'var(--empty-tint)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-box)',
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                color: 'var(--empty-accent)',
+                fontSize: 'var(--text-3xl)',
+                lineHeight: 'var(--leading-none)',
+                marginBlockEnd: 'var(--space-xs)',
+            },
+        },
+        title: {
+            base: {
+                ...label,
+                margin: '0',
+                fontSize: 'var(--text-lg)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                maxInlineSize: '36ch',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        actions: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: 'var(--space-sm)',
+                marginBlockStart: 'var(--space-md)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--empty-accent': `var(--color-${c})`,
+            '--empty-tint': `var(--color-${c}-soft)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-md)', gap: 'var(--space-2xs)' } }, icon: { base: { fontSize: 'var(--text-xl)' } }, title: { base: { fontSize: 'var(--text-sm)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-lg)', gap: 'var(--space-xs)' } }, icon: { base: { fontSize: 'var(--text-2xl)' } }, title: { base: { fontSize: 'var(--text-md)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'calc(var(--space-2xl) * 1.5) var(--space-2xl)', gap: 'var(--space-md)' } }, icon: { base: { fontSize: 'var(--text-3xl)' } }, title: { base: { fontSize: 'var(--text-xl)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { padding: 'calc(var(--space-2xl) * 2) var(--space-2xl)', gap: 'var(--space-lg)' } }, icon: { base: { fontSize: 'var(--text-3xl)' } }, title: { base: { fontSize: 'var(--text-2xl)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 /** Material's badge: a small filled pill in the role's own on-accent pair. */
 export const badge: RecipeInput = {
     component: 'badge',
@@ -5432,7 +5514,7 @@ export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
-    card, alert, badge, divider, skeleton, spinner,
+    card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
     table,

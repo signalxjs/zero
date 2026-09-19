@@ -211,6 +211,10 @@
             "types": "./dist/components/status/index.d.ts",
             "import": "./dist/components/status/index.js"
         },
+        "./empty-state": {
+            "types": "./dist/components/empty-state/index.d.ts",
+            "import": "./dist/components/empty-state/index.js"
+        },
         "./indicator": {
             "types": "./dist/components/indicator/index.d.ts",
             "import": "./dist/components/indicator/index.js"

@@ -55,6 +55,7 @@ export default defineLibConfig({
         'components/spinner/index': 'src/components/spinner/index.ts',
         'components/kbd/index': 'src/components/kbd/index.ts',
         'components/status/index': 'src/components/status/index.ts',
+        'components/empty-state/index': 'src/components/empty-state/index.ts',
         'components/indicator/index': 'src/components/indicator/index.ts',
         'components/stats/index': 'src/components/stats/index.ts',
         'components/timeline/index': 'src/components/timeline/index.ts',

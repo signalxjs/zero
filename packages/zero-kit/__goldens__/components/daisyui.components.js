@@ -63,6 +63,7 @@ export { Input } from '@sigx/zero/input';
 export { Textarea } from '@sigx/zero/textarea';
 export { Card } from '@sigx/zero/card';
 export { Alert } from '@sigx/zero/alert';
+export { EmptyState } from '@sigx/zero/empty-state';
 export { Badge } from '@sigx/zero/badge';
 export { Divider } from '@sigx/zero/divider';
 export { Skeleton } from '@sigx/zero/skeleton';

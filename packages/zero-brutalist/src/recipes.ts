@@ -2827,6 +2827,72 @@ export const alert: RecipeInput = {
     },
 };
 
+/**
+ * EmptyState (zero#131) — an inked slab like everything else, with the
+ * hard shadow, and the tone on the icon and a heavy inline-start rule as
+ * Alert carries it. Nothing centred: brutalism ranges left.
+ */
+export const emptyState: RecipeInput = {
+    component: 'empty-state',
+    hooks: { properties: { '--empty-accent': 'The icon ink and the rule.' } },
+    tokens: { '--empty-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 'var(--space-xs)',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                borderInlineStartWidth: 'calc(var(--border) * 4)',
+                borderInlineStartColor: 'var(--empty-accent)',
+                padding: 'var(--space-xl) var(--space-lg)',
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                color: 'var(--empty-accent)',
+                fontSize: 'var(--text-2xl)',
+                lineHeight: 'var(--leading-none)',
+                marginBlockEnd: 'var(--space-xs)',
+            },
+        },
+        title: {
+            base: { ...label, margin: '0', fontSize: 'var(--text-sm)', lineHeight: 'var(--leading-tight)' },
+        },
+        description: {
+            base: {
+                maxInlineSize: '40ch',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-normal)',
+            },
+        },
+        actions: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 'var(--space-sm)',
+                marginBlockStart: 'var(--space-sm)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--empty-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-md) var(--space-sm)', gap: 'var(--space-2xs)' } }, icon: { base: { fontSize: 'var(--text-lg)' } }, title: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-lg) var(--space-md)' } }, icon: { base: { fontSize: 'var(--text-xl)' } }, title: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'var(--space-2xl) var(--space-xl)', gap: 'var(--space-sm)' } }, icon: { base: { fontSize: 'var(--text-3xl)' } }, title: { base: { fontSize: 'var(--text-md)' } }, description: { base: { fontSize: 'var(--text-sm)' } } },
+            xl: { root: { base: { padding: 'calc(var(--space-2xl) * 1.5) var(--space-2xl)', gap: 'var(--space-md)' } }, icon: { base: { fontSize: 'var(--text-3xl)' } }, title: { base: { fontSize: 'var(--text-lg)' } }, description: { base: { fontSize: 'var(--text-sm)' } } },
+        },
+    },
+};
+
 /** A badge is a stamp: square corners, full ink frame, mono uppercase. */
 export const badge: RecipeInput = {
     component: 'badge',
@@ -4911,7 +4977,7 @@ export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
-    card, alert, badge, divider, skeleton, spinner,
+    card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
     table,

@@ -13,6 +13,8 @@ import {
     Badge, badgeAnatomy,
     Card, cardAnatomy,
     Divider, dividerAnatomy,
+    EmptyState, emptyStateAnatomy,
+    Button,
 } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
@@ -171,6 +173,63 @@ describe('Divider', () => {
     it('is not focusable — it separates, it does not move', () => {
         render(<Divider />, container);
         expect(part(container, 'divider', 'root').hasAttribute('tabindex')).toBe(false);
+    });
+});
+
+describe('EmptyState (#131)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    it('renders a valid anatomy: root, decorative icon, title, description, actions', () => {
+        render(
+            <EmptyState.Root color="error" size="sm">
+                <EmptyState.Icon>⚠</EmptyState.Icon>
+                <EmptyState.Title>Could not load your projects</EmptyState.Title>
+                <EmptyState.Description>The server did not answer.</EmptyState.Description>
+                <EmptyState.Actions>
+                    <Button.Root>Try again</Button.Root>
+                </EmptyState.Actions>
+            </EmptyState.Root>,
+            container,
+        );
+        expectAnatomy(container, emptyStateAnatomy);
+        const root = part(container, 'empty-state', 'root');
+        expect(root.getAttribute('data-color')).toBe('error');
+        expect(root.getAttribute('data-size')).toBe('sm');
+        // No role of its own and no live region: it is content, not a message.
+        expect(root.hasAttribute('role')).toBe(false);
+        expect(part(container, 'empty-state', 'icon').getAttribute('aria-hidden')).toBe('true');
+        // The way out is the consumer's own button, inside the band.
+        expect(part(container, 'empty-state', 'actions').querySelector('[data-scope="button"]')).not.toBeNull();
+    });
+
+    it('the title can be the heading the page wants, through asChild', () => {
+        render(
+            <EmptyState.Root>
+                <EmptyState.Title asChild>{(p: PartProps) => <h2 {...p}>Nothing here yet</h2>}</EmptyState.Title>
+            </EmptyState.Root>,
+            container,
+        );
+        expectAnatomy(container, emptyStateAnatomy);
+        expect(part(container, 'empty-state', 'title').tagName).toBe('H2');
+    });
+
+    it('an app may announce a failure: role passes through on the root', () => {
+        render(<EmptyState.Root role="status"><EmptyState.Title>Offline</EmptyState.Title></EmptyState.Root>, container);
+        expect(part(container, 'empty-state', 'root').getAttribute('role')).toBe('status');
+    });
+
+    it('declares no state, no model and no flags — presence is the consumer\'s if', () => {
+        expect(emptyStateAnatomy.partNames()).toEqual(['root', 'icon', 'title', 'description', 'actions']);
+        for (const name of emptyStateAnatomy.partNames()) {
+            const spec = emptyStateAnatomy.parts[name as keyof typeof emptyStateAnatomy.parts];
+            expect(spec.states ?? []).toEqual([]);
+            expect(spec.flags ?? []).toEqual([]);
+        }
+        expect(emptyStateAnatomy.models ?? []).toEqual([]);
     });
 });
 

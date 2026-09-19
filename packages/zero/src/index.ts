@@ -255,6 +255,14 @@ export type { KbdRootProps } from './components/kbd/index.js';
 
 export { Status, statusAnatomy } from './components/status/index.js';
 export type { StatusRootProps } from './components/status/index.js';
+export { EmptyState, emptyStateAnatomy } from './components/empty-state/index.js';
+export type {
+    EmptyStateRootProps,
+    EmptyStateIconProps,
+    EmptyStateTitleProps,
+    EmptyStateDescriptionProps,
+    EmptyStateActionsProps,
+} from './components/empty-state/index.js';
 
 export { Indicator, indicatorAnatomy } from './components/indicator/index.js';
 export type {
