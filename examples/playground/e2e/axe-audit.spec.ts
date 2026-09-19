@@ -53,7 +53,8 @@ const OPENERS: Record<string, (page: Page) => Promise<void>> = {
     },
     drawer: async (page) => {
         await page.getByRole('button', { name: 'Open drawer', exact: true }).click();
-        await expect(page.locator('[data-scope="drawer"][data-part="panel"][data-state="open"]')).toBeVisible();
+        // By name: the page also idles a responsive drawer docked open (#82).
+        await expect(page.getByRole('dialog', { name: 'Navigation', exact: true })).toBeVisible();
     },
     popover: async (page) => {
         await page.getByRole('button', { name: 'Filters', exact: true }).click();

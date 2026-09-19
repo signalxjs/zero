@@ -8,5 +8,6 @@ export type {
     DrawerPlacement,
     DrawerCloseReason,
     DrawerCloseDetail,
+    DrawerModalRange,
 } from './Drawer.js';
 export { drawerAnatomy } from './anatomy.js';

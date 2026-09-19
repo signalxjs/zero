@@ -2,6 +2,45 @@
 
 ## [Unreleased]
 
+### Added — a responsive Drawer: a sheet below a breakpoint, docked at or above it (#82)
+
+- **`Drawer.Root modal={{ below: 'md' }}`** (`DrawerModalRange`): a modal
+  sheet strictly below the design system's `md`, the panel docked open
+  inline at or above it — one drawer where an app shell rendered its
+  navigation twice. The breakpoint resolves through `useMediaQuery`'s
+  `(min-width: …)` boundary (so `installThemes()` must have run, on the
+  server too; an undeclared name throws at setup and is a type error under
+  `/register`). The form of `modal` is read once, at setup.
+- **The model governs the sheet only.** Docked, the panel is open whatever
+  the model says; Close, Escape and model writes change nothing visible and
+  report nothing. A model set while docked opens the sheet when the viewport
+  narrows.
+- **Crossing the breakpoint is silent**: no `openChange`, no `close` event.
+  A sheet still up when the viewport widens goes away and the model is reset
+  without reporting it.
+- **SSR-correct.** The server renders the docked markup — the panel `open`,
+  trigger, panel and close stamped `data-l-md-dock="inline"` — and the
+  design system's compiled per-breakpoint CSS (`@sigx/zero-kit`, in
+  `@layer zero.structure`) paints the right half before any script runs.
+  The trigger's `data-state`/`aria-expanded` report the sheet, so a narrow
+  first paint never shows it pressed.
+- **Focus across the switch.** An outgrown sheet keeps focus on the element
+  it was on, now in the docked panel, rather than the native restore to a
+  trigger that just hid. Focus inside a docked panel that stops showing
+  moves to the trigger.
+- **`dock` joins `LAYOUT_VOCABULARY`** — responsive, one value (`inline`) —
+  and the drawer's `trigger`, `panel` and `close` declare it
+  (`layout: ['dock']`), so `expectAnatomy` checks the stamp.
+- Size: `@sigx/zero/drawer` 4 → 4.8 kB (the media-query subscription and the
+  regime logic); the full barrel 44.8 → 45.3 kB.
+
+### Fixed — a stale `close` event could take down a reopened drawer
+
+- `Drawer.Panel` ignores a native `close` event that arrives for a panel
+  that is open again. `close` is queued, so a reopen that outran it (or a
+  regime switch that re-docked the panel) used to be closed as
+  `programmatic`.
+
 ### Added — Table's stacked mode (#55)
 
 - **`Table.Root stack`** names a design-system breakpoint (`stack="md"`).

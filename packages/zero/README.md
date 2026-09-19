@@ -214,6 +214,41 @@ up to it — its container inline, the viewport as a modal sheet — so
 `measure="full"` is a full-screen sheet. Unset, each design system keeps its
 own drawer width.
 
+**One drawer for both regimes: `modal={{ below: 'md' }}`.** A modal sheet
+below the design system's `md`, the panel docked open inline at or above it —
+an app shell's navigation rendered once, not twice (#82).
+
+```tsx
+<Drawer.Root modal={{ below: 'md' }} label="Navigation">
+    <Drawer.Trigger>Menu</Drawer.Trigger>
+    <Drawer.Panel>…links…<Drawer.Close>Close</Drawer.Close></Drawer.Panel>
+</Drawer.Root>
+```
+
+- **The model governs the sheet only.** Docked, the panel is open whatever
+  the model holds, and Close, Escape and model writes do nothing visible; a
+  model set to `true` while docked opens the sheet when the viewport
+  narrows.
+- **Crossing the breakpoint is not a close.** No `openChange`, no `close`
+  event. A sheet still up when the viewport widens goes away silently (the
+  model is reset without reporting it), so narrowing again does not bring it
+  back.
+- **SSR-correct.** The server cannot see the viewport, so it renders the
+  docked markup — the panel `open`, every part stamped
+  `data-l-md-dock="inline"` — and the design system's compiled CSS (emitted
+  per breakpoint by `@sigx/zero-kit`, in `@layer zero.structure`) hides the
+  trigger and close at or above `md` and the docked panel below it. The
+  runtime catches up on mount; nothing flashes. The docked panel is put back
+  in flow (`position: relative`, no UA `margin: auto`).
+- **Focus.** A sheet outgrown by the viewport keeps focus where it was — the
+  same element, now in the docked panel — instead of the native restore to a
+  trigger that just hid. Focus inside a docked panel that stops showing
+  moves to the trigger, which a sheet opened from there restores to.
+- The breakpoint is the design system's (`useMediaQuery`'s `(min-width: …)`
+  boundary), so `installThemes()` must have run — on the server too; an
+  undeclared name throws at setup. The form of `modal` is read once, at
+  setup.
+
 `@sigx/zero/css` (like every design system's `./css`) carries a `types`
 condition pointing at an empty declaration, so the extensionless side-effect
 import typechecks under `noUncheckedSideEffectImports` with no app-side shim.
@@ -528,7 +563,9 @@ const Shell = component(() => {
     // `initial` is what the server and the first client render read — pick
     // the layout the server should emit. The real match arrives on mount.
     const wide = useMediaQuery({ above: 'md' }, { initial: true });
-    return () => <Drawer.Root modal={!wide.value}>…</Drawer.Root>;
+    // (A drawer that is a sheet below `md` needs none of this — see
+    // `Drawer.Root modal={{ below: 'md' }}`.)
+    return () => (wide.value ? <SideNav /> : <BottomNav />);
 });
 
 useMediaQuery({ below: 'lg' });                  // (width < <lg>)

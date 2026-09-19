@@ -71,7 +71,9 @@ describe('compileDesignSystem writes it', () => {
         const compiled = compileDesignSystem(basic, manifest);
         expect(compiled.componentCss.table).toContain('@layer zero.structure {');
         expect(compiled.componentCss.table).toContain(`@media (width < ${basic.tokens.breakpoints!.md})`);
-        expect(compiled.indexCss.split('@layer zero.structure {').length - 1).toBe(1);
+        // Once: through the table's stylesheet, not again on its own (the
+        // drawer's dock structure, #82, is a block of its own).
+        expect(compiled.indexCss.split(tableStackCss(basic.tokens.breakpoints!)).length - 1).toBe(1);
     });
 
     it('straight into the index when the skin styles no table', () => {
@@ -86,7 +88,7 @@ describe('compileDesignSystem writes it', () => {
                 ...c, parts: c.parts.map((p) => (p.name === 'root' ? { ...p, layout: undefined } : p)),
             })),
         };
-        expect(compileDesignSystem(basic, without).indexCss).not.toContain('@layer zero.structure');
+        expect(compileDesignSystem(basic, without).indexCss).not.toContain(tableStackCss(basic.tokens.breakpoints!));
     });
 
     it("is not graded as the skin's spacing — the clip's -1px margin is zero's", () => {

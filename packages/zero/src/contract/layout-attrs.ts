@@ -131,6 +131,18 @@ export const LAYOUT_VOCABULARY = {
      * `data-l-md-stack` would say the same thing twice.
      */
     stack: { values: [], valuesFrom: 'breakpoints' },
+    /**
+     * Where a responsive Drawer docks (#82): `data-l-md-dock="inline"` on its
+     * trigger, panel and close says "at `md` and above, the panel is pinned
+     * open inline; below it, a modal sheet". Only ever written
+     * breakpoint-qualified, and one value, because the attribute is a regime
+     * boundary rather than a quantity: what sits below the breakpoint is the
+     * drawer's own default, not a second value. `@sigx/zero-kit` emits the
+     * per-breakpoint structure that makes the markup correct before any
+     * script runs — the trigger and close hidden at or above the breakpoint,
+     * the docked panel hidden below it unless it is up as a sheet.
+     */
+    dock: { values: ['inline'], responsive: true },
 } as const satisfies Record<string, LayoutAttrSpec>;
 
 export type LayoutAttrName = keyof typeof LAYOUT_VOCABULARY;

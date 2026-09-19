@@ -8,10 +8,10 @@
  * non-modal mode. The real-browser half (scrim geometry, Escape via
  * cancel, focus restore) lives in e2e/drawer.spec.ts.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
-import { Drawer, drawerAnatomy } from '@sigx/zero';
+import { Drawer, clearThemes, drawerAnatomy, registerThemes } from '@sigx/zero';
 import type { DrawerCloseDetail } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
@@ -249,8 +249,9 @@ describe('Drawer close reason (#52) — Dialog\'s contract, minus cancel', () =>
         const state = signal({ open: true });
         const log = mountRecorded(state);
         const panel = part(container, 'panel') as HTMLDialogElement;
-        panel.returnValue = 'save';
-        panel.dispatchEvent(new Event('close'));
+        // A real native close: `open` is gone before the event arrives (one
+        // for a panel open again is stale, and ignored).
+        panel.close('save');
         expect(log).toEqual([['openChange', false], ['close', { reason: 'programmatic', value: 'save' }]]);
 
         state.open = true;
@@ -279,5 +280,186 @@ describe('Drawer close reason (#52) — Dialog\'s contract, minus cancel', () =>
     it('forwards `value` to the rendered button, as <form method="dialog"> would read it', () => {
         mountRecorded(signal({ open: true }));
         expect(part(container, 'close').getAttribute('value')).toBe('done');
+    });
+});
+
+describe('Drawer responsive regime (#82) — modal={{ below }}', () => {
+    type Listener = (e: { matches: boolean }) => void;
+    const original = window.matchMedia;
+    let container: HTMLElement;
+    let queries: string[];
+    let fire: (matches: boolean) => void;
+
+    /** One shared fake list for `{ above: 'md' }`; `fire` crosses the breakpoint. */
+    function viewport(wide: boolean) {
+        const listeners = new Set<Listener>();
+        const list = {
+            matches: wide,
+            addEventListener: (_: string, fn: Listener) => { listeners.add(fn); },
+            removeEventListener: (_: string, fn: Listener) => { listeners.delete(fn); },
+        };
+        queries = [];
+        window.matchMedia = ((q: string) => {
+            queries.push(q);
+            return list as unknown as MediaQueryList;
+        }) as typeof window.matchMedia;
+        fire = (matches) => {
+            list.matches = matches;
+            for (const fn of listeners) fn({ matches });
+        };
+    }
+
+    beforeEach(() => {
+        clearThemes();
+        registerThemes({ themes: {}, breakpoints: { sm: '640px', md: '768px' } });
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    afterEach(() => {
+        window.matchMedia = original;
+        clearThemes();
+    });
+
+    function mountResponsive(state: { open: boolean }) {
+        const log: Array<[string, unknown]> = [];
+        render(
+            <Drawer.Root
+                model={[state, 'open']}
+                modal={{ below: 'md' }}
+                onOpenChange={(open: boolean) => log.push(['openChange', open])}
+                onClose={(detail: DrawerCloseDetail) => log.push(['close', detail])}
+            >
+                <Drawer.Trigger>Menu</Drawer.Trigger>
+                <Drawer.Panel>
+                    <Drawer.Title>Navigation</Drawer.Title>
+                    <a href="#x">Link</a>
+                    <Drawer.Close>Close</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        return log;
+    }
+
+    it('stamps the breakpoint on trigger, panel and close, declared in the anatomy', async () => {
+        viewport(true);
+        mountResponsive(signal({ open: false }));
+        await tick();
+        for (const name of ['trigger', 'panel', 'close']) {
+            expect(part(container, name).getAttribute('data-l-md-dock')).toBe('inline');
+        }
+        expectAnatomy(container, drawerAnatomy);
+        // The same boundary the compiled CSS and useMediaQuery use.
+        expect(queries).toEqual(['(min-width: 768px)']);
+    });
+
+    it('wide: docked open whatever the model says, and the model is ignored', async () => {
+        viewport(true);
+        const state = signal({ open: false });
+        const log = mountResponsive(state);
+        await tick();
+        const panel = part(container, 'panel') as HTMLDialogElement;
+        const trigger = part(container, 'trigger');
+        expect(panel.open).toBe(true);
+        expect(panel.getAttribute('data-state')).toBe('open');
+        expect(trigger.getAttribute('data-state')).toBe('closed');
+        expect(trigger.getAttribute('aria-expanded')).toBe('false');
+
+        // Nothing to close while docked: Close, Escape and a model write all
+        // leave the panel where it is.
+        part(container, 'close').click();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        state.open = true;
+        await tick();
+        state.open = false;
+        await tick();
+        expect(panel.open).toBe(true);
+        expect(log.filter(([name]) => name === 'close')).toEqual([]);
+    });
+
+    it('narrow on mount: the server\'s docked markup closes silently, and the model drives a sheet', async () => {
+        viewport(false);
+        const state = signal({ open: false });
+        const log = mountResponsive(state);
+        await tick();
+        const panel = part(container, 'panel') as HTMLDialogElement;
+        expect(panel.open).toBe(false);
+        expect(panel.getAttribute('data-state')).toBe('closed');
+        expect(log).toEqual([]);
+
+        part(container, 'trigger').click();
+        await tick();
+        expect(panel.open).toBe(true);
+        expect(part(container, 'trigger').getAttribute('data-state')).toBe('open');
+        part(container, 'close').click();
+        await tick();
+        expect(panel.open).toBe(false);
+        expect(log).toEqual([
+            ['openChange', true],
+            ['openChange', false],
+            ['close', { reason: 'close' }],
+        ]);
+    });
+
+    it('widening with the sheet up docks it silently: no openChange, no close, the model reset', async () => {
+        viewport(false);
+        const state = signal({ open: true });
+        const log = mountResponsive(state);
+        await tick();
+        const panel = part(container, 'panel') as HTMLDialogElement;
+        expect(panel.open).toBe(true);
+
+        fire(true);
+        await tick();
+        expect(state.open).toBe(false);
+        expect(panel.open).toBe(true);
+        expect(panel.getAttribute('data-state')).toBe('open');
+        expect(log).toEqual([]);
+
+        // …and narrowing again does not bring the sheet back.
+        fire(false);
+        await tick();
+        expect(panel.open).toBe(false);
+        expect(log).toEqual([]);
+    });
+
+    it('narrowing moves focus from the docked panel to the trigger, silently', async () => {
+        viewport(true);
+        const state = signal({ open: false });
+        const log = mountResponsive(state);
+        await tick();
+        const link = container.querySelector<HTMLElement>('a[href="#x"]')!;
+        link.focus();
+        expect(document.activeElement).toBe(link);
+
+        fire(false);
+        await tick();
+        expect((part(container, 'panel') as HTMLDialogElement).open).toBe(false);
+        expect(document.activeElement).toBe(part(container, 'trigger'));
+        expect(log).toEqual([]);
+    });
+
+    it('a model write made while docked takes effect when the sheet regime returns', async () => {
+        viewport(true);
+        const state = signal({ open: false });
+        mountResponsive(state);
+        await tick();
+        state.open = true;
+        await tick();
+        fire(false);
+        await tick();
+        const panel = part(container, 'panel') as HTMLDialogElement;
+        expect(panel.open).toBe(true);
+        expect(panel.getAttribute('data-state')).toBe('open');
+    });
+
+    it('an undeclared breakpoint throws at setup rather than never matching', () => {
+        viewport(true);
+        expect(() => render(
+            <Drawer.Root modal={{ below: 'xl' as 'md' }}>
+                <Drawer.Panel>Links</Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        )).toThrow(/breakpoint "xl" is not declared/);
     });
 });
