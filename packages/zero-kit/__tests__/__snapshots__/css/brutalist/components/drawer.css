@@ -49,7 +49,7 @@
         transform: none;
     }
 
-    [data-scope="drawer"][data-part="panel"]:modal {
+    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"] {
         position: fixed;
         inset-block-start: 0;
         inset-block-end: 0;
@@ -60,13 +60,13 @@
         border: none;
     }
 
-    [data-scope="drawer"][data-part="panel"][data-placement="start"]:modal {
+    [data-scope="drawer"][data-part="panel"][data-placement="start"][data-l-dock="sheet"] {
         inset-inline-start: 0;
         inset-inline-end: auto;
         border-inline-end: calc(var(--border) * 2) solid var(--color-base-content);
     }
 
-    [data-scope="drawer"][data-part="panel"][data-placement="end"]:modal {
+    [data-scope="drawer"][data-part="panel"][data-placement="end"][data-l-dock="sheet"] {
         inset-inline-start: auto;
         inset-inline-end: 0;
         border-inline-start: calc(var(--border) * 2) solid var(--color-base-content);

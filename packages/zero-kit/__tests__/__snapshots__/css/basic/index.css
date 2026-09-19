@@ -7639,7 +7639,7 @@
         transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
     }
 
-    [data-scope="drawer"][data-part="panel"]:modal {
+    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"] {
         position: fixed;
         inset-block-start: 0;
         inset-block-end: 0;
@@ -7649,12 +7649,12 @@
         border-radius: 0;
     }
 
-    [data-scope="drawer"][data-part="panel"][data-placement="start"]:modal {
+    [data-scope="drawer"][data-part="panel"][data-placement="start"][data-l-dock="sheet"] {
         inset-inline-start: 0;
         inset-inline-end: auto;
     }
 
-    [data-scope="drawer"][data-part="panel"][data-placement="end"]:modal {
+    [data-scope="drawer"][data-part="panel"][data-placement="end"][data-l-dock="sheet"] {
         inset-inline-start: auto;
         inset-inline-end: 0;
     }

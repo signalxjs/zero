@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Added — the drawer sheet keeps its box through the exit, and four skins slide it (#83)
+
+- **`Drawer.Panel` stamps its regime, `data-l-dock="sheet|inline"`**:
+  `sheet` for a modal drawer, `inline` for `modal={false}`, and for a
+  responsive one whichever side of its breakpoint the viewport is on. It is
+  the regime, not the open state, so it holds through a sheet's exit. `:modal`
+  stops matching the moment `close()` runs, while the panel is still in the
+  top layer for its exit transition, so geometry keyed on it fell back to the
+  inline box mid-exit. `dock`'s vocabulary gains `sheet`.
+- **All six skins key the sheet's geometry on `[data-l-dock="sheet"]`.**
+  material, daisyUI, HeroUI and Carbon now slide the sheet in from its edge
+  and back out to it, on their own tempos. The travel is `translate` over a
+  `--drawer-travel` that flips with the placement and with `dir="rtl"`, and
+  reduced motion drops it. basic and brutalist keep the fade. Outside Chromium
+  the exit is still instant (`overlay`, #17).
+
 ### Added — windowed Select and Combobox: `virtual` (#96)
 
 - **`virtual`** on a data-mode `Select.Root` / `Combobox.Root` renders only

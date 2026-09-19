@@ -974,7 +974,12 @@ layout attribute `dock` on those three parts, so `expectAnatomy`,
 above (plus the docked panel back in flow over the UA's absolute dialog
 geometry) and the docked panel `display: none` below unless `:modal`. The
 block rides the drawer's component stylesheet, or `index.css` when a skin
-paints no drawer. The runtime half: the model governs the sheet only, a
+paints no drawer. The same attribute, unqualified, is the panel's live
+regime (`data-l-dock="sheet|inline"`, #83): skins key the sheet's geometry
+on it rather than on `:modal`, which stops matching when `close()` runs
+while the panel is still in the top layer for its exit — so the sheet keeps
+its box through the exit, which is what a slide-out needs. The runtime half:
+the model governs the sheet only, a
 breakpoint crossing writes no event (the open attribute is toggled as
 markup, never through `show()`/`close()`, except to take a sheet down, whose
 queued `close` is recognised as stale because the panel is open again).

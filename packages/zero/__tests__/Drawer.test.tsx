@@ -172,6 +172,27 @@ describe('Drawer', () => {
         expect(part(plain, 'panel').hasAttribute('data-l-measure')).toBe(false);
     });
 
+    it('stamps the regime on the panel — sheet or inline — and it holds through a close (#83)', async () => {
+        const state = signal({ open: true });
+        mount(container, state);
+        await tick();
+        const panel = part(container, 'panel');
+        expect(panel.getAttribute('data-l-dock')).toBe('sheet');
+        // `:modal` stops matching at close(); the regime does not.
+        state.open = false;
+        await tick();
+        expect(panel.getAttribute('data-l-dock')).toBe('sheet');
+        expectAnatomy(container, drawerAnatomy);
+
+        const inline = document.createElement('div');
+        document.body.appendChild(inline);
+        render(
+            <Drawer.Root modal={false} label="Filters"><Drawer.Panel>Links</Drawer.Panel></Drawer.Root>,
+            inline,
+        );
+        expect(part(inline, 'panel').getAttribute('data-l-dock')).toBe('inline');
+    });
+
     it('passes the variant axes through on the trigger (the carrier part)', () => {
         render(
             <Drawer.Root>
@@ -409,11 +430,15 @@ describe('Drawer responsive regime (#82) — modal={{ below }}', () => {
         const panel = part(container, 'panel') as HTMLDialogElement;
         expect(panel.open).toBe(true);
 
+        expect(panel.getAttribute('data-l-dock')).toBe('sheet');
+
         fire(true);
         await tick();
         expect(state.open).toBe(false);
         expect(panel.open).toBe(true);
         expect(panel.getAttribute('data-state')).toBe('open');
+        // Docked is the inline regime (#83).
+        expect(panel.getAttribute('data-l-dock')).toBe('inline');
         expect(log).toEqual([]);
 
         // …and narrowing again does not bring the sheet back.

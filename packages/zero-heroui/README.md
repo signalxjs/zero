@@ -53,6 +53,12 @@ only, matching the repo-wide decision that the other carriers wire none
 `packages/zero-kit/__tests__/axis-coverage.test.ts`). It is wired into the
 playground alongside the other design systems.
 
+## Motion
+
+The modal drawer sheet slides in from its placement edge, as HeroUI's Drawer
+does, instead of fading (#83): decelerating in, accelerating out. The travel
+flips with the placement and with `dir="rtl"`, and reduced motion drops it.
+
 ## Usage
 
 ```bash

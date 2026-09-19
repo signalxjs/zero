@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Changed — `dock` gains `sheet`: the drawer panel's regime (zero#83)
+
+- **`LAYOUT_VOCABULARY.dock` is `inline | sheet`** (mirroring zero). The
+  unqualified `data-l-dock` on a Drawer panel is the regime it is presented
+  in, and it holds through a sheet's exit where `:modal` does not — so
+  recipes key the sheet's geometry on `[data-l-dock="sheet"]`. All six skins
+  do, and material, daisyUI, HeroUI and Carbon now slide the sheet; the CSS
+  goldens change accordingly.
+
 ### Changed — windowed Select and Combobox (zero#96)
 
 - **`RESERVED_PROPS_BY_SCOPE.select` and `.combobox` gain `virtual` and

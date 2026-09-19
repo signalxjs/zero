@@ -174,7 +174,8 @@ all six design systems, asserting the OPPOSITE thing in two projects:
 `reduced-motion`. Both directions, because a one-way check passes for a
 recipe that never animated — and `animation-name` rather than duration,
 because the kit collapses `--duration-*` to ~0 under reduced motion and a
-loop at ~0s strobes rather than stops;
+loop at ~0s strobes rather than stops (the same both-ways check holds the
+drawer sheet's slide in the four skins that slide, #83);
 and the **RTL spec** (`e2e/rtl.spec.ts`), the other
 spec that walks all six — chromium-only, one page load per design system, it
 sets `dir="rtl"` *after* boot (an `addInitScript` runs before `documentElement`
@@ -182,11 +183,13 @@ exists, so the attribute is silently lost, which reads exactly like a broken
 fix) and then measures boxes rather than declarations: the switch thumb starts
 at the reading edge and stays inside its own control, a toast viewport sits on
 the side its `data-placement` names, a collapsed branch indicator and a submenu
-chevron point at the reading end, and the indeterminate progress sweep travels
+chevron point at the reading end, the indeterminate progress sweep travels
 the reading way (seeked through `getAnimations()`, since the loop makes
-wall-clock sampling straddle a wrap). It exists because a `transform` has no
-logical spelling, so the kit's physical-direction lint cannot see it — the two
-checks are complementary, not redundant;
+wall-clock sampling straddle a wrap), and a sliding skin's modal drawer
+sheet enters from its reading edge, measured early in the entry (#83). It
+exists because a `transform` has no logical spelling, so the kit's
+physical-direction lint cannot see it — the two checks are complementary, not
+redundant;
 and the **axe audit** (`e2e/axe-audit.spec.ts`, #326) — the ARIA counterpart
 to the contrast audit: chromium + zero-basic only (semantics are engine- and
 skin-independent), it walks every registry page (ids read from the rendered

@@ -44,6 +44,13 @@ conformance matrix). Values are approximated from public documentation; it
 proves the contract rather than shipping a licensed token set, which is why
 it is private.
 
+### The side panel slides
+
+The modal drawer sheet slides in from its edge on Carbon's productive entrance
+curve (`moderate-02`, 240ms) and out on the exit curve, instead of fading
+(#83). The travel flips with the placement and with `dir="rtl"`, and reduced
+motion drops it.
+
 ### Notification kind, without a colour axis
 
 `roles: {}` means `toast({ color })` has nothing to select here — the recipe

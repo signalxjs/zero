@@ -22,6 +22,7 @@ declaration:
 | mono, heavy, tracked out | `typography.fonts.mono` for both stacks, weights to 900, `tracking.wide` |
 | violent type jump | `scale: { base: '1rem', ratio: 1.414 }`, `3xl` hand-tuned to a `clamp()` |
 | doesn't ease | `easings: { standard: 'steps(2, end)' }` |
+| nothing glides | the drawer sheet fades rather than sliding (#83) — the four skins that slide do it in their own recipes |
 
 It validated and compiled **clean on the first run** — no errors, no warnings,
 all fifteen components.

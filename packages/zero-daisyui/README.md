@@ -19,6 +19,10 @@ custom properties, because daisy's controls read them directly: `--depth`
 `--depth-sheen`; and `--noise` with daisy's fractal tile in `--fx-noise`.
 Override `--depth: 0` on a subtree to flatten it.
 
+The modal drawer sheet **slides** in from its edge and back out, the way daisy's
+`drawer-side` does (`translate` over 0.3s), instead of fading (#83). The travel
+flips with the placement and with `dir="rtl"`, and reduced motion drops it.
+
 The checkbox tick, the radio dot and the rating fill are **drawn**, not typeset:
 each is geometry that interpolates between states, so it rides the size ramp and
 animates. Under `forced-colors` and `print` the checkbox swaps to a `✔`/`−`
