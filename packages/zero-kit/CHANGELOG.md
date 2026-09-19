@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.combobox` gains `anchor` (zero#105)
+
+- The trigger-mode Combobox's new `anchor` prop (where its list opens) is
+  reserved, so a design system's api cannot declare an axis by that name.
+
 ### Changed — the text matrix measures a re-carried colour (zero#112)
 
 - **`axisCellsFor` adds one text cell per wired colour for every text part

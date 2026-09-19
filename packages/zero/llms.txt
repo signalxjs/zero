@@ -678,7 +678,16 @@ component renders; the root is called out separately where it carries props.
   insertText (undoable), restores the caret
   after it and emits `insert` ({ value, label, text }); `model` is never
   written. Mousedown on the popup is prevented, so focus stays in the
-  textarea. Anchored to the textarea, not the caret.
+  textarea. ANCHOR (#105): by default the popup docks to the textarea's
+  box; `anchor={caretAnchor}` (@sigx/zero/behaviors) opens it at the token's
+  first character on its own line — a hidden mirror of the textarea (font,
+  padding, width, wrapping, direction) measures it, re-measured only when
+  the text or width changes, following the page's and the textarea's
+  scroll, clamped to the box. Opt-in by import, so a box-docked composer
+  never ships it. Under rtl the placement alignment mirrors (bottom-start →
+  bottom-end: the list's right edge at the @). A vertical writing-mode
+  falls back to the box. Any `(control, index) => PositionAnchor | null`
+  works.
 - NumberInput: Root(model=number|null, defaultValue: number|null, min, max, step, allowWheel,
   clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
   DecrementTrigger/HiddenInput. APG spinbutton on a real text input

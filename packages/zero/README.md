@@ -162,13 +162,28 @@ the label and a space (reusing one that already follows — never two)
 through the editing stack (it undoes), keeps the
 caret after it and emits `insert` (`{ value, label, text }`). There is no
 selection: `model` is never written, and nothing posts but the textarea. A
-press on the list never takes focus from the textarea. The popup anchors to
-the textarea, not the caret. The data expansion renders only the popup;
-hand-written items go in a `Combobox.Popup` of your own beside the
-textarea.
+press on the list never takes focus from the textarea. The data expansion
+renders only the popup; hand-written items go in a `Combobox.Popup` of your
+own beside the textarea.
+
+Where the list opens is `anchor` (#105). Without it the popup docks to the
+textarea's box, the way a chat app puts its list above the composer.
+`anchor={caretAnchor}` opens it beside the typed `@` instead, on the token's
+own line, however tall the composer is. `caretAnchor` (from
+`@sigx/zero/behaviors`, and the barrel) measures the caret with a hidden
+mirror of the textarea: the same font, padding, width and wrapping. It
+re-measures only when the text or width changes, and follows the page's and
+the textarea's scroll. It is passed in, so a composer that docks to the box
+never ships it (about 0.6 kB brotli). Under `rtl` the placement's alignment
+mirrors, so the default `bottom-start` puts the list's right edge at the
+`@` and it opens leftwards. A vertical `writing-mode` falls back to the box.
+Any `(control, index) => PositionAnchor | null` works as an `anchor`; the
+index is the token's first character.
 
 ```tsx
-<Combobox.Root trigger="@" items={members} itemKey={(m) => m.id} itemLabel={(m) => m.name}
+import { caretAnchor } from '@sigx/zero/behaviors';
+
+<Combobox.Root trigger="@" anchor={caretAnchor} items={members} itemKey={(m) => m.id} itemLabel={(m) => m.name}
     onInsert={({ value }) => mention(value.id)}>
     <Textarea.Root model={() => state.draft} minRows={1} maxRows={8}>
         <Textarea.Label visuallyHidden>Message</Textarea.Label>

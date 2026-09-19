@@ -96,7 +96,8 @@ import { syncPopover } from '../../behaviors/popover-sync.js';
 import type { ListboxWindowHost, ListboxWindowing, VirtualListbox } from '../../behaviors/virtual-listbox.js';
 import { useTextControlBinding, type TextControlBinding, type TextControlClaim } from '../../behaviors/text-control-binding.js';
 import { replaceToken, triggerTokenAt, type TriggerToken } from '../../behaviors/trigger-token.js';
-import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
+import { createAnchorPosition, type Placement, type PositionAnchor, type PositionStrategy } from '../../behaviors/position.js';
+import type { TextAnchor } from '../../behaviors/caret-anchor.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
@@ -248,6 +249,17 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
      * matched before the caret whose first group is the query. Read at setup.
      */
     & Define.Prop<'trigger', string | RegExp, false>
+    /**
+     * Trigger mode: where the list opens (#105). Without it, against the
+     * text control's box — the way a chat app docks its list to the
+     * composer. `anchor={caretAnchor}` (from `@sigx/zero/behaviors`) opens it
+     * beside the token being typed, measured in the control; it is passed
+     * in, so only a composer that anchors at the caret ships the
+     * measurement. Given the control and the index of the token's first
+     * character; `null` falls back to the box. Under `rtl` the placement's
+     * alignment mirrors (`bottom-start` opens leftwards from the token).
+     */
+    & Define.Prop<'anchor', TextAnchor, false>
     /** Trigger mode: an option replaced the token. */
     & Define.Event<'insert', ComboboxInsertDetail<InsertValue<M>>>
     & WithFormControl
@@ -472,6 +484,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
 
     // ── Trigger mode ──
 
+    /** Where the token's own text starts: past any whitespace a RegExp prefix matched. */
+    const tokenStart = (token: TriggerToken): number => token.start + token.prefix.length - token.prefix.trimStart().length;
     const sameToken = (a: TriggerToken | null, b: TriggerToken | null): boolean =>
         a === b || (!!a && !!b && a.start === b.start && a.end === b.end && a.query === b.query && a.prefix === b.prefix);
 
@@ -742,14 +756,35 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     };
     defineProvide(useComboboxContext, () => ctx);
 
-    createAnchorPosition({
-        getAnchor: () => control ?? input ?? textEl,
+    // Trigger mode anchors at the token (#105): the character after any
+    // whitespace a RegExp trigger's prefix matched — the `@` itself. Under
+    // `rtl` the list opens towards the reading direction, so the
+    // placement's alignment mirrors (the positioning is physical).
+    let mirrored = false;
+    const caretAt = (): PositionAnchor | null => {
+        const token = trig.token;
+        if (!triggerMode || !textEl || !token || !props.anchor) return null;
+        const anchor = props.anchor(textEl, tokenStart(token));
+        mirrored = !!anchor && getComputedStyle(textEl).direction === 'rtl';
+        return anchor;
+    };
+    const position = createAnchorPosition({
+        getAnchor: () => { mirrored = false; return caretAt() ?? control ?? input ?? textEl; },
         getFloating: () => popup,
         isOpen: () => openState.value,
-        placement: () => props.placement ?? 'bottom-start',
+        placement: () => {
+            const placement = props.placement ?? 'bottom-start';
+            if (!mirrored) return placement;
+            return placement.endsWith('-start') ? placement.replace('-start', '-end') as Placement
+                : placement.endsWith('-end') ? placement.replace('-end', '-start') as Placement
+                    : placement;
+        },
         offset: () => 4,
         strategy: props.positionStrategy,
     });
+    // A new token, or the typed query rewrapping the line the token is on —
+    // a new place for the list, without a close in between.
+    if (triggerMode) watch(() => trig.token, (token) => { if (token) position.update(); });
 
     // popover="manual" opts out of native light dismiss (a caret click in
     // the input must not close the list), so dismissal is the layer stack's:

@@ -8,7 +8,7 @@
  * focus out of the textarea, the popup anchored to it, and Enter going to the
  * composer only while the list is closed.
  */
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 import { partsOf, rootLabelled, settledBox } from './demo';
 import { bootPage } from './nav';
 
@@ -27,6 +27,23 @@ function demo(page: Page) {
 }
 
 const caret = (page: Page) => demo(page).textarea.evaluate((el) => (el as HTMLTextAreaElement).selectionStart);
+
+/**
+ * Where the textarea lays out the character after `prefix` on its first
+ * line, in client px: the content box's inline start plus the prefix's
+ * advance, measured by a canvas in the textarea's own font — an
+ * independent measurement, not the mirror the component uses.
+ */
+const inlineStartAfter = (textarea: Locator, prefix: string) => textarea.evaluate((el, text) => {
+    const cs = getComputedStyle(el);
+    const ctx = document.createElement('canvas').getContext('2d')!;
+    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const box = el.getBoundingClientRect();
+    const advance = ctx.measureText(text).width;
+    return cs.direction === 'rtl'
+        ? box.left + el.clientLeft + el.clientWidth - parseFloat(cs.paddingRight) - advance
+        : box.left + el.clientLeft + parseFloat(cs.paddingLeft) + advance;
+}, prefix);
 
 test.beforeEach(async ({ page }) => {
     await bootPage(page, 'combobox', 'basic');
@@ -84,10 +101,9 @@ test('a pointer pick commits without taking focus or the caret out of the textar
     await page.keyboard.type('cc @li');
     await expect(popup).toHaveAttribute('data-state', 'open');
 
-    // Anchored to the textarea: the list starts at its inline edge.
-    const box = await settledBox(textarea, 'the composer');
+    // Anchored at the token (#105): the list starts where the `@` does.
     const list = await settledBox(popup, 'the mention list');
-    expect(Math.abs(list.x - box.x)).toBeLessThan(2);
+    expect(Math.abs(list.x - await inlineStartAfter(textarea, 'cc '))).toBeLessThan(3);
 
     await items.filter({ hasText: 'Linus' }).click();
     await expect(textarea).toHaveValue('cc @Linus ');
@@ -109,4 +125,48 @@ test('a commit is one edit on the undo stack', async ({ page }, testInfo) => {
     await expect(textarea).toBeFocused();
     await page.keyboard.press('ControlOrMeta+z');
     await expect(textarea).toHaveValue('@at');
+});
+
+test('the list opens at the typed @, on its own line (#105)', async ({ page }) => {
+    const { popup, textarea } = demo(page);
+    await textarea.click();
+    await page.keyboard.type('Hello there, @a');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    const box = await settledBox(textarea, 'the composer');
+    let list = await settledBox(popup, 'the mention list');
+    // At the `@`, well inside the composer rather than at its edge.
+    const at = await inlineStartAfter(textarea, 'Hello there, ');
+    expect(at - box.x).toBeGreaterThan(40);
+    expect(Math.abs(list.x - at)).toBeLessThan(3);
+
+    // A token on the first of several lines opens under that line — inside
+    // the composer's box, not below all of it.
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('ControlOrMeta+a');
+    await page.keyboard.press('Backspace');
+    for (const line of ['one', 'two', 'three']) {
+        await page.keyboard.press('Shift+Enter');
+        await page.keyboard.type(line);
+    }
+    await page.keyboard.press('ControlOrMeta+Home');
+    // WebKit on macOS: Cmd+Home may not move a textarea's caret; set it.
+    await textarea.evaluate((el) => (el as HTMLTextAreaElement).setSelectionRange(0, 0));
+    await page.keyboard.type('@a');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    const tall = await settledBox(textarea, 'the grown composer');
+    list = await settledBox(popup, 'the mention list');
+    expect(list.y).toBeLessThan(tall.y + tall.height / 2);
+    expect(list.y).toBeGreaterThan(tall.y);
+});
+
+test('under rtl the list opens from the @ towards the reading direction (#105)', async ({ page }) => {
+    const { popup, textarea } = demo(page);
+    await textarea.evaluate((el) => { (el as HTMLTextAreaElement).dir = 'rtl'; });
+    await textarea.click();
+    await page.keyboard.type('@a');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await expect(popup).toHaveAttribute('data-placement', 'bottom-end');
+    const list = await settledBox(popup, 'the mention list');
+    // The list's right edge — its inline start — sits at the `@`'s.
+    expect(Math.abs(list.x + list.width - await inlineStartAfter(textarea, ''))).toBeLessThan(3);
 });

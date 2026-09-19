@@ -1,5 +1,5 @@
 import { component, signal } from 'sigx';
-import { Combobox, Field, Textarea } from '@sigx/zero';
+import { Combobox, Field, Textarea, caretAnchor } from '@sigx/zero';
 import { virtualListbox } from '@sigx/zero/virtual-listbox';
 import { DemoRow } from '../demo/Section';
 import { STATIONS } from './fixtures';
@@ -137,10 +137,13 @@ const ComboboxDemos = component(() => {
                 control. The token at the caret is the query, the textarea is an
                 ARIA combobox while the list is open, and Enter or Tab replaces
                 the token with the label — while the list is closed, Enter is
-                the composer's own (send).
+                the composer's own (send). <code>anchor={'{caretAnchor}'}</code>{' '}
+                opens the list beside the typed <code>@</code> rather than under
+                the whole composer (#105).
             </p>
             <Combobox.Root
                 trigger="@"
+                anchor={caretAnchor}
                 items={AGENTS}
                 itemKey={(a) => a.id}
                 itemLabel={(a) => a.name}
