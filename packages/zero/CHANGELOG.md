@@ -5,6 +5,32 @@
 > Upgrading from 0.2.0-beta.1? [`docs/upgrading.md`](../../docs/upgrading.md)
 > has the before/after for every breaking change below.
 
+### Changed — sigx core 1.0 (#145)
+
+- **Breaking: the peer range is `sigx ^1.0.0`** (and `@sigx/reactivity`,
+  `@sigx/runtime-core`, `@sigx/runtime-dom` alike), from `^0.15.0`. Core
+  1.0 ships the global `JSX` base namespace for real (its #686), so every
+  JSX expression is a `JSXElement` instead of `any` — which is why
+  `renderAsChild` now returns `AsChildResult` (`JSXElement | JSXElement[] |
+  undefined`, `undefined` rather than `null` for an empty slot) instead of
+  `unknown`: a view returning `unknown` no longer satisfies `SetupFn`. An
+  ecosystem component that wrote its own `asChild` seam the old way needs
+  the same change.
+- **A hidden `<select>` settles its selection through the option
+  PROPERTY after each render** (`settleHiddenSelect`, `@sigx/zero/behaviors`,
+  used by Select, Combobox and ToggleGroup). The `<option selected>`
+  attributes say the same thing, and every real engine honours them; a
+  simulated DOM does not run the selectedness-setting algorithm on insert,
+  so 1.0's patch order could leave the placeholder and the chosen option
+  both selected there and `select.value` reading `''`. Idempotent; no
+  behaviour change in a browser.
+- `pnpm test:types` and the typed-app programs run with `skipLibCheck:
+  false` now — core's declarations pass a full lib check (the portable
+  project alone stays opted out, having no `lib.dom` to check
+  `runtime-dom` against).
+- Size: select 8.6 → 8.65 kB, combobox 11.25 → 11.3 kB, the full barrel
+  48.2 → 48.4 kB (the settle hook).
+
 ### Added — `Badge.Dot`: a status dot inside the pill (#130)
 
 - **`badge` gains a `dot` part** — optional, `aria-hidden`, in `root`. A

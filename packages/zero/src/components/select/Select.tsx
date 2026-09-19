@@ -49,7 +49,7 @@ import type { Define, JSXElement } from 'sigx';
 import { createControllableState, createInertState, namedModel, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createCollection, type Collection } from '../../behaviors/collection.js';
-import { createFormControl } from '../../behaviors/form-control.js';
+import { createFormControl, settleHiddenSelect } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { createListController, type ListController } from '../../behaviors/list.js';
@@ -186,7 +186,7 @@ export type SelectRootProps<T = unknown, M = unknown> =
  */
 type SelectRootImplProps = SelectRootProps & Define.Prop<'itemValue', (item: unknown) => unknown, false>;
 
-const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onMounted, onUnmounted }) => {
+const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onMounted, onUnmounted, onUpdated }) => {
     const multiple = (): boolean => !!props.multiple;
     // What the runtime WRITES for "nothing chosen": null for a data-driven
     // root — an item or a value model alike (V may be a number, so no member
@@ -247,6 +247,9 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         // A single selection closes; a multiple one toggles and stays open.
         onSelect: () => { if (!multiple()) setOpen(false); },
     });
+    // The hidden select's `<option selected>` attributes say it; the
+    // property settles it in every DOM, after the options exist (#145).
+    onUpdated(() => settleHiddenSelect(hidden, listbox.selectedKeys(), multiple()));
 
     // The highlight follows the OPEN state however it was written — a
     // consumer's `model:open` write included, so aria-activedescendant is

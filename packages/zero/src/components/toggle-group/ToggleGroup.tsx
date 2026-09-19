@@ -31,7 +31,7 @@ import { component, compound, defineInjectable, defineProvide, effect } from 'si
 import type { Define, JSXElement } from 'sigx';
 import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
-import { createFormControl } from '../../behaviors/form-control.js';
+import { createFormControl, settleHiddenSelect } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { createListController, type ListController, type ListItem } from '../../behaviors/list.js';
@@ -113,7 +113,7 @@ export type ToggleGroupRootProps<M = string | string[]> =
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
-const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emit, onMounted, onUnmounted }) => {
+const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emit, onMounted, onUnmounted, onUpdated }) => {
     const seed = (): string | string[] => (props.defaultValue !== undefined ? props.defaultValue : props.multiple ? [] : '');
     const state = createControllableState<string | string[]>(
         () => props.model,
@@ -131,6 +131,9 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
     };
     const list = createListController();
     let rootEl: HTMLElement | null = null;
+    // The hidden select's `<option selected>` attributes say it; the
+    // property settles it in every DOM, after the options exist (#145).
+    onUpdated(() => settleHiddenSelect(hidden, selected(), !!props.multiple));
     let hidden: HTMLSelectElement | null = null;
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
 

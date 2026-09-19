@@ -86,7 +86,7 @@ import type { Define, JSXElement } from 'sigx';
 import { createControllableState, createInertState, namedModel, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createCollection, type Collection } from '../../behaviors/collection.js';
-import { createFormControl } from '../../behaviors/form-control.js';
+import { createFormControl, settleHiddenSelect } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { createListController, type ListController } from '../../behaviors/list.js';
@@ -330,7 +330,7 @@ export interface ComboboxTagSlotProps<T = unknown> {
  */
 type ComboboxRootImplProps = ComboboxRootProps & Define.Prop<'itemValue', (item: unknown) => unknown, false>;
 
-const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
+const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit, signal, onMounted, onUnmounted, onUpdated }) => {
     // Trigger mode is a shape, not a state: read once, like the data mode.
     // An empty trigger could never start a token, so it is no trigger.
     const triggerMode = props.trigger !== undefined && props.trigger !== '';
@@ -411,6 +411,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             setOpen(false);
         },
     });
+    // The hidden select's `<option selected>` attributes say it; the
+    // property settles it in every DOM, after the options exist (#145).
+    onUpdated(() => settleHiddenSelect(hidden, listbox.selectedKeys(), multiple()));
 
     // The hidden select's options: every item in data mode (autofill sees
     // the list), the selected keys alone in JSX mode — hand-written items

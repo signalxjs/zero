@@ -11,6 +11,14 @@
   vendor-named api cannot claim them as axis props there. Every skin's
   goldens gain the scope.
 
+### Changed — sigx core 1.0 (zero#145)
+
+- **The peer range is `sigx ^1.0.0`**, with the rest of the repo. The
+  `@sigx/vite` pin at `^0.13` (zero#352: `?url` imports of package subpath
+  exports failed to resolve) is lifted — core 1.0 resolves them (its #678),
+  which the playground's smoke spec proves — and `@sigx/cli` moves to
+  `^0.12`, `@sigx/args` to `^0.13`, the 1.x-peer releases of both.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE` gains `nav-list` (zero#132)
 
 - The new scope's root props (`id`, `label`, `title`; the root refuses

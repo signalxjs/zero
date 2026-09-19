@@ -135,3 +135,32 @@ export function createFormControl(opts: FormControlOptions): FormControl {
         }),
     };
 }
+
+/**
+ * Settle a hidden `<select>`'s selectedness after a render (#145): every
+ * option's `selected` PROPERTY is written to match `keys` — the single-mode
+ * placeholder (value `''`) selected while nothing is.
+ *
+ * The rendered `<option selected>` attributes say the same thing, and in
+ * every real engine they are enough: inserting an option with the
+ * attribute runs the selectedness-setting algorithm, which deselects its
+ * siblings. A simulated DOM does not run it, so a patch order that clears
+ * the placeholder before the chosen option arrives leaves BOTH selected
+ * and `select.value` reading `''` — which is what sigx 1.0's patch order
+ * does under happy-dom. Writing the property is the one path every DOM
+ * agrees on, and it is idempotent: call it from `onUpdated`, once the
+ * options exist.
+ */
+export function settleHiddenSelect(
+    // Structural rather than `HTMLSelectElement`: this module is on the
+    // portable (`lib.dom`-free) surface, like `synthesizesClickFrom`.
+    node: { options: ArrayLike<{ value: string; selected: boolean }> } | null,
+    keys: readonly string[],
+    multiple: boolean,
+): void {
+    if (!node) return;
+    for (const option of Array.from(node.options)) {
+        const want = option.value === '' && !multiple ? keys.length === 0 : keys.includes(option.value);
+        if (option.selected !== want) option.selected = want;
+    }
+}

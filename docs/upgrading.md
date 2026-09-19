@@ -21,6 +21,22 @@ changes, then [ecosystem packages](#ecosystem-component-packages).
 
 ## Breaking changes
 
+### The peer is sigx core 1.x
+
+The next release peers on `sigx ^1.0.0` (and `@sigx/reactivity`,
+`@sigx/runtime-core`, `@sigx/runtime-dom`), from `^0.15.0`. Move the app to
+core 1.0.1 first — one copy of each, the way the catalog in this repo
+enforces it; core 1.0 also ships its own duplicate-copy guard. What that
+major changes for a zero consumer:
+
+- Every JSX expression is typed (`JSXElement`) rather than `any`, because
+  core now ships the global `JSX` namespace. A hand-written `asChild` seam
+  that returned `unknown` from a view stops compiling — return the slot's
+  result typed as `JSXElement | JSXElement[] | undefined` (zero's
+  `renderAsChild` does now).
+- `@sigx/vite` moves with it (1.x); the `^0.13` pin some consumers copied
+  from this repo is no longer needed.
+
 ### Select and Combobox: `options` is `items`, and the model holds the item
 
 The roots are generic over their data. `T` infers from `items`; the model

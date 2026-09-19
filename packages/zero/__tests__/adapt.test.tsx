@@ -12,6 +12,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { renderToString } from '@sigx/server-renderer';
 import { component, signal } from 'sigx';
+import type { JSXElement } from 'sigx';
 import { Button, Tabs, Timeline } from '@sigx/zero';
 import type { Adapted } from '@sigx/zero/adapt';
 import { adapt } from '@sigx/zero/adapt';
@@ -175,8 +176,8 @@ describe('adapt — compound namespaces', () => {
         // Only the named member is re-wrapped; the rest stay zero's own.
         expect(TTimeline.Marker).not.toBe(Timeline.Marker);
         expect(TTimeline.Item).toBe(Timeline.Item);
-        const Root = TTimeline.Root as unknown as (p: Record<string, unknown>) => unknown;
-        const Marker = TTimeline.Marker as unknown as (p: Record<string, unknown>) => unknown;
+        const Root = TTimeline.Root as unknown as (p: Record<string, unknown>) => JSXElement;
+        const Marker = TTimeline.Marker as unknown as (p: Record<string, unknown>) => JSXElement;
         render(
             <Root tone="neutral">
                 <TTimeline.Item>

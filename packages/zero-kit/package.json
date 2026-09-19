@@ -58,12 +58,12 @@
         "url": "https://github.com/signalxjs/zero/issues"
     },
     "dependencies": {
-        "@sigx/cli": "^0.10.0",
+        "@sigx/cli": "^0.12.0",
         "ajv": "^8.20.0",
         "culori": "^4.0.1"
     },
     "devDependencies": {
-        "@sigx/args": "^0.12.0",
+        "@sigx/args": "^0.13.0",
         "@sigx/zero": "workspace:^",
         "@types/culori": "^4.0.1",
         "@types/node": "^22.10.0",

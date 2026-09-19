@@ -8,14 +8,16 @@
         "jsx": "react-jsx",
         "jsxImportSource": "sigx",
         "esModuleInterop": true,
-        // skipLibCheck stays on for DEPENDENCY declarations (runtime-core's
-        // shipped d.ts currently fails a full lib check), so the register
-        // stand-in is a .ts module rather than a .d.ts — skipLibCheck skips
-        // only declaration files, and the whole point of the augmented
-        // project is that the register file itself is semantically checked.
-        // Phase 3's generator gate must compile the real EMITTED .d.ts with
-        // lib checking on, since an app's skipLibCheck would skip it.
-        "skipLibCheck": true,
+        // A FULL lib check, since sigx core 1.0 (#145): its shipped
+        // declarations pass it (the side-effect `import './jsx-types.d.ts'`
+        // that failed TS2882 became a real `.js` module in core's #686), so
+        // every dependency d.ts is checked here as well as every source
+        // file. The one project that opts back out is `portable/`, which
+        // has no lib.dom by design and so cannot lib-check runtime-dom's
+        // element table. Phase 3's generator gate compiles the real EMITTED
+        // .d.ts with lib checking on, since an app's skipLibCheck would
+        // skip it.
+        "skipLibCheck": false,
         "forceConsistentCasingInFileNames": true,
         "types": [],
         // Every candidate must reach SOURCE. A subpath that matches none of
