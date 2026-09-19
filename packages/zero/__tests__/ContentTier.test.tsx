@@ -96,8 +96,37 @@ describe('Badge', () => {
         // Not incidental: the contrast audit's one-element probe can only
         // measure a variant-wiring scope shaped this way, and badge is the
         // content-tier component that wires its own vocabulary because of it.
-        expect(badgeAnatomy.partNames()).toEqual(['root']);
+        // The dot (#130) is paint, not text — it joins the indicator matrix,
+        // not this probe.
+        expect(badgeAnatomy.partNames()).toEqual(['root', 'dot']);
         expect(badgeAnatomy.parts.root.tokens).toContain('text');
+        expect(badgeAnatomy.parts.dot.tokens).not.toContain('text');
+    });
+
+    it('the dot re-carries colour, is decorative, and `running` is its one state (#130)', () => {
+        render(
+            <Badge color="neutral" variant="soft">
+                <Badge.Dot color="success" running />
+                Deploying
+            </Badge>,
+            container,
+        );
+        expectAnatomy(container, badgeAnatomy);
+        const dot = part(container, 'badge', 'dot');
+        expect(dot.tagName).toBe('SPAN');
+        expect(dot.getAttribute('aria-hidden')).toBe('true');
+        expect(dot.getAttribute('data-color')).toBe('success');
+        expect(dot.getAttribute('data-state')).toBe('running');
+        expect(part(container, 'badge', 'root').getAttribute('data-color')).toBe('neutral');
+        expect(badgeAnatomy.parts.dot.carries).toEqual(['color']);
+    });
+
+    it('a resting dot without a colour carries neither attribute — the pill\'s ink, at rest', () => {
+        render(<Badge><Badge.Dot />Idle</Badge>, container);
+        expectAnatomy(container, badgeAnatomy);
+        const dot = part(container, 'badge', 'dot');
+        expect(dot.hasAttribute('data-state')).toBe(false);
+        expect(dot.hasAttribute('data-color')).toBe(false);
     });
 
     it('asChild hands the attribute bag to the caller\'s element', () => {

@@ -1,5 +1,10 @@
 @layer zero.recipes {
     [data-scope="badge"][data-part="root"] {
+        --badge-dot: currentColor;
+        --badge-dot-ring: currentColor;
+    }
+
+    [data-scope="badge"][data-part="root"] {
         display: inline-flex;
         align-items: center;
         gap: 0.375em;
@@ -14,6 +19,22 @@
         line-height: var(--leading-normal);
         white-space: nowrap;
         text-decoration: none;
+    }
+
+    [data-scope="badge"][data-part="dot"] {
+        display: inline-block;
+        flex: none;
+        inline-size: 0.5em;
+        block-size: 0.5em;
+        box-sizing: border-box;
+        border-radius: 50%;
+        background: var(--badge-dot);
+        border: 0.1em solid var(--badge-dot-ring);
+    }
+
+    [data-scope="badge"][data-part="dot"][data-state="running"] {
+        box-shadow: 0 0 0 0.2em color-mix(in oklch, var(--badge-dot) 35%, transparent);
+        animation: zero-carbon-badge-pulse 1.6s ease-out infinite;
     }
 
     [data-scope="badge"][data-part="root"][data-size="sm"] {
@@ -35,4 +56,19 @@
         font-size: var(--text-md);
         padding: var(--space-xs) var(--space-2xl);
     }
+
+    @media (forced-colors: active) {
+        [data-scope="badge"][data-part="dot"] {
+            border-width: 0.25em;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="badge"][data-part="dot"][data-state="running"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-carbon-badge-pulse {
+    from { box-shadow: 0 0 0 0 color-mix(in oklch, var(--badge-dot) 45%, transparent); } to { box-shadow: 0 0 0 0.5em transparent; }
 }

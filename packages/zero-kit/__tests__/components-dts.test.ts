@@ -282,7 +282,11 @@ describe('the generated shapes', () => {
         const compiledHeroui = compileDesignSystem(herouiDS as DesignSystemInput, manifest);
         const dts = compileComponentsDts(compiledHeroui);
         expect(dts).toContain('export declare const Tabs: TabsAdapted & AdaptedStatics<typeof ZTabs> & { Root: TabsAdapted };');
-        expect(dts).toContain('export declare const Badge: BadgeAdapted & { Root: BadgeAdapted };');
+        expect(dts).toContain('export declare const Toggle: ToggleAdapted & { Root: ToggleAdapted };');
+        // Badge left the single-part set when its dot landed (zero#130): a
+        // member that re-carries an axis is adapted with routes of its own,
+        // the Timeline.Marker shape.
+        expect(dts).toContain("export declare const Badge: BadgeAdapted & Omit<AdaptedStatics<typeof ZBadge>, 'Dot'> & { Root: BadgeAdapted; Dot: BadgeDotAdapted };");
         // More than one part is the proxy, not compound membership: Button's
         // `spinner` (#50) is rendered by Root, so its statics are empty — the
         // intersection is harmless, and the vendor-renamed Root still wins.

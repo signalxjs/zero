@@ -2833,11 +2833,18 @@ export const badge: RecipeInput = {
     // Public to a design system derived from this one (#73).
     hooks: {
         properties: {
+            '--badge-dot': 'The status dot\'s fill (zero#130); the pill\'s ink at rest.',
+            '--badge-dot-ring': 'The ring around a coloured status dot.',
             '--badge-fill': 'The badge fill.',
             '--badge-ink': 'The badge ink.',
         },
     },
-    tokens: { '--badge-fill': 'var(--color-base-200)', '--badge-ink': 'var(--color-base-content)' },
+    tokens: {
+        '--badge-fill': 'var(--color-base-200)',
+        '--badge-ink': 'var(--color-base-content)',
+        '--badge-dot': 'currentColor',
+        '--badge-dot-ring': 'currentColor',
+    },
     parts: {
         root: {
             base: {
@@ -2856,12 +2863,51 @@ export const badge: RecipeInput = {
                 textDecoration: 'none',
             },
         },
+        // The status dot (zero#130). At rest it is the pill's INK — a dot in
+        // `currentColor` is legible on whatever fill the pill has — and
+        // with its own colour it is the role's fill inside a ring in the
+        // role's `-content` ink — the timeline marker's answer (#94), so a
+        // light role on a light pill still has an edge. `running` is a
+        // static halo the pulse breathes; under reduced motion the halo
+        // stays and the breathing stops, so the state never vanishes.
+        dot: {
+            base: {
+                display: 'inline-block',
+                flex: 'none',
+                inlineSize: '0.5em',
+                blockSize: '0.5em',
+                boxSizing: 'border-box',
+                borderRadius: '50%',
+                background: 'var(--badge-dot)',
+                border: '0.1em solid var(--badge-dot-ring)',
+            },
+            states: {
+                running: {
+                    boxShadow: '0 0 0 0.2em color-mix(in oklch, var(--badge-dot) 35%, transparent)',
+                    animation: 'zero-brutalist-badge-pulse 1.6s ease-out infinite',
+                },
+            },
+            at: {
+                'reduced-motion': { states: { running: { animation: 'none' } } },
+                // Forced colours strip the fill and keep the border, so the
+                // border draws the whole dot there.
+                'forced-colors': { base: { borderWidth: '0.25em' } },
+            },
+        },
     },
     variants: {
-        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--badge-fill': `var(--color-${c})`,
-            '--badge-ink': `var(--color-${c}-content)`,
-        } } }])),
+        color: Object.fromEntries(ROLES.map((c) => [c, {
+            root: { base: {
+                '--badge-fill': `var(--color-${c})`,
+                '--badge-ink': `var(--color-${c}-content)`,
+            } },
+            // The dot's own colour (zero#130): keyed here so the compiler
+            // anchors it on the dot's re-carried `data-color` too.
+            dot: { base: {
+                '--badge-dot': `var(--color-${c})`,
+                '--badge-dot-ring': `var(--color-${c}-content)`,
+            } },
+        }])),
         size: {
             xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-xs)' } } },
             sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-sm)' } } },
@@ -2869,6 +2915,8 @@ export const badge: RecipeInput = {
             lg: { root: { base: { fontSize: 'var(--text-sm)', padding: '0 var(--space-md)' } } },
             xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-2xs) var(--space-lg)' } } },
         },
+    },    keyframes: {
+        'zero-brutalist-badge-pulse': 'from { box-shadow: 0 0 0 0 color-mix(in oklch, var(--badge-dot) 45%, transparent); } to { box-shadow: 0 0 0 0.5em transparent; }',
     },
 };
 

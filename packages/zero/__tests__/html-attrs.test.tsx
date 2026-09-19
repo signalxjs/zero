@@ -239,7 +239,7 @@ describe('the pass-through reaches every part', () => {
                 <Avatar.Fallback {...p('fallback')}>A</Avatar.Fallback>
             </Avatar.Root>
         ),
-        badge: () => <Badge {...p('root')}>1</Badge>,
+        badge: () => <Badge {...p('root')}><Badge.Dot {...p('dot')} />1</Badge>,
         box: () => <Box {...p('root')}>x</Box>,
         breadcrumbs: () => (
             <Breadcrumbs.Root {...p('root')}>

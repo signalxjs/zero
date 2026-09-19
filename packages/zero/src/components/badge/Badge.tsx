@@ -17,7 +17,7 @@ import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithColor, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { badgeAnatomy } from './anatomy.js';
 
 const SCOPE = badgeAnatomy.scope;
@@ -52,7 +52,35 @@ const BadgeRoot = component<BadgeRootProps>(({ props, slots }) => {
     };
 }, { name: 'Badge.Root' });
 
-// One part, but still a compound: every scope in the anatomy exports
+/**
+ * The status dot (#130). `color` is the dot's own — typed per scope like the
+ * Root's, so it narrows under a `/register` module and is `never` where the
+ * design system declares no colour axis — and `running` puts the dot in the
+ * governed in-flight state (a pulse in every shipped skin, with a static
+ * ring under reduced motion). Decorative: the pill's text is the label, so
+ * the dot is `aria-hidden` and takes no `role`.
+ */
+export type BadgeDotProps =
+    & WithColor<'badge'>
+    & Define.Prop<'running', boolean, false>
+    & WithClass
+    & Omit<WithHtmlAttrs, 'role'>;
+
+const BadgeDot = component<BadgeDotProps>(({ props }) => {
+    return () => (
+        <span
+            {...htmlAttrs(props)}
+            aria-hidden="true"
+            data-scope={SCOPE}
+            data-part="dot"
+            data-state={props.running ? 'running' : undefined}
+            data-color={props.color}
+            class={props.class}
+        />
+    );
+}, { name: 'Badge.Dot' });
+
+// Root is the whole badge; every scope in the anatomy exports
 // `<Pascal>.Root`, and the kit's `./components` emitter relies on it (Button
 // and Toggle are the same shape). `<Badge>` stays callable directly.
-export const Badge = compound(BadgeRoot, { Root: BadgeRoot });
+export const Badge = compound(BadgeRoot, { Root: BadgeRoot, Dot: BadgeDot });

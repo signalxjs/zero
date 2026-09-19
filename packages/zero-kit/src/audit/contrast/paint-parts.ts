@@ -96,6 +96,11 @@ export const INDICATORS: readonly IndicatorSpec[] = [
     // Timeline's marker (#334): the dot on the axis, named after what it is
     // rather than its job.
     { scope: 'timeline', part: 'marker' },
+    // Badge's status dot (zero#130): paint beside the pill's text, in the
+    // pill's ink at rest and, re-carrying `color`, a role's fill inside a
+    // ring in the role's `-content` ink — the marker's construction, measured
+    // once per wired colour on its own attribute like the marker's.
+    { scope: 'badge', part: 'dot' },
     // The carousel dot: auto-selected by the paint-only pattern. Both states
     // are measured — an inactive dot a viewer cannot find is a pagination they
     // cannot use.

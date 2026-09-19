@@ -3278,6 +3278,10 @@ export const alert: RecipeInput = {
 /** Carbon's tag: a square-cornered chip on the layer above the surface. */
 export const badge: RecipeInput = {
     component: 'badge',
+    tokens: {
+        '--badge-dot': 'currentColor',
+        '--badge-dot-ring': 'currentColor',
+    },
     parts: {
         root: {
             base: {
@@ -3297,6 +3301,36 @@ export const badge: RecipeInput = {
                 textDecoration: 'none',
             },
         },
+        // The status dot (zero#130). At rest it is the pill's INK — a dot in
+        // `currentColor` is legible on whatever fill the pill has — and
+        // this design system declares no colour axis, so the dot is only
+        // ever the pill's ink. `running` is a
+        // static halo the pulse breathes; under reduced motion the halo
+        // stays and the breathing stops, so the state never vanishes.
+        dot: {
+            base: {
+                display: 'inline-block',
+                flex: 'none',
+                inlineSize: '0.5em',
+                blockSize: '0.5em',
+                boxSizing: 'border-box',
+                borderRadius: '50%',
+                background: 'var(--badge-dot)',
+                border: '0.1em solid var(--badge-dot-ring)',
+            },
+            states: {
+                running: {
+                    boxShadow: '0 0 0 0.2em color-mix(in oklch, var(--badge-dot) 35%, transparent)',
+                    animation: 'zero-carbon-badge-pulse 1.6s ease-out infinite',
+                },
+            },
+            at: {
+                'reduced-motion': { states: { running: { animation: 'none' } } },
+                // Forced colours strip the fill and keep the border, so the
+                // border draws the whole dot there.
+                'forced-colors': { base: { borderWidth: '0.25em' } },
+            },
+        },
     },
     variants: {
         size: {
@@ -3306,6 +3340,8 @@ export const badge: RecipeInput = {
             xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-2xs) var(--space-xl)' } } },
             '2xl': { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-xs) var(--space-2xl)' } } },
         },
+    },    keyframes: {
+        'zero-carbon-badge-pulse': 'from { box-shadow: 0 0 0 0 color-mix(in oklch, var(--badge-dot) 45%, transparent); } to { box-shadow: 0 0 0 0.5em transparent; }',
     },
 };
 
