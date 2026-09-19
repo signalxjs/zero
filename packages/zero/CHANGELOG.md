@@ -43,7 +43,7 @@
   no flags: presence is the consumer's `if`, and it takes no role of its own
   (an app passes `role="status"` to have a failure announced). All six
   design systems style it; `RESERVED_PROPS_BY_SCOPE` gains the scope.
-- Size: `@sigx/zero/empty-state` 1.6 kB; the full barrel 47.65 → 47.85 kB.
+- Size: `@sigx/zero/empty-state` 1.6 kB; the full barrel 47.7 → 47.9 kB.
 
 ### Added — trigger mode: `itemInsert`, the text a commit inserts (#107)
 
