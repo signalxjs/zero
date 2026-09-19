@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+> Upgrading from 0.2.0-beta.1? [`docs/upgrading.md`](../../docs/upgrading.md)
+> has the before/after for every breaking change below.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE.combobox` gains `anchor` (zero#105) and `itemInsert` (zero#107)
 
 - The trigger-mode Combobox's new `anchor` prop (where its list opens) and

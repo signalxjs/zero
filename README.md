@@ -83,6 +83,9 @@ heroui's `./components`, carbon's renamed props); `pnpm build`, then
   the manifests, the compiler, the theme model, the authoring surface, and
   the full verification-gate inventory. Descriptive, not aspirational — it
   was written when the RFCs were deleted, and records their history.
+- [`docs/upgrading.md`](docs/upgrading.md) — upgrading from 0.2.0-beta.1: a
+  before/after for every breaking change, and the new surface that replaces
+  hand-rolled code.
 - [`docs/building-your-own-component.md`](docs/building-your-own-component.md)
   — shipping a component zero doesn't, as a peer package.
 - [`docs/design-system-conformance.md`](docs/design-system-conformance.md) —
