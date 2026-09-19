@@ -167,6 +167,48 @@ test('the close event reports why: native Escape, a valued Close, Cancel (#52)',
     await expect(readout).toHaveText('Last close: cancel');
 });
 
+/**
+ * The alert dialog (#128), in a real engine. The unit suite proves the
+ * `autofocus` attribute lands on Cancel; only `showModal()`'s own focusing
+ * steps prove it is what receives focus. And a backdrop click's geometry is
+ * the engine's.
+ */
+test('alertdialog: initial focus is the least-destructive action, and the backdrop does not dismiss', async ({ page }) => {
+    const trigger = page.getByRole('button', { name: 'Delete workspace…', exact: true });
+    await trigger.click();
+    const popup = await controlledPopup(page, trigger, 'the confirm dialog trigger');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await expect(popup).toHaveAttribute('role', 'alertdialog');
+    await expect(popup.getByRole('button', { name: 'Keep workspace', exact: true })).toBeFocused();
+
+    // A click on the ::backdrop — outside the dialog's box — keeps an
+    // alertdialog open; the same click closes a plain dialog (#324).
+    const box = await settledBox(popup, 'the confirm dialog');
+    await page.mouse.click(Math.max(1, box.x - 20), Math.max(1, box.y - 20));
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await page.keyboard.press('Escape');
+    await expect(popup).toHaveAttribute('data-state', 'closed');
+});
+
+test('alertdialog: the destructive action is a <form method="dialog"> submit, reported with its value', async ({ page }) => {
+    const trigger = page.getByRole('button', { name: 'Delete workspace…', exact: true });
+    const readout = page.locator('[data-demo="confirm-reason"]');
+    await trigger.click();
+    const popup = await controlledPopup(page, trigger, 'the confirm dialog trigger');
+    // The app's own Button, in its danger colour — not a dialog part.
+    const destroy = popup.getByRole('button', { name: 'Delete workspace', exact: true });
+    await expect(destroy).toHaveAttribute('data-scope', 'button');
+    await expect(destroy).toHaveAttribute('data-color', 'error');
+    await destroy.click();
+    await expect(popup).toHaveAttribute('data-state', 'closed');
+    // The platform closed it (method="dialog"), so the reason is
+    // `programmatic`, and the submitter's value is the close's value.
+    await expect(readout).toHaveText('Last confirm: programmatic · delete');
+
+    await trigger.click();
+    await popup.getByRole('button', { name: 'Keep workspace', exact: true }).click();
+    await expect(readout).toHaveText('Last confirm: cancel');
+
 test('a dialog whose model is already open at mount opens, and throws nothing (#102)', async ({ page }) => {
     // The popup mounts before its parent inserts the subtree, so a
     // synchronous `showModal()` hits a detached element — which every real

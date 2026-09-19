@@ -1,12 +1,18 @@
 import { component, signal } from 'sigx';
-import { Dialog } from '@sigx/zero';
+import { Button, Dialog } from '@sigx/zero';
 import type { DialogCloseDetail } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const DialogDemos = component(() => {
-    const state = signal({ dialogOpen: false, findOpen: false, lastClose: 'none yet', restored: false, restoredOpen: false });
+    const state = signal({
+        dialogOpen: false, findOpen: false, lastClose: 'none yet', lastConfirm: 'none yet',
+        restored: false, restoredOpen: false,
+    });
     const onAlertClose = (d: DialogCloseDetail): void => {
         state.lastClose = d.value === undefined ? d.reason : `${d.reason} · ${d.value}`;
+    };
+    const onConfirmClose = (d: DialogCloseDetail): void => {
+        state.lastConfirm = d.value === undefined ? d.reason : `${d.reason} · ${d.value}`;
     };
 
     return () => (
@@ -68,6 +74,39 @@ const DialogDemos = component(() => {
                 </Dialog.Popup>
             </Dialog.Root>
             <p data-demo="close-reason">Last close: {state.lastClose}</p>
+
+            <h2>Confirm with dependents</h2>
+            <p>
+                The destructive confirm as a composition (#128): the
+                dependents are the description's own list, the least
+                destructive action is <code>Dialog.Cancel</code>, and the
+                destructive one is the app's own <code>Button</code> in its
+                danger colour — a <code>type="submit"</code> inside a{' '}
+                <code>&lt;form method="dialog"&gt;</code>, so the platform
+                closes the dialog and its <code>value</code> comes back as
+                the close's <code>value</code> (reason <code>programmatic</code>).
+            </p>
+            <Dialog.Root role="alertdialog" onClose={onConfirmClose}>
+                <Dialog.Trigger>Delete workspace…</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Title>Delete "acme"?</Dialog.Title>
+                    <Dialog.Description>
+                        This cannot be undone. It also removes:
+                        <ul>
+                            <li>3 members' access</li>
+                            <li>2 shared folders</li>
+                            <li>1 pending invitation</li>
+                        </ul>
+                    </Dialog.Description>
+                    <form method="dialog">
+                        <Dialog.Footer>
+                            <Dialog.Cancel>Keep workspace</Dialog.Cancel>
+                            <Button.Root type="submit" value="delete" color="error">Delete workspace</Button.Root>
+                        </Dialog.Footer>
+                    </form>
+                </Dialog.Popup>
+            </Dialog.Root>
+            <p data-demo="confirm-reason">Last confirm: {state.lastConfirm}</p>
 
             <h2>Open at mount</h2>
             <p>
