@@ -15,7 +15,8 @@
  * What counts as the base's: a custom property the base recipe sets or reads
  * (minus the token grammar, the runtime-published and medium properties —
  * `vocabulary.names` — which are contract, not the recipe's); a keyframe the
- * base defines; a `::before` / `::after` the base draws on that part. A
+ * base defines; a `::before` / `::after` the base draws on that part (gives
+ * `content` other than `none` / `normal` — one it only suppresses is not its). A
  * patch "reaches" a name when it sets, reads or deletes the property,
  * references the keyframe in `animation` / `animation-name` (or redefines or
  * deletes it), or styles the pseudo-element on the same part.
@@ -35,8 +36,14 @@ interface Usage {
     animations: Set<string>;
     /** Keyframe names defined (or, in a patch, redefined or deleted). */
     keyframes: Set<string>;
-    /** part → the generated-content pseudo-elements its `selectors` keys draw. */
+    /** part → the generated-content pseudo-elements its `selectors` keys style at all. */
     pseudo: Map<string, Set<string>>;
+    /**
+     * part → the ones it DRAWS: styled by a selector that gives them a
+     * `content` other than `none` / `normal`. A pseudo-element a recipe only
+     * suppresses is not a name it owns.
+     */
+    drawn: Map<string, Set<string>>;
 }
 
 type Plain = Record<string, unknown>;
@@ -53,8 +60,21 @@ const PROPERTY_NAME = /^--[A-Za-z0-9_-]+$/;
 
 const kebab = (prop: string): string => prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
 
+const addTo = (map: Map<string, Set<string>>, key: string, value: string): void => {
+    let set = map.get(key);
+    if (!set) map.set(key, (set = new Set()));
+    set.add(value);
+};
+
+/** Whether declarations give a pseudo-element content — i.e. make it render. */
+function givesContent(props: unknown): boolean {
+    if (!isPlain(props) || !Object.hasOwn(props, 'content')) return false;
+    const value = props['content'];
+    return value !== null && value !== undefined && !/^\s*(?:none|normal)\s*$/.test(String(value));
+}
+
 function emptyUsage(): Usage {
-    return { sets: new Set(), reads: new Set(), animations: new Set(), keyframes: new Set(), pseudo: new Map() };
+    return { sets: new Set(), reads: new Set(), animations: new Set(), keyframes: new Set(), pseudo: new Map(), drawn: new Map() };
 }
 
 function scanRaw(text: string, usage: Usage): void {
@@ -84,10 +104,10 @@ function partStyles(styles: unknown, part: string | undefined, usage: Usage): vo
         for (const [selector, props] of Object.entries(styles['selectors'])) {
             declarations(props, usage);
             if (part === undefined) continue;
+            const draws = givesContent(props);
             for (const [pseudo] of selector.matchAll(PSEUDO)) {
-                let set = usage.pseudo.get(part);
-                if (!set) usage.pseudo.set(part, (set = new Set()));
-                set.add(pseudo);
+                addTo(usage.pseudo, part, pseudo);
+                if (draws) addTo(usage.drawn, part, pseudo);
             }
         }
     }
@@ -168,8 +188,8 @@ export function hookIssues(recipes: readonly RecipeInput[]): ValidationIssue[] {
             for (const pseudo of list) {
                 if (!(HOOK_PSEUDO_ELEMENTS as readonly string[]).includes(pseudo)) {
                     error('pseudo', `${part}${pseudo}: only the generated-content pseudo-elements (${HOOK_PSEUDO_ELEMENTS.join(', ')}) can be hooks — the platform's own pseudo-elements are not the recipe's to publish`);
-                } else if (!usage.pseudo.get(part)?.has(pseudo)) {
-                    error('pseudo', `${part}${pseudo} is declared a hook, but no selectors key on "${part}" draws it`);
+                } else if (!usage.drawn.get(part)?.has(pseudo)) {
+                    error('pseudo', `${part}${pseudo} is declared a hook, but no selectors key on "${part}" draws it (gives it content)`);
                 }
             }
         }
@@ -219,7 +239,7 @@ export function privateNameIssues(
 
         for (const [part, drawn] of patchUse.pseudo) {
             for (const pseudo of drawn) {
-                if (baseUse.pseudo.get(part)?.has(pseudo) && !hooks.pseudo?.[part]?.includes(pseudo)) {
+                if (baseUse.drawn.get(part)?.has(pseudo) && !hooks.pseudo?.[part]?.includes(pseudo)) {
                     warn(`${part}${pseudo}`);
                 }
             }

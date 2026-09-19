@@ -92,8 +92,20 @@ describe('declared hooks — checked at build', () => {
             'recipes.badge.hooks.properties: "badge-ink" is not a custom property name (--kebab-case)',
             'recipes.badge.hooks.properties: "--badge-fill" needs a description — a hook is documentation for the system derived from this one',
             'recipes.badge.hooks.keyframes: "spin" is declared a hook, but the recipe\'s keyframes do not define it',
-            'recipes.badge.hooks.pseudo: root::after is declared a hook, but no selectors key on "root" draws it',
+            'recipes.badge.hooks.pseudo: root::after is declared a hook, but no selectors key on "root" draws it (gives it content)',
             'recipes.badge.hooks.pseudo: root::placeholder: only the generated-content pseudo-elements (::before, ::after) can be hooks — the platform\'s own pseudo-elements are not the recipe\'s to publish',
+        ]);
+    });
+
+    it('counts a pseudo-element as drawn only where it gets content — suppressing one is not owning it', () => {
+        const ds = withBadge({
+            ...recipe,
+            parts: { root: { ...recipe.parts['root'], selectors: { '&::after': { content: 'none' }, '&::before': { opacity: '0.5' } } } },
+            hooks: { pseudo: { root: ['::after', '::before'] } },
+        });
+        expect(lines(byRule(validateDesignSystem(ds, manifest).errors, 'hook'))).toEqual([
+            'recipes.badge.hooks.pseudo: root::after is declared a hook, but no selectors key on "root" draws it (gives it content)',
+            'recipes.badge.hooks.pseudo: root::before is declared a hook, but no selectors key on "root" draws it (gives it content)',
         ]);
     });
 });
