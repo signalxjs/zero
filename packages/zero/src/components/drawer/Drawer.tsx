@@ -460,6 +460,9 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                     // can: focus lost to nothing from a panel that is not a
                     // sheet, below the breakpoint, is the same hand-off.
                     if (!drawer.dockQuery || e.relatedTarget || !el || el.matches(':modal')) return;
+                    // Where there is no matchMedia, useMediaQuery never left
+                    // its initial answer either: nothing crossed anything.
+                    if (typeof matchMedia !== 'function') return;
                     if (!matchMedia(drawer.dockQuery).matches) drawer.trigger.el?.focus({ preventScroll: true });
                 }}
                 onCancel={(e: Event) => {
