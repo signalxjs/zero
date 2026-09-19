@@ -132,6 +132,23 @@
   `Listbox` can hand its scroll-into-view to a windowed list
   (`setScroller`).
 
+### Fixed — a popup open at mount threw from `showModal()` (#102)
+
+- **`Dialog.Popup`, `Drawer.Panel` and `Popover.Popup` open at mount now
+  open.** A popup below another element or component mounts before its
+  parent has inserted the subtree, so the effect that syncs the model into
+  the platform called `showModal()` / `show()` / `showPopover()` on a
+  detached element — `InvalidStateError: The element is not in a Document`
+  — and the dialog stayed closed while the model said open. The call is
+  deferred a microtask while the element is not connected (the same reason
+  `autosize` defers its first measure), and re-checks the model before
+  opening. A page restoring `?pick=1`, or a hydrated SSR page, opens its
+  dialog. The unit suite could not see this — happy-dom's `showModal()` is
+  a plain `setAttribute('open')` — so the regression test gives the stubs
+  the engine's check, and the playground's dialog page mounts an
+  already-open dialog on demand for the real-browser spec.
+- Size: `@sigx/zero/drawer` 4.8 → 4.85 kB; the full barrel 47.65 → 47.7 kB.
+
 ### Fixed — `createVirtualList` inside a hidden viewport
 
 - A row inside a hidden viewport (a closed popover, an inactive tab)

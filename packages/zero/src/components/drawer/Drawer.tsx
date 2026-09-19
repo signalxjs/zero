@@ -364,7 +364,7 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
         // Up through showModal() — the one open state a regime switch has to
         // take down with close() rather than by the attribute.
         let sheet = false;
-        effect(() => {
+        const sync = () => {
             const docked = drawer.docked();
             const open = drawer.state.value;
             const node = el;
@@ -400,6 +400,13 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                 if (active && node.contains(active)) drawer.trigger.el?.focus({ preventScroll: true });
             }
             if (open && !node.open) {
+                // A panel below another element mounts before its parent has
+                // inserted the subtree, and `showModal()` on a detached
+                // element throws (#102) — Dialog's deferral.
+                if (!node.isConnected) {
+                    queueMicrotask(() => { if (node.isConnected) sync(); });
+                    return;
+                }
                 // A stale result from the last close must not read as this
                 // one's (`close` reports a non-empty returnValue).
                 node.returnValue = '';
@@ -413,7 +420,8 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                 sheet = false;
                 node.close();
             }
-        });
+        };
+        effect(sync);
     });
 
     return () => {
