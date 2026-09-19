@@ -1329,7 +1329,7 @@ const ComboboxVirtualItems = component<ComboboxVirtualItemsProps>(({ props, onUn
     onUnmounted(() => { if (combobox.virtual.current === v) combobox.virtual.current = null; });
     // Spacer keys start with a NUL, so no item key can collide with one.
     const spacer = (key: string, size: number, ref?: (el: HTMLElement | null) => void): JSXElement => (
-        <div key={`\0${key}`} data-scope={SCOPE} data-part="spacer" aria-hidden="true" style={`block-size: ${size}px`} ref={ref} />
+        <div key={`\0${key}`} data-scope={SCOPE} data-part="spacer" aria-hidden="true" style={{ blockSize: `${size}px` }} ref={ref} />
     );
     return () => {
         const size = v.setSize();
