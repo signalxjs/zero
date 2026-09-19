@@ -124,6 +124,7 @@ describe('the cell product is the browser spec\'s', () => {
             'spinner/root': [],
             'status/root': [],
             'timeline/marker': ['root', 'item'],
+            'badge/dot': ['root'],
             'carousel/indicator': ['root', 'indicator-group'],
             'diff/handle': ['root'],
             'radial-progress/root': [],
@@ -311,15 +312,19 @@ describe('contrast/indicator', () => {
 });
 
 describe('contrast/unmeasured — never a silent pass', () => {
+    // `kbd`, not `badge`: these fixtures want the one-element text probe and
+    // nothing else, and since zero#130 a badge recipe that leaves its status
+    // dot unstyled also earns an `unpainted` indicator finding, which is the
+    // matrix working, not the reason under test.
     const cases: Array<[UnmeasuredReason, RecipeInput, (c: ContrastCell) => boolean]> = [
-        ['gradient-or-image', { component: 'badge', parts: { root: { base: { background: 'linear-gradient(red, blue)', color: '#ffffff' } } } }, (c) => c.scope === 'badge'],
-        ['unresolved-var', { component: 'badge', parts: { root: { base: { color: 'var(--nope)' } } } }, (c) => c.scope === 'badge'],
-        ['runtime-property', { component: 'badge', parts: { root: { base: { color: 'var(--press-x)' } } } }, (c) => c.scope === 'badge'],
-        ['unsupported-selector', { component: 'badge', parts: { root: { base: { color: '#111111' }, selectors: { '&:nth-child(2n)': { color: '#ffffff' } } } } }, (c) => c.scope === 'badge'],
-        ['unparseable-color', { component: 'badge', parts: { root: { base: { color: 'oklch(calc(1rem) 0 0)' } } } }, (c) => c.scope === 'badge'],
-        ['filter-or-blend', { component: 'badge', parts: { root: { base: { color: '#111111', filter: 'brightness(0.9)' } } } }, (c) => c.scope === 'badge'],
-        ['raw-css', { component: 'badge', parts: { root: { base: { color: '#111111' } } }, css: '[data-scope="badge"][data-part="root"], & .x { color: #ffffff; }' }, (c) => c.scope === 'badge'],
-        ['conditional-rule', { component: 'badge', parts: { root: { base: { color: '#111111' }, at: { '@supports (display: grid)': { base: { color: '#ffffff' } } } } } }, (c) => c.scope === 'badge'],
+        ['gradient-or-image', { component: 'kbd', parts: { root: { base: { background: 'linear-gradient(red, blue)', color: '#ffffff' } } } }, (c) => c.scope === 'kbd'],
+        ['unresolved-var', { component: 'kbd', parts: { root: { base: { color: 'var(--nope)' } } } }, (c) => c.scope === 'kbd'],
+        ['runtime-property', { component: 'kbd', parts: { root: { base: { color: 'var(--press-x)' } } } }, (c) => c.scope === 'kbd'],
+        ['unsupported-selector', { component: 'kbd', parts: { root: { base: { color: '#111111' }, selectors: { '&:nth-child(2n)': { color: '#ffffff' } } } } }, (c) => c.scope === 'kbd'],
+        ['unparseable-color', { component: 'kbd', parts: { root: { base: { color: 'oklch(calc(1rem) 0 0)' } } } }, (c) => c.scope === 'kbd'],
+        ['filter-or-blend', { component: 'kbd', parts: { root: { base: { color: '#111111', filter: 'brightness(0.9)' } } } }, (c) => c.scope === 'kbd'],
+        ['raw-css', { component: 'kbd', parts: { root: { base: { color: '#111111' } } }, css: '[data-scope="kbd"][data-part="root"], & .x { color: #ffffff; }' }, (c) => c.scope === 'kbd'],
+        ['conditional-rule', { component: 'kbd', parts: { root: { base: { color: '#111111' }, at: { '@supports (display: grid)': { base: { color: '#ffffff' } } } } } }, (c) => c.scope === 'kbd'],
         // An unreadable rule may address a pseudo-element the self reading
         // never touches: the glyph it declares must taint the `::after` box,
         // not only `self`, or the mark measures through its background alone

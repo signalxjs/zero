@@ -137,6 +137,37 @@ const BadgeDemos = component(() => () => (
                 {(p: PartProps) => <a href="#/badge" {...p}>3 failed</a>}
             </Badge>
         </DemoRow>
+        <p>
+            <code>Badge.Dot</code> (#130): a status pill is a badge with a
+            leading dot. The dot re-carries <code>color</code> — the pill's
+            colour is its tone and the dot's is the status, and a neutral pill
+            with a green dot is the common case — and at rest without one it
+            is the pill's ink. <code>running</code> is the governed in-flight
+            state: a halo the pulse breathes, still there under reduced
+            motion.
+        </p>
+        <DemoRow gap="0.5rem" data-demo="status-pills">
+            <Badge>
+                <Badge.Dot />
+                Idle
+            </Badge>
+            <Badge variant={pickScopeVariant('badge', 'soft')}>
+                <Badge.Dot color={pickRole('success')} running />
+                Deploying
+            </Badge>
+            <Badge variant={pickScopeVariant('badge', 'soft')}>
+                <Badge.Dot color={pickRole('success')} />
+                Live
+            </Badge>
+            <Badge color={pickRole('error', 'danger')} variant={pickScopeVariant('badge', 'solid')}>
+                <Badge.Dot />
+                Failed
+            </Badge>
+            <Badge color={pickRole('warning')} variant={pickScopeVariant('badge', 'outline')}>
+                <Badge.Dot running />
+                Retrying
+            </Badge>
+        </DemoRow>
     </>
 ), { name: 'BadgeDemos' });
 

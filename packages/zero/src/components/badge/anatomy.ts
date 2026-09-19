@@ -15,4 +15,31 @@ export const badgeAnatomy = defineAnatomy('badge', {
         element: 'span',
         tokens: ['color', 'radius-field', 'size', 'text'],
     },
+    /**
+     * The status dot (#130) — a pill that says "Deploying" wants the dot
+     * that says how it is going, and a pill and a `Status` beside each other
+     * are two boxes where the reader sees one. Optional: a badge without it
+     * is the one element it was.
+     *
+     * It re-carries `color` (#94), with that mechanism's rule: the nearest
+     * carrier wins. A dot with a colour of its own is the status — a neutral
+     * pill with a green dot is the common case, not the exception; a dot
+     * without one follows the pill's colour, and on an uncoloured pill it is
+     * the pill's ink. Every skin draws a coloured dot as the role's fill
+     * inside a ring in the role's `-content` ink, which is what keeps it
+     * visible when the pill it follows is a solid fill of the same role.
+     *
+     * `running` is the one state, present while the thing the pill names is
+     * in flight — Button's `loading` shape, absent at rest — and it is the
+     * governed lifecycle spelling (#93), not a `streaming` of the pill's own.
+     * The outcomes and tones are colours, which the `color` axis already
+     * says.
+     */
+    dot: {
+        element: 'span',
+        parent: 'root',
+        states: ['running'],
+        carries: ['color'],
+        tokens: ['color', 'size'],
+    },
 });

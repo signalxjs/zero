@@ -2896,6 +2896,10 @@ export const alert: RecipeInput = {
 /** HeroUI's chip: a pill in base-200, muted ink, the hairline around it. */
 export const badge: RecipeInput = {
     component: 'badge',
+    tokens: {
+        '--badge-dot': 'currentColor',
+        '--badge-dot-ring': 'currentColor',
+    },
     parts: {
         root: {
             base: {
@@ -2915,6 +2919,36 @@ export const badge: RecipeInput = {
                 textDecoration: 'none',
             },
         },
+        // The status dot (zero#130). At rest it is the pill's INK — a dot in
+        // `currentColor` is legible on whatever fill the pill has — and
+        // this design system declares no colour axis, so the dot is only
+        // ever the pill's ink. `running` is a
+        // static halo the pulse breathes; under reduced motion the halo
+        // stays and the breathing stops, so the state never vanishes.
+        dot: {
+            base: {
+                display: 'inline-block',
+                flex: 'none',
+                inlineSize: '0.5em',
+                blockSize: '0.5em',
+                boxSizing: 'border-box',
+                borderRadius: '50%',
+                background: 'var(--badge-dot)',
+                border: '0.1em solid var(--badge-dot-ring)',
+            },
+            states: {
+                running: {
+                    boxShadow: '0 0 0 0.2em color-mix(in oklch, var(--badge-dot) 35%, transparent)',
+                    animation: 'zero-heroui-badge-pulse 1.6s ease-out infinite',
+                },
+            },
+            at: {
+                'reduced-motion': { states: { running: { animation: 'none' } } },
+                // Forced colours strip the fill and keep the border, so the
+                // border draws the whole dot there.
+                'forced-colors': { base: { borderWidth: '0.25em' } },
+            },
+        },
     },
     variants: {
         size: {
@@ -2922,6 +2956,8 @@ export const badge: RecipeInput = {
             md: {},
             lg: { root: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-lg)' } } },
         },
+    },    keyframes: {
+        'zero-heroui-badge-pulse': 'from { box-shadow: 0 0 0 0 color-mix(in oklch, var(--badge-dot) 45%, transparent); } to { box-shadow: 0 0 0 0.5em transparent; }',
     },
 };
 

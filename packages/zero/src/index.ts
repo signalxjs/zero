@@ -227,7 +227,7 @@ export type {
 } from './components/alert/index.js';
 
 export { Badge, badgeAnatomy } from './components/badge/index.js';
-export type { BadgeRootProps } from './components/badge/index.js';
+export type { BadgeRootProps, BadgeDotProps } from './components/badge/index.js';
 
 export { Divider, dividerAnatomy } from './components/divider/index.js';
 export type { DividerRootProps } from './components/divider/index.js';

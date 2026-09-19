@@ -327,7 +327,10 @@ type BadgeProps = {
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 };
 type BadgeAdapted = Adapted<typeof ZBadge, ZeroAxisProp, BadgeProps>;
-export declare const Badge: BadgeAdapted & { Root: BadgeAdapted };
+type BadgeDotAdapted = Adapted<typeof ZBadge.Dot, 'color', {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+}>;
+export declare const Badge: BadgeAdapted & Omit<AdaptedStatics<typeof ZBadge>, 'Dot'> & { Root: BadgeAdapted; Dot: BadgeDotAdapted };
 
 /** divider — no vendor route; the wired surface keeps zero's names. */
 type DividerProps = {

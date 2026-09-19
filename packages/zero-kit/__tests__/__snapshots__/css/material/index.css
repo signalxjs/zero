@@ -6779,6 +6779,8 @@
 
 @layer zero.recipes {
     [data-scope="badge"][data-part="root"] {
+        --badge-dot: currentColor;
+        --badge-dot-ring: currentColor;
         --badge-fill: var(--color-error);
         --badge-ink: var(--color-error-content);
     }
@@ -6798,6 +6800,22 @@
         line-height: var(--leading-normal);
         white-space: nowrap;
         text-decoration: none;
+    }
+
+    [data-scope="badge"][data-part="dot"] {
+        display: inline-block;
+        flex: none;
+        inline-size: 0.5em;
+        block-size: 0.5em;
+        box-sizing: border-box;
+        border-radius: 50%;
+        background: var(--badge-dot);
+        border: 0.1em solid var(--badge-dot-ring);
+    }
+
+    [data-scope="badge"][data-part="dot"][data-state="running"] {
+        box-shadow: 0 0 0 0.2em color-mix(in oklch, var(--badge-dot) 35%, transparent);
+        animation: zero-material-badge-pulse 1.6s ease-out infinite;
     }
 
     [data-scope="badge"][data-part="root"][data-color="primary"] {
@@ -6864,6 +6882,129 @@
         font-size: var(--text-lg);
         padding: var(--space-xs) var(--space-lg);
     }
+
+    [data-scope="badge"][data-part="dot"][data-color="primary"] {
+        --badge-dot: var(--color-primary);
+        --badge-dot-ring: var(--color-primary-content);
+    }
+
+    [data-scope="badge"][data-part="dot"][data-color="secondary"] {
+        --badge-dot: var(--color-secondary);
+        --badge-dot-ring: var(--color-secondary-content);
+    }
+
+    [data-scope="badge"][data-part="dot"][data-color="tertiary"] {
+        --badge-dot: var(--color-tertiary);
+        --badge-dot-ring: var(--color-tertiary-content);
+    }
+
+    [data-scope="badge"][data-part="dot"][data-color="error"] {
+        --badge-dot: var(--color-error);
+        --badge-dot-ring: var(--color-error-content);
+    }
+
+    [data-scope="badge"][data-part="dot"][data-color="neutral"] {
+        --badge-dot: var(--color-neutral);
+        --badge-dot-ring: var(--color-neutral-content);
+    }
+
+    [data-scope="badge"][data-part="dot"][data-color="info"] {
+        --badge-dot: var(--color-info);
+        --badge-dot-ring: var(--color-info-content);
+    }
+
+    [data-scope="badge"][data-part="dot"][data-color="success"] {
+        --badge-dot: var(--color-success);
+        --badge-dot-ring: var(--color-success-content);
+    }
+
+    [data-scope="badge"][data-part="dot"][data-color="warning"] {
+        --badge-dot: var(--color-warning);
+        --badge-dot-ring: var(--color-warning-content);
+    }
+
+    [data-scope="badge"][data-part="dot"][data-color="accent"] {
+        --badge-dot: var(--color-accent);
+        --badge-dot-ring: var(--color-accent-content);
+    }
+
+    @scope ([data-scope="badge"][data-part="root"][data-color="primary"]) to ([data-scope="badge"][data-part="root"]) {
+        [data-scope="badge"][data-part="dot"] {
+            --badge-dot: var(--color-primary);
+            --badge-dot-ring: var(--color-primary-content);
+        }
+    }
+
+    @scope ([data-scope="badge"][data-part="root"][data-color="secondary"]) to ([data-scope="badge"][data-part="root"]) {
+        [data-scope="badge"][data-part="dot"] {
+            --badge-dot: var(--color-secondary);
+            --badge-dot-ring: var(--color-secondary-content);
+        }
+    }
+
+    @scope ([data-scope="badge"][data-part="root"][data-color="tertiary"]) to ([data-scope="badge"][data-part="root"]) {
+        [data-scope="badge"][data-part="dot"] {
+            --badge-dot: var(--color-tertiary);
+            --badge-dot-ring: var(--color-tertiary-content);
+        }
+    }
+
+    @scope ([data-scope="badge"][data-part="root"][data-color="error"]) to ([data-scope="badge"][data-part="root"]) {
+        [data-scope="badge"][data-part="dot"] {
+            --badge-dot: var(--color-error);
+            --badge-dot-ring: var(--color-error-content);
+        }
+    }
+
+    @scope ([data-scope="badge"][data-part="root"][data-color="neutral"]) to ([data-scope="badge"][data-part="root"]) {
+        [data-scope="badge"][data-part="dot"] {
+            --badge-dot: var(--color-neutral);
+            --badge-dot-ring: var(--color-neutral-content);
+        }
+    }
+
+    @scope ([data-scope="badge"][data-part="root"][data-color="info"]) to ([data-scope="badge"][data-part="root"]) {
+        [data-scope="badge"][data-part="dot"] {
+            --badge-dot: var(--color-info);
+            --badge-dot-ring: var(--color-info-content);
+        }
+    }
+
+    @scope ([data-scope="badge"][data-part="root"][data-color="success"]) to ([data-scope="badge"][data-part="root"]) {
+        [data-scope="badge"][data-part="dot"] {
+            --badge-dot: var(--color-success);
+            --badge-dot-ring: var(--color-success-content);
+        }
+    }
+
+    @scope ([data-scope="badge"][data-part="root"][data-color="warning"]) to ([data-scope="badge"][data-part="root"]) {
+        [data-scope="badge"][data-part="dot"] {
+            --badge-dot: var(--color-warning);
+            --badge-dot-ring: var(--color-warning-content);
+        }
+    }
+
+    @scope ([data-scope="badge"][data-part="root"][data-color="accent"]) to ([data-scope="badge"][data-part="root"]) {
+        [data-scope="badge"][data-part="dot"] {
+            --badge-dot: var(--color-accent);
+            --badge-dot-ring: var(--color-accent-content);
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="badge"][data-part="dot"] {
+            border-width: 0.25em;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="badge"][data-part="dot"][data-state="running"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-material-badge-pulse {
+    from { box-shadow: 0 0 0 0 color-mix(in oklch, var(--badge-dot) 45%, transparent); } to { box-shadow: 0 0 0 0.5em transparent; }
 }
 
 @layer zero.recipes {

@@ -325,9 +325,15 @@ component renders; the root is called out separately where it carries props.
   alert is silent at load and one inserted later is announced. Close sets the
   model false and the runtime sets `hidden` (anatomy: hiddenIn: ['closed']),
   so design systems never paint `closed`. Icon is aria-hidden.
-- Badge: Root only — the carrier IS the text-bearing part, which is why it is
+- Badge: Root/Dot — the carrier IS the text-bearing part, which is why it is
   the one scope that can wire its own `variant` vocabulary against the
-  contrast audit's one-element probe. asChild.
+  contrast audit's one-element probe. asChild. Dot (#130) is an optional
+  aria-hidden status dot: it re-carries `color` (carries: ['color'] — a dot
+  with its own colour is the status while the pill's colour is its tone; a
+  dot without one follows the pill, nearest carrier wins, and on an
+  uncoloured pill it is the ink) and has one state, `running` (the governed lifecycle spelling,
+  absent at rest — a pulse in every skin with a static halo under reduced
+  motion). It is paint, in the indicator contrast matrix.
 - Kbd: Root only, on a semantic <kbd> — the element is the meaning, so there
   is no asChild to swap it away. No states; size is the axis that matters.
 - Status: Root only — an empty presence dot the design system paints. NO

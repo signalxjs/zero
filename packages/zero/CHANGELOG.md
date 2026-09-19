@@ -5,6 +5,32 @@
 > Upgrading from 0.2.0-beta.1? [`docs/upgrading.md`](../../docs/upgrading.md)
 > has the before/after for every breaking change below.
 
+### Added — `Badge.Dot`: a status dot inside the pill (#130)
+
+- **`badge` gains a `dot` part** — optional, `aria-hidden`, in `root`. A
+  status pill is a badge with a leading dot, and a badge beside a `Status`
+  was two boxes where the reader sees one. **It re-carries `color`**
+  (`carries: ['color']`, the #94 mechanism, with its rule — the nearest
+  carrier wins): a dot with a colour of its own is the status while the
+  pill's colour is its tone, and a neutral pill with a green dot is the
+  common case; a dot without one follows the pill, and on an uncoloured
+  pill it is the ink. A coloured dot is drawn in every shipped skin as the
+  role's fill inside a ring in the role's `-content` ink (the timeline
+  marker's answer) — which is what keeps a dot that follows a solid pill
+  visible on that pill's own fill — and the indicator contrast matrix
+  measures it per colour.
+- **One state, `running`** — the governed lifecycle spelling (#93), absent
+  at rest, Button's `loading` shape. `<Badge.Dot running />` renders
+  `data-state="running"`; every skin draws it as a static halo the pulse
+  breathes, and keeps the halo under reduced motion so the state never
+  vanishes (the static `reduced-motion/loop` rule holds the cancel to the
+  same selector).
+- `BadgeDotProps` (`WithColor<'badge'>` + `running` + the pass-through,
+  `role` refused). A design system's `./components` module adapts
+  `Badge.Dot` with its own colour route, like `Timeline.Marker`. Anatomy
+  change: `expectAnatomy` accepts `data-color` on the dot and nowhere else
+  below the root.
+
 ### Added — trigger mode: `itemInsert`, the text a commit inserts (#107)
 
 - **`Combobox.Root itemInsert`** (trigger mode) replaces the default
