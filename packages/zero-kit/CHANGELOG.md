@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed — windowed Select and Combobox (zero#96)
+
+- **`RESERVED_PROPS_BY_SCOPE.select` and `.combobox` gain `virtual` and
+  `estimateItemSize`**, the roots' new windowing props.
+- Both scopes' anatomies gain a `spacer` part (aria-hidden, sized inline —
+  nothing for a recipe to paint); a manifest built from this zero lists it.
+
 ### Added — the responsive Drawer's per-breakpoint structure (zero#82)
 
 - **`dock` joins `LAYOUT_VOCABULARY`** (mirroring zero): a responsive

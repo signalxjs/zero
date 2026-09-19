@@ -65,7 +65,8 @@ export interface ListboxCore<T> {
     clear(): void;
     /** The selected labels, joined — what a Select.Value shows. */
     displayText(): string;
-    move(step: HighlightStep): void;
+    /** One step, an edge, or `n` options at a time (a page: PageUp/PageDown on a windowed list). */
+    move(step: HighlightStep | number): void;
     highlightSelectedOrFirst(): void;
     /** Clear the highlight when the highlighted item goes away (filtering). */
     pruneHighlight(key: string): void;
@@ -78,7 +79,7 @@ export function defaultFilter<T>(collection: Collection<T, unknown>): (item: T, 
 }
 
 /** One step through `keys`: relative steps clamp at the edges (APG listbox: no wrap). */
-export function stepKeys(keys: readonly string[], current: string | null, step: HighlightStep): string | null {
+export function stepKeys(keys: readonly string[], current: string | null, step: HighlightStep | number): string | null {
     if (keys.length === 0) return null;
     if (step === 'first') return keys[0]!;
     if (step === 'last') return keys[keys.length - 1]!;

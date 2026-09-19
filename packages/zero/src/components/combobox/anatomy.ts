@@ -87,6 +87,14 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         flags: ['selected'],
         tokens: ['color'],
     },
+    // Windowing (#96): under `virtual` the options near the scroll position
+    // render, and an aria-hidden spacer stands in for each run that does not
+    // (above, below, and either side of a highlighted option pinned apart).
+    // Pure geometry — an inline block size, nothing for a recipe to paint.
+    spacer: {
+        element: 'div',
+        parent: 'popup',
+    },
     // Rendered by the CONSUMER when their filtered list is empty — zero only
     // styles it, it owns no emptiness logic.
     empty: {

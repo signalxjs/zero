@@ -2,6 +2,62 @@
 
 ## [Unreleased]
 
+### Added — windowed Select and Combobox: `virtual` (#96)
+
+- **`virtual`** on a data-mode `Select.Root` / `Combobox.Root` renders only
+  the options near the popup's scroll position, through
+  `createVirtualList`, so a list of ten thousand items keeps a screenful of
+  options in the document. **`estimateItemSize`** (px, default 36) sizes an
+  option until it has been measured. Opt-in: without it nothing changes.
+  - **The highlighted option is pinned.** It stays rendered wherever the
+    list is scrolled, so `aria-activedescendant` always names an element,
+    and it is rendered in the same pass that highlights it.
+  - **Keyboard moves scroll the window** to options that were never
+    rendered: arrows, Home/End (Select), typeahead (Select), and
+    **PageUp/PageDown**, a viewport's worth of options, only while
+    windowed. Opening scrolls to the selection; a new Combobox query scrolls
+    back to the highlight, or to the top.
+  - **Options carry `aria-setsize`** (visible, filtered count) **and
+    `aria-posinset`**, since only a window is in the accessibility tree.
+  - **Anatomy: a new `spacer` part** on both scopes — an aria-hidden
+    element sized inline that stands in for the options the window skips,
+    in the popup (the scroll viewport). It is geometry only, so no recipe
+    changed.
+  - **`css/base.css` bounds a windowed popup** at `min(20rem, 60vh)` with
+    `overflow-y: auto`, in `@layer zero.fallback`: a popup has to be bounded
+    for anything to be windowed, and this lowest layer lets a design
+    system's popup recipe or the app's CSS set the real height.
+  - **What stays whole:** hand-written items register at setup, so they
+    are never windowed, and a list with `itemGroup` groups ignores
+    `virtual`. Windowed, the hidden `<select>` carries only the chosen
+    options (ten thousand hidden `<option>`s would undo the window).
+    `multiple`, tags, `allowCustom` and trigger mode work as before.
+- **`createVirtualList({ pinned })`**: one row kept rendered wherever the
+  viewport is. Outside the window it renders apart from it, and each
+  `VirtualRow` gains **`skip`**: the height of the unrendered rows between
+  it and the previous rendered row (0 unless a pinned row sits apart).
+- `ListboxCore.move` takes a number of options as well as a step, and a
+  `Listbox` can hand its scroll-into-view to a windowed list
+  (`setScroller`).
+
+### Fixed — `createVirtualList` inside a hidden viewport
+
+- A row inside a hidden viewport (a closed popover, an inactive tab)
+  measured 0, so every row collapsed and the window grew until it had
+  rendered the whole list. A row with no box is no longer measured: it
+  keeps its estimate until it is shown.
+- A viewport that only changed WIDTH (a fit-content popup widening with
+  the rows it shows) no longer re-syncs the window. Re-rendering there
+  resized the viewport inside the observer's own loop, which WebKit reports
+  as "ResizeObserver loop completed with undelivered notifications".
+
+### Changed — a data collection looks items up by key through an index
+
+- `Collection.byKey` (and every label, disabled and value read built on
+  it) used a walk over the items per read, which is quadratic over a long
+  list. It is indexed once per item list now; the first item with a key
+  still wins.
+
 ### Added — a responsive Drawer: a sheet below a breakpoint, docked at or above it (#82)
 
 - **`Drawer.Root modal={{ below: 'md' }}`** (`DrawerModalRange`): a modal

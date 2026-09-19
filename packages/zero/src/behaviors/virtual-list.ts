@@ -42,6 +42,10 @@
  *   `scrollToEnd()` resumes it. Only an upward scroll unfollows, so content
  *   growing faster than the scroll event fires can never be mistaken for the
  *   reader leaving.
+ * - **A pinned row.** `pinned` names one row that stays rendered wherever
+ *   the viewport is (a listbox's highlighted option, which its
+ *   `aria-activedescendant` must be able to name). Outside the window it
+ *   renders apart from it, and its `skip` is the unrendered stretch between.
  *
  * SSR: setup never touches the DOM. Until mount, `rows()` is the first
  * `initialCount` rows — the LAST ones under `stickToBottom` — so the server
@@ -76,6 +80,14 @@ export interface VirtualListOptions {
     threshold?: number;
     /** Rows rendered before mount (server, first client render). Default 20. */
     initialCount?: number;
+    /**
+     * A row kept rendered wherever the viewport is, read reactively — the
+     * option an `aria-activedescendant` names must exist in the document
+     * even when the reader has scrolled away from it. Out of range (-1, or
+     * nothing) pins nothing. A pinned row outside the window renders apart
+     * from it, with `skip` standing in for the rows between.
+     */
+    pinned?: () => number;
 }
 
 /** One row of the window. */
@@ -86,6 +98,14 @@ export interface VirtualRow {
     readonly start: number;
     /** Its measured height, or the estimate until it has been measured. */
     readonly size: number;
+    /**
+     * The height of the rows NOT rendered between the previous rendered row
+     * and this one (with their gaps), in px — render it as a spacer before
+     * the row, or as its block-start margin. 0 for the first row and for a
+     * row that follows its predecessor; non-zero only either side of a
+     * `pinned` row that sits outside the window.
+     */
+    readonly skip: number;
 }
 
 export interface VirtualList {
@@ -204,6 +224,7 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
         };
     });
 
+    /** The window: contiguous rows near the viewport. */
     const range = computed(() => {
         const l = layout.value;
         const n = l.keys.length;
@@ -269,6 +290,14 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
         if (st.height !== viewport.clientHeight) st.height = viewport.clientHeight;
     };
 
+    /**
+     * Whether an element has a box at all. A row inside a hidden viewport (a
+     * closed popover, an inactive tab) measures 0 — which is no measurement:
+     * recorded, every row would collapse to nothing, and the window would
+     * grow to render them all. It keeps its estimate until it is shown.
+     */
+    const laidOut = (el: Element): boolean => el.getClientRects().length > 0;
+
     const record = (key: string, size: number): boolean => {
         if (measured.get(key) === size) return false;
         measured.set(key, size);
@@ -285,7 +314,7 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
         let changed = false;
         for (const el of fresh) {
             const key = elementKeys.get(el);
-            if (key !== undefined && el.isConnected && record(key, el.getBoundingClientRect().height)) changed = true;
+            if (key !== undefined && el.isConnected && laidOut(el) && record(key, el.getBoundingClientRect().height)) changed = true;
         }
         fresh.clear();
         if (changed) st.version++;
@@ -344,17 +373,27 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
 
     const onResize = (entries: ResizeObserverEntry[]): void => {
         let changed = false;
+        let resized = false;
         for (const entry of entries) {
-            if (entry.target === viewport) continue;
+            if (entry.target === viewport) {
+                // The viewport's HEIGHT moves nothing in the layout but
+                // everything in the window. Its width moves nothing at all —
+                // a row it reflows reports its own new height — and a
+                // fit-content viewport (a popup) widens with the rows it
+                // shows: re-rendering on that would resize the viewport
+                // inside the observer's own loop, which the browser reports
+                // as "ResizeObserver loop completed with undelivered
+                // notifications".
+                if (viewport.clientHeight !== st.height) resized = true;
+                continue;
+            }
             const key = elementKeys.get(entry.target);
-            if (key === undefined) continue;
+            if (key === undefined || !laidOut(entry.target)) continue;
             const box = entry.borderBoxSize?.[0];
             if (record(key, box ? box.blockSize : entry.target.getBoundingClientRect().height)) changed = true;
         }
         if (changed) st.version++;
-        // The viewport resizing moves nothing in the layout but everything in
-        // the window: re-sync either way.
-        schedule();
+        if (changed || resized) schedule();
     };
 
     const observe = (el: Element): void => {
@@ -497,24 +536,36 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
 
     const endOf = (l: Layout, i: number): number => l.starts[i]! + l.sizes[i]!;
 
+    /** The rows to render: the window, plus the pinned row wherever it is. */
+    const rendered = computed<VirtualRow[]>(() => {
+        const l = layout.value;
+        const { start, end } = range.value;
+        const indices: number[] = [];
+        const pin = options.pinned?.() ?? -1;
+        const pinned = Number.isInteger(pin) && pin >= 0 && pin < l.keys.length && (pin < start || pin >= end);
+        if (pinned && pin < start) indices.push(pin);
+        for (let i = start; i < end; i++) indices.push(i);
+        if (pinned && pin >= end) indices.push(pin);
+        const g = gap();
+        return indices.map((i, n) => ({
+            index: i,
+            key: l.keys[i]!,
+            start: l.starts[i]!,
+            size: l.sizes[i]!,
+            skip: n === 0 ? 0 : Math.max(0, l.starts[i]! - (endOf(l, indices[n - 1]!) + g)),
+        }));
+    });
+
     return {
-        rows() {
-            const l = layout.value;
-            const { start, end } = range.value;
-            const out: VirtualRow[] = [];
-            for (let i = start; i < end; i++) {
-                out.push({ index: i, key: l.keys[i]!, start: l.starts[i]!, size: l.sizes[i]! });
-            }
-            return out;
-        },
+        rows: () => rendered.value,
         before: () => {
-            const { start, end } = range.value;
-            return end > start ? layout.value.starts[start]! : 0;
+            const rows = rendered.value;
+            return rows.length > 0 ? rows[0]!.start : 0;
         },
         after: () => {
             const l = layout.value;
-            const { start, end } = range.value;
-            return end > start ? l.total - endOf(l, end - 1) : l.total;
+            const rows = rendered.value;
+            return rows.length > 0 ? l.total - endOf(l, rows[rows.length - 1]!.index) : l.total;
         },
         totalSize: () => layout.value.total,
         count: () => layout.value.keys.length,

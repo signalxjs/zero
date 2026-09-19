@@ -164,6 +164,57 @@ describe('createVirtualList — before mount', () => {
     });
 });
 
+describe('createVirtualList — a pinned row', () => {
+    it('stays rendered outside the window, apart from it, with the unrendered stretch as its skip', async () => {
+        const pin = signal({ index: -1 });
+        const t = mount({ pinned: () => pin.index });
+        await flush();
+        const shape = (): Array<[number, number]> => t.v.rows().map((r) => [r.index, r.skip]);
+        expect(shape()).toEqual([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0]]);
+
+        // Below the window: after it, past the 73 rows between.
+        pin.index = 80;
+        await flush();
+        expect(shape().at(-1)).toEqual([80, 73 * 20]);
+        expect(t.v.before()).toBe(0);
+        expect(t.v.after()).toBe(19 * 20);
+
+        // Above the window: first, and the window's first row skips back.
+        // (The harness's scroll model counts no skip: scroll unpinned.)
+        pin.index = -1;
+        await flush();
+        t.scrollTo(1000);
+        await flush();
+        pin.index = 10;
+        await flush();
+        expect(shape().slice(0, 2)).toEqual([[10, 0], [48, (48 - 11) * 20]]);
+        expect(t.v.before()).toBe(10 * 20);
+        expect(t.v.after()).toBe((100 - 57) * 20);
+
+        // Inside the window it is just a row — never rendered twice.
+        pin.index = 50;
+        await flush();
+        expect(t.v.rows().map((r) => r.index)).toEqual([48, 49, 50, 51, 52, 53, 54, 55, 56]);
+        expect(t.v.rows().every((r) => r.skip === 0)).toBe(true);
+
+        // Out of range pins nothing.
+        pin.index = 1000;
+        await flush();
+        expect(t.v.rows()).toHaveLength(9);
+    });
+
+    it('counts the gap into a skip', async () => {
+        const t = mount({ gap: 4, pinned: () => 90 });
+        await flush();
+        const rows = t.v.rows();
+        const last = rows.at(-1)!;
+        const prev = rows.at(-2)!;
+        expect(last.index).toBe(90);
+        // Row 90 starts at 90 × 24; the flow puts it one gap past the previous row's end.
+        expect(last.skip).toBe(90 * 24 - (prev.start + prev.size + 4));
+    });
+});
+
 describe('createVirtualList — the window', () => {
     it('renders the rows the viewport shows plus overscan, and pads the rest', async () => {
         const t = mount();
@@ -220,6 +271,22 @@ describe('createVirtualList — the window', () => {
         await flush();
         expect(t.v.rows()[0]!.size).toBe(80);
         expect(t.v.totalSize()).toBe(2060);
+    });
+
+    it('a row with no box (a hidden viewport) keeps its estimate rather than measuring 0', async () => {
+        // A closed popover: every row is display:none, so it has no client
+        // rects and reads 0 tall. Recorded, the rows would collapse and the
+        // window would grow to render the whole list.
+        vi.spyOn(Element.prototype, 'getClientRects').mockImplementation(() => [] as unknown as DOMRectList);
+        const t = mount({}, () => 0);
+        await flush();
+        expect(t.rows()).toHaveLength(7);
+        expect(t.v.totalSize()).toBe(2000);
+        await new Promise((r) => requestAnimationFrame(() => r(undefined)));
+        const ro = FakeResizeObserver.instances[0]!;
+        ro.resize(t.host.querySelector('li')!, 0);
+        await flush();
+        expect(t.v.totalSize()).toBe(2000);
     });
 
     it('a measureRef is stable per key, so a re-render does not re-attach it', async () => {

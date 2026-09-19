@@ -19,7 +19,7 @@
  * DOM-free by design: on `@sigx/zero/behaviors/core`, the list controller
  * (`list-core.ts`) stays the element registry beside it.
  */
-import { signal } from 'sigx';
+import { computed, signal } from 'sigx';
 
 export interface CollectionOptions<T, V = T> {
     /** The data items, read reactively. Absent → JSX mode (items register). */
@@ -147,7 +147,18 @@ export function createCollection<T, V = T>(opts: CollectionOptions<T, V> = {}): 
     // The ACCESSOR decides the mode, not what it returns right now: a data
     // list that is still loading (undefined) is still a data list.
     const mode = (): 'data' | 'jsx' => (opts.items ? 'data' : 'jsx');
-    const byKey = (key: string): T | undefined => items().find((item) => keyOf(item) === key);
+    // Keyed lookup, indexed once per item list: every label, disabled and
+    // value read goes through it, and a walk per read is quadratic over a
+    // long (windowed) list. The first item with a key wins, as a walk would.
+    const index = computed(() => {
+        const map = new Map<string, T>();
+        for (const item of items()) {
+            const key = keyOf(item);
+            if (!map.has(key)) map.set(key, item);
+        }
+        return map;
+    });
+    const byKey = (key: string): T | undefined => index.value.get(key);
     const entryFor = (key: string): CollectionEntry | undefined => registry.entries.find((e) => e.entry.key === key)?.entry;
 
     return {

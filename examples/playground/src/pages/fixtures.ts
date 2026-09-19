@@ -11,3 +11,13 @@ export const avatarSvg = (hue: number): string =>
     );
 export const AVATAR_A = avatarSvg(250);
 export const AVATAR_B = avatarSvg(150);
+
+/**
+ * Ten thousand options for the windowed (`virtual`) Select and Combobox
+ * demos: "Station 1" … "Station 9999", then "Zulu" — the one option a typed
+ * Z reaches, at the far end of the list.
+ */
+export const STATIONS: ReadonlyArray<{ value: string; label: string }> = Array.from(
+    { length: 10_000 },
+    (_, i) => (i === 9_999 ? { value: 'zulu', label: 'Zulu' } : { value: `s${i + 1}`, label: `Station ${i + 1}` }),
+);
