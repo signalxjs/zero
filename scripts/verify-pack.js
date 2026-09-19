@@ -279,11 +279,12 @@ function main() {
             "import { themeController } from '@sigx/zero/theme';",
             "import { RECOMMENDED_ROLE_LIST } from '@sigx/zero/contract';",
             "import { createControllableState } from '@sigx/zero/behaviors';",
+            "import { virtualListbox } from '@sigx/zero/virtual-listbox';",
             '',
             'export type _C = [',
             '    typeof Dialog, typeof Button, typeof Select, typeof anatomies,',
             '    typeof themeController, typeof RECOMMENDED_ROLE_LIST,',
-            '    typeof createControllableState,',
+            '    typeof createControllableState, typeof virtualListbox,',
             '];',
             '',
         ].join('\n')

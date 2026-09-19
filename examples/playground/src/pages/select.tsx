@@ -1,5 +1,6 @@
 import { component, signal } from 'sigx';
 import { Field, Select } from '@sigx/zero';
+import { virtualListbox } from '@sigx/zero/virtual-listbox';
 import { activeVocabulary } from '../design-systems';
 import { STATIONS } from './fixtures';
 import type { PageEntry } from './registry';
@@ -74,7 +75,9 @@ const SelectDemos = component(() => {
             <h2>Long lists</h2>
             <p>
                 <small>
-                    <code>virtual</code> windows a data-mode list (#96): of
+                    <code>virtual</code> windows a data-mode list (#96) through
+                    the strategy from <code>@sigx/zero/virtual-listbox</code>,
+                    so only a list that windows pays for it (#119): of
                     these 10,000 options only the ones near the popup's scroll
                     position are in the document, each with its{' '}
                     <code>aria-setsize</code> / <code>aria-posinset</code>.
@@ -84,7 +87,7 @@ const SelectDemos = component(() => {
             </p>
             <Field.Root>
                 <Field.Label>Station (10,000 options)</Field.Label>
-                <Select.Root items={STATIONS} virtual name="station" placeholder="Pick a station…" />
+                <Select.Root items={STATIONS} virtual={virtualListbox} name="station" placeholder="Pick a station…" />
             </Field.Root>
             <h2>Option groups</h2>
             <p>

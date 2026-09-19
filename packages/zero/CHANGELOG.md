@@ -20,11 +20,19 @@
 
 ### Added — windowed Select and Combobox: `virtual` (#96)
 
-- **`virtual`** on a data-mode `Select.Root` / `Combobox.Root` renders only
-  the options near the popup's scroll position, through
-  `createVirtualList`, so a list of ten thousand items keeps a screenful of
-  options in the document. **`estimateItemSize`** (px, default 36) sizes an
-  option until it has been measured. Opt-in: without it nothing changes.
+- **`virtual={virtualListbox}`** on a data-mode `Select.Root` /
+  `Combobox.Root` renders only the options near the popup's scroll
+  position, through `createVirtualList`, so a list of ten thousand items
+  keeps a screenful of options in the document. **`estimateItemSize`** (px,
+  default 36) sizes an option until it has been measured. Opt-in: without
+  it nothing changes.
+  - **The strategy is its own entry (#119):** `virtualListbox` comes from
+    **`@sigx/zero/virtual-listbox`** (and the barrel), and `virtual` takes
+    it rather than a boolean, so the `select` and `combobox` entries never
+    carry windowing and an app pays for it only where a list windows.
+    Select is 8.56 kB and Combobox 11.01 kB (brotli, near their sizes
+    before windowing); the strategy adds 2.88 kB. `ListboxWindowing` /
+    `ListboxWindowHost` type the seam.
   - **The highlighted option is pinned.** It stays rendered wherever the
     list is scrolled, so `aria-activedescendant` always names an element,
     and it is rendered in the same pass that highlights it.

@@ -11,7 +11,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { defineApp, signal } from 'sigx';
 import { render } from '@sigx/runtime-dom';
 import { renderToString } from '@sigx/server-renderer';
-import { Combobox, Select, comboboxAnatomy, selectAnatomy } from '@sigx/zero';
+import { Combobox, Select, comboboxAnatomy, selectAnatomy, virtualListbox } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 const VIEWPORT = 180;
@@ -99,7 +99,7 @@ describe('Select virtual', () => {
     function mount(extra: Record<string, unknown> = {}) {
         const state = signal({ zone: null as Zone | null });
         const root = host();
-        render(<Select.Root items={zones} virtual model={[state, 'zone']} name="zone" placeholder="Pick a zone" {...extra} />, root);
+        render(<Select.Root items={zones} virtual={virtualListbox} model={[state, 'zone']} name="zone" placeholder="Pick a zone" {...extra} />, root);
         const trigger = root.querySelector<HTMLElement>('[data-part="trigger"]')!;
         const popup = root.querySelector<HTMLElement>('[data-part="popup"]')!;
         return { state, root, trigger, popup };
@@ -215,7 +215,7 @@ describe('Select virtual', () => {
     it('with groups, renders the whole list', async () => {
         const grouped: Zone[] = Array.from({ length: 30 }, (_, i) => ({ value: `g${i}`, label: `G ${i}`, group: i < 15 ? 'East' : 'West' }));
         const root = host();
-        render(<Select.Root items={grouped} virtual defaultOpen />, root);
+        render(<Select.Root items={grouped} virtual={virtualListbox} defaultOpen />, root);
         await flush();
         expect(options(root)).toHaveLength(30);
         expect(root.querySelector('[data-part="spacer"]')).toBeNull();
@@ -235,7 +235,7 @@ describe('Select virtual', () => {
     });
 
     it('renders the first rows on the server', async () => {
-        const html = await renderToString(defineApp(<Select.Root items={zones} virtual />));
+        const html = await renderToString(defineApp(<Select.Root items={zones} virtual={virtualListbox} />));
         expect(html.match(/role="option"/g)).toHaveLength(20);
         expect(html).toContain('data-part="spacer"');
         expect(html).toContain('aria-setsize="10000"');
@@ -247,7 +247,7 @@ describe('Combobox virtual', () => {
         const state = signal({ zone: null as Zone | null, zones: [] as Zone[], query: '' });
         const root = host();
         render(
-            <Combobox.Root items={zones} virtual model={[state, 'zone']} model:inputValue={[state, 'query']} name="zone" {...extra} />,
+            <Combobox.Root items={zones} virtual={virtualListbox} model={[state, 'zone']} model:inputValue={[state, 'query']} name="zone" {...extra} />,
             root,
         );
         const input = root.querySelector<HTMLInputElement>('[data-part="input"]')!;
@@ -294,7 +294,7 @@ describe('Combobox virtual', () => {
     it('multiple: selections toggle into tags, the list stays open, the hidden select posts them', async () => {
         const state = signal({ picked: [] as Zone[] });
         const root = host();
-        render(<Combobox.Root items={zones} virtual multiple model={[state, 'picked']} name="zones" />, root);
+        render(<Combobox.Root items={zones} virtual={virtualListbox} multiple model={[state, 'picked']} name="zones" />, root);
         const input = root.querySelector<HTMLInputElement>('[data-part="input"]')!;
         await flush();
         key(input, 'ArrowUp');
@@ -314,7 +314,7 @@ describe('Combobox virtual', () => {
     it('allowCustom still commits free text', async () => {
         const state = signal({ code: null as string | null });
         const root = host();
-        render(<Combobox.Root items={zones.map((z) => z.label)} virtual allowCustom model={[state, 'code']} />, root);
+        render(<Combobox.Root items={zones.map((z) => z.label)} virtual={virtualListbox} allowCustom model={[state, 'code']} />, root);
         const input = root.querySelector<HTMLInputElement>('[data-part="input"]')!;
         await flush();
         type(input, 'Atlantis');

@@ -15,6 +15,7 @@ export default defineLibConfig({
         'testing/index': 'src/testing/index.ts',
         'theme/index': 'src/theme/index.ts',
         'theme/registry': 'src/theme/registry.ts',
+        'virtual-listbox/index': 'src/virtual-listbox/index.ts',
         'components/button/index': 'src/components/button/index.ts',
         'components/tabs/index': 'src/components/tabs/index.ts',
         'components/collapsible/index': 'src/components/collapsible/index.ts',

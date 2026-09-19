@@ -57,7 +57,7 @@ import {
     announceGroupLabel, createGroupPresence, createListbox, createListboxItem, type GroupPresence, type Listbox,
 } from '../../behaviors/listbox.js';
 import { syncPopover } from '../../behaviors/popover-sync.js';
-import { createVirtualListbox, type VirtualListbox } from '../../behaviors/virtual-listbox.js';
+import type { ListboxWindowHost, ListboxWindowing, VirtualListbox } from '../../behaviors/virtual-listbox.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
@@ -160,10 +160,12 @@ export type SelectRootProps<T = unknown, M = unknown> =
     & WithFormControl
     /**
      * Window the options (#96): only those near the popup's scroll position
-     * are rendered. Data mode only (`items`, no children) and ungrouped —
-     * with `itemGroup` groups the list renders whole.
+     * are rendered. Takes the strategy from its own entry, so only a list
+     * that windows pays for it (#119) — `virtual={virtualListbox}`, from
+     * `@sigx/zero/virtual-listbox`. Data mode only (`items`, no children)
+     * and ungrouped — with `itemGroup` groups the list renders whole.
      */
-    & Define.Prop<'virtual', boolean, false>
+    & Define.Prop<'virtual', ListboxWindowing, false>
     /** Under `virtual`: an option's height before it is measured, in px (default 36). */
     & Define.Prop<'estimateItemSize', number, false>
     & Define.Prop<'placement', Placement, false>
@@ -282,7 +284,17 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     // walks every item, so it is memoized: it re-runs when the list changes.
     const grouped = computed(() => collection.items().some((item) => collection.groupOf(item) !== undefined));
     const windowed = (): boolean => !!props.virtual && items() !== undefined && !grouped.value;
-    const virtual: SelectContext['virtual'] = { current: null };
+    // What the windowing strategy renders from — the window registers
+    // itself here as `current`.
+    const virtual: ListboxWindowHost = {
+        scope: SCOPE,
+        listbox,
+        collection,
+        open: () => openState.value,
+        estimateSize: () => props.estimateItemSize,
+        item: (item, index, size) => dataItem(item, index, size),
+        current: null,
+    };
     // A windowed list posts the selection alone: ten thousand hidden
     // <option>s would undo what the window saves.
     const hiddenKeys = (): string[] => guardKeys(collection.mode() === 'data' && !windowed() ? collection.keys() : listbox.selectedKeys());
@@ -386,20 +398,15 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     // The data expansion: the default composition, built from the same
     // compound parts a consumer would write — sugar over the anatomy, never
     // a parallel render path.
-    const dataItem = (item: unknown): JSXElement => (
-        <SelectItem value={collection.keyOf(item)} textValue={collection.labelOf(item)} disabled={collection.isItemDisabled(item)} key={collection.keyOf(item)}>
-            {slots.item ? slots.item({ item }) : collection.labelOf(item)}
-        </SelectItem>
-    );
-    // Only a window is in the accessibility tree: each option says where
-    // it stands in the whole visible list.
-    const windowItem = (item: unknown, index: number, size: number): JSXElement => (
+    // Windowed, only a window is in the accessibility tree: each option
+    // says where it stands in the whole visible list.
+    const dataItem = (item: unknown, index?: number, size?: number): JSXElement => (
         <SelectItem
             value={collection.keyOf(item)}
             textValue={collection.labelOf(item)}
             disabled={collection.isItemDisabled(item)}
             aria-setsize={size}
-            aria-posinset={index + 1}
+            aria-posinset={index === undefined ? undefined : index + 1}
             key={collection.keyOf(item)}
         >
             {slots.item ? slots.item({ item }) : collection.labelOf(item)}
@@ -415,13 +422,13 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
             </SelectTrigger>
             <SelectPopup>
                 {windowed()
-                    ? <SelectVirtualItems estimateSize={props.estimateItemSize} render={windowItem} />
+                    ? props.virtual!.render(virtual)
                     : collection.segments().map((segment) => segment.group === undefined
-                        ? segment.items.map(dataItem)
+                        ? segment.items.map((i) => dataItem(i))
                         : (
                             <SelectGroup key={`group:${segment.group}`}>
                                 <SelectGroupLabel>{segment.group}</SelectGroupLabel>
-                                {segment.items.map(dataItem)}
+                                {segment.items.map((i) => dataItem(i))}
                             </SelectGroup>
                         ))}
             </SelectPopup>
@@ -754,43 +761,6 @@ const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) =>
         );
     };
 }, { name: 'Select.Item' });
-
-// ── The windowed options (internal) ──
-
-type SelectVirtualItemsProps =
-    & Define.Prop<'estimateSize', number, false>
-    & Define.Prop<'render', (item: unknown, index: number, setSize: number) => JSXElement, true>;
-
-/**
- * The data expansion's options under `virtual`: the window, the pinned
- * highlight, and `spacer` parts standing in for the rest. Rendered directly
- * in the popup, which is the scroll viewport.
- */
-const SelectVirtualItems = component<SelectVirtualItemsProps>(({ props, onUnmounted }) => {
-    const select = useSelectContext();
-    const v = createVirtualListbox({
-        listbox: select.listbox,
-        collection: select.collection,
-        open: () => select.open.value,
-        estimateSize: () => props.estimateSize,
-    });
-    select.virtual.current = v;
-    onUnmounted(() => { if (select.virtual.current === v) select.virtual.current = null; });
-    // Spacer keys start with a NUL, so no item key can collide with one.
-    const spacer = (key: string, size: number, ref?: (el: HTMLElement | null) => void): JSXElement => (
-        <div key={`\0${key}`} data-scope={SCOPE} data-part="spacer" aria-hidden="true" style={{ blockSize: `${size}px` }} ref={ref} />
-    );
-    return () => {
-        const size = v.setSize();
-        const out: JSXElement[] = [spacer('start', v.before(), v.startRef)];
-        for (const row of v.rows()) {
-            if (row.skip > 0) out.push(spacer(`before:${row.key}`, row.skip));
-            out.push(props.render(row.item, row.index, size));
-        }
-        out.push(spacer('end', v.after()));
-        return <>{out}</>;
-    };
-}, { name: 'Select.VirtualItems' });
 
 // ── Group / GroupLabel ──
 

@@ -177,15 +177,20 @@ textarea.
 </Combobox.Root>
 ```
 
-**Long lists: `virtual`.** On a data-mode Select or Combobox, `virtual`
-windows the options through `createVirtualList` (#96): only the options
-near the popup's scroll position are in the document, so ten thousand
-items cost a screenful of elements. `estimateItemSize` (px, default 36)
-sizes an option until it has been measured.
+**Long lists: `virtual`.** On a data-mode Select or Combobox,
+`virtual={virtualListbox}` windows the options through `createVirtualList`
+(#96): only the options near the popup's scroll position are in the
+document, so ten thousand items cost a screenful of elements.
+`estimateItemSize` (px, default 36) sizes an option until it has been
+measured. The strategy lives in its own entry, `@sigx/zero/virtual-listbox`
+(also on the barrel), so the `select` and `combobox` entries never carry
+windowing: only a list that windows pays for it, about 2.9 kB brotli (#119).
 
 ```tsx
-<Select.Root items={timeZones} virtual itemLabel={(z) => z.name} model={() => state.zone} />
-<Combobox.Root items={timeZones} virtual itemLabel={(z) => z.name} model={() => state.zone} />
+import { virtualListbox } from '@sigx/zero/virtual-listbox';
+
+<Select.Root items={timeZones} virtual={virtualListbox} itemLabel={(z) => z.name} model={() => state.zone} />
+<Combobox.Root items={timeZones} virtual={virtualListbox} itemLabel={(z) => z.name} model={() => state.zone} />
 ```
 
 - **Every highlight is real.** Arrow keys, Home/End, typeahead and — only
