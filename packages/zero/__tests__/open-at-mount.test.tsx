@@ -47,9 +47,6 @@ describe('a popup open at mount (#102)', () => {
             calls.push('showPopover');
             this.setAttribute('data-test-popover-open', '');
         };
-        (HTMLElement.prototype as { hidePopover?: () => void }).hidePopover = function (this: HTMLElement) {
-            this.removeAttribute('data-test-popover-open');
-        };
         container = document.createElement('div');
         document.body.appendChild(container);
     });
@@ -58,7 +55,6 @@ describe('a popup open at mount (#102)', () => {
         proto.showModal = original.showModal;
         proto.show = original.show;
         (HTMLElement.prototype as { showPopover?: () => void }).showPopover = originalShowPopover;
-        delete (HTMLElement.prototype as { hidePopover?: () => void }).hidePopover;
         container.remove();
     });
 
