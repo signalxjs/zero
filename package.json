@@ -30,7 +30,7 @@
         "size": "size-limit"
     },
     "devDependencies": {
-        "@sigx/cli": "^0.10.0",
+        "@sigx/cli": "^0.11.0",
         "@size-limit/preset-small-lib": "^12.1.0",
         "@types/node": "^22.20.1",
         "@typescript/native-preview": "7.0.0-dev.20260707.2",

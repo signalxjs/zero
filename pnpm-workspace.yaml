@@ -13,14 +13,14 @@ onlyBuiltDependencies:
 # minor. Consumed via `"catalog:"` in package.json (peerDeps + devDeps);
 # `pnpm pack` rewrites `catalog:` to the concrete range in the published manifest.
 catalog:
-  "@sigx/reactivity": ^0.15.0
-  "@sigx/runtime-core": ^0.15.0
-  "@sigx/runtime-dom": ^0.15.0
-  "@sigx/server-renderer": ^0.15.0
+  "@sigx/reactivity": ^0.15.6
+  "@sigx/runtime-core": ^0.15.6
+  "@sigx/runtime-dom": ^0.15.6
+  "@sigx/server-renderer": ^0.15.6
   # PINNED to ^0.13: @sigx/vite >= 0.14 fails to resolve `?url` imports of
   # package subpath exports (#352) — the playground's DS stylesheets vanish
   # and e2e goes dark. Safe to diverge from the runtime five: the single-minor
   # rule above exists for @sigx/reactivity's module-state singletons, and the
   # vite plugin is build-time only. Un-pin when the upstream fix ships.
-  "@sigx/vite": ^0.13.0
-  sigx: ^0.15.0
+  "@sigx/vite": ^0.15.6
+  sigx: ^0.15.6
