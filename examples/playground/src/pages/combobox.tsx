@@ -1,5 +1,6 @@
 import { component, signal } from 'sigx';
 import { Combobox, Field, Textarea } from '@sigx/zero';
+import { virtualListbox } from '@sigx/zero/virtual-listbox';
 import { DemoRow } from '../demo/Section';
 import { STATIONS } from './fixtures';
 import type { PageEntry } from './registry';
@@ -89,7 +90,7 @@ const ComboboxDemos = component(() => {
             <h2>Long lists</h2>
             <p>
                 <small>
-                    <code>virtual</code> windows a data-mode list (#96): 10,000
+                    <code>virtual={'{virtualListbox}'}</code> windows a data-mode list (#96): 10,000
                     options, filtered as you type, with only the ones near the
                     popup's scroll position in the document. The highlighted
                     option stays rendered even when you scroll away from it —
@@ -101,7 +102,7 @@ const ComboboxDemos = component(() => {
                 <Field.Label>Station search (10,000 options)</Field.Label>
                 <Combobox.Root
                     items={STATIONS}
-                    virtual
+                    virtual={virtualListbox}
                     name="station-search"
                     placeholder="Search stations…"
                     emptyText="No station matches"

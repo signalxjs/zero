@@ -190,6 +190,11 @@ export type {
     ComboboxEmptyProps,
 } from './components/combobox/index.js';
 
+// Windowing for Select/Combobox (`virtual`, #96) — its own entry too
+// (`@sigx/zero/virtual-listbox`), so the component entries never carry it (#119).
+export { virtualListbox } from './virtual-listbox/index.js';
+export type { ListboxWindowing, ListboxWindowHost, VirtualListbox, VirtualListboxRow } from './virtual-listbox/index.js';
+
 export { Input, inputAnatomy, useInputContext } from './components/input/index.js';
 export type {
     InputRootProps,

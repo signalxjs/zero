@@ -246,9 +246,13 @@ component renders; the root is called out separately where it carries props.
   selection alone with hand-written items, and is `multiple` under multiple.
   The generated trigger has no aria-label: name an items-driven Select
   through a Field.
-  WINDOWING (#96, Select and Combobox alike): `virtual` on a data-mode root
-  renders only the options near the popup's scroll position (through
-  createVirtualList); `estimateItemSize` (px, default 36) until measured.
+  WINDOWING (#96, Select and Combobox alike): `virtual={virtualListbox}`
+  on a data-mode root renders only the options near the popup's scroll
+  position (through createVirtualList); `estimateItemSize` (px, default 36)
+  until measured. `virtual` takes the strategy, not a boolean:
+  `import { virtualListbox } from '@sigx/zero/virtual-listbox'` (also on the
+  barrel) — its own entry, so the select/combobox entries never carry
+  windowing (#119).
   The highlighted option is pinned — always rendered, so
   aria-activedescendant never dangles — and keyboard moves (arrows,
   Home/End, typeahead, and PageUp/PageDown only while windowed) scroll to

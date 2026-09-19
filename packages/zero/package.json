@@ -123,6 +123,10 @@
             "types": "./dist/components/combobox/index.d.ts",
             "import": "./dist/components/combobox/index.js"
         },
+        "./virtual-listbox": {
+            "types": "./dist/virtual-listbox/index.d.ts",
+            "import": "./dist/virtual-listbox/index.js"
+        },
         "./toggle": {
             "types": "./dist/components/toggle/index.d.ts",
             "import": "./dist/components/toggle/index.js"

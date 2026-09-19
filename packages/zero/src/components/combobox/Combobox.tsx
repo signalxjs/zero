@@ -93,7 +93,7 @@ import {
     announceGroupLabel, createGroupPresence, createListbox, createListboxItem, type GroupPresence, type Listbox,
 } from '../../behaviors/listbox.js';
 import { syncPopover } from '../../behaviors/popover-sync.js';
-import { createVirtualListbox, type VirtualListbox } from '../../behaviors/virtual-listbox.js';
+import type { ListboxWindowHost, ListboxWindowing, VirtualListbox } from '../../behaviors/virtual-listbox.js';
 import { useTextControlBinding, type TextControlBinding, type TextControlClaim } from '../../behaviors/text-control-binding.js';
 import { replaceToken, triggerTokenAt, type TriggerToken } from '../../behaviors/trigger-token.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
@@ -234,10 +234,12 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     & Define.Prop<'placeholder', string, false>
     /**
      * Window the options (#96): only those near the popup's scroll position
-     * are rendered. Data mode only (`items`, no children) and ungrouped —
-     * with `itemGroup` groups the list renders whole.
+     * are rendered. Takes the strategy from its own entry, so only a list
+     * that windows pays for it (#119) — `virtual={virtualListbox}`, from
+     * `@sigx/zero/virtual-listbox`. Data mode only (`items`, no children)
+     * and ungrouped — with `itemGroup` groups the list renders whole.
      */
-    & Define.Prop<'virtual', boolean, false>
+    & Define.Prop<'virtual', ListboxWindowing, false>
     /** Under `virtual`: an option's height before it is measured, in px (default 36). */
     & Define.Prop<'estimateItemSize', number, false>
     /**
@@ -391,7 +393,19 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     // walks every item, so it is memoized: it re-runs when the list changes.
     const grouped = computed(() => collection.items().some((item) => collection.groupOf(item) !== undefined));
     const windowed = (): boolean => !!props.virtual && items() !== undefined && !grouped.value;
-    const virtual: ComboboxContext['virtual'] = { current: null };
+    // What the windowing strategy renders from — the window registers
+    // itself here as `current`. A new query scrolls back to the highlight,
+    // or the top.
+    const virtual: ListboxWindowHost = {
+        scope: SCOPE,
+        listbox,
+        collection,
+        open: () => openState.value,
+        estimateSize: () => props.estimateItemSize,
+        resetOn: () => inputValue.value,
+        item: (item, index, size) => dataItem(item, index, size),
+        current: null,
+    };
     /** PageUp/PageDown on a windowed list: a page of options. False when not handled. */
     const pageKey = (e: KeyboardEvent): boolean => {
         if ((e.key !== 'PageDown' && e.key !== 'PageUp') || !virtual.current || !openState.value) return false;
@@ -766,20 +780,15 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     );
 
     // The data expansion: the default composition through the same parts.
-    const dataItem = (item: unknown): JSXElement => (
-        <ComboboxItem value={collection.keyOf(item)} textValue={collection.labelOf(item)} disabled={collection.isItemDisabled(item)} key={collection.keyOf(item)}>
-            {slots.item ? slots.item({ item }) : collection.labelOf(item)}
-        </ComboboxItem>
-    );
-    // Only a window is in the accessibility tree: each option says where
-    // it stands in the whole visible (filtered) list.
-    const windowItem = (item: unknown, index: number, size: number): JSXElement => (
+    // Windowed, only a window is in the accessibility tree: each option
+    // says where it stands in the whole visible list.
+    const dataItem = (item: unknown, index?: number, size?: number): JSXElement => (
         <ComboboxItem
             value={collection.keyOf(item)}
             textValue={collection.labelOf(item)}
             disabled={collection.isItemDisabled(item)}
             aria-setsize={size}
-            aria-posinset={index + 1}
+            aria-posinset={index === undefined ? undefined : index + 1}
             key={collection.keyOf(item)}
         >
             {slots.item ? slots.item({ item }) : collection.labelOf(item)}
@@ -806,16 +815,16 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
                     ? <ComboboxEmpty>{props.emptyText}</ComboboxEmpty>
                     : null}
                 {windowed()
-                    ? <ComboboxVirtualItems estimateSize={props.estimateItemSize} render={windowItem} />
+                    ? props.virtual!.render(virtual)
                     : collection.segments().map((segment) => {
                         const visible = segment.items.filter((i) => listbox.isVisible(collection.keyOf(i)));
                         if (visible.length === 0) return null;
                         return segment.group === undefined
-                            ? visible.map(dataItem)
+                            ? visible.map((i) => dataItem(i))
                             : (
                                 <ComboboxGroup key={`group:${segment.group}`}>
                                     <ComboboxGroupLabel>{segment.group}</ComboboxGroupLabel>
-                                    {visible.map(dataItem)}
+                                    {visible.map((i) => dataItem(i))}
                                 </ComboboxGroup>
                             );
                     })}
@@ -1303,45 +1312,6 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
         );
     };
 }, { name: 'Combobox.Item' });
-
-// ── The windowed options (internal) ──
-
-type ComboboxVirtualItemsProps =
-    & Define.Prop<'estimateSize', number, false>
-    & Define.Prop<'render', (item: unknown, index: number, setSize: number) => JSXElement, true>;
-
-/**
- * The data expansion's options under `virtual`: the window, the pinned
- * highlight, and `spacer` parts standing in for the rest. Rendered directly
- * in the popup, which is the scroll viewport. A new query scrolls back to
- * the highlight, or the top.
- */
-const ComboboxVirtualItems = component<ComboboxVirtualItemsProps>(({ props, onUnmounted }) => {
-    const combobox = useComboboxContext();
-    const v = createVirtualListbox({
-        listbox: combobox.listbox,
-        collection: combobox.collection,
-        open: () => combobox.open.value,
-        estimateSize: () => props.estimateSize,
-        resetOn: () => combobox.inputValue.value,
-    });
-    combobox.virtual.current = v;
-    onUnmounted(() => { if (combobox.virtual.current === v) combobox.virtual.current = null; });
-    // Spacer keys start with a NUL, so no item key can collide with one.
-    const spacer = (key: string, size: number, ref?: (el: HTMLElement | null) => void): JSXElement => (
-        <div key={`\0${key}`} data-scope={SCOPE} data-part="spacer" aria-hidden="true" style={{ blockSize: `${size}px` }} ref={ref} />
-    );
-    return () => {
-        const size = v.setSize();
-        const out: JSXElement[] = [spacer('start', v.before(), v.startRef)];
-        for (const row of v.rows()) {
-            if (row.skip > 0) out.push(spacer(`before:${row.key}`, row.skip));
-            out.push(props.render(row.item, row.index, size));
-        }
-        out.push(spacer('end', v.after()));
-        return <>{out}</>;
-    };
-}, { name: 'Combobox.VirtualItems' });
 
 // ── Empty ──
 

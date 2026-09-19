@@ -25,6 +25,7 @@
  * other mount work that needs the viewport.
  */
 import { computed, onMounted, onUnmounted, watch } from 'sigx';
+import type { JSXElement } from 'sigx';
 import type { Collection } from './collection.js';
 import type { Listbox } from './listbox.js';
 import { createVirtualList, type VirtualList } from './virtual-list.js';
@@ -67,6 +68,45 @@ export interface VirtualListbox<T> {
     readonly startRef: (el: HTMLElement | null) => void;
     /** Ref for an option's element — measures it. Stable per key. */
     measureRef(key: string): (el: Element | null) => void;
+}
+
+/**
+ * What a Select or Combobox root hands its windowing strategy (#119): one
+ * object, built once in the root's setup, that the window reads and writes.
+ */
+export interface ListboxWindowHost {
+    /** The root's `data-scope` — the `spacer` parts carry it. */
+    readonly scope: string;
+    readonly listbox: Listbox<unknown>;
+    readonly collection: Collection<unknown, unknown>;
+    /** Whether the popup is showing, read reactively. */
+    open(): boolean;
+    /** `estimateItemSize`: an option's height before it is measured, in px. */
+    estimateSize(): number | undefined;
+    /** Re-scroll when this changes (Combobox's query) — see `VirtualListboxOptions.resetOn`. */
+    resetOn?(): unknown;
+    /** One option as the root renders it, told its place in the whole visible list. */
+    item(item: unknown, index: number, setSize: number): JSXElement;
+    /**
+     * The live window while one is rendered — set by the strategy, read by
+     * the root (PageUp/PageDown) and by each option (its measuring ref).
+     */
+    current: VirtualListbox<unknown> | null;
+}
+
+/**
+ * The value `virtual` takes on `Select.Root` / `Combobox.Root`: a windowing
+ * strategy, imported from its own subpath so an app pays for windowing only
+ * where it windows —
+ *
+ * ```tsx
+ * import { virtualListbox } from '@sigx/zero/virtual-listbox';
+ * <Select.Root items={zones} virtual={virtualListbox} />
+ * ```
+ */
+export interface ListboxWindowing {
+    /** Renders the windowed options into the popup, which is the scroll viewport. */
+    render(host: ListboxWindowHost): JSXElement;
 }
 
 export function createVirtualListbox<T>(opts: VirtualListboxOptions<T>): VirtualListbox<T> {
