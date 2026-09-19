@@ -1,8 +1,8 @@
-# Upgrading from 0.2.0-beta.1
+# Upgrading from 0.2.0-beta.1 to 0.3.0-beta.1
 
 Everything below is what changed between `@sigx/zero` / `@sigx/zero-kit`
-**0.2.0-beta.1** (the npm `latest` at the time of writing; beta.2–beta.6
-carried only lynx-target fixes and lockstep bumps) and the next release. It
+**0.2.0-beta.1** (the npm `latest` before this release; beta.2–beta.6
+carried only lynx-target fixes and lockstep bumps) and **0.3.0-beta.1**. It
 is the consumer-facing companion to the two changelogs — the
 [`@sigx/zero` changelog](../packages/zero/CHANGELOG.md) and the
 [`@sigx/zero-kit` changelog](../packages/zero-kit/CHANGELOG.md) say *what*
@@ -23,7 +23,7 @@ changes, then [ecosystem packages](#ecosystem-component-packages).
 
 ### The peer is sigx core 1.x
 
-The next release peers on `sigx ^1.0.0` (and `@sigx/reactivity`,
+0.3.0-beta.1 peers on `sigx ^1.0.0` (and `@sigx/reactivity`,
 `@sigx/runtime-core`, `@sigx/runtime-dom`), from `^0.15.0`. Move the app to
 core 1.0.1 first — one copy of each, the way the catalog in this repo
 enforces it; core 1.0 also ships its own duplicate-copy guard. What that

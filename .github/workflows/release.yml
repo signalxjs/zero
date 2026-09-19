@@ -82,8 +82,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
         run: |
+          # A prerelease tag (v0.3.0-beta.1) is marked as such and never
+          # becomes the repo's "latest" release — core's policy (its #689),
+          # and the same rule publish.js applies on npm, where a prerelease
+          # lands on its own dist-tag (`beta`) and never on `latest`.
+          case "$TAG" in
+            *-*) FLAGS="--prerelease --latest=false" ;;
+            *)   FLAGS="--latest" ;;
+          esac
           if gh release view "$TAG" --json isDraft --jq '.isDraft' 2>/dev/null | grep -q true; then
-            gh release edit "$TAG" --draft=false --latest
+            gh release edit "$TAG" --draft=false $FLAGS
           else
-            gh release create "$TAG" --generate-notes --latest
+            gh release create "$TAG" --generate-notes $FLAGS
           fi
