@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -346,5 +346,32 @@ describe('SSR', () => {
             </Drawer.Root>,
         );
         expect(closedInline).not.toMatch(/<dialog[^>]*\sopen/);
+    });
+
+    // The responsive drawer (#82): the server cannot see the viewport, so it
+    // renders DOCKED — the panel open in markup whatever the model says — and
+    // stamps every part with the breakpoint, which is what the design
+    // system's compiled per-breakpoint CSS keys on to hide the wrong half.
+    it('renders a responsive Drawer docked, stamped with its breakpoint', async () => {
+        registerThemes({ themes: {}, breakpoints: { md: '768px' } });
+        try {
+            const html = await renderApp(
+                <Drawer.Root modal={{ below: 'md' }} label="Nav">
+                    <Drawer.Trigger>Menu</Drawer.Trigger>
+                    <Drawer.Panel>
+                        <Drawer.Close>Close</Drawer.Close>
+                    </Drawer.Panel>
+                </Drawer.Root>,
+            );
+            expect(html).toMatch(/<dialog[^>]*data-state="open"/);
+            expect(html).toMatch(/<dialog[^>]*\sopen/);
+            expect(html).toMatch(/<dialog[^>]*data-l-md-dock="inline"/);
+            // The trigger reports the SHEET, which is not up: a narrow first
+            // paint must not show it pressed open.
+            expect(html).toMatch(/<button[^>]*data-part="trigger"[^>]*data-state="closed"[^>]*data-l-md-dock="inline"[^>]*aria-expanded="false"/);
+            expect(html).toMatch(/<button[^>]*data-part="close"[^>]*data-l-md-dock="inline"/);
+        } finally {
+            clearThemes();
+        }
     });
 });

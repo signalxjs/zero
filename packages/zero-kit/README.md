@@ -301,6 +301,16 @@ resolves custom media (postcss-custom-media, Lightning CSS
 `useMediaQuery({ above | below })`, so app CSS, app JS and recipes agree on
 every pixel.
 
+The compiler also uses the ramp for one piece of structure no recipe
+writes: the responsive Drawer's (`Drawer.Root modal={{ below: 'md' }}`,
+zero#82). Its server markup is always the docked form — the panel open, every
+part stamped `data-l-<bp>-dock="inline"` — and for each declared breakpoint
+the kit emits, in `@layer zero.structure`, the rules that paint the right
+half before any script runs: trigger and close hidden at or above the
+breakpoint (the docked panel back in flow), the docked panel hidden below it
+unless it is up as a `:modal` sheet. They ride the drawer's component
+stylesheet, or `index.css` when a design system paints no drawer.
+
 Unknown parts/states fail the build — the anatomy manifest is the contract.
 So do undeclared token references: a recipe that says `var(--color-brnad)`
 is an error naming the nearest declared token, not a stylesheet that silently

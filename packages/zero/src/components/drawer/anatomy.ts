@@ -22,6 +22,17 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * it — so `full` is a full-screen sheet. Unset, each design system's own
  * panel width applies.
  *
+ * The responsive regime split (`modal={{ below: 'md' }}`, #82) rides the
+ * layout family's breakpoint grammar rather than a new attribute:
+ * `data-l-md-dock="inline"` on the trigger, the panel and the close. A
+ * breakpoint in prefix position is exactly what `data-l-md-gap` already
+ * spells, and it lets `@sigx/zero-kit` emit the per-breakpoint structure
+ * from the design system's own ramp — the only place a media query can
+ * learn a breakpoint's width, and so the only way the server's markup is
+ * right on first paint. At or above the breakpoint the trigger and close
+ * are hidden and the panel is docked open inline; below it the docked
+ * panel is hidden unless it is up as a modal sheet.
+ *
  * No `description` part and a `label` prop instead: a drawer is a
  * container (navigation, filters, a cart), not a message — it often has no
  * visible heading at all, which is why the accessible name can come from
@@ -33,6 +44,9 @@ export const drawerAnatomy = defineAnatomy('drawer', {
         element: 'button',
         states: ['open', 'closed'],
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        // Hidden at or above a responsive drawer's breakpoint — there is no
+        // sheet to open while the panel is docked.
+        layout: ['dock'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },
@@ -44,7 +58,7 @@ export const drawerAnatomy = defineAnatomy('drawer', {
         // reasoning for a layout attribute over the `size` axis, plus one of
         // Drawer's own: `size` rides the trigger (the carrier), and the
         // panel is not inside it, so no trigger-carried axis can reach it.
-        layout: ['measure'],
+        layout: ['measure', 'dock'],
         tokens: ['color'],
     },
     backdrop: {
@@ -63,6 +77,8 @@ export const drawerAnatomy = defineAnatomy('drawer', {
         element: 'button',
         parent: 'panel',
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        // Hidden with the trigger: a docked panel does not close.
+        layout: ['dock'],
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,
     },

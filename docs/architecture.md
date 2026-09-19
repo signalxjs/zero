@@ -912,7 +912,7 @@ order is idempotent; relying on load order is not. What each layer holds:
 | `zero.fallback` | base.css only: design-system-neutral structural token defaults (radius/size/text ramps, durations, …) so an unstyled page is sane. |
 | `zero.tokens` | Compiled design-system tokens: `:where(:root)` defaults, `@property`-adjacent blocks, theme blocks. |
 | `zero.recipes` | All compiled recipe CSS, plus base.css's few structural necessities (summary marker removal, `cursor: not-allowed`). |
-| `zero.structure` | `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, the same for a closed dialog popup / drawer panel (`:not([open])`, #51), the `[data-visually-hidden]` clip (#54), a table `column`'s `width: var(--table-column-width, auto)` and the hidden `cell-label` (#55), and an autosizing textarea's `field-sizing: content` with `lh` row bounds (#88). Plus one kit-emitted block per design system: a stacked table's per-breakpoint geometry (#55). |
+| `zero.structure` | `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, the same for a closed dialog popup / drawer panel (`:not([open])`, #51), the `[data-visually-hidden]` clip (#54), a table `column`'s `width: var(--table-column-width, auto)` and the hidden `cell-label` (#55), and an autosizing textarea's `field-sizing: content` with `lh` row bounds (#88). Plus kit-emitted per-breakpoint blocks per design system: a stacked table's geometry (#55), and the responsive Drawer's docked/sheet split (#82). |
 
 `zero.structure` exists because `[hidden]` otherwise relies on the UA
 sheet — the weakest declaration in the document — and all six design
@@ -959,6 +959,25 @@ plus `--textarea-block-chrome`, the block padding + border the runtime
 measures for a `border-box` element — the one number CSS cannot read from a
 recipe. Where `field-sizing` is unsupported, `createAutosize` writes the
 measured height inline and the same bounds clamp it.
+
+The responsive Drawer (`Drawer.Root modal={{ below: 'md' }}`, #82) is the
+one `zero.structure` entry base.css cannot write, because it needs a
+breakpoint's width and a media query cannot read a custom property. The
+server cannot see the viewport either, so the markup is always the docked
+form: the panel `open`, and trigger, panel and close stamped
+`data-l-<bp>-dock="inline"` — the layout family's breakpoint-in-prefix
+grammar reused rather than a new attribute, declared as the responsive
+layout attribute `dock` on those three parts, so `expectAnatomy`,
+`parseLayoutAttr` and the `ZeroBreakpointName` typing all apply unchanged.
+`compileDesignSystem` then emits, per declared breakpoint and with
+`useMediaQuery`'s boundaries, trigger and close `display: none` at or
+above (plus the docked panel back in flow over the UA's absolute dialog
+geometry) and the docked panel `display: none` below unless `:modal`. The
+block rides the drawer's component stylesheet, or `index.css` when a skin
+paints no drawer. The runtime half: the model governs the sheet only, a
+breakpoint crossing writes no event (the open attribute is toggled as
+markup, never through `show()`/`close()`, except to take a sheet down, whose
+queued `close` is recognised as stale because the panel is open again).
 
 **App CSS sits outside or after the four layers** (#63). Unlayered, it
 beats them all. Layered, the app states `@layer zero, app;` first in its

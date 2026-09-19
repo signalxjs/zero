@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added — the responsive Drawer's per-breakpoint structure (zero#82)
+
+- **`dock` joins `LAYOUT_VOCABULARY`** (mirroring zero): a responsive
+  attribute with one value, `inline`, rendered only breakpoint-qualified —
+  `data-l-md-dock="inline"` on a `Drawer.Root modal={{ below: 'md' }}`'s
+  trigger, panel and close.
+- **`compileDesignSystem` emits the structure that makes that markup correct
+  on first paint**, once per declared breakpoint, in `@layer zero.structure`:
+  at or above the breakpoint the trigger and close are `display: none` and
+  the docked panel is back in flow (`position: relative; inset: auto;
+  margin: 0` over the UA's dialog geometry); below it the docked panel is
+  `display: none` unless `:modal`. It is appended to the drawer's own
+  stylesheet (so `<ds>/css/drawer` alone suffices), or to `index.css` when
+  the design system styles no drawer. Emitted only when the manifest's
+  drawer declares `dock`, and nothing for an empty ramp. Every skin's CSS
+  goldens gain the block.
+
 ### Added — composes borrows a nested scope's axis values, and conditions on the host's (zero#91)
 
 - **`ComposedScope.axes`**: `composes: { button: { axes: { size: 'sm' } } }`

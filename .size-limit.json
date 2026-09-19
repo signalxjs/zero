@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "45.1 kB",
+        "limit": "45.6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -588,7 +588,7 @@
     {
         "name": "@sigx/zero/drawer",
         "path": "packages/zero/dist/components/drawer/index.js",
-        "limit": "4 kB",
+        "limit": "4.8 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

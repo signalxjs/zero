@@ -23,6 +23,7 @@ import type {
     LayoutProp,
     LayoutProps,
     BreakpointRange,
+    DrawerModalRange,
 } from '@sigx/zero';
 import type { Equal, MustBeTrue } from '../assert.js';
 
@@ -115,6 +116,11 @@ const band: BreakpointRange = { above: 'sm', below: 'lg' };
 const belowXl: BreakpointRange = { below: 'xl' };
 // @ts-expect-error — an empty range names no query
 const emptyRange: BreakpointRange = {};
+
+// A responsive Drawer's `modal={{ below }}` names the same closed ramp (#82).
+const drawerBelowMd: DrawerModalRange = { below: 'md' };
+// @ts-expect-error — `xl` is not a breakpoint this design system declares
+const drawerBelowXl: DrawerModalRange = { below: 'xl' };
 
 // ── layout props follow the vocabulary's own `responsive` flag ──
 //

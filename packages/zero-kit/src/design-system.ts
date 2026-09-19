@@ -14,6 +14,7 @@ import type { RecipeHooks, RecipeInput } from './recipes.js';
 import { resolveRecipeForTarget } from './recipes.js';
 import { compileRecipeCss } from './targets/web/recipe-css.js';
 import { tableStackCss } from './table-stack.js';
+import { compileDockCss } from './targets/web/dock-css.js';
 
 export interface DesignSystemInput<
     R extends RolesDecl = RolesDecl,
@@ -418,6 +419,16 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
     const stackable = byScope.get('table')?.parts.some((p) => p.name === 'root' && p.layout?.includes('stack'));
     const tableStructure = stackable ? tableStackCss(ds.tokens.breakpoints ?? {}) : '';
     if (tableStructure && componentCss.table !== undefined) componentCss.table += `\n${tableStructure}`;
+    // The responsive Drawer's per-breakpoint structure (#82), wherever the
+    // manifest says the drawer can dock. It rides the drawer's own stylesheet
+    // when the design system styles one — `./css/drawer` alone must be
+    // enough — and otherwise index.css alone, since the markup needs it
+    // whether or not a skin painted the drawer.
+    const docks = byScope.get('drawer')?.parts.some((p) => p.layout?.includes('dock')) ?? false;
+    const dockCss = docks ? compileDockCss(ds.tokens.breakpoints ?? {}) : '';
+    if (dockCss && componentCss['drawer'] !== undefined) {
+        componentCss['drawer'] = `${componentCss['drawer']}\n${dockCss}`;
+    }
 
     const rawCss = (ds.css ?? []).join('\n');
     const indexCss = [
@@ -425,6 +436,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         tokensCss,
         ...Object.values(componentCss),
         ...(tableStructure && componentCss.table === undefined ? [tableStructure] : []),
+        ...(dockCss && componentCss['drawer'] === undefined ? [dockCss] : []),
         ...(rawCss ? [`@layer zero.recipes {\n${rawCss}\n}`] : []),
     ].join('\n');
 

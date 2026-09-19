@@ -505,8 +505,8 @@ component renders; the root is called out separately where it carries props.
   current → active); every other link is "inactive". The separator is
   aria-hidden punctuation inside the item (default glyph /, replaceable
   slot) so the <ol> keeps only <li> children.
-- Drawer: Root(model=open, modal, dismissible, placement start|end, label
-  — renders no element) then Trigger/Panel/Title/Close on native <dialog>
+- Drawer: Root(model=open, modal: boolean | { below: bp }, dismissible,
+  placement start|end, label — renders no element) then Trigger/Panel/Title/Close on native <dialog>
   + top layer, Dialog's machinery inherited (backdrop = ::backdrop pseudo
   part; presence-tracked aria-labelledby, with the label prop as the
   aria-label fallback when no Title renders — a nav drawer often has no
@@ -525,7 +525,18 @@ component renders; the root is called out separately where it carries props.
   the panel fills its container inline, or the viewport as a modal sheet,
   up to the measure; the table spells `full` as `none`, valid only for a
   max, so `full` is a full-screen sheet. Each recipe declares its own
-  default --l-measure on the panel. A closed panel is display:none structurally (base.css), like
+  default --l-measure on the panel. modal={{ below: 'md' }} = RESPONSIVE
+  (#82): a modal sheet below the design system's md, docked open inline at
+  or above it. The model governs the sheet only (docked ignores it; Close,
+  Escape and writes do nothing visible); crossing the breakpoint reports
+  nothing (no openChange, no close) and a sheet open when the viewport
+  widens is reset silently. SSR renders docked (panel open in markup;
+  trigger, panel and close stamped data-l-md-dock="inline" — a responsive
+  layout attribute, declared layout: ['dock'] on those parts), and the
+  kit's per-breakpoint rules in @layer zero.structure hide trigger + close
+  at/above md and the docked panel below md unless :modal. Focus: an
+  outgrown sheet keeps focus in place; focus in a docked panel that stops
+  showing moves to the trigger. A closed panel is display:none structurally (base.css), like
   Dialog's popup.
 - Steps: Root(model=step value, defaultStep, loop, label, orientation)/
   Item(value,asChild)/Indicator/Separator/Title/Description — the wizard

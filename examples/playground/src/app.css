@@ -167,3 +167,10 @@ body {
 .axis-label {
     flex-shrink: 0;
 }
+
+/* The responsive drawer's page (#82): the docked panel beside the content. */
+.demo-dock {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}

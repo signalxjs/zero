@@ -317,6 +317,7 @@ export type {
     DrawerPlacement,
     DrawerCloseReason,
     DrawerCloseDetail,
+    DrawerModalRange,
 } from './components/drawer/index.js';
 export { Table, tableAnatomy, useTableContext } from './components/table/index.js';
 export type { TableRootProps, TablePartProps, TableRowProps, TableHeaderCellProps, TableCellProps, TableCellSpanProps, TableCellColumnProps, TableColumn } from './components/table/index.js';
