@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added — trigger mode: `itemInsert`, the text a commit inserts (#107)
+
+- **`Combobox.Root itemInsert`** (trigger mode) replaces the default
+  commit text (prefix, label and a space) with what it returns. It covers
+  mentions stored as ids (`@[Ada](user:42)`), no trailing space, or an emoji
+  for a `:` trigger. It is given **`ComboboxItemInsertContext`**:
+  `{ item, value, key, label, prefix, query }`, where `item` is the data
+  item (`undefined` for a hand-written option) and `value` is typed as
+  `insert` types it. The text is inserted as returned, through the same
+  undoable edit, with the caret after it. No space is added and none is
+  stepped over. `insert` reports it as `text`.
+
 ### Added — trigger mode over `Input.Input` (#106)
 
 - **A trigger-mode Combobox can drive a single-line `Input.Input`** as it

@@ -397,6 +397,81 @@ describe('Combobox trigger mode (#58)', () => {
         });
     });
 
+    describe('itemInsert (#107)', () => {
+        function insertHarness(itemInsert: NonNullable<Parameters<typeof Combobox.Root>[0]['itemInsert']>, trigger: string | RegExp = '@', children?: 'hand') {
+            const state = signal({ draft: '' });
+            const inserts: ComboboxInsertDetail<unknown>[] = [];
+            render(
+                children === 'hand'
+                    ? (
+                        <Combobox.Root trigger={trigger} itemInsert={itemInsert} onInsert={(d) => inserts.push(d)}>
+                            <Textarea.Root model={[state, 'draft']}><Textarea.Textarea /></Textarea.Root>
+                            <Combobox.Popup>
+                                <Combobox.Item value="ada">Ada</Combobox.Item>
+                            </Combobox.Popup>
+                        </Combobox.Root>
+                    )
+                    : (
+                        <Combobox.Root trigger={trigger} items={PEOPLE} itemKey={(p) => p.id} itemLabel={(p) => p.name} itemInsert={itemInsert} onInsert={(d) => inserts.push(d)}>
+                            <Textarea.Root model={[state, 'draft']}><Textarea.Textarea /></Textarea.Root>
+                        </Combobox.Root>
+                    ),
+                container,
+            );
+            return { state, inserts, el: container.querySelector('textarea')! };
+        }
+
+        it('replaces the default text: an id-bearing mention, no space added', async () => {
+            const seen: unknown[] = [];
+            const h = insertHarness((d) => {
+                seen.push(d);
+                return `${d.prefix}[${d.label}](user:${(d.item as Person).id})`;
+            });
+            typeInto(h.el, 'hi @al and', 6);
+            await tick();
+            key(h.el, 'Enter');
+            await tick();
+            expect(seen).toEqual([{ item: PEOPLE[1], value: PEOPLE[1], key: 'alan', label: 'Alan', prefix: '@', query: 'al' }]);
+            // Inserted as returned — the following space is not stepped over.
+            expect(h.el.value).toBe('hi @[Alan](user:alan) and');
+            expect(h.el.selectionStart).toBe(21);
+            expect(h.state.draft).toBe('hi @[Alan](user:alan) and');
+            expect(h.inserts.at(-1)).toEqual({ value: PEOPLE[1], label: 'Alan', text: '@[Alan](user:alan)' });
+        });
+
+        it('may drop the prefix: an emoji for a `:` trigger', async () => {
+            const h = insertHarness(({ label }) => (label === 'Grace' ? '🎉' : label), ':');
+            typeInto(h.el, 'yay :gr');
+            await tick();
+            key(h.el, 'Tab');
+            await tick();
+            expect(h.el.value).toBe('yay 🎉');
+            expect(h.el.selectionStart).toBe(6);
+        });
+
+        it('a RegExp trigger hands over what it matched before the query', async () => {
+            const seen: string[] = [];
+            const h = insertHarness(({ prefix, label }) => { seen.push(prefix); return `${prefix}${label}`; }, /(?:^|\s)#(\w*)/);
+            typeInto(h.el, 'ping #gr');
+            await tick();
+            key(h.el, 'Enter');
+            await tick();
+            expect(seen).toEqual([' #']);
+            expect(h.el.value).toBe('ping #Grace');
+        });
+
+        it('a hand-written option has no data item', async () => {
+            const seen: unknown[] = [];
+            const h = insertHarness((d) => { seen.push(d.item); return `<${d.value as string}>`; }, '@', 'hand');
+            typeInto(h.el, '@ad');
+            await tick();
+            key(h.el, 'Enter');
+            await tick();
+            expect(seen).toEqual([undefined]);
+            expect(h.el.value).toBe('<ada>');
+        });
+    });
+
     describe('Input.Input as the control (#106)', () => {
         const COMMANDS = ['deploy', 'describe', 'help'];
         function inputHarness(anchor?: TextAnchor) {

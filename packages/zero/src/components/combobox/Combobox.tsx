@@ -263,6 +263,14 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
      * token).
      */
     & Define.Prop<'anchor', TextAnchor, false>
+    /**
+     * Trigger mode: the text an option replaces the token with (#107), in
+     * place of the default — the prefix, the label and a space. Inserted as
+     * returned, with the caret after it: no space is added, and none is
+     * stepped over. For mentions stored as ids (`@[Ada](user:42)`), no
+     * trailing space, or an emoji for a `:` trigger.
+     */
+    & Define.Prop<'itemInsert', (detail: ComboboxItemInsertContext<T, InsertValue<M>>) => string, false>
     /** Trigger mode: an option replaced the token. */
     & Define.Event<'insert', ComboboxInsertDetail<InsertValue<M>>>
     & WithFormControl
@@ -282,6 +290,25 @@ export interface ComboboxInsertDetail<V = unknown> {
     value: V;
     label: string;
     text: string;
+}
+
+/** What `itemInsert` is given: the option being committed, and the token it replaces. */
+export interface ComboboxItemInsertContext<T = unknown, V = unknown> {
+    /** The data item — `undefined` for a hand-written `Combobox.Item`. */
+    item: T | undefined;
+    /** The option's value — what `insert` carries. */
+    value: V;
+    /** The option's key. */
+    key: string;
+    label: string;
+    /**
+     * What the token keeps in front of the query: the trigger for a string
+     * trigger; for a RegExp, whatever it matched before its first group
+     * (whitespace included).
+     */
+    prefix: string;
+    /** The typed query the option replaces. */
+    query: string;
 }
 
 /** An option's value for the model shape `M` — one member of it. */
@@ -516,10 +543,17 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         const token = trig.token;
         if (!el || !token) return;
         const label = collection.label(key);
-        // One space after the label — the one already there, if a space
-        // follows the token (the caret steps over it), else a new one.
-        const spaced = /[ \t]/.test(el.value.charAt(token.end));
-        const text = `${token.prefix}${label}${spaced ? '' : ' '}`;
+        // The implementation's `M` is `unknown`, so an option's value type is
+        // `NonNullable<unknown>`; only that is asserted, the shapes stay checked.
+        const value = collection.valueForKey(key) as NonNullable<unknown>;
+        const custom = props.itemInsert;
+        // By default one space after the label — the one already there, if
+        // a space follows the token (the caret steps over it), else a new
+        // one. A custom text is inserted as returned.
+        const spaced = !custom && /[ \t]/.test(el.value.charAt(token.end));
+        const text = custom
+            ? custom({ item: collection.byKey(key), value, key, label, prefix: token.prefix, query: token.query })
+            : `${token.prefix}${label}${spaced ? '' : ' '}`;
         const replaced = replaceToken(el.value, token, text);
         const next = { text: replaced.text, caret: replaced.caret + (spaced ? 1 : 0) };
         el.focus();
@@ -542,10 +576,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             if (textEl === el && el.ownerDocument.activeElement === el) el.setSelectionRange(next.caret, next.caret);
         });
         syncToken(true);
-        // The implementation's `M` is `unknown`, so the payload's value type
-        // is `NonNullable<unknown>`; only that field is asserted, the shape
-        // stays checked.
-        emit('insert', { value: collection.valueForKey(key) as NonNullable<unknown>, label, text });
+        emit('insert', { value, label, text });
     };
 
     const triggerKeydown = (e: KeyboardEvent): boolean => {

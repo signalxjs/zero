@@ -264,7 +264,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     checkbox: ['defaultChecked', 'form', 'hideLabel', 'id', 'indeterminate', 'invalid', 'name', 'required', 'title', 'value'],
     collapsible: ['defaultOpen', 'id', 'role', 'title', 'value'],
     container: ['id', 'measure', 'pad', 'padX', 'padY', 'role', 'title'],
-    combobox: ['allowCustom', 'anchor', 'defaultInputValue', 'defaultOpen', 'defaultValue', 'emptyText', 'estimateItemSize', 'filter', 'form', 'id', 'invalid', 'itemDisabled', 'itemGroup', 'itemKey', 'itemLabel', 'itemValue', 'items', 'multiple', 'name', 'placeholder', 'placement', 'positionStrategy', 'readonly', 'required', 'role', 'title', 'trigger', 'value', 'virtual'],
+    combobox: ['allowCustom', 'anchor', 'defaultInputValue', 'defaultOpen', 'defaultValue', 'emptyText', 'estimateItemSize', 'filter', 'form', 'id', 'invalid', 'itemDisabled', 'itemGroup', 'itemInsert', 'itemKey', 'itemLabel', 'itemValue', 'items', 'multiple', 'name', 'placeholder', 'placement', 'positionStrategy', 'readonly', 'required', 'role', 'title', 'trigger', 'value', 'virtual'],
     countdown: ['id', 'label', 'title'],
     dialog: ['defaultOpen', 'dismissible', 'modal', 'role', 'value'],
     diff: ['defaultValue', 'id', 'role', 'title', 'value'],

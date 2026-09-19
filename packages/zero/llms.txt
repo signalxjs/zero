@@ -679,7 +679,10 @@ component renders; the root is called out separately where it carries props.
   with trigger + label + space (reusing a following space, never two) via
   insertText (undoable), restores the caret
   after it and emits `insert` ({ value, label, text }); `model` is never
-  written. Mousedown on the popup is prevented, so focus stays in the
+  written. `itemInsert({ item, value, key, label, prefix, query }) => string`
+  (#107) replaces the default text; it is inserted verbatim (no space added
+  or stepped over), caret after it; `item` is undefined for a hand-written
+  option. Mousedown on the popup is prevented, so focus stays in the
   textarea. ANCHOR (#105): by default the popup docks to the textarea's
   box; `anchor={caretAnchor}` (@sigx/zero/behaviors) opens it at the token's
   first character on its own line — a hidden mirror of the textarea (font,

@@ -26,6 +26,9 @@ export const customTagSlot = <Combobox.Root items={plans} multiple model={() => 
 export const mention = <Combobox.Root trigger="@" items={plans} onInsert={(d) => { const p: Plan = d.value; void p; void d.label; void d.text; }} />;
 export const mentionKeys = <Combobox.Root trigger={/(?:^|\s)#(\w*)/} items={plans} itemValue={(p) => p.id} onInsert={(d) => { const id: string = d.value; void id; }} />;
 export const mentionJsx = <Combobox.Root trigger="@" onInsert={(d) => { const k: string = d.value; void k; }} />;
+// `itemInsert` (#107): the item and the value typed like `insert`'s.
+export const insertItem = <Combobox.Root trigger="@" items={plans} itemInsert={(d) => `@[${d.item?.name ?? d.label}](plan:${d.value.id})${d.prefix}${d.query}`} />;
+export const insertKeys = <Combobox.Root trigger="@" items={plans} itemValue={(p) => p.id} itemInsert={(d) => `@${d.value.toUpperCase()}`} />;
 
 // ── invalid ──
 // @ts-expect-error — an object model cannot hold free text
@@ -34,6 +37,10 @@ export const e6 = <Combobox.Root items={plans} multiple allowCustom model={() =>
 export const e7 = <Combobox.Root items={plans} itemValue={(p) => p.name.length} allowCustom />;
 // @ts-expect-error — an item's value is the item, not its key
 export const e8 = <Combobox.Root trigger="@" items={plans} onInsert={(d) => { const k: string = d.value; void k; }} />;
+// @ts-expect-error — itemInsert returns the text to insert
+export const e10 = <Combobox.Root trigger="@" items={plans} itemInsert={(d) => d.item} />;
+// @ts-expect-error — the value of a key-valued item is its key, not the item
+export const e11 = <Combobox.Root trigger="@" items={plans} itemValue={(p) => p.id} itemInsert={(d) => d.value.name} />;
 // @ts-expect-error — a trigger is a string or a RegExp
 export const e9 = <Combobox.Root trigger={64} />;
 // @ts-expect-error — single mode holds a string, not an array
