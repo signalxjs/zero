@@ -1,6 +1,7 @@
 import { component, signal } from 'sigx';
 import { Field, Select } from '@sigx/zero';
 import { activeVocabulary } from '../design-systems';
+import { STATIONS } from './fixtures';
 import type { PageEntry } from './registry';
 
 const SelectDemos = component(() => {
@@ -69,6 +70,21 @@ const SelectDemos = component(() => {
                         { value: 'durian', label: 'Durian', disabled: true },
                     ]}
                 />
+            </Field.Root>
+            <h2>Long lists</h2>
+            <p>
+                <small>
+                    <code>virtual</code> windows a data-mode list (#96): of
+                    these 10,000 options only the ones near the popup's scroll
+                    position are in the document, each with its{' '}
+                    <code>aria-setsize</code> / <code>aria-posinset</code>.
+                    Arrows, Home/End, PageUp/PageDown and typeahead (press Z)
+                    reach options that were never rendered.
+                </small>
+            </p>
+            <Field.Root>
+                <Field.Label>Station (10,000 options)</Field.Label>
+                <Select.Root items={STATIONS} virtual name="station" placeholder="Pick a station…" />
             </Field.Root>
             <h2>Option groups</h2>
             <p>

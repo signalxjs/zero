@@ -151,6 +151,17 @@
             --duration-slow: 0.01ms;
         }
     }
+
+    /* A windowed listbox (`virtual` on Select/Combobox, #96) — recognised by
+       its `spacer` part — must scroll inside a bounded popup: at its natural
+       height the whole list would be "in view" and every option would
+       render. A last-resort bound only, in this lowest layer: a design
+       system's popup recipe or the app's own CSS sets the real one. */
+    [data-scope="select"][data-part="popup"]:has(> [data-part="spacer"]),
+    [data-scope="combobox"][data-part="popup"]:has(> [data-part="spacer"]) {
+        max-block-size: min(20rem, 60vh);
+        overflow-y: auto;
+    }
 }
 
 @layer zero.recipes {

@@ -1,6 +1,7 @@
 import { component, signal } from 'sigx';
 import { Combobox, Field, Textarea } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
+import { STATIONS } from './fixtures';
 import type { PageEntry } from './registry';
 
 const COUNTRIES = [
@@ -85,6 +86,27 @@ const ComboboxDemos = component(() => {
                     </Combobox.Group>
                 </Combobox.Popup>
             </Combobox.Root>
+            <h2>Long lists</h2>
+            <p>
+                <small>
+                    <code>virtual</code> windows a data-mode list (#96): 10,000
+                    options, filtered as you type, with only the ones near the
+                    popup's scroll position in the document. The highlighted
+                    option stays rendered even when you scroll away from it —
+                    the input's <code>aria-activedescendant</code> always names
+                    a real element.
+                </small>
+            </p>
+            <Field.Root>
+                <Field.Label>Station search (10,000 options)</Field.Label>
+                <Combobox.Root
+                    items={STATIONS}
+                    virtual
+                    name="station-search"
+                    placeholder="Search stations…"
+                    emptyText="No station matches"
+                />
+            </Field.Root>
             <h2>Multiple, with tags</h2>
             <p>
                 <small>

@@ -177,6 +177,39 @@ textarea.
 </Combobox.Root>
 ```
 
+**Long lists: `virtual`.** On a data-mode Select or Combobox, `virtual`
+windows the options through `createVirtualList` (#96): only the options
+near the popup's scroll position are in the document, so ten thousand
+items cost a screenful of elements. `estimateItemSize` (px, default 36)
+sizes an option until it has been measured.
+
+```tsx
+<Select.Root items={timeZones} virtual itemLabel={(z) => z.name} model={() => state.zone} />
+<Combobox.Root items={timeZones} virtual itemLabel={(z) => z.name} model={() => state.zone} />
+```
+
+- **Every highlight is real.** Arrow keys, Home/End, typeahead and — only
+  while windowed — PageUp/PageDown (a viewport's worth of options) reach
+  options that were never rendered. The window scrolls to the highlighted
+  option, which stays rendered (pinned) even when the list is scrolled away
+  from it, so `aria-activedescendant` always names an element. Opening
+  scrolls to the selection.
+- **Each option says where it stands**: `aria-setsize` is the number of
+  visible (filtered) options, and `aria-posinset` is the option's position
+  among them.
+- **The popup is the scroll viewport.** Rows the window skips are stood in
+  for by `spacer` parts (aria-hidden, sized inline). The popup must be
+  bounded for anything to be windowed; `css/base.css` bounds a windowed
+  popup at `min(20rem, 60vh)` in its lowest layer (`zero.fallback`), so a
+  design system's popup recipe or your own CSS sets the real height. Options
+  stack as blocks without margins.
+- **What stays whole.** Hand-written `Select.Item` / `Combobox.Item`
+  children register at setup, so they are never windowed, and neither is a
+  list with `itemGroup` groups: `virtual` is ignored and the list renders
+  in full. Under `virtual`, the hidden `<select>` carries only the chosen
+  options, not one per item. `multiple`, tags, `allowCustom` and trigger
+  mode work as they do unwindowed.
+
 Interaction state is published as data for the design system to style:
 `data-focus-visible`, and press feedback on every interactive part —
 `data-pressed` while the pointer/key is down (a press ends when the gesture
@@ -641,6 +674,14 @@ const Transcript = component(({ props }) => {
   leaving.
 - **`scrollToIndex(i, align)`** jumps to a row that may never have been
   measured, and keeps it in place while the rows around it measure.
+- **A pinned row.** `pinned: () => index` keeps one row rendered wherever
+  the viewport is — the highlighted option of a listbox, which its
+  `aria-activedescendant` must be able to name. Outside the window it is
+  rendered apart from it, and its `skip` (on each `VirtualRow`) is the
+  height of the unrendered rows in between: render it as a spacer or a
+  block-start margin before the row. `skip` is 0 everywhere else.
+- **Hidden viewports.** A row with no box (inside a closed popover or an
+  inactive tab) is not measured — it keeps its estimate until it is shown.
 - **Layout rules.** Rows stack vertically and have no margins. Pass the
   list's CSS `gap` as `gap`. If anything scrolls with the list above it
   (such as a "load earlier" button), wire `listRef`.

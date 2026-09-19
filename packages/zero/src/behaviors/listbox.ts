@@ -5,7 +5,7 @@
  * Combobox.Item spreads, and the presence-tracked group label. Everything
  * in `listbox-core.ts` is here too, so web components import from here.
  */
-import { watch } from 'sigx';
+import { untrack, watch } from 'sigx';
 import type { Collection, CollectionEntry } from './collection.js';
 import { createListboxCore, type ListboxCore, type ListboxOptions } from './listbox-core.js';
 import type { HighlightStep, ListController, ListItem } from './list.js';
@@ -25,6 +25,12 @@ export interface WebListboxOptions<T> extends Omit<ListboxOptions<T>, 'list'> {
 export interface Listbox<T> extends ListboxCore<T> {
     /** First-character typeahead over the ENABLED VISIBLE labels. */
     typeahead(e: KeyboardEvent, current: string | null, onMatch: (key: string) => void): void;
+    /**
+     * Replace how a highlight is brought into view — a windowed list
+     * scrolls to an option that may not be rendered yet, where the default
+     * scrolls the option's element. `null` restores the default.
+     */
+    setScroller(scroll: ((key: string) => void) | null): void;
 }
 
 /** A `ListController` view of the listbox's enabled visible keys, for the shared typeahead. */
@@ -53,19 +59,25 @@ export function createListbox<T>(opts: WebListboxOptions<T>): Listbox<T> {
     let relay: ((key: string) => void) | null = null;
     const run = createTypeahead({ list: view, onMatch: (item) => relay?.(item.value) });
 
+    let scroller: ((key: string) => void) | null = null;
     if (opts.list) {
         const list = opts.list;
         watch(
             () => core.highlighted.value,
             (key) => {
                 if (key == null) return;
-                list.find(key)?.el()?.scrollIntoView?.({ block: 'nearest' });
+                // Untracked: sigx runs a watch callback inside the watch's
+                // effect, and the scroller reads the window's scroll state —
+                // tracked, every scroll would re-run this and snap back.
+                if (scroller) { const scroll = scroller; untrack(() => scroll(key)); }
+                else list.find(key)?.el()?.scrollIntoView?.({ block: 'nearest' });
             },
         );
     }
 
     return {
         ...core,
+        setScroller: (scroll) => { scroller = scroll; },
         typeahead: (e, current, onMatch) => {
             relay = onMatch;
             try {
@@ -92,6 +104,13 @@ export interface ListboxItemOptions<T> {
     getEl: () => HTMLElement | null;
     /** Runs after a pointer selection (Combobox refocuses its input). */
     afterSelect?: () => void;
+    /**
+     * Register into the collection (default true). A windowed row passes
+     * false: the collection already holds it as data, and a registration per
+     * mount would rewrite the registry — and re-run everything that reads
+     * it — every time the window scrolls.
+     */
+    collect?: boolean;
 }
 
 export interface ListboxItem {
@@ -115,7 +134,7 @@ export function createListboxItem<T>(opts: ListboxItemOptions<T>): ListboxItem {
     const label = (): string => opts.textValue?.() ?? optionText(opts.getEl()) ?? key();
 
     const entry: CollectionEntry = { get key() { return key(); }, label, disabled: opts.disabled };
-    const unregisterCollection = collection.register(entry);
+    const unregisterCollection = opts.collect === false ? () => {} : collection.register(entry);
     const item: ListItem = {
         id: listbox.optionId(key()),
         get value() { return key(); },

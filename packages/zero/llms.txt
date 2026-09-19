@@ -223,13 +223,13 @@ component renders; the root is called out separately where it carries props.
   back (mirrored under RTL); Escape closes one level (native popover);
   hover opens without moving focus.
 - Select: Root(model=value | value[], model:open, items, itemKey, itemLabel,
-  itemValue, itemDisabled, itemGroup, multiple, name, form, required,
-  placeholder)/Trigger/Value/Indicator/Popup/Group/GroupLabel/Item/
-  ItemIndicator/HiddenInput. TYPED GENERIC ROOT: T infers from `items`; the
-  model holds the ITEM unless `itemValue` says what it holds (a value
-  model: `itemValue={(c) => c.code}` → string; a number works too) — null
-  while nothing is selected, `T | null` / `V | null`; `multiple` makes it
-  an array.
+  itemValue, itemDisabled, itemGroup, multiple, virtual, estimateItemSize,
+  name, form, required, placeholder)/Trigger/Value/Indicator/Popup/Group/
+  GroupLabel/Item/ItemIndicator/Spacer/HiddenInput. TYPED GENERIC ROOT: T
+  infers from `items`; the model holds the ITEM unless `itemValue` says what
+  it holds (a value model: `itemValue={(c) => c.code}` → string; a number
+  works too) — null while nothing is selected, `T | null` / `V | null`;
+  `multiple` makes it an array.
   itemKey is the string identity (DOM id, typeahead, the posted value —
   default: an object's value/id or the primitive), itemLabel the display
   text (default: label or the key). THE COLLECTION IS THE TRUTH: labels and
@@ -246,6 +246,20 @@ component renders; the root is called out separately where it carries props.
   selection alone with hand-written items, and is `multiple` under multiple.
   The generated trigger has no aria-label: name an items-driven Select
   through a Field.
+  WINDOWING (#96, Select and Combobox alike): `virtual` on a data-mode root
+  renders only the options near the popup's scroll position (through
+  createVirtualList); `estimateItemSize` (px, default 36) until measured.
+  The highlighted option is pinned — always rendered, so
+  aria-activedescendant never dangles — and keyboard moves (arrows,
+  Home/End, typeahead, and PageUp/PageDown only while windowed) scroll to
+  it; opening scrolls to the selection. Options carry aria-setsize (visible
+  count) and aria-posinset. The popup is the scroll viewport: aria-hidden
+  `spacer` parts (inline block-size, nothing to paint) stand in for skipped
+  rows; base.css bounds a windowed popup at min(20rem, 60vh) in
+  zero.fallback, so a popup recipe's max-block-size wins. Options stack as
+  margin-less blocks. Hand-written items and itemGroup groups are never
+  windowed (`virtual` is ignored). Windowed, the hidden <select> carries the
+  chosen options only.
 - Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
 - Checkbox: Root(model=checked | string[])/Control/Indicator/Label/HiddenInput;
   supports `indeterminate`. A `string[]` model is sigx's array mode: boxes
@@ -602,10 +616,12 @@ component renders; the root is called out separately where it carries props.
   viewport `display` behind `&:popover-open`.
 - Combobox: Root(model=value | value[], model:inputValue, model:open, items,
   itemKey, itemLabel, itemValue, itemDisabled, itemGroup, filter, emptyText,
-  multiple, allowCustom, name, form, required, readonly, placeholder; `tag`
-  slot)/Control/Tags/Tag(value)/TagLabel/TagRemove(label)/Input/
-  Trigger/Popup/Group/GroupLabel/Item(asChild)/ItemIndicator/Empty/
-  HiddenInput. The same typed generic root and collection as Select. APG
+  multiple, allowCustom, virtual, estimateItemSize, name, form, required,
+  readonly, placeholder; `tag` slot)/Control/Tags/Tag(value)/TagLabel/
+  TagRemove(label)/Input/Trigger/Popup/Group/GroupLabel/Item(asChild)/
+  ItemIndicator/Spacer/Empty/HiddenInput. The same typed generic root and
+  collection as Select, and the same `virtual` windowing (see Select); a new
+  query scrolls back to the highlight, or the top. APG
   editable combobox: focus stays in the real <input> (role=combobox,
   aria-autocomplete=list, aria-activedescendant); Control is the field
   chrome wrapping input + trigger and mirrors open/invalid/focus-visible so
