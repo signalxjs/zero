@@ -554,8 +554,9 @@ component renders; the root is called out separately where it carries props.
   Escape and writes do nothing visible); crossing the breakpoint reports
   nothing (no openChange, no close) and a sheet open when the viewport
   widens is reset silently. SSR renders docked (panel open in markup;
-  trigger, panel and close stamped data-l-md-dock="inline" — a responsive
-  layout attribute, declared layout: ['dock'] on those parts), and the
+  trigger, panel and close stamped data-l-dock-above="md" — a
+  breakpoint-valued layout attribute like Table's stack, declared
+  layout: ['dock-above'] on those parts), and the
   kit's per-breakpoint rules in @layer zero.structure hide trigger + close
   at/above md and the docked panel below md unless :modal. Focus: an
   outgrown sheet keeps focus in place; focus in a docked panel that stops

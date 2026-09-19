@@ -128,15 +128,16 @@ function makeInert(): DrawerContext {
 export const useDrawerContext = defineInjectable<DrawerContext>(() => makeInert());
 
 /**
- * `data-l-<bp>-dock="inline"` on a responsive drawer's trigger, panel and
- * close; nothing otherwise. Written directly rather than through
+ * `data-l-dock-above="<bp>"` on a responsive drawer's trigger, panel and
+ * close; nothing otherwise. The breakpoint is the value (#122), as
+ * `Table.Root stack` spells it. Written directly rather than through
  * `layoutAttrs` for `measure`'s reason (a fixed literal), and
  * the breakpoint needs no grammar check here: `useMediaQuery` already threw
  * at setup for a name the design system did not declare, and the kit holds
  * declared names to kebab-case.
  */
 const dockAttrs = (drawer: DrawerContext): Record<string, string> =>
-    drawer.dock === undefined ? {} : { [`data-l-${drawer.dock}-dock`]: 'inline' };
+    drawer.dock === undefined ? {} : { 'data-l-dock-above': drawer.dock };
 
 // ── Root ──
 

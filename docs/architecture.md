@@ -125,13 +125,25 @@ earlier blanket exemption: `expectAnatomy` now fails an undeclared
 seventeen-attribute set (`gap`, `pad`, `align`, `justify`, `cols`, `span`, …)
 rendered under a `data-l-` prefix, and a part that can carry one declares
 which subset in its anatomy (`PartSpec.layout`) — governed and checked
-exactly like `placements`. One attribute is valued differently: `stack`
-(`Table.Root stack="md"`, #55) names a *breakpoint*, an open set only the
-design system declares, so its spec carries `valuesFrom: 'breakpoints'` and
+exactly like `placements`. Two attributes are valued differently: `stack`
+(`Table.Root stack="md"`, #55) and `dock-above` (a responsive Drawer's
+`data-l-dock-above="md"`, #82) name a *breakpoint*, an open set only the
+design system declares, so their specs carry `valuesFrom: 'breakpoints'` and
 no `values`. A value then answers to the breakpoint grammar (kebab-case,
 never `base`) through the shared `isLayoutValue`, `/register` narrows the
-prop to the declared names, and it is never responsive, because it already
-names a breakpoint.
+prop to the declared names, and neither is ever responsive, because each
+already names a breakpoint.
+
+That is a rule, not two coincidences (#122): **an attribute that switches a
+MODE at a breakpoint takes the breakpoint as its value**; the per-breakpoint
+NAME form below (`data-l-md-gap`) is only for a responsive VALUE — the same
+attribute taking a different rung at each width. The Drawer first shipped its
+switch as `data-l-md-dock="inline"`, which reads as a responsive value of
+`dock` and is not one: the value never varies, only the breakpoint does. Two
+grammars for one question would have left design-system authors, the
+manifest, the register typing and the kit's `zero.structure` emitters
+handling both, so the spelling was unified before either shipped. The next
+breakpoint-driven attribute follows `stack` and `dock-above`.
 
 It is deliberately *not* a design-system axis. An axis answers "which one"
 out of a vocabulary the skin invents and zero passes through uninterpreted; a
@@ -973,16 +985,16 @@ one `zero.structure` entry base.css cannot write, because it needs a
 breakpoint's width and a media query cannot read a custom property. The
 server cannot see the viewport either, so the markup is always the docked
 form: the panel `open`, and trigger, panel and close stamped
-`data-l-<bp>-dock="inline"` — the layout family's breakpoint-in-prefix
-grammar reused rather than a new attribute, declared as the responsive
-layout attribute `dock` on those three parts, so `expectAnatomy`,
-`parseLayoutAttr` and the `ZeroBreakpointName` typing all apply unchanged.
+`data-l-dock-above="<bp>"` — a breakpoint-valued layout attribute, `stack`'s
+grammar (#122), declared as `dock-above` on those three parts, so
+`expectAnatomy`, `parseLayoutAttr` and the `ZeroBreakpointName` typing all
+apply unchanged.
 `compileDesignSystem` then emits, per declared breakpoint and with
 `useMediaQuery`'s boundaries, trigger and close `display: none` at or
 above (plus the docked panel back in flow over the UA's absolute dialog
 geometry) and the docked panel `display: none` below unless `:modal`. The
 block rides the drawer's component stylesheet, or `index.css` when a skin
-paints no drawer. The same attribute, unqualified, is the panel's live
+paints no drawer. Beside it, `dock` is the panel's live
 regime (`data-l-dock="sheet|inline"`, #83): skins key the sheet's geometry
 on it rather than on `:modal`, which stops matching when `close()` runs
 while the panel is still in the top layer for its exit — so the sheet keeps

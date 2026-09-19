@@ -28,7 +28,9 @@
 - **`LAYOUT_VOCABULARY.dock` is `inline | sheet`** (mirroring zero). The
   unqualified `data-l-dock` on a Drawer panel is the regime it is presented
   in, and it holds through a sheet's exit where `:modal` does not — so
-  recipes key the sheet's geometry on `[data-l-dock="sheet"]`. All six skins
+  recipes key the sheet's geometry on `[data-l-dock="sheet"]`. After
+  zero#122 it is this regime attribute only, never per breakpoint (the
+  breakpoint lives on `dock-above`). All six skins
   do, and material, daisyUI, HeroUI and Carbon now slide the sheet; the CSS
   goldens change accordingly.
 
@@ -41,10 +43,14 @@
 
 ### Added — the responsive Drawer's per-breakpoint structure (zero#82)
 
-- **`dock` joins `LAYOUT_VOCABULARY`** (mirroring zero): a responsive
-  attribute with one value, `inline`, rendered only breakpoint-qualified —
-  `data-l-md-dock="inline"` on a `Drawer.Root modal={{ below: 'md' }}`'s
-  trigger, panel and close.
+- **`dock-above` joins `LAYOUT_VOCABULARY`** (mirroring zero): a
+  breakpoint-valued attribute like `stack` (`{ values: [],
+  valuesFrom: 'breakpoints' }`) — `data-l-dock-above="md"` on a
+  `Drawer.Root modal={{ below: 'md' }}`'s trigger, panel and close. (It
+  first landed as the per-breakpoint name `data-l-md-dock="inline"`;
+  zero#122 settled the spelling before release: a mode-switch attribute
+  takes the breakpoint as its VALUE, and the per-breakpoint name form is
+  only for a responsive value.)
 - **`compileDesignSystem` emits the structure that makes that markup correct
   on first paint**, once per declared breakpoint, in `@layer zero.structure`:
   at or above the breakpoint the trigger and close are `display: none` and
@@ -53,8 +59,8 @@
   `display: none` unless `:modal`. It is appended to the drawer's own
   stylesheet (so `<ds>/css/drawer` alone suffices), or to `index.css` when
   the design system styles no drawer. Emitted only when the manifest's
-  drawer declares `dock`, and nothing for an empty ramp. Every skin's CSS
-  goldens gain the block.
+  drawer declares `dock-above`, and nothing for an empty ramp. Every skin's
+  CSS goldens gain the block.
 
 ### Added — composes borrows a nested scope's axis values, and conditions on the host's (zero#91)
 

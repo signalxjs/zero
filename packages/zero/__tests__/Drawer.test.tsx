@@ -367,7 +367,7 @@ describe('Drawer responsive regime (#82) — modal={{ below }}', () => {
         mountResponsive(signal({ open: false }));
         await tick();
         for (const name of ['trigger', 'panel', 'close']) {
-            expect(part(container, name).getAttribute('data-l-md-dock')).toBe('inline');
+            expect(part(container, name).getAttribute('data-l-dock-above')).toBe('md');
         }
         expectAnatomy(container, drawerAnatomy);
         // The same boundary the compiled CSS and useMediaQuery use.

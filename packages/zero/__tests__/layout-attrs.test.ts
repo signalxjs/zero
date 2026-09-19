@@ -136,6 +136,28 @@ describe('a breakpoint-valued attribute (`stack`, #55)', () => {
     });
 });
 
+describe('a mode-switch attribute takes the breakpoint as its VALUE (`dock-above`, #122)', () => {
+    // The rule #122 settled: `stack` and `dock-above` both name the
+    // breakpoint in value position, and the per-breakpoint NAME form is only
+    // for a responsive value. So the Drawer's old `data-l-md-dock` no longer
+    // parses at all — a spelling the contract rejects rather than tolerates.
+    it('is breakpoint-valued like `stack`, and `dock` itself is not responsive', () => {
+        expect(layoutAttrSpec('dock-above')).toEqual({ values: [], valuesFrom: 'breakpoints' });
+        expect(layoutAttrSpec('dock')).toEqual({ values: ['inline', 'sheet'] });
+    });
+
+    it('renders the breakpoint as the value', () => {
+        expect(layoutAttrs({ 'dock-above': 'md' }, ['dock-above'])).toEqual({ 'data-l-dock-above': 'md' });
+        expect(() => layoutAttrs({ 'dock-above': 'base' }, ['dock-above'])).toThrow(/"base" is not a value of "dock-above"/);
+    });
+
+    it('the old breakpoint-in-name spelling is not a layout attribute', () => {
+        expect(parseLayoutAttr('data-l-md-dock')).toBeUndefined();
+        expect(parseLayoutAttr('data-l-dock-above')).toEqual({ attr: 'dock-above' });
+        expect(parseLayoutAttr('data-l-md-dock-above')).toBeUndefined();
+    });
+});
+
 describe('parseLayoutAttr', () => {
     it('round-trips every attribute in the vocabulary, bare and per-breakpoint', () => {
         for (const attr of ALL) {

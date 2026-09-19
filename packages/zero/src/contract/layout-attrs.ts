@@ -129,28 +129,36 @@ export const LAYOUT_VOCABULARY = {
      * same attribute means "narrower than this skin's `md`" in every design
      * system. Never responsive: it already names a breakpoint, and a
      * `data-l-md-stack` would say the same thing twice.
+     *
+     * This is the rule for every attribute that switches a MODE at a
+     * breakpoint (#122): the breakpoint is the VALUE (`data-l-stack="md"`,
+     * `data-l-dock-above="md"`). The per-breakpoint NAME form
+     * (`data-l-md-gap`) is only for a responsive VALUE — the same attribute
+     * taking a different rung at each width.
      */
     stack: { values: [], valuesFrom: 'breakpoints' },
     /**
-     * How a Drawer's panel is presented — `inline` (in flow) or `sheet` (the
-     * modal edge sheet). Two spellings, one grammar:
-     *
-     * - `data-l-dock` on the PANEL is the regime it is in NOW (#83): `sheet`
-     *   for a modal drawer, `inline` for `modal={false}`, and for a
-     *   responsive one whichever side of its breakpoint the viewport is on.
-     *   It does not follow the open state, so it survives a sheet's exit —
-     *   which `:modal` does not — and recipes key the sheet's geometry and
-     *   travel on it.
-     * - `data-l-md-dock="inline"` on a responsive drawer's trigger, panel and
-     *   close (#82) is the breakpoint the panel docks at: "at `md` and above,
-     *   pinned open inline; below it, a sheet". Only ever `inline`: what
-     *   sits below the breakpoint is the drawer's own default. `@sigx/zero-kit`
-     *   emits the per-breakpoint structure that makes the markup correct
-     *   before any script runs — trigger and close hidden at or above the
-     *   breakpoint, the docked panel hidden below it unless it is up as a
-     *   sheet.
+     * How a Drawer's panel is presented NOW — `inline` (in flow) or `sheet`
+     * (the modal edge sheet), on the PANEL (#83): `sheet` for a modal
+     * drawer, `inline` for `modal={false}`, and for a responsive one
+     * whichever side of its breakpoint the viewport is on. It does not
+     * follow the open state, so it survives a sheet's exit — which `:modal`
+     * does not — and recipes key the sheet's geometry and travel on it.
      */
-    dock: { values: ['inline', 'sheet'], responsive: true },
+    dock: { values: ['inline', 'sheet'] },
+    /**
+     * The breakpoint AT AND ABOVE which a responsive Drawer's panel is docked
+     * inline — `Drawer.Root modal={{ below: 'md' }}` stamps
+     * `data-l-dock-above="md"` on the trigger, the panel and the close (#82,
+     * spelled per #122): "at `md` and above, pinned open inline; below it, a
+     * sheet". What sits below the breakpoint is the drawer's own default.
+     * `@sigx/zero-kit` emits the per-breakpoint structure that makes the
+     * markup correct before any script runs — trigger and close hidden at or
+     * above the breakpoint, the docked panel hidden below it unless it is up
+     * as a sheet. Breakpoint-valued like `stack`, and never responsive for
+     * the same reason.
+     */
+    'dock-above': { values: [], valuesFrom: 'breakpoints' },
 } as const satisfies Record<string, LayoutAttrSpec>;
 
 export type LayoutAttrName = keyof typeof LAYOUT_VOCABULARY;

@@ -365,11 +365,11 @@ describe('SSR', () => {
             );
             expect(html).toMatch(/<dialog[^>]*data-state="open"/);
             expect(html).toMatch(/<dialog[^>]*\sopen/);
-            expect(html).toMatch(/<dialog[^>]*data-l-md-dock="inline"/);
+            expect(html).toMatch(/<dialog[^>]*data-l-dock-above="md"/);
             // The trigger reports the SHEET, which is not up: a narrow first
             // paint must not show it pressed open.
-            expect(html).toMatch(/<button[^>]*data-part="trigger"[^>]*data-state="closed"[^>]*data-l-md-dock="inline"[^>]*aria-expanded="false"/);
-            expect(html).toMatch(/<button[^>]*data-part="close"[^>]*data-l-md-dock="inline"/);
+            expect(html).toMatch(/<button[^>]*data-part="trigger"[^>]*data-state="closed"[^>]*data-l-dock-above="md"[^>]*aria-expanded="false"/);
+            expect(html).toMatch(/<button[^>]*data-part="close"[^>]*data-l-dock-above="md"/);
         } finally {
             clearThemes();
         }

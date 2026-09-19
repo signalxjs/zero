@@ -8180,12 +8180,12 @@
    per declared breakpoint; see compileDockCss. */
 @layer zero.structure {
     @media (min-width: 40rem) {
-        [data-scope="drawer"][data-part="trigger"][data-l-sm-dock="inline"],
-        [data-scope="drawer"][data-part="close"][data-l-sm-dock="inline"] {
+        [data-scope="drawer"][data-part="trigger"][data-l-dock-above="sm"],
+        [data-scope="drawer"][data-part="close"][data-l-dock-above="sm"] {
             display: none;
         }
 
-        [data-scope="drawer"][data-part="panel"][data-l-sm-dock="inline"] {
+        [data-scope="drawer"][data-part="panel"][data-l-dock-above="sm"] {
             position: relative;
             inset: auto;
             margin: 0;
@@ -8193,18 +8193,18 @@
     }
 
     @media (width < 40rem) {
-        [data-scope="drawer"][data-part="panel"][data-l-sm-dock="inline"]:not(:modal) {
+        [data-scope="drawer"][data-part="panel"][data-l-dock-above="sm"]:not(:modal) {
             display: none;
         }
     }
 
     @media (min-width: 48rem) {
-        [data-scope="drawer"][data-part="trigger"][data-l-md-dock="inline"],
-        [data-scope="drawer"][data-part="close"][data-l-md-dock="inline"] {
+        [data-scope="drawer"][data-part="trigger"][data-l-dock-above="md"],
+        [data-scope="drawer"][data-part="close"][data-l-dock-above="md"] {
             display: none;
         }
 
-        [data-scope="drawer"][data-part="panel"][data-l-md-dock="inline"] {
+        [data-scope="drawer"][data-part="panel"][data-l-dock-above="md"] {
             position: relative;
             inset: auto;
             margin: 0;
@@ -8212,18 +8212,18 @@
     }
 
     @media (width < 48rem) {
-        [data-scope="drawer"][data-part="panel"][data-l-md-dock="inline"]:not(:modal) {
+        [data-scope="drawer"][data-part="panel"][data-l-dock-above="md"]:not(:modal) {
             display: none;
         }
     }
 
     @media (min-width: 64rem) {
-        [data-scope="drawer"][data-part="trigger"][data-l-lg-dock="inline"],
-        [data-scope="drawer"][data-part="close"][data-l-lg-dock="inline"] {
+        [data-scope="drawer"][data-part="trigger"][data-l-dock-above="lg"],
+        [data-scope="drawer"][data-part="close"][data-l-dock-above="lg"] {
             display: none;
         }
 
-        [data-scope="drawer"][data-part="panel"][data-l-lg-dock="inline"] {
+        [data-scope="drawer"][data-part="panel"][data-l-dock-above="lg"] {
             position: relative;
             inset: auto;
             margin: 0;
@@ -8231,7 +8231,7 @@
     }
 
     @media (width < 64rem) {
-        [data-scope="drawer"][data-part="panel"][data-l-lg-dock="inline"]:not(:modal) {
+        [data-scope="drawer"][data-part="panel"][data-l-dock-above="lg"]:not(:modal) {
             display: none;
         }
     }
