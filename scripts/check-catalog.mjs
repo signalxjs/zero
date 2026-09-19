@@ -3,8 +3,9 @@
  * check-catalog.mjs — CI guard (`pnpm verify:catalog`). Fails if:
  *   1. any workspace package declares a CORE dep with an inline version instead
  *      of `"catalog:"` (drift — the whole point is one source of truth), or
- *   2. a `catalog:` core entry is NOT a single-minor caret `^X.Y.0`
- *      (a wider range like `>=0.11 <0.13` re-opens the two-copies hazard).
+ *   2. a `catalog:` core entry is NOT one caret range `^X.Y.0` — one minor
+ *      below 1.0, one major from 1.0 on — (a wider range like `>=0.11 <0.13`
+ *      re-opens the two-copies hazard).
  *
  * Wire into ci.yml. Generalises lynx's check-versions.js to the catalog model.
  */
@@ -13,7 +14,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CORE_PACKAGES, findInlineCoreDeps, formatInlineCoreDeps } from './lib/core-deps.mjs';
 
-const SINGLE_MINOR = /^\^\d+\.\d+\.0$/; // ^X.Y.0 — one minor
+const SINGLE_MINOR = /^\^\d+\.\d+\.0$/; // ^X.Y.0 — one caret range (a minor pre-1.0, a major after)
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const errors = [];
@@ -21,7 +22,7 @@ const errors = [];
 // 1. Every core dep in every package.json must be exactly "catalog:".
 errors.push(...formatInlineCoreDeps(findInlineCoreDeps(repoRoot)));
 
-// 2. Catalog core entries must be single-minor caret. Parse pnpm-workspace.yaml
+// 2. Catalog core entries must be one caret range. Parse pnpm-workspace.yaml
 //    leniently (the entries this cares about are simple `name: ^x.y.z` lines).
 //    A repo with no workspace file has no catalog to police — skip part 2.
 const wsPath = join(repoRoot, 'pnpm-workspace.yaml');
@@ -44,7 +45,7 @@ for (const line of ws.split('\n')) {
     const name = m[2];
     const ver = m[3] ?? m[4] ?? m[5];
     if (CORE_PACKAGES.has(name) && !SINGLE_MINOR.test(ver)) {
-        errors.push(`catalog["${name}"] = "${ver}" (must be single-minor ^X.Y.0 to keep one copy hoisted)`);
+        errors.push(`catalog["${name}"] = "${ver}" (must be one caret range ^X.Y.0 to keep one copy hoisted)`);
     }
 }
 
@@ -52,4 +53,4 @@ if (errors.length) {
     console.error('verify:catalog FAILED:\n' + errors.map((e) => '  - ' + e).join('\n'));
     process.exit(1);
 }
-console.log('verify:catalog OK — all core deps go through a single-minor catalog.');
+console.log('verify:catalog OK — all core deps go through one catalog caret range.');

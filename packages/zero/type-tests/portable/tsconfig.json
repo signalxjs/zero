@@ -5,9 +5,13 @@
         // portable surface (class grammar, variant pass-through, vocabularies,
         // anatomies, behaviors/core, theme/registry, the anatomy-oracle rules)
         // reaches must compile against pure ES2022 — a Lynx runtime has no
-        // DOM types to offer. skipLibCheck (inherited) keeps DEPENDENCY d.ts
-        // out of scope; every file listed here is checked as source.
-        "lib": ["ES2022"]
+        // DOM types to offer. skipLibCheck stays ON here alone: without
+        // lib.dom, runtime-dom's `jsx.d.ts` element table (HTMLElement and
+        // friends) cannot be lib-checked, and that is a fact about this
+        // project's lib, not about core's declarations (#145). Every file
+        // listed here is still checked as source.
+        "lib": ["ES2022"],
+        "skipLibCheck": true
     },
     "include": ["./**/*.ts"]
 }

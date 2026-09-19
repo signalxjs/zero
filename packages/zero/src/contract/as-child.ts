@@ -10,20 +10,30 @@
  * <Tabs.Tab value="a" asChild slots={{ default: (p) => <a {...p}>A</a> }} />
  * ```
  */
+import type { JSXElement } from 'sigx';
 import type { PartProps } from './props.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SlotAccessor = ((scopedProps?: any) => any) | undefined;
 
 /**
+ * What a view returns — `ViewFn`'s range. Typed rather than `unknown` since
+ * sigx 1.0 ships the global `JSX.Element` (rfc-1.0 §4.1, sigx#529): a view
+ * returning `unknown` used to pass because every JSX expression was `any`,
+ * and now fails `SetupFn`. `null` became `undefined` for the same reason —
+ * the range has no `null`.
+ */
+export type AsChildResult = JSXElement | JSXElement[] | undefined;
+
+/**
  * `bag` is a part's `PartProps` everywhere but `VisuallyHidden`, which is no
  * part (no scope) and spreads its one attribute through the same seam.
  */
-export function renderAsChild(slot: SlotAccessor, bag: PartProps | Record<string, unknown>): unknown {
+export function renderAsChild(slot: SlotAccessor, bag: PartProps | Record<string, unknown>): AsChildResult {
     const out = slot?.(bag);
-    if (out == null) return null;
+    if (out == null) return undefined;
     const items = Array.isArray(out) ? out : [out];
-    const rendered = items.map((item) => (typeof item === 'function' ? item(bag) : item));
+    const rendered = items.map((item) => (typeof item === 'function' ? item(bag) : item)) as JSXElement[];
     return rendered.length === 1 ? rendered[0] : rendered;
 }
 

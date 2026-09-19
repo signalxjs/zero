@@ -1491,14 +1491,15 @@ checking a fraction of what it claimed.)
 
 Honesty section. These are the edges the tree knows about today:
 
-- **`@sigx/runtime-core` blocks a full lib check.** Its shipped
-  declarations fail `skipLibCheck: false` (a side-effect
-  `import './jsx-types.d.ts'` rejected as TS2882), so every type-test
-  project and typed-app program keeps `skipLibCheck: true` for
-  *dependency* declarations, and the register compile gate runs against a
-  generated stub instead of zero's real source. The flip to `false` the day
-  core ships clean declarations is the whole remaining gap, and the
-  tsconfigs say so in place.
+- **The full lib check is on** (#145). Before sigx core 1.0,
+  `@sigx/runtime-core`'s shipped declarations failed `skipLibCheck: false`
+  (a side-effect `import './jsx-types.d.ts'` rejected as TS2882), so every
+  type-test project and typed-app program skipped *dependency*
+  declarations. Core's #686 made that a real module, and the type-test
+  base and the typed-app programs now run with `skipLibCheck: false`. The
+  one project still opting out is `type-tests/portable/`, which has no
+  `lib.dom` by design and so cannot lib-check runtime-dom's element table
+  — a fact about that project's lib, not about core.
 - **The static contrast matrix is an estimate, and says so.** Its blind
   spots are a closed list rather than a silent default: interaction
   pseudo-classes are not measured (the resting render, as in the browser
