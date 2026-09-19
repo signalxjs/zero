@@ -329,7 +329,7 @@ let composer: TextareaHandle | undefined;
   <Textarea.Textarea ref={(h) => { composer = h; }}
                      onKeydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} />
 </Textarea.Root>
-composer?.focus(); composer?.element.setSelectionRange(0, 0);
+composer?.focus(); composer?.element?.setSelectionRange(0, 0);   // `element` is null until mount
 ```
 
 `minRows` / `maxRows` on `Textarea.Root` is the autosize: CSS
