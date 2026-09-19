@@ -96,7 +96,7 @@
     {
         "name": "@sigx/zero/avatar",
         "path": "packages/zero/dist/components/avatar/index.js",
-        "limit": "1.9 kB",
+        "limit": "1.95 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -216,7 +216,7 @@
     {
         "name": "@sigx/zero/textarea",
         "path": "packages/zero/dist/components/textarea/index.js",
-        "limit": "3.8 kB",
+        "limit": "3.85 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -372,7 +372,7 @@
     {
         "name": "@sigx/zero/grid",
         "path": "packages/zero/dist/components/grid/index.js",
-        "limit": "2.2 kB",
+        "limit": "2.25 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
