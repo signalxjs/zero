@@ -1,5 +1,6 @@
 import { component, signal } from 'sigx';
 import { Button, Dialog } from '@sigx/zero';
+import { pickRole } from '../design-systems';
 import type { DialogCloseDetail } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
@@ -88,20 +89,26 @@ const DialogDemos = component(() => {
             </p>
             <Dialog.Root role="alertdialog" onClose={onConfirmClose}>
                 <Dialog.Trigger>Delete workspace…</Dialog.Trigger>
-                <Dialog.Popup>
+                {/*
+                  * `Dialog.Description` is a <p>, so the dependents list is
+                  * its sibling, and the popup's `aria-describedby` joins the
+                  * list's id to the description's (#74) so a reader hears
+                  * both.
+                  */}
+                <Dialog.Popup aria-describedby="confirm-dependents">
                     <Dialog.Title>Delete "acme"?</Dialog.Title>
                     <Dialog.Description>
                         This cannot be undone. It also removes:
-                        <ul>
-                            <li>3 members' access</li>
-                            <li>2 shared folders</li>
-                            <li>1 pending invitation</li>
-                        </ul>
                     </Dialog.Description>
+                    <ul id="confirm-dependents">
+                        <li>3 members' access</li>
+                        <li>2 shared folders</li>
+                        <li>1 pending invitation</li>
+                    </ul>
                     <form method="dialog">
                         <Dialog.Footer>
                             <Dialog.Cancel>Keep workspace</Dialog.Cancel>
-                            <Button.Root type="submit" value="delete" color="error">Delete workspace</Button.Root>
+                            <Button.Root type="submit" value="delete" color={pickRole('error')}>Delete workspace</Button.Root>
                         </Dialog.Footer>
                     </form>
                 </Dialog.Popup>

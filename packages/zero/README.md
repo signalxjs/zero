@@ -653,12 +653,10 @@ it). `Dialog.Cancel` is `type="button"`, so it sits in the same form:
 ```tsx
 <Dialog.Root role="alertdialog" onClose={(d) => { if (d.value === 'delete') remove(); }}>
     <Dialog.Trigger>Delete workspace…</Dialog.Trigger>
-    <Dialog.Popup>
+    <Dialog.Popup aria-describedby="dependents">
         <Dialog.Title>Delete "acme"?</Dialog.Title>
-        <Dialog.Description>
-            This cannot be undone. It also removes:
-            <ul><li>3 members' access</li><li>2 shared folders</li></ul>
-        </Dialog.Description>
+        <Dialog.Description>This cannot be undone. It also removes:</Dialog.Description>
+        <ul id="dependents"><li>3 members' access</li><li>2 shared folders</li></ul>
         <form method="dialog">
             <Dialog.Footer>
                 <Dialog.Cancel>Keep workspace</Dialog.Cancel>
@@ -669,9 +667,12 @@ it). `Dialog.Cancel` is `type="button"`, so it sits in the same form:
 </Dialog.Root>
 ```
 
-Where a quiet destructive action is fine, `Dialog.Close value="delete"`
-reports `{ reason: 'close', value: 'delete' }` with no form at all. Either
-way the model needs no flag beside it: the close says what happened.
+`Dialog.Description` is a `<p>`, so the dependents are its sibling list,
+and the popup's `aria-describedby` joins the list's id to the description's
+(#74) — a reader hears both. Where a quiet destructive action is fine,
+`Dialog.Close value="delete"` reports `{ reason: 'close', value: 'delete' }`
+with no form at all. Either way the model needs no flag beside it: the
+close says what happened.
 
 ## Responsive: breakpoints and `useMediaQuery`
 

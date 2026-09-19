@@ -182,9 +182,13 @@ test('alertdialog: initial focus is the least-destructive action, and the backdr
     await expect(popup.getByRole('button', { name: 'Keep workspace', exact: true })).toBeFocused();
 
     // A click on the ::backdrop — outside the dialog's box — keeps an
-    // alertdialog open; the same click closes a plain dialog (#324).
+    // alertdialog open; the same click closes a plain dialog (#324). The
+    // same geometry precondition as that test: the corner IS outside.
     const box = await settledBox(popup, 'the confirm dialog');
-    await page.mouse.click(Math.max(1, box.x - 20), Math.max(1, box.y - 20));
+    expect(box.x).toBeGreaterThan(20);
+    expect(box.y).toBeGreaterThan(20);
+    await page.mouse.click(8, 8);
+    await page.waitForTimeout(300);
     await expect(popup).toHaveAttribute('data-state', 'open');
     await page.keyboard.press('Escape');
     await expect(popup).toHaveAttribute('data-state', 'closed');
@@ -208,6 +212,7 @@ test('alertdialog: the destructive action is a <form method="dialog"> submit, re
     await trigger.click();
     await popup.getByRole('button', { name: 'Keep workspace', exact: true }).click();
     await expect(readout).toHaveText('Last confirm: cancel');
+});
 
 test('a dialog whose model is already open at mount opens, and throws nothing (#102)', async ({ page }) => {
     // The popup mounts before its parent inserts the subtree, so a
