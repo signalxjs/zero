@@ -386,6 +386,12 @@ const quietTriggerColors = (): Record<string, Record<string, PartStyles>> =>
 
 export const collapsible: RecipeInput = {
     component: 'collapsible',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--collapsible-accent': 'The accent of the open trigger.',
+        },
+    },
     // The accent defaults live in `tokens:` (the toast shape), so the
     // un-attributed render IS the primary variant and `variants.color` only
     // rebinds the custom property on the carrier.
@@ -474,6 +480,13 @@ export const collapsible: RecipeInput = {
 
 export const switchRecipe: RecipeInput = {
     component: 'switch',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--switch-width': 'The track width.',
+            '--switch-height': 'The track height; the thumb is sized from it.',
+        },
+    },
     tokens: {
         '--switch-width': 'calc(var(--size-selector) * 11)',
         '--switch-height': 'calc(var(--size-selector) * 6)',
@@ -2064,6 +2077,16 @@ export const select: RecipeInput = {
 
 export const button: RecipeInput = {
     component: 'button',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--btn-accent': 'The fill of the solid variant.',
+            '--btn-on-accent': 'The ink on --btn-accent.',
+            '--btn-soft': 'The soft fill (soft variant, unfilled hover).',
+            '--btn-ink': 'The ink of the unfilled variants.',
+            '--btn-ghost-ink': 'The ink of the ghost variant.',
+        },
+    },
     // The two axes meet here instead of multiplying. `color` sets the accent
     // pair; `variant` decides how the accent is used. 8 + 4 + 5 rules rather
     // than 8 × 4. Two inks ride along: `--btn-ink` is the role's readable
@@ -2839,6 +2862,14 @@ export const toggle: RecipeInput = {
 
 export const toggleGroup: RecipeInput = {
     component: 'toggle-group',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--toggle-group-accent': 'The accent colour.',
+            '--toggle-group-soft': 'The soft fill of an on item.',
+            '--toggle-group-ink': 'The ink of an on item.',
+        },
+    },
     tokens: {
         '--toggle-group-accent': 'var(--color-primary)',
         '--toggle-group-soft': 'var(--color-primary-soft)',
@@ -3661,6 +3692,12 @@ export const textarea: RecipeInput = {
  */
 export const card: RecipeInput = {
     component: 'card',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--card-accent': 'The inline-start accent stripe.',
+        },
+    },
     tokens: { '--card-accent': 'var(--color-base-300)' },
     parts: {
         root: {
@@ -3850,6 +3887,15 @@ export const alert: RecipeInput = {
  */
 export const badge: RecipeInput = {
     component: 'badge',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--badge-accent': 'The fill of the solid variant.',
+            '--badge-on-accent': 'The ink on --badge-accent.',
+            '--badge-soft': 'The soft fill.',
+            '--badge-ink': 'The ink of the unfilled variants.',
+        },
+    },
     tokens: {
         '--badge-accent': 'var(--color-primary)',
         '--badge-on-accent': 'var(--color-primary-content)',
@@ -3969,6 +4015,13 @@ export const divider: RecipeInput = {
  */
 export const skeleton: RecipeInput = {
     component: 'skeleton',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--skeleton-fill': 'The placeholder fill.',
+            '--skeleton-sheen': 'The highlight the loading sweep carries.',
+        },
+    },
     tokens: { '--skeleton-fill': 'var(--color-base-200)', '--skeleton-sheen': 'var(--color-base-300)' },
     parts: {
         root: {
@@ -4346,6 +4399,13 @@ const TIMELINE_NO_START = '[data-scope="timeline"][data-part="root"]'
  */
 export const timeline: RecipeInput = {
     component: 'timeline',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--timeline-accent': 'The marker and connector accent.',
+            '--timeline-marker-size': 'The marker diameter.',
+        },
+    },
     tokens: { '--timeline-accent': 'var(--color-base-content)', '--timeline-marker-size': 'calc(var(--size-selector) * 3)' },
     parts: {
         root: {
@@ -5379,6 +5439,16 @@ export const drawer: RecipeInput = {
  */
 export const table: RecipeInput = {
     component: 'table',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--table-cell-align': 'Cell text alignment; zero writes it inline from the column spec.',
+            '--table-accent': 'The header ink accent.',
+            '--table-pad-block': 'Cell block padding.',
+            '--table-pad-inline': 'Cell inline padding.',
+            '--table-font': 'The table font size.',
+        },
+    },
     tokens: {
         // The column spec's alignment (#55): a cell that names an aligned
         // column overrides it inline; everything else reads `start`.

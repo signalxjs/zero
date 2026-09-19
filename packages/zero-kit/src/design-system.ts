@@ -6,10 +6,11 @@
 import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
 import { DEFAULT_ROLES, defaultSwatch, resolveRoles, resolveSizes } from './contract.js';
 import type { CompiledComponentApi, DesignSystemApi } from './api.js';
+import type { DesignSystemDerivation } from './extend.js';
 import { deriveComponentApi, scopeApi } from './api.js';
 import type { CustomTokenDecl, RolesDecl, ScopeVocabulary, SystemTokens, TokensInput } from './tokens.js';
 import { compileTokensCss } from './targets/web/tokens-css.js';
-import type { RecipeInput } from './recipes.js';
+import type { RecipeHooks, RecipeInput } from './recipes.js';
 import { resolveRecipeForTarget } from './recipes.js';
 import { compileRecipeCss } from './targets/web/recipe-css.js';
 
@@ -28,6 +29,12 @@ export interface DesignSystemInput<
      * declared vocabulary; grades for the conformance matrix derive from it.
      */
     api?: DesignSystemApi;
+    /**
+     * Provenance, set by `extendDesignSystem` (#73): the base this system was
+     * derived from and the recipes it patched. Never compiled; the validator
+     * reads it to warn when a patch relies on a name the base keeps private.
+     */
+    derivedFrom?: DesignSystemDerivation;
 }
 
 /** Identity with typing — the authoring entry point. */
@@ -86,6 +93,31 @@ export interface CompiledComponentAxes {
         axes?: Record<string, string[]>;
         mods?: string[];
     };
+    /**
+     * The recipe's declared public hooks (#73) — what a design system derived
+     * from this one may rely on. Present only when the recipe declares any, so
+     * a recipe without hooks emits a byte-identical manifest entry. Not an
+     * axis fact, but a per-scope one, and this record is the manifest's
+     * per-scope entry.
+     */
+    hooks?: CompiledHooks;
+}
+
+/** `RecipeHooks` as the manifest carries it: only non-empty sections, lists copied and deduplicated. */
+export interface CompiledHooks {
+    properties?: Record<string, string>;
+    keyframes?: string[];
+    pseudo?: Record<string, string[]>;
+}
+
+function compileHooks(hooks: RecipeHooks | undefined): CompiledHooks | undefined {
+    if (!hooks) return undefined;
+    const out: CompiledHooks = {};
+    if (hooks.properties && Object.keys(hooks.properties).length > 0) out.properties = { ...hooks.properties };
+    if (hooks.keyframes && hooks.keyframes.length > 0) out.keyframes = [...new Set(hooks.keyframes)];
+    const pseudo = Object.entries(hooks.pseudo ?? {}).filter(([, list]) => list.length > 0);
+    if (pseudo.length > 0) out.pseudo = Object.fromEntries(pseudo.map(([part, list]) => [part, [...new Set(list)]]));
+    return Object.keys(out).length > 0 ? out : undefined;
 }
 
 /**
@@ -345,6 +377,8 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
             components: byScope,
         });
         components[recipe.component] = harvestAxes(resolved);
+        const hooks = compileHooks(recipe.hooks);
+        if (hooks) components[recipe.component]!.hooks = hooks;
     }
 
     // The declared side of each scope, resolved against the union and attached

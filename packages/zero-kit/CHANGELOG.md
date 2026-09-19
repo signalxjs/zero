@@ -2,6 +2,37 @@
 
 ## [Unreleased]
 
+### Added — declared public hooks on skins (#73)
+
+- **`RecipeInput.hooks`** (`RecipeHooks`, and `recipe.schema.json`): a
+  recipe declares what a design system derived from it may rely on —
+  `properties` (custom property → what it means), `keyframes` and `pseudo`
+  (part → `::before` / `::after`, `HOOK_PSEUDO_ELEMENTS`). Metadata only:
+  compiled CSS is byte-identical with or without it. `validateDesignSystem`
+  errors (rule `hook`) on a hook that names nothing — a property the recipe
+  never sets or reads, a keyframe it does not define, a pseudo-element no
+  `selectors` key on that part draws, a non-generated pseudo-element, or a
+  property with no description.
+- **`components[scope].hooks` in the DS manifest** (`CompiledHooks`;
+  `ds-manifest.schema.json` and `lynx-manifest.schema.json`), present only
+  for a recipe that declares hooks — additive, so no `manifestVersion` bump.
+- **`extendDesignSystem` records provenance** as `derivedFrom: { name,
+  patches }` (`DesignSystemDerivation`, `DerivedRecipe`; also the new
+  `DesignSystemInput.derivedFrom`): the base's name, and per patched scope
+  the base recipe as the patch found it and the patch.
+- **The private-name warning.** For a derived design system,
+  `validateDesignSystem` warns (rule `private-name`) once per base-private
+  name a patch reaches: a custom property the base recipe sets or reads
+  that is not a hook and not contract (token grammar, runtime, medium), a
+  base keyframe named in `animation` / `animation-name` or redefined, and a
+  `::before` / `::after` the base draws on a part where it is not a hook —
+  `recipes.switch: references --switch-p, private to "daisyui" — not a
+  declared hook`. Selector shapes get no hook grammar.
+- The six skins declare hooks: their component-level colour and metric
+  properties for button, switch, badge, table, card, timeline, toggle-group,
+  skeleton and collapsible (as each has them), plus zero-daisyui's
+  `zero-daisy-pop` dialog keyframe and collapsible `trigger::after`.
+
 ### Changed — Combobox trigger mode (zero#58)
 
 - **`RESERVED_PROPS_BY_SCOPE.combobox` gains `trigger`**, Combobox.Root's

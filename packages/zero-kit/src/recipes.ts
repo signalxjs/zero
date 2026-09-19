@@ -91,9 +91,55 @@ export interface ComposedScope {
     parts: Record<string, PartStyles>;
 }
 
+/**
+ * The generated-content pseudo-elements — the only ones a recipe DRAWS, and so
+ * the only ones whose existence is the recipe's decision rather than the
+ * platform's. `::placeholder` or `::-webkit-slider-thumb` exist because the
+ * element does; a derived system styling one relies on nothing the base could
+ * rename. A `::before` exists because the base put `content` on it.
+ */
+export const HOOK_PSEUDO_ELEMENTS = ['::before', '::after'] as const;
+
+/**
+ * What a recipe exposes to a design system DERIVED from it (#73) — the names
+ * an `extendDesignSystem` patch may rely on across the base's releases.
+ * Everything a recipe sets, draws or animates that is not listed here is
+ * private: a patch may still reach it, but `validateDesignSystem` warns,
+ * because a private name can change in any release of the base.
+ *
+ * Metadata only: nothing here reaches the compiled CSS. It is checked at build
+ * (a hook must name something the recipe really has) and emitted into the
+ * design-system manifest as `components[scope].hooks`.
+ *
+ * Selector shapes (`[data-scope="table"][data-part="body"] > &`) have no hook
+ * grammar on purpose: a patch that needs one should target the part and the
+ * state the anatomy declares, which are the contract already.
+ */
+export interface RecipeHooks {
+    /**
+     * Component-level custom properties a derived system may read or set —
+     * name → what it means (`{ '--switch-accent': 'The checked track fill.' }`).
+     * Each must be set or read somewhere in the recipe.
+     */
+    properties?: Record<string, string>;
+    /** Keyframe names a derived system may reference in `animation`; each must be in `keyframes`. */
+    keyframes?: readonly string[];
+    /**
+     * Generated-content pseudo-elements a derived system may restyle, per
+     * part: `{ root: ['::before'] }`. Each must be drawn by a `selectors` key
+     * on that part. Only `::before` / `::after` — see `HOOK_PSEUDO_ELEMENTS`.
+     */
+    pseudo?: Record<string, readonly string[]>;
+}
+
 export interface RecipeInput {
     /** The component scope this recipe styles (e.g. `'tabs'`). */
     component: string;
+    /**
+     * The public surface a derived design system may rely on — see
+     * `RecipeHooks`. Absent, every name in the recipe is private.
+     */
+    hooks?: RecipeHooks;
     /**
      * Component-level tokens declared on the carrier part (`root`, else the
      * first part). Emitted in `@layer zero.recipes`, which the layer order in

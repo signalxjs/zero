@@ -14,6 +14,50 @@
             "description": "The component scope this recipe styles (e.g. \"tabs\") \u2014 must match an anatomy scope in the zero manifest.",
             "$ref": "#/$defs/kebabToken"
         },
+        "hooks": {
+            "description": "The public surface a design system DERIVED from this one (extendDesignSystem) may rely on (#73). Metadata only \u2014 it never reaches the compiled CSS. Checked at build: every property must be set or read by the recipe, every keyframe must be in `keyframes`, every pseudo-element must be drawn by a `selectors` key on its part. A name the recipe has but does not list here is private, and validateDesignSystem warns when a patch reaches it.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "properties": {
+                    "description": "Component-level custom properties a derived system may read or set: name \u2192 what it means.",
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^--[A-Za-z0-9_-]+$"
+                    },
+                    "additionalProperties": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "keyframes": {
+                    "description": "Keyframe names (keys of `keyframes`) a derived system may reference in `animation`.",
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$"
+                    },
+                    "uniqueItems": true
+                },
+                "pseudo": {
+                    "description": "part \u2192 the generated-content pseudo-elements (::before, ::after) the recipe draws on it that a derived system may restyle.",
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "::before",
+                                "::after"
+                            ]
+                        },
+                        "uniqueItems": true
+                    }
+                }
+            }
+        },
         "tokens": {
             "description": "Component-level tokens declared on the carrier part (root, else the first part). Emitted in @layer zero.recipes, so a theme-level declaration of the same property cannot override one.",
             "type": "object",

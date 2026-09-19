@@ -536,6 +536,13 @@ const disclosureSizes: Record<string, Record<string, PartStyles>> = {
 // daisy "collapse collapse-arrow" flavor.
 export const collapsible: RecipeInput = {
     component: 'collapsible',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--collapsible-accent': 'The accent of the open trigger.',
+        },
+        pseudo: { trigger: ['::after'] },
+    },
     // The accent is the open heading's INK, so the default is base-content —
     // the un-attributed render stays exactly daisy's neutral collapse and a
     // role only arrives through `data-color`.
@@ -610,6 +617,14 @@ export const collapsible: RecipeInput = {
 // daisy "toggle" flavor.
 export const switchRecipe: RecipeInput = {
     component: 'switch',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--switch-size': 'The height; width, padding and knob travel derive from it.',
+            '--switch-accent': 'The checked track and knob accent.',
+            '--switch-ink': 'The unchecked border, knob and ring ink (daisy --input-color).',
+        },
+    },
     /**
      * daisy drives the whole toggle off ONE size, exactly as it drives the
      * checkbox: `--size` is the height, the padding is a fixed eighth of it,
@@ -940,6 +955,10 @@ const lynxBtnSizes = (part: string): Record<string, Record<string, PartStyles>> 
 
 export const dialog: RecipeInput = {
     component: 'dialog',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        keyframes: ['zero-daisy-pop'],
+    },
     keyframes: {
         'zero-daisy-pop': 'from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); }',
     },
@@ -2278,6 +2297,15 @@ const btnHeight = (step: keyof typeof BTN_STEPS): string =>
 
 export const button: RecipeInput = {
     component: 'button',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--btn-accent': 'The fill of the solid variant.',
+            '--btn-on-accent': 'The ink on --btn-accent.',
+            '--btn-soft': 'The soft fill (soft variant, unfilled hover).',
+            '--btn-ink': 'The ink of the unfilled variants.',
+        },
+    },
     // The two axes meet here instead of multiplying. `color` sets the accent
     // pair; `variant` decides how the accent is used. 8 + 4 + 5 rules rather
     // than 8 × 4.
@@ -3025,6 +3053,13 @@ export const toggle: RecipeInput = {
 // the on item filled with the accent.
 export const toggleGroup: RecipeInput = {
     component: 'toggle-group',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--toggle-group-accent': 'The fill of an on item.',
+            '--toggle-group-on-accent': 'The ink on --toggle-group-accent.',
+        },
+    },
     tokens: {
         '--toggle-group-accent': 'var(--color-primary)',
         '--toggle-group-on-accent': 'var(--color-primary-content)',
@@ -3748,6 +3783,12 @@ export const textarea: RecipeInput = {
  */
 export const card: RecipeInput = {
     component: 'card',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--card-pad': 'The card padding.',
+        },
+    },
     tokens: { '--card-pad': 'var(--space-xl)' },
     parts: {
         root: {
@@ -3912,6 +3953,13 @@ export const alert: RecipeInput = {
  */
 export const badge: RecipeInput = {
     component: 'badge',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--badge-fill': 'The badge fill.',
+            '--badge-ink': 'The badge ink.',
+        },
+    },
     tokens: {
         '--badge-fill': 'var(--color-base-200)',
         '--badge-ink': 'var(--color-base-content)',
@@ -3994,6 +4042,12 @@ export const divider: RecipeInput = {
  */
 export const skeleton: RecipeInput = {
     component: 'skeleton',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--skeleton-fill': 'The placeholder fill.',
+        },
+    },
     tokens: { '--skeleton-fill': 'var(--color-base-300)' },
     parts: {
         root: {
@@ -4332,6 +4386,13 @@ const TIMELINE_NO_START = '[data-scope="timeline"][data-part="root"]'
 /** daisy timeline: the boxed content beside a dotted axis. */
 export const timeline: RecipeInput = {
     component: 'timeline',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--timeline-accent': 'The marker and connector accent.',
+            '--timeline-marker-size': 'The marker diameter.',
+        },
+    },
     tokens: { '--timeline-accent': 'var(--color-base-content)', '--timeline-marker-size': 'calc(var(--size-selector) * 3)' },
     parts: {
         root: {
@@ -5329,6 +5390,16 @@ export const drawer: RecipeInput = {
  */
 export const table: RecipeInput = {
     component: 'table',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--table-cell-align': 'Cell text alignment; zero writes it inline from the column spec.',
+            '--table-accent': 'The header ink accent.',
+            '--table-pad-block': 'Cell block padding.',
+            '--table-pad-inline': 'Cell inline padding.',
+            '--table-font': 'The table font size.',
+        },
+    },
     tokens: {
         // The column spec's alignment (#55): a cell that names an aligned
         // column overrides it inline; everything else reads `start`.

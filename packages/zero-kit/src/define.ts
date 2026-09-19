@@ -37,15 +37,15 @@ export { clampChroma, contrastRatio, derivePalette, deriveThemePair, formatOklch
 export type { RoleDecl } from './contract.js';
 export { axisRoles, isFillRole } from './contract.js';
 
-export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes.js';
-export { defineRecipe } from './recipes.js';
+export type { CssProps, PartStyles, RecipeContext, RecipeHooks, RecipeInput } from './recipes.js';
+export { defineRecipe, HOOK_PSEUDO_ELEMENTS } from './recipes.js';
 
 export { LAYOUT_SCOPES, layoutCss, layoutRecipes, layoutScopes } from './layout-recipes.js';
 
 export type { FitReport } from './fit.js';
 export { explainFit, fitRecipes, fitRecipesToVocabulary } from './fit.js';
 
-export type { CompoundVariantPatch, DesignSystemExtension, PartStylesPatch, Patch, RecipePatch, RecipeTargetPatch } from './extend.js';
+export type { CompoundVariantPatch, DerivedRecipe, DesignSystemDerivation, DesignSystemExtension, PartStylesPatch, Patch, RecipePatch, RecipeTargetPatch } from './extend.js';
 export { extendDesignSystem, extendRecipe } from './extend.js';
 
 // The fragment contract, for an ecosystem package's authoring code. Its

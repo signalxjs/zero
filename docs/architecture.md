@@ -724,7 +724,9 @@ variants, axes, modifiers, scopes, custom, breakpoints, system/systemDark,
 and `properties` — every custom property the compiled tokens.css actually
 emits, read back off the stylesheet so it cannot drift), and `components` —
 a **record**, scope → the harvested `CompiledComponentAxes`
-([§3.4](#34-harvest)), plus `api` when one is declared. The array/record
+([§3.4](#34-harvest)) — plus, per scope, the recipe's declared public
+`hooks` when it has any ([§7](#7-the-authoring-surface)) — and `api` when
+one is declared. The array/record
 asymmetry is the cleanest one-line proof the two files are different
 artifacts.
 
@@ -1011,8 +1013,31 @@ The layout tier is the one thing regenerated rather than patched: it is a
 function of the tokens (roles, spacing and measure keys, breakpoints), so a
 base copy that equals the generated one is re-derived from the derived
 tokens, and a customised one is kept. A derivation that changes nothing
-compiles its base byte for byte (`extend.test.ts`). What a patch may rely on
-in the base (declared hooks, and a warning for private names) is #73.
+compiles its base byte for byte (`extend.test.ts`).
+
+**What a patch may rely on is declared, not inferred.** A recipe lists its
+public names as `hooks` (#73): custom properties (name → meaning), keyframe
+names, and the `::before` / `::after` it draws per part — only the
+generated-content pseudo-elements, since a platform one (`::placeholder`)
+exists because the element does and is nobody's to rename. Hooks are
+metadata: the CSS is byte-identical without them, a hook naming nothing the
+recipe has is a validation error, and the DS manifest publishes them as
+`components[scope].hooks`. `extendDesignSystem` records `derivedFrom: { name,
+patches }` on its result — per patched scope, the base recipe as the patch
+found it and the patch — and `validateDesignSystem` reads it
+(`resolve/hooks.ts`) to warn, once per name, when a patch sets, reads or
+deletes a custom property the base recipe uses that is neither a hook nor
+contract (the token grammar, runtime and medium properties), names or
+redefines a base keyframe that is not a hook, or styles a base-drawn pseudo
+on a part where it is not a hook. A warning, not an error: a private name is
+a stability risk across the base's releases, not a broken build. Two things
+are deliberately absent. Selector shapes have no hook grammar — the anatomy's
+parts and states are already the contract a patch should key on — and a hook
+carries no `since`, because lockstep versioning makes the kit version the
+stability marker. The six skins declare their component-level colour and
+metric properties; zero-daisyui adds the two names andtii/agentic's
+control-room relies on beyond those (`zero-daisy-pop`, the collapsible
+trigger's `::after` chevron).
 
 **Colour is derived before it is authored.** `derivePalette` /
 `deriveThemePair` (`packages/zero-kit/src/palette.ts`, on `./define`) turn
