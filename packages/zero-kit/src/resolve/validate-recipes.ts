@@ -1090,9 +1090,21 @@ export function validateRecipes(
                 }
                 return false;
             };
+            // A part that re-carries the axis — or sits inside one that does
+            // (#94, `carries`) — is reached by its own attribute instead, so
+            // its single-axis rules are alive wherever it renders. Modifiers
+            // and compounds anchor on the carrier alone.
+            const carriedHere = (axis: string, part: string): boolean => {
+                let cursor = partsByName.get(part);
+                while (cursor && cursor.name !== carrier) {
+                    if (cursor.carries?.includes(axis)) return true;
+                    cursor = cursor.parent === undefined ? undefined : partsByName.get(cursor.parent);
+                }
+                return false;
+            };
             const styledParts = new Set<string>([
-                ...Object.values(recipe.variants ?? {}).flatMap((values) =>
-                    Object.values(values).flatMap((parts) => Object.keys(parts))),
+                ...Object.entries(recipe.variants ?? {}).flatMap(([axis, values]) =>
+                    Object.values(values).flatMap((parts) => Object.keys(parts).filter((part) => !carriedHere(axis, part)))),
                 ...Object.values(recipe.modifiers ?? {}).flatMap((parts) => Object.keys(parts)),
                 ...(recipe.compoundVariants ?? []).flatMap((c) => Object.keys(c.parts)),
             ]);

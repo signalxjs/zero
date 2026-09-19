@@ -36,7 +36,11 @@
 - Variant axes pass through as data-color / data-size / data-variant
   (values: color = any DS-declared role — recommended vocabulary
   primary|secondary|accent|neutral|info|success|warning|error,
-  size = xs|sm|md|lg|xl, variant = design-system-defined).
+  size = xs|sm|md|lg|xl, variant = design-system-defined), on the scope's
+  CARRIER part (root, else the first part). A part that declares `carries`
+  in its anatomy (timeline's marker: ['color']) re-carries that axis: it
+  takes the prop and renders the attribute itself, and the nearest carrier
+  wins.
 - Layout attributes render under the data-l- prefix from a CLOSED
   vocabulary zero owns (gap, gap-x, gap-y, pad, pad-x, pad-y, align,
   justify, wrap, cols, span, track, grow, axis, space). A part declares
@@ -336,6 +340,10 @@ component renders; the root is called out separately where it carries props.
   recipe composes side × axis on the element that has both. A timeline
   with no start-placed content should reserve no start track: the shipped
   skins collapse it with a `:has()` rule on the root (#57), no prop.
+  Marker RE-CARRIES the colour axis (anatomy `carries: ['color']`, #94):
+  Marker(color) renders data-color on the marker and outranks the root's,
+  so each entry paints its own tone; a marker without one follows the
+  root. Key the colour values on `marker` in the recipe.
 - Chat: Root(placement start|end, default START — the reading edge is the
   other party in every messenger; your own rows opt into end)/Avatar/Header/
   Bubble/Footer. One message row, pure content: no state, no ids, no ARIA —

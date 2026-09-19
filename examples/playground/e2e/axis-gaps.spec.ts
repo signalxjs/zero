@@ -28,6 +28,46 @@ const startTracks = (root: Locator): Promise<number[]> =>
     root.locator('[data-scope="timeline"][data-part="item"]').evaluateAll((items) =>
         items.map((item) => parseFloat(getComputedStyle(item).gridTemplateColumns.split(/\s+/)[0]!)));
 
+/** Each marker's painted ink — the dot is drawn by its border in every skin that colours it. */
+const markerInks = (root: Locator): Promise<string[]> =>
+    root.locator('[data-scope="timeline"][data-part="marker"]').evaluateAll((markers) =>
+        markers.map((m) => `${getComputedStyle(m).backgroundColor} / ${getComputedStyle(m).borderTopColor}`));
+
+test.describe('a timeline marker re-carries the colour axis (#94)', () => {
+    test.beforeEach(({}, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium', 'cascade resolution is not engine-specific — one engine is enough');
+    });
+
+    // The four skins with a colour axis; heroui and carbon declare none, so
+    // the demo renders no data-color there at all (ds-smoke's invariant).
+    for (const ds of ['basic', 'daisyui', 'material', 'brutalist']) {
+        test(`${ds}: a marker's own colour outranks the root's, and a bare marker follows the root`, async ({ page }) => {
+            await bootPage(page, 'timeline', ds);
+            const toned = rootLabelled(page, 'timeline', 'Deploy failed');
+            await expect(toned).toHaveAttribute('data-color', 'neutral');
+            const markers = toned.locator('[data-scope="timeline"][data-part="marker"]');
+            await expect(markers.nth(2)).toHaveAttribute('data-color', 'error');
+            await expect(markers.nth(3)).not.toHaveAttribute('data-color', /.*/);
+            const [success, warning, error, bare] = await markerInks(toned);
+
+            expect(new Set([success, warning, error, bare]).size, 'four markers, four tones').toBe(4);
+            // The control: a copy of the same timeline with every marker's
+            // own colour removed — what the root alone paints.
+            const neutral = await toned.evaluate((root) => {
+                const probe = root.cloneNode(true) as HTMLElement;
+                probe.querySelectorAll('[data-part="marker"]').forEach((m) => m.removeAttribute('data-color'));
+                root.after(probe);
+                const m = probe.querySelector('[data-part="marker"]')!;
+                const ink = `${getComputedStyle(m).backgroundColor} / ${getComputedStyle(m).borderTopColor}`;
+                probe.remove();
+                return ink;
+            });
+            expect(bare, 'a marker without a colour of its own paints the root\'s').toBe(neutral);
+            expect(error, 'the marker\'s own colour, not the root\'s').not.toBe(neutral);
+        });
+    }
+});
+
 test.describe('small axis gaps (#57)', () => {
     test.beforeEach(({}, testInfo) => {
         test.skip(

@@ -12,7 +12,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { renderToString } from '@sigx/server-renderer';
 import { component, signal } from 'sigx';
-import { Button, Tabs } from '@sigx/zero';
+import { Button, Tabs, Timeline } from '@sigx/zero';
 import type { Adapted } from '@sigx/zero/adapt';
 import { adapt } from '@sigx/zero/adapt';
 
@@ -165,6 +165,31 @@ describe('adapt — compound namespaces', () => {
         const tabs = container.querySelectorAll<HTMLElement>('[data-part="tab"]');
         tabs[1]!.click();
         expect(tabs[1]!.getAttribute('data-state')).toBe('active');
+    });
+
+    it('adapts a member that re-carries an axis with its own routes (#94)', () => {
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+        const toned = { tone: { axis: 'color' } };
+        const TTimeline = adapt(Timeline, { props: toned, members: { Marker: { props: toned } } });
+        // Only the named member is re-wrapped; the rest stay zero's own.
+        expect(TTimeline.Marker).not.toBe(Timeline.Marker);
+        expect(TTimeline.Item).toBe(Timeline.Item);
+        const Root = TTimeline.Root as unknown as (p: Record<string, unknown>) => unknown;
+        const Marker = TTimeline.Marker as unknown as (p: Record<string, unknown>) => unknown;
+        render(
+            <Root tone="neutral">
+                <TTimeline.Item>
+                    <Marker tone="error" />
+                    <TTimeline.Content>failed</TTimeline.Content>
+                </TTimeline.Item>
+            </Root>,
+            container,
+        );
+        expect(container.querySelector('[data-part="root"]')!.getAttribute('data-color')).toBe('neutral');
+        const marker = container.querySelector('[data-part="marker"]')!;
+        expect(marker.getAttribute('data-color')).toBe('error');
+        expect(marker.hasAttribute('tone')).toBe(false);
     });
 
     it('rejects a non-component', () => {

@@ -15,7 +15,7 @@
  * this module owns only the web selector shapes.
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
-import { INTERACTION_STATES, MOD_ATTR_PREFIX, VARIANT_AXES, carrierPart } from '../../contract.js';
+import { INTERACTION_STATES, MOD_ATTR_PREFIX, VARIANT_AXES, carrierPart, carriersOf, reachesCarrier } from '../../contract.js';
 import type { CssProps, PartStyles, RecipeContext, RecipeInput } from '../../recipes.js';
 import type { Condition, ConditionRegistry, Sink } from '../shared.js';
 import {
@@ -250,24 +250,73 @@ export function compileRecipeCss(
 
     // One resolver for every axis-narrowed emission: flat on the carrier, an
     // `@scope` donut condition on any other part — see `variantTarget`.
+    //
+    // `carried` is the one-axis explicit-value case, the only one a part may
+    // re-carry (#94, `ManifestPart.carries`). Each part between the styled
+    // part and the carrier that re-carries the axis gets the same styles a
+    // second time, anchored on ITS attribute: flat when it is the styled part
+    // itself — `[marker][data-color="v"]` at (0,3,0) outranks the carrier's
+    // donut rule at (0,2,0) — and an `@scope` donut rooted on it for a part
+    // inside it, which scoping proximity resolves to the nearer carrier. The
+    // lower bound is the scope's carrier (a nested instance) or any part that
+    // re-carries the axis (a nested re-carrier, which answers for its own
+    // subtree).
+    // Never for the `:not([attr])` default twin: a part with no value of its
+    // own follows its carrier, which is the whole point.
+    //
+    // The re-carried emissions are DEFERRED until every carrier-anchored rule
+    // is in: their `@scope` preludes then register — and so emit — after the
+    // carrier's, and a re-carrier always sits between the carrier and the
+    // part it styles, so source order agrees with scoping proximity. The
+    // browser needs neither, but a reader that ranks equal-specificity scoped
+    // rules by order (the static contrast matrix) reads the same winner.
+    const deferred: Array<() => void> = [];
+    // The axes some part of this scope re-carries — empty for all but a
+    // handful of scopes, so the common path never walks the part tree.
+    const recarried = new Set(component.parts.flatMap((p) => p.carries ?? []));
     const emitVariantStyles = (
         partName: string,
         styles: PartStyles,
         axisAttrs: string,
+        carried?: string,
     ): void => {
         const { host, suffix } = partProjection(component, partName);
-        const target = variantTarget(component, host, axisAttrs);
-        const path = target.scopePrelude
-            ? [resolveCondition(target.scopePrelude, context, `recipe for "${component.scope}"."${partName}"`, registry)]
-            : [];
-        emitPartStyles(component, partName, styles, target.selector, sink, context, registry, suffix, path);
+        const where = `recipe for "${component.scope}"."${partName}"`;
+        const own = carried === undefined || !recarried.has(carried) ? [] : carriersOf(component, host, carried);
+        // The carrier's reading, as always — unless the part can never sit
+        // under the carrier (a top-layer popup) and a re-carrier is the only
+        // thing that reaches it, where the carrier-anchored rule is dead CSS.
+        if (own.length === 0 || reachesCarrier(component, host)) {
+            const target = variantTarget(component, host, axisAttrs);
+            const path = target.scopePrelude
+                ? [resolveCondition(target.scopePrelude, context, where, registry)]
+                : [];
+            emitPartStyles(component, partName, styles, target.selector, sink, context, registry, suffix, path);
+        }
+        for (const anchor of own) {
+            const anchorSelector = `${partSelector(component.scope, anchor)}${axisAttrs}`;
+            if (anchor === host) {
+                deferred.push(() => emitPartStyles(component, partName, styles, anchorSelector, sink, context, registry, suffix, []));
+                continue;
+            }
+            // Bounded by the carrier and by EVERY part that re-carries this
+            // axis — a nested re-carrier, of the same part or another,
+            // answers for its own subtree, so two re-carriers' donuts never
+            // overlap and emission order cannot decide between them.
+            const bounds = [carrierPart(component), ...component.parts.filter((p) => p.carries?.includes(carried!)).map((p) => p.name)];
+            const prelude = `@scope (${anchorSelector}) to (${bounds.map((p) => partSelector(component.scope, p)).join(', ')})`;
+            deferred.push(() => emitPartStyles(
+                component, partName, styles, partSelector(component.scope, host), sink, context, registry, suffix,
+                [resolveCondition(prelude, context, where, registry)],
+            ));
+        }
     };
 
     for (const [axis, values] of Object.entries(recipe.variants ?? {})) {
         const attr = axisAttr(axis, component.scope);
         for (const [value, parts] of Object.entries(values)) {
             for (const [partName, styles] of Object.entries(parts)) {
-                emitVariantStyles(partName, styles, `[${attr}="${assertAxisToken('value', value, component.scope)}"]`);
+                emitVariantStyles(partName, styles, `[${attr}="${assertAxisToken('value', value, component.scope)}"]`, axis);
 
                 // CSS-only default: the same styles apply when the attribute
                 // is absent. Never conflicts with the explicit-value rule —
@@ -319,6 +368,8 @@ export function compileRecipeCss(
             }
         }
     }
+
+    for (const emit of deferred) emit();
 
     // Flat rules first, then every conditional bucket. At-rules add no
     // specificity, so a conditional rule can only override the flat rule it

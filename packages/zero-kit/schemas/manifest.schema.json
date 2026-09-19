@@ -304,6 +304,13 @@
                     "items": { "$ref": "#/$defs/kebabToken" },
                     "minItems": 1
                 },
+                "carries": {
+                    "description": "The named variant axes this part re-carries (#94): besides the scope's carrier (the part named root, else the first part), the part takes the axis as a prop of its own and renders data-<axis> on itself (Timeline.Marker color → data-color on the marker). The nearest carrier wins: the recipe compiler emits every variants.<axis>.<value> rule targeting this part (or a part inside it) again, anchored on the part's own attribute. Only the named axes, never on the carrier itself or on a pseudo part. Omitted entirely for parts that re-carry nothing; never empty.",
+                    "type": "array",
+                    "items": { "enum": ["color", "size", "variant"] },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
                 "hiddenIn": {
                     "description": "States in which the runtime sets the hidden attribute on this part, so it paints nothing and leaves the accessibility tree (avatar's image while \"error\"). Always a subset of `states`. A rule targeting one of these states can never render, so styling it identically to a visible state is correct — the difference is presence, and the runtime owns it. Omitted entirely for parts the runtime never hides.",
                     "type": "array",

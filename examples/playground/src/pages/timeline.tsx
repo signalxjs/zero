@@ -51,6 +51,35 @@ const TimelineDemos = component(() => () => (
                 <Timeline.Content>Waiting for approval</Timeline.Content>
             </Timeline.Item>
         </Timeline.Root>
+        {/*
+          * #94: a marker RE-CARRIES the colour axis. The root's colour paints
+          * every dot; a Marker's own `color` outranks it for that one entry,
+          * and a Marker without one keeps following the root. `pickRole`
+          * returns nothing on the colourless skins, so there every dot is
+          * the default one — the prop does not exist in their vocabulary.
+          */}
+        <p>Per-entry tone — a marker's own colour outranks the root's:</p>
+        <Timeline.Root color={pickRole('neutral')}>
+            <Timeline.Item>
+                <Timeline.Marker color={pickRole('success')} />
+                <Timeline.Content>Build passed</Timeline.Content>
+                <Timeline.Connector />
+            </Timeline.Item>
+            <Timeline.Item>
+                <Timeline.Marker color={pickRole('warning')} />
+                <Timeline.Content>Review requested changes</Timeline.Content>
+                <Timeline.Connector />
+            </Timeline.Item>
+            <Timeline.Item>
+                <Timeline.Marker color={pickRole('error')} />
+                <Timeline.Content>Deploy failed</Timeline.Content>
+                <Timeline.Connector />
+            </Timeline.Item>
+            <Timeline.Item>
+                <Timeline.Marker />
+                <Timeline.Content>Rollback pending</Timeline.Content>
+            </Timeline.Item>
+        </Timeline.Root>
         <p>Horizontal — the process strip:</p>
         <Timeline.Root orientation="horizontal">
             <Timeline.Item>

@@ -36,7 +36,7 @@ import {
 import type { ParsedColor, RGB } from './color.js';
 import { blend, contrast, hasInk, hex, parseColor, resolveOver, round2 } from './color.js';
 import type { Cell, IndicatorCell, NodeSpec, WiredAxes } from './cells.js';
-import { AXIS_CELL_BUDGET, axisCellsFor, cellKey, indicatorCellsFor, textCells } from './cells-index.js';
+import { AXIS_CELL_BUDGET, axisCellsFor, axisHost, cellKey, indicatorCellsFor, textCells } from './cells-index.js';
 import type { ThemeEnv } from './theme-env.js';
 import { themeEnvironments } from './theme-env.js';
 
@@ -115,8 +115,12 @@ function textChain(cell: Cell): StyleNode[] {
     if (cell.flag) attrs.set(`data-${cell.flag}`, '');
     // The axis surface goes on the CHAIN ROOT, never on the probe: the compiler
     // emits `[data-part="root"][data-variant="x"] …`, so putting it on the
-    // measured element would select a rule that does not exist (#297).
-    for (const [axis, value] of Object.entries(cell.axes ?? {})) (root.attrs as Map<string, string>).set(`data-${axis}`, value);
+    // measured element would select a rule that does not exist (#297). The
+    // one exception is a node that re-carries the axis (#94) — `axisHost`.
+    for (const [axis, value] of Object.entries(cell.axes ?? {})) {
+        const host = chain.length > 0 ? nodes[axisHost(chain, axis)]! : root;
+        (host.attrs as Map<string, string>).set(`data-${axis}`, value);
+    }
     for (const mod of cell.mods ?? []) (root.attrs as Map<string, string>).set(`data-mod-${mod}`, '');
     el.text = 'Sample';
     return nodes;
@@ -133,6 +137,11 @@ function indicatorChain(cell: IndicatorCell): StyleNode[] {
         const parent = nodes[nodes.length - 1];
         if (parent) parent.hasElementChildren = true;
         nodes.push({ scope: cell.scope, part: n.part, element: n.element, attrs, hasElementChildren: false, ...(parent ? { parent } : {}) });
+    }
+    // A re-carried axis (#94) on its own part; any other on the chain root,
+    // where the compiler anchors it.
+    for (const [axis, value] of Object.entries(cell.axes ?? {})) {
+        (nodes[axisHost(cell.chain, axis)]!.attrs as Map<string, string>).set(`data-${axis}`, value);
     }
     if (cell.glyph) nodes[nodes.length - 1]!.text = cell.glyph;
     return nodes;
@@ -325,7 +334,7 @@ export function buildContrastMatrix(ctx: AuditContext, options: ContrastOptions 
             + `raise AuditOptions.axisCellBudget deliberately, with the wall-clock cost in hand`,
         );
     }
-    const indicators = indicatorCellsFor(components);
+    const indicators = indicatorCellsFor(components, wired);
 
     const envs = themeEnvironments(ctx.ds).filter((env) => !options.themes || options.themes.includes(env.name));
     const rulesOf = (scope: string): readonly CssRule[] => ctx.cssRules.get(scope) ?? [];

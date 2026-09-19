@@ -49,6 +49,14 @@
  * rules as flat compounds on the styled part itself — never through a
  * combinator. This also removes the `:not([data-size])` default twins: the
  * runtime always stamps a concrete axis class, explicit or default.
+ *
+ * A part that RE-CARRIES an axis (the anatomy's `carries`, #94 — timeline's
+ * marker takes `color`) is a provider too: with a value of its own it stamps
+ * that value on itself and every part below it, and without one it passes the
+ * carrier's through. Nearest provider still wins, so the grammar and the
+ * compiled CSS are unchanged — `.zx-timeline__marker.zx-a-color-error` is the
+ * same rule whichever element supplied the value. It is the web's flat
+ * own-value rule and part-rooted donut, reproduced by the runtime.
  */
 
 /**

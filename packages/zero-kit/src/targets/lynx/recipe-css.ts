@@ -14,6 +14,9 @@
  *   variant rule is `.zx-btn__root.zx-a-variant-solid { … }` on ANY part —
  *   never a descendant selector, and never the web's `@scope` donut or
  *   `:not()` default twins (the runtime always stamps a concrete value).
+ *   A part that re-carries an axis (the anatomy's `carries`, zero#94) is a
+ *   nearer provider of that context, so the same flat compound serves it:
+ *   the web's extra own-value rules have no counterpart here.
  * - Anatomy `pseudo` parts are REAL parts here (a lynx dialog backdrop is a
  *   rendered view), so they style as their own part class — `partProjection`
  *   has no lynx counterpart by design.

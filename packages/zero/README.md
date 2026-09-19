@@ -638,7 +638,8 @@ same behaviors, held to the same conformance assertion:
   parts, closed `data-state` sets, flags, `hiddenIn`, the part tree
   (`parent` — which same-scope part each part renders inside) and, for parts
   that carry `data-placement`, the `placements` subset; parts that take
-  layout attributes name theirs as `layout` — and `toJSON()`
+  layout attributes name theirs as `layout`; a part that re-carries a named
+  axis beside the scope's carrier names it in `carries` — and `toJSON()`
   emits exactly the shape zero's own `manifest.json` carries per component.
   States are governed: every value must be a member of `STATE_VOCABULARY`
   (with `STATE_SYNONYMS` naming the member for a rejected spelling), flags of
@@ -675,7 +676,9 @@ same behaviors, held to the same conformance assertion:
   zero's own test suite runs against every rendered part: declared parts
   only, states from the closed set, flags declared and presence-only,
   `data-placement` from the part's declared subset, DOM nesting matching the
-  declared part tree, and `hidden` exactly where `hiddenIn` says. It throws a
+  declared part tree, `hidden` exactly where `hiddenIn` says, and
+  `data-color`/`data-size`/`data-variant` only on the carrier or a part that
+  declares it `carries` that axis. It throws a
   plain `Error`, so it works under any test runner. A component rendering
   custom axes names them: `expectAnatomy(el, anatomy, { axes: ['emphasis'] })`.
   The rules themselves are platform-neutral: `expectAnatomyElements`
@@ -724,6 +727,13 @@ downstream platform's build.
   those states never paint, so a design system may leave them unstyled (and
   need not tell them apart from a visible state), and a generator can skip
   emitting them.
+- A part's `carries` lists the named axes it RE-CARRIES (#94): it takes the
+  axis as a prop of its own and renders the attribute on itself, beside the
+  scope's carrier — `timeline.marker` carries `color`, so
+  `<Timeline.Marker color="error">` paints one entry's dot while
+  `<Timeline.Root color="neutral">` paints the rest. The nearest carrier
+  wins: a design system's compiled CSS lets the part's own value outrank
+  the carrier's, and a part without one follows the carrier.
 - A part's `parent` names the same-scope part it renders inside — the
   anatomy's part TREE, from which tooling derives real ancestor chains
   (the contrast audit builds its measurement DOM from it) instead of

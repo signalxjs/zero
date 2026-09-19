@@ -264,6 +264,7 @@ export { Timeline, timelineAnatomy, useTimelineContext } from './components/time
 export type {
     TimelineRootProps,
     TimelinePartProps,
+    TimelineMarkerProps,
     TimelineContentProps,
     TimelinePlacement,
 } from './components/timeline/index.js';

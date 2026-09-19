@@ -118,6 +118,21 @@ card in a card) and each part resolves its axis to the NEAREST carrier by CSS
 scoping proximity, instead of source order deciding which instance's value
 leaks through.
 
+A part may also **re-carry** an axis (zero#94): its anatomy declares
+`carries: ['color']` — `timeline.marker` does — and the component renders the
+attribute on the part itself (`<Timeline.Marker color="error">`). The
+compiler emits every `variants.<axis>.<value>` rule that targets such a part
+a second time, flat on the part (`[data-part="marker"][data-color="error"]`,
+which outranks the carrier's donut rule by specificity), and a rule for a
+part *inside* a re-carrier in a donut rooted on it. The nearest carrier wins,
+and a part with no value of its own follows the carrier — which is why the
+`:not([attr])` default twin is never re-emitted, and why modifiers and
+compounds stay on the carrier. Nothing to author: key the values on the part,
+as every shipped skin already keys `variants.color.<c>.marker`. The
+`axis-coverage` rule reports a scope that wires the axis without keying the
+re-carrying part, and the components artifact gives the member (`Marker`) the
+carrier's vendor surface for the axes it carries.
+
 Not every modifier is an axis, either. An axis answers *which one* and always
 carries a value; some design-system modifiers answer *is it on* and carry none
 — daisyUI's `block` and `wide`, Radix's `high-contrast`, HeroUI's `icon-only`.
@@ -740,7 +755,8 @@ compilation, the vocabulary system and the coverage report all just work; the
 merge hard-errors on a scope collision, which is why fragment scopes should
 carry a vendor prefix (`acme-stepper`). It also holds the fragment to the
 shared vocabularies — flags, governed states (a synonym like `expanded` fails
-with "use `open`"), placements, `hiddenIn ⊆ states`, an acyclic part
+with "use `open`"), placements, `hiddenIn ⊆ states`, `carries` (named axes
+only, never on the carrier or a pseudo part), an acyclic part
 tree, and the naming rule on any `models` it declares (`default<Concept>` +
 `<concept>Change`, a named model's concept its name) — so the "no synonyms"
 rule binds on the ecosystem surface, not only on zero's own anatomies.
@@ -928,7 +944,7 @@ the artifact sees all of them. Twelve rules:
 | `axis-value-coverage/gap` | error | a declared step a sibling scope implements that this scope neither paints nor claims as its base (#258's shape) | `tokens.scopes` |
 | `axis-value-coverage/ambiguous-base` | error | two values written as empty entries, both claiming the base and rendering identically | — |
 | `axis-value-coverage/unused` | warning | a declared value no recipe paints or claims; or one in no scope's vocabulary | a role declared `content: false` / `soft: false` (a fill, not an axis value) |
-| `axis-coverage` | warning | a styled scope that accepts a declared `color`/`size` axis at runtime and wires nothing | `roles: {}` / `sizes: []`; `tokens.scopes.<scope>.colors: []` / `.sizes: []` |
+| `axis-coverage` | warning | a styled scope that accepts a declared `color`/`size` axis at runtime and wires nothing — or wires it without keying a part that re-carries it (`scope.part.axis`) | `roles: {}` / `sizes: []`; `tokens.scopes.<scope>.colors: []` / `.sizes: []` |
 | `reduced-motion/loop` | error | an infinite animation in the default render with no `animation: none` for the same selector under `prefers-reduced-motion: reduce` as its only condition — the kit collapses durations there, so a loop strobes rather than stops; a cancel also gated by `@supports` or a second `@media` stops it for some readers, not all | — (a loop that only exists behind `@supports` / `@container` is not the default render's and is not judged) |
 | `contrast/text` | error below 3:1 per cell; warning 3–4.5:1, once per (part, theme) naming the worst cell; `disabled` error below 2:1 pre-fade | a text-bearing part whose computed ink against its effective background clears no floor, in any state × flag combination, in any theme — the design system's own axis surface (every wired `variant`/`color` value, each modifier) included | — |
 | `contrast/indicator` | error below 3:1 per cell; 3–4.5:1 is `info` (a non-text mark meets WCAG 1.4.11 at 3:1) | a mark whose whole job is paint (the tick, the dot, the thumb, the range, the chevrons, the star) that cannot be seen against what it is painted on, measured inside its real ancestor chain | — |
@@ -946,7 +962,9 @@ The three `contrast/*` rules are the browser contrast audit
 (`examples/playground/e2e/contrast-audit.spec.ts`) computed from the compiled
 CSS: the same two matrices (text legibility over every text-bearing part in
 every renderable state combination plus the wired axis surface; indicator
-paint over the parts whose job is paint, each in its real ancestor chain),
+paint over the parts whose job is paint, each in its real ancestor chain —
+and, for a mark on a part that re-carries a colour axis, once per wired
+colour with the attribute on that part),
 the same cell keys, the same colour math (premultiplied, 8-bit rounded where
 a canvas would round), the same floors — 3:1, the 4.5:1 AA band as a
 warning for text (one finding per part and theme, the worst cell named; the

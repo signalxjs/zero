@@ -338,7 +338,12 @@ function installColorMath(): void {
 // they were retired here; one entry (`menu`) keeps a hand chain, because the
 // anatomy names the containing popup while the mark sits on a host ROW the
 // tree does not know.
-const indicatorCells: IndicatorCell[] = indicatorCellsFor(anatomy.components);
+//
+// Per design system, because a mark on a part that RE-CARRIES a colour axis
+// (#94 — timeline's marker takes `color`) is also measured once per value the
+// design system wires, with the attribute on the part itself.
+const indicatorCellsOf = (wired: DesignSystemManifest['components']): IndicatorCell[] =>
+    indicatorCellsFor(anatomy.components, wired);
 
 interface Reading {
     key: string;
@@ -479,7 +484,7 @@ test('allowlist coverage: every INTENDED_LOW_CONTRAST entry names a cell some ma
     const known = new Set<string>();
     for (const ds of DESIGN_SYSTEMS) {
         const manifest: DesignSystemManifest = JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
-        const dsCells: Cell[] = [...cells, ...axisCellsFor(manifest.components, anatomy.components), ...indicatorCells];
+        const dsCells: Cell[] = [...cells, ...axisCellsFor(manifest.components, anatomy.components), ...indicatorCellsOf(manifest.components)];
         for (const theme of manifest.themes) {
             for (const cell of dsCells) known.add(cellKey(ds, theme.name, cell));
         }
@@ -708,6 +713,7 @@ for (const ds of DESIGN_SYSTEMS) {
     // The axis surface is per design system — a shared list cannot express
     // "carbon wires `danger-ghost` and heroui does not".
     const dsTextCells: Cell[] = [...cells, ...axisCellsFor(dsManifest.components, anatomy.components)];
+    const dsIndicatorCells: IndicatorCell[] = indicatorCellsOf(dsManifest.components);
 
     /** The app baseline every real app provides, plus the compiled DS CSS. */
     const stage = async (page: Page, theme: string): Promise<void> => {
@@ -786,8 +792,9 @@ for (const ds of DESIGN_SYSTEMS) {
                     const chain = cell.chain ?? [];
                     let root: HTMLElement;
                     let el: HTMLElement;
+                    let nodes: HTMLElement[] = [];
                     if (chain.length > 0) {
-                        const nodes = chain.map((n) => {
+                        nodes = chain.map((n) => {
                             const node = build(n.part, n.element === 'input' ? 'div' : n.element);
                             if (n.pin) node.setAttribute('data-state', n.pin);
                             return node;
@@ -810,9 +817,15 @@ for (const ds of DESIGN_SYSTEMS) {
                     // [data-part="trigger"]`, so putting them on the measured
                     // element would select a rule that does not exist and
                     // report the unvaried colour as though the axis had been
-                    // applied (#297).
+                    // applied (#297). The exception is a chain node that
+                    // re-carries the axis (#94): the nearest one takes it —
+                    // the kit's `axisHost`, inlined because this runs in the page.
                     for (const [axis, value] of Object.entries(cell.axes ?? {})) {
-                        root.setAttribute('data-' + axis, value);
+                        let host = root;
+                        for (let i = chain.length - 1; i > 0; i--) {
+                            if (chain[i].carries?.includes(axis)) { host = nodes[i]; break; }
+                        }
+                        host.setAttribute('data-' + axis, value);
                     }
                     for (const mod of cell.mods ?? []) root.setAttribute('data-mod-' + mod, '');
                     el.textContent = 'Sample';
@@ -1137,6 +1150,16 @@ for (const ds of DESIGN_SYSTEMS) {
                     }
                     const el = nodes[nodes.length - 1];
                     if (cell.glyph) el.textContent = cell.glyph;
+                    // A re-carried axis (#94) goes on the nearest node whose
+                    // part carries it — the kit's `axisHost`, inlined because
+                    // this runs in the page — anything else on the root.
+                    for (const [axis, value] of Object.entries(cell.axes ?? {})) {
+                        let host = 0;
+                        for (let i = cell.chain.length - 1; i > 0; i--) {
+                            if (cell.chain[i].carries?.includes(axis)) { host = i; break; }
+                        }
+                        nodes[host].setAttribute('data-' + axis, value);
+                    }
 
                     // The backdrop, composited top-down through the whole chain
                     // rather than stopping at the nearest opaque fill: daisyUI's
@@ -1286,7 +1309,7 @@ for (const ds of DESIGN_SYSTEMS) {
                     nodes[0].remove();
                 }
                 return out;
-            }, { cells: indicatorCells.map((c) => ({ ...c, key: cellKey(ds, theme.name, c) })) });
+            }, { cells: dsIndicatorCells.map((c) => ({ ...c, key: cellKey(ds, theme.name, c) })) });
 
             // Intentionally unpainted states (unchecked → `scale(0)`, no
             // `content`, transparent fill) are not a contrast problem; they are

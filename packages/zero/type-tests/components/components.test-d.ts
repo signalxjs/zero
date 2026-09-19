@@ -10,8 +10,8 @@
  * program, which two register augmentations never could.
  */
 import { Button as CarbonButton } from './carbon.components.js';
-import { Button as HerouiButton, Tabs as HerouiTabs } from './heroui.components.js';
-import { Button as DaisyButton } from './daisyui.components.js';
+import { Button as HerouiButton, Tabs as HerouiTabs, Timeline as HerouiTimeline } from './heroui.components.js';
+import { Button as DaisyButton, Timeline as DaisyTimeline } from './daisyui.components.js';
 import type { Equal, MustBeTrue } from '../assert.js';
 
 type CarbonProps = Parameters<typeof CarbonButton>[0];
@@ -68,7 +68,20 @@ export type _tabsListPreserved = MustBeTrue<Equal<
 >>;
 const tabsRootOk: Parameters<(typeof HerouiTabs)['Root']>[0] = { size: 'md' };
 
+// ── a re-carrying member (#94): Timeline.Marker gets the carrier's surface
+// for the axes it carries — narrowed where the skin wires colour, absent
+// where it declares none — with no register in the program ──
+type DaisyMarkerProps = Parameters<(typeof DaisyTimeline)['Marker']>[0];
+type HerouiMarkerProps = Parameters<(typeof HerouiTimeline)['Marker']>[0];
+const daisyMarker: DaisyMarkerProps = { color: 'error' };
+// @ts-expect-error — narrowed to daisy's roles, not the open fallback
+const daisyMarkerBogus: DaisyMarkerProps = { color: 'magenta' };
+// @ts-expect-error — heroui declares no color axis, so the marker has no colour prop
+const herouiMarkerColor: HerouiMarkerProps = { color: 'primary' };
+const herouiMarkerOk: HerouiMarkerProps = { class: 'dot' };
+
 export const _use = [
+    daisyMarker, daisyMarkerBogus, herouiMarkerColor, herouiMarkerOk,
     carbonOk, herouiOk, respelled, carbonBogus, herouiBogus,
     carbonZeroName, carbonMods, herouiForeign, herouiColor, passthrough, tabsRootOk,
     daisyOk, daisyBogus, daisyForeign, daisyMods, daisyGlass,

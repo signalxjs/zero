@@ -4390,10 +4390,16 @@ export const timeline: RecipeInput = {
     hooks: {
         properties: {
             '--timeline-accent': 'The marker and connector accent.',
+            '--timeline-ring': 'The ring around a coloured marker — the role\'s -content ink (#94).',
             '--timeline-marker-size': 'The marker diameter.',
         },
     },
-    tokens: { '--timeline-accent': 'var(--color-base-content)', '--timeline-marker-size': 'calc(var(--size-selector) * 3)' },
+    tokens: {
+        '--timeline-accent': 'var(--color-base-content)',
+        // The coloured dot's ring (#94); uncoloured, it IS the dot.
+        '--timeline-ring': 'var(--timeline-accent)',
+        '--timeline-marker-size': 'calc(var(--size-selector) * 3)',
+    },
     parts: {
         root: {
             base: {
@@ -4443,11 +4449,23 @@ export const timeline: RecipeInput = {
                 boxSizing: 'border-box',
                 borderRadius: '9999px',
                 background: 'var(--timeline-accent)',
-                border: 'calc(var(--timeline-marker-size) / 2) solid var(--timeline-accent)',
+                // A coloured dot is the role fill inside a RING in the role's
+                // `-content` ink (#94): a light role on a light page, or a dark
+                // one on a dark page, has no edge of its own, and a per-entry
+                // tone is exactly the mark a reader has to find. One half of
+                // the role's own pair clears 3:1 against the page (the contrast
+                // audit measures every colour). With no colour the ring is the
+                // fill — the same solid dot as before.
+                border: 'calc(var(--timeline-marker-size) / 6) solid var(--timeline-ring)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '0',
+            },
+            at: {
+                // Forced colours strip the fill and keep the border, so the
+                // border draws the whole dot there, as it always did.
+                'forced-colors': { base: { borderWidth: 'calc(var(--timeline-marker-size) / 2)' } },
             },
             selectors: {
                 // The axis cell, both orientations. `place-self` centres the
@@ -4526,6 +4544,7 @@ export const timeline: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { marker: { base: {
             '--timeline-accent': `var(--color-${c})`,
+            '--timeline-ring': `var(--color-${c}-content)`,
         } } }])),
         size: {
             xs: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 2)' } }, content: { base: { fontSize: 'var(--text-xs)' } } },

@@ -52,6 +52,11 @@ export interface NodeSpec {
     flags: readonly string[];
     /** A `part=state` pin — the state this ancestor is held in. */
     pin?: string;
+    /**
+     * The axes this node's part re-carries (#94, `ManifestPart.carries`) —
+     * where `axisHost` puts a cell's axis attribute instead of the root.
+     */
+    carries?: readonly string[];
 }
 
 export interface Cell {
@@ -59,7 +64,11 @@ export interface Cell {
     part: string;
     state?: string;
     flag?: string;
-    /** Axis attributes to set on the chain root — `variant: 'danger'` → `data-variant="danger"`. */
+    /**
+     * Axis attributes to set — `variant: 'danger'` → `data-variant="danger"`
+     * — on the chain root, or on the nearest node that re-carries the axis
+     * (`axisHost`).
+     */
     axes?: Record<string, string>;
     /** Presence-only modifiers to set on the chain root — `pending` → `data-mod-pending`. */
     mods?: string[];
@@ -111,8 +120,23 @@ export function chainFor(component: ManifestComponent, path: readonly string[]):
             states: part.states ?? [],
             flags: part.flags ?? [],
             ...(pin ? { pin } : {}),
+            ...(part.carries?.length ? { carries: part.carries } : {}),
         };
     });
+}
+
+/**
+ * Which node of a chain an axis attribute goes on: the DEEPEST node whose
+ * part re-carries the axis (#94) — the nearest carrier, which is the one the
+ * compiled CSS lets win — else the chain root, where the compiler anchors
+ * every other axis rule. The browser spec inlines the same walk (its page
+ * code cannot import); both read `NodeSpec.carries`.
+ */
+export function axisHost(chain: readonly NodeSpec[], axis: string): number {
+    for (let i = chain.length - 1; i > 0; i--) {
+        if (chain[i]!.carries?.includes(axis)) return i;
+    }
+    return 0;
 }
 
 /**

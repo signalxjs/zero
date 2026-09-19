@@ -282,6 +282,30 @@ describe('Timeline', () => {
         expect(part(container, 'timeline', 'content').getAttribute('data-orientation')).toBe('horizontal');
         expectAnatomy(container, timelineAnatomy);
     });
+
+    it('a marker re-carries the colour axis: its own data-color, beside the root\'s (#94)', () => {
+        render(
+            <Timeline.Root color="neutral">
+                <Timeline.Item>
+                    <Timeline.Marker color="error" />
+                    <Timeline.Content>deploy failed</Timeline.Content>
+                </Timeline.Item>
+                <Timeline.Item>
+                    <Timeline.Marker />
+                    <Timeline.Content>queued</Timeline.Content>
+                </Timeline.Item>
+            </Timeline.Root>,
+            container,
+        );
+        // The anatomy declares it, so expectAnatomy lets the attribute through.
+        expect(timelineAnatomy.parts.marker.carries).toEqual(['color']);
+        expectAnatomy(container, timelineAnatomy);
+        const markers = container.querySelectorAll<HTMLElement>('[data-scope="timeline"][data-part="marker"]');
+        expect(markers[0]!.getAttribute('data-color')).toBe('error');
+        // No colour of its own → no attribute: the marker follows the root.
+        expect(markers[1]!.hasAttribute('data-color')).toBe(false);
+        expect(part(container, 'timeline', 'root').getAttribute('data-color')).toBe('neutral');
+    });
 });
 
 describe('Chat', () => {

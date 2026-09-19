@@ -15,6 +15,11 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * contract data from the logical pair, so alternating layouts are per-item
  * markup, not nth-child guesswork, and RTL mirrors for free.
  *
+ * The marker RE-CARRIES the colour axis (`PartSpec.carries`, #94): a
+ * `color` on `Timeline.Marker` renders `data-color` on the marker itself and
+ * outranks the root's, so each entry can paint its own tone — the nearest
+ * carrier wins, and a marker without one follows the root.
+ *
  * `content` and `connector` carry `data-orientation` as well as the root and
  * item: "start" means the inline side of a vertical timeline and the block
  * side of a horizontal one, and a recipe can only compose side × axis on the
@@ -32,6 +37,9 @@ export const timelineAnatomy = defineAnatomy('timeline', {
     marker: {
         element: 'div',
         parent: 'item',
+        // Per-entry colour (#94): the marker re-carries `color`, so one
+        // event's dot can say "failed" while the timeline stays neutral.
+        carries: ['color'],
         tokens: ['color', 'size'],
     },
     connector: {

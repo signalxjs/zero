@@ -196,6 +196,25 @@ reaches its fallback. That in turn forces the table to out-specify the
 carrier's own `[data-scope][data-part]` block, which is why its selectors
 carry an otherwise-redundant `[data-scope][data-part]` prefix.
 
+**A part may re-carry an axis (#94).** The named axes (`color`, `size`,
+`variant`) live on the scope's **carrier** part — `root`, else the first
+declared part ([§3.3](#33-compilation)) — and reach every other part through
+the compiled cascade. A part that needs its own value declares it:
+`PartSpec.carries: ['color']` on timeline's `marker` is a second carrier in
+one scope, so `<Timeline.Marker color="error">` renders `data-color` on that
+one marker and paints one entry's dot while the root colours the rest. The
+semantics are the ones the `@scope` donut already gives nested scopes: **the
+nearest carrier wins**, and a part with no value of its own follows the
+carrier. Three things are closed on purpose. Only the named axes — a custom
+axis is design-system vocabulary no anatomy can promise to carry. Never on
+the carrier itself, which carries every axis already. Never on a `pseudo`
+part, which renders no element to hold the attribute. `expectAnatomy` fails a
+named-axis attribute on any part that is neither the carrier nor declares it,
+and `mergeManifests` holds fragments to the same rules. It generalises:
+daisy's `step-primary` is per step, the same shape, and a scope adopts it by
+declaring `carries` on the part and taking the prop there — the compiler,
+the emitters and the audits read the declaration, not the scope.
+
 **`hiddenIn` is a styling fact.** A part the runtime hides with the `hidden`
 attribute in some state declares those states (`hiddenIn: ['error']` on
 avatar's `image`). It belongs in the anatomy because it changes what a recipe
@@ -285,6 +304,9 @@ part**: zero carries one attribute per axis on the scope's carrier part, so
 two vocabularies on two parts of one scope are two *axes*, not one axis
 restricted twice — `parts` is reserved inside a scope entry and rejected by
 name so per-part narrowing could be added later without a breaking change.
+A part that re-carries an axis ([§2](#2-the-anatomy-contract), #94) does not
+change this: it offers the SAME vocabulary on a second carrier, one value per
+instance, not a second vocabulary.
 The shipped proof is `select` under zero-basic: its `variant` vocabulary
 (`outline | soft | ghost`) is its own, not the button's.
 
@@ -472,6 +494,33 @@ declared `parent` chain does not reach the carrier: those selectors would
 compile but never match ("dead rules"). Axis styling on those scopes styles
 the trigger, in each skin's button idiom.
 
+**A re-carried axis (#94) is the same mechanism one level down.** Every
+`variants.<axis>.<value>` rule that targets a part declaring `carries:
+[<axis>]` is emitted a second time, anchored on that part's own attribute:
+flat on the part itself — `[data-scope="timeline"][data-part="marker"][data-color="error"]`,
+(0,3,0) against the carrier donut's (0,2,0), so the part's own value wins by
+specificity — and, for a part *inside* a re-carrier, in a donut rooted on it:
+`@scope ([re-carrier][attr]) to ([carrier], [re-carrier])`, where scoping
+proximity picks the nearer root and the lower bound hands a nested re-carrier
+its own subtree. Three exclusions keep "a part without a value follows its
+carrier" true. The `:not([attr])` default twin is never re-emitted: it would
+make an unset part take the recipe default instead of the carrier's value.
+Modifiers are presence-only switches, not re-carriable values. Compounds stay
+on the carrier: a compound over `color × size` on the marker would need the
+root's `size` and the marker's `color` at once, and the attributes sit on two
+elements. The re-carried rules are emitted after every carrier-anchored rule,
+and a re-carrier always sits between the carrier and the part it styles, so
+source order agrees with proximity. The browser does not need that, but a
+reader that ranks equal-specificity scoped rules by order does (the static
+contrast matrix, [§9](#9-the-verification-architecture)). A re-carrier the
+carrier can never contain (a top-layer popup of a rootless scope) drops the
+dead carrier-anchored copy, and the dead-rule validator counts its rules as
+alive. Nothing changes in the skins that key the part already: all four
+colour-bearing ones keyed `variants.color.<c>.marker` before the contract had
+a word for it. Lynx needs nothing new either. Its runtime stamps axis classes
+from the nearest provider ([§10](#10-known-limitations-and-open-directions)),
+and a re-carrier is one more provider.
+
 Other compilation facts a reader needs:
 
 - **Defaults are mirrored onto absence.** A single-axis rule whose value is
@@ -561,6 +610,12 @@ The encoding rules are where the correctness lives:
   `[Scoped<S>] extends [never]` guard must come **first**, because testing
   the axis result against `never` cannot separate "no augmentation" from
   "declared empty".
+- A re-carrying part reads the **same scope entry** as its carrier:
+  `Timeline.Marker`'s `color` is `WithColor<'timeline'>`, so the register
+  artifact narrows it with no per-part entry, and it is `never` exactly
+  where the root's is. The `axis-coverage` audit rule catches the one gap
+  a scope-level type cannot: a scope that wires the axis without keying the
+  re-carrying part ([§3.8](#38-the-ledgers)).
 - The file ends with two self-verifying assertions that make it fail its
   *own* compilation rather than silently degrade: `_ScopesValid` asserts
   every `components` key is a `ZeroScope` (a typo'd or version-skewed scope
@@ -600,6 +655,14 @@ generated `./components` module
   mapping under `api.components.<scope>` is deliberate vendor-faithful
   shadowing and allowed. The table is re-derived from zero's actual
   `*RootProps` declarations by a parity test.
+- A compound member that **re-carries** an axis (#94) gets the carrier's
+  surface for the axes it carries: `CompiledComponentApi.members`
+  (`{ Marker: { part: 'marker', axes: ['color'] } }`) re-types
+  `Timeline.Marker` in `components.d.ts` (narrowed where the skin wires
+  colour, the prop removed where it declares none), and when the axis
+  routes through a vendor name, `components.js` passes `adapt(…, { members })`
+  so the member reads the vendor prop too. Every other member keeps its
+  identity.
 - The emitted `components.d.ts` is **self-contained**: no `declare module`,
   no `ZeroVocabulary` augmentation, no `/register` import needed — so two
   design systems' `./components` modules can coexist in one program, which
@@ -657,7 +720,10 @@ literal is constrained to `ZeroScope`, so a typo'd literal
 `WithVariantAxesOpen<S extends string>`: the open constraint is the
 deliberate cost of an out-of-tree scope. For the four rootless scopes the
 axis props sit on the **Trigger**, not the fragment Root, matching where the
-compiler anchors the rules ([§3.3](#33-compilation)).
+compiler anchors the rules ([§3.3](#33-compilation)). A part that re-carries
+an axis takes that one prop from the same scope's vocabulary
+(`WithColor<'timeline'>` on `Timeline.Marker`) and renders the attribute
+itself; it composes nothing else of the surface.
 
 One typing behavior worth naming because assertions depend on it: sigx's
 JSX prop surface **strips `never`-valued props** from the parameter type, so
@@ -684,7 +750,11 @@ ends** because the two ways a ledger goes stale are opposite:
   outliving its recipes would silently re-open the hole.
 
 Carrier discovery is structural (the test greps component sources for
-`WithVariantAxes`), so a new carrier cannot arrive unnoticed.
+`WithVariantAxes`), so a new carrier cannot arrive unnoticed. The rule it
+runs also covers re-carriers (#94): a scope that wires `color` or `size` but
+keys no value on a part declaring `carries` for that axis is reported as
+`scope.part.axis`. The part's own attribute would match nothing, which is the
+same accepts-but-unwired gap one part down.
 
 ## 4. The manifest contract
 
@@ -701,7 +771,7 @@ layout family as `layoutPrefix` plus a `layoutVocabulary` of attribute →
 permitted values and whether it varies per breakpoint), the
 token grammar (`colors`, `categories`, recommended ramps), and `components`
 — an **array** of `anatomy.toJSON()` snapshots, each part with its
-`parent`, `states`, `flags`, `placements`, `layout`, `hiddenIn`, `pseudo`, hints, and
+`parent`, `states`, `flags`, `placements`, `layout`, `carries`, `hiddenIn`, `pseudo`, hints, and
 ready-made per-state selector fragments (what the recipe compiler
 consumes), and — for a component whose API carries state — `models`: one
 entry per model with what it binds (`name`, absent for the unnamed `model`
@@ -749,7 +819,8 @@ scope and part-name grammar (the scope is also a filename and a selector),
 selector-breakout characters, and then the shared vocabularies on the
 ecosystem surface — flags against `FLAG_VOCABULARY`, states against
 `STATE_NAMES` with synonyms in the message, placements, `hiddenIn ⊆
-states`, and `parent` acyclicity. A scope collision is a hard error naming
+states`, `carries` (named axes only, non-empty and unrepeated, never on the
+carrier or a `pseudo` part), and `parent` acyclicity. A scope collision is a hard error naming
 the existing owner; every merged component is stamped with its owning
 `package` (provenance), which survives compilation and drives the
 register artifact's `Exclude`-form gate and the components module's import
@@ -1278,7 +1349,7 @@ checking a fraction of what it claimed.)
 | Typed-app capstone | `examples/typed-app` (CI, after build) | The consumer side: three isolated programs against **emitted `dist/`** through real package exports — register narrowing, the no-register components surface, and carbon's values remap. |
 | Interaction e2e (22 specs) | `examples/playground/e2e/` — press-feedback, dialog, drawer, popover, tooltip, menu-submenu, context-menu, combobox, select, toast-presence, tabs, tree-view, slider, number-input, rating-group, carousel, diff | Real-browser contracts (chromium/firefox/webkit, plus reduced-motion and forced-colors projects), under the **locator law** (`e2e/demo.ts`): a part is located through a named root, never page-wide selectors or cross-demo positional indexing. |
 | Static contrast matrix | `zero-kit/src/audit/contrast/` via the `contrast/*` audit rules; `contrast-static.test.ts` (the six skins at zero `contrast/*` errors and a named set of unmeasured reasons each; one red fixture per browser finding — #210, #116, #211, #207 — and one per `unmeasured` reason), `contrast-selector.test.ts`, `contrast-cascade.test.ts` | The browser contrast audit's two matrices computed from **compiled CSS**: the same cell product (ported, the indicator chains now derived from the part tree), a three-valued selector matcher for the emitted grammar, a computed-style model for what a reading depends on, the same compositing and floors. Every cell the reader cannot judge is `unmeasured` with a closed reason and reported as `info` — never a pass. Reachable by a design system built outside this repo. |
-| Contrast audit | `e2e/contrast-audit.spec.ts` | Two matrices over every state combination × skin × theme: text legibility for text-bearing parts and indicator paint for parts whose job is paint, measured in their real ancestor chains (derived from the part tree); each skin's wired axis surface rides the text matrix; 3:1 hard floor, 2:1 for `disabled` measured pre-fade. The ground truth the static matrix answers to. |
+| Contrast audit | `e2e/contrast-audit.spec.ts` | Two matrices over every state combination × skin × theme: text legibility for text-bearing parts and indicator paint for parts whose job is paint, measured in their real ancestor chains (derived from the part tree); each skin's wired axis surface rides the text matrix, and a mark on a part that re-carries a colour axis (#94, timeline's marker) is measured once per wired colour with the attribute on the part itself (`axisHost`: the nearest re-carrier in the chain, else the root); 3:1 hard floor, 2:1 for `disabled` measured pre-fade. The ground truth the static matrix answers to. |
 | Contrast parity gate | `e2e/contrast-audit.spec.ts`, the parity block in every `contrast:` / `indicator contrast:` test, plus `reference media` | The static matrix against the browser matrix on every cell the static side CLAIMS: one cell product (the spec imports `textCells`/`axisCellsFor`/`indicatorCellsFor`/`cellKey` from the kit — a reading the static side does not list, or a claim the browser has no reading for, is a disagreement), painted-at-all agrees, ratios agree to `max(0.15, 2%)` (8-bit premultiplied canvas compositing of a translucent wash over a dark surface), floor verdicts agree except within tolerance of the floor (annotated). The measured share is pinned per skin from BOTH ends (`STATIC_COVERAGE`, +5 points of headroom): the estimate can neither retreat into `unmeasured` unnoticed nor quietly claim more. `reference media` holds the chromium project to `REFERENCE_MEDIA`. Its first run found three misreads in the estimate — `calc()` border widths read as zero, the UA stylesheet's `buttontext` on real form controls, and `color-mix()` inventing a hue for an achromatic endpoint — all fixed in the kit, never by bending the browser side. |
 | DS smoke | `e2e/ds-smoke.spec.ts` | All six skins: `hidden` computes `display: none`, no undeclared axis/mod value renders, the runtime swap leaves one live stylesheet and re-seeds vocabulary + themes, boot logs no console error. |
 | Reduced motion / RTL | `e2e/reduced-motion.spec.ts`, `e2e/rtl.spec.ts` | The two loops (Skeleton, Spinner) assert `animation-name` running under chromium **and** `none` under reduced-motion — both directions, or a never-animating recipe passes; RTL measures rendered boxes across all six skins, complementing the physical-direction lint's `transform` blind spot ([§5](#5-the-compiler-and-css-architecture)). |

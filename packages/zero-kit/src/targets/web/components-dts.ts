@@ -113,6 +113,29 @@ function vendorSurface(axes: CompiledComponentAxes, api: CompiledComponentApi): 
     return { lines, summary };
 }
 
+/**
+ * A re-carrying member's surface (#94): the carrier's routes for the axes the
+ * part carries, and nothing else — the member takes the colour prop, never
+ * the carrier's modifiers or other axes. An unwired carried axis is absent
+ * exactly as on the carrier.
+ */
+function memberSurface(axes: CompiledComponentAxes, api: CompiledComponentApi, carried: readonly string[]): {
+    lines: string[];
+    removed: string[];
+    routes: CompiledComponentApi['props'];
+} {
+    const routes: CompiledComponentApi['props'] = {};
+    for (const [vendorProp, route] of Object.entries(api.props)) {
+        if ('axis' in route && carried.includes(route.axis)) routes[vendorProp] = route;
+    }
+    const wired: CompiledComponentAxes = { color: [], size: [], variant: [], axes: {}, mods: [] };
+    for (const axis of ['color', 'size', 'variant'] as const) {
+        if (carried.includes(axis)) wired[axis] = axes[axis];
+    }
+    const { lines } = vendorSurface(wired, { ...api, props: routes });
+    return { lines, removed: [...carried, ...Object.keys(routes)], routes };
+}
+
 /** Whether a route changes anything at runtime — an unrenamed, unrespelled axis doesn't. */
 function isTrivial(vendorProp: string, route: CompiledComponentApi['props'][string]): boolean {
     // A modifier route is NEVER trivial: the vendor surface is a flat boolean
@@ -120,8 +143,18 @@ function isTrivial(vendorProp: string, route: CompiledComponentApi['props'][stri
     return 'axis' in route && !route.values && vendorProp === route.axis;
 }
 
-function needsAdapt(api: CompiledComponentApi): boolean {
-    return Object.entries(api.props).some(([prop, route]) => !isTrivial(prop, route));
+const routesNeedAdapt = (props: CompiledComponentApi['props']): boolean =>
+    Object.entries(props).some(([prop, route]) => !isTrivial(prop, route));
+
+/** The members whose carried axes route through a non-trivial vendor prop — each needs its own adapt. */
+function adaptedMembers(axes: CompiledComponentAxes, api: CompiledComponentApi): Array<[string, CompiledComponentApi['props']]> {
+    return Object.entries(api.members ?? {})
+        .map(([member, { axes: carried }]) => [member, memberSurface(axes, api, carried).routes] as [string, CompiledComponentApi['props']])
+        .filter(([, routes]) => routesNeedAdapt(routes));
+}
+
+function needsAdapt(axes: CompiledComponentAxes, api: CompiledComponentApi): boolean {
+    return routesNeedAdapt(api.props) || adaptedMembers(axes, api).length > 0;
 }
 
 /**
@@ -191,13 +224,30 @@ export function compileComponentsDts(compiled: CompiledDesignSystem, options: Co
             ? `/** ${scope} — ${summary.join('; ')}. Attributes stay zero-spelled. */`
             : `/** ${scope} — no vendor route; the wired surface keeps zero's names. */`;
         const propsType = lines.length > 0 ? `{\n${lines.join('\n')}\n}` : 'Record<never, never>';
+        // Re-carrying members (#94) are re-typed like the carrier, for their
+        // carried axes only; every other static keeps zero's own type.
+        const members = Object.entries(api.members ?? {}).map(([member, { axes: carried }]) => {
+            const surface = memberSurface(axes, api, carried);
+            const type = `${name}${member}Adapted`;
+            const memberProps = surface.lines.length > 0 ? `{\n${surface.lines.join('\n')}\n}` : 'Record<never, never>';
+            return {
+                member,
+                block: `type ${type} = Adapted<typeof Z${name}.${member}, ${surface.removed.map((p) => `'${p}'`).join(' | ')}, ${memberProps}>;`,
+                entry: `${member}: ${type}`,
+            };
+        });
+        const ownStatics = [`Root: ${name}Adapted`, ...members.map((m) => m.entry)].join('; ');
+        const inherited = members.length > 0
+            ? `Omit<AdaptedStatics<typeof Z${name}>, ${members.map((m) => `'${m.member}'`).join(' | ')}>`
+            : `AdaptedStatics<typeof Z${name}>`;
         const statics = api.singlePart
-            ? `{ Root: ${name}Adapted }`
-            : `AdaptedStatics<typeof Z${name}> & { Root: ${name}Adapted }`;
+            ? `{ ${ownStatics} }`
+            : `${inherited} & { ${ownStatics} }`;
         return [
             doc,
             `type ${name}Props = ${propsType};`,
             `type ${name}Adapted = Adapted<typeof Z${name}, ${removed}, ${name}Props>;`,
+            ...members.map((m) => m.block),
             `export declare const ${name}: ${name}Adapted & ${statics};`,
         ].join('\n');
     });
@@ -222,8 +272,8 @@ export function compileComponentsDts(compiled: CompiledDesignSystem, options: Co
 export function compileComponentsJs(compiled: CompiledDesignSystem, options: ComponentsEmitOptions = {}): string {
     const componentApi = componentApiOf(compiled);
     const scopes = Object.keys(compiled.components);
-    const adapted = scopes.filter((scope) => needsAdapt(componentApi[scope]!));
-    const reexported = scopes.filter((scope) => !needsAdapt(componentApi[scope]!));
+    const adapted = scopes.filter((scope) => needsAdapt(compiled.components[scope]!, componentApi[scope]!));
+    const reexported = scopes.filter((scope) => !needsAdapt(compiled.components[scope]!, componentApi[scope]!));
 
     const serializeRoute = (route: CompiledComponentApi['props'][string]): string => {
         if ('modifier' in route) return `{ modifier: '${route.modifier}' }`;
@@ -239,11 +289,17 @@ export function compileComponentsJs(compiled: CompiledDesignSystem, options: Com
         const props = Object.entries(api.props)
             .map(([prop, route]) => `        '${prop}': ${serializeRoute(route)},`)
             .join('\n');
+        const members = adaptedMembers(compiled.components[scope]!, api).flatMap(([member, routes]) => [
+            `        ${member}: {`,
+            '            props: {',
+            ...Object.entries(routes).map(([prop, route]) => `                '${prop}': ${serializeRoute(route)},`),
+            '            },',
+            '        },',
+        ]);
         return [
             `export const ${name} = /* @__PURE__ */ adapt(Z${name}, {`,
-            '    props: {',
-            props,
-            '    },',
+            ...(props.length > 0 ? ['    props: {', props, '    },'] : ['    props: {},']),
+            ...(members.length > 0 ? ['    members: {', ...members, '    },'] : []),
             '});',
         ].join('\n');
     });

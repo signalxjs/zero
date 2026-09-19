@@ -643,6 +643,16 @@ export interface ManifestPart {
      */
     layout?: readonly string[];
     /**
+     * The named axes this part RE-CARRIES (#94) — a second carrier in one
+     * scope. The part renders `data-<axis>` itself (`Timeline.Marker
+     * color`), and the web compiler emits every `variants.<axis>.<value>`
+     * rule that targets it — or a part inside it — again, anchored on the
+     * part's own attribute, so the nearest carrier wins (`carriersOf`).
+     * Only `color`/`size`/`variant`, never on the scope's carrier and never
+     * on a `pseudo` part; absent for parts that re-carry nothing.
+     */
+    carries?: readonly string[];
+    /**
      * States in which zero's runtime sets `hidden` on this part, so it paints
      * nothing while it is in them (avatar's `image` while `error`). Styling
      * such a state identically to a visible one is correct, not lazy — the
@@ -732,6 +742,45 @@ export interface ManifestComponent {
  */
 export function carrierPart(component: ManifestComponent): string {
     return component.parts.find((p) => p.name === 'root')?.name ?? component.parts[0]!.name;
+}
+
+/**
+ * The parts that carry `axis` for `part`, nearest first — the part itself
+ * when it re-carries the axis (`ManifestPart.carries`, #94), then each
+ * containing part up the declared tree that does. The scope's carrier is not
+ * in the list: it carries every axis, and callers anchor on it separately.
+ * Empty for every part of a scope where nothing re-carries — which is every
+ * scope but a handful, so the common path costs one walk and emits nothing.
+ */
+export function carriersOf(component: ManifestComponent, part: string, axis: string): string[] {
+    const byName = new Map(component.parts.map((p) => [p.name, p]));
+    const carrier = carrierPart(component);
+    const out: string[] = [];
+    let cursor = byName.get(part);
+    // Bounded like mergeManifests' acyclicity walk: a hand-built manifest
+    // with a cycle must fail somewhere else, by name — not hang here.
+    for (let hops = 0; cursor && cursor.name !== carrier && hops <= component.parts.length; hops++) {
+        if (cursor.carries?.includes(axis)) out.push(cursor.name);
+        cursor = cursor.parent === undefined ? undefined : byName.get(cursor.parent);
+    }
+    return out;
+}
+
+/**
+ * Whether `part`'s declared parent chain reaches the scope's carrier — the
+ * condition for an axis rule anchored on the carrier to be able to match it
+ * at all (the four rootless scopes render their popups as top-layer
+ * siblings of the trigger, which is why the answer is not always yes).
+ */
+export function reachesCarrier(component: ManifestComponent, part: string): boolean {
+    const byName = new Map(component.parts.map((p) => [p.name, p]));
+    const carrier = carrierPart(component);
+    let cursor = byName.get(part);
+    for (let hops = 0; cursor && hops <= component.parts.length; hops++) {
+        if (cursor.name === carrier) return true;
+        cursor = cursor.parent === undefined ? undefined : byName.get(cursor.parent);
+    }
+    return false;
 }
 
 export interface ZeroManifest {

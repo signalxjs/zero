@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+### Added — re-carried axes: a part's own axis value (zero#94)
+
+- **`ManifestPart.carries`** (and `manifest.schema.json`) carries zero's
+  new `PartSpec.carries`. `mergeManifests` holds a fragment to it: only
+  the named axes (`color`/`size`/`variant`), a non-empty list without
+  repeats, never on the scope's carrier and never on a `pseudo` part.
+- **The web compiler lets the nearest carrier win.** Every
+  `variants.<axis>.<value>` rule that targets a part re-carrying the axis
+  is emitted a second time, flat on that part
+  (`[data-part="marker"][data-color="error"]`, (0,3,0) against the
+  carrier's (0,2,0) donut rule); a rule for a part INSIDE a re-carrier gets
+  an `@scope` donut rooted on it, bounded by the carrier and the next
+  re-carrier. Never for the `:not([attr])` default twin, and never for
+  modifiers or compounds. The re-carried rules are emitted after every
+  carrier-anchored one, so source order agrees with scoping proximity. A
+  re-carrier the carrier cannot contain (a top-layer popup) drops the dead
+  carrier-anchored copy, and the validator stops calling its rules dead.
+- **`carriersOf(component, part, axis)` and `reachesCarrier(component,
+  part)`** — the tree walks, exported beside `carrierPart`.
+- **The components artifact** re-types each re-carrying member with the
+  carrier's surface for its axes: `CompiledComponentApi.members`
+  (`{ Marker: { part: 'marker', axes: ['color'] } }`), a
+  `TimelineMarkerAdapted` in `components.d.ts` (narrowed where the skin
+  wires colour, the prop removed where it declares none), and an
+  `adapt(…, { members })` entry in `components.js` when the axis is
+  routed through a vendor name.
+- **`axis-coverage`** also reports `scope.part.axis` when a scope wires an
+  axis but no value styles the part that re-carries it (its own attribute
+  would match nothing).
+- **The contrast matrix** measures a mark on a re-carrying part once per
+  wired colour, with the attribute on the part itself:
+  `indicatorCellsFor(anatomy, wired)`, `NodeSpec.carries`, and `axisHost`
+  (the chain node an axis attribute goes on — the nearest re-carrier, else
+  the root).
+
 ### Added — declared public hooks on skins (#73)
 
 - **`RecipeInput.hooks`** (`RecipeHooks`, and `recipe.schema.json`): a

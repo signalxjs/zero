@@ -30,7 +30,7 @@
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
 import { isPopupPart } from '../rules/state-legibility.js';
-import type { IndicatorCell } from './cells.js';
+import type { IndicatorCell, WiredAxes } from './cells.js';
 import { chainFor, combosFor } from './cells.js';
 
 export const PAINT_ONLY_PART = /^(?:.*-)?(?:indicator|thumb|range)$/;
@@ -157,8 +157,36 @@ export function uncoveredPaintParts(anatomy: readonly ManifestComponent[]): stri
         .filter((key) => !NOT_RENDERED_ON_WEB.has(key) && !covered.has(key));
 }
 
-/** The indicator cells for the given components. */
-export function indicatorCells(anatomy: readonly ManifestComponent[]): IndicatorCell[] {
+/**
+ * The indicator cells for the given components.
+ *
+ * With `wired` — one design system's harvested axes — a mark that sits on or
+ * inside a part RE-CARRYING a colour-bearing axis (#94, the anatomy's
+ * `carries`: timeline's marker takes `color`) is also measured once per wired
+ * value, with the attribute on that part itself (`axisHost`). That is the
+ * only place the part's own value exists: an unvaried reading measures the
+ * root's colour, and a root-anchored one never sees the per-item override.
+ */
+export function indicatorCells(anatomy: readonly ManifestComponent[], wired?: Record<string, WiredAxes>): IndicatorCell[] {
+    return [...plainIndicatorCells(anatomy), ...(wired ? carriedIndicatorCells(anatomy, wired) : [])];
+}
+
+/** The re-carried colour cells — see `indicatorCells`. */
+function carriedIndicatorCells(anatomy: readonly ManifestComponent[], wired: Record<string, WiredAxes>): IndicatorCell[] {
+    return plainIndicatorCells(anatomy).flatMap((cell) => {
+        const axes = wired[cell.scope];
+        if (!axes) return [];
+        const out: IndicatorCell[] = [];
+        for (const axis of ['color', 'variant'] as const) {
+            const values = axes[axis] ?? [];
+            if (values.length === 0 || !cell.chain.some((node) => node.carries?.includes(axis))) continue;
+            for (const value of values) out.push({ ...cell, axes: { [axis]: value } });
+        }
+        return out;
+    });
+}
+
+function plainIndicatorCells(anatomy: readonly ManifestComponent[]): IndicatorCell[] {
     return indicatorChains(anatomy).flatMap(({ spec, ancestors }) => {
         const component = anatomy.find((c) => c.scope === spec.scope)!;
         const part = component.parts.find((p) => p.name === spec.part)!;
