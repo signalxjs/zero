@@ -190,6 +190,14 @@ sheet enters from its reading edge, measured early in the entry (#83). It
 exists because a `transform` has no logical spelling, so the kit's
 physical-direction lint cannot see it — the two checks are complementary, not
 redundant;
+the **narrow-dialog spec** (`e2e/narrow-dialog.spec.ts`, #101) — chromium
+only, one page load per design system at a 400px viewport, it opens the
+modal dialog and asserts the popup's *border box* sits inside the viewport
+on both axes. Geometric on purpose: a `<dialog>` keeps the UA's
+`content-box` and zero ships no reset, so a recipe's `calc(100% - 2rem)`
+plus padding rendered wider than it said in four skins, which neither the
+unit suite (no layout) nor the CSS goldens (the declaration, not its
+sufficiency) could see;
 and the **axe audit** (`e2e/axe-audit.spec.ts`, #326) — the ARIA counterpart
 to the contrast audit: chromium + zero-basic only (semantics are engine- and
 skin-independent), it walks every registry page (ids read from the rendered

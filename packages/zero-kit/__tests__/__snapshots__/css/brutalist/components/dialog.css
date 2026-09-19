@@ -33,6 +33,7 @@
         opacity: 0;
         transform: translate(8px, 8px);
         transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), display var(--duration-fast) allow-discrete, overlay var(--duration-fast) allow-discrete;
+        box-sizing: border-box;
         width: 100%;
         height: 100dvh;
         max-width: none;

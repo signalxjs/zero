@@ -735,6 +735,11 @@ export const dialog: RecipeInput = {
         popup: withPresence(popupPresence('translateY(24px) scale(0.94)'), {
             // Mobile-first: Material's full-screen dialog below `sm`.
             base: {
+                // A <dialog> keeps the UA's `content-box`, and zero ships no
+                // reset — so a width or max-width meant to leave a gutter
+                // grew by the padding, and at phone width the popup ran past
+                // both edges (#101). Its box is the border box.
+                boxSizing: 'border-box',
                 width: '100%',
                 height: '100dvh',
                 maxWidth: 'none',
