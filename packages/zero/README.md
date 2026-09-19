@@ -619,8 +619,9 @@ Announce long operations with your own live region when a label change
 alone won't be heard.
 
 **The status pill.** A badge with a leading dot (#130) — `Badge.Dot`
-re-carries `color`, so the pill's colour is its tone and the dot's is the
-status; without one the dot is the pill's ink, legible on any fill. Its
+re-carries `color`, so a dot with a colour of its own is the status while
+the pill's colour is its tone; a dot without one follows the pill (the
+nearest carrier wins, #94), and on an uncoloured pill it is the ink. Its
 one state is the governed `running` (#93), absent at rest:
 
 ```tsx
@@ -631,8 +632,9 @@ one state is the governed `running` (#93), absent at rest:
 Every shipped skin draws `running` as a halo the pulse breathes and keeps
 the halo under reduced motion, so the state never vanishes; a coloured dot
 is the role's fill inside a ring in the role's `-content` ink — the
-timeline marker's construction — and the contrast audit measures it per
-colour. The dot is `aria-hidden`: the pill's text is the label.
+timeline marker's construction, and what keeps a dot that follows a solid
+pill visible on that pill's own fill — and the contrast audit measures it
+per colour. The dot is `aria-hidden`: the pill's text is the label.
 
 **The link button.** A link that looks like a button is `asChild` over an
 `<a>`. It is a real link, with middle-click, "copy link" and the right role,

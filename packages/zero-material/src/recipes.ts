@@ -3331,11 +3331,12 @@ export const badge: RecipeInput = {
                 textDecoration: 'none',
             },
         },
-        // The status dot (zero#130). At rest it is the pill's INK — a dot in
-        // `currentColor` is legible on whatever fill the pill has — and
-        // with its own colour it is the role's fill inside a ring in the
-        // role's `-content` ink — the timeline marker's answer (#94), so a
-        // light role on a light pill still has an edge. `running` is a
+        // The status dot (zero#130). On an uncoloured pill it is the pill's
+        // INK — a dot in `currentColor` is legible on whatever fill the pill
+        // has. Coloured — by its own `data-color`, or by the pill's, since the
+        // nearest carrier wins (#94) — it is the role's fill inside a ring in
+        // the role's `-content` ink, the timeline marker's answer: a dot that
+        // follows a solid pill of the same role still has an edge. `running` is a
         // static halo the pulse breathes; under reduced motion the halo
         // stays and the breathing stops, so the state never vanishes.
         dot: {
@@ -3369,8 +3370,9 @@ export const badge: RecipeInput = {
                 '--badge-fill': `var(--color-${c})`,
                 '--badge-ink': `var(--color-${c}-content)`,
             } },
-            // The dot's own colour (zero#130): keyed here so the compiler
-            // anchors it on the dot's re-carried `data-color` too.
+            // The dot's colour (zero#130): keyed under `variants.color` so the
+            // compiler anchors it on the pill's `data-color` AND on the dot's
+            // own re-carried one — the nearest carrier wins (#94).
             dot: { base: {
                 '--badge-dot': `var(--color-${c})`,
                 '--badge-dot-ring': `var(--color-${c}-content)`,

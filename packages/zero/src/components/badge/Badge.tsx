@@ -55,10 +55,12 @@ const BadgeRoot = component<BadgeRootProps>(({ props, slots }) => {
 /**
  * The status dot (#130). `color` is the dot's own — typed per scope like the
  * Root's, so it narrows under a `/register` module and is `never` where the
- * design system declares no colour axis — and `running` puts the dot in the
- * governed in-flight state (a pulse in every shipped skin, with a static
- * ring under reduced motion). Decorative: the pill's text is the label, so
- * the dot is `aria-hidden` and takes no `role`.
+ * design system declares no colour axis; without it the dot follows the
+ * pill's colour (the nearest carrier wins, #94), and on an uncoloured pill
+ * it is the ink. `running` puts the dot in the governed in-flight state (a
+ * pulse in every shipped skin, with a static halo under reduced motion).
+ * Decorative: the pill's text is the label, so the dot is `aria-hidden` and
+ * takes no `role`.
  */
 export type BadgeDotProps =
     & WithColor<'badge'>

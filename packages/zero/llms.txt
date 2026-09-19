@@ -328,9 +328,10 @@ component renders; the root is called out separately where it carries props.
 - Badge: Root/Dot — the carrier IS the text-bearing part, which is why it is
   the one scope that can wire its own `variant` vocabulary against the
   contrast audit's one-element probe. asChild. Dot (#130) is an optional
-  aria-hidden status dot: it re-carries `color` (carries: ['color'] — the
-  pill's colour is its tone, the dot's is the status; without one it is the
-  pill's ink) and has one state, `running` (the governed lifecycle spelling,
+  aria-hidden status dot: it re-carries `color` (carries: ['color'] — a dot
+  with its own colour is the status while the pill's colour is its tone; a
+  dot without one follows the pill, nearest carrier wins, and on an
+  uncoloured pill it is the ink) and has one state, `running` (the governed lifecycle spelling,
   absent at rest — a pulse in every skin with a static halo under reduced
   motion). It is paint, in the indicator contrast matrix.
 - Kbd: Root only, on a semantic <kbd> — the element is the meaning, so there

@@ -21,10 +21,13 @@ export const badgeAnatomy = defineAnatomy('badge', {
      * are two boxes where the reader sees one. Optional: a badge without it
      * is the one element it was.
      *
-     * It re-carries `color` (#94): the badge's colour is the pill's tone and
-     * the dot's is the status, and a neutral pill with a green dot is the
-     * common case, not the exception. Without a colour of its own the dot is
-     * the pill's ink, which is legible on any fill the pill has.
+     * It re-carries `color` (#94), with that mechanism's rule: the nearest
+     * carrier wins. A dot with a colour of its own is the status — a neutral
+     * pill with a green dot is the common case, not the exception; a dot
+     * without one follows the pill's colour, and on an uncoloured pill it is
+     * the pill's ink. Every skin draws a coloured dot as the role's fill
+     * inside a ring in the role's `-content` ink, which is what keeps it
+     * visible when the pill it follows is a solid fill of the same role.
      *
      * `running` is the one state, present while the thing the pill names is
      * in flight — Button's `loading` shape, absent at rest — and it is the
