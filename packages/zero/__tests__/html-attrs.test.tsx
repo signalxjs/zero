@@ -15,7 +15,7 @@ import { anatomies } from '@sigx/zero/anatomy';
 import {
     Accordion, Alert, Avatar, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, Checkbox,
     Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, EmptyState, Field, FileUpload, Grid,
-    Indicator, Input, Join, Kbd, Menu, Navbar, NumberInput, Pagination, Popover, Progress,
+    Indicator, Input, Join, Kbd, Menu, Navbar, NavList, NumberInput, Pagination, Popover, Progress,
     RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spacer, Spinner, Stack, Stats,
     Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
     TreeView, createToaster,
@@ -302,6 +302,22 @@ describe('the pass-through reaches every part', () => {
             </Join.Root>
         ),
         kbd: () => <Kbd {...p('root')}>K</Kbd>,
+        'nav-list': () => (
+            <NavList.Root {...p('root')}>
+                <NavList.Group {...p('group')}>
+                    <NavList.Heading {...p('heading')}>H</NavList.Heading>
+                    <NavList.List {...p('list')}>
+                        <NavList.Item {...p('item')}>
+                            <NavList.Link {...p('link')} href="/a">
+                                <NavList.Icon {...p('icon')}>i</NavList.Icon>
+                                A
+                                <NavList.Meta {...p('meta')}>m</NavList.Meta>
+                            </NavList.Link>
+                        </NavList.Item>
+                    </NavList.List>
+                </NavList.Group>
+            </NavList.Root>
+        ),
         navbar: () => (
             <Navbar.Root {...p('root')}>
                 <Navbar.Start {...p('start')}>S</Navbar.Start>

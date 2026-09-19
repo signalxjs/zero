@@ -55,6 +55,7 @@ import { chatAnatomy } from './components/chat/anatomy.js';
 import { radialProgressAnatomy } from './components/radial-progress/anatomy.js';
 import { joinAnatomy } from './components/join/anatomy.js';
 import { navbarAnatomy } from './components/navbar/anatomy.js';
+import { navListAnatomy } from './components/nav-list/anatomy.js';
 import { breadcrumbsAnatomy } from './components/breadcrumbs/anatomy.js';
 import { paginationAnatomy } from './components/pagination/anatomy.js';
 import { stepsAnatomy } from './components/steps/anatomy.js';
@@ -76,7 +77,7 @@ export {
     stackAnatomy, spacerAnatomy, gridAnatomy, centerAnatomy, boxAnatomy, containerAnatomy,
     kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy, emptyStateAnatomy,
     radialProgressAnatomy, joinAnatomy,
-    navbarAnatomy, breadcrumbsAnatomy, paginationAnatomy, stepsAnatomy, drawerAnatomy,
+    navbarAnatomy, navListAnatomy, breadcrumbsAnatomy, paginationAnatomy, stepsAnatomy, drawerAnatomy,
     tableAnatomy, fileUploadAnatomy, carouselAnatomy, swapAnatomy, countdownAnatomy, diffAnatomy,
 };
 
@@ -128,6 +129,7 @@ export const anatomies = {
     'radial-progress': radialProgressAnatomy,
     join: joinAnatomy,
     navbar: navbarAnatomy,
+    'nav-list': navListAnatomy,
     breadcrumbs: breadcrumbsAnatomy,
     pagination: paginationAnatomy,
     steps: stepsAnatomy,

@@ -54,6 +54,7 @@ import { virtualListPage } from './virtual-list';
 import { radialProgressPage } from './radial-progress';
 import { joinPage } from './join';
 import { navbarPage } from './navbar';
+import { navListPage } from './nav-list';
 import { breadcrumbsPage } from './breadcrumbs';
 import { paginationPage } from './pagination';
 import { stepsPage } from './steps';
@@ -124,6 +125,7 @@ export const pages: PageEntry[] = [
     collapsiblePage,
     treeViewPage,
     navbarPage,
+    navListPage,
     breadcrumbsPage,
     paginationPage,
     stepsPage,

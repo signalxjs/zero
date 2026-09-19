@@ -243,6 +243,10 @@
             "types": "./dist/components/navbar/index.d.ts",
             "import": "./dist/components/navbar/index.js"
         },
+        "./nav-list": {
+            "types": "./dist/components/nav-list/index.d.ts",
+            "import": "./dist/components/nav-list/index.js"
+        },
         "./breadcrumbs": {
             "types": "./dist/components/breadcrumbs/index.d.ts",
             "import": "./dist/components/breadcrumbs/index.js"

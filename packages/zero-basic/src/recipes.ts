@@ -5108,6 +5108,115 @@ export const navbar: RecipeInput = {
 };
 
 /**
+ * NavList (zero#132) — the sidebar's list: quiet rows, an ink wash on
+ * hover, and the current page as a soft tint of the accent with the accent
+ * as its ink — the active tab's answer, one level down. The heading is a
+ * small-caps label; `meta` rides the far edge in the muted ink.
+ */
+export const navList: RecipeInput = {
+    component: 'nav-list',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--nav-accent': 'The current link\'s ink.',
+            '--nav-tint': 'The current link\'s fill.',
+            '--nav-ink': 'The resting link ink.',
+        },
+    },
+    tokens: {
+        '--nav-accent': 'var(--color-base-content)',
+        '--nav-tint': inkWashDeep,
+        '--nav-ink': 'color-mix(in oklch, var(--color-base-content) 78%, transparent)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        group: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+        },
+        heading: {
+            base: {
+                padding: '0 var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: { base: { display: 'block' } },
+        link: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                textDecoration: 'none',
+                color: 'var(--nav-ink)',
+                padding: 'var(--space-xs) var(--space-md)',
+                borderRadius: 'var(--radius-field)',
+                lineHeight: 'var(--leading-tight)',
+                transition: 'background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash, color: 'var(--color-base-content)' },
+                active: { background: 'var(--nav-tint)', color: 'var(--nav-accent)', fontWeight: 'var(--weight-medium)' },
+                inactive: {},
+                ...focusRing,
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                inlineSize: '1.25em',
+                justifyContent: 'center',
+                flex: 'none',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        meta: {
+            base: {
+                marginInlineStart: 'auto',
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--nav-accent': softInk(c),
+            '--nav-tint': `var(--color-${c}-soft)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)' } }, link: { base: { padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } }, link: { base: { padding: 'var(--space-2xs) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } }, link: { base: { padding: 'var(--space-sm) var(--space-lg)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)' } }, link: { base: { padding: 'var(--space-md) var(--space-lg)' } } },
+        },
+    },
+};
+
+/**
  * Breadcrumbs — the trail as quiet ink: links at 70% density, underlined
  * only under the pointer, the current page in full ink and a touch of
  * weight (it is where you ARE, so it does not dress as a destination).
@@ -6324,7 +6433,7 @@ export const recipes: RecipeInput[] = [
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps, drawer,
+    navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,
     carousel,

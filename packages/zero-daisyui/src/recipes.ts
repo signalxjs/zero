@@ -5058,6 +5058,112 @@ export const navbar: RecipeInput = {
 };
 
 /**
+ * NavList (zero#132) — daisy's `menu` idiom for a sidebar: rounded rows, a
+ * base-200 wash on hover, and the current page as the role's soft fill in
+ * the role's ink. `meta` is where daisy's menu puts its badge.
+ */
+export const navList: RecipeInput = {
+    component: 'nav-list',
+    hooks: {
+        properties: {
+            '--nav-accent': 'The current link\'s ink.',
+            '--nav-tint': 'The current link\'s fill.',
+            '--nav-ink': 'The resting link ink.',
+        },
+    },
+    tokens: {
+        '--nav-accent': 'var(--color-base-content)',
+        '--nav-tint': 'var(--color-base-300)',
+        '--nav-ink': 'var(--color-base-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        group: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+        },
+        heading: {
+            base: {
+                padding: '0 var(--space-lg)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-bold)',
+                opacity: '0.6',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: { base: { display: 'block' } },
+        link: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                textDecoration: 'none',
+                color: 'var(--nav-ink)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                borderRadius: 'var(--radius-field)',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-tight)',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                active: { background: 'var(--nav-tint)', color: 'var(--nav-accent)' },
+                inactive: {},
+                ...focusRing,
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                inlineSize: '1.25em',
+                justifyContent: 'center',
+                flex: 'none',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        meta: {
+            base: {
+                marginInlineStart: 'auto',
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                opacity: '0.7',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--nav-accent': roleInk(c),
+            '--nav-tint': `var(--color-${c}-soft)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)' } }, link: { base: { padding: 'var(--space-2xs) var(--space-md)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } }, link: { base: { padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } }, link: { base: { padding: 'var(--space-md) var(--space-lg)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)' } }, link: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
+        },
+    },
+};
+
+/**
  * Breadcrumbs — daisy's breadcrumbs: a compact text-sm trail, links
  * underlining on hover, the current crumb plain full ink. Colour rebinds
  * the current crumb through `roleInk` (the readable-ink map daisy already
@@ -6319,7 +6425,7 @@ export const recipes: RecipeInput[] = [
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps, drawer,
+    navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,
     carousel,

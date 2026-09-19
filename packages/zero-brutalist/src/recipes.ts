@@ -3848,6 +3848,105 @@ export const navbar: RecipeInput = {
 };
 
 /**
+ * NavList (zero#132) — a column of hard rows: monospace labels, the current
+ * page inverted to the accent as a solid block, and the hover a base-200
+ * strip. Headings are the label face in uppercase.
+ */
+export const navList: RecipeInput = {
+    component: 'nav-list',
+    hooks: {
+        properties: {
+            '--nav-accent': 'The current row\'s fill.',
+            '--nav-on-accent': 'The ink on --nav-accent.',
+            '--nav-ink': 'The resting link ink.',
+        },
+    },
+    tokens: {
+        '--nav-accent': 'var(--color-base-content)',
+        '--nav-on-accent': 'var(--color-base-100)',
+        '--nav-ink': 'var(--color-base-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-lg)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        group: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+        },
+        heading: {
+            base: { ...label, padding: '0 var(--space-md)', fontSize: 'var(--text-xs)' },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: { base: { display: 'block' } },
+        link: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                textDecoration: 'none',
+                color: 'var(--nav-ink)',
+                padding: 'var(--space-xs) var(--space-md)',
+                borderRadius: '0',
+                lineHeight: 'var(--leading-tight)',
+                transition: motion('background, color, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                active: { background: 'var(--nav-accent)', color: 'var(--nav-on-accent)', fontWeight: 'var(--weight-bold)' },
+                inactive: {},
+                ...focusRing,
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                inlineSize: '1.25em',
+                justifyContent: 'center',
+                flex: 'none',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        meta: {
+            base: {
+                marginInlineStart: 'auto',
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontVariantNumeric: 'tabular-nums',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--nav-accent': `var(--color-${c})`,
+            '--nav-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { link: { base: { padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { link: { base: { padding: 'var(--space-2xs) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)' } }, link: { base: { padding: 'var(--space-sm) var(--space-lg)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)' } }, link: { base: { padding: 'var(--space-md) var(--space-lg)' } } },
+        },
+    },
+};
+
+/**
  * Breadcrumbs — uppercase mono-weight wayfinding: every crumb underlined
  * the honest way (it IS a link), the current page a solid ink block with
  * no underline. Colour refills the current-page block with the role pair.
@@ -4979,7 +5078,7 @@ export const recipes: RecipeInput[] = [
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps, drawer,
+    navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,
     carousel,

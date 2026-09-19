@@ -259,6 +259,9 @@ const NO_VARIANT: Record<string, string> = {
         + 'controls.',
 
     // ── The navigation tier (#339). ──
+    'nav-list': 'no surveyed system varies a sidebar list\'s chrome — daisyUI\'s '
+        + 'menu has size and the shared colour utilities (the color axis, '
+        + 'wired here on the active link), and HeroUI ships no such list (#132).',
     navbar: 'no surveyed system varies a header bar — daisyUI\'s navbar is '
         + 'one padded surface recoloured by the shared background utilities '
         + '(the color axis, wired here), and HeroUI\'s Navbar styles through '
