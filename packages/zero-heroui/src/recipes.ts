@@ -507,6 +507,11 @@ export const dialog: RecipeInput = {
         trigger: pressableOverlayTrigger,
         popup: withPresence(popupPresence('translateY(8px) scale(0.98)'), {
             base: {
+                // A <dialog> keeps the UA's `content-box`, and zero ships no
+                // reset — so a width or max-width meant to leave a gutter
+                // grew by the padding, and at phone width the popup ran past
+                // both edges (#101). Its box is the border box.
+                boxSizing: 'border-box',
                 border: 'none',
                 borderRadius: 'var(--radius-box)',
                 padding: 'var(--space-xl)',

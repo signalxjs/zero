@@ -975,6 +975,11 @@ export const dialog: RecipeInput = {
         },
         popup: withPresence(popupPresence('translateY(8px) scale(0.97)'), {
             base: {
+                // A <dialog> keeps the UA's `content-box`, and zero ships no
+                // reset — so a width or max-width meant to leave a gutter
+                // grew by the padding, and at phone width the popup ran past
+                // both edges (#101). Its box is the border box.
+                boxSizing: 'border-box',
                 padding: 'var(--space-2xl)',
                 maxWidth: '32rem',
                 width: 'calc(100% - 2rem)',
