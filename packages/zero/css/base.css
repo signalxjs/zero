@@ -255,6 +255,19 @@
     }
 
     /*
+     * A stacked table's per-cell column label (`Table.Root stack`, #55). It
+     * renders on every table that CAN stack, and shows only below the
+     * table's breakpoint — the rule that shows it is per breakpoint, so the
+     * design system's compiled stylesheet carries it (with the rest of the
+     * stacked geometry, and a restatement of this default). Here so an
+     * unstyled page, or a skin without a table recipe, never prints a label
+     * beside every value.
+     */
+    [data-scope="table"][data-part="cell-label"] {
+        display: none;
+    }
+
+    /*
      * An autosizing textarea (#88): `Textarea.Root minRows`/`maxRows`. The
      * box grows with its content — soft wraps included, which counting
      * newlines into `rows` never saw — between the row bounds the part

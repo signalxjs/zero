@@ -18,7 +18,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { anatomies } from '@sigx/zero/anatomy';
-import { explainFit, fitRecipesToVocabulary, validateDesignSystem } from '@sigx/zero-kit';
+import { explainFit, fitRecipes, fitRecipesToVocabulary, validateDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent, RecipeInput, TokensInput } from '@sigx/zero-kit';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -91,6 +91,7 @@ describe("zero-basic's recipes fit riso's tokens (roles: {}, sizes: [], fused va
             "droppedAxisValues": 0,
             "droppedColorValues": 408,
             "droppedCompounds": 0,
+            "droppedConditions": 7,
             "droppedDefaults": 9,
             "droppedModifiers": 3,
             "droppedSizeValues": 254,
@@ -246,6 +247,35 @@ describe('each rule in isolation', () => {
         const declared = { ...tokens, system: { motion: { easings: { exit: 'ease-in' } } } } as unknown as TokensInput;
         expect(fitRecipesToVocabulary([withSteps], declared)[0]!.parts.root!.base!.transition)
             .toBe('opacity var(--duration-fast) var(--ease-exit)');
+    });
+
+    it('drops an at condition naming a breakpoint the design system does not declare (zero#55)', () => {
+        const tokens = {
+            breakpoints: { sm: '40rem', md: '48rem' },
+            themes: { light }, defaultLight: 'light',
+        } as unknown as TokensInput;
+        const conditioned: RecipeInput = {
+            component: 'table',
+            parts: {
+                row: {
+                    base: { padding: '0' },
+                    at: {
+                        'below-md': { base: { padding: '1px' } },
+                        'below-lg': { base: { padding: '2px' } },
+                        lg: { base: { padding: '3px' } },
+                        'forced-colors': { base: { border: '1px solid' } },
+                        '@supports (display: grid)': { base: { display: 'grid' } },
+                    },
+                },
+                cell: { at: { 'below-lg': { base: { padding: '4px' } } } },
+            },
+        };
+        const { recipes: [out], report } = fitRecipes([conditioned], tokens);
+        expect(Object.keys(out!.parts.row!.at!)).toEqual(['below-md', 'forced-colors', '@supports (display: grid)']);
+        // An `at` the fit emptied goes, rather than lingering as `{}`.
+        expect(out!.parts.cell).toEqual({});
+        expect(report.droppedConditions).toBe(3);
+        expect(report.identity).toBe(false);
     });
 
     it('treats a role opting out of -content / -soft as not declaring those tokens', () => {

@@ -219,3 +219,98 @@ describe('Table column spec (#55)', () => {
         )).toThrow(/column 3 is not in/);
     });
 });
+
+describe('Table stacked mode (#55)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    const all = (name: string) => [...container.querySelectorAll<HTMLElement>(selector('table', name))];
+    const columns = [{ label: 'Time' }, { label: 'What' }, { key: 'note' }];
+
+    function stacked(stack?: string) {
+        return (
+            <Table.Root columns={columns} stack={stack}>
+                <Table.Caption>History</Table.Caption>
+                <Table.Head />
+                <Table.Body>
+                    <Table.Row>
+                        <Table.Cell column={0}>09:12</Table.Cell>
+                        <Table.Cell column={1}>Deployed <b>api</b></Table.Cell>
+                        <Table.Cell column="note">—</Table.Cell>
+                    </Table.Row>
+                    <Table.Row>
+                        <Table.Cell colSpan={3}>No more activity</Table.Cell>
+                    </Table.Row>
+                </Table.Body>
+            </Table.Root>
+        );
+    }
+
+    it('renders the breakpoint as the data-l-stack layout attribute on the root', () => {
+        render(stacked('md'), container);
+        expectAnatomy(container, tableAnatomy);
+        expect(part(container, 'root').getAttribute('data-l-stack')).toBe('md');
+        expect(tableAnatomy.parts.root.layout).toEqual(['stack']);
+    });
+
+    it('opens each cell naming a labelled column with an aria-hidden cell-label', () => {
+        render(stacked('md'), container);
+        const labels = all('cell-label');
+        expect(labels.map((l) => l.textContent)).toEqual(['Time', 'What']);
+        for (const label of labels) {
+            expect(label.tagName).toBe('SPAN');
+            expect(label.getAttribute('aria-hidden')).toBe('true');
+            // First, so it hangs before the value whatever the value is.
+            expect(label.parentElement!.firstChild).toBe(label);
+        }
+        // A column without a label, and a cell naming no column, print none.
+        const cells = all('cell');
+        expect(cells[2]!.querySelector(selector('table', 'cell-label'))).toBeNull();
+        expect(cells[3]!.querySelector(selector('table', 'cell-label'))).toBeNull();
+        // The value itself is untouched.
+        expect(cells[1]!.textContent).toBe('WhatDeployed api');
+    });
+
+    it('restates the native table roles while it can stack, and an app role still wins', () => {
+        render(stacked('md'), container);
+        expect(part(container, 'table').getAttribute('role')).toBe('table');
+        expect(part(container, 'caption').hasAttribute('role')).toBe(false);
+        expect(part(container, 'head').getAttribute('role')).toBe('rowgroup');
+        expect(part(container, 'body').getAttribute('role')).toBe('rowgroup');
+        expect(all('row').map((r) => r.getAttribute('role'))).toEqual(['row', 'row', 'row']);
+        expect(all('header-cell').map((c) => c.getAttribute('role'))).toEqual(['columnheader', 'columnheader', 'columnheader']);
+        expect(all('cell').map((c) => c.getAttribute('role'))).toEqual(['cell', 'cell', 'cell', 'cell']);
+
+        const other = document.createElement('div');
+        render(
+            <Table.Root stack="md" role="grid">
+                <Table.Body>
+                    <Table.Row role="presentation">
+                        <Table.HeaderCell scope="row">Q1</Table.HeaderCell>
+                        <Table.Cell role="gridcell">x</Table.Cell>
+                    </Table.Row>
+                </Table.Body>
+            </Table.Root>,
+            other,
+        );
+        expect(other.querySelector(selector('table', 'table'))!.getAttribute('role')).toBe('grid');
+        expect(other.querySelector(selector('table', 'row'))!.getAttribute('role')).toBe('presentation');
+        expect(other.querySelector(selector('table', 'header-cell'))!.getAttribute('role')).toBe('rowheader');
+        expect(other.querySelector(selector('table', 'cell'))!.getAttribute('role')).toBe('gridcell');
+    });
+
+    it('without stack: no attribute, no labels, no restated roles', () => {
+        render(stacked(), container);
+        expect(part(container, 'root').hasAttribute('data-l-stack')).toBe(false);
+        expect(all('cell-label')).toHaveLength(0);
+        expect(part(container, 'table').hasAttribute('role')).toBe(false);
+        expect(all('row').some((r) => r.hasAttribute('role'))).toBe(false);
+    });
+
+    it('refuses a value that cannot be a breakpoint name', () => {
+        expect(() => render(stacked('Md'), document.createElement('div'))).toThrow(/"Md" is not a value of "stack"/);
+        expect(() => render(stacked('base'), document.createElement('div'))).toThrow(/breakpoint name other than "base"/);
+    });
+});

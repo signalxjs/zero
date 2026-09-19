@@ -525,7 +525,7 @@ export const RESERVED_AXES: ReadonlySet<string> = new Set([
  * Note what the prefix buys on THIS side: because every layout attribute is
  * namespaced, none of these names appears in `RESERVED_AXES`, so a design
  * system remains free to declare an axis called `align` or `track`. An
- * unprefixed family would have had to seize all fifteen words permanently
+ * unprefixed family would have had to seize all seventeen words permanently
  * from every design system in the ecosystem.
  */
 export const LAYOUT_ATTR_PREFIX = 'data-l-';
@@ -540,6 +540,8 @@ export const BASE_BREAKPOINT_KEY = 'base';
 export interface LayoutAttrSpec {
     readonly values: readonly string[];
     readonly responsive?: true;
+    /** `'breakpoints'`: the value names a declared breakpoint, so `values` is empty — see the zero copy. */
+    readonly valuesFrom?: 'breakpoints';
 }
 
 export const SPACE_STEPS = ['none', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl'] as const;
@@ -573,6 +575,8 @@ export const LAYOUT_VOCABULARY = {
      * in `ch` — is not a size at all.
      */
     measure: { values: ['xs', 'sm', 'md', 'lg', 'xl', 'prose', 'full'] },
+    /** The breakpoint below which a part stacks (`Table.Root stack="md"`, #55). Valued by breakpoint name. */
+    stack: { values: [], valuesFrom: 'breakpoints' },
 } as const satisfies Record<string, LayoutAttrSpec>;
 
 export type LayoutAttrName = keyof typeof LAYOUT_VOCABULARY;
@@ -581,6 +585,17 @@ export const LAYOUT_ATTR_NAMES: ReadonlySet<string> = new Set(Object.keys(LAYOUT
 
 /** One attribute's spec, widened — see the zero copy for why the union needs it. */
 export const layoutAttrSpec = (attr: LayoutAttrName): LayoutAttrSpec => LAYOUT_VOCABULARY[attr];
+
+/**
+ * Whether `value` is one `attr` can take. Mirrors `isLayoutValue` in
+ * `@sigx/zero/contract`: a closed attribute checks its list, a
+ * breakpoint-valued one the breakpoint grammar (never `base`).
+ */
+export function isLayoutValue(attr: LayoutAttrName, value: string): boolean {
+    const spec = layoutAttrSpec(attr);
+    if (spec.valuesFrom === 'breakpoints') return TOKEN_KEY_PATTERN.test(value) && value !== BASE_BREAKPOINT_KEY;
+    return spec.values.includes(value);
+}
 
 /**
  * Attribute names longest-first — the scan order `parseLayoutAttr` needs so

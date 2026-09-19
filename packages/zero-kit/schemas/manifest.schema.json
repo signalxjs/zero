@@ -62,7 +62,7 @@
                     "const": "data-l-"
                 },
                 "layoutVocabulary": {
-                    "description": "The closed layout attribute vocabulary: attribute name to its permitted values, and whether it may also be written per breakpoint. A part that can carry an attribute declares it in `layout`.",
+                    "description": "The closed layout attribute vocabulary: attribute name to its permitted values, and whether it may also be written per breakpoint. A part that can carry an attribute declares it in `layout`. A breakpoint-valued attribute (`stack`) lists no values and says `valuesFrom: \"breakpoints\"` instead: its value names one of the design system's own breakpoints.",
                     "type": "object",
                     "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
                     "additionalProperties": {
@@ -72,11 +72,14 @@
                         "properties": {
                             "values": {
                                 "type": "array",
-                                "items": { "$ref": "#/$defs/kebabToken" },
-                                "minItems": 1
+                                "items": { "$ref": "#/$defs/kebabToken" }
                             },
-                            "responsive": { "const": true }
-                        }
+                            "responsive": { "const": true },
+                            "valuesFrom": { "const": "breakpoints" }
+                        },
+                        "if": { "properties": { "valuesFrom": { "const": "breakpoints" } }, "required": ["valuesFrom"] },
+                        "then": { "properties": { "values": { "type": "array", "maxItems": 0 }, "responsive": false } },
+                        "else": { "properties": { "values": { "type": "array", "minItems": 1 } } }
                     }
                 },
                 "variantAxes": {

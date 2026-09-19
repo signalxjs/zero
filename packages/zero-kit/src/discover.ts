@@ -666,6 +666,7 @@ function fitSummary(report: FitReport): string {
     say(report.droppedCompounds, 'compound(s)');
     say(report.rewrittenRoleRefs, 'role reference(s) rewritten');
     say(report.collapsedCategoryRefs, 'scale reference(s) collapsed');
+    say(report.droppedConditions, 'undeclared-breakpoint condition(s)');
     return parts.join(', ');
 }
 

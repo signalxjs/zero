@@ -21,3 +21,8 @@ export const header = <Table.HeaderCell column="age" />;
 export const e1: TableColumn = { align: 'right' };
 // @ts-expect-error — a column is named by index or key
 export const e2 = <Table.Cell column={true}>x</Table.Cell>;
+
+// ── stacked mode (#55): a breakpoint name, never a record ──
+export const stacked = <Table.Root stack="md" columns={columns}><Table.Head /></Table.Root>;
+// @ts-expect-error — `stack` names one breakpoint; it does not vary per breakpoint
+export const e3 = <Table.Root stack={{ md: 'md' }} />;

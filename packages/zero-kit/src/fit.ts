@@ -31,6 +31,7 @@
  */
 import { TOKEN_CATEGORIES, resolveRoles, tokenProperty } from './contract.js';
 import type { RecipeInput, RecipeTargetOverride } from './recipes.js';
+import { BELOW_PREFIX, BUILTIN_CONDITIONS } from './recipes.js';
 import { tokenVocabulary } from './resolve/vocabulary.js';
 import type { RolesDecl, SystemTokens, TokensInput } from './tokens.js';
 
@@ -67,6 +68,13 @@ export interface FitReport {
     rewrittenRoleRefs: number;
     /** References to an undeclared step of a token category, collapsed to that category's resting step. */
     collapsedCategoryRefs: number;
+    /**
+     * `at` conditions dropped because they name a breakpoint the design
+     * system does not declare — `below-lg` from basic's stacked-table cards
+     * (zero#55) under a brief whose ramp stops at `md`. The rule is
+     * unreachable there: no `stack` value can name that breakpoint.
+     */
+    droppedConditions: number;
     /** True when nothing changed — the recipes already fit the vocabulary. */
     identity: boolean;
 }
@@ -85,6 +93,12 @@ interface Admits {
     scopes: Readonly<Record<string, { variants?: ReadonlySet<string>; axes?: Readonly<Record<string, ReadonlySet<string>>> }>>;
     /** Every custom property a recipe may reference under this design system — the validator's own set. */
     names: ReadonlySet<string>;
+    /**
+     * The declared breakpoint names — what an `at` key may name, bare or as
+     * `below-<name>`. Undefined when `tokens.breakpoints` is absent: like an
+     * undeclared size ramp, that keeps every condition rather than guessing.
+     */
+    breakpoints: ReadonlySet<string> | undefined;
 }
 
 /** The declared value set for `axis` on `scope`, or undefined when the axis is open (colour and size are handled by `keepsValue`). */
@@ -118,7 +132,47 @@ function admitsOf(tokens: AnyTokens): Admits {
             ...(decl.axes ? { axes: Object.fromEntries(Object.entries(decl.axes).map(([axis, values]) => [axis, new Set(values)])) } : {}),
         }])),
         names: tokenVocabulary(tokens).names,
+        breakpoints: tokens.breakpoints ? new Set(Object.keys(tokens.breakpoints)) : undefined,
     };
+}
+
+/**
+ * Whether an `at` key survives under `admits`: a raw `@` prelude and a
+ * built-in always do; a breakpoint, bare or `below-`, only when declared.
+ * The resolution order is the compiler's (`resolveCondition`).
+ */
+function keepsCondition(admits: Admits, key: string): boolean {
+    const declared = admits.breakpoints;
+    if (!declared || key.startsWith('@') || Object.hasOwn(BUILTIN_CONDITIONS, key)) return true;
+    if (declared.has(key)) return true;
+    return key.startsWith(BELOW_PREFIX) && declared.has(key.slice(BELOW_PREFIX.length));
+}
+
+const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+
+/**
+ * Deep-clone a recipe section, dropping every `at` entry whose condition
+ * names an undeclared breakpoint (see `droppedConditions`). An `at` that
+ * empties is removed rather than left as `{}`.
+ */
+function fitConditions<T>(value: T, admits: Admits, report: FitReport): T {
+    if (Array.isArray(value)) return value.map((v) => fitConditions(v, admits, report)) as T;
+    if (!isRecord(value)) return value;
+    const out: Record<string, unknown> = {};
+    for (const [key, inner] of Object.entries(value)) {
+        if (key === 'at' && isRecord(inner)) {
+            const kept: Record<string, unknown> = {};
+            for (const [condition, styles] of Object.entries(inner)) {
+                if (keepsCondition(admits, condition)) kept[condition] = fitConditions(styles, admits, report);
+                else report.droppedConditions += 1;
+            }
+            // Only an `at` the fit EMPTIED goes; one authored empty stays.
+            if (Object.keys(kept).length > 0 || Object.keys(inner).length === 0) out[key] = kept;
+            continue;
+        }
+        out[key] = fitConditions(inner, admits, report);
+    }
+    return out as T;
 }
 
 /**
@@ -302,7 +356,7 @@ function fitRecipe(recipe: RecipeInput, admits: Admits, report: FitReport): Reci
         fitted.targets = targets;
     }
     const counters: Counters = { roles: 0, categories: 0 };
-    const rewritten = rewriteStrings(fitted, admits, counters);
+    const rewritten = rewriteStrings(fitConditions(fitted, admits, report), admits, counters);
     report.rewrittenRoleRefs += counters.roles;
     report.collapsedCategoryRefs += counters.categories;
     return rewritten;
@@ -320,6 +374,7 @@ function emptyReport(): FitReport {
         droppedCompounds: 0,
         rewrittenRoleRefs: 0,
         collapsedCategoryRefs: 0,
+        droppedConditions: 0,
         identity: true,
     };
 }
@@ -332,7 +387,7 @@ function run(recipes: readonly RecipeInput[], tokens: AnyTokens): { recipes: Rec
         report.droppedColorValues + report.droppedSizeValues + report.droppedVariantValues
             + report.droppedAxisValues + report.droppedModifiers + report.droppedDefaults
             + report.droppedCompounds + report.rewrittenRoleRefs + report.collapsedCategoryRefs
-            + report.droppedVariantBlocks === 0;
+            + report.droppedVariantBlocks + report.droppedConditions === 0;
     return { recipes: fitted, report };
 }
 

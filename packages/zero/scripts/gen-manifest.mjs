@@ -48,7 +48,13 @@ const manifest = {
         layoutVocabulary: Object.fromEntries(
             Object.entries(LAYOUT_VOCABULARY).map(([attr, spec]) => [
                 attr,
-                { values: [...spec.values], ...(spec.responsive ? { responsive: true } : {}) },
+                {
+                    values: [...spec.values],
+                    ...(spec.responsive ? { responsive: true } : {}),
+                    // A breakpoint-valued attribute (`stack`) lists no values:
+                    // its value set is the design system's own breakpoints.
+                    ...(spec.valuesFrom ? { valuesFrom: spec.valuesFrom } : {}),
+                },
             ]),
         ),
         // The axes with named props. NOT a closed set — a design system may

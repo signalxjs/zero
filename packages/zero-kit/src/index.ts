@@ -40,6 +40,8 @@ export type { DerivePaletteOptions, DeriveThemePairOptions, Harmony, Oklch, Role
 export { clampChroma, contrastRatio, derivePalette, deriveThemePair, formatOklch, solveContentLightness } from './palette.js';
 
 export { LAYOUT_SCOPES, layoutCss, layoutRecipes, layoutScopes } from './layout-recipes.js';
+export type { TableStackPart } from './table-stack.js';
+export { tableStackAt, tableStackCss } from './table-stack.js';
 
 export type { FitReport } from './fit.js';
 export { explainFit, fitRecipes, fitRecipesToVocabulary } from './fit.js';

@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+### Added — Table's stacked mode (zero#55)
+
+- **The stacked geometry is emitted per design system.**
+  `compileDesignSystem` writes `tableStackCss(breakpoints)` into
+  `@layer zero.structure`: one `@media (width < …)` block per declared
+  breakpoint, keyed on `data-l-stack="<name>"` through the table's whole
+  child chain, plus the label's `display: none` default. It goes into the
+  table's component stylesheet, or into `index.css` when the skin styles no
+  table, and only while the manifest's table declares the attribute. Web
+  only; it never goes through `DesignSystemInput.css`, which lands in
+  `zero.recipes`.
+- **`tableStackAt(tokens, part, styles)`** (on `/define`) is a skin's card
+  chrome: `below-<breakpoint>` entries that apply `styles` only while a
+  table stacks, specificity-neutral through `:where()`. All six in-repo
+  skins now draw stacked cards and style the new `cell-label` part.
+- **`LAYOUT_VOCABULARY.stack`**, `LayoutAttrSpec.valuesFrom` and
+  **`isLayoutValue`** mirror zero's contract (parity-tested).
+  `manifest.schema.json` accepts a `valuesFrom: "breakpoints"` attribute
+  with an empty `values` list, and still requires `values` everywhere else.
+- **`RESERVED_PROPS_BY_SCOPE.table` gains `stack`.**
+- **`fitRecipesToVocabulary` drops undeclared-breakpoint conditions.** An
+  `at` key naming a breakpoint (bare or `below-`) that the tokens do not
+  declare is removed and counted in the new
+  `FitReport.droppedConditions`, once `tokens.breakpoints` is declared.
+  zero-basic's `below-lg` cards otherwise failed a brief whose ramp stops
+  at `md`.
+- **`spacing/*` skips `@layer zero.structure`.** That layer is zero's
+  geometry, such as the visually hidden head's `margin: -1px`, and the skin
+  cannot change it.
+
 ### Added — re-carried axes: a part's own axis value (zero#94)
 
 - **`ManifestPart.carries`** (and `manifest.schema.json`) carries zero's

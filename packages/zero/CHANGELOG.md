@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+### Added — Table's stacked mode (#55)
+
+- **`Table.Root stack`** names a design-system breakpoint (`stack="md"`).
+  Below it, every row becomes one block and each cell that names a
+  labelled `column` is captioned by its label. The root renders
+  `data-l-stack="md"`.
+- **`stack` joins `LAYOUT_VOCABULARY`** as its first breakpoint-valued
+  attribute: `{ values: [], valuesFrom: 'breakpoints' }`
+  (`LayoutAttrSpec.valuesFrom`). A value answers to the breakpoint grammar
+  (kebab-case, never `base`) rather than to a list, it is never responsive,
+  and `LayoutProp<'stack'>` is `ZeroBreakpointName`, so `/register` narrows
+  it to the declared names. The manifest's `layoutVocabulary` carries
+  `valuesFrom`. **`isLayoutValue(attr, value)`** is the value check
+  `layoutAttrs` and `expectAnatomy` share.
+- **Anatomy.** `table.root` declares `layout: ['stack']`, and `table` gains
+  **`cell-label`**: an `aria-hidden` `<span>` (`parent: 'cell'`), the first
+  child of every `Table.Cell` naming a labelled column on a table that can
+  stack. It is a real element rather than a `::before`, so it cannot
+  collide with a skin's pseudo-elements.
+- **Geometry in `zero.structure`.** `css/base.css` hides `cell-label`. Each
+  design system's build (`@sigx/zero-kit`) emits the per-breakpoint rules
+  that show it and stack the rows: the head row is visually hidden but stays
+  in the accessibility tree, and the `<col>` widths reset to `auto` without
+  `!important`.
+- **Roles on a stacking table.** `Table.Root`'s `<table>`, the sections,
+  rows and cells restate their native roles (`table`, `rowgroup`, `row`,
+  `cell`, `columnheader`/`rowheader`) while `stack` is set, because some
+  engines drop table semantics from elements no longer displayed as table
+  parts. An app `role` still wins.
+
 ### Added — a part may re-carry an axis: per-entry Timeline colour (#94)
 
 - **`PartSpec.carries`** (`CarriedAxis`: `color | size | variant`) declares

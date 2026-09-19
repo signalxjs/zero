@@ -68,7 +68,7 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // has nothing to compare against.
     MOD_ATTR_PREFIX: [zero.MOD_ATTR_PREFIX, kit.MOD_ATTR_PREFIX],
     // The layout family. The prefix is load-bearing on both sides — it is
-    // what keeps fifteen ordinary words out of RESERVED_AXES — and the
+    // what keeps seventeen ordinary words out of RESERVED_AXES — and the
     // vocabulary itself must not drift, because a design system's compiled
     // step table and the attributes the runtime renders are two halves of
     // one lookup: a value in one copy and not the other is a rule that can
@@ -98,6 +98,7 @@ const KNOWN_UNSHARED: Record<string, string> = {
     defaultSwatch: 'function — compared by behavior, not by value',
     layoutAttrSpec: 'function — compared by behavior, not by value',
     parseLayoutAttr: 'function — compared by behavior, not by value',
+    isLayoutValue: 'function — compared by behavior, not by value',
 };
 
 describe('kit ↔ zero contract parity', () => {
@@ -130,6 +131,11 @@ describe('kit ↔ zero contract parity', () => {
         }
         for (const attr of Object.keys(zero.LAYOUT_VOCABULARY) as Array<keyof typeof zero.LAYOUT_VOCABULARY>) {
             expect(kit.layoutAttrSpec(attr), attr).toEqual(zero.layoutAttrSpec(attr));
+            // The value check, including the breakpoint-valued grammar
+            // (`stack`), and the values neither side may accept.
+            for (const value of [...zero.layoutAttrSpec(attr).values, 'md', 'tablet-lg', '2xl', 'base', 'Md', '', 'nope']) {
+                expect(kit.isLayoutValue(attr, value), `${attr}="${value}"`).toBe(zero.isLayoutValue(attr, value));
+            }
         }
     });
 

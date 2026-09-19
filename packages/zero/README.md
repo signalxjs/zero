@@ -358,6 +358,35 @@ column's label. Naming a column the spec doesn't have throws.
 </Table.Root>
 ```
 
+**Stacked tables.** `Table.Root stack="md"` names a design-system
+breakpoint. Below it, every row becomes one block, and a cell that names a
+labelled column opens with that label: the `cell-label` part, an
+`aria-hidden` `<span>` rendered only on a table that can stack. The root
+carries `data-l-stack="md"`, a breakpoint-valued layout attribute that
+`/register` narrows to the declared names. The geometry is zero's, emitted
+by each design system's build into `@layer zero.structure` per breakpoint.
+Rows turn into blocks, the head row is visually hidden but stays in the
+accessibility tree, the `<col>` widths reset, and the label hangs beside the
+value. The card chrome (border, fill, the gap between cards) is the design
+system's recipe. `css/base.css` hides the label until the table actually
+stacks. While it can stack, the table restates its native roles (`table`,
+`rowgroup`, `row`, `cell`, `columnheader`/`rowheader`), because some
+engines drop table semantics once the elements stop being displayed as
+table parts. An app `role` still wins. Only `Table.Cell` prints a label;
+a cell that names no column, or a column with no `label`, prints none.
+
+```tsx
+<Table.Root stack="md" columns={[{ label: 'Service' }, { label: 'What' }]}>
+    <Table.Head />
+    <Table.Body>
+        <Table.Row>
+            <Table.Cell column={0}>api-gateway</Table.Cell>
+            <Table.Cell column={1}>Deployed <code>2.14.0</code></Table.Cell>
+        </Table.Row>
+    </Table.Body>
+</Table.Root>
+```
+
 **Text controls.** `Input.Input` and `Textarea.Textarea` are what an app
 builds a composer, a search box or an autocomplete on, so they forward the
 native `onKeydown`/`onKeyup`, `onBeforeinput`/`onInput`,

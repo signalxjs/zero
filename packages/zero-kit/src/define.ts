@@ -41,6 +41,8 @@ export type { CssProps, PartStyles, RecipeContext, RecipeHooks, RecipeInput } fr
 export { defineRecipe, HOOK_PSEUDO_ELEMENTS } from './recipes.js';
 
 export { LAYOUT_SCOPES, layoutCss, layoutRecipes, layoutScopes } from './layout-recipes.js';
+export type { TableStackPart } from './table-stack.js';
+export { tableStackAt } from './table-stack.js';
 
 export type { FitReport } from './fit.js';
 export { explainFit, fitRecipes, fitRecipesToVocabulary } from './fit.js';
