@@ -315,9 +315,14 @@ function* declarations(recipe: RecipeInput): Generator<{ path: string; props: Cs
         for (const [part, styles] of Object.entries(compounds[i]!.parts)) {
             yield* fromPart(`compoundVariants[${i}].parts.${part}`, styles);
         }
+        for (const [scope, composed] of Object.entries(compounds[i]!.composes ?? {})) {
+            for (const [part, styles] of Object.entries(composed.parts ?? {})) {
+                yield* fromPart(`compoundVariants[${i}].composes.${scope}.parts.${part}`, styles);
+            }
+        }
     }
     for (const [scope, composed] of Object.entries(recipe.composes ?? {})) {
-        for (const [part, styles] of Object.entries(composed.parts)) {
+        for (const [part, styles] of Object.entries(composed.parts ?? {})) {
             yield* fromPart(`composes.${scope}.parts.${part}`, styles);
         }
     }

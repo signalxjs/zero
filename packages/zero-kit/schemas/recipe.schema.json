@@ -125,31 +125,16 @@
                     },
                     "parts": {
                         "$ref": "#/$defs/partsRecord"
+                    },
+                    "composes": {
+                        "description": "Nested scopes styled in context WHILE this compound matches (#91) \u2014 a composition conditioned on the host's own axes and modifiers. Compiled inside an @scope donut rooted on the host carrier carrying the match, so a nested instance of the host answers for its own subtree.",
+                        "$ref": "#/$defs/composes"
                     }
                 }
             }
         },
         "composes": {
-            "description": "Other component scopes this one contains, styled in context: nested scope \u2192 where it sits (`within`, a part of this component; default its carrier part) and its parts' styles. Compiles to [data-scope=\"<this>\"][data-part=\"<within>\"] [data-scope=\"<nested>\"][data-part=\"<part>\"]. Scopes, parts and states are checked against the manifest at compile time. Web only.",
-            "type": "object",
-            "propertyNames": {
-                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
-            },
-            "additionalProperties": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                    "parts"
-                ],
-                "properties": {
-                    "within": {
-                        "$ref": "#/$defs/kebabToken"
-                    },
-                    "parts": {
-                        "$ref": "#/$defs/partsRecord"
-                    }
-                }
-            }
+            "$ref": "#/$defs/composes"
         },
         "defaultVariants": {
             "description": "axis \u2192 value applied when the axis attribute is absent (CSS-only defaults, compiled to :not([data-<axis>]) selectors).",
@@ -350,6 +335,10 @@
                             },
                             "parts": {
                                 "$ref": "#/$defs/partsRecord"
+                            },
+                            "composes": {
+                                "description": "Nested scopes styled in context WHILE this compound matches (#91) \u2014 a composition conditioned on the host's own axes and modifiers. Compiled inside an @scope donut rooted on the host carrier carrying the match, so a nested instance of the host answers for its own subtree.",
+                                "$ref": "#/$defs/composes"
                             }
                         }
                     }
@@ -400,6 +389,40 @@
             "description": "An axis VALUE: lowercase letters, digits and hyphens, repeated hyphens included (Carbon's danger--tertiary) \u2014 what a quoted [data-\u2026=\"\u2026\"] attribute selector, a single-quoted literal union in register.d.ts and an unescaped lynx class name (zx-a-<axis>-<value>) all carry verbatim. Wider than the kebab-case grammar names take; still no %, ., quotes, backslashes, whitespace or uppercase.",
             "type": "string",
             "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+        },
+        "composedScope": {
+            "description": "One nested scope styled in context: explicit `parts`, borrowed `axes`, or both (an entry with neither is a compile error).",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "within": {
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "parts": {
+                    "$ref": "#/$defs/partsRecord"
+                },
+                "axes": {
+                    "description": "The nested scope's own axis values to borrow in this context (#91): axis \u2192 value. Re-emits the nested recipe's variants.<axis>.<value> rules, the compounds matching that value and their `at` blocks under the context, guarded by the nested carrier having no data-<axis> of its own \u2014 an explicit prop on the nested instance wins. The value must be one the nested recipe wires in this design system.",
+                    "type": "object",
+                    "minProperties": 1,
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/$defs/axisValue"
+                    }
+                }
+            }
+        },
+        "composes": {
+            "description": "Other component scopes this one contains, styled in context: nested scope \u2192 where it sits (`within`, a part of this component; default its carrier part) and its parts' styles. Compiles to [data-scope=\"<this>\"][data-part=\"<within>\"] [data-scope=\"<nested>\"][data-part=\"<part>\"]. Scopes, parts and states are checked against the manifest at compile time. An entry may also borrow the nested scope's own axis values (`axes`, #91). Web only.",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "$ref": "#/$defs/composedScope"
+            }
         }
     }
 }

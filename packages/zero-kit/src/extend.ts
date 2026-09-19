@@ -38,7 +38,7 @@
 import type { DesignSystemApi } from './api.js';
 import type { DesignSystemInput } from './design-system.js';
 import { LAYOUT_SCOPES, layoutCss, layoutRecipes } from './layout-recipes.js';
-import type { PartStyles, RecipeInput, RecipeTargetOverride } from './recipes.js';
+import type { ComposedScope, PartStyles, RecipeInput, RecipeTargetOverride } from './recipes.js';
 import type { RolesDecl, SystemTokens, TokensInput } from './tokens.js';
 
 /**
@@ -53,10 +53,14 @@ export type Patch<T> =
 /** A patch of one part's styles — `base`, `states`, `selectors` and `at`, each per key. */
 export type PartStylesPatch = Patch<PartStyles>;
 
-/** A `compoundVariants` entry in a patch: addressed by `match`, merged per part. */
+/**
+ * A `compoundVariants` entry in a patch: addressed by `match`, merged per
+ * part — and per nested scope for its conditioned `composes` (#91).
+ */
 export interface CompoundVariantPatch {
     match: Record<string, string | true>;
-    parts: Record<string, PartStylesPatch | null>;
+    parts?: Record<string, PartStylesPatch | null>;
+    composes?: Record<string, Patch<ComposedScope> | null> | null;
 }
 
 /** What a per-target section of a patch may carry — the same surface, patched. */
@@ -183,13 +187,21 @@ function mergeCompounds(
     const out = [...(base ?? [])];
     for (const entry of patch) {
         const at = out.findIndex((c) => sameMatch(c.match, entry.match));
-        const parts = mergeRecord(at >= 0 ? out[at]!.parts : {}, entry.parts) as Record<string, PartStyles>;
+        const prior = at >= 0 ? out[at]! : undefined;
+        const parts = mergeRecord(prior?.parts ?? {}, entry.parts ?? {}) as Record<string, PartStyles>;
+        const composes = entry.composes === null
+            ? {}
+            : mergeRecord(prior?.composes ?? {}, entry.composes ?? {}) as Record<string, ComposedScope>;
         // The base entry keeps its own match object: key order is emission order.
-        const merged = { match: at >= 0 ? out[at]!.match : { ...entry.match }, parts };
+        const merged: NonNullable<RecipeInput['compoundVariants']>[number] = {
+            match: prior ? prior.match : { ...entry.match },
+            parts,
+            ...(Object.keys(composes).length > 0 ? { composes } : {}),
+        };
         if (at >= 0) out[at] = merged;
         else out.push(merged);
     }
-    return out.filter((c) => Object.keys(c.parts).length > 0);
+    return out.filter((c) => Object.keys(c.parts).length > 0 || Object.keys(c.composes ?? {}).length > 0);
 }
 
 /**

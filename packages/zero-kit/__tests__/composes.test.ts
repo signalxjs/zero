@@ -127,3 +127,176 @@ describe('beyond the web target', () => {
         expect(JSON.stringify(fitted!.composes)).not.toContain('--color-primary');
     });
 });
+
+// ── #91: borrowing the nested recipe's own axis values, and compositions
+//    conditioned on the host's axes ─────────────────────────────────────────
+
+const basicRecipes = new Map(basic.recipes.map((r) => [r.component, r]));
+const borrow = (recipe: Omit<RecipeInput, 'component' | 'parts'> & { parts?: RecipeInput['parts'] }) =>
+    compileRecipeCss({ component: 'card', parts: {}, ...recipe }, card, { breakpoints, components, recipes: basicRecipes });
+const cardFooter = '[data-scope="card"][data-part="footer"]';
+const buttonRoot = '[data-scope="button"][data-part="root"]';
+
+describe('borrowing a nested scope\'s axis value (#91)', () => {
+    it('re-emits the nested recipe\'s value rules in context, guarded so an explicit prop wins', () => {
+        const css = borrow({ composes: { button: { within: 'footer', axes: { size: 'sm' } } } });
+        // The guard carries no specificity: (0,4,0), the unconditioned
+        // composes rule's own rank.
+        expect(css).toContain(`${cardFooter} ${buttonRoot}:not(:where([data-size])) {\n        padding: var(--space-xs) var(--space-sm);`);
+        expect(css).not.toContain('[data-size="sm"]');
+    });
+
+    it('emits borrowed rules BEFORE the entry\'s explicit parts, so the explicit style wins a tie', () => {
+        const css = borrow({ composes: { button: { within: 'footer', axes: { size: 'sm' }, parts: { root: { base: { padding: '0' } } } } } });
+        expect(css.indexOf(':not(:where([data-size]))')).toBeLessThan(css.indexOf(`${cardFooter} ${buttonRoot} {`));
+    });
+
+    it('reaches a non-carrier nested part through the nested donut, rooted on the guarded carrier', () => {
+        const css = borrow({ composes: { tabs: { within: 'body', axes: { size: 'lg' } } } });
+        const tabsRoot = '[data-scope="tabs"][data-part="root"]';
+        expect(css).toContain(`@scope ([data-scope="card"][data-part="body"] ${tabsRoot}:not(:where([data-size]))) to (${tabsRoot}) {`);
+        // `:scope` lifts it one step above the nested recipe's own donut rules.
+        expect(css).toContain(':scope [data-scope="tabs"][data-part="tab"] {');
+    });
+
+    it('copies the compounds that match the borrowed value, and keeps their other conditions', () => {
+        const recipes = new Map(basicRecipes);
+        recipes.set('button', {
+            component: 'button',
+            parts: {},
+            variants: { size: { sm: {}, md: {} }, variant: { solid: {}, ghost: {} } },
+            compoundVariants: [
+                { match: { size: 'sm', variant: 'ghost' }, parts: { root: { base: { outline: 'none' } } } },
+                { match: { size: 'md', variant: 'ghost' }, parts: { root: { base: { outline: '1px solid' } } } },
+            ],
+            defaultVariants: { variant: 'solid' },
+        });
+        const css = compileRecipeCss(
+            { component: 'card', parts: {}, composes: { button: { axes: { size: 'sm' } } } },
+            card,
+            { components, recipes },
+        );
+        expect(css).toContain(`[data-scope="card"][data-part="root"] ${buttonRoot}:not(:where([data-size]))[data-variant="ghost"] {\n        outline: none;`);
+        expect(css).not.toContain('1px solid');
+    });
+
+    it('keeps a re-carrying nested part\'s own value (#94): the guard is repeated on it', () => {
+        const css = compileRecipeCss(
+            { component: 'card', parts: {}, composes: { timeline: { within: 'body', axes: { color: 'error' } } } },
+            card,
+            { components, recipes: basicRecipes },
+        );
+        expect(css).toContain(':scope [data-scope="timeline"][data-part="marker"]:not(:where([data-color])) {');
+    });
+
+    it.each([
+        ['a value the nested recipe does not wire', { button: { axes: { size: 'huge' } } }, /borrows size "huge", which the "button" recipe does not wire \(wires: xs, sm, md, lg, xl\)/],
+        ['an entry that composes nothing', { button: { within: 'footer' } }, /composes nothing/],
+    ])('refuses %s', (_label, composes, message) => {
+        expect(() => borrow({ composes: composes as RecipeInput['composes'] })).toThrow(message);
+    });
+
+    it('refuses to borrow from a scope the design system has no recipe for, and needs the recipes at all', () => {
+        expect(() => compileRecipeCss(
+            { component: 'card', parts: {}, composes: { button: { axes: { size: 'sm' } } } },
+            card,
+            { components, recipes: new Map() },
+        )).toThrow(/"button" has no recipe in this design system/);
+        expect(() => compileRecipeCss(
+            { component: 'card', parts: {}, composes: { button: { axes: { size: 'sm' } } } },
+            card,
+            { components },
+        )).toThrow(/borrowing axis values needs the design system's recipes/);
+    });
+
+    it('reads the nested recipe as the design system has it, whatever the list order', () => {
+        const patched = extendDesignSystem(basic, {
+            name: 'basic',
+            recipes: {
+                card: { composes: { button: { within: 'footer', axes: { size: 'sm' } } } },
+                button: { variants: { size: { sm: { root: { base: { padding: '0.1rem' } } } } } },
+            },
+        });
+        const cardFirst = { ...patched, recipes: [...patched.recipes].sort((a) => (a.component === 'card' ? -1 : 1)) };
+        for (const ds of [patched, cardFirst]) {
+            expect(compileDesignSystem(ds, manifest).componentCss['card'])
+                .toContain(`${cardFooter} ${buttonRoot}:not(:where([data-size])) {\n        padding: 0.1rem;`);
+        }
+    });
+});
+
+describe('a composition conditioned on the host\'s axes (#91)', () => {
+    const hostRoot = '[data-scope="card"][data-part="root"]';
+
+    it('lives in a donut on the host carrier, written from :scope', () => {
+        const css = borrow({
+            compoundVariants: [{
+                match: { size: 'sm' },
+                parts: {},
+                composes: { button: { within: 'footer', axes: { size: 'xs' }, parts: { root: { base: { flex: '1' } } } } },
+            }],
+        });
+        expect(css).toContain(`@scope (${hostRoot}[data-size="sm"]) to (${hostRoot}) {`);
+        expect(css).toContain(`:scope ${cardFooter} ${buttonRoot}:not(:where([data-size])) {`);
+        expect(css).toContain(`:scope ${cardFooter} ${buttonRoot} {\n            flex: 1;`);
+    });
+
+    it('compounds the :scope with the carrier when the context IS the carrier, so it still outranks the unconditioned rule', () => {
+        const css = borrow({
+            compoundVariants: [{ match: { size: 'sm' }, parts: {}, composes: { button: { parts: { root: { base: { flex: '1' } } } } } }],
+        });
+        expect(css).toContain(`:scope${hostRoot} ${buttonRoot} {`);
+    });
+
+    it('follows the match grammar: defaulted axes and modifiers', () => {
+        const css = borrow({
+            variants: { size: { sm: {}, md: {} } },
+            defaultVariants: { size: 'md' },
+            compoundVariants: [{ match: { size: 'md', flush: true }, parts: {}, composes: { button: { axes: { size: 'sm' } } } }],
+        });
+        expect(css).toContain(`@scope (${hostRoot}[data-size="md"][data-mod-flush]) to (${hostRoot}) {`);
+        expect(css).toContain(`@scope (${hostRoot}:not([data-size])[data-mod-flush]) to (${hostRoot}) {`);
+    });
+
+    it('nests the nested scope\'s donut inside the host\'s for a non-carrier part', () => {
+        const css = borrow({
+            compoundVariants: [{ match: { size: 'sm' }, parts: {}, composes: { tabs: { within: 'body', axes: { size: 'xs' } } } }],
+        });
+        expect(css).toMatch(/@scope \(\[data-scope="card"\]\[data-part="root"\]\[data-size="sm"\]\) to \([^)]*\) \{\s*@scope \(:scope \[data-scope="card"\]\[data-part="body"\] \[data-scope="tabs"\]\[data-part="root"\]:not\(:where\(\[data-size\]\)\)\)/);
+    });
+
+    it('is checked, fitted, extended and dropped on lynx like the top-level form', () => {
+        const entry = { match: { size: 'sm' }, parts: {}, composes: { button: { parts: { icon: {} } } } };
+        expect(() => borrow({ compoundVariants: [entry] })).toThrow(/"icon" is not a part of "button"/);
+
+        const extended = extendDesignSystem(basic, {
+            name: 'basic',
+            recipes: { card: { compoundVariants: [{ match: { size: 'sm' }, composes: { button: { axes: { size: 'xs' } } } }] } },
+        });
+        const cardRecipe = extended.recipes.find((r) => r.component === 'card')!;
+        expect(cardRecipe.compoundVariants?.find((c) => c.match.size === 'sm')?.composes).toEqual({ button: { axes: { size: 'xs' } } });
+        const result = validateDesignSystem(extended, manifest);
+        expect(result.errors).toEqual([]);
+
+        const report = emptyReport();
+        compileLynxRecipeCss({ component: 'card', parts: {}, compoundVariants: [{ match: { size: 'sm' }, parts: {}, composes: { button: { axes: { size: 'xs' } } } }] }, card, report);
+        expect(report.dropped).toContainEqual(expect.objectContaining({ what: 'compoundVariants[0].composes["button"]' }));
+    });
+
+    it('drops a borrowed value the vocabulary does not admit, and an entry left composing nothing', () => {
+        const tokens: TokensInput = {
+            roles: {},
+            sizes: ['sm', 'md'],
+            themes: { l: { colorScheme: 'light', colors: { 'base-100': 'white', 'base-200': 'white', 'base-300': 'white', 'base-content': 'black' } } },
+            defaultLight: 'l',
+        };
+        const [fitted] = fitRecipesToVocabulary([{
+            component: 'card',
+            parts: {},
+            composes: { button: { axes: { size: 'xs' } }, tabs: { axes: { size: 'sm' } } },
+            compoundVariants: [{ match: { size: 'sm' }, parts: {}, composes: { button: { axes: { size: 'xs' }, parts: { root: { base: { flex: '1' } } } } } }],
+        }], tokens);
+        expect(fitted!.composes).toEqual({ tabs: { axes: { size: 'sm' } } });
+        expect(fitted!.compoundVariants![0]!.composes).toEqual({ button: { parts: { root: { base: { flex: '1' } } } } });
+    });
+});

@@ -2,6 +2,38 @@
 
 ## [Unreleased]
 
+### Added — composes borrows a nested scope's axis values, and conditions on the host's (zero#91)
+
+- **`ComposedScope.axes`**: `composes: { button: { axes: { size: 'sm' } } }`
+  re-emits the nested recipe's own `variants.size.sm` rules, the compounds
+  matching `size: 'sm'` and their `at` blocks, under the host context.
+  - Each rule is guarded by `:not(:where([data-size]))` on the nested
+    carrier, so an explicit prop on the instance wins. The guard adds no
+    specificity: the rule on the nested carrier sits at (0,4,0) beside
+    explicit `parts`, which are emitted after it and win ties. A rule for
+    another nested part goes in the nested scope's donut with `:scope` in
+    front of the part, at (0,3,0).
+  - A nested part that re-carries the axis (zero#94) keeps its own value.
+  - `parts` is now optional. An entry that composes nothing is an error.
+- **`compoundVariants[].composes`**: a composition conditioned on the host's
+  axes and modifiers (the compound's `match`, default twins included). It is
+  emitted inside an `@scope` donut on the host carrier, with the context
+  written from `:scope`, at (0,5,0).
+- **`RecipeContext.recipes`**: `compileDesignSystem` resolves every recipe's
+  web view first and passes them all, so a host reads the nested recipe as
+  the design system has it, in any list order. Borrowing a value the nested
+  recipe does not wire, from a scope with no recipe, or without the recipes
+  is a compile error, which the validator reports.
+- **Also updated:**
+  - `extendRecipe` merges a compound's `composes` per nested scope. A
+    compound patch's `parts` is optional, and a compound left with only
+    `composes` is kept.
+  - `fitRecipesToVocabulary` drops a borrowed value the vocabulary does not
+    admit for the nested scope.
+  - The lynx target drops every form, with one report entry each.
+  - `recipe.schema.json` declares all of it (`$defs.composes`,
+    `$defs.composedScope`).
+
 ### Added — Table's stacked mode (zero#55)
 
 - **The stacked geometry is emitted per design system.**

@@ -16,7 +16,7 @@
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
 import { INTERACTION_STATES, MOD_ATTR_PREFIX, VARIANT_AXES, carrierPart, carriersOf, reachesCarrier } from '../../contract.js';
-import type { CssProps, PartStyles, RecipeContext, RecipeInput } from '../../recipes.js';
+import type { ComposedScope, CssProps, PartStyles, RecipeContext, RecipeInput } from '../../recipes.js';
 import type { Condition, ConditionRegistry, Sink } from '../shared.js';
 import {
     assertAxisToken,
@@ -185,6 +185,53 @@ function modAttr(name: string, scope: string): string {
     return `${MOD_ATTR_PREFIX}${assertAxisToken('modifier', name, scope)}`;
 }
 
+/**
+ * The attribute alternatives a compound `match` compiles to, as the cross
+ * product of each entry's spellings. An axis contributes an equality test, a
+ * modifier (`true`) a presence-only attribute, and an axis sitting at its
+ * recipe DEFAULT contributes the absence of the attribute as a second
+ * alternative — the CSS-only default the single-axis loop emits.
+ *
+ * `borrowed` (#91) replaces an axis a `composes` entry borrows: its value is
+ * supplied by the context, so the entry contributes the guard that the
+ * nested instance carries no value of its own. A compound naming a borrowed
+ * axis at a DIFFERENT value can never match there and yields nothing.
+ */
+function matchAlternatives(
+    match: Record<string, string | true>,
+    defaults: Record<string, string> | undefined,
+    scope: string,
+    borrowed: Record<string, string> = {},
+): string[] {
+    const alternatives: string[][] = [];
+    for (const [axis, value] of Object.entries(match)) {
+        if (value === true) {
+            alternatives.push([`[${modAttr(axis, scope)}]`]);
+            continue;
+        }
+        const attr = axisAttr(axis, scope);
+        if (Object.hasOwn(borrowed, axis)) {
+            if (borrowed[axis] !== value) return [];
+            alternatives.push([borrowGuard(attr)]);
+            continue;
+        }
+        const present = `[${attr}="${assertAxisToken('value', value, scope)}"]`;
+        alternatives.push(defaults?.[axis] === value ? [present, `:not([${attr}])`] : [present]);
+    }
+    return alternatives.reduce<string[]>(
+        (acc, alts) => acc.flatMap((prefix) => alts.map((alt) => `${prefix}${alt}`)),
+        [''],
+    );
+}
+
+/**
+ * The guard a borrowed axis puts on the nested carrier: "no value of your
+ * own". Zero specificity on purpose (`:where` inside `:not`), so a borrowed
+ * rule sits where an unconditioned `composes` rule sits and explicit `parts`,
+ * emitted after it, win state for state (#91).
+ */
+const borrowGuard = (attr: string): string => `:not(:where([${attr}]))`;
+
 /** Compile one recipe to CSS (inside `@layer zero.recipes`). */
 export function compileRecipeCss(
     recipe: RecipeInput,
@@ -214,39 +261,149 @@ export function compileRecipeCss(
     // component's own parts and before its axis rules: the (0,4,0) context
     // selector already outranks the nested recipe, so order only matters
     // among this recipe's own rules.
-    for (const [scope, composed] of Object.entries(recipe.composes ?? {})) {
-        const where = `recipe for "${component.scope}" composes "${scope}"`;
-        if (scope === component.scope) {
-            throw new Error(`[zero-kit] ${where}: a component cannot compose itself — style its own parts in \`parts\``);
-        }
-        const nested = context.components?.get(scope);
-        if (!nested) {
-            throw new Error(
-                context.components
-                    ? `[zero-kit] ${where}: "${scope}" is not a component the manifest declares`
-                    : `[zero-kit] ${where}: composes needs the manifest — compile through compileDesignSystem, or pass context.components`,
-            );
-        }
-        const within = composed.within ?? carrierPart(component);
-        const known = (c: ManifestComponent) => c.parts.map((p) => p.name).join(', ');
-        if (!component.parts.some((p) => p.name === within)) {
-            throw new Error(`[zero-kit] ${where}: within "${within}" is not a part of "${component.scope}" (known: ${known(component)})`);
-        }
-        if (findPart(component, within).pseudo) {
-            throw new Error(`[zero-kit] ${where}: "${within}" is a pseudo-element part, which cannot contain another component`);
-        }
-        const container = partSelector(component.scope, within);
-        for (const [partName, styles] of Object.entries(composed.parts)) {
-            if (!nested.parts.some((p) => p.name === partName)) {
-                throw new Error(`[zero-kit] ${where}: "${partName}" is not a part of "${scope}" (known: ${known(nested)})`);
+    //
+    // `hostMatch` (#91) is a compound's attribute alternative: the
+    // composition then applies only while this component matches it. The
+    // attributes sit on this component's carrier, so the rules go inside a
+    // donut rooted there — `@scope ([carrier][match]) to ([carrier])`, the
+    // bound every carrier-anchored rule gets — and the context selector is
+    // written from `:scope`, so `within` must be a descendant of THIS
+    // instance's carrier rather than of any ancestor that happens to match.
+    // `:scope` also lifts every conditioned rule one step, (0,5,0), above
+    // the unconditioned (0,4,0) it refines.
+    const emitComposes = (composes: Record<string, ComposedScope>, hostMatch?: string): void => {
+        const carrierSelector = partSelector(component.scope, carrierPart(component));
+        const hostPath = hostMatch === undefined
+            ? []
+            : [resolveCondition(`@scope (${carrierSelector}${hostMatch}) to (${carrierSelector})`, context, `recipe for "${component.scope}" composes`, registry)];
+        for (const [scope, composed] of Object.entries(composes)) {
+            const where = `recipe for "${component.scope}" composes "${scope}"`;
+            if (scope === component.scope) {
+                throw new Error(`[zero-kit] ${where}: a component cannot compose itself — style its own parts in \`parts\``);
             }
-            const { host, suffix } = partProjection(nested, partName);
-            emitPartStyles(
-                nested, partName, styles, `${container} ${partSelector(scope, host)}`, sink, context, registry, suffix, [],
-                `${where}."${partName}"`,
-            );
+            const nested = context.components?.get(scope);
+            if (!nested) {
+                throw new Error(
+                    context.components
+                        ? `[zero-kit] ${where}: "${scope}" is not a component the manifest declares`
+                        : `[zero-kit] ${where}: composes needs the manifest — compile through compileDesignSystem, or pass context.components`,
+                );
+            }
+            const within = composed.within ?? carrierPart(component);
+            const known = (c: ManifestComponent) => c.parts.map((p) => p.name).join(', ');
+            if (!component.parts.some((p) => p.name === within)) {
+                throw new Error(`[zero-kit] ${where}: within "${within}" is not a part of "${component.scope}" (known: ${known(component)})`);
+            }
+            if (findPart(component, within).pseudo) {
+                throw new Error(`[zero-kit] ${where}: "${within}" is a pseudo-element part, which cannot contain another component`);
+            }
+            const parts = Object.entries(composed.parts ?? {});
+            const borrowed = Object.entries(composed.axes ?? {});
+            if (parts.length === 0 && borrowed.length === 0) {
+                throw new Error(`[zero-kit] ${where} composes nothing — give it \`parts\` to style, \`axes\` to borrow, or both`);
+            }
+            for (const [partName] of parts) {
+                if (!nested.parts.some((p) => p.name === partName)) {
+                    throw new Error(`[zero-kit] ${where}: "${partName}" is not a part of "${scope}" (known: ${known(nested)})`);
+                }
+            }
+            const withinSelector = partSelector(component.scope, within);
+            const ctx = hostMatch === undefined
+                ? withinSelector
+                : within === carrierPart(component) ? `:scope${withinSelector}` : `:scope ${withinSelector}`;
+
+            // Borrowed values first, explicit parts after: at equal
+            // specificity the later rule wins, so an explicit in-context
+            // style beats a borrowed one state for state.
+            if (borrowed.length > 0) emitBorrowed(scope, nested, Object.fromEntries(borrowed), ctx, hostPath, where);
+            for (const [partName, styles] of parts) {
+                const { host, suffix } = partProjection(nested, partName);
+                emitPartStyles(
+                    nested, partName, styles, `${ctx} ${partSelector(scope, host)}`, sink, context, registry, suffix, hostPath,
+                    `${where}."${partName}"`,
+                );
+            }
         }
-    }
+    };
+
+    // A borrowing `composes` (#91): the NESTED recipe's own rules for the
+    // borrowed values — `variants.<axis>.<value>`, every compound matching
+    // it, and their `at` blocks — re-emitted under the context. Each is
+    // guarded by the nested carrier having no value of its own, so an
+    // explicit prop on the instance wins. On the nested carrier the rule is
+    // flat, `ctx [nested-carrier]<guard>` at (0,4,0); on any other nested
+    // part it goes in the nested scope's own donut, rooted on that guarded
+    // carrier, with `:scope` in front of the part: (0,3,0), one step above the
+    // nested recipe's own donut rules at (0,2,0), which still match
+    // underneath — the attribute is absent, so its DEFAULT twins apply too.
+    // A part that re-carries the axis (#94) keeps a value of its own the
+    // same way: the guard is repeated on it, and on any part inside it.
+    const emitBorrowed = (
+        scope: string,
+        nested: ManifestComponent,
+        borrowed: Record<string, string>,
+        ctx: string,
+        hostPath: Condition[],
+        where: string,
+    ): void => {
+        if (!context.recipes) {
+            throw new Error(`[zero-kit] ${where}: borrowing axis values needs the design system's recipes — compile through compileDesignSystem, or pass context.recipes`);
+        }
+        const source = context.recipes.get(scope);
+        if (!source) {
+            throw new Error(`[zero-kit] ${where}: "${scope}" has no recipe in this design system, so there is no ${Object.keys(borrowed).join('/')} to borrow`);
+        }
+        for (const [axis, value] of Object.entries(borrowed)) {
+            assertAxisToken('axis', axis, component.scope);
+            assertAxisToken('value', value, component.scope);
+            const wired = new Set([
+                ...Object.keys(source.variants?.[axis] ?? {}),
+                ...(source.compoundVariants ?? []).flatMap((c) => (typeof c.match[axis] === 'string' ? [c.match[axis] as string] : [])),
+            ]);
+            if (!wired.has(value)) {
+                throw new Error(
+                    `[zero-kit] ${where}: borrows ${axis} "${value}", which the "${scope}" recipe does not wire`
+                    + ` (wires: ${[...wired].join(', ') || 'no value of that axis'})`,
+                );
+            }
+        }
+        const nestedCarrier = partSelector(scope, carrierPart(nested));
+        const target = (partName: string, styles: PartStyles, attrs: string, label: string): void => {
+            const { host, suffix } = partProjection(nested, partName);
+            const w = `${where} (${label})."${partName}"`;
+            if (host === carrierPart(nested)) {
+                emitPartStyles(nested, partName, styles, `${ctx} ${nestedCarrier}${attrs}`, sink, context, registry, suffix, hostPath, w);
+                return;
+            }
+            let own = '';
+            for (const axis of Object.keys(borrowed)) {
+                const attr = axisAttr(axis, scope);
+                for (const recarrier of carriersOf(nested, host, axis)) {
+                    own += recarrier === host ? borrowGuard(attr) : `:not(:where(${partSelector(scope, recarrier)}[${attr}] *))`;
+                }
+            }
+            emitPartStyles(
+                nested, partName, styles, `:scope ${partSelector(scope, host)}${own}`, sink, context, registry, suffix,
+                [...hostPath, resolveCondition(`@scope (${ctx} ${nestedCarrier}${attrs}) to (${nestedCarrier})`, context, w, registry)],
+                w,
+            );
+        };
+        for (const [axis, value] of Object.entries(borrowed)) {
+            const guard = borrowGuard(axisAttr(axis, scope));
+            for (const [partName, styles] of Object.entries(source.variants?.[axis]?.[value] ?? {})) {
+                target(partName, styles, guard, `${axis}: ${value}`);
+            }
+        }
+        for (const compound of source.compoundVariants ?? []) {
+            if (!Object.entries(borrowed).some(([axis, value]) => compound.match[axis] === value)) continue;
+            const matches = matchAlternatives(compound.match, source.defaultVariants, scope, borrowed);
+            for (const [partName, styles] of Object.entries(compound.parts)) {
+                for (const attrs of matches) target(partName, styles, attrs, 'compound');
+            }
+        }
+    };
+
+    emitComposes(recipe.composes ?? {});
 
     // One resolver for every axis-narrowed emission: flat on the carrier, an
     // `@scope` donut condition on any other part — see `variantTarget`.
@@ -348,16 +505,7 @@ export function compileRecipeCss(
         // Without it a compound naming a defaulted axis matches nothing at
         // all: `<Button color="primary">` under
         // `defaultVariants: { variant: 'solid' }` carries no `data-variant`.
-        const alternatives = Object.entries(compoundVariant.match).map(([axis, value]) => {
-            if (value === true) return [`[${modAttr(axis, component.scope)}]`];
-            const attr = axisAttr(axis, component.scope);
-            const present = `[${attr}="${assertAxisToken('value', value, component.scope)}"]`;
-            return recipe.defaultVariants?.[axis] === value ? [present, `:not([${attr}])`] : [present];
-        });
-        const matches = alternatives.reduce<string[]>(
-            (acc, alts) => acc.flatMap((prefix) => alts.map((alt) => `${prefix}${alt}`)),
-            [''],
-        );
+        const matches = matchAlternatives(compoundVariant.match, recipe.defaultVariants, component.scope);
         for (const [partName, styles] of Object.entries(compoundVariant.parts)) {
             // Separate rules rather than one comma-joined selector:
             // `emitPartStyles` appends pseudo-element suffixes, state selectors
@@ -366,6 +514,10 @@ export function compileRecipeCss(
             for (const attrs of matches) {
                 emitVariantStyles(partName, styles, attrs);
             }
+        }
+        // A composition conditioned on this component's axes (#91).
+        if (compoundVariant.composes) {
+            for (const attrs of matches) emitComposes(compoundVariant.composes, attrs);
         }
     }
 
