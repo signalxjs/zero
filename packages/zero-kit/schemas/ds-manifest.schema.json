@@ -210,7 +210,7 @@
                             "type": "object",
                             "minProperties": 1,
                             "propertyNames": { "pattern": "^--[A-Za-z0-9_-]+$" },
-                            "additionalProperties": { "type": "string" }
+                            "additionalProperties": { "type": "string", "minLength": 1 }
                         },
                         "keyframes": {
                             "description": "Keyframe names a derived system may reference in `animation`.",
