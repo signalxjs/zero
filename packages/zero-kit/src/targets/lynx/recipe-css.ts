@@ -483,10 +483,21 @@ export function compileLynxRecipeCss(
         emitPartStyles(component, partName, styles, '', rules, report, themes);
     }
 
-    for (const nested of Object.keys(recipe.composes ?? {})) {
+    // `composes` in every form — explicit parts, borrowed axis values (#91)
+    // and a compound's conditioned compositions — is a descendant selector
+    // across two scopes, which the class grammar has no form for. Dropped
+    // with one report entry per occurrence (the top-level entry and each
+    // compound's, by path); the nested component keeps its own recipe,
+    // including the rules a borrowing host would have re-used.
+    const composed = [
+        ...Object.keys(recipe.composes ?? {}).map((nested) => `composes["${nested}"]`),
+        ...(recipe.compoundVariants ?? []).flatMap((cv, i) =>
+            Object.keys(cv.composes ?? {}).map((nested) => `compoundVariants[${i}].composes["${nested}"]`)),
+    ];
+    for (const what of composed) {
         report.dropped.push({
             where: `lynx recipe for "${scope}"`,
-            what: `composes["${nested}"]`,
+            what,
             detail: 'a nested scope styled in context has no class form on this target — dropped; the nested component keeps its own recipe',
         });
     }

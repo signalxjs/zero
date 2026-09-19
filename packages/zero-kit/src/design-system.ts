@@ -358,7 +358,14 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
 
     const componentCss: Record<string, string> = {};
     const components: Record<string, CompiledComponentAxes> = {};
-    for (const recipe of ds.recipes) {
+    // Every recipe's web view, resolved BEFORE any compiles: a borrowing
+    // `composes` (#91) copies the nested scope's own rules, so a host's CSS
+    // depends on the nested recipe as this design system has it (after
+    // extendRecipe, fitting and pack adoption, which all produce
+    // `ds.recipes`) — and never on the order of the list.
+    const resolvedRecipes = ds.recipes.map((recipe) => resolveRecipeForTarget(recipe, 'web'));
+    const webRecipes = new Map(resolvedRecipes.map((recipe) => [recipe.component, recipe]));
+    for (const [index, recipe] of ds.recipes.entries()) {
         const component = byScope.get(recipe.component);
         if (!component) {
             const known = [...byScope.keys()].join(', ');
@@ -372,10 +379,11 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         // The web view of the recipe: shared sections + targets.web merged.
         // Axes are harvested from the same view — what the web CSS matches is
         // what the register artifact must type.
-        const resolved = resolveRecipeForTarget(recipe, 'web');
+        const resolved = resolvedRecipes[index]!;
         componentCss[recipe.component] = compileRecipeCss(resolved, component, {
             breakpoints: ds.tokens.breakpoints,
             components: byScope,
+            recipes: webRecipes,
         });
         components[recipe.component] = harvestAxes(resolved);
         const hooks = compileHooks(recipe.hooks);

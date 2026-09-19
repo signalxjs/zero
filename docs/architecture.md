@@ -557,8 +557,68 @@ Other compilation facts a reader needs:
   hands the compiler the manifest (`RecipeContext.components`), so the
   nested scope, the host part and the nested parts and states resolve
   exactly like `parts` do: an undeclared one is a compile error, which the
-  validator reports. Lynx drops it with a report entry. Borrowing the
-  nested recipe's own axis values in context is not supported (#91).
+  validator reports. Lynx drops it with a report entry.
+
+  Two further forms (#91) answer the questions #63 left open:
+
+  - **Borrowing: `composes: { button: { axes: { size: 'sm' } } }`.** Inside
+    this component, a button looks like the design system's `sm` button.
+    - *What is copied.* The nested recipe's `variants.<axis>.<value>` rules,
+      every compound whose `match` names that value (its other conditions
+      kept, with the nested recipe's own default twins), and every `at`
+      block inside them. Nothing else: not modifiers, which are not values,
+      and not the default twin, because borrowing replaces the default.
+    - *An explicit prop wins.* Each borrowed rule is guarded on the nested
+      carrier with `:not(:where([data-<axis>]))`, so `<Button size="lg">`
+      in the footer is `lg`. The guard adds no specificity. The rule on the
+      nested carrier is flat, `[host][within] [nested][carrier]<guard>` at
+      (0,4,0): above the nested recipe's own rules and level with an
+      explicit `composes` rule, which is emitted after it and wins ties
+      state for state. A rule on another nested part goes in the nested
+      scope's own donut, rooted on the guarded carrier, with `:scope` in
+      front of the part: (0,3,0), one step above the nested recipe's
+      (0,2,0) donut rules. A nested part that re-carries the axis
+      ([§2](#2-the-anatomy-contract)) repeats the guard, so its own value
+      still wins.
+    - *The known edge.* The nested recipe's own DEFAULT-value rules still
+      match underneath, because the attribute is absent in both cases. A
+      borrowed rule outranks each of them state for state. A borrowed BASE
+      rule against a default STATE rule is a tie, and stylesheet order
+      decides it. A recipe that needs the borrowed look in that state says
+      so in the borrowed value's own rules.
+    - *Compile order.* The host's CSS depends on the nested recipe as this
+      design system has it, after `extendRecipe`, `fitRecipesToVocabulary`
+      and pack adoption, which all produce `ds.recipes`.
+      `compileDesignSystem` resolves every recipe's web view before
+      compiling any and passes them all in (`RecipeContext.recipes`), so
+      the order of the list never matters. A value the nested recipe does
+      not wire, a nested scope with no recipe, or a standalone
+      `compileRecipeCss` without the recipes is a compile error, which the
+      validator reports. The fit drops a borrowed value the vocabulary does
+      not admit for the nested scope, and drops an entry left composing
+      nothing.
+  - **Conditioned: `compoundVariants: [{ match: { size: 'sm' }, parts: {},
+    composes: { button: { axes: { size: 'xs' } } } }]`.** A small composer
+    shrinks its button. The condition is a compound's `match` rather than a
+    `composes` key inside `variants.<axis>.<value>`. That map is part →
+    styles, and a dozen readers iterate its keys as parts, so a reserved
+    `composes` key would be a part name every one of them had to skip. A
+    one-axis `match` says the same thing, and brings modifiers,
+    conjunctions and default twins for free. The host's condition sits on
+    its carrier, so the composition goes inside the carrier donut,
+    `@scope ([host][carrier][match]) to ([host][carrier])`: a nested
+    instance of the host answers for its own subtree. The context is
+    written from `:scope` (`:scope [host][within]`, or
+    `:scope[host][carrier]` when the context is the carrier), which binds
+    `within` to THIS instance and lifts the rule to (0,5,0), above the
+    unconditioned one it refines. A conditioned borrow on a non-carrier
+    part is an `@scope` inside that `@scope`, whose prelude starts at the
+    outer `:scope`. `e2e/composes.spec.ts` holds all of it in Chromium,
+    Firefox and WebKit.
+
+  Lynx drops every form, one report entry per occurrence (the class
+  grammar has no cross-scope descendant). The nested component keeps its
+  own recipe.
 - Everything lands inside `@layer zero.recipes`; `@keyframes` are emitted
   outside the layer.
 - Compound rules are emitted separately rather than comma-joined, because

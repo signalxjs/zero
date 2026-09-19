@@ -76,6 +76,14 @@ export interface RecipeContext {
      * scope's parts and states against. `compileDesignSystem` passes it.
      */
     components?: ReadonlyMap<string, ManifestComponent>;
+    /**
+     * The design system's recipes by scope, each already resolved for the
+     * target being compiled — what a borrowing `composes` (`axes`, #91)
+     * copies the nested scope's own axis rules from. `compileDesignSystem`
+     * resolves every recipe first and passes them all, so the order of
+     * `ds.recipes` never matters.
+     */
+    recipes?: ReadonlyMap<string, RecipeInput>;
 }
 
 /**
@@ -88,7 +96,21 @@ export interface ComposedScope {
      */
     within?: string;
     /** The nested scope's parts → styles; states resolve through ITS anatomy. */
-    parts: Record<string, PartStyles>;
+    parts?: Record<string, PartStyles>;
+    /**
+     * The nested scope's own axis values to BORROW in this context (#91):
+     * axis → value. `{ size: 'sm' }` makes a nested button look like the
+     * design system's `sm` button here, whatever size it would otherwise
+     * default to — the nested recipe's `variants.size.sm` rules, the
+     * compounds that match `size: 'sm'`, and their `at` blocks, re-emitted
+     * under this context.
+     *
+     * An explicit prop on the nested instance WINS: the borrowed rules only
+     * apply while the nested carrier has no `data-<axis>` of its own. The
+     * value must be one the nested scope's recipe wires in this design
+     * system; the host's CSS is built from that recipe as compiled here.
+     */
+    axes?: Record<string, string>;
 }
 
 /**
@@ -166,6 +188,17 @@ export interface RecipeInput {
     compoundVariants?: Array<{
         match: Record<string, string | true>;
         parts: Record<string, PartStyles>;
+        /**
+         * Nested scopes styled in context WHILE this component matches
+         * `match` (#91) — a composition conditioned on the host's own axes:
+         * `{ match: { size: 'sm' }, parts: {}, composes: { button: { axes:
+         * { size: 'xs' } } } }` is a small composer shrinking its button.
+         * Same shape and checks as the top-level `composes`; the condition
+         * is read on this component's carrier, bounded like every other
+         * carrier-anchored rule (an `@scope` donut), so a nested instance of
+         * this component answers for its own subtree.
+         */
+        composes?: Record<string, ComposedScope>;
     }>;
     /**
      * Other scopes this component contains, styled in context: nested scope →
@@ -181,6 +214,11 @@ export interface RecipeInput {
      * a pack stays confined to what the manifest declares, but not blind to
      * what it contains. Web only: the lynx target drops it with a report
      * entry.
+     *
+     * Besides explicit `parts`, an entry may BORROW the nested scope's own
+     * axis values in context (`axes`, #91), and a `compoundVariants` entry
+     * may carry `composes` of its own — a composition conditioned on this
+     * component's axes and modifiers.
      */
     composes?: Record<string, ComposedScope>;
     /** Values applied when the axis attribute is absent (CSS-only defaults). */

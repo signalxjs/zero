@@ -30,7 +30,7 @@
  * declined value, and the author decides which scope keeps it).
  */
 import { TOKEN_CATEGORIES, resolveRoles, tokenProperty } from './contract.js';
-import type { RecipeInput, RecipeTargetOverride } from './recipes.js';
+import type { ComposedScope, RecipeInput, RecipeTargetOverride } from './recipes.js';
 import { BELOW_PREFIX, BUILTIN_CONDITIONS } from './recipes.js';
 import { tokenVocabulary } from './resolve/vocabulary.js';
 import type { RolesDecl, SystemTokens, TokensInput } from './tokens.js';
@@ -268,6 +268,38 @@ function rewriteStrings<T>(value: T, admits: Admits, counters: Counters): T {
 type Sections = Pick<RecipeInput, 'variants' | 'modifiers' | 'compoundVariants' | 'defaultVariants'>;
 
 /**
+ * A `composes` map with every borrowed axis value (#91) the vocabulary does
+ * not admit FOR THE NESTED SCOPE dropped — counted like the nested recipe's
+ * own dropped values, since it is the same value — and an entry left
+ * composing nothing dropped whole. `undefined` when nothing is left.
+ */
+function fitComposes(
+    composes: Record<string, ComposedScope>,
+    admits: Admits,
+    report: FitReport,
+): Record<string, ComposedScope> | undefined {
+    const out: Record<string, ComposedScope> = {};
+    for (const [scope, entry] of Object.entries(composes)) {
+        if (!entry.axes) {
+            out[scope] = entry;
+            continue;
+        }
+        const axes: Record<string, string> = {};
+        for (const [axis, value] of Object.entries(entry.axes)) {
+            if (keepsValue(admits, scope, axis, value)) axes[axis] = value;
+            else if (axis === 'color') report.droppedColorValues += 1;
+            else if (axis === 'size') report.droppedSizeValues += 1;
+            else if (axis === 'variant') report.droppedVariantValues += 1;
+            else report.droppedAxisValues += 1;
+        }
+        const { axes: _dropped, ...rest } = entry;
+        const fitted: ComposedScope = Object.keys(axes).length > 0 ? { ...rest, axes } : rest;
+        if (fitted.axes || Object.keys(fitted.parts ?? {}).length > 0) out[scope] = fitted;
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/**
  * The structural half: drop what the vocabulary does not admit from one
  * section set (the shared recipe, or one of its per-target overrides).
  * Returns a new object; empty containers are removed rather than left as
@@ -324,6 +356,11 @@ function fitSections<T extends Sections>(input: T, scope: string, admits: Admits
                 !droppedAxes.has(axis) && (value === true ? keepsModifier(admits, axis) : keepsValue(admits, scope, axis, value)));
             if (!keeps) report.droppedCompounds += 1;
             return keeps;
+        }).map((entry) => {
+            if (!entry.composes) return entry;
+            const { composes, ...rest } = entry;
+            const fitted = fitComposes(composes, admits, report);
+            return fitted ? { ...rest, composes: fitted } : rest;
         });
         if (compounds.length > 0) out.compoundVariants = compounds;
         else delete out.compoundVariants;
@@ -348,6 +385,11 @@ function fitSections<T extends Sections>(input: T, scope: string, admits: Admits
 
 function fitRecipe(recipe: RecipeInput, admits: Admits, report: FitReport): RecipeInput {
     const fitted: RecipeInput = fitSections(recipe, recipe.component, admits, report, true);
+    if (recipe.composes) {
+        const composes = fitComposes(recipe.composes, admits, report);
+        if (composes) fitted.composes = composes;
+        else delete fitted.composes;
+    }
     if (recipe.targets) {
         const targets: NonNullable<RecipeInput['targets']> = {};
         for (const [target, override] of Object.entries(recipe.targets) as [keyof NonNullable<RecipeInput['targets']>, RecipeTargetOverride][]) {

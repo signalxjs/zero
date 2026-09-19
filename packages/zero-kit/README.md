@@ -259,6 +259,37 @@ than a selector that matches nothing. Content checks and
 `fitRecipesToVocabulary` treat it like any other declaration. The lynx
 target drops it and records a report entry.
 
+An entry can also **borrow** the nested scope's own axis values (#91), and a
+compound can make a composition **conditional** on the host's axes:
+
+```ts
+defineRecipe({
+    component: 'card',
+    parts: { /* … */ },
+    composes: {
+        // Footer buttons look like this design system's `sm` button…
+        button: { within: 'footer', axes: { size: 'sm' } },
+    },
+    compoundVariants: [
+        // …and like its `xs` button while the card itself is `xs`.
+        { match: { size: 'xs' }, parts: {}, composes: { button: { within: 'footer', axes: { size: 'xs' } } } },
+    ],
+});
+```
+
+Borrowing re-emits button's own `variants.size.sm` rules, the compounds
+matching `size: 'sm'`, and their `at` blocks under the card context. They
+are guarded by `:not(:where([data-size]))`, so a button that states its own
+`size` keeps it. Explicit `parts` in the same entry are emitted after the
+borrowed rules and win a tie. The value must be one button's recipe wires in
+this design system: the card's CSS is built from button's recipe as compiled
+here, so `compileDesignSystem` hands every recipe to every compile, and the
+order of `recipes` does not matter. A conditioned composition compiles inside
+an `@scope` donut on card's carrier, so a card nested in an `xs` card answers
+for its own footer. See `docs/architecture.md` §3.3 for the specificity
+ladder and the one edge: the nested recipe's default-value rules still match
+underneath the borrowed ones.
+
 The ramp is reachable from the app, too. The compiled `:root` declares
 `--breakpoint-<name>` (for `calc()` and JS reads — a custom property cannot
 stand in a media condition), and `dist/css/breakpoints.css` (exported as
