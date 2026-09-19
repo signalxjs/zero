@@ -46,15 +46,20 @@ export type PositionAnchor = HTMLElement | VirtualAnchor;
  * RUNS on the server, a component may still construct its anchors there.
  */
 export function pointAnchor(x: number, y: number, size = 0): VirtualAnchor {
-    const rect = {
-        x, y, width: size, height: size,
-        top: y, left: x, right: x + size, bottom: y + size,
+    const rect = rectAt(x, y, size, size);
+    return { getBoundingClientRect: () => rect };
+}
+
+/** A client rect built structurally (see `pointAnchor`). */
+export function rectAt(x: number, y: number, width: number, height: number): DOMRectReadOnly {
+    return {
+        x, y, width, height,
+        top: y, left: x, right: x + width, bottom: y + height,
         toJSON(): unknown {
-            const { x: rx, y: ry, width, height, top, right, bottom, left } = this;
-            return { x: rx, y: ry, width, height, top, right, bottom, left };
+            const { x: rx, y: ry, width: w, height: h, top, right, bottom, left } = this;
+            return { x: rx, y: ry, width: w, height: h, top, right, bottom, left };
         },
     } as DOMRectReadOnly;
-    return { getBoundingClientRect: () => rect };
 }
 
 export interface PositionStrategy {

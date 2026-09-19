@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+### Added — trigger mode anchors at the caret: `anchor={caretAnchor}` (#105)
+
+- **`Combobox.Root anchor`** (trigger mode): where the list opens. Without
+  it the popup docks to the textarea's box, as before. **`caretAnchor`**
+  opens it beside the typed token, on the token's own line, so in a tall
+  composer the list sits next to the `@` rather than below the whole box.
+  It is passed in (from `@sigx/zero/behaviors` and the barrel), so the
+  `combobox` entry does not carry the measurement; about 0.6 kB brotli where
+  it is used. Any `(control, index) => PositionAnchor | null` works; the
+  index is the token's first character, past any whitespace a RegExp
+  trigger's prefix matched.
+  - **Under `rtl` a placement above or below mirrors its alignment** for
+    such an anchor:
+    `bottom-start` becomes `bottom-end`, so the list's right edge (its
+    inline start) sits at the `@` and it opens in the reading direction.
+    `data-placement` reports the physical result.
+  - The list re-anchors when the token changes, without closing in
+    between.
+- **`caretAnchor(el, index)` / `measureCaret(el, index)`**: the caret of a
+  `<textarea>` or `<input>` as a place on screen, measured with a hidden
+  mirror of the control (its font, padding, width, wrapping and direction).
+  `caretAnchor` is a zero-width `VirtualAnchor` one line tall at the
+  character's inline start. It re-measures only when the text, the index or
+  the width changes, follows the page's and the control's own scroll, and is
+  clamped to the control's box. It returns `null` under a vertical
+  `writing-mode`. An `<input>` is measured only inline, and spans its box's
+  height.
+
 ### Added — per-step colour: `Steps.Item color` (#112)
 
 - **`steps.item` re-carries the colour axis** (`carries: ['color']`, the

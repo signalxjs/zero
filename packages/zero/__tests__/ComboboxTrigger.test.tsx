@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { renderToString } from '@sigx/server-renderer';
 import { component, defineApp, signal } from 'sigx';
-import { Combobox, Textarea, comboboxAnatomy, textareaAnatomy, zeroPlugin } from '@sigx/zero';
-import type { ComboboxInsertDetail } from '@sigx/zero';
+import { Combobox, Textarea, caretAnchor, comboboxAnatomy, textareaAnatomy, zeroPlugin } from '@sigx/zero';
+import type { ComboboxInsertDetail, TextAnchor } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -35,7 +35,7 @@ describe('Combobox trigger mode (#58)', () => {
         document.body.appendChild(container);
     });
 
-    function harness(extra: { emptyText?: string; trigger?: string | RegExp; disabled?: boolean } = {}) {
+    function harness(extra: { emptyText?: string; trigger?: string | RegExp; disabled?: boolean; anchor?: TextAnchor } = {}) {
         const state = signal({ draft: '', query: '', open: false, value: '' as unknown });
         const inserts: ComboboxInsertDetail<Person>[] = [];
         const sent: string[] = [];
@@ -48,6 +48,7 @@ describe('Combobox trigger mode (#58)', () => {
                 itemLabel={(p) => p.name}
                 emptyText={extra.emptyText}
                 disabled={extra.disabled}
+                anchor={extra.anchor}
                 model:inputValue={[state, 'query']}
                 model:open={[state, 'open']}
                 onValueChange={(v) => valueChanges.push(v)}
@@ -319,6 +320,81 @@ describe('Combobox trigger mode (#58)', () => {
         key(el, 'Enter');
         await tick();
         expect(got).toEqual(['Ada']);
+    });
+
+    describe('anchoring (#105)', () => {
+        type Box = { left: number; top: number; width: number; height: number };
+        const rect = ({ left, top, width, height }: Box): DOMRect =>
+            ({ x: left, y: top, left, top, width, height, right: left + width, bottom: top + height, toJSON: () => ({}) }) as DOMRect;
+        /** The textarea at (100, 200), 300×120; the typed `@` at (42, 36) inside it. */
+        const stub = () => {
+            const marker = { left: 42, top: 36, width: 9, height: 18 };
+            vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+                if (this.tagName === 'SPAN') return rect(marker);
+                if (this.tagName === 'TEXTAREA') return rect({ left: 100, top: 200, width: 300, height: 120 });
+                return rect({ left: 0, top: 0, width: 0, height: 0 });
+            });
+        };
+        afterEach(() => vi.restoreAllMocks());
+
+        it('anchor={caretAnchor} opens the list at the token, not under the textarea', async () => {
+            stub();
+            const h = harness({ anchor: caretAnchor });
+            typeInto(h.el, 'hi @a');
+            await tick();
+            expect(h.state.open).toBe(true);
+            // Below the `@`'s line (236 + 18) by the 4px offset, at its inline start.
+            expect(h.popup.style.left).toBe('142px');
+            expect(h.popup.style.top).toBe('258px');
+            expect(h.popup.getAttribute('data-placement')).toBe('bottom-start');
+        });
+
+        it('without an anchor, the list docks to the textarea\'s box', async () => {
+            stub();
+            const h = harness();
+            typeInto(h.el, 'hi @a');
+            await tick();
+            expect(h.popup.style.left).toBe('100px');
+            expect(h.popup.style.top).toBe('324px');
+        });
+
+        it('under rtl the alignment mirrors, so the list opens towards the reading direction', async () => {
+            stub();
+            const h = harness({ anchor: caretAnchor });
+            h.el.style.direction = 'rtl';
+            typeInto(h.el, 'hi @a');
+            await tick();
+            expect(h.popup.getAttribute('data-placement')).toBe('bottom-end');
+            // The `@`'s right edge (its inline start) — the list's own right edge sits there.
+            expect(h.popup.style.left).toBe('151px');
+        });
+
+        it('under rtl a placement beside the token keeps its block alignment', async () => {
+            stub();
+            const state = signal({ draft: '' });
+            render(
+                <Combobox.Root trigger="@" items={PEOPLE} itemLabel={(p) => p.name} anchor={caretAnchor} placement="right-start">
+                    <Textarea.Root model={[state, 'draft']}><Textarea.Textarea /></Textarea.Root>
+                </Combobox.Root>,
+                container,
+            );
+            const el = container.querySelector('textarea')!;
+            el.style.direction = 'rtl';
+            typeInto(el, 'hi @a');
+            await tick();
+            const popup = container.querySelector<HTMLElement>('[data-scope="combobox"][data-part="popup"]')!;
+            expect(popup.getAttribute('data-placement')).toBe('right-start');
+            expect(popup.style.top).toBe('236px');
+        });
+
+        it('a vertical writing mode falls back to the box', async () => {
+            stub();
+            const h = harness({ anchor: caretAnchor });
+            h.el.style.writingMode = 'vertical-rl';
+            typeInto(h.el, 'hi @a');
+            await tick();
+            expect(h.popup.style.left).toBe('100px');
+        });
     });
 
     it('an empty trigger is no trigger: the ordinary composition renders', () => {

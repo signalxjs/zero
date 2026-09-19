@@ -36,6 +36,8 @@ export type {
     Placement, PositionOptions, PositionStrategy, AnchorPositionInput,
     AnchorPositionHandle, PositionAnchor, VirtualAnchor,
 } from './position.js';
+export { caretAnchor, measureCaret } from './caret-anchor.js';
+export type { CaretPoint, TextAnchor } from './caret-anchor.js';
 
 export { useFieldContext, provideFieldContext } from './field.js';
 export type { FieldContext } from './field.js';
