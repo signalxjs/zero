@@ -44,7 +44,7 @@
  * the default, `form="id"` associates from outside. The invalid focus lands
  * on the trigger.
  */
-import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
+import { component, compound, computed, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define, JSXElement } from 'sigx';
 import { createControllableState, createInertState, namedModel, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
@@ -278,9 +278,10 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         return keys;
     };
     // Windowed: data mode without groups — a heading cannot be windowed
-    // apart from the options its group element contains.
-    const windowed = (): boolean => !!props.virtual && items() !== undefined
-        && !collection.items().some((item) => collection.groupOf(item) !== undefined);
+    // apart from the options its group element contains. The group scan
+    // walks every item, so it is memoized: it re-runs when the list changes.
+    const grouped = computed(() => collection.items().some((item) => collection.groupOf(item) !== undefined));
+    const windowed = (): boolean => !!props.virtual && items() !== undefined && !grouped.value;
     const virtual: SelectContext['virtual'] = { current: null };
     // A windowed list posts the selection alone: ten thousand hidden
     // <option>s would undo what the window saves.
