@@ -58,7 +58,7 @@
         "url": "https://github.com/signalxjs/zero/issues"
     },
     "dependencies": {
-        "@sigx/cli": "^0.10.0",
+        "@sigx/cli": "^0.11.0",
         "ajv": "^8.20.0",
         "culori": "^4.0.1"
     },
