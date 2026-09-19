@@ -162,6 +162,14 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     variants,
     modifiers,
     /**
+     * The avatar's shape (zero#129) — the first custom axis a shipped skin
+     * declares, and the acceptance test for `tokens.axes`: an enumerated
+     * choice with no named prop (`axes={{ shape: 'square' }}` →
+     * `data-shape="square"`). Wired on avatar alone; its unset default is
+     * this skin's own avatar radius.
+     */
+    axes: { shape: ['circle', 'square', 'rounded'] },
+    /**
      * Per-scope narrowing (#294): `isIconOnly`/`isPending` are BUTTON facts
      * and `isStriped` a TABLE fact — without this, every scope would type
      * all three (#340 review catch).

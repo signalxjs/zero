@@ -228,6 +228,7 @@ export declare const Button: ButtonAdapted & AdaptedStatics<typeof ZButton> & { 
 type AvatarProps = {
     color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    axes?: { 'shape'?: 'circle' | 'square' | 'rounded' };
 };
 type AvatarAdapted = Adapted<typeof ZAvatar, ZeroAxisProp, AvatarProps>;
 export declare const Avatar: AvatarAdapted & AdaptedStatics<typeof ZAvatar> & { Root: AvatarAdapted };

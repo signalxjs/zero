@@ -109,6 +109,14 @@ the axis instead of past an empty half of each item.
 HeroUI ships no countdown, so the modifier has no vendor name: on
 `./components` it stays `mods={{ inline: true }}`.
 
+## Avatar shape
+
+`<Avatar.Root axes={{ shape: 'square' }}>` picks `circle`, `square` or
+`rounded` (#129) — a custom axis this design system declares in
+`tokens.axes` and wires on avatar alone, so the `/register` module types
+`axes.shape` there and nowhere else. One declaration on the root, whose
+`overflow: hidden` clips the image and the initials alike. `rounded` is HeroUI's `radius="sm"`; unset, the avatar is the circle it always was.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors

@@ -237,14 +237,14 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: { 'icon-only': boolean; 'pending': boolean };
             };
-            /** avatar — size wired. */
+            /** avatar — size, axes.shape wired. */
             'avatar': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
                 color: never;
                 size: 'sm' | 'md' | 'lg';
                 /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
                 variant: never;
-                axes: Record<string, never>;
+                axes: { 'shape': 'circle' | 'square' | 'rounded' };
                 mods: Record<string, never>;
             };
             /** toast — size wired. */

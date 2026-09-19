@@ -1,6 +1,6 @@
 import { component, signal } from 'sigx';
 import { Avatar, Button } from '@sigx/zero';
-import { pickVariant } from '../design-systems';
+import { pickRole, pickVariant } from '../design-systems';
 import { DemoRow } from '../demo/Section';
 import { AVATAR_A, AVATAR_B } from './fixtures';
 import type { PageEntry } from './registry';
@@ -51,6 +51,34 @@ const AvatarDemos = component(() => {
                 >
                     Swap src
                 </Button.Root>
+            </DemoRow>
+
+            <h2>Shape</h2>
+            <p>
+                <code>shape</code> is a custom axis every shipped design system
+                declares (<code>tokens.axes</code>, #129): <code>circle</code>,{' '}
+                <code>square</code> or <code>rounded</code>, passed through{' '}
+                <code>axes</code> as <code>data-shape</code> and narrowed by the
+                design system's <code>/register</code> module. Unset, each skin
+                keeps its own default.
+            </p>
+            <DemoRow gap="0.75rem">
+                <Avatar.Root axes={{ shape: 'circle' }}>
+                    <Avatar.Image src={AVATAR_A} alt="A circle avatar" />
+                    <Avatar.Fallback>CI</Avatar.Fallback>
+                </Avatar.Root>
+                <Avatar.Root axes={{ shape: 'square' }}>
+                    <Avatar.Image src={AVATAR_A} alt="A square avatar" />
+                    <Avatar.Fallback>SQ</Avatar.Fallback>
+                </Avatar.Root>
+                <Avatar.Root axes={{ shape: 'rounded' }}>
+                    <Avatar.Image src={AVATAR_A} alt="A rounded avatar" />
+                    <Avatar.Fallback>RO</Avatar.Fallback>
+                </Avatar.Root>
+                <Avatar.Root axes={{ shape: 'square' }} color={pickRole('primary')}>
+                    <Avatar.Image alt="A square identity tile" />
+                    <Avatar.Fallback>AG</Avatar.Fallback>
+                </Avatar.Root>
             </DemoRow>
         </>
     );

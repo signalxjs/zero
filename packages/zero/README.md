@@ -803,6 +803,17 @@ custom-property and breakpoint autocomplete, and per-category token keys
 through the `cssVar(name)` and `token(category, key)` helpers. No import,
 no change — the open unions stay.
 
+**A custom axis, end to end: `Avatar.Root axes={{ shape }}`.** Every
+shipped design system declares `shape: circle | square | rounded` in
+`tokens.axes` and wires it on avatar (#129) — the first custom axis in the
+repo, and so the acceptance test for the whole path: the recipe keys
+`variants.shape`, the compiled CSS carries `[data-shape="square"]`, the
+`/register` module types `axes: { shape: … }` on `avatar` and
+`Record<string, never>` everywhere else, and the playground's smoke spec
+holds a rendered `data-shape` to the scope's wired values exactly as it
+holds `data-variant`. Zero itself needed no change: `axes` already reached
+the DOM. Unset, each skin keeps its own avatar radius.
+
 ## Vendor-named surfaces (`@sigx/zero/adapt`)
 
 A design system that declares an `api` (see `@sigx/zero-kit`) ships a

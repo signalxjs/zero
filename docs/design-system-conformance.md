@@ -65,12 +65,14 @@ api-derived grades where a system declares one.
 | basic | `color` | enumeration | accent, error, info, neutral, primary, secondary, success, warning | `color` | exact | `packages/zero-basic` |
 | basic | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-basic` |
 | basic | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-basic` |
+| basic | `shape` | enumeration | circle, square, rounded | `axes.shape` | exact | `packages/zero-basic` |
 | basic | `hover` | presence-flag | boolean | `mods.hover` | exact | `packages/zero-basic` |
 | basic | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-basic` |
 | basic | `zebra` | presence-flag | boolean | `mods.zebra` | exact | `packages/zero-basic` |
 | daisyui | `color` | enumeration | accent, error, info, neutral, primary, secondary, success, warning | `color` | exact | `packages/zero-daisyui` |
 | daisyui | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-daisyui` |
 | daisyui | `variant` | enumeration | solid, outline, soft, ghost, dash, link, border, lift, box | `variant` | exact | `packages/zero-daisyui` |
+| daisyui | `shape` | enumeration | circle, square, rounded | `axes.shape` | exact | `packages/zero-daisyui` |
 | daisyui | `active` | presence-flag | boolean | `mods.active` | reshaped | `packages/zero-daisyui` |
 | daisyui | `block` | presence-flag | boolean | `mods.block` | reshaped | `packages/zero-daisyui` |
 | daisyui | `circle` | presence-flag | boolean | `mods.circle` | reshaped | `packages/zero-daisyui` |
@@ -82,23 +84,27 @@ api-derived grades where a system declares one.
 | material | `color` | enumeration | accent, error, info, neutral, outline, primary, secondary, success, surface, surface-container, surface-container-high, tertiary, warning | `color` | exact | `packages/zero-material` |
 | material | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-material` |
 | material | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-material` |
+| material | `shape` | enumeration | circle, square, rounded | `axes.shape` | exact | `packages/zero-material` |
 | material | `hover` | presence-flag | boolean | `mods.hover` | exact | `packages/zero-material` |
 | material | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-material` |
 | material | `zebra` | presence-flag | boolean | `mods.zebra` | exact | `packages/zero-material` |
 | brutalist | `color` | enumeration | accent, error, info, neutral, primary, secondary, success, warning | `color` | exact | `packages/zero-brutalist` |
 | brutalist | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-brutalist` |
 | brutalist | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-brutalist` |
+| brutalist | `shape` | enumeration | circle, square, rounded | `axes.shape` | exact | `packages/zero-brutalist` |
 | brutalist | `hover` | presence-flag | boolean | `mods.hover` | exact | `packages/zero-brutalist` |
 | brutalist | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-brutalist` |
 | brutalist | `zebra` | presence-flag | boolean | `mods.zebra` | exact | `packages/zero-brutalist` |
 | heroui | `size` | enumeration | sm, md, lg | `size` | exact | `packages/zero-heroui` |
 | heroui | `variant` | enumeration | primary, secondary, tertiary, outline, ghost, danger, danger-soft | `variant` | exact | `packages/zero-heroui` |
+| heroui | `shape` | enumeration | circle, square, rounded | `axes.shape` | exact | `packages/zero-heroui` |
 | heroui | `isIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | `packages/zero-heroui` |
 | heroui | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-heroui` |
 | heroui | `isPending` | presence-flag | boolean | `mods.pending` | reshaped | `packages/zero-heroui` |
 | heroui | `isStriped` | presence-flag | boolean | `mods.striped` | reshaped | `packages/zero-heroui` |
 | carbon | `size` | enumeration | sm, md, lg, xl, 2xl | `size` | exact | `packages/zero-carbon` |
 | carbon | `kind` | enumeration | primary, secondary, tertiary, ghost, danger, danger-tertiary, danger-ghost | `variant` | reshaped | `packages/zero-carbon` |
+| carbon | `shape` | enumeration | circle, square, rounded | `axes.shape` | exact | `packages/zero-carbon` |
 | carbon | `isExpressive` | presence-flag | boolean | `mods.expressive` | reshaped | `packages/zero-carbon` |
 | carbon | `hasIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | `packages/zero-carbon` |
 | carbon | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-carbon` |

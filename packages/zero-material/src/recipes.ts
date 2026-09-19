@@ -2050,6 +2050,13 @@ export const avatar: RecipeInput = {
         },
     },
     variants: {
+        // The shape axis (zero#129) — one declaration on the root, whose
+        // `overflow: hidden` clips the image and the fallback alike. `rounded` is Material's small shape; the default is the circle.
+        shape: {
+            circle: { root: { base: { borderRadius: '9999px' } } },
+            square: { root: { base: { borderRadius: '0' } } },
+            rounded: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+        },
         // A tonal container, per Material's own avatar/monogram treatment —
         // the tint carries the role, the ink is the role itself. Unattributed
         // it stays on the neutral surface container it always used.

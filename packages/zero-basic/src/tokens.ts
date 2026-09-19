@@ -130,6 +130,14 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
      */
     modifiers: ['zebra', 'hover', 'inline'],
     /**
+     * The avatar's shape (zero#129) — the first custom axis a shipped skin
+     * declares, and the acceptance test for `tokens.axes`: an enumerated
+     * choice with no named prop (`axes={{ shape: 'square' }}` →
+     * `data-shape="square"`). Wired on avatar alone; its unset default is
+     * this skin's own avatar radius.
+     */
+    axes: { shape: ['circle', 'square', 'rounded'] },
+    /**
      * Per-scope narrowing (#294; docs/architecture.md, "Declared
      * vocabulary") — and this is the repo's
      * first use of it, so it is worth saying what it buys.

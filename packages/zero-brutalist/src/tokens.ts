@@ -122,6 +122,14 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
      * inline treatment (#57) — presence-only, each narrowed to its scope.
      */
     modifiers: ['zebra', 'hover', 'inline'],
+    /**
+     * The avatar's shape (zero#129) — the first custom axis a shipped skin
+     * declares, and the acceptance test for `tokens.axes`: an enumerated
+     * choice with no named prop (`axes={{ shape: 'square' }}` →
+     * `data-shape="square"`). Wired on avatar alone; its unset default is
+     * this skin's own avatar radius.
+     */
+    axes: { shape: ['circle', 'square', 'rounded'] },
     scopes: {
         // The layout tier wires neither colour nor size — every one of its
         // scopes is geometry, and `data-color` on geometry would paint

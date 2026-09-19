@@ -2486,6 +2486,18 @@
         display: grid;
     }
 
+    [data-scope="avatar"][data-part="root"][data-shape="circle"] {
+        border-radius: 9999px;
+    }
+
+    [data-scope="avatar"][data-part="root"][data-shape="square"] {
+        border-radius: 0;
+    }
+
+    [data-scope="avatar"][data-part="root"][data-shape="rounded"] {
+        border-radius: calc(var(--avatar-size) / 8);
+    }
+
     [data-scope="avatar"][data-part="root"][data-size="sm"] {
         --avatar-size: calc(var(--size-selector) * 8);
         --avatar-text: var(--text-xs);

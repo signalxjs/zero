@@ -2337,11 +2337,22 @@ export const avatar: RecipeInput = {
         },
     },
     variants: {
+        // The shape axis (zero#129) — one declaration on the root, whose
+        // `overflow: hidden` clips the image and the fallback alike. `rounded` is the selector radius, the un-attributed default here.
+        shape: {
+            circle: { root: { base: { borderRadius: '9999px' } } },
+            square: { root: { base: { borderRadius: '0' } } },
+            rounded: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+        },
         // Colour lands on the initials fallback, the only part an avatar
-        // colours — the image, when it loads, covers everything else.
+        // colours — the image, when it loads, covers everything else. The
+        // initials are ink on the role's soft tint, so `softInk`: the raw
+        // role read 1.46:1 for `neutral` in dark and below 3:1 for `warning`
+        // in light — the two exceptions `softInk` codifies — the day the
+        // shape axis (zero#129) put avatar in the contrast product.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--avatar-accent': `var(--color-${c}-soft)`,
-            '--avatar-on-accent': `var(--color-${c})`,
+            '--avatar-on-accent': softInk(c),
         } } }])),
         size: {
             xs: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 6)', '--avatar-text': 'var(--text-xs)' } } },

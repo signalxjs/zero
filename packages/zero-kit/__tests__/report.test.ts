@@ -217,7 +217,9 @@ describe('declared but unwired', () => {
 
     it('finds nothing unwired in the design systems that declare only what they use', () => {
         const basic = reportFor(basicDS as DesignSystemInput);
-        expect(basic.unwired).toEqual({ color: [], size: [], variant: [], axes: {}, modifiers: [] });
+        // `shape` (zero#129) is wired in full on avatar, so it lists no
+        // unwired value — an empty entry, not an absent axis.
+        expect(basic.unwired).toEqual({ color: [], size: [], variant: [], axes: { shape: [] }, modifiers: [] });
 
         const heroui = reportFor(herouiDS as DesignSystemInput);
         expect(heroui.unwired.variant).toEqual([]);
@@ -228,8 +230,9 @@ describe('declared but unwired', () => {
 describe('the axis-agnostic divergence report', () => {
     it('generalises the colour-only warning to every axis a design system wires', () => {
         const material = reportFor(materialDS as DesignSystemInput);
-        // 'mods' joined when table's zebra/hover landed (#340).
-        expect(Object.keys(material.divergence).sort()).toEqual(['color', 'mods', 'size', 'variant']);
+        // 'mods' joined when table's zebra/hover landed (#340); 'shape',
+        // the avatar's custom axis, in zero#129.
+        expect(Object.keys(material.divergence).sort()).toEqual(['color', 'mods', 'shape', 'size', 'variant']);
 
         // The colour rule's own semantics, preserved: compared against the
         // union wired ANYWHERE, not against the declared vocabulary — so the
@@ -240,7 +243,7 @@ describe('the axis-agnostic divergence report', () => {
 
     it('covers modifiers, which are a value set like any other', () => {
         const heroui = reportFor(herouiDS as DesignSystemInput);
-        expect(Object.keys(heroui.divergence).sort()).toEqual(['mods', 'size', 'variant']);
+        expect(Object.keys(heroui.divergence).sort()).toEqual(['mods', 'shape', 'size', 'variant']);
         // countdown's `inline` joined in #57.
         expect(heroui.divergence['mods']!.wiredAnywhere).toEqual(['icon-only', 'inline', 'pending', 'striped']);
     });

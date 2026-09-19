@@ -206,6 +206,7 @@ export declare const Button: ButtonAdapted & AdaptedStatics<typeof ZButton> & { 
 /** avatar — no vendor route; the wired surface keeps zero's names. */
 type AvatarProps = {
     size?: 'sm' | 'md' | 'lg';
+    axes?: { 'shape'?: 'circle' | 'square' | 'rounded' };
 };
 type AvatarAdapted = Adapted<typeof ZAvatar, ZeroAxisProp, AvatarProps>;
 export declare const Avatar: AvatarAdapted & AdaptedStatics<typeof ZAvatar> & { Root: AvatarAdapted };
