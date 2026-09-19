@@ -62,7 +62,7 @@
                     "const": "data-l-"
                 },
                 "layoutVocabulary": {
-                    "description": "The closed layout attribute vocabulary: attribute name to its permitted values, and whether it may also be written per breakpoint. A part that can carry an attribute declares it in `layout`. A breakpoint-valued attribute (`stack`) lists no values and says `valuesFrom: \"breakpoints\"` instead: its value names one of the design system's own breakpoints.",
+                    "description": "The closed layout attribute vocabulary: attribute name to its permitted values, and whether it may also be written per breakpoint. A part that can carry an attribute declares it in `layout`. A breakpoint-valued attribute (`stack`, `dock-above`) lists no values and says `valuesFrom: \"breakpoints\"` instead: its value names one of the design system's own breakpoints. That is the spelling for every attribute that switches a mode at a breakpoint; the per-breakpoint name form is only for a responsive value.",
                     "type": "object",
                     "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
                     "additionalProperties": {

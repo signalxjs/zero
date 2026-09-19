@@ -4,7 +4,8 @@
  *
  * The server cannot know the viewport, so a responsive drawer always renders
  * DOCKED: the panel open in markup, the trigger and close present, every one
- * of them stamped `data-l-<bp>-dock="inline"`. Which half is right is a media
+ * of them stamped `data-l-dock-above="<bp>"` (the breakpoint as the VALUE,
+ * the mode-switch rule of #122). Which half is right is a media
  * query's call, and a media query cannot read a custom property — so the
  * rules are emitted here, once per declared breakpoint, from the design
  * system's own ramp. The boundaries are `useMediaQuery`'s and the recipe
@@ -29,7 +30,7 @@ export function compileDockCss(breakpoints: Readonly<Record<string, string>>): s
     const entries = Object.entries(breakpoints);
     if (entries.length === 0) return '';
     const part = (name: string, bp: string): string =>
-        `[data-scope="drawer"][data-part="${name}"][data-l-${bp}-dock="inline"]`;
+        `[data-scope="drawer"][data-part="${name}"][data-l-dock-above="${bp}"]`;
     const blocks: string[] = [];
     for (const [bp, width] of entries) {
         blocks.push([

@@ -424,7 +424,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
     // when the design system styles one — `./css/drawer` alone must be
     // enough — and otherwise index.css alone, since the markup needs it
     // whether or not a skin painted the drawer.
-    const docks = byScope.get('drawer')?.parts.some((p) => p.layout?.includes('dock')) ?? false;
+    const docks = byScope.get('drawer')?.parts.some((p) => p.layout?.includes('dock-above')) ?? false;
     const dockCss = docks ? compileDockCss(ds.tokens.breakpoints ?? {}) : '';
     if (dockCss && componentCss['drawer'] !== undefined) {
         componentCss['drawer'] = `${componentCss['drawer']}\n${dockCss}`;

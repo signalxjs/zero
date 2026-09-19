@@ -305,7 +305,7 @@ every pixel.
 The compiler also uses the ramp for one piece of structure no recipe
 writes: the responsive Drawer's (`Drawer.Root modal={{ below: 'md' }}`,
 zero#82). Its server markup is always the docked form — the panel open, every
-part stamped `data-l-<bp>-dock="inline"` — and for each declared breakpoint
+part stamped `data-l-dock-above="<bp>"` — and for each declared breakpoint
 the kit emits, in `@layer zero.structure`, the rules that paint the right
 half before any script runs: trigger and close hidden at or above the
 breakpoint (the docked panel back in flow), the docked panel hidden below it

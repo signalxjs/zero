@@ -76,7 +76,9 @@
   the regime, not the open state, so it holds through a sheet's exit. `:modal`
   stops matching the moment `close()` runs, while the panel is still in the
   top layer for its exit transition, so geometry keyed on it fell back to the
-  inline box mid-exit. `dock`'s vocabulary gains `sheet`.
+  inline box mid-exit. `dock` is `inline | sheet`, and after #122 it is
+  this regime attribute only — never per breakpoint; the breakpoint lives
+  on `dock-above`.
 - **All six skins key the sheet's geometry on `[data-l-dock="sheet"]`.**
   material, daisyUI, HeroUI and Carbon now slide the sheet in from its edge
   and back out to it, on their own tempos. The travel is `translate` over a
@@ -165,7 +167,7 @@
   A sheet still up when the viewport widens goes away and the model is reset
   without reporting it.
 - **SSR-correct.** The server renders the docked markup — the panel `open`,
-  trigger, panel and close stamped `data-l-md-dock="inline"` — and the
+  trigger, panel and close stamped `data-l-dock-above="md"` — and the
   design system's compiled per-breakpoint CSS (`@sigx/zero-kit`, in
   `@layer zero.structure`) paints the right half before any script runs.
   The trigger's `data-state`/`aria-expanded` report the sheet, so a narrow
@@ -174,9 +176,15 @@
   it was on, now in the docked panel, rather than the native restore to a
   trigger that just hid. Focus inside a docked panel that stops showing
   moves to the trigger.
-- **`dock` joins `LAYOUT_VOCABULARY`** — responsive, one value (`inline`) —
-  and the drawer's `trigger`, `panel` and `close` declare it
-  (`layout: ['dock']`), so `expectAnatomy` checks the stamp.
+- **`dock-above` joins `LAYOUT_VOCABULARY`** — breakpoint-valued like
+  `stack` (`{ values: [], valuesFrom: 'breakpoints' }`) — and the drawer's
+  `trigger`, `panel` and `close` declare it (`layout: ['dock-above']`), so
+  `expectAnatomy` checks the stamp. It first landed as the per-breakpoint
+  name `data-l-md-dock="inline"`; #122 settled the spelling before release:
+  **a mode-switch attribute takes the breakpoint as its VALUE**
+  (`data-l-stack="md"`, `data-l-dock-above="md"`), and the per-breakpoint
+  NAME form (`data-l-md-gap`) is only for a responsive value. The old
+  spelling no longer parses as a layout attribute.
 - Size: `@sigx/zero/drawer` 4 → 4.8 kB (the media-query subscription and the
   regime logic); the full barrel 44.8 → 45.3 kB.
 

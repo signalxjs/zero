@@ -24,31 +24,31 @@ describe('responsive Drawer structure', () => {
             const above = css.slice(css.indexOf(`@media (min-width: ${width})`));
             expect(above).toMatch(new RegExp(
                 `^@media \\(min-width: ${width}\\) \\{\\s*`
-                + `\\[data-scope="drawer"\\]\\[data-part="trigger"\\]\\[data-l-${bp}-dock="inline"\\],\\s*`
-                + `\\[data-scope="drawer"\\]\\[data-part="close"\\]\\[data-l-${bp}-dock="inline"\\] \\{\\s*display: none;`,
+                + `\\[data-scope="drawer"\\]\\[data-part="trigger"\\]\\[data-l-dock-above="${bp}"\\],\\s*`
+                + `\\[data-scope="drawer"\\]\\[data-part="close"\\]\\[data-l-dock-above="${bp}"\\] \\{\\s*display: none;`,
             ));
-            expect(css).toContain(`@media (width < ${width}) {\n        [data-scope="drawer"][data-part="panel"][data-l-${bp}-dock="inline"]:not(:modal) {\n            display: none;`);
+            expect(css).toContain(`@media (width < ${width}) {\n        [data-scope="drawer"][data-part="panel"][data-l-dock-above="${bp}"]:not(:modal) {\n            display: none;`);
         }
         // The docked panel is back in flow: the UA's dialog geometry is an overlay's.
-        expect(css).toContain('[data-scope="drawer"][data-part="panel"][data-l-md-dock="inline"] {\n            position: relative;\n            inset: auto;\n            margin: 0;');
+        expect(css).toContain('[data-scope="drawer"][data-part="panel"][data-l-dock-above="md"] {\n            position: relative;\n            inset: auto;\n            margin: 0;');
     });
 
     it('rides the drawer stylesheet once, and index.css carries it through it', () => {
         const { componentCss, indexCss } = compileDesignSystem(basicDS, manifest);
         expect(componentCss['drawer']).toContain('@layer zero.structure');
-        expect(indexCss.split('data-l-md-dock="inline"]:not(:modal)').length - 1).toBe(1);
+        expect(indexCss.split('data-l-dock-above="md"]:not(:modal)').length - 1).toBe(1);
     });
 
     it('a design system with no drawer recipe still ships it, in index.css', () => {
         const bare = { ...basicDS, recipes: basicDS.recipes.filter((r) => r.component !== 'drawer') };
         const { componentCss, indexCss } = compileDesignSystem(bare, manifest);
         expect(componentCss['drawer']).toBeUndefined();
-        expect(indexCss).toContain('[data-scope="drawer"][data-part="panel"][data-l-md-dock="inline"]:not(:modal)');
+        expect(indexCss).toContain('[data-scope="drawer"][data-part="panel"][data-l-dock-above="md"]:not(:modal)');
     });
 
     it('an empty ramp emits nothing', () => {
         // No recipes: basic's own use `at: { sm }`, which a flat ramp refuses.
         const flat = { ...basicDS, recipes: [], tokens: { ...basicDS.tokens, breakpoints: {} } };
-        expect(compileDesignSystem(flat, manifest).indexCss).not.toContain('-dock=');
+        expect(compileDesignSystem(flat, manifest).indexCss).not.toContain('dock-above=');
     });
 });

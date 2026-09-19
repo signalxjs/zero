@@ -51,7 +51,7 @@ test('wide: docked inline and in flow — no trigger, no close, no :modal', asyn
     const panel = await panelOf(page);
     await expect(panel).toBeVisible();
     await expect(panel).toHaveAttribute('data-state', 'open');
-    await expect(panel).toHaveAttribute('data-l-md-dock', 'inline');
+    await expect(panel).toHaveAttribute('data-l-dock-above', 'md');
     expect(await panel.evaluate((el) => el.matches(':modal'))).toBe(false);
     // In flow beside the content, not the UA's absolutely positioned dialog.
     expect(await panel.evaluate((el) => getComputedStyle(el).position)).toBe('relative');

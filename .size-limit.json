@@ -336,7 +336,7 @@
     {
         "name": "@sigx/zero/container",
         "path": "packages/zero/dist/components/container/index.js",
-        "limit": "2 kB",
+        "limit": "2.05 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -348,7 +348,7 @@
     {
         "name": "@sigx/zero/box",
         "path": "packages/zero/dist/components/box/index.js",
-        "limit": "2.2 kB",
+        "limit": "2.25 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

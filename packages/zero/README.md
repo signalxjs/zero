@@ -321,7 +321,8 @@ an app shell's navigation rendered once, not twice (#82).
   back.
 - **SSR-correct.** The server cannot see the viewport, so it renders the
   docked markup — the panel `open`, every part stamped
-  `data-l-md-dock="inline"` — and the design system's compiled CSS (emitted
+  `data-l-dock-above="md"` (the breakpoint is the value, as `Table.Root
+  stack="md"` spells it) — and the design system's compiled CSS (emitted
   per breakpoint by `@sigx/zero-kit`, in `@layer zero.structure`) hides the
   trigger and close at or above `md` and the docked panel below it. The
   runtime catches up on mount; nothing flashes. The docked panel is put back
