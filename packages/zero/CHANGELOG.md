@@ -60,7 +60,7 @@
   (`aria-hidden`) and `meta`, the trailing slot every skin pushes to the far
   edge. No behaviour: the router passes `current` in. All six design
   systems style it; `RESERVED_PROPS_BY_SCOPE` gains the scope.
-- Size: `@sigx/zero/nav-list` 2 kB; the full barrel 47.7 → 48 kB; the
+- Size: `@sigx/zero/nav-list` 2 kB; the full barrel 47.9 → 48.2 kB (over EmptyState); the
   anatomy tooling entry 3.6 → 3.7 kB.
 
 ### Added — trigger mode: `itemInsert`, the text a commit inserts (#107)
