@@ -28,6 +28,7 @@ import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { useTextControlBinding } from '../../behaviors/text-control-binding.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { htmlAttrs } from '../../contract/props.js';
 import type {
@@ -230,6 +231,9 @@ export type InputInputProps =
 
 const InputInput = component<InputInputProps>(({ props, expose, onMounted, onUnmounted }) => {
     const ctx = useInputContext();
+    // A trigger-mode Combobox above drives this control (#106), as it does
+    // a Textarea's: its ARIA, its keys first, and every text or caret change.
+    const claim = useTextControlBinding()?.claim() ?? null;
     let el: HTMLInputElement | null = null;
 
     // The app's onInput is attached at mount, not in the JSX: sigx appends
@@ -244,6 +248,7 @@ const InputInput = component<InputInputProps>(({ props, expose, onMounted, onUnm
     // write on each input.
     const onInput = (e: Event): void => {
         if (el && !ctx.modifiers() && ctx.state.value !== el.value) ctx.state.value = el.value;
+        claim?.sync(true);
         props.onInput?.(e);
     };
     let detachInput = (): void => {};
@@ -261,6 +266,7 @@ const InputInput = component<InputInputProps>(({ props, expose, onMounted, onUnm
         });
     });
     onUnmounted(() => {
+        claim?.release();
         detachReset();
         detachInput();
     });
@@ -298,10 +304,16 @@ const InputInput = component<InputInputProps>(({ props, expose, onMounted, onUnm
                 aria-invalid={ctx.invalid() ? 'true' : undefined}
                 aria-describedby={describedBy}
                 class={props.class}
-                ref={(node: HTMLInputElement | null) => { el = node; }}
+                {...claim?.attrs()}
+                ref={(node: HTMLInputElement | null) => { el = node; claim?.setElement(node); }}
                 onBeforeinput={props.onBeforeinput}
-                onKeydown={props.onKeydown}
-                onKeyup={props.onKeyup}
+                onKeydown={claim
+                    ? (e: KeyboardEvent) => { if (!claim.keydown(e)) props.onKeydown?.(e); }
+                    : props.onKeydown}
+                onKeyup={claim
+                    ? (e: KeyboardEvent) => { claim.sync(); props.onKeyup?.(e); }
+                    : props.onKeyup}
+                onClick={claim ? () => claim.sync() : undefined}
                 onCompositionstart={props.onCompositionstart}
                 onCompositionend={props.onCompositionend}
                 onFocus={(e: FocusEvent) => {
@@ -310,6 +322,7 @@ const InputInput = component<InputInputProps>(({ props, expose, onMounted, onUnm
                 }}
                 onBlur={(e: FocusEvent) => {
                     ctx.focusVisible.value = false;
+                    claim?.blur(e);
                     props.onBlur?.(e);
                 }}
             />

@@ -170,3 +170,43 @@ test('under rtl the list opens from the @ towards the reading direction (#105)',
     // The list's right edge — its inline start — sits at the `@`'s.
     expect(Math.abs(list.x + list.width - await inlineStartAfter(textarea, ''))).toBeLessThan(3);
 });
+
+test.describe('Input.Input as the control (#106)', () => {
+    const COMMAND = 'Command (/ to complete)';
+    function line(page: Page) {
+        const root = rootLabelled(page, 'combobox', COMMAND);
+        const part = partsOf(root, 'combobox');
+        return { popup: part('popup'), items: part('item'), input: root.locator('[data-scope="input"][data-part="input"]') };
+    }
+
+    test('a / token opens the list; Enter commits into the line, then runs it', async ({ page }) => {
+        const { popup, items, input } = line(page);
+        await expect(input).toHaveAttribute('aria-autocomplete', 'list');
+        await input.click();
+        await page.keyboard.type('/de');
+        await expect(popup).toHaveAttribute('data-state', 'open');
+        await expect(input).toHaveAttribute('role', 'combobox');
+        await expect(items).toHaveText(['deploy', 'describe']);
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Enter');
+        await expect(input).toHaveValue('/describe ');
+        await expect(popup).toHaveAttribute('data-state', 'closed');
+        await expect(input).not.toHaveAttribute('role', /./);
+        await expect(page.getByText('Ran: —')).toBeVisible();
+        await page.keyboard.type('now');
+        await page.keyboard.press('Enter');
+        await expect(page.getByText('Ran: /describe now')).toBeVisible();
+        await expect(input).toHaveValue('');
+    });
+
+    test('the list opens under the line, at the /', async ({ page }) => {
+        const { popup, input } = line(page);
+        await input.click();
+        await page.keyboard.type('run /h');
+        await expect(popup).toHaveAttribute('data-state', 'open');
+        const box = await settledBox(input, 'the command line');
+        const list = await settledBox(popup, 'the command list');
+        expect(Math.abs(list.x - await inlineStartAfter(input, 'run '))).toBeLessThan(3);
+        expect(list.y).toBeGreaterThanOrEqual(box.y + box.height - 1);
+    });
+});

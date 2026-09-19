@@ -146,7 +146,9 @@ projection would be a prop on this anatomy, never a second component.
 **Trigger mode: `@mentions` over a Textarea.** `Combobox.Root trigger="@"`
 (or a RegExp matched before the caret, whose first group is the query)
 turns the `Textarea.Textarea` composed inside it into the combobox's
-control. It is the same scope, so the popup, items, groups and empty
+control. It can also be a single-line `Input.Input` (#106), for a chat line
+or a command bar with `/`-commands. The binding is the same, and Enter goes
+to the app (or submits its form) only while the list is closed. It is the same scope, so the popup, items, groups and empty
 state are the ones every design system already styles. The token at the
 caret — the trigger at the start of the text or after whitespace, then
 non-whitespace — is the query (`model:inputValue` holds it, and `items`
@@ -190,6 +192,13 @@ import { caretAnchor } from '@sigx/zero/behaviors';
         <Textarea.Label visuallyHidden>Message</Textarea.Label>
         <Textarea.Textarea onKeydown={sendOnEnter} />
     </Textarea.Root>
+</Combobox.Root>
+
+<Combobox.Root trigger="/" anchor={caretAnchor} items={commands}>
+    <Input.Root model={() => state.line}>
+        <Input.Label visuallyHidden>Command</Input.Label>
+        <Input.Control><Input.Input onKeydown={runOnEnter} /></Input.Control>
+    </Input.Root>
 </Combobox.Root>
 ```
 
@@ -497,7 +506,9 @@ runs after the model has the new value. They also forward `aria-*`,
 `id` or `aria-invalid`, which belong to the form contract; an app
 `aria-describedby` joins the Field's. Their `ref` receives a handle —
 `{ element, focus() }` — for what only the element can do: the caret, the
-selection, measuring.
+selection, measuring. Inside a trigger-mode `Combobox.Root`, either one
+becomes the combobox's control (#58, #106), and the combobox sees each key
+before the app's `onKeydown`.
 
 ```tsx
 let composer: TextareaHandle | null = null;
