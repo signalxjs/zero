@@ -5,8 +5,8 @@
  * value of that data.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
-import { axisRoles } from '@sigx/zero-kit/define';
-import { roles } from './tokens.js';
+import { axisRoles, tableStackAt } from '@sigx/zero-kit/define';
+import { roles, tokens } from './tokens.js';
 
 /**
  * Every role a consumer can pass as `color`, derived from the declaration
@@ -5436,6 +5436,9 @@ export const table: RecipeInput = {
                 borderRadius: 'var(--radius-box)',
                 background: 'var(--color-base-100)',
             },
+        // Stacked (Table.Root stack, #55): zero lays each row out as a block
+        // below the table's breakpoint; the card it becomes is drawn here.
+            at: tableStackAt(tokens, 'root', { border: '0', borderRadius: '0', background: 'transparent' }),
         },
         table: {
             base: {
@@ -5453,20 +5456,28 @@ export const table: RecipeInput = {
                 fontSize: 'var(--text-xs)',
                 color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
             },
+            at: tableStackAt(tokens, 'caption', { paddingInline: '0' }),
         },
         head: {},
-        body: {},
+        body: { at: tableStackAt(tokens, 'body', { rowGap: 'var(--space-md)' }) },
         foot: {
             base: {
                 fontSize: 'var(--text-xs)',
                 color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
             },
+            at: tableStackAt(tokens, 'foot', { rowGap: 'var(--space-md)', marginBlockStart: 'var(--space-md)' }),
         },
         row: {
             base: { borderBlockEnd: 'var(--border) solid var(--color-base-200)' },
             states: {
                 selected: { background: 'var(--color-base-300)' },
             },
+            at: tableStackAt(tokens, 'row', {
+                border: 'var(--border) solid var(--color-base-200)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+            }),
         },
         'header-cell': {
             base: {
@@ -5476,11 +5487,21 @@ export const table: RecipeInput = {
                 fontSize: 'var(--text-xs)',
                 color: 'color-mix(in oklab, var(--table-accent) 60%, transparent)',
             },
+            at: tableStackAt(tokens, 'header-cell', { paddingInline: '0' }),
         },
         cell: {
             base: {
                 padding: 'var(--table-pad-block) var(--table-pad-inline)',
                 textAlign: 'var(--table-cell-align)',
+            },
+            at: tableStackAt(tokens, 'cell', { paddingInline: '0', paddingBlock: 'var(--space-xs)' }),
+        },
+        // A stacked cell's column label, in the header's muted semibold.
+        'cell-label': {
+            base: {
+                fontWeight: 'var(--weight-semibold)',
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklab, var(--table-accent) 60%, transparent)',
             },
         },
     },

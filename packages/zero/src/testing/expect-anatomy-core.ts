@@ -9,7 +9,7 @@
 import type { Anatomy } from '../contract/anatomy.js';
 import { MOD_ATTR_PREFIX, RESERVED_AXES, VARIANT_AXES } from '../contract/variant-attrs.js';
 import { TOKEN_KEY_PATTERN as AXIS_NAME_PATTERN } from '../contract/tokens.js';
-import { LAYOUT_ATTR_NAMES, LAYOUT_ATTR_PREFIX, layoutAttrSpec, parseLayoutAttr } from '../contract/layout-attrs.js';
+import { LAYOUT_ATTR_NAMES, LAYOUT_ATTR_PREFIX, describeLayoutValues, isLayoutValue, parseLayoutAttr } from '../contract/layout-attrs.js';
 
 /**
  * What the rules need from a rendered element — a three-member structural
@@ -217,8 +217,8 @@ export function expectAnatomyElements(
                     continue;
                 }
                 const value = el.getAttribute(attr) ?? '';
-                if (!layoutAttrSpec(parsed.attr).values.includes(value)) {
-                    fail(anatomy, `part "${partName}" renders ${attr}="${value}", which is not a value of "${parsed.attr}" (expected one of: ${layoutAttrSpec(parsed.attr).values.join(', ')})`);
+                if (!isLayoutValue(parsed.attr, value)) {
+                    fail(anatomy, `part "${partName}" renders ${attr}="${value}", which is not a value of "${parsed.attr}" (expected ${describeLayoutValues(parsed.attr)})`);
                 }
                 continue;
             }

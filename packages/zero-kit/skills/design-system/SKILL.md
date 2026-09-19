@@ -252,6 +252,12 @@ component's anatomy). No component code is ever written or changed.
      small-screen case. Declare them ascending — declaration order is emission
      order, and the validator enforces it.
    - `at` works inside `variants` too, so responsive variants need nothing new.
+   - **A stacked table's card** (`Table.Root stack="md"`) is yours to draw.
+     The block layout, the hidden head and the hanging `cell-label` are
+     zero's and are emitted for you. Spread
+     `tableStackAt(tokens, '<part>', { … })` (from `@sigx/zero-kit/define`)
+     into the `row` / `body` / `cell` / `root` `at`, and give `cell-label`
+     a `base` in your header cell's voice.
    - `prefers-dark` is the *system* preference, not your dark theme; it does
      not fire for `[data-theme="…-dark"]`.
    - A **looping** animation should be stopped under `reduced-motion`

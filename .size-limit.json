@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "44.8 kB",
+        "limit": "45.1 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -312,7 +312,7 @@
     {
         "name": "@sigx/zero/stack",
         "path": "packages/zero/dist/components/stack/index.js",
-        "limit": "2.2 kB",
+        "limit": "2.3 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -348,7 +348,7 @@
     {
         "name": "@sigx/zero/center",
         "path": "packages/zero/dist/components/center/index.js",
-        "limit": "2 kB",
+        "limit": "2.1 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -444,7 +444,7 @@
     {
         "name": "@sigx/zero/table",
         "path": "packages/zero/dist/components/table/index.js",
-        "limit": "2.3 kB",
+        "limit": "2.4 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

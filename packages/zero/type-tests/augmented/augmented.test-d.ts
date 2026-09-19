@@ -161,3 +161,13 @@ const gapNumber: LayoutProp<'gap'> = 4;
 const bag: LayoutProps = { gap: { md: 'lg' }, 'gap-x': 'sm', cols: 3 };
 // @ts-expect-error — `gap-x` does not vary per breakpoint
 const badBag: LayoutProps = { 'gap-x': { md: 'sm' } };
+
+// ── a breakpoint-VALUED attribute: `stack` (Table.Root, #55) ──
+//
+// Its value names a breakpoint rather than a ramp step, so under `/register`
+// it narrows to the declared names exactly like a Responsive record's keys.
+const stackMd: LayoutProp<'stack'> = 'md';
+// @ts-expect-error — `xl` is not a breakpoint this design system declares
+const stackXl: LayoutProp<'stack'> = 'xl';
+// @ts-expect-error — it already names a breakpoint; there is no record form
+const stackRecord: LayoutProp<'stack'> = { md: 'md' };

@@ -6,8 +6,8 @@
  * emphasized easings, and a dialog that goes full-screen below `sm`.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
-import { axisRoles } from '@sigx/zero-kit/define';
-import { roles } from './tokens.js';
+import { axisRoles, tableStackAt } from '@sigx/zero-kit/define';
+import { roles, tokens } from './tokens.js';
 
 /**
  * Every role a consumer can pass as `color`, DERIVED from the declaration.
@@ -4671,6 +4671,10 @@ export const table: RecipeInput = {
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
             },
+        // Stacked (Table.Root stack, #55): zero lays each row out as a block
+        // below the table's breakpoint; the card it becomes is drawn here.
+            // Each card takes the container's surface; the box around them goes.
+            at: tableStackAt(tokens, 'root', { border: '0', borderRadius: '0', background: 'transparent' }),
         },
         table: {
             base: {
@@ -4688,20 +4692,28 @@ export const table: RecipeInput = {
                 letterSpacing: 'var(--tracking-wide)',
                 color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
             },
+            at: tableStackAt(tokens, 'caption', { paddingInline: '0' }),
         },
         head: {},
-        body: {},
+        body: { at: tableStackAt(tokens, 'body', { rowGap: 'var(--space-md)' }) },
         foot: {
             base: {
                 fontSize: 'var(--text-xs)',
                 color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
             },
+            at: tableStackAt(tokens, 'foot', { rowGap: 'var(--space-md)', marginBlockStart: 'var(--space-md)' }),
         },
         row: {
             base: { borderBlockEnd: 'var(--border) solid var(--color-outline)' },
             states: {
                 selected: { background: 'color-mix(in oklch, var(--table-accent) 12%, transparent)' },
             },
+            at: tableStackAt(tokens, 'row', {
+                border: 'var(--border) solid var(--color-outline)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-surface-container)',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+            }),
         },
         'header-cell': {
             base: {
@@ -4712,12 +4724,23 @@ export const table: RecipeInput = {
                 letterSpacing: 'var(--tracking-wide)',
                 color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
             },
+            at: tableStackAt(tokens, 'header-cell', { paddingInline: '0' }),
         },
         cell: {
             base: {
                 padding: 'var(--table-pad-block) var(--table-pad-inline)',
                 textAlign: 'var(--table-cell-align)',
                 fontVariantNumeric: 'tabular-nums',
+            },
+            at: tableStackAt(tokens, 'cell', { paddingInline: '0', paddingBlock: 'var(--space-xs)' }),
+        },
+        // A stacked cell's column label, in the header's label-small voice.
+        'cell-label': {
+            base: {
+                fontWeight: 'var(--weight-medium)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
             },
         },
     },

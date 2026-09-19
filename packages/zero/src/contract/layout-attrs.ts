@@ -12,6 +12,7 @@
  * budget. A table only the layout tier reads has no business on that path.
  */
 import { TOKEN_KEY_PATTERN } from './tokens.js';
+import { BASE_BREAKPOINT_KEY, isBreakpointName } from './breakpoint-name.js';
 import type { ZeroBreakpointName } from './vocabulary.js';
 
 /**
@@ -50,15 +51,7 @@ import type { ZeroBreakpointName } from './vocabulary.js';
  */
 export const LAYOUT_ATTR_PREFIX = 'data-l-';
 
-/**
- * The key {@link Responsive} uses for the UNQUALIFIED value, and therefore a
- * name no breakpoint may take: `{ base: 'md' }` renders `data-l-gap="md"`,
- * not `data-l-base-gap="md"`. A design system that declared a breakpoint
- * called `base` could never reach it — `@sigx/zero-kit` refuses the
- * declaration for that reason, the way it already refuses one colliding with
- * a built-in condition.
- */
-export const BASE_BREAKPOINT_KEY = 'base';
+export { BASE_BREAKPOINT_KEY } from './breakpoint-name.js';
 
 /** One layout attribute: its closed value set, and whether it varies per breakpoint. */
 export interface LayoutAttrSpec {
@@ -71,6 +64,15 @@ export interface LayoutAttrSpec {
      * number of declared breakpoints.
      */
     readonly responsive?: true;
+    /**
+     * Where the values come from when they are not a closed list zero owns.
+     * `'breakpoints'`: the value NAMES one of the design system's own
+     * breakpoints (`stack="md"`), an open kebab-case set only the skin
+     * declares — so `values` is empty, a value answers to the breakpoint
+     * grammar rather than to a list, and `/register` narrows the prop type
+     * to the declared names.
+     */
+    readonly valuesFrom?: 'breakpoints';
 }
 
 /**
@@ -120,6 +122,15 @@ export const LAYOUT_VOCABULARY = {
      * in `ch` — is not a size at all.
      */
     measure: { values: ['xs', 'sm', 'md', 'lg', 'xl', 'prose', 'full'] },
+    /**
+     * The breakpoint BELOW which a part re-lays itself out as stacked blocks
+     * — `Table.Root stack="md"`: one labelled block per row under `md`
+     * (#55). Valued by a breakpoint name rather than a ramp step, so the
+     * same attribute means "narrower than this skin's `md`" in every design
+     * system. Never responsive: it already names a breakpoint, and a
+     * `data-l-md-stack` would say the same thing twice.
+     */
+    stack: { values: [], valuesFrom: 'breakpoints' },
 } as const satisfies Record<string, LayoutAttrSpec>;
 
 export type LayoutAttrName = keyof typeof LAYOUT_VOCABULARY;
@@ -150,6 +161,28 @@ export const LAYOUT_ATTR_NAMES: ReadonlySet<string> = new Set(Object.keys(LAYOUT
  * to type-level consumers while giving the runtime a single uniform shape.
  */
 export const layoutAttrSpec = (attr: LayoutAttrName): LayoutAttrSpec => LAYOUT_VOCABULARY[attr];
+
+/**
+ * Whether `value` is one `attr` can take: a member of its closed `values`,
+ * or — for a breakpoint-valued attribute — a kebab-case name other than
+ * `base`, which names the unqualified value and so can never be a
+ * breakpoint. Whether the breakpoint is one the design system DECLARED is a
+ * question only the design system can answer; the type does that under
+ * `/register`.
+ */
+export function isLayoutValue(attr: LayoutAttrName, value: string): boolean {
+    const spec = layoutAttrSpec(attr);
+    if (spec.valuesFrom === 'breakpoints') return isBreakpointName(value);
+    return spec.values.includes(value);
+}
+
+/** The expected-values half of a rejection message, for either kind of attribute. */
+export const describeLayoutValues = (attr: LayoutAttrName): string => {
+    const spec = layoutAttrSpec(attr);
+    return spec.valuesFrom === 'breakpoints'
+        ? `a kebab-case breakpoint name other than "${BASE_BREAKPOINT_KEY}"`
+        : `one of: ${spec.values.join(', ')}`;
+};
 
 /**
  * Attribute names longest-first — the scan order {@link parseLayoutAttr}
@@ -248,9 +281,11 @@ type LayoutPropValue<A extends LayoutAttrName> = LayoutValue<A> | NumericTwin<La
  * conditional makes that shape unrepresentable.
  */
 export type LayoutProp<A extends LayoutAttrName> =
-    typeof LAYOUT_VOCABULARY[A] extends { responsive: true }
-        ? Responsive<LayoutPropValue<A>>
-        : LayoutPropValue<A>;
+    typeof LAYOUT_VOCABULARY[A] extends { valuesFrom: 'breakpoints' }
+        ? ZeroBreakpointName
+        : typeof LAYOUT_VOCABULARY[A] extends { responsive: true }
+            ? Responsive<LayoutPropValue<A>>
+            : LayoutPropValue<A>;
 
 /** The layout props a part accepts, as a bag keyed by attribute name. */
 export type LayoutProps = { [A in LayoutAttrName]?: LayoutProp<A> | undefined };
@@ -310,9 +345,9 @@ export function layoutAttrs(
         const put = (breakpoint: string | undefined, raw: unknown): void => {
             if (raw === undefined) return;
             const v = String(raw);
-            if (!vocabulary.values.includes(v)) {
+            if (!isLayoutValue(attr, v)) {
                 throw new Error(
-                    `[zero] layout: "${v}" is not a value of "${attr}" (expected one of: ${vocabulary.values.join(', ')})`,
+                    `[zero] layout: "${v}" is not a value of "${attr}" (expected ${describeLayoutValues(attr)})`,
                 );
             }
             if (breakpoint !== undefined) {

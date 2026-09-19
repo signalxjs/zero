@@ -11,6 +11,8 @@
  * tokens; the seven `kind` members each rebind the fill/ink/line channel.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
+import { tableStackAt } from '@sigx/zero-kit/define';
+import { tokens } from './tokens.js';
 
 const motion = (props: string): string =>
     props.split(', ').map((p) => `${p} var(--duration-normal) var(--ease-standard)`).join(', ');
@@ -4568,6 +4570,9 @@ export const table: RecipeInput = {
                 overflowX: 'auto',
                 background: 'var(--color-base-100)',
             },
+        // Stacked (Table.Root stack, #55): zero lays each row out as a block
+        // below the table's breakpoint; the card it becomes is drawn here.
+            at: tableStackAt(tokens, 'root', { background: 'transparent' }),
         },
         table: {
             base: {
@@ -4585,22 +4590,30 @@ export const table: RecipeInput = {
                 fontSize: 'var(--text-xs)',
                 color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
             },
+            at: tableStackAt(tokens, 'caption', { paddingInline: '0' }),
         },
         head: {
             base: { background: 'var(--color-base-200)' },
         },
-        body: {},
+        body: { at: tableStackAt(tokens, 'body', { rowGap: 'var(--space-sm)' }) },
         foot: {
             base: {
                 background: 'var(--color-base-200)',
                 fontSize: 'var(--text-xs)',
             },
+            at: tableStackAt(tokens, 'foot', { rowGap: 'var(--space-sm)', marginBlockStart: 'var(--space-sm)', background: 'transparent' }),
         },
         row: {
             base: { borderBlockEnd: 'var(--border) solid var(--carbon-line)' },
             states: {
                 selected: { background: layerActive },
             },
+            // A square tile on the layer, ruled like a row.
+            at: tableStackAt(tokens, 'row', {
+                background: 'var(--color-base-200)',
+                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+            }),
         },
         'header-cell': {
             base: {
@@ -4609,11 +4622,21 @@ export const table: RecipeInput = {
                 fontWeight: 'var(--weight-semibold)',
                 fontSize: 'var(--table-font)',
             },
+            at: tableStackAt(tokens, 'header-cell', { paddingInline: '0' }),
         },
         cell: {
             base: {
                 padding: 'var(--table-pad-block) var(--table-pad-inline)',
                 textAlign: 'var(--table-cell-align)',
+            },
+            at: tableStackAt(tokens, 'cell', { paddingInline: '0', paddingBlock: 'var(--space-xs)' }),
+        },
+        // A stacked cell's column label: Carbon's label-01 — small, secondary text.
+        'cell-label': {
+            base: {
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
             },
         },
     },

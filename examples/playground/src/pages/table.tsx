@@ -81,6 +81,38 @@ const TableDemos = component(() => () => (
             </Table.Body>
         </Table.Root>
         <p>
+            Stacked below a breakpoint: <code>stack="md"</code> turns every row
+            into a card under the design system's <code>md</code>, and each cell
+            that names a labelled <code>column</code> prints the label beside its
+            value. The head row stays in the accessibility tree, visually hidden.
+            Narrow the window to see it:
+        </p>
+        <Table.Root stack="md" columns={[
+            { label: 'Service', width: '10rem' },
+            { label: 'What happened' },
+            { key: 'cost', label: 'Cost', width: '6rem', align: 'end' },
+        ]}>
+            <Table.Caption>Deploys (stacked below md)</Table.Caption>
+            <Table.Head />
+            <Table.Body>
+                <Table.Row>
+                    <Table.Cell column={0}>api-gateway</Table.Cell>
+                    <Table.Cell column={1}>Deployed <code>2.14.0</code> to eu-north after a green canary</Table.Cell>
+                    <Table.Cell column="cost">$0.42</Table.Cell>
+                </Table.Row>
+                <Table.Row selected>
+                    <Table.Cell column={0}>search</Table.Cell>
+                    <Table.Cell column={1}>Rolled back to <code>0.41.0</code></Table.Cell>
+                    <Table.Cell column="cost">$12.08</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell column={0}>billing</Table.Cell>
+                    <Table.Cell column={1}>Scaled to 4 replicas</Table.Cell>
+                    <Table.Cell column="cost">$3.10</Table.Cell>
+                </Table.Row>
+            </Table.Body>
+        </Table.Root>
+        <p>
             Zebra striping and hover-highlight are design-system mods
             (<code>data-mod-*</code>), spelled in each skin's own vocabulary —
             zebra here rides whichever name the live design system declares:

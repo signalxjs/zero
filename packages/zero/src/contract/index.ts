@@ -62,6 +62,7 @@ export type { Responsive, LayoutProps, LayoutAttrName, LayoutAttrSpec, LayoutVal
 export {
     layoutAttrs,
     layoutAttrSpec,
+    isLayoutValue,
     parseLayoutAttr,
     LAYOUT_VOCABULARY,
     LAYOUT_ATTR_NAMES,

@@ -147,6 +147,8 @@ export function spacingFindings(
 
 export const ids = ['spacing/literal', 'spacing/off-ramp'] as const;
 
+const STRUCTURE_LAYER = '@layer zero.structure';
+
 export function run(ctx: AuditContext): RuleOutput {
     // The design-system-level ramp. A per-theme `system.spacing` override
     // would be a theme that re-scales density, which is a different question
@@ -154,7 +156,12 @@ export function run(ctx: AuditContext): RuleOutput {
     const ramp = rampIndex(ctx.ds.tokens.system?.spacing as Record<string, string> | undefined);
     const findings: AuditFinding[] = [];
     for (const [scope, rules] of ctx.cssRules) {
-        findings.push(...spacingFindings(scope, rules, ramp));
+        // `@layer zero.structure` is zero's own geometry the kit writes into a
+        // component's stylesheet (Table's stacked mode, zero#55) — the
+        // visually-hidden clip's `margin: -1px` is not the skin stepping off
+        // its ramp, and the skin cannot change it.
+        const authored = rules.filter((r) => !r.at.includes(STRUCTURE_LAYER));
+        findings.push(...spacingFindings(scope, authored, ramp));
     }
     return { findings, waived: [] };
 }

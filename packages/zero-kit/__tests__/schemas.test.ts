@@ -110,7 +110,11 @@ const manifest = {
         layoutVocabulary: Object.fromEntries(
             Object.entries(LAYOUT_VOCABULARY).map(([attr, spec]) => [
                 attr,
-                { values: [...spec.values], ...('responsive' in spec ? { responsive: true } : {}) },
+                {
+                    values: [...spec.values],
+                    ...('responsive' in spec ? { responsive: true } : {}),
+                    ...('valuesFrom' in spec ? { valuesFrom: spec.valuesFrom } : {}),
+                },
             ]),
         ),
         variantAxes: {
@@ -147,6 +151,21 @@ describe('manifest.schema.json', () => {
         const bad = asJson(manifest) as typeof manifest;
         delete (bad.components[0]!.parts[0] as Partial<{ element: string }>).element;
         expect(validateManifest(bad)).toBe(false);
+    });
+
+    it('holds a layout attribute to one kind of value set: listed, or from the breakpoints (zero#55)', () => {
+        type Vocab = Record<string, { values: string[]; responsive?: true; valuesFrom?: string }>;
+        const vocab = (m: typeof manifest): Vocab => m.attributeSpec.layoutVocabulary as Vocab;
+        expect(vocab(manifest).stack).toEqual({ values: [], valuesFrom: 'breakpoints' });
+        const emptyClosed = asJson(manifest) as typeof manifest;
+        vocab(emptyClosed).gap!.values = [];
+        expect(validateManifest(emptyClosed)).toBe(false);
+        const listedAndOpen = asJson(manifest) as typeof manifest;
+        vocab(listedAndOpen).stack!.values = ['md'];
+        expect(validateManifest(listedAndOpen)).toBe(false);
+        const responsiveBreakpoint = asJson(manifest) as typeof manifest;
+        vocab(responsiveBreakpoint).stack!.responsive = true;
+        expect(validateManifest(responsiveBreakpoint)).toBe(false);
     });
 
     it('rejects a token category with an unknown shape', () => {

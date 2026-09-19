@@ -122,10 +122,16 @@ earlier blanket exemption: `expectAnatomy` now fails an undeclared
 `data-placement` exactly as it fails an undeclared state.
 
 **Layout attributes are a namespaced family.** `LAYOUT_VOCABULARY` closes a
-fifteen-attribute set (`gap`, `pad`, `align`, `justify`, `cols`, `span`, …)
+seventeen-attribute set (`gap`, `pad`, `align`, `justify`, `cols`, `span`, …)
 rendered under a `data-l-` prefix, and a part that can carry one declares
 which subset in its anatomy (`PartSpec.layout`) — governed and checked
-exactly like `placements`.
+exactly like `placements`. One attribute is valued differently: `stack`
+(`Table.Root stack="md"`, #55) names a *breakpoint*, an open set only the
+design system declares, so its spec carries `valuesFrom: 'breakpoints'` and
+no `values`. A value then answers to the breakpoint grammar (kebab-case,
+never `base`) through the shared `isLayoutValue`, `/register` narrows the
+prop to the declared names, and it is never responsive, because it already
+names a breakpoint.
 
 It is deliberately *not* a design-system axis. An axis answers "which one"
 out of a vocabulary the skin invents and zero passes through uninterpreted; a
@@ -143,7 +149,7 @@ breakpoint in PREFIX position (`data-l-gap="sm"` alongside
 `data-l-md-gap="lg"`), because breakpoint names are open kebab-case and a
 suffix spelling would make `data-l-gap-x` ambiguous between "the x-axis gap"
 and "gap at a breakpoint named `x`". And the prefix itself is what keeps
-fifteen very ordinary words (`gap`, `align`, `track`…) *out* of
+seventeen very ordinary words (`gap`, `align`, `track`…) *out* of
 `RESERVED_AXES`: unprefixed, each would have to be seized permanently from
 every design system in the ecosystem, and a skin that legitimately wanted an
 axis called `align` would start failing validation.
@@ -846,7 +852,7 @@ order is idempotent; relying on load order is not. What each layer holds:
 | `zero.fallback` | base.css only: design-system-neutral structural token defaults (radius/size/text ramps, durations, …) so an unstyled page is sane. |
 | `zero.tokens` | Compiled design-system tokens: `:where(:root)` defaults, `@property`-adjacent blocks, theme blocks. |
 | `zero.recipes` | All compiled recipe CSS, plus base.css's few structural necessities (summary marker removal, `cursor: not-allowed`). |
-| `zero.structure` | `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, the same for a closed dialog popup / drawer panel (`:not([open])`, #51), the `[data-visually-hidden]` clip (#54), a table `column`'s `width: var(--table-column-width, auto)` (#55), and an autosizing textarea's `field-sizing: content` with `lh` row bounds (#88). |
+| `zero.structure` | `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`, the same for a closed dialog popup / drawer panel (`:not([open])`, #51), the `[data-visually-hidden]` clip (#54), a table `column`'s `width: var(--table-column-width, auto)` and the hidden `cell-label` (#55), and an autosizing textarea's `field-sizing: content` with `lh` row bounds (#88). Plus one kit-emitted block per design system: a stacked table's per-breakpoint geometry (#55). |
 
 `zero.structure` exists because `[hidden]` otherwise relies on the UA
 sheet — the weakest declaration in the document — and all six design
@@ -864,7 +870,27 @@ tooling never crosses it.
 The column width is there because it is app data reaching the screen, which
 no skin should be able to forget. It is a custom property rather than an
 inline `width`, so a later responsive rule in the same layer can take it
-back without `!important`.
+back without `!important`. The stacked table's rule does exactly that.
+That rule is the one part of `zero.structure` a design system ships
+instead of base.css, because it is per breakpoint and only the design
+system knows what `md` is. `compileDesignSystem` writes `tableStackCss`
+into the table's component stylesheet: under each `@media (width < …)`,
+keyed on `data-l-stack` through the table's whole child chain (so a
+nested table keeps its own mode), the rows become blocks, the head is
+clipped like `[data-visually-hidden]`, the `<col>` widths reset, and
+`cell-label` hangs in the cell's start padding. The label is a real
+element, not a `::before`, and it hangs rather than sitting in a grid
+column, because an app's mixed inline content would split into anonymous
+grid items. The split with the skin is geometry versus chrome. The skin's
+card (border, fill, padding, gap) is recipe styles, conditioned on the
+same ranges through `tableStackAt`'s `below-<breakpoint>` entries. The
+spacing audit does not grade `zero.structure` rules. The static contrast
+matrix reads them, which is why the component file restates base.css's
+`display: none` for the label: the browser and the static reader then
+agree that the label is unrendered at the reference width. The stacked
+label's own contrast is measured by the table e2e, at a width where it
+paints. On lynx the recipe conditions are dropped and reported like any
+`at`, and no structure block is emitted.
 The autosizing textarea is there for the same reason as the column width:
 the app asked for it (`minRows`/`maxRows`), so no skin should be able to
 forget it or out-specify it. `data-autosize` is declared per part

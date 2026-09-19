@@ -32,10 +32,23 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * each `<col>` and a `zero.structure` rule applies it, so a design system
  * never has to remember to; alignment rides `--table-cell-align` on the
  * cells that name their column, which the cell recipes read.
+ *
+ * `stack` on the root (`data-l-stack="md"`, a breakpoint-valued layout
+ * attribute) is the responsive stacked mode: below that breakpoint every
+ * row is one labelled block. The geometry is zero's — kit-emitted
+ * per-breakpoint rules in `@layer zero.structure` — and the card chrome is
+ * the skin's. `cell-label` is the column's label printed inside each cell
+ * that names a column, a real `aria-hidden` element rather than a
+ * `::before` (a skin that draws on the cell's pseudo-elements cannot
+ * collide with it). It renders only on a table that stacks, and is
+ * `display: none` until the table actually does; assistive tech keeps
+ * reading the header association, since the head row is visually hidden
+ * rather than removed.
  */
 export const tableAnatomy = defineAnatomy('table', {
     root: {
         element: 'div',
+        layout: ['stack'],
         tokens: ['color', 'radius-box', 'size'],
     },
     table: {
@@ -86,5 +99,10 @@ export const tableAnatomy = defineAnatomy('table', {
         element: 'td',
         parent: 'row',
         tokens: ['color', 'text', 'size'],
+    },
+    'cell-label': {
+        element: 'span',
+        parent: 'cell',
+        tokens: ['color', 'text'],
     },
 });

@@ -360,9 +360,47 @@ the base surfaces (`base-content` / `base-100` / `base-200`), and a
 category step the tokens never declare (`var(--ease-exit)`) collapses to
 the category's resting step (`--ease-standard`). Pure, and the identity for
 recipes that already fit — every in-repo skin round-trips deep-equal.
-`explainFit` returns the counts instead of the recipes. The scaffold's
+`explainFit` returns the counts instead of the recipes. An `at` condition
+naming a breakpoint the tokens do not declare (`below-lg` under a ramp that
+stops at `md`) is dropped too, and counted as `droppedConditions` — once
+`tokens.breakpoints` is declared at all. The scaffold's
 generated `src/recipes.ts` is its caller; delete the call once the recipes
 speak the design system's own vocabulary.
+
+### `tableStackAt` — a stacked table's cards
+
+`Table.Root stack="md"` (zero#55) turns every row into a block below the
+design system's `md`, each value captioned by its column's label (the
+`cell-label` part). The geometry is zero's, and the kit writes it for you:
+`compileDesignSystem` emits one `@media (width < …)` block per declared
+breakpoint into `@layer zero.structure`, in the table's component
+stylesheet (`tableStackCss`). The rows become blocks, the head is visually
+hidden, `<col>` widths reset to `auto`, and the label hangs in the cell's
+start padding (`--table-stack-label-size`, default `8rem`, and
+`--table-stack-label-gap`: lengths a skin may set on the root).
+
+What the card looks like is the skin's. `tableStackAt(tokens, part, styles)`
+returns the `at` entries that apply `styles` only while a table is stacked,
+one `below-<breakpoint>` per declared breakpoint, so spread it into the
+part:
+
+```ts
+import { tableStackAt } from '@sigx/zero-kit/define';
+import { tokens } from './tokens.js';
+
+row: {
+    base: { borderBlockEnd: hairline },
+    states: { selected: { background: wash } },
+    at: tableStackAt(tokens, 'row', { border: hairline, borderRadius: 'var(--radius-box)', padding: 'var(--space-md)' }),
+},
+body: { at: tableStackAt(tokens, 'body', { rowGap: 'var(--space-md)' }) },
+'cell-label': { base: { fontSize: 'var(--text-xs)', color: muted } },
+```
+
+The rule keeps the part's own specificity (its containment chain sits in
+`:where()`), so it beats `base` and a state or modifier still beats it.
+Style `cell-label` unconditionally: zero shows it only while the table
+stacks. On lynx the conditions are dropped and reported, like any `at`.
 
 ## Extending a design system
 
@@ -659,7 +697,9 @@ that switch, so:
 
 Exempt on purpose: `em` lengths (spacing that tracks type, not the ramp),
 anything inside parentheses (`calc(var(--space-lg) - 2px)` already rides it),
-and `0`.
+and `0`. Rules in `@layer zero.structure` are not graded either: that is
+zero's geometry the kit writes into a component stylesheet (a stacked
+table's visually hidden head), not the skin's spacing.
 
 A **recipe pack** should give its ramp references a fallback —
 `var(--space-md, 0.5rem)`. `system.spacing` is optional, and a design system

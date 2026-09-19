@@ -6,8 +6,8 @@
  * shoves it into its own shadow.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
-import { axisRoles } from '@sigx/zero-kit/define';
-import { roles } from './tokens.js';
+import { axisRoles, tableStackAt } from '@sigx/zero-kit/define';
+import { roles, tokens } from './tokens.js';
 
 /**
  * Every role a consumer can pass as `color`, derived from the declaration
@@ -4199,6 +4199,10 @@ export const table: RecipeInput = {
                 background: 'var(--color-base-100)',
                 boxShadow: 'var(--shadow-sm)',
             },
+        // Stacked (Table.Root stack, #55): zero lays each row out as a block
+        // below the table's breakpoint; the card it becomes is drawn here.
+            // Every card is its own slab, so the slab around them goes.
+            at: tableStackAt(tokens, 'root', { border: '0', background: 'transparent', boxShadow: 'none' }),
         },
         table: {
             base: {
@@ -4216,16 +4220,18 @@ export const table: RecipeInput = {
                 ...label,
                 fontSize: 'var(--text-xs)',
             },
+            at: tableStackAt(tokens, 'caption', { paddingInline: '0' }),
         },
         head: {
             base: { borderBlockEnd: 'calc(var(--border) * 2) solid var(--color-base-content)' },
         },
-        body: {},
+        body: { at: tableStackAt(tokens, 'body', { rowGap: 'var(--space-lg)' }) },
         foot: {
             base: {
                 borderBlockStart: 'calc(var(--border) * 2) solid var(--color-base-content)',
                 fontSize: 'var(--text-xs)',
             },
+            at: tableStackAt(tokens, 'foot', { rowGap: 'var(--space-lg)', marginBlockStart: 'var(--space-lg)', borderBlockStart: '0' }),
         },
         row: {
             base: { borderBlockEnd: 'var(--border) solid var(--color-base-content)' },
@@ -4235,6 +4241,12 @@ export const table: RecipeInput = {
                     color: 'var(--table-accent-ink)',
                 },
             },
+            at: tableStackAt(tokens, 'row', {
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-sm)',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+            }),
         },
         'header-cell': {
             base: {
@@ -4243,12 +4255,21 @@ export const table: RecipeInput = {
                 ...label,
                 fontSize: 'var(--text-xs)',
             },
+            at: tableStackAt(tokens, 'header-cell', { paddingInline: '0' }),
         },
         cell: {
             base: {
                 padding: 'var(--table-pad-block) var(--table-pad-inline)',
                 textAlign: 'var(--table-cell-align)',
                 fontVariantNumeric: 'tabular-nums',
+            },
+            at: tableStackAt(tokens, 'cell', { paddingInline: '0', paddingBlock: 'var(--space-xs)' }),
+        },
+        // A stacked cell's column label: the header's mono uppercase label.
+        'cell-label': {
+            base: {
+                ...label,
+                fontSize: 'var(--text-xs)',
             },
         },
     },

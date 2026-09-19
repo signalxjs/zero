@@ -9,6 +9,7 @@ import {
     LAYOUT_ATTR_PREFIX,
     LAYOUT_VOCABULARY,
     SPACE_STEPS,
+    isLayoutValue,
     layoutAttrs,
     layoutAttrSpec,
     parseLayoutAttr,
@@ -102,6 +103,36 @@ describe('layoutAttrs', () => {
             .toThrow(/not an array/);
         expect(() => layoutAttrs({ gap: ['md', 'lg'] } as never, ['gap']))
             .toThrow(/not an array/);
+    });
+});
+
+describe('a breakpoint-valued attribute (`stack`, #55)', () => {
+    it('lists no values; its value set is the design system\'s breakpoints', () => {
+        expect(layoutAttrSpec('stack')).toEqual({ values: [], valuesFrom: 'breakpoints' });
+    });
+
+    it('renders any kebab-case breakpoint name', () => {
+        expect(layoutAttrs({ stack: 'md' }, ['stack'])).toEqual({ 'data-l-stack': 'md' });
+        expect(layoutAttrs({ stack: 'tablet-lg' }, ['stack'])).toEqual({ 'data-l-stack': 'tablet-lg' });
+        expect(layoutAttrs({ stack: '2xl' }, ['stack'])).toEqual({ 'data-l-stack': '2xl' });
+    });
+
+    it('refuses what could never be a breakpoint: not kebab-case, or `base`', () => {
+        expect(() => layoutAttrs({ stack: 'Md' }, ['stack'])).toThrow(/expected a kebab-case breakpoint name/);
+        expect(() => layoutAttrs({ stack: 'base' }, ['stack'])).toThrow(/"base" is not a value of "stack"/);
+        expect(() => layoutAttrs({ stack: '' }, ['stack'])).toThrow(/not a value/);
+    });
+
+    it('does not vary per breakpoint — it already names one', () => {
+        expect(() => layoutAttrs({ stack: { base: 'md' } as never }, ['stack'])).toThrow(/does not vary per breakpoint/);
+        expect(parseLayoutAttr('data-l-md-stack')).toBeUndefined();
+    });
+
+    it('isLayoutValue answers for both kinds', () => {
+        expect(isLayoutValue('stack', 'md')).toBe(true);
+        expect(isLayoutValue('stack', 'base')).toBe(false);
+        expect(isLayoutValue('gap', 'md')).toBe(true);
+        expect(isLayoutValue('gap', 'huge')).toBe(false);
     });
 });
 
