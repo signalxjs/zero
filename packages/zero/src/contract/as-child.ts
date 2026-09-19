@@ -20,8 +20,10 @@ type SlotAccessor = ((scopedProps?: any) => any) | undefined;
  * What a view returns — `ViewFn`'s range. Typed rather than `unknown` since
  * sigx 1.0 ships the global `JSX.Element` (rfc-1.0 §4.1, sigx#529): a view
  * returning `unknown` used to pass because every JSX expression was `any`,
- * and now fails `SetupFn`. `null` became `undefined` for the same reason —
- * the range has no `null`.
+ * and now fails `SetupFn`. An empty slot is `undefined` (the range's own
+ * "nothing"); a nullish ENTRY inside a slot's array is `null`, which
+ * `JSXElement` admits as a hole — so every value here is one the runtime
+ * renders.
  */
 export type AsChildResult = JSXElement | JSXElement[] | undefined;
 
@@ -33,7 +35,10 @@ export function renderAsChild(slot: SlotAccessor, bag: PartProps | Record<string
     const out = slot?.(bag);
     if (out == null) return undefined;
     const items = Array.isArray(out) ? out : [out];
-    const rendered = items.map((item) => (typeof item === 'function' ? item(bag) : item)) as JSXElement[];
+    const rendered = items.map((item): JSXElement => {
+        const value: unknown = typeof item === 'function' ? item(bag) : item;
+        return value == null ? null : (value as JSXElement);
+    });
     return rendered.length === 1 ? rendered[0] : rendered;
 }
 

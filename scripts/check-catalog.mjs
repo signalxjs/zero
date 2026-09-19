@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CORE_PACKAGES, findInlineCoreDeps, formatInlineCoreDeps } from './lib/core-deps.mjs';
 
-const SINGLE_MINOR = /^\^\d+\.\d+\.0$/; // ^X.Y.0 — one caret range (a minor pre-1.0, a major after)
+const ONE_CARET_RANGE = /^\^\d+\.\d+\.0$/; // ^X.Y.0 — one caret range (a minor pre-1.0, a major after)
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const errors = [];
@@ -44,7 +44,7 @@ for (const line of ws.split('\n')) {
     if (!m) continue;
     const name = m[2];
     const ver = m[3] ?? m[4] ?? m[5];
-    if (CORE_PACKAGES.has(name) && !SINGLE_MINOR.test(ver)) {
+    if (CORE_PACKAGES.has(name) && !ONE_CARET_RANGE.test(ver)) {
         errors.push(`catalog["${name}"] = "${ver}" (must be one caret range ^X.Y.0 to keep one copy hoisted)`);
     }
 }
