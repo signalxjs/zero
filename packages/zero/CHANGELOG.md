@@ -2,8 +2,10 @@
 
 ## [Unreleased]
 
+## [0.3.0-beta.1] - 2026-09-19
+
 > Upgrading from 0.2.0-beta.1? [`docs/upgrading.md`](../../docs/upgrading.md)
-> has the before/after for every breaking change below.
+> has the before/after for every breaking change in this release.
 
 ### Changed — sigx core 1.0 (#145)
 
