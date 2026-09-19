@@ -3958,6 +3958,88 @@ export const alert: RecipeInput = {
 };
 
 /**
+ * EmptyState (zero#131) — daisy has no empty-state component; this is the
+ * `hero`-content idiom at card scale: a centred column on the base-200
+ * surface with the box radius, the icon in the role's ink and the surface
+ * in its soft tint when a tone is given.
+ */
+export const emptyState: RecipeInput = {
+    component: 'empty-state',
+    hooks: {
+        properties: {
+            '--empty-accent': 'The icon ink.',
+            '--empty-tint': 'The surface fill.',
+        },
+    },
+    tokens: {
+        '--empty-accent': 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
+        '--empty-tint': 'var(--color-base-200)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-2xl) var(--space-xl)',
+                background: 'var(--empty-tint)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-box)',
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                color: 'var(--empty-accent)',
+                fontSize: 'var(--text-2xl)',
+                lineHeight: 'var(--leading-none)',
+                marginBlockEnd: 'var(--space-xs)',
+            },
+        },
+        title: {
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-lg)',
+                fontWeight: 'var(--weight-bold)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                maxInlineSize: '36ch',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        actions: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: 'var(--space-sm)',
+                marginBlockStart: 'var(--space-sm)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--empty-accent': roleInk(c),
+            '--empty-tint': `var(--color-${c}-soft)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-md)', gap: 'var(--space-2xs)' } }, icon: { base: { fontSize: 'var(--text-xl)' } }, title: { base: { fontSize: 'var(--text-sm)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-lg)', gap: 'var(--space-xs)' } }, icon: { base: { fontSize: 'var(--text-2xl)' } }, title: { base: { fontSize: 'var(--text-md)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'calc(var(--space-2xl) * 1.5) var(--space-2xl)', gap: 'var(--space-md)' } }, icon: { base: { fontSize: 'var(--text-2xl)' } }, title: { base: { fontSize: 'var(--text-xl)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { padding: 'calc(var(--space-2xl) * 2) var(--space-2xl)', gap: 'var(--space-lg)' } }, icon: { base: { fontSize: 'var(--text-2xl)' } }, title: { base: { fontSize: 'var(--text-2xl)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
  * daisy "badge" flavor: a fully-rounded pill with a hairline, filled by the
  * role. No `variant` — the repo-wide decision (#175) holds everywhere except
  * zero-basic's badge, which narrows its own vocabulary through `tokens.scopes`
@@ -6235,7 +6317,7 @@ export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
-    card, alert, badge, divider, skeleton, spinner,
+    card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
     table,

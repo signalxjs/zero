@@ -216,6 +216,9 @@ const NO_VARIANT: Record<string, string> = {
     // ── The content-tier sweep (#334). ──
     kbd: 'no surveyed system varies a keycap — daisyUI\'s kbd carries only a '
         + 'size ramp, and HeroUI\'s Kbd styles through `keys`, not a style axis.',
+    'empty-state': 'no surveyed system varies an empty state\'s chrome — the '
+        + 'tone (failure, offline) is the colour axis, Alert\'s answer, and '
+        + 'Radix Themes / HeroUI ship no such component at all (#131).',
     status: 'no surveyed system varies a presence dot — daisyUI\'s status has '
         + 'colour and size only, and the colour axis IS this component\'s '
         + 'whole vocabulary.',

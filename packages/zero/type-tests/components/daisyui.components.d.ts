@@ -39,6 +39,7 @@ import type { Input as ZInput } from '@sigx/zero/input';
 import type { Textarea as ZTextarea } from '@sigx/zero/textarea';
 import type { Card as ZCard } from '@sigx/zero/card';
 import type { Alert as ZAlert } from '@sigx/zero/alert';
+import type { EmptyState as ZEmptyState } from '@sigx/zero/empty-state';
 import type { Badge as ZBadge } from '@sigx/zero/badge';
 import type { Divider as ZDivider } from '@sigx/zero/divider';
 import type { Skeleton as ZSkeleton } from '@sigx/zero/skeleton';
@@ -320,6 +321,14 @@ type AlertProps = {
 };
 type AlertAdapted = Adapted<typeof ZAlert, ZeroAxisProp, AlertProps>;
 export declare const Alert: AlertAdapted & AdaptedStatics<typeof ZAlert> & { Root: AlertAdapted };
+
+/** empty-state — no vendor route; the wired surface keeps zero's names. */
+type EmptyStateProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type EmptyStateAdapted = Adapted<typeof ZEmptyState, ZeroAxisProp, EmptyStateProps>;
+export declare const EmptyState: EmptyStateAdapted & AdaptedStatics<typeof ZEmptyState> & { Root: EmptyStateAdapted };
 
 /** badge — no vendor route; the wired surface keeps zero's names. */
 type BadgeProps = {

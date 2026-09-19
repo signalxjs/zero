@@ -5,6 +5,12 @@
 > Upgrading from 0.2.0-beta.1? [`docs/upgrading.md`](../../docs/upgrading.md)
 > has the before/after for every breaking change below.
 
+### Changed — `RESERVED_PROPS_BY_SCOPE` gains `empty-state` (zero#131)
+
+- The new scope's root props (`id`, `role`, `title`) are reserved, so a
+  vendor-named api cannot claim them as axis props there. Every skin's
+  goldens gain the scope.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE.combobox` gains `anchor` (zero#105) and `itemInsert` (zero#107)
 
 - The trigger-mode Combobox's new `anchor` prop (where its list opens) and

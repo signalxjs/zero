@@ -33,7 +33,7 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · Menu ·
 Select · Switch · Checkbox · RadioGroup · Slider · Progress ·
 Field · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
-RatingGroup · TreeView · Input · Textarea · Card · Alert · Badge · Divider ·
+RatingGroup · TreeView · Input · Textarea · Card · Alert · EmptyState · Badge · Divider ·
 Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · RadialProgress · Join ·
 Navbar · Breadcrumbs · Pagination · Steps · Drawer · Table · FileUpload · Carousel · Swap · Countdown · Diff
 Stack (Row/Col) · Spacer · Grid · Center · Box · Container
@@ -343,6 +343,31 @@ an app shell's navigation rendered once, not twice (#82).
 `@sigx/zero/css` (like every design system's `./css`) carries a `types`
 condition pointing at an empty declaration, so the extensionless side-effect
 import typechecks under `noUncheckedSideEffectImports` with no app-side shim.
+
+**EmptyState: what stands where the content would be** (#131). Nothing
+yet, nothing found, nothing reachable — every app writes those three by
+hand, and the parts they share are `Icon` (decorative), `Title` (`asChild`
+so it can be the heading the page's outline wants), `Description` and an
+`Actions` band for the way out, holding your own `Button.Root`s:
+
+```tsx
+<EmptyState.Root color="error">
+    <EmptyState.Icon>⚠</EmptyState.Icon>
+    <EmptyState.Title asChild>{(p) => <h2 {...p}>Could not load your projects</h2>}</EmptyState.Title>
+    <EmptyState.Description>The server did not answer. Your work is saved.</EmptyState.Description>
+    <EmptyState.Actions>
+        <Button.Root onClick={retry}>Try again</Button.Root>
+        <Button.Root asChild variant="ghost">{(p) => <a href="/status" {...p}>Service status</a>}</Button.Root>
+    </EmptyState.Actions>
+</EmptyState.Root>
+```
+
+The tone is the `color` axis, Alert's answer — a failure is `error`, an
+offline notice `warning` — so there is no variant to invent. It is not an
+Alert: an alert announces itself (`role="alert"`) and can be dismissed; an
+empty state is the page's content while there is none, read in flow, and
+stays until the content arrives. No role of its own (pass `role="status"`
+to have a failure announced), no open/closed — presence is your `if`.
 
 **Attribute pass-through.** sigx forwards no rest props, so a part only
 renders what it declares. Every part an app writes takes `WithHtmlAttrs` and

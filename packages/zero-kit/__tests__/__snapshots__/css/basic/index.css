@@ -5495,6 +5495,181 @@
 }
 
 @layer zero.recipes {
+    [data-scope="empty-state"][data-part="root"] {
+        --empty-accent: color-mix(in oklch, var(--color-base-content) 55%, transparent);
+        --empty-tint: transparent;
+        --empty-line: var(--color-base-300);
+    }
+
+    [data-scope="empty-state"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: var(--space-sm);
+        padding: var(--space-2xl) var(--space-xl);
+        background: var(--empty-tint);
+        color: var(--color-base-content);
+        border: var(--border) dashed var(--empty-line);
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="empty-state"][data-part="icon"] {
+        display: inline-flex;
+        color: var(--empty-accent);
+        font-size: var(--text-2xl);
+        line-height: var(--leading-none);
+        margin-block-end: var(--space-xs);
+    }
+
+    [data-scope="empty-state"][data-part="title"] {
+        margin: 0;
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="empty-state"][data-part="description"] {
+        max-inline-size: 36ch;
+        font-size: var(--text-sm);
+        line-height: var(--leading-normal);
+        color: color-mix(in oklch, var(--color-base-content) 78%, transparent);
+    }
+
+    [data-scope="empty-state"][data-part="actions"] {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-sm);
+        margin-block-start: var(--space-sm);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-color="primary"] {
+        --empty-accent: var(--color-primary);
+        --empty-tint: var(--color-primary-soft);
+        --empty-line: var(--color-primary);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-color="secondary"] {
+        --empty-accent: var(--color-secondary);
+        --empty-tint: var(--color-secondary-soft);
+        --empty-line: var(--color-secondary);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-color="accent"] {
+        --empty-accent: var(--color-accent);
+        --empty-tint: var(--color-accent-soft);
+        --empty-line: var(--color-accent);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-color="neutral"] {
+        --empty-accent: var(--color-base-content);
+        --empty-tint: var(--color-neutral-soft);
+        --empty-line: var(--color-neutral);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-color="info"] {
+        --empty-accent: var(--color-info);
+        --empty-tint: var(--color-info-soft);
+        --empty-line: var(--color-info);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-color="success"] {
+        --empty-accent: var(--color-success);
+        --empty-tint: var(--color-success-soft);
+        --empty-line: var(--color-success);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-color="warning"] {
+        --empty-accent: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
+        --empty-tint: var(--color-warning-soft);
+        --empty-line: var(--color-warning);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-color="error"] {
+        --empty-accent: var(--color-error);
+        --empty-tint: var(--color-error-soft);
+        --empty-line: var(--color-error);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-size="xs"] {
+        padding: var(--space-md) var(--space-md);
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-size="sm"] {
+        padding: var(--space-lg) var(--space-lg);
+        gap: var(--space-xs);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-size="lg"] {
+        padding: calc(var(--space-2xl) * 1.5) var(--space-2xl);
+        gap: var(--space-md);
+    }
+
+    [data-scope="empty-state"][data-part="root"][data-size="xl"] {
+        padding: calc(var(--space-2xl) * 2) var(--space-2xl);
+        gap: var(--space-lg);
+    }
+
+    @scope ([data-scope="empty-state"][data-part="root"][data-size="xs"]) to ([data-scope="empty-state"][data-part="root"]) {
+        [data-scope="empty-state"][data-part="icon"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="empty-state"][data-part="title"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="empty-state"][data-part="description"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="empty-state"][data-part="root"][data-size="sm"]) to ([data-scope="empty-state"][data-part="root"]) {
+        [data-scope="empty-state"][data-part="icon"] {
+            font-size: var(--text-xl);
+        }
+
+        [data-scope="empty-state"][data-part="title"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="empty-state"][data-part="description"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="empty-state"][data-part="root"][data-size="lg"]) to ([data-scope="empty-state"][data-part="root"]) {
+        [data-scope="empty-state"][data-part="icon"] {
+            font-size: var(--text-3xl);
+        }
+
+        [data-scope="empty-state"][data-part="title"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="empty-state"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="empty-state"][data-part="root"][data-size="xl"]) to ([data-scope="empty-state"][data-part="root"]) {
+        [data-scope="empty-state"][data-part="icon"] {
+            font-size: var(--text-3xl);
+        }
+
+        [data-scope="empty-state"][data-part="title"] {
+            font-size: var(--text-xl);
+        }
+
+        [data-scope="empty-state"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+    }
+}
+
+@layer zero.recipes {
     [data-scope="badge"][data-part="root"] {
         --badge-dot: currentColor;
         --badge-dot-ring: currentColor;
