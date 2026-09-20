@@ -373,6 +373,39 @@ that null reports a `TypeError` instead of "the popup was not showing".
 bump a single package's version — use `pnpm version:patch|minor|major`.
 Publishing is handled by `scripts/publish.js` in topological order.
 
+## Cutting a release
+
+Releases are plain semver — `0.4.0`, `0.5.0`, … — from #148 on; the betas
+ended at 0.3.0-beta.1. Every step but the tag goes through a PR like any
+other change, and the tag is what publishes:
+
+1. `pnpm wt new <N-release-X.Y.Z>`, then `pnpm version:minor` (or `patch` /
+   `major`; `pnpm version:set X.Y.Z` for an exact one). It moves every
+   publishable package to the one version and cuts both CHANGELOGs
+   (`[Unreleased]` → `[X.Y.Z] - <today>` under a fresh `[Unreleased]`). A
+   bump from a prerelease drops it and bumps: 0.3.0-beta.1 → `minor` →
+   0.4.0.
+2. `pnpm typecheck && pnpm test && pnpm build && pnpm verify:pack`, then a
+   PR (`chore(release): X.Y.Z`) with Copilot as reviewer, merged like any
+   other — that is the release commit.
+3. On `main` at that commit: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+   `release.yml` lints, typechecks, builds, tests, verify-packs and
+   publishes the five packages with npm trusted publishing (OIDC — no
+   token) and provenance, then creates the GitHub release. A plain tag
+   lands on npm `latest`; a prerelease tag (`v0.4.0-rc.1`, still possible
+   through `version:set`) lands on its own dist-tag and never `latest`.
+4. Comment the tag on every open signalxjs.github.io docs issue the release
+   ships (the Documentation section above), and tick the tracker.
+
+Two things a release can trip on. **A package's first-ever publish is
+manual**: trusted publishing can only publish to a package that exists, so a
+new name 404s on PUT in CI — `pnpm publish:all` from an authenticated shell
+on the tagged commit publishes it (it skips what is already on the
+registry), then add the trusted publisher for it on npmjs.com and re-run
+the failed workflow. And **the `beta` dist-tag is frozen at 0.3.0-beta.1**:
+a consumer still pinning `beta` sees nothing after it — pin `latest` or a
+caret range.
+
 ## The anatomy contract (repo-specific law)
 
 - Every rendered part carries `data-scope="<component>"` and
