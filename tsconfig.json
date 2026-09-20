@@ -32,7 +32,8 @@
     "packages/*/skills/**/*.ts",
     "packages/*/src/**/*.tsx",
     "packages/*/__tests__/**/*.ts",
-    "packages/*/__tests__/**/*.tsx"
+    "packages/*/__tests__/**/*.tsx",
+    "scripts/__tests__/**/*.ts"
   ],
   "exclude": ["node_modules", "**/dist", "examples"]
 }

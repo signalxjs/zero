@@ -34,7 +34,10 @@ export default defineConfig({
         environment: 'happy-dom',
         include: [
             'packages/**/__tests__/**/*.test.{ts,tsx}',
-            'packages/**/src/**/*.test.{ts,tsx}'
+            'packages/**/src/**/*.test.{ts,tsx}',
+            // The release tooling's pure halves (bump-version's semver step
+            // and changelog cut, #148).
+            'scripts/__tests__/**/*.test.{ts,mjs}'
         ],
         globals: true,
         coverage: {
