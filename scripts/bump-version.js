@@ -23,7 +23,7 @@
  *   … --no-changelog                               # skip the changelog cut
  */
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -58,14 +58,39 @@ export function bumpVersion(version, type) {
 
 /**
  * Cut a Keep-a-Changelog file: the `[Unreleased]` section becomes the
- * release, under a new empty `[Unreleased]`. Idempotent for an already-cut
- * file (no `[Unreleased]` heading → untouched).
+ * release, under a new empty `[Unreleased]`. Untouched when there is no
+ * `[Unreleased]` heading, and — the state right after a release — when the
+ * section is EMPTY (nothing but whitespace before the next `## ` heading or
+ * the end): a rerun of `pnpm version:*` must not mint an empty release
+ * entry and push the real one down.
  */
 export function cutChangelogText(text, version, date) {
     const heading = '## [Unreleased]';
     const at = text.indexOf(heading);
     if (at === -1) return text;
-    return `${text.slice(0, at)}${heading}\n\n## [${version}] - ${date}${text.slice(at + heading.length)}`;
+    const bodyStart = at + heading.length;
+    const nextHeading = text.indexOf('\n## ', bodyStart);
+    const body = text.slice(bodyStart, nextHeading === -1 ? undefined : nextHeading);
+    if (body.trim() === '') return text;
+    return `${text.slice(0, at)}${heading}\n\n## [${version}] - ${date}${text.slice(bodyStart)}`;
+}
+
+/**
+ * Move the TOP-LEVEL `"version"` line of a package.json, textually, so the
+ * rest of the file stays byte-for-byte (a JSON round-trip rewrote unicode
+ * escapes, #147). Anchored to a line-leading key, and it must match exactly
+ * once — a nested `"version"` (a dependency map, a publishConfig) or an
+ * unexpected layout is an error rather than a silent miss.
+ */
+export function replaceVersionLine(raw, newVersion) {
+    const pattern = /^(\s*"version":\s*")([^"]+)(")/gm;
+    const matches = [...raw.matchAll(pattern)];
+    if (matches.length !== 1) {
+        throw new Error(`expected exactly one top-level "version" line, found ${matches.length}`);
+    }
+    const next = raw.replace(pattern, `$1${newVersion}$3`);
+    if (JSON.parse(next).version !== newVersion) throw new Error(`version line replaced, but the manifest reads ${JSON.parse(next).version}`);
+    return next;
 }
 
 function processPackages(dir, today) {
@@ -83,10 +108,7 @@ function processPackages(dir, today) {
         }
         const oldVersion = pkg.version;
         const newVersion = exactVersion || bumpVersion(oldVersion, bumpType);
-        // A textual replace of the version line keeps the file byte-for-byte
-        // otherwise — a JSON round-trip rewrote unicode escapes (#147).
-        const next = raw.replace(/("version":\s*")[^"]+(")/, `$1${newVersion}$2`);
-        writeFileSync(pkgPath, next);
+        writeFileSync(pkgPath, replaceVersionLine(raw, newVersion));
         console.log(`${pkg.name}: ${oldVersion} → ${newVersion}`);
         results.push(newVersion);
 
@@ -97,15 +119,18 @@ function processPackages(dir, today) {
             if (after !== before) {
                 writeFileSync(changelogPath, after);
                 console.log(`  CHANGELOG.md: [Unreleased] → [${newVersion}] - ${today}`);
+            } else {
+                console.log(`  CHANGELOG.md: [Unreleased] is empty — not cut (nothing to release under ${newVersion}?)`);
             }
         }
     }
     return results;
 }
 
-// Only run when invoked directly, so the two pure functions above are
-// importable by the test.
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+// Only run when invoked directly, so the pure functions above are
+// importable by the test. Node hands `argv[1]` over resolved, but a relative
+// spelling is normalised anyway.
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
     const today = new Date().toISOString().slice(0, 10);
     console.log(exactVersion
         ? `Setting all packages to version ${exactVersion}...\n`
