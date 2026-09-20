@@ -9,8 +9,8 @@
  *   empty `[Unreleased]`, and leaves a file with no such heading alone.
  */
 import { describe, it, expect } from 'vitest';
-// @ts-expect-error — a plain ESM script, no declarations by design.
-import { bumpVersion, cutChangelogText, replaceVersionLine } from '../bump-version.js';
+// @ts-expect-error — a plain ESM module, no declarations by design.
+import { bumpVersion, cutChangelogText, replaceVersionLine } from '../lib/version.mjs';
 
 describe('bumpVersion', () => {
     it('bumps a stable version by part', () => {
