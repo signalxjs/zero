@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-22
+
+First plain-semver release (#148): the contents of 0.3.0-beta.1, published
+to npm `latest`. Until now `latest` pointed at 0.2.0-beta.1, which peers
+sigx core `^0.15` — 0.4.0 puts the core-1.0 line (`^1.0.0`) on `latest`.
+No code changes since 0.3.0-beta.1 (#150).
+
 ## [0.3.0-beta.1] - 2026-09-19
 
 > Upgrading from 0.2.0-beta.1? [`docs/upgrading.md`](../../docs/upgrading.md)
