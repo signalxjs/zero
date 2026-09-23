@@ -1,8 +1,8 @@
 /**
  * Windowed Select/Combobox (`virtual`, #96) against a DOM with no layout
  * engine. The geometry is a model: the popup is a 180px viewport, every
- * option is 36px, a spacer is its inline block size, and the popup scrolls
- * over the sum. What this proves is the listbox half — the window, the
+ * option (and group heading) is 36px, a spacer is its inline block size, and
+ * the popup scrolls over the sum. What this proves is the listbox half — the window, the
  * pinned highlight, the ARIA, the keyboard, the fallbacks. That a real
  * engine agrees is the playground spec's job
  * (`examples/playground/e2e/virtual-listbox.spec.ts`).
@@ -44,12 +44,14 @@ function stub(name: string, get: (this: HTMLElement) => number, set?: (this: HTM
 
 const isPopup = (el: Element): boolean => el.getAttribute('data-part') === 'popup';
 const scrollTops = new WeakMap<Element, number>();
-/** The popup's content: its spacers plus a row per rendered option. */
+/** A row of the window: an option, or a group's heading (#127). */
+const isRow = (el: Element): boolean => el.getAttribute('role') === 'option' || el.getAttribute('data-part') === 'group-heading';
+/** The popup's content: its spacers plus a row per rendered option or heading. */
 const contentHeight = (popup: Element): number => {
     let h = 0;
     for (const child of popup.children) {
         if (child.getAttribute('data-part') === 'spacer') h += Number.parseFloat((child as HTMLElement).style.getPropertyValue('block-size') || '0');
-        else if (child.getAttribute('role') === 'option') h += ROW;
+        else if (isRow(child)) h += ROW;
     }
     return h;
 };
@@ -62,7 +64,7 @@ beforeEach(() => {
         scrollTops.set(this, Math.min(Math.max(0, value), max));
     });
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-        const height = this.getAttribute('role') === 'option' ? ROW : 0;
+        const height = isRow(this) ? ROW : 0;
         // The leading spacer is the list's origin: it scrolls with the content.
         const parent = this.parentElement;
         const top = parent && isPopup(parent) && parent.firstElementChild === this ? -(scrollTops.get(parent) ?? 0) : 0;
@@ -212,14 +214,54 @@ describe('Select virtual', () => {
         expect(posinsets(root)).not.toContain(1);
     });
 
-    it('with groups, renders the whole list', async () => {
-        const grouped: Zone[] = Array.from({ length: 30 }, (_, i) => ({ value: `g${i}`, label: `G ${i}`, group: i < 15 ? 'East' : 'West' }));
+    /** 1,000 options in ten groups of 100: "Region 0" … "Region 9". */
+    const regions: Zone[] = Array.from({ length: 1_000 }, (_, i) => ({
+        value: `r${i}`,
+        label: `Place ${i}`,
+        group: `Region ${Math.floor(i / 100)}`,
+    }));
+    const headings = (root: Element): HTMLElement[] => [...root.querySelectorAll<HTMLElement>('[data-part="group-heading"]')];
+
+    it('with groups, windows too: each heading a row, named by the options under it', async () => {
         const root = host();
-        render(<Select.Root items={grouped} virtual={virtualListbox} defaultOpen />, root);
+        render(<Select.Root items={regions} virtual={virtualListbox} defaultOpen />, root);
         await flush();
-        expect(options(root)).toHaveLength(30);
-        expect(root.querySelector('[data-part="spacer"]')).toBeNull();
-        expect(root.querySelectorAll('[data-part="group"]')).toHaveLength(2);
+        await frame();
+        await flush();
+        expect(options(root).length).toBeLessThan(20);
+        expect(root.querySelector('[data-part="spacer"]')).not.toBeNull();
+        // A group element cannot be split across a window: none is rendered.
+        expect(root.querySelector('[data-part="group"]')).toBeNull();
+        const [first] = headings(root);
+        expect(first!.textContent).toBe('Region 0');
+        expect(first!.getAttribute('aria-hidden')).toBe('true');
+        // Headings are rows, not options: the set counts options alone.
+        expect(options(root)[0]!.getAttribute('aria-setsize')).toBe('1000');
+        expect(options(root)[0]!.getAttribute('aria-posinset')).toBe('1');
+        for (const option of options(root)) expect(option.getAttribute('aria-describedby')).toBe(first!.id);
+        expectAnatomy(root, selectAnatomy);
+    });
+
+    it('with groups, End reaches the last group: its heading renders beside the option naming it', async () => {
+        const root = host();
+        render(<Select.Root items={regions} virtual={virtualListbox} />, root);
+        const trigger = root.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        await flush();
+        trigger.click();
+        await frame();
+        await flush();
+        key(trigger, 'End');
+        await flush();
+        const last = active(trigger);
+        expect(last.getAttribute('aria-posinset')).toBe('1000');
+        const heading = document.getElementById(last.getAttribute('aria-describedby')!);
+        expect(heading?.textContent).toBe('Region 9');
+        key(trigger, 'Home');
+        await flush();
+        expect(active(trigger).getAttribute('aria-posinset')).toBe('1');
+        // Scrolled back to the first option, its heading came along.
+        expect(headings(root).map((h) => h.textContent)).toContain('Region 0');
+        expectAnatomy(root, selectAnatomy);
     });
 
     it('without virtual, renders every option and no spacer', async () => {
@@ -272,6 +314,28 @@ describe('Combobox virtual', () => {
         const expected = zones.filter((z) => z.label.includes('Zone 99')).length;
         expect(options(root)[0]!.getAttribute('aria-setsize')).toBe(String(expected));
         expect(options(root)[0]!.textContent).toContain('Zone 99');
+        expectAnatomy(root, comboboxAnatomy);
+    });
+
+    it('with groups, a group the query empties has no heading row', async () => {
+        const regions: Zone[] = Array.from({ length: 1_000 }, (_, i) => ({
+            value: `r${i}`,
+            label: `Place ${i}`,
+            group: `Region ${Math.floor(i / 100)}`,
+        }));
+        const root = host();
+        const state = signal({ query: '' });
+        render(<Combobox.Root items={regions} virtual={virtualListbox} model:inputValue={[state, 'query']} />, root);
+        const input = root.querySelector<HTMLInputElement>('[data-part="input"]')!;
+        await flush();
+        key(input, 'ArrowDown');
+        await flush();
+        // "Place 95" matches Place 95 and Place 950–959: Region 0 and Region 9.
+        type(input, 'Place 95');
+        await flush();
+        const shown = [...root.querySelectorAll('[data-part="group-heading"]')].map((h) => h.textContent);
+        expect(shown).toEqual(['Region 0', 'Region 9']);
+        expect(options(root)[0]!.getAttribute('aria-setsize')).toBe('11');
         expectAnatomy(root, comboboxAnatomy);
     });
 

@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Windowed grouped lists (#127).** `virtual={virtualListbox}` now windows
+  a data-mode Select or Combobox that has `itemGroup` groups. Before, such a
+  list ignored `virtual` and rendered in full. Each group's heading is a
+  new `group-heading` part: an `aria-hidden` row of the window that the
+  options under it name through `aria-describedby`. The highlighted
+  option's heading stays rendered (pinned) with it. All six design systems
+  style it like `group-label`. Hand-written items still render whole, by
+  design: pass the list as `items` to window it.
+- `createVirtualList`'s `pinned` accepts several rows (`number | number[]`).
+
+### Fixed
+
+- **Keyboard order in grouped lists (#127).** A grouped data list renders a
+  group's later members under its heading, but ArrowDown, Home/End and
+  typeahead walked the raw data order. Over `[A1, B1, A2]`, the next option
+  after A1 was B1, not A2, which renders right below it. The listbox now
+  walks the order it renders, windowed or not.
+
 ## [0.4.0] - 2026-09-22
 
 First plain-semver release (#148): the contents of 0.3.0-beta.1, published

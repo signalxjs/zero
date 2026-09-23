@@ -210,6 +210,13 @@
         color: var(--color-outline);
     }
 
+    [data-scope="combobox"][data-part="group-heading"] {
+        padding: var(--space-2xs) var(--space-md);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        color: var(--color-outline);
+    }
+
     [data-scope="combobox"][data-part="item"] {
         position: relative;
         overflow: hidden;

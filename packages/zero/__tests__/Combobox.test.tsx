@@ -367,6 +367,33 @@ describe('Combobox', () => {
             expectAnatomy(container, comboboxAnatomy);
         });
 
+        it('the keyboard walks groups in the order they render, not the data order (#127)', async () => {
+            render(
+                <Combobox.Root
+                    items={[
+                        { value: 'lemon', group: 'Citrus' },
+                        { value: 'peach', group: 'Stone' },
+                        { value: 'lime', group: 'Citrus' },
+                    ]}
+                />,
+                container,
+            );
+            await tick();
+            const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+            const press = (key: string): void => {
+                input.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+            };
+            const walked: string[] = [];
+            press('ArrowDown');
+            await tick();
+            for (let i = 0; i < 3; i++) {
+                walked.push(document.getElementById(input.getAttribute('aria-activedescendant')!)!.textContent!);
+                press('ArrowDown');
+                await tick();
+            }
+            expect(walked).toEqual(['lemon', 'lime', 'peach']);
+        });
+
         it('explicit slot children win entirely — no merging', () => {
             render(
                 <Combobox.Root items={[{ value: 'apple' }]}>

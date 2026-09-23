@@ -1491,6 +1491,17 @@ export const select: RecipeInput = {
                 color: 'var(--hero-muted)',
             },
         },
+        // A windowed group's heading (#127): the same overline as the label,
+        // as a row of the flat window instead of inside a `group`.
+        'group-heading': {
+            base: {
+                padding: 'var(--space-xs) var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--hero-muted)',
+            },
+        },
         item: {
             base: {
                 display: 'flex',
@@ -1997,6 +2008,17 @@ export const combobox: RecipeInput = {
         // The optgroup equivalent (#325) — the menu's group grammar.
         group: { base: {} },
         'group-label': {
+            base: {
+                padding: 'var(--space-xs) var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        // A windowed group's heading (#127): the same overline as the label,
+        // as a row of the flat window instead of inside a `group`.
+        'group-heading': {
             base: {
                 padding: 'var(--space-xs) var(--space-sm)',
                 fontFamily: 'var(--font-sans)',

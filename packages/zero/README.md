@@ -225,7 +225,7 @@ document, so ten thousand items cost a screenful of elements.
 `estimateItemSize` (px, default 36) sizes an option until it has been
 measured. The strategy lives in its own entry, `@sigx/zero/virtual-listbox`
 (also on the barrel), so the `select` and `combobox` entries never carry
-windowing: only a list that windows pays for it, about 2.9 kB brotli (#119).
+windowing: only a list that windows pays for it, about 3.3 kB brotli (#119).
 
 ```tsx
 import { virtualListbox } from '@sigx/zero/virtual-listbox';
@@ -249,12 +249,22 @@ import { virtualListbox } from '@sigx/zero/virtual-listbox';
   popup at `min(20rem, 60vh)` in its lowest layer (`zero.fallback`), so a
   design system's popup recipe or your own CSS sets the real height. Options
   stack as blocks without margins.
+- **Groups window too (#127).** A `group` element contains its options,
+  so it cannot be split across a window. Windowed, each `itemGroup` group
+  is a `group-heading` part instead: a row of the window, beside the
+  options rather than around them, and measured like one. It is
+  `aria-hidden`; each option under it names it through `aria-describedby`
+  while it is rendered, and the highlighted option's heading is pinned with
+  it, so the option `aria-activedescendant` names always carries its group.
+  A group the Combobox query empties has no heading. The keyboard walks
+  groups in the order they render, windowed or not: a group's later members
+  are pulled up under its heading, so they come next.
 - **What stays whole.** Hand-written `Select.Item` / `Combobox.Item`
-  children register at setup, so they are never windowed, and neither is a
-  list with `itemGroup` groups: `virtual` is ignored and the list renders
-  in full. Under `virtual`, the hidden `<select>` carries only the chosen
-  options, not one per item. `multiple`, tags, `allowCustom` and trigger
-  mode work as they do unwindowed.
+  children are never windowed. They register as they mount, so nothing
+  knows an item before it is rendered, and `virtual` is ignored. To window
+  a long list, pass it as `items`. Under `virtual`, the hidden `<select>`
+  carries only the chosen options, not one per item. `multiple`, tags,
+  `allowCustom` and trigger mode work as they do unwindowed.
 
 Interaction state is published as data for the design system to style:
 `data-focus-visible`, and press feedback on every interactive part —
@@ -879,12 +889,14 @@ const Transcript = component(({ props }) => {
   leaving.
 - **`scrollToIndex(i, align)`** jumps to a row that may never have been
   measured, and keeps it in place while the rows around it measure.
-- **A pinned row.** `pinned: () => index` keeps one row rendered wherever
-  the viewport is — the highlighted option of a listbox, which its
-  `aria-activedescendant` must be able to name. Outside the window it is
-  rendered apart from it, and its `skip` (on each `VirtualRow`) is the
-  height of the unrendered rows in between: render it as a spacer or a
-  block-start margin before the row. `skip` is 0 everywhere else.
+- **Pinned rows.** `pinned: () => index` (or an array of indices) keeps
+  rows rendered wherever the viewport is. In a listbox that is the
+  highlighted option, which its `aria-activedescendant` must be able to
+  name, and its group's heading, which the option's `aria-describedby`
+  names. A pinned row outside the window is rendered apart from it, and
+  its `skip` (on each `VirtualRow`) is the height of the unrendered rows in
+  between: render it as a spacer or a block-start margin before the row.
+  `skip` is 0 everywhere else.
 - **Hidden viewports.** A row with no box (inside a closed popover or an
   inactive tab) is not measured — it keeps its estimate until it is shown.
 - **Layout rules.** Rows stack vertically and have no margins. Pass the

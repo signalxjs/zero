@@ -1738,6 +1738,17 @@ export const select: RecipeInput = {
                 color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
             },
         },
+        // A windowed group's heading (#127): the same overline as the label,
+        // as a row of the flat window instead of inside a `group`.
+        'group-heading': {
+            base: {
+                padding: 'var(--space-xs) var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
+            },
+        },
         item: {
             // Carbon's list-box option: a subtle divider under every row but
             // the last — the same treatment the combobox options carry.
@@ -2410,6 +2421,17 @@ export const combobox: RecipeInput = {
         // The optgroup equivalent (#325) — the menu's group grammar.
         group: { base: {} },
         'group-label': {
+            base: {
+                padding: 'var(--space-xs) var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
+            },
+        },
+        // A windowed group's heading (#127): the same overline as the label,
+        // as a row of the flat window instead of inside a `group`.
+        'group-heading': {
             base: {
                 padding: 'var(--space-xs) var(--space-md)',
                 fontSize: 'var(--text-xs)',

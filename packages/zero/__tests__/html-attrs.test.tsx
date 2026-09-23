@@ -644,11 +644,11 @@ describe('the pass-through reaches every part', () => {
     const RENDERED_BY_ZERO: Record<string, readonly string[]> = {
         button: ['spinner'],
         checkbox: ['control', 'indicator', 'label', 'hidden-input'],
-        combobox: ['item-indicator', 'hidden-input', 'spacer'],
+        combobox: ['item-indicator', 'hidden-input', 'spacer', 'group-heading'],
         dialog: ['backdrop'],
         drawer: ['backdrop'],
         menu: ['item-indicator'],
-        select: ['item-indicator', 'hidden-input', 'spacer'],
+        select: ['item-indicator', 'hidden-input', 'spacer', 'group-heading'],
         countdown: ['digits'],
         'file-upload': ['input'],
         'number-input': ['hidden-input'],

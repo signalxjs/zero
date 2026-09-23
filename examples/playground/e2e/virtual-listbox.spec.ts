@@ -9,8 +9,9 @@
  * wheel scroll away from it (so `aria-activedescendant` never dangles), and
  * the window really fills the viewport wherever it is scrolled.
  *
- * Both demos are named by the field they post (`station`,
- * `station-search`); every option is located inside its own popup.
+ * The demos are named by the field they post (`station`, `station-search`,
+ * and the grouped `station-by-line`); every option is located inside its
+ * own popup.
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { bootPage } from './nav';
@@ -74,15 +75,15 @@ async function expectWindowed(options: Locator, setSize: number): Promise<void> 
 }
 
 /**
- * The rows the popup shows actually tile it: every option whose box
- * overlaps the viewport is a rendered one, consecutive rendered options
- * abut, and the viewport is never showing a spacer's blank where a row
- * belongs.
+ * The rows the popup shows actually tile it: every option (and, grouped,
+ * every heading) whose box overlaps the viewport is a rendered one,
+ * consecutive rendered rows abut, and the viewport is never showing a
+ * spacer's blank where a row belongs.
  */
 async function expectViewportFilled(popup: Locator): Promise<void> {
     const gaps = await popup.evaluate((el) => {
         const view = el.getBoundingClientRect();
-        const rows = [...el.querySelectorAll('[role="option"]')]
+        const rows = [...el.querySelectorAll('[role="option"], [data-part="group-heading"]')]
             .map((o) => o.getBoundingClientRect())
             .filter((r) => r.bottom > view.top + 1 && r.top < view.bottom - 1)
             .sort((a, b) => a.top - b.top);
@@ -199,6 +200,52 @@ test.describe('Select virtual', () => {
         expect(Number(label.slice('Station '.length))).toBeGreaterThan(50);
         await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
         await expect(parts('value')).toHaveText(label);
+    });
+});
+
+test.describe('Select virtual, grouped (#127)', () => {
+    test.beforeEach(async ({ page }) => { await boot(page, 'select'); });
+    const demo = (page: Page) => demoPosting(page, 'select', 'station-by-line');
+    /** The heading the highlighted option names through aria-describedby. */
+    const describedBy = async (page: Page, control: Locator): Promise<Locator> => {
+        const id = await (await active(page, control)).getAttribute('aria-describedby');
+        expect(id, 'the highlighted option names its group').toBeTruthy();
+        return page.locator(`[id="${id}"]`);
+    };
+
+    test('headings window with the options, and each highlight names its line', async ({ page }) => {
+        const parts = demo(page);
+        const trigger = parts('trigger');
+        await trigger.focus();
+        await trigger.press('ArrowDown');
+        await expect(parts('popup')).toHaveAttribute('data-state', 'open');
+        await expectHighlightShown(page, trigger, parts('popup'), 'Station 1', 1);
+        await expect(await describedBy(page, trigger)).toHaveText('Line 1');
+        await expect.poll(() => shownIn(parts('group-heading').filter({ hasText: /^Line 1$/ }), parts('popup'))).toBe(true);
+        // No group element can be split across a window: none renders.
+        await expect(parts('group')).toHaveCount(0);
+        await expectWindowed(parts('item'), 10_000);
+        await expectViewportFilled(parts('popup'));
+
+        await trigger.press('End');
+        await expectHighlightShown(page, trigger, parts('popup'), 'Zulu', 10_000);
+        await expect(await describedBy(page, trigger)).toHaveText('Line 40');
+        await expectViewportFilled(parts('popup'));
+
+        // Paged across a line boundary: 250 is the last of Line 1, 251 the
+        // first of Line 2 — the headings between are rows the pages pass over.
+        await trigger.press('Home');
+        const position = async (): Promise<number> => Number(await (await active(page, trigger)).getAttribute('aria-posinset'));
+        let paged = await position();
+        for (let pages = 0; paged <= 250 && pages < 100; pages += 1) {
+            await trigger.press('PageDown');
+            paged = await position();
+        }
+        expect(paged).toBeGreaterThan(250);
+        expect(paged).toBeLessThanOrEqual(500);
+        await expectHighlightShown(page, trigger, parts('popup'), `Station ${paged}`, paged);
+        await expect(await describedBy(page, trigger)).toHaveText('Line 2');
+        await expectViewportFilled(parts('popup'));
     });
 });
 

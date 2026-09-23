@@ -12,7 +12,7 @@
  * so a key model and an object model drive the same core.
  */
 import { signal } from 'sigx';
-import type { Collection } from './collection.js';
+import { segmentBy, type Collection } from './collection.js';
 import type { HighlightStep, ListController } from './list-core.js';
 
 export interface ListboxOptions<T> {
@@ -99,8 +99,14 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
         const query = opts.query?.() ?? '';
         const filter = opts.filter === false ? null : (opts.filter ?? defaultFilter(collection));
         const items = collection.items();
-        if (!filter || query === '') return [...items];
-        return items.filter((item) => filter(item, query));
+        const visible = !filter || query === '' ? [...items] : items.filter((item) => filter(item, query));
+        // Grouped, the list renders in segment order — a group's later members
+        // pulled up under its heading — so that is the order the keyboard,
+        // typeahead and a window walk too. In data order, ArrowDown from A1
+        // over [A1, B1, A2] would jump past A2, which sits right below it.
+        return visible.some((item) => collection.groupOf(item) !== undefined)
+            ? segmentBy(visible, collection.groupOf).flatMap((segment) => segment.items)
+            : visible;
     };
 
     const visibleKeys = (): string[] => {

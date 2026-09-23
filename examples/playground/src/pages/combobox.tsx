@@ -2,7 +2,7 @@ import { component, signal } from 'sigx';
 import { Combobox, Field, Input, Textarea, caretAnchor } from '@sigx/zero';
 import { virtualListbox } from '@sigx/zero/virtual-listbox';
 import { DemoRow } from '../demo/Section';
-import { STATIONS } from './fixtures';
+import { STATIONS, STATIONS_BY_LINE } from './fixtures';
 import type { PageEntry } from './registry';
 
 const COUNTRIES = [
@@ -108,6 +108,16 @@ const ComboboxDemos = component(() => {
                     items={STATIONS}
                     virtual={virtualListbox}
                     name="station-search"
+                    placeholder="Search stations…"
+                    emptyText="No station matches"
+                />
+            </Field.Root>
+            <Field.Root>
+                <Field.Label>Station search by line (40 groups)</Field.Label>
+                <Combobox.Root
+                    items={STATIONS_BY_LINE}
+                    virtual={virtualListbox}
+                    name="station-search-by-line"
                     placeholder="Search stations…"
                     emptyText="No station matches"
                 />

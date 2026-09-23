@@ -203,6 +203,15 @@ describe('createVirtualList — a pinned row', () => {
         expect(t.v.rows()).toHaveLength(9);
     });
 
+    it('pins several rows: each outside the window renders apart, in order, never twice', async () => {
+        const t = mount({ pinned: () => [90, 80, 3, 80] });
+        await flush();
+        const shape = (): Array<[number, number]> => t.v.rows().map((r) => [r.index, r.skip]);
+        // Row 3 is in the window; 80 and 90 follow it, sorted, once each.
+        expect(shape()).toEqual([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [80, 73 * 20], [90, 9 * 20]]);
+        expect(t.v.after()).toBe(9 * 20);
+    });
+
     it('counts the gap into a skip', async () => {
         const t = mount({ gap: 4, pinned: () => 90 });
         await flush();

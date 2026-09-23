@@ -159,6 +159,13 @@
         opacity: 0.6;
     }
 
+    [data-scope="combobox"][data-part="group-heading"] {
+        padding: var(--space-md) var(--space-lg) var(--space-xs);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-bold);
+        opacity: 0.6;
+    }
+
     [data-scope="combobox"][data-part="item"] {
         display: flex;
         align-items: center;

@@ -21,3 +21,11 @@ export const STATIONS: ReadonlyArray<{ value: string; label: string }> = Array.f
     { length: 10_000 },
     (_, i) => (i === 9_999 ? { value: 'zulu', label: 'Zulu' } : { value: `s${i + 1}`, label: `Station ${i + 1}` }),
 );
+
+/**
+ * The same ten thousand stations on forty lines of 250 — the windowed
+ * grouped demos (#127): "Line 1" … "Line 40", each a `group`.
+ */
+export const STATIONS_BY_LINE: ReadonlyArray<{ value: string; label: string; group: string }> = STATIONS.map(
+    (station, i) => ({ ...station, group: `Line ${Math.floor(i / 250) + 1}` }),
+);

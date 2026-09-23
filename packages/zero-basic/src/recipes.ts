@@ -1965,6 +1965,19 @@ export const select: RecipeInput = {
                 color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
             },
         },
+        // A windowed group's heading (#127): the same overline as the label,
+        // as a row of the flat window instead of inside a `group`.
+        'group-heading': {
+            base: {
+                padding: 'var(--space-sm) var(--space-lg)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                textTransform: 'uppercase',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
+            },
+        },
         item: {
             base: {
                 display: 'flex',
@@ -2702,6 +2715,19 @@ export const combobox: RecipeInput = {
         // overline label, the group itself unstyled.
         group: { base: {} },
         'group-label': {
+            base: {
+                padding: 'var(--space-sm) var(--space-lg)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                textTransform: 'uppercase',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
+            },
+        },
+        // A windowed group's heading (#127): the same overline as the label,
+        // as a row of the flat window instead of inside a `group`.
+        'group-heading': {
             base: {
                 padding: 'var(--space-sm) var(--space-lg)',
                 fontFamily: 'var(--font-mono)',

@@ -225,7 +225,8 @@ component renders; the root is called out separately where it carries props.
 - Select: Root(model=value | value[], model:open, items, itemKey, itemLabel,
   itemValue, itemDisabled, itemGroup, multiple, virtual, estimateItemSize,
   name, form, required, placeholder)/Trigger/Value/Indicator/Popup/Group/
-  GroupLabel/Item/ItemIndicator/Spacer/HiddenInput. TYPED GENERIC ROOT: T
+  GroupLabel/Item/ItemIndicator/Spacer/HiddenInput (+ the group-heading
+  part, rendered only by a windowed grouped list). TYPED GENERIC ROOT: T
   infers from `items`; the model holds the ITEM unless `itemValue` says what
   it holds (a value model: `itemValue={(c) => c.code}` → string; a number
   works too) — null while nothing is selected, `T | null` / `V | null`;
@@ -261,9 +262,15 @@ component renders; the root is called out separately where it carries props.
   `spacer` parts (inline block-size, nothing to paint) stand in for skipped
   rows; base.css bounds a windowed popup at min(20rem, 60vh) in
   zero.fallback, so a popup recipe's max-block-size wins. Options stack as
-  margin-less blocks. Hand-written items and itemGroup groups are never
-  windowed (`virtual` is ignored). Windowed, the hidden <select> carries the
-  chosen options only.
+  margin-less blocks. itemGroup groups window too (#127): each heading is a
+  `group-heading` part — an aria-hidden ROW of the window, beside the
+  options (no `group` element is rendered windowed), measured like one;
+  options name it through aria-describedby while it is rendered, and the
+  highlighted option's heading is pinned with it. Hand-written items are
+  never windowed (`virtual` is ignored) — pass `items` to window. Windowed,
+  the hidden <select> carries the chosen options only. Grouped, the
+  keyboard walks the RENDER order (a group's later members pulled up under
+  its heading), windowed or not.
 - Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
 - Checkbox: Root(model=checked | string[])/Control/Indicator/Label/HiddenInput;
   supports `indeterminate`. A `string[]` model is sigx's array mode: boxes

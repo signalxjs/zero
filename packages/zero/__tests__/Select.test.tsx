@@ -334,6 +334,35 @@ describe('Select', () => {
             expectAnatomy(container, selectAnatomy);
         });
 
+        it('the keyboard walks groups in the order they render, not the data order (#127)', async () => {
+            render(
+                <Select.Root
+                    items={[
+                        { value: 'lemon', group: 'Citrus' },
+                        { value: 'peach', group: 'Stone' },
+                        { value: 'salt' },
+                        { value: 'lime', group: 'Citrus' },
+                    ]}
+                />,
+                container,
+            );
+            await tick();
+            const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+            const walked: string[] = [];
+            const press = (key: string): void => {
+                trigger.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+            };
+            press('ArrowDown');
+            await tick();
+            for (let i = 0; i < 4; i++) {
+                walked.push(document.getElementById(trigger.getAttribute('aria-activedescendant')!)!.textContent!);
+                press('ArrowDown');
+                await tick();
+            }
+            // lime sits under Citrus, right below lemon — so it comes next.
+            expect(walked).toEqual(['lemon', 'lime', 'peach', 'salt']);
+        });
+
         it('explicit slot children win entirely — no merging', () => {
             render(
                 <Select.Root items={OPTIONS} placeholder="Pick a fruit…">
