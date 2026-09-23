@@ -29,9 +29,27 @@ async function rightClickAt(page: import('@playwright/test').Page, dx: number, d
     return { x, y };
 }
 
+/**
+ * The popup is showing — asked of the top layer, and held across two frames.
+ * `data-state` alone is the model's claim, which leads the platform by a task
+ * on the way in and lags it by one on the way out (a light dismiss reaches
+ * the model through the async `toggle` event), so a single sample can match
+ * an open state the popover no longer has (#134).
+ */
+async function expectShowing(p: import('@playwright/test').Locator): Promise<void> {
+    await expect(p).toHaveAttribute('data-state', 'open');
+    await expect
+        .poll(() => p.evaluate((el) => new Promise<boolean>((resolve) => {
+            const open = (): boolean => el.matches(':popover-open, [open]');
+            if (!open()) return resolve(false);
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve(open())));
+        })), { message: 'the popup is in the top layer and stays there' })
+        .toBe(true);
+}
+
 test('right-click opens the popup at the pointer', async ({ page }) => {
     const { x, y } = await rightClickAt(page, 60, 40);
-    await expect(await popup(page)).toHaveAttribute('data-state', 'open');
+    await expectShowing(await popup(page));
     const pb = await settledBox(await popup(page), 'context popup');
     // bottom-start off a zero-size anchor: the popup's top-left hugs the
     // point (offset 4, flip/shift may nudge, so a loose tolerance).
@@ -103,6 +121,7 @@ test('a second right-click re-anchors the popup to the new point', async ({ page
 
 test('a submenu opens inside the context menu', async ({ page }) => {
     await rightClickAt(page, 60, 40);
+    await expectShowing(await popup(page));
     const sub = (await popup(page)).locator('[data-part="sub-trigger"]');
     await sub.click();
     await expect((await popup(page)).locator('[data-part="sub-popup"]')).toHaveAttribute('data-state', 'open');
@@ -133,7 +152,7 @@ test('Escape closes and restores focus to the surface content', async ({ page })
 
 test('outside click closes via light dismiss', async ({ page }) => {
     await rightClickAt(page, 60, 40);
-    await expect(await popup(page)).toHaveAttribute('data-state', 'open');
+    await expectShowing(await popup(page));
     await page.locator('h1').click();
     await expect(await popup(page)).toHaveAttribute('data-state', 'closed');
 });

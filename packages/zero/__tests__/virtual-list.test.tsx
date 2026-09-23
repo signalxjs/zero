@@ -393,6 +393,21 @@ describe('createVirtualList — stick to bottom', () => {
         expect(t.v.following()).toBe(true);
     });
 
+    it('a small upward move lets go even inside `threshold` — a smooth wheel scroll\'s first frame', async () => {
+        const t = mount({ stickToBottom: true });
+        await flush();
+        expect(t.v.following()).toBe(true);
+        t.scrollTo(2000 - VIEWPORT - 6);
+        await flush();
+        expect(t.v.following()).toBe(false);
+        // Not snapped back to the end: the scroll stands.
+        expect(t.viewport.scrollTop).toBe(2000 - VIEWPORT - 6);
+        // Moving back DOWN within `threshold` follows again.
+        t.scrollTo(2000 - VIEWPORT - 3);
+        await flush();
+        expect(t.v.following()).toBe(true);
+    });
+
     it('content growing faster than the scroll event is not mistaken for the reader leaving', async () => {
         const t = mount({ stickToBottom: true });
         await flush();

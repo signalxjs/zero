@@ -74,21 +74,28 @@ async function pointAt(page: Page, viewport: Locator): Promise<void> {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
 }
 
-/** Resolves once the viewport's scroll position has held still for three frames — a smooth wheel scroll has landed. */
+/**
+ * Resolves once the viewport's scroll position has held still for 150ms — a
+ * smooth wheel scroll has landed. Wall-clock rather than a frame count on
+ * purpose (#134): WebKit applies a wheel scroll off the main thread, so under
+ * load `scrollTop` can read unchanged for several frames while the main
+ * thread is busy re-rendering and the scroll is still in flight. WebKit fires
+ * no `scrollend` to wait on instead.
+ */
 const settleScroll = (viewport: Locator): Promise<void> =>
     viewport.evaluate((el) => new Promise<void>((resolve) => {
-        let last = -1;
-        let still = 0;
-        const tick = (): void => {
-            if (el.scrollTop === last) {
-                if (++still >= 3) return resolve();
-            } else {
-                still = 0;
+        let last = el.scrollTop;
+        let since = performance.now();
+        const tick = (now: number): void => {
+            if (el.scrollTop !== last) {
                 last = el.scrollTop;
+                since = now;
+            } else if (now - since >= 150) {
+                return resolve();
             }
             requestAnimationFrame(tick);
         };
-        tick();
+        requestAnimationFrame(tick);
     }));
 
 /** Scroll up the way a reader does — wheel input over the viewport — and wait for it to land. */
@@ -182,7 +189,14 @@ test('scrolling back down to the end resumes following', async ({ page }) => {
     await expect.poll(() => gapToEnd(log)).toBeLessThanOrEqual(1);
     await readerScrollsUp(page, log, 400);
     await pointAt(page, log);
-    await page.mouse.wheel(0, 5000);
+    // Reaching the end is its own claim, asserted before the one under test:
+    // engines scale a wheel delta differently, and a scroll that came to rest
+    // short of the end would otherwise read as "never resumed following".
+    await expect(async () => {
+        await page.mouse.wheel(0, 5000);
+        await settleScroll(log);
+        expect(await gapToEnd(log)).toBeLessThanOrEqual(24);
+    }).toPass();
     await expect(status(page)).toContainText('following the tail');
 });
 

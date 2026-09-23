@@ -361,9 +361,15 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
         if (!viewport) return;
         const scrollTop = viewport.scrollTop;
         if (stick) {
-            const atEnd = viewport.scrollHeight - viewport.clientHeight - scrollTop <= threshold();
-            if (atEnd) st.following = true;
-            else if (scrollTop < lastScrollTop - 1) st.following = false;
+            const gap = viewport.scrollHeight - viewport.clientHeight - scrollTop;
+            // An upward move lets go FIRST, even inside `threshold`: a smooth
+            // wheel scroll (WebKit) moves a few px in its first frame, and
+            // still counting that as "at the end" snapped the reader back on
+            // the next layout pass, cancelling the scroll (#134). Only a
+            // position AT the end — the browser clamping a shrinking list —
+            // is not the reader leaving.
+            if (scrollTop < lastScrollTop - 1 && gap > 1) st.following = false;
+            else if (gap <= threshold()) st.following = true;
         }
         lastScrollTop = scrollTop;
         // Capture BEFORE publishing: the re-render the publish causes must
