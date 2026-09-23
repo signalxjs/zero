@@ -135,3 +135,15 @@ travel was a bare positive `translate`, so under RTL the anchor moved the thumb
 to the reading end and the travel carried it further the same way, off the
 track. Nothing that reads declarations could see it; half a conversion was worse
 than none.
+
+## Tints mix in oklab
+
+Every tint against a base token is `color-mix(in oklab, …)` (#123). HeroUI's
+light `base-100` is `oklch(100% 0 0)` and its dark `base-content` is
+`oklch(98% 0 0)`: achromatic, but with a written hue of 0. Mixed `in oklch`,
+the browser interpolates toward that hue, so the highlighted file-upload
+dropzone's 8% primary wash painted pink rather than blue, and the diff
+handle's pressed accent drifted off the primary. `in oklab` has no hue to
+drift toward. The kit's contrast audit now reads written hues the way the
+browser does, so a mix like this can't pass the parity gate for the wrong
+reason.

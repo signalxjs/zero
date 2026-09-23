@@ -9,7 +9,8 @@ import type { StyleNode } from '../src/audit/contrast/cascade.js';
 import {
     Unmeasured, background, borderInk, clipCollapsed, collapsed, colorOf, computeChain, opacity,
 } from '../src/audit/contrast/cascade.js';
-import type { ThemeEnv } from '../src/audit/contrast/theme-env.js';
+import { themeEnvironments, type ThemeEnv } from '../src/audit/contrast/theme-env.js';
+import { designSystem as herouiDS } from '@sigx/zero-heroui';
 import { hex, resolveOver } from '../src/audit/contrast/color.js';
 import { evaluateMedia, REFERENCE_MEDIA } from '../src/audit/contrast/cascade.js';
 
@@ -123,6 +124,24 @@ describe('values', () => {
         expect(c.alpha).toBeCloseTo(0.5, 2);
         // Premultiplied: the RGB stays #111111, only alpha drops.
         expect(c.rgb.map(Math.round)).toEqual([17, 17, 17]);
+    });
+
+    it('a colour token reaches color-mix() as WRITTEN — an achromatic oklch token keeps its hue (#123)', () => {
+        // daisyUI's and HeroUI's light base-100 is `oklch(100% 0 0)`: mixed
+        // `in oklch`, Chrome interpolates toward that written hue 0 (#fdeff5,
+        // pink), where a baked #ffffff would carry the other hue (#edf4ff).
+        const written: ThemeEnv = { ...env, props: { ...env.props, '--color-base-100': 'oklch(100% 0 0)' } };
+        const rules = css('[data-scope="x"][data-part="a"] { color: color-mix(in oklch, #006fee 8%, var(--color-base-100)); }');
+        const [a] = computeChain(chain(['a', {}]), rules, written);
+        expect(rgb(colorOf(a!, 'self', written))).toBe('#fdeff5');
+        const [b] = computeChain(chain(['a', {}]), rules, env);
+        expect(rgb(colorOf(b!, 'self', env))).toBe('#edf4ff');
+    });
+
+    it('the theme environment hands color-mix() a colour token as written; `colors` stays baked', () => {
+        const light = themeEnvironments(herouiDS).find((t) => t.colorScheme === 'light')!;
+        expect(light.props['--color-base-100']).toBe('oklch(100% 0 0)');
+        expect(light.colors['base-100']).toBe('#ffffff');
     });
 
     it('reads the background shorthand and longhands by whichever came last', () => {

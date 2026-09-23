@@ -212,7 +212,7 @@ function bakedNonColor(
             // every theme block is a full restatement). What cannot be
             // resolved throws: the author wrote paint, and silence would ship
             // a stylesheet that quietly never renders it.
-            inlined[prop] = bakeColorValue(value, themeColors, theme.colorScheme, `${where} ("${prop}")`);
+            inlined[prop] = bakeColorValue(value, themeColors, theme.colorScheme, `${where} ("${prop}")`, theme.colors as Record<string, string>);
         }
     }
 

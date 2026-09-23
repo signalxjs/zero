@@ -115,14 +115,35 @@ export function bakeSoft(role: string, base: string, mix: number, where: string)
  * (`undefined` in culori) taken from the other, so the interpolation never
  * invents a hue for an achromatic endpoint. Exported for the test that pins
  * the carry-over against the browser's reading.
+ *
+ * `written` is each colour as the author spelled it, when that is known. A
+ * component is missing only when a CONVERSION made it powerless (CSS Color 4
+ * §4.4): `#fff` into oklch has no hue, but `oklch(100% 0 0)` mixed `in oklch`
+ * is never converted, and its hue of 0 is a real endpoint the browser
+ * interpolates toward (#123). A colour written in the mix's own space keeps
+ * the components it wrote that the hex round trip dropped; one written in any
+ * other space was converted, so the drop stands. `none` stays missing.
  */
-export function carryMissingComponents(a: string, b: string, space: MixSpace): [Color, Color] {
+export function carryMissingComponents(
+    a: string,
+    b: string,
+    space: MixSpace,
+    written: readonly [Color | undefined, Color | undefined] = [undefined, undefined],
+): [Color, Color] {
     const to = converter(space);
     const pa = parse(a);
     const pb = parse(b);
     if (!pa || !pb) throw new Error(`[zero-kit] carryMissingComponents: cannot parse "${pa ? b : a}" as a colour`);
     const ca = { ...to(pa) } as Record<string, unknown>;
     const cb = { ...to(pb) } as Record<string, unknown>;
+    const keepWritten = (c: Record<string, unknown>, w: Color | undefined): void => {
+        if (!w || w.mode !== space) return;
+        for (const [k, v] of Object.entries(w)) {
+            if (k !== 'mode' && k !== 'alpha' && c[k] === undefined && v !== undefined) c[k] = v;
+        }
+    };
+    keepWritten(ca, written[0]);
+    keepWritten(cb, written[1]);
     for (const k of new Set([...Object.keys(ca), ...Object.keys(cb)])) {
         if (k === 'mode' || k === 'alpha') continue;
         if (ca[k] === undefined && cb[k] !== undefined) ca[k] = cb[k];
@@ -192,6 +213,12 @@ export function bakeColorValue(
     colors: Record<string, string>,
     colorScheme: 'light' | 'dark',
     where: string,
+    /**
+     * The same tokens as the author wrote them, when `colors` holds baked
+     * literals — read only for what a literal cannot carry: the hue of an
+     * achromatic `oklch()` token a `color-mix()` interpolates (#123).
+     */
+    written?: Record<string, string>,
 ): string {
     const substituteColorVars = (text: string): string =>
         text.replace(/var\(\s*--color-([a-z0-9-]+)\s*(?:,\s*([^()]*))?\)/g, (whole, token: string, fallback?: string) => {
@@ -203,6 +230,31 @@ export function bakeColorValue(
             }
             return resolved;
         });
+
+    /**
+     * `expr` parsed as written, when it is one plain colour — the source
+     * `carryMissingComponents` reads a mix operand's own components from. A
+     * mix or anything unparseable has no written form here: undefined.
+     */
+    const writtenColor = (expr: string): Color | undefined => {
+        const match = COLOR_FN_START.exec(expr);
+        const fn = match?.[1]!.toLowerCase();
+        if (fn === 'color-mix') return undefined;
+        if (fn === 'light-dark') {
+            const open = expr.indexOf('(', match!.index);
+            const args = splitTopLevel(expr.slice(open + 1, balancedEnd(expr, open) - 1));
+            return args.length === 2 ? writtenColor(args[colorScheme === 'dark' ? 1 : 0]!) : undefined;
+        }
+        try {
+            const text = written
+                ? expr.replace(/var\(\s*--color-([a-z0-9-]+)\s*(?:,\s*([^()]*))?\)/g, (whole, token: string, fallback?: string) =>
+                    written[token] ?? colors[token] ?? fallback?.trim() ?? whole)
+                : substituteColorVars(expr);
+            return parse(foldConstantCalc(text).toLowerCase()) ?? undefined;
+        } catch {
+            return undefined;
+        }
+    };
 
     const bakeOne = (expr: string): string => {
         const match = COLOR_FN_START.exec(expr);
@@ -254,7 +306,15 @@ export function bakeColorValue(
             // #0087a0 86%, black)` baked to `#00716a` where Chrome paints
             // `#006d82`; the browser parity gate (#403, slice D) is what
             // noticed. `alpha` is not carried: an absent alpha means opaque.
-            const carried = carryMissingComponents(bakeOne(a.color), bakeOne(b.color), space);
+            // An operand WRITTEN in the mix's space keeps what it wrote — see
+            // `carryMissingComponents`: an `oklch(100% 0 0)` endpoint pulls
+            // an `in oklch` mix toward hue 0, as the browser paints it (#123).
+            const carried = carryMissingComponents(
+                bakeOne(a.color),
+                bakeOne(b.color),
+                space,
+                [writtenColor(a.color), writtenColor(b.color)],
+            );
             const mixer = interpolateWithPremultipliedAlpha(carried, space);
             const mixed = mixer(t);
             const alpha = mixed.alpha ?? 1;
