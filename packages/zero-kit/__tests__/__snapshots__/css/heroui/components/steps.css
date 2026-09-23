@@ -90,7 +90,7 @@
     }
 
     [data-scope="steps"][data-part="indicator"][data-state="complete"] {
-        background: color-mix(in oklch, var(--color-base-content) 12%, var(--color-base-100));
+        background: color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-100));
         color: var(--color-base-content);
     }
 

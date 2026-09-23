@@ -5030,7 +5030,7 @@
     }
 
     [data-scope="steps"][data-part="indicator"][data-state="complete"] {
-        background: color-mix(in oklch, var(--color-base-content) 12%, var(--color-base-100));
+        background: color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-100));
         color: var(--color-base-content);
     }
 
@@ -5787,7 +5787,7 @@
 
     [data-scope="file-upload"][data-part="dropzone"][data-highlighted] {
         border-color: var(--hero-primary);
-        background: color-mix(in oklch, var(--hero-primary) 8%, var(--color-base-100));
+        background: color-mix(in oklab, var(--hero-primary) 8%, var(--color-base-100));
         color: var(--color-base-content);
     }
 
@@ -6196,7 +6196,7 @@
     }
 
     [data-scope="diff"][data-part="handle"][data-pressed] {
-        --diff-accent: color-mix(in oklch, var(--hero-primary) 85%, var(--color-base-content));
+        --diff-accent: color-mix(in oklab, var(--hero-primary) 85%, var(--color-base-content));
     }
 
     [data-scope="diff"][data-part="handle"]::before {

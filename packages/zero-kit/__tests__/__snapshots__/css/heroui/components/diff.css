@@ -43,7 +43,7 @@
     }
 
     [data-scope="diff"][data-part="handle"][data-pressed] {
-        --diff-accent: color-mix(in oklch, var(--hero-primary) 85%, var(--color-base-content));
+        --diff-accent: color-mix(in oklab, var(--hero-primary) 85%, var(--color-base-content));
     }
 
     [data-scope="diff"][data-part="handle"]::before {

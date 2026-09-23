@@ -75,7 +75,7 @@
 
     [data-scope="file-upload"][data-part="dropzone"][data-highlighted] {
         border-color: var(--hero-primary);
-        background: color-mix(in oklch, var(--hero-primary) 8%, var(--color-base-100));
+        background: color-mix(in oklab, var(--hero-primary) 8%, var(--color-base-100));
         color: var(--color-base-content);
     }
 

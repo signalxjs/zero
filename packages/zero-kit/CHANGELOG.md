@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **An achromatic `oklch()` token keeps its written hue in a `color-mix()`
+  (#123).** The colour baker behind the static contrast matrix and the lynx
+  target baked every token to hex before mixing. So `oklch(100% 0 0)` came
+  back as `#ffffff`, whose hue is *missing*, and a mix `in oklch` borrowed
+  the other colour's hue. CSS Color 4 makes a component missing only when a
+  conversion made it powerless. A colour written in the mix's own space is
+  never converted, so its hue of 0 is a real endpoint, and Chrome
+  interpolates toward it: `color-mix(in oklch, #006fee 8%, oklch(100% 0 0))`
+  paints `#fdeff5`, pink, not `#edf4ff`. The baker now keeps the components
+  an operand wrote in the mix space. The contrast audit's theme environment
+  hands `color-mix()` each colour token as written (`ThemeEnv.props`;
+  `colors` stays baked), and `bakeColorValue` takes the written tokens as
+  an optional fifth argument. A hue written in another space
+  (`hsl(0 0% 100%)` mixed `in oklch`), `#fff`, `white` and `none` are still
+  carried, as before. No audit finding and no emitted lynx byte changed in
+  any in-repo design system.
+
 ## [0.4.0] - 2026-09-22
 
 First plain-semver release (#148): the contents of 0.3.0-beta.1, published

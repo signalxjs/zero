@@ -20,7 +20,7 @@
  */
 import { BASE_SURFACE_TOKEN_LIST, TEXT_FIXED_PREFIX, resolveRoles } from '../../contract.js';
 import type { DesignSystemInput } from '../../design-system.js';
-import { bakeColor, bakeSoft } from '../../resolve/color-bake.js';
+import { bakeColor, bakeSoft, foldConstantCalc } from '../../resolve/color-bake.js';
 import { STRUCTURAL_FALLBACKS, resolveSystemTokens } from '../../targets/shared.js';
 import type { ThemeInput } from '../../tokens.js';
 
@@ -29,7 +29,13 @@ export interface ThemeEnv {
     colorScheme: 'light' | 'dark';
     /** Colour token (`primary`, `primary-soft`, `base-100`) → hex literal. */
     colors: Record<string, string>;
-    /** Every custom property the page would resolve, `--prop` → value; colours baked. */
+    /**
+     * Every custom property the page would resolve, `--prop` → value. A
+     * colour token the author wrote is here AS WRITTEN (it bakes to the same
+     * hex as `colors`): a `color-mix()` reading it needs the written form,
+     * since `oklch(100% 0 0)` carries a hue the hex does not (#123). Derived
+     * soft tints are baked.
+     */
     props: Record<string, string>;
 }
 
@@ -48,14 +54,21 @@ const TEXT_PREFIX = '--text-';
  * absent here (the validator reports it as an error of its own), and a
  * consumer's `var()` then falls through to its fallback or to `unresolved`.
  */
-function bakedColors(theme: AnyTheme, roles: ReturnType<typeof resolveRoles>): Record<string, string> {
+function bakedColors(
+    theme: AnyTheme,
+    roles: ReturnType<typeof resolveRoles>,
+    written: Record<string, string>,
+): Record<string, string> {
     const colors = theme.colors as Record<string, string>;
     const out: Record<string, string> = {};
     const mix = theme.softMix ?? 0.16;
     const push = (token: string): void => {
         const value = colors[token];
         if (!value) return;
-        try { out[token] = bakeColor(value, 'audit'); } catch { /* unparseable: the validator's error */ }
+        try {
+            out[token] = bakeColor(value, 'audit');
+            written[token] = foldConstantCalc(value);
+        } catch { /* unparseable: the validator's error */ }
     };
     for (const [name, decl] of Object.entries(roles)) {
         push(name);
@@ -79,7 +92,8 @@ export function themeEnvironments(ds: DesignSystemInput): ThemeEnv[] {
     const input = ds.tokens;
     return Object.entries(input.themes).map(([name, raw]) => {
         const theme = raw as AnyTheme;
-        const colors = bakedColors(theme, roles);
+        const written: Record<string, string> = {};
+        const colors = bakedColors(theme, roles, written);
         const props: Record<string, string> = { ...STRUCTURAL_FALLBACKS };
         // base.css also aliases the fixed ramp onto the scalable one; a design
         // system that declares a ramp re-emits the aliases for its own keys.
@@ -98,7 +112,7 @@ export function themeEnvironments(ds: DesignSystemInput): ThemeEnv[] {
         }
         for (const [key, value] of Object.entries(theme.custom ?? {})) props[customProp(key)] = value;
         for (const [key, value] of Object.entries(theme.extra ?? {})) props[customProp(key)] = value;
-        for (const [token, value] of Object.entries(colors)) props[`--color-${token}`] = value;
+        for (const [token, value] of Object.entries(colors)) props[`--color-${token}`] = written[token] ?? value;
         return { name, colorScheme: theme.colorScheme, colors, props };
     });
 }

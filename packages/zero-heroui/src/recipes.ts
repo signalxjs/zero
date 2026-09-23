@@ -4159,7 +4159,10 @@ export const steps: RecipeInput = {
             },
             states: {
                 active: { background: 'var(--color-base-content)', color: 'var(--color-base-100)' },
-                complete: { background: 'color-mix(in oklch, var(--color-base-content) 12%, var(--color-base-100))', color: 'var(--color-base-content)' },
+                // `in oklab`, as every tint against an achromatic token here
+                // (#123): base-100 is `oklch(100% 0 0)`, whose written hue 0
+                // an `in oklch` mix swings toward.
+                complete: { background: 'color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-100))', color: 'var(--color-base-content)' },
                 inactive: { background: 'var(--color-base-200)', color: 'var(--hero-muted)' },
             },
         },
@@ -4506,7 +4509,9 @@ export const fileUpload: RecipeInput = {
             states: {
                 highlighted: {
                     borderColor: 'var(--hero-primary)',
-                    background: 'color-mix(in oklch, var(--hero-primary) 8%, var(--color-base-100))',
+                    // `in oklab` (#123): light base-100 is `oklch(100% 0 0)`,
+                    // and `in oklch` swung this blue wash pink (hue ~352).
+                    background: 'color-mix(in oklab, var(--hero-primary) 8%, var(--color-base-100))',
                     color: 'var(--color-base-content)',
                 },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
@@ -4888,7 +4893,9 @@ export const diff: RecipeInput = {
             },
             states: {
                 ...focusRing,
-                pressed: { '--diff-accent': 'color-mix(in oklch, var(--hero-primary) 85%, var(--color-base-content))' },
+                // `in oklab` (#123): dark base-content is `oklch(98% 0 0)`, and
+                // `in oklch` pulled the pressed accent's hue off the primary.
+                pressed: { '--diff-accent': 'color-mix(in oklab, var(--hero-primary) 85%, var(--color-base-content))' },
             },
             selectors: {
                 // The divider line, full height, centered in the hit box.

@@ -19,6 +19,32 @@ describe('color-mix() missing components', () => {
         expect(bakeColorValue('color-mix(in oklch, #0087a0 70%, transparent)', {}, 'light', 'test')).toBe('#0087a0b3');
     });
 
+    // #123: missing means CONVERTED powerless. An achromatic colour written in
+    // the mix's own space is never converted, so its hue is a real endpoint.
+    // Every expectation is Chrome's own paint of the same expression.
+    it('keeps the hue an achromatic operand WROTE in the mix space (Chrome: #fdeff5, #7a96fb)', () => {
+        expect(bakeColorValue('color-mix(in oklch, #006fee 8%, oklch(100% 0 0))', {}, 'light', 'test')).toBe('#fdeff5');
+        expect(bakeColorValue('color-mix(in oklch, #338ef7 85%, oklch(98% 0 0))', {}, 'light', 'test')).toBe('#7a96fb');
+    });
+
+    it('still carries a hue that is missing: converted (#fff, hsl()) or written `none` (Chrome: #edf4ff)', () => {
+        for (const white of ['#ffffff', 'white', 'hsl(0 0% 100%)', 'oklch(100% 0 none)']) {
+            expect(bakeColorValue(`color-mix(in oklch, #006fee 8%, ${white})`, {}, 'light', 'test'), white).toBe('#edf4ff');
+        }
+    });
+
+    it('reads a token\'s written form through `var()` when the baked map cannot carry it', () => {
+        const colors = { primary: '#006fee', 'base-100': '#ffffff' };
+        const mix = 'color-mix(in oklch, var(--color-primary) 8%, var(--color-base-100))';
+        // Baked literals alone: the hue is lost with the conversion to hex.
+        expect(bakeColorValue(mix, colors, 'light', 'test')).toBe('#edf4ff');
+        // The written token keeps it, as the browser reading the same token does.
+        expect(bakeColorValue(mix, colors, 'light', 'test', { 'base-100': 'oklch(100% 0 0)' })).toBe('#fdeff5');
+        // In oklab there is no hue to keep: the written form changes nothing.
+        expect(bakeColorValue(mix.replace('oklch', 'oklab'), colors, 'light', 'test', { 'base-100': 'oklch(100% 0 0)' }))
+            .toBe(bakeColorValue(mix.replace('oklch', 'oklab'), colors, 'light', 'test'));
+    });
+
     it('carryMissingComponents fills only what is missing, and never alpha', () => {
         const [a, b] = carryMissingComponents('#0087a0', '#000000', 'oklch') as unknown as [Record<string, number>, Record<string, number>];
         expect(b.h).toBeCloseTo(a.h!, 6);
