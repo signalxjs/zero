@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-23
+
 ### Added
 
 - **Windowed grouped lists (#127).** `virtual={virtualListbox}` now windows
