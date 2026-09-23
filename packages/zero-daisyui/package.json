@@ -1,6 +1,6 @@
 {
     "name": "@sigx/zero-daisyui",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "DaisyUI-flavored design system for SignalX Zero — daisy's token values and component look as a pure tokens+recipes skin over @sigx/zero primitives. No Tailwind, no daisyUI plugin required.",
     "type": "module",
     "main": "./dist/index.js",

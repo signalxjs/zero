@@ -1,6 +1,6 @@
 {
     "name": "@sigx/create-zero-ds",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "Scaffold a SignalX Zero design system from a style brief — `pnpm create @sigx/zero-ds <name> --brief <id>` lays down the package with @sigx/zero-basic's recipes as the baseline, fitted to the brief's vocabulary.",
     "type": "module",
     "bin": {

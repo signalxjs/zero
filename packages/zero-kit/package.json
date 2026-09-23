@@ -1,6 +1,6 @@
 {
     "name": "@sigx/zero-kit",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "Design-system authoring kit for SignalX Zero — typed tokens and recipes compiled to plain CSS, plus the `sigx` CLI plugin closing the AI-generate → validate → iterate loop.",
     "type": "module",
     "main": "./dist/index.js",
