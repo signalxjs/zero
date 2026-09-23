@@ -16,6 +16,14 @@
 
 ### Fixed
 
+- **`createVirtualList`: a small scroll up lets go of the tail (#134).**
+  With `stickToBottom`, an upward move inside `threshold` of the end still
+  counted as "at the end". A smooth wheel scroll moves only a few pixels in
+  its first frame (WebKit), so the next layout pass snapped the reader back
+  to the end and cancelled the scroll. An upward move now pauses following
+  unless the viewport is exactly at the end, as when the browser clamps a
+  list that shrank. Scrolling back down within `threshold` follows again,
+  as before.
 - **Keyboard order in grouped lists (#127).** A grouped data list renders a
   group's later members under its heading, but ArrowDown, Home/End and
   typeahead walked the raw data order. Over `[A1, B1, A2]`, the next option
