@@ -238,7 +238,8 @@ export function bakeColorValue(
      */
     const writtenColor = (expr: string): Color | undefined => {
         const match = COLOR_FN_START.exec(expr);
-        const fn = match?.[1]!.toLowerCase();
+        // No colour function (a hex literal, a keyword): a plain colour.
+        const fn = match ? match[1]!.toLowerCase() : undefined;
         if (fn === 'color-mix') return undefined;
         if (fn === 'light-dark') {
             const open = expr.indexOf('(', match!.index);
