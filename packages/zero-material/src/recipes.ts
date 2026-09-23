@@ -1085,6 +1085,16 @@ export const select: RecipeInput = {
                 color: 'var(--color-outline)',
             },
         },
+        // A windowed group's heading (#127): the same overline as the label,
+        // as a row of the flat window instead of inside a `group`.
+        'group-heading': {
+            base: {
+                padding: 'var(--space-2xs) var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'var(--color-outline)',
+            },
+        },
         item: withPresence(pressable('select', 'var(--select-accent)'), {
             base: {
                 display: 'flex',
@@ -2381,6 +2391,16 @@ export const combobox: RecipeInput = {
         // The optgroup equivalent (#325) — the menu's group grammar.
         group: { base: { padding: 'var(--space-2xs) 0' } },
         'group-label': {
+            base: {
+                padding: 'var(--space-2xs) var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'var(--color-outline)',
+            },
+        },
+        // A windowed group's heading (#127): the same overline as the label,
+        // as a row of the flat window instead of inside a `group`.
+        'group-heading': {
             base: {
                 padding: 'var(--space-2xs) var(--space-md)',
                 fontSize: 'var(--text-xs)',

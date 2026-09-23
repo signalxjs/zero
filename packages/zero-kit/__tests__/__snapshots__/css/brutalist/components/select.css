@@ -93,6 +93,16 @@
         opacity: 0.7;
     }
 
+    [data-scope="select"][data-part="group-heading"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        opacity: 0.7;
+    }
+
     [data-scope="select"][data-part="item"] {
         display: flex;
         align-items: center;

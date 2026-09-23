@@ -44,7 +44,7 @@
  * the default, `form="id"` associates from outside. The invalid focus lands
  * on the trigger.
  */
-import { component, compound, computed, defineInjectable, defineProvide, effect, watch } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define, JSXElement } from 'sigx';
 import { createControllableState, createInertState, namedModel, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
@@ -162,8 +162,10 @@ export type SelectRootProps<T = unknown, M = unknown> =
      * Window the options (#96): only those near the popup's scroll position
      * are rendered. Takes the strategy from its own entry, so only a list
      * that windows pays for it (#119) — `virtual={virtualListbox}`, from
-     * `@sigx/zero/virtual-listbox`. Data mode only (`items`, no children)
-     * and ungrouped — with `itemGroup` groups the list renders whole.
+     * `@sigx/zero/virtual-listbox`. Data mode only (`items`, no children):
+     * hand-written items register as they mount, so they render whole. With
+     * `itemGroup` groups, each heading is a `group-heading` row its options
+     * name through `aria-describedby` (#127).
      */
     & Define.Prop<'virtual', ListboxWindowing, false>
     /** Under `virtual`: an option's height before it is measured, in px (default 36). */
@@ -282,20 +284,24 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         }
         return keys;
     };
-    // Windowed: data mode without groups — a heading cannot be windowed
-    // apart from the options its group element contains. The group scan
-    // walks every item, so it is memoized: it re-runs when the list changes.
-    const grouped = computed(() => collection.items().some((item) => collection.groupOf(item) !== undefined));
-    const windowed = (): boolean => !!props.virtual && items() !== undefined && !grouped.value;
+    // Windowed: data mode. Groups window too (#127) — each one's heading
+    // becomes a row of the window rather than an element containing it.
+    const windowed = (): boolean => !!props.virtual && items() !== undefined;
     // What the windowing strategy renders from — the window registers
     // itself here as `current`.
     const virtual: ListboxWindowHost = {
         scope: SCOPE,
         listbox,
         collection,
+        idBase: baseId,
         open: () => openState.value,
         estimateSize: () => props.estimateItemSize,
-        item: (item, index, size) => dataItem(item, index, size),
+        item: (item, index, size, heading) => dataItem(item, index, size, heading),
+        heading: (group, id, ref) => (
+            <div key={id} id={id} data-scope={SCOPE} data-part="group-heading" aria-hidden="true" ref={ref}>
+                {group}
+            </div>
+        ),
         current: null,
     };
     // A windowed list posts the selection alone: ten thousand hidden
@@ -403,13 +409,14 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     // a parallel render path.
     // Windowed, only a window is in the accessibility tree: each option
     // says where it stands in the whole visible list.
-    const dataItem = (item: unknown, index?: number, size?: number): JSXElement => (
+    const dataItem = (item: unknown, index?: number, size?: number, heading?: string): JSXElement => (
         <SelectItem
             value={collection.keyOf(item)}
             textValue={collection.labelOf(item)}
             disabled={collection.isItemDisabled(item)}
             aria-setsize={size}
             aria-posinset={index === undefined ? undefined : index + 1}
+            aria-describedby={heading}
             key={collection.keyOf(item)}
         >
             {slots.item ? slots.item({ item }) : collection.labelOf(item)}

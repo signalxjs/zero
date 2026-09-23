@@ -102,6 +102,14 @@
         color: var(--hero-muted);
     }
 
+    [data-scope="select"][data-part="group-heading"] {
+        padding: var(--space-xs) var(--space-sm);
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-semibold);
+        color: var(--hero-muted);
+    }
+
     [data-scope="select"][data-part="item"] {
         display: flex;
         align-items: center;

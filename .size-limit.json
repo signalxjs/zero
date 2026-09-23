@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "48.4 kB",
+        "limit": "48.75 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -62,7 +62,7 @@
     {
         "name": "@sigx/zero/select",
         "path": "packages/zero/dist/components/select/index.js",
-        "limit": "8.65 kB",
+        "limit": "8.7 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -120,7 +120,7 @@
     {
         "name": "@sigx/zero/combobox",
         "path": "packages/zero/dist/components/combobox/index.js",
-        "limit": "11.3 kB",
+        "limit": "11.35 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -132,7 +132,7 @@
     {
         "name": "@sigx/zero/virtual-listbox",
         "path": "packages/zero/dist/virtual-listbox/index.js",
-        "limit": "2.95 kB",
+        "limit": "3.3 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

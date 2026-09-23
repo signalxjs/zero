@@ -81,13 +81,14 @@ export interface VirtualListOptions {
     /** Rows rendered before mount (server, first client render). Default 20. */
     initialCount?: number;
     /**
-     * A row kept rendered wherever the viewport is, read reactively — the
-     * option an `aria-activedescendant` names must exist in the document
-     * even when the reader has scrolled away from it. Out of range (-1, or
+     * A row (or rows) kept rendered wherever the viewport is, read
+     * reactively — the option an `aria-activedescendant` names must exist in
+     * the document even when the reader has scrolled away from it, and so
+     * must the heading its `aria-describedby` names. Out of range (-1, or
      * nothing) pins nothing. A pinned row outside the window renders apart
      * from it, with `skip` standing in for the rows between.
      */
-    pinned?: () => number;
+    pinned?: () => number | readonly number[];
 }
 
 /** One row of the window. */
@@ -536,16 +537,17 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
 
     const endOf = (l: Layout, i: number): number => l.starts[i]! + l.sizes[i]!;
 
-    /** The rows to render: the window, plus the pinned row wherever it is. */
+    /** The rows to render: the window, plus the pinned rows wherever they are. */
     const rendered = computed<VirtualRow[]>(() => {
         const l = layout.value;
         const { start, end } = range.value;
-        const indices: number[] = [];
-        const pin = options.pinned?.() ?? -1;
-        const pinned = Number.isInteger(pin) && pin >= 0 && pin < l.keys.length && (pin < start || pin >= end);
-        if (pinned && pin < start) indices.push(pin);
+        const pins = [options.pinned?.() ?? -1].flat()
+            .filter((pin) => Number.isInteger(pin) && pin >= 0 && pin < l.keys.length && (pin < start || pin >= end))
+            .sort((a, b) => a - b)
+            .filter((pin, n, all) => n === 0 || all[n - 1] !== pin);
+        const indices: number[] = pins.filter((pin) => pin < start);
         for (let i = start; i < end; i++) indices.push(i);
-        if (pinned && pin >= end) indices.push(pin);
+        for (const pin of pins) if (pin >= end) indices.push(pin);
         const g = gap();
         return indices.map((i, n) => ({
             index: i,

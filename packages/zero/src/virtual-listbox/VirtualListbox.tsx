@@ -31,6 +31,7 @@ const VirtualListboxItems = component<VirtualListboxItemsProps>(({ props, onUnmo
     const v = createVirtualListbox({
         listbox: host.listbox,
         collection: host.collection,
+        idBase: host.idBase,
         open: () => host.open(),
         estimateSize: () => host.estimateSize(),
         resetOn: host.resetOn && (() => host.resetOn!()),
@@ -46,7 +47,9 @@ const VirtualListboxItems = component<VirtualListboxItemsProps>(({ props, onUnmo
         const out: JSXElement[] = [spacer('start', v.before(), v.startRef)];
         for (const row of v.rows()) {
             if (row.skip > 0) out.push(spacer(`before:${row.key}`, row.skip));
-            out.push(host.item(row.item, row.index, size));
+            out.push(row.kind === 'heading'
+                ? host.heading(row.group, row.id, v.measureRef(row.key))
+                : host.item(row.item, row.index, size, row.heading));
         }
         out.push(spacer('end', v.after()));
         return <>{out}</>;

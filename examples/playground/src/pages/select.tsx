@@ -2,7 +2,7 @@ import { component, signal } from 'sigx';
 import { Field, Select } from '@sigx/zero';
 import { virtualListbox } from '@sigx/zero/virtual-listbox';
 import { activeVocabulary } from '../design-systems';
-import { STATIONS } from './fixtures';
+import { STATIONS, STATIONS_BY_LINE } from './fixtures';
 import type { PageEntry } from './registry';
 
 const SelectDemos = component(() => {
@@ -88,6 +88,18 @@ const SelectDemos = component(() => {
             <Field.Root>
                 <Field.Label>Station (10,000 options)</Field.Label>
                 <Select.Root items={STATIONS} virtual={virtualListbox} name="station" placeholder="Pick a station…" />
+            </Field.Root>
+            <p>
+                <small>
+                    Grouped, it windows too (#127): each line's heading is a{' '}
+                    <code>group-heading</code> row of the window, and the
+                    options under it name it through{' '}
+                    <code>aria-describedby</code>.
+                </small>
+            </p>
+            <Field.Root>
+                <Field.Label>Station by line (40 groups)</Field.Label>
+                <Select.Root items={STATIONS_BY_LINE} virtual={virtualListbox} name="station-by-line" placeholder="Pick a station…" />
             </Field.Root>
             <h2>Option groups</h2>
             <p>

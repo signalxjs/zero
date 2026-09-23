@@ -74,6 +74,16 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         parent: 'group',
         tokens: ['color', 'text'],
     },
+    // A group windowed (#127): under `virtual` a `group` cannot be split
+    // across the window, so each heading is a row of its own — a sibling of
+    // the options, laid out and measured like one, aria-hidden and named by
+    // each option under it through aria-describedby. What `group-label` says
+    // inside a `group`, this says in a flat window.
+    'group-heading': {
+        element: 'div',
+        parent: 'popup',
+        tokens: ['color', 'text'],
+    },
     item: {
         element: 'div',
         parent: 'popup',
