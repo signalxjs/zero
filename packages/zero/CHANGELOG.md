@@ -158,7 +158,9 @@
 - **Typeahead no longer bounces on a multi-character search (#173).** Every
   keystroke searched from AFTER the current item, so typing "sav" over
   Open / Save / Save As went Save → Save As → Save. The first character
-  still steps past the current item (repeated letters cycle); a longer
+  still steps past the current item (a letter pressed again once the 1s
+  buffer window has lapsed cycles to the next match — within the window
+  "ss" is a two-letter search); a longer
   buffer now searches from the current item, so it refines the match in
   place. This affects Menu, Menu.Sub, TreeView and Select — where the
   closed single Select changed its selected value on every keystroke.
@@ -167,7 +169,9 @@
   longer turns Space into a search. Menu items and sub-triggers, TreeView
   nodes and the Select trigger now hand Space to the typeahead while a
   search is running instead of activating, so a label like "Save As" can be
-  typed past its space. Outside a search Space activates as before.
+  typed past its space — and that Space shows no press feedback
+  (`data-pressed` / the ripple), since it is search text. Outside a search
+  Space activates as before.
 
 ### Added
 
