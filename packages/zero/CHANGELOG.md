@@ -70,13 +70,6 @@
   its submenus, Select, Combobox) leaked one subscription to the root's open
   model per mount. Checkbox, Textarea, ToggleGroup, Select and Combobox
   roots and `Toast.Root` had the same shape.
-
-### Added
-
-- `mountScope()` (`@sigx/zero/behaviors`, and `/behaviors/core`): call it
-  during setup, run a mount hook's reactive work through the function it
-  returns, and every effect or watch created there stops with the component.
-- `syncPopover` returns a stopper (it returned `void`).
 - **Collapsible and Accordion follow the native `<details>` toggle (#166).**
   Both rendered `open` from the model only, so when the browser opened a
   closed section by itself (find-in-page, fragment navigation) the parts
@@ -121,6 +114,17 @@
   period that the popup's `pointerenter` cancels. Blur and Escape still
   close immediately. An explicit `closeDelay` applies as before, and
   `closeDelay={0}` restores the old immediate pointer-leave close.
+- **Toasts stopped auto-dismissing after a keyboard close (#168).** The
+  viewport paused the queue on `focusin` and resumed on `focusout`. Closing
+  the focused toast from its Close button removes the focused node, which
+  fires no `focusout` in Firefox, WebKit or happy-dom, so the pause stuck
+  and every later toast stayed up until the pointer crossed the viewport.
+  The viewport now re-reads focus after each removal and releases its hold
+  when focus left with the toast. It also tracks pointer and focus apart:
+  the pointer leaving no longer resumes while focus is still inside, and
+  the viewport never resumes a pause it did not take. `pause()`/`resume()`
+  remain one shared flag, so an app's own `pause()` is still cleared when
+  the viewport releases its hold.
 
 ## [0.5.0] - 2026-09-23
 

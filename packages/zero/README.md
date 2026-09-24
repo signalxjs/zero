@@ -685,6 +685,15 @@ ways:
 `base.css` deliberately does not name an app layer. It would not remove the
 load-order dependency described above, and the layer's name belongs to you.
 
+**Toast timing.** Auto-dismiss pauses while the pointer or focus is in
+`Toast.Viewport`, and resumes only when both have left, so moving the
+mouse out does not restart timers while a keyboard user is on a toast.
+Closing the focused toast releases its hold even though the removed button
+fires no `focusout`: the viewport re-reads focus after every removal. The
+queue's pause is one shared flag, not a count: the viewport's `resume()`
+also clears a `toaster.pause()` of your own, and your `resume()` clears
+the viewport's hold.
+
 ## Patterns
 
 Compositions the pieces above are designed to express — no component grows a

@@ -10,6 +10,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { bootPage } from './nav';
+import { demoLabelled, rootLabelled } from './demo';
 
 test.beforeEach(async ({ page }) => {
     await bootPage(page, 'toast', 'basic');
@@ -48,4 +49,25 @@ test('stacked toasts publish their index and count', async ({ page }) => {
         el.style.getPropertyValue('--toast-count'),
     ]);
     expect(vars).toEqual(['1', '2']);
+});
+
+test('a keyboard close of the focused toast does not leave the queue paused (#168)', async ({ page }) => {
+    // Keyboard only, so the pointer never enters the viewport: the only
+    // pause is the focus one. Removing the focused Close fires no focusout
+    // in Firefox/WebKit, which used to leave that pause stuck.
+    await page.getByRole('button', { name: 'Success toast' }).focus();
+    await page.keyboard.press('Enter');
+    const saved = rootLabelled(page, 'toast', 'Saved');
+    const savedPart = demoLabelled(page, 'toast', 'Saved');
+    await expect(saved).toHaveAttribute('data-state', 'open');
+    await savedPart('close').focus();
+    await page.keyboard.press('Enter');
+    await expect(saved).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Error alert' }).focus();
+    await page.keyboard.press('Enter');
+    const failed = rootLabelled(page, 'toast', 'Sync failed');
+    await expect(failed).toHaveAttribute('data-state', 'open');
+    // The default 5s duration runs: the next toast auto-dismisses.
+    await expect(failed).toHaveCount(0, { timeout: 10_000 });
 });

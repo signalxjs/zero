@@ -101,6 +101,19 @@ describe('Toast (component)', () => {
         container = document.createElement('div');
         document.body.appendChild(container);
     });
+    afterEach(() => {
+        render(null, container);
+        container.remove();
+        // Reset shared focus state so no test depends on its order: blur
+        // whatever is focused, then drain the one-shot capture guards sigx's
+        // restoreFocus leaves on the then-active element (body, once a
+        // focused Close was removed), which would swallow the next test's
+        // focus events.
+        (document.activeElement as HTMLElement | null)?.blur?.();
+        for (const type of ['blur', 'focusout', 'focus', 'focusin']) {
+            document.body.dispatchEvent(new FocusEvent(type));
+        }
+    });
 
     function mount(t = createToaster({ duration: Infinity })) {
         render(<Toast.Viewport toaster={t} placement="top-end" />, container);
@@ -243,6 +256,71 @@ describe('Toast (component)', () => {
         viewport.dispatchEvent(new PointerEvent('pointerleave'));
         await new Promise((r) => setTimeout(r, 120));
         expect(container.querySelector('[data-part="root"]')).toBeNull();
+    });
+
+    it('the pointer leaving keeps the pause while focus is still inside', async () => {
+        const t = mount(createToaster({ duration: 50 }));
+        t.create({ title: 'Focused' });
+        await settle();
+        const viewport = container.querySelector<HTMLElement>('[data-part="viewport"]')!;
+        viewport.dispatchEvent(new PointerEvent('pointerenter'));
+        container.querySelector<HTMLElement>('[data-part="close"]')!.focus();
+        viewport.dispatchEvent(new PointerEvent('pointerleave'));
+        await new Promise((r) => setTimeout(r, 120));
+        expect(container.querySelector('[data-part="root"]')!.getAttribute('data-state')).toBe('open');
+        // Focus leaves the viewport: now it resumes.
+        container.querySelector<HTMLElement>('[data-part="close"]')!.blur();
+        await new Promise((r) => setTimeout(r, 200));
+        expect(container.querySelector('[data-part="root"]')).toBeNull();
+    });
+
+    it('closing the focused toast releases the focus pause (#168)', async () => {
+        // Removing a focused node fires no focusout (happy-dom, Firefox,
+        // WebKit), so the viewport must notice focus left with the toast.
+        const t = mount(createToaster({ duration: 50 }));
+        t.create({ title: 'A', duration: Infinity });
+        await settle();
+        const close = container.querySelector<HTMLElement>('[data-part="close"]')!;
+        close.focus();
+        close.click();
+        await settle();
+        expect(container.querySelector('[data-part="root"]')).toBeNull();
+        t.create({ title: 'B' });
+        await settle();
+        await new Promise((r) => setTimeout(r, 200));
+        expect(container.querySelector('[data-part="root"]')).toBeNull();
+    });
+
+    it('closing one of two toasts keeps the pause while focus stays inside', async () => {
+        const t = mount(createToaster({ duration: 50 }));
+        t.create({ title: 'A', duration: Infinity });
+        t.create({ title: 'B' });
+        await settle();
+        const [closeA, closeB] = container.querySelectorAll<HTMLElement>('[data-part="close"]');
+        closeA!.focus();
+        closeB!.focus(); // focus moves within the viewport: still paused
+        await new Promise((r) => setTimeout(r, 120));
+        expect(t.toasts().find((x) => x.title === 'B')?.open).toBe(true);
+        closeB!.blur();
+        closeA!.focus();
+        closeA!.click(); // A leaves; focus falls to body, B's timer resumes
+        await settle();
+        await new Promise((r) => setTimeout(r, 200));
+        expect(container.querySelector('[data-part="root"]')).toBeNull();
+    });
+
+    it('closing the focused toast at the cap releases the pause too', async () => {
+        // A removal at `max` promotes a queued toast, so the count holds.
+        const t = mount(createToaster({ duration: 50, max: 1 }));
+        t.create({ title: 'A', duration: Infinity });
+        t.create({ title: 'B' });
+        await settle();
+        const close = container.querySelector<HTMLElement>('[data-part="close"]')!;
+        close.focus();
+        close.click();
+        await settle();
+        await new Promise((r) => setTimeout(r, 200));
+        expect(t.count()).toBe(0);
     });
 
     it('a custom slot composes per toast and the aria wiring holds', async () => {
