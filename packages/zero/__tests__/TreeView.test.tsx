@@ -238,6 +238,40 @@ describe('TreeView', () => {
         expect(document.activeElement).toBe(byValue(container, 'src'));
     });
 
+    it('typeahead reads an asChild BranchTrigger row stamped with its own scope (#157)', () => {
+        render(
+            <TreeView.Root defaultExpandedValues={['packages']}>
+                <TreeView.Tree>
+                    <TreeView.Branch value="packages">
+                        <TreeView.BranchTrigger asChild>
+                            {(p) => <div {...p} data-scope="app-file-tree" data-part="item">packages</div>}
+                        </TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Branch value="packages/ui">
+                                <TreeView.BranchTrigger asChild>
+                                    {(p) => <div {...p} data-scope="app-file-tree" data-part="item">ui</div>}
+                                </TreeView.BranchTrigger>
+                                <TreeView.BranchContent>
+                                    <TreeView.Item value="packages/ui/index.ts">index.ts</TreeView.Item>
+                                </TreeView.BranchContent>
+                            </TreeView.Branch>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                </TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+        const branches = [...container.querySelectorAll<HTMLElement>('[data-part="branch"]')];
+        const [top, nested] = branches;
+        // The row carries the app's own part name — the part query finds
+        // nothing, so the text used to fall back to the value (`packages/ui`)
+        // and `u` never reached the nested folder.
+        expect(nested.querySelector('[data-part="branch-trigger"]')).toBeNull();
+        top.focus();
+        top.dispatchEvent(key('u'));
+        expect(document.activeElement).toBe(nested);
+    });
+
     it('one tab stop: the selected node, else the first visible enabled node', () => {
         mountTree(container, { defaultValue: 'README.md' });
         expect(byValue(container, 'README.md').tabIndex).toBe(0);

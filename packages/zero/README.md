@@ -293,7 +293,9 @@ included, a button being a labelable element. Outside a Field,
 `Select.Trigger` takes a `label` prop (`aria-label`): `role="combobox"`
 prohibits name-from-content, so the value text inside the trigger can never
 name it, and TreeView's typeahead matches the accessible text of a branch
-row (skipping `aria-hidden` decoration such as the default indicator glyph).
+row (skipping `aria-hidden` decoration such as the default indicator glyph)
+— the element `BranchTrigger` renders, even an `asChild` row stamped with
+the app's own `data-scope`/`data-part`.
 
 **Drawer width is `measure`.** `Drawer.Panel measure="md"` sizes the panel
 from the design system's `--measure-*` ramp — Container's layout attribute,
