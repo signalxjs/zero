@@ -45,6 +45,7 @@ import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { derivedModel } from '../../behaviors/derived-model.js';
+import { countPresence, reportPresence } from '../../behaviors/part-presence.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -94,6 +95,16 @@ interface SliderContext {
     valueTextFor(value: number, index: number): string | undefined;
     marks(): readonly SliderMark[];
     ids: { control: string; label: string };
+    /**
+     * Presence of the parts the ids name (`reportPresence`), so no
+     * reference dangles (#169): the
+     * Label's and ValueText's `for` need a mounted Control, a thumb's
+     * `aria-labelledby` a mounted Label.
+     */
+    labelPresent(): boolean;
+    controlPresent(): boolean;
+    setLabelPresent(present: boolean): void;
+    setControlPresent(present: boolean): void;
     focusVisible: { visible: boolean };
     registerThumb(entry: ThumbEntry): () => void;
     thumbIndex(entry: ThumbEntry): number;
@@ -124,6 +135,10 @@ function makeInert(): SliderContext {
         valueTextFor: () => undefined,
         marks: () => [],
         ids: { control: 'zx-slider-inert-control', label: 'zx-slider-inert-label' },
+        labelPresent: () => false,
+        controlPresent: () => false,
+        setLabelPresent: () => {},
+        setControlPresent: () => {},
         focusVisible: { visible: false },
         registerThumb: () => () => {},
         thumbIndex: () => 0,
@@ -185,6 +200,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-slider' });
     const focusVisible = signal({ visible: false });
+    const present = signal({ label: 0, control: 0 });
     const thumbs: ThumbEntry[] = [];
     let track: HTMLElement | null = null;
     let dragIndex: number | null = null;
@@ -269,6 +285,10 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             control: fc.controlId(),
             label: fc.labelId(),
         },
+        labelPresent: () => present.label > 0,
+        controlPresent: () => present.control > 0,
+        setLabelPresent: (p) => { present.label = countPresence(present.label, p); },
+        setControlPresent: (p) => { present.control = countPresence(present.control, p); },
         focusVisible,
         registerThumb(entry) {
             thumbs.push(entry);
@@ -344,16 +364,20 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
     );
 }, { name: 'Slider.Root' });
 
-/** Not `id`: the thumbs' and the value text's wiring points at the Label's own. */
+/**
+ * Not `id`: the thumbs' `aria-labelledby` points at the Label's own. Its
+ * `for` names the native Control, so it is written only while one is mounted.
+ */
 export type SliderLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
-const SliderLabel = component<SliderLabelProps>(({ props, slots }) => {
+const SliderLabel = component<SliderLabelProps>(({ props, slots, onUnmounted }) => {
     const slider = useSliderContext();
+    reportPresence(slider.setLabelPresent, onUnmounted);
     return () => (
         <label
             {...htmlAttrs(props)}
             id={slider.ids.label}
-            for={slider.ids.control}
+            for={slider.controlPresent() ? slider.ids.control : undefined}
             data-scope={SCOPE}
             data-part="label"
             data-disabled={dataAttr(slider.disabled())}
@@ -370,6 +394,7 @@ export type SliderControlProps = WithClass & Omit<WithHtmlAttrs, 'id'>;
 /** The single-value native projection — an `<input type="range">`. */
 const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmounted }) => {
     const slider = useSliderContext();
+    reportPresence(slider.setControlPresent, onUnmounted);
     let el: HTMLInputElement | null = null;
 
     // The native range resets to its attribute default (the midpoint when
@@ -522,7 +547,10 @@ const SliderRange = component<SliderRangeProps>(({ props }) => {
 export type SliderThumbProps =
     /** Which value this thumb drives; defaults to registration order. */
     & Define.Prop<'index', number, false>
-    /** Accessible name — a multi-thumb slider must name each thumb. */
+    /**
+     * Accessible name — a multi-thumb slider must name each thumb. Without
+     * one (or an `aria-label`) the thumb is labelled by `Slider.Label`.
+     */
     & Define.Prop<'label', string, false>
     & WithClass
     /** Not `role`: a thumb is a `slider`. */
@@ -560,6 +588,7 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
         const { lo, hi } = bounds();
         const disabled = slider.disabled();
         const attrs = htmlAttrs(props);
+        const ownName = props.label ?? (typeof attrs['aria-label'] === 'string' ? attrs['aria-label'] : undefined);
         return (
             <div
                 {...attrs}
@@ -569,7 +598,13 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
                 data-focus-visible={dataAttr(focus.visible)}
                 role="slider"
                 tabIndex={disabled ? undefined : 0}
-                aria-label={props.label ?? attrs['aria-label']}
+                aria-label={ownName}
+                // Unnamed by its own label, a thumb takes the group's
+                // Slider.Label (a `<label for>` cannot name a role=slider).
+                aria-labelledby={[
+                    ownName === undefined && slider.labelPresent() ? slider.ids.label : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
                 aria-orientation="horizontal"
                 // The ALLOWED range, not the rail's: the clamp at the
                 // neighbor is announced, per APG multi-thumb.
@@ -638,7 +673,7 @@ const SliderValueText = component<SliderValueTextProps>(({ props, slots }) => {
         const value = slider.state.value;
         const values = slider.values();
         return (
-            <output {...htmlAttrs(props)} data-scope={SCOPE} data-part="value-text" for={slider.ids.control} class={props.class}>
+            <output {...htmlAttrs(props)} data-scope={SCOPE} data-part="value-text" for={slider.controlPresent() ? slider.ids.control : undefined} class={props.class}>
                 {slots.default?.({ value, values })
                     ?? (Array.isArray(value) ? values.join(' – ') : String(value))}
             </output>

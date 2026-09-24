@@ -14,6 +14,7 @@
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
+import { countPresence, reportPresence } from '../../behaviors/part-presence.js';
 import { createId } from '../../behaviors/create-id.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
@@ -28,6 +29,8 @@ interface ProgressContext {
     percent(): number | null;
     state(): 'loading' | 'complete' | 'indeterminate';
     ids: { label: string };
+    /** Label reports its presence so the root's reference never dangles (#169). */
+    setLabelPresent(present: boolean): void;
 }
 
 function makeInert(): ProgressContext {
@@ -38,6 +41,7 @@ function makeInert(): ProgressContext {
         percent: () => null,
         state: () => 'indeterminate',
         ids: { label: 'zx-progress-inert' },
+        setLabelPresent: () => {},
     };
 }
 
@@ -56,11 +60,19 @@ export type ProgressRootProps =
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
-const ProgressRoot = component<ProgressRootProps>(({ props, slots }) => {
+const ProgressRoot = component<ProgressRootProps>(({ props, slots, signal }) => {
     const baseId = createId('zx-progress');
     const min = () => props.min ?? 0;
     const max = () => props.max ?? 100;
     const value = () => props.value ?? null;
+    // Reported by the Label (`reportPresence`): the root references it only
+    // while it is actually rendered.
+    const present = signal({ label: 0 });
+    // aria-valuenow must sit inside [aria-valuemin, aria-valuemax] (#169).
+    const valueNow = (): number | undefined => {
+        const v = value();
+        return v == null ? undefined : Math.min(max(), Math.max(min(), v));
+    };
     const percent = (): number | null => {
         const v = value();
         if (v == null) return null;
@@ -83,6 +95,7 @@ const ProgressRoot = component<ProgressRootProps>(({ props, slots }) => {
             return p >= 100 ? 'complete' : 'loading';
         },
         ids: { label: `${baseId}-label` },
+        setLabelPresent: (p) => { present.label = countPresence(present.label, p); },
     };
     defineProvide(useProgressContext, () => ctx);
 
@@ -97,8 +110,11 @@ const ProgressRoot = component<ProgressRootProps>(({ props, slots }) => {
                 data-state={ctx.state()}
                 aria-valuemin={min()}
                 aria-valuemax={max()}
-                aria-valuenow={value() ?? undefined}
-                aria-labelledby={attrs['aria-labelledby'] ? `${ctx.ids.label} ${attrs['aria-labelledby']}` : ctx.ids.label}
+                aria-valuenow={valueNow()}
+                aria-labelledby={[
+                    present.label > 0 ? ctx.ids.label : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
                 style={percent() != null ? { '--progress-percent': `${percent()}%` } : undefined}
                 {...variantAttrs(props)}
                 class={props.class}
@@ -112,8 +128,9 @@ const ProgressRoot = component<ProgressRootProps>(({ props, slots }) => {
 /** Not `id`: the root is labelled by the Label's own. */
 export type ProgressLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
-const ProgressLabel = component<ProgressLabelProps>(({ props, slots }) => {
+const ProgressLabel = component<ProgressLabelProps>(({ props, slots, onUnmounted }) => {
     const progress = useProgressContext();
+    reportPresence(progress.setLabelPresent, onUnmounted);
     return () => (
         <div {...htmlAttrs(props)} id={progress.ids.label} data-scope={SCOPE} data-part="label" class={props.class}>
             {slots.default?.()}

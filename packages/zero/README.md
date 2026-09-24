@@ -302,7 +302,15 @@ halo and slider-thumb halo — expressible as pure CSS.
 ARIA wiring is presence-aware: an overlay references its `Title` /
 `Description` ids only while those parts are actually rendered, so omitting a
 title never leaves a dangling `aria-labelledby` (which would suppress the
-accessible-name fallback). Escape dismissal is universal — a tooltip closes
+accessible-name fallback). The same holds for Labels (#169): a
+`RadioGroup.Label` names its radiogroup with or without a Field (joined with
+the Field's label and any app `aria-labelledby`), a `Progress.Label` /
+`RadialProgress.Label` is referenced only while rendered, a range slider's
+thumbs without their own `label` are named by `Slider.Label`, and the
+Label's and ValueText's `for` appear only while a native `Slider.Control`
+is mounted. Presence reports land a microtask after mount, so a
+server-rendered page gains these references at hydration. A progressbar's
+`aria-valuenow` is clamped to `[min, max]`. Escape dismissal is universal — a tooltip closes
 from anywhere (WCAG 2.1 SC 1.4.13), and it is hoverable too: leaving the
 trigger closes it only after a 120 ms pointer-leave grace period, so the
 pointer can cross the offset gap onto the popup. Blur still closes at once,

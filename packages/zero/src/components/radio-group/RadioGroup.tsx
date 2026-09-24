@@ -26,6 +26,7 @@ import type { Define, JSXElement } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createCollection } from '../../behaviors/collection.js';
 import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
+import { countPresence, reportPresence } from '../../behaviors/part-presence.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
@@ -46,6 +47,9 @@ interface RadioGroupContext {
     disabled(): boolean;
     invalid(): boolean;
     required(): boolean;
+    /** The Label's own id — referenced by the root only while it is mounted. */
+    labelId: string;
+    setLabelPresent(present: boolean): void;
 }
 
 function makeInert(): RadioGroupContext {
@@ -57,6 +61,8 @@ function makeInert(): RadioGroupContext {
         disabled: () => false,
         invalid: () => false,
         required: () => false,
+        labelId: 'zx-radio-inert-label',
+        setLabelPresent: () => {},
     };
 }
 
@@ -90,13 +96,18 @@ export type RadioGroupRootProps<T = unknown> =
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
-const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit }) => {
+const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit, signal }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
         (v) => emit('valueChange', v),
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-radio' });
+    // Reported by RadioGroup.Label (`reportPresence`), so the reference is
+    // written only while one is rendered and never dangles (#169).
+    const present = signal({ label: 0 });
+    // Its own id, distinct from a Field's label: both may be rendered.
+    const labelId = `${fc.baseId}-group-label`;
     // Data mode exactly when `items` is given and no children are — the
     // accessors and their defaults are the collection's (Select's).
     const items = (): ReadonlyArray<unknown> | undefined => (slots.default || props.items === undefined ? undefined : props.items);
@@ -119,6 +130,8 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit 
         disabled: fc.disabled,
         invalid: fc.invalid,
         required: fc.required,
+        labelId,
+        setLabelPresent: (p) => { present.label = countPresence(present.label, p); },
     };
     defineProvide(useRadioGroupContext, () => ctx);
 
@@ -148,7 +161,11 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit 
                 data-disabled={dataAttr(ctx.disabled())}
                 data-invalid={dataAttr(ctx.invalid())}
                 data-required={dataAttr(ctx.required())}
-                aria-labelledby={[fc.field.inert ? undefined : fc.labelId(), attrs['aria-labelledby']].filter(Boolean).join(' ') || undefined}
+                aria-labelledby={[
+                    fc.field.inert ? undefined : fc.labelId(),
+                    present.label > 0 ? labelId : undefined,
+                    attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
                 aria-describedby={[fc.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
                 {...fc.axisAttrs()}
                 class={props.class}
@@ -283,13 +300,20 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal, o
 
 // ── Label ──
 
-export type RadioGroupLabelProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
+/** Not `id`: the radiogroup is labelled by the Label's own. */
+export type RadioGroupLabelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
-const RadioGroupLabel = component<RadioGroupLabelProps>(({ props, slots }) => {
+/**
+ * The group's visible name: the root's `aria-labelledby` references it
+ * (joined with a Field's label and any app value) while it is mounted.
+ */
+const RadioGroupLabel = component<RadioGroupLabelProps>(({ props, slots, onUnmounted }) => {
     const group = useRadioGroupContext();
+    reportPresence(group.setLabelPresent, onUnmounted);
     return () => (
         <div
             {...htmlAttrs(props)}
+            id={group.labelId}
             data-scope={SCOPE}
             data-part="label"
             data-disabled={dataAttr(group.disabled())}

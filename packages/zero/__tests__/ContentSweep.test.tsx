@@ -431,8 +431,10 @@ describe('RadialProgress', () => {
         expect(part(container, 'radial-progress', 'value-text').textContent).toBe('100%');
     });
 
-    it('the label names the progressbar', () => {
+    it('the label names the progressbar', async () => {
         mount(30);
+        // The Label reports its presence a microtask after mounting (#169).
+        await new Promise((r) => setTimeout(r, 0));
         const root = part(container, 'radial-progress', 'root');
         const label = part(container, 'radial-progress', 'label');
         expect(root.getAttribute('aria-labelledby')).toBe(label.id);

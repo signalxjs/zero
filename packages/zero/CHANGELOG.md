@@ -125,6 +125,20 @@
   the viewport never resumes a pause it did not take. `pause()`/`resume()`
   remain one shared flag, so an app's own `pause()` is still cleared when
   the viewport releases its hold.
+### Fixed
+
+- **Accessible names without dangling references (#169).**
+  `RadioGroup.Label` now has an id and names its radiogroup outside a
+  Field too; inside one it joins the Field's label (and any app
+  `aria-labelledby`). `Slider.Thumb` without a `label`/`aria-label` is
+  labelled by `Slider.Label`, and `Slider.Label`'s and `Slider.ValueText`'s
+  `for` are written only while a `Slider.Control` is mounted (the composed
+  projection has none). `Progress.Root` and `RadialProgress.Root` reference
+  their Label only while one is rendered, and clamp `aria-valuenow` to
+  `[min, max]`. These references follow the Label/Control's presence, which
+  is reported a microtask after mount: server-rendered markup gains them at
+  hydration. `RadioGroup.Label` no longer accepts `id` (the root is
+  labelled by its own).
 
 ## [0.5.0] - 2026-09-23
 

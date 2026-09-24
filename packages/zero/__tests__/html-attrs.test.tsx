@@ -704,7 +704,7 @@ describe('the per-part rules', () => {
     const q = (scope: string, part: string) =>
         container.querySelector<HTMLElement>(`[data-scope="${scope}"][data-part="${part}"]`)!;
 
-    it('an id or role the part sets itself wins over an untyped caller (TS refuses both)', () => {
+    it('an id or role the part sets itself wins over an untyped caller (TS refuses both)', async () => {
         const role: Record<string, unknown> = { role: 'presentation' };
         const id: Record<string, unknown> = { id: 'mine' };
         render(
@@ -716,6 +716,8 @@ describe('the per-part rules', () => {
         );
         expect(q('divider', 'root').getAttribute('role')).toBe('separator');
         expect(q('progress', 'label').id).not.toBe('mine');
+        // The Label reports its presence a microtask after mounting (#169).
+        await new Promise((r) => setTimeout(r, 0));
         expect(q('progress', 'root').getAttribute('aria-labelledby')).toBe(q('progress', 'label').id);
     });
 
@@ -744,13 +746,14 @@ describe('the per-part rules', () => {
         expect(q('spinner', 'root').getAttribute('aria-label')).toBe('Uploading');
     });
 
-    it("an app aria-labelledby joins the progressbar's own", () => {
+    it("an app aria-labelledby joins the progressbar's own", async () => {
         render(
             <Progress.Root value={1} aria-labelledby="heading">
                 <Progress.Label>Upload</Progress.Label>
             </Progress.Root>,
             container,
         );
+        await new Promise((r) => setTimeout(r, 0));
         expect(q('progress', 'root').getAttribute('aria-labelledby'))
             .toBe(`${q('progress', 'label').id} heading`);
     });
