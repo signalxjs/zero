@@ -88,8 +88,8 @@ Never commit straight to `main`.** Repo: `signalxjs/zero`, base branch `main`.
    ```
 
 6. **Merge it yourself — through the merge queue.** Once Copilot's feedback is
-   resolved, the PR's checks are green (the `e2e` job too — it is not a
-   required check, so the queue will not wait for it), and — for user-facing
+   resolved, the PR's checks are green (`e2e` included — it is a required
+   check and runs again in the queue, against what landed ahead), and — for user-facing
    changes — the docs issue is filed on the docs repo and linked from the PR
    (see "Documentation"), enqueue it:
    ```sh
