@@ -14,7 +14,7 @@ import { describe, expect, it } from 'vitest';
 import { oklch, wcagContrast } from 'culori';
 import { anatomies } from '@sigx/zero/anatomy';
 import type { DesignSystemInput, ManifestComponent, TokensInput } from '@sigx/zero-kit';
-import { suggestContrastFix, validateDesignSystem } from '@sigx/zero-kit';
+import { compileTokensCss, suggestContrastFix, validateDesignSystem } from '@sigx/zero-kit';
 
 const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
 
@@ -218,5 +218,56 @@ describe('contrast failures suggest the nearest passing value (#412)', () => {
         expect(issue).toBeDefined();
         expect(issue!.rule).toBeUndefined();
         expect(issue!.suggest).toBeUndefined();
+    });
+});
+
+describe('@property initial-value must be computationally independent (#184)', () => {
+    // css-properties-values-api: a registration whose initial-value is not
+    // computationally independent is an invalid rule — the browser drops the
+    // whole `@property`, and the token silently loses its typing. The light
+    // theme's value becomes the initial-value, so a relative unit or a
+    // reference there must never reach the emitted rule.
+    const withCustom = (syntax: string, value: string) => ds((t) => {
+        t.custom = { gap: { syntax } };
+        t.themes['day']!.custom = { gap: value };
+    });
+    const registration = (input: DesignSystemInput) =>
+        compileTokensCss(input.tokens).split('\n').find((line) => line.includes('@property --gap')) ?? null;
+
+    it.each([
+        ['<length>', '1em'],
+        ['<length>', '1.5rem'],
+        ['<length>', 'calc(4px + 2ch)'],
+        ['<length>', '10cqi'],
+        ['<color>', 'var(--color-primary)'],
+        ['<color>', 'currentColor'],
+        ['<color>', 'light-dark(white, black)'],
+        ['<length>', 'env(safe-area-inset-top)'],
+    ])('skips a %s registration whose light value is %s, and warns', (syntax, value) => {
+        const input = withCustom(syntax, value);
+        expect(registration(input)).toBeNull();
+        // The value itself still ships — only the typing is lost.
+        expect(compileTokensCss(input.tokens)).toContain(`--gap: ${value};`);
+        expect(errors(input)).toBe('');
+        expect(warnings(input)).toMatch(/themes\.day: custom token "gap" .*not computationally independent.*@property --gap is not registered/);
+    });
+
+    it("registers a universal ('*') syntax without the dependent initial-value", () => {
+        const input = withCustom('*', 'var(--color-primary)');
+        expect(registration(input)).toContain("@property --gap { syntax: '*'; inherits: true; }");
+        expect(warnings(input)).not.toContain('computationally independent');
+    });
+
+    it.each([
+        ['<length>', '12px'],
+        ['<length>', '50vw'],
+        ['<length-percentage>', '50%'],
+        ['<color>', 'oklch(45% 0.2 300)'],
+        ['<number>', '1.5'],
+        ['<time>', '150ms'],
+    ])('keeps a %s registration whose light value is %s', (syntax, value) => {
+        const input = withCustom(syntax, value);
+        expect(registration(input)).toContain(`initial-value: ${value};`);
+        expect(warnings(input)).not.toContain('computationally independent');
     });
 });

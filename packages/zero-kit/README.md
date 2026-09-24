@@ -96,6 +96,13 @@ with `sizes`, `variants`, `modifiers`, `axes`, `system`, `custom` and
 `breakpoints`, in the DS's `dist/manifest.json` (which also lists every custom
 property the design system emits, and the axis values each recipe wires, per
 component).
+A `custom` token that declares a `syntax` is `@property`-registered too, with
+the default light theme's value as its `initial-value`. That value must be
+computationally independent (no `var()`, `env()`, `light-dark()`,
+`currentColor`, or font/container-relative unit such as `em`, `rem`, `ch`,
+`cqi`), or the browser drops the whole rule. The compiler skips such a
+registration and `validate` warns: the token still ships its value, untyped.
+A universal `syntax: '*'` registers without the `initial-value` instead.
 `writeArtifacts` additionally emits `dist/register.d.ts` — a **generated,
 never authored** augmentation of `@sigx/zero`'s `ZeroVocabulary`, so an app
 importing `@sigx/<ds>/register` gets the design system's themes, tokens and

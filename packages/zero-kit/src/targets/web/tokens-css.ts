@@ -28,7 +28,7 @@ import {
     systemNodeAt,
     tokenProperty,
 } from '../../contract.js';
-import { DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, assertTokenValue, badPropertySyntaxMessage, resolveSystemTokens, softMixPercent } from '../shared.js';
+import { DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, assertTokenValue, badPropertySyntaxMessage, dependentInitialValue, resolveSystemTokens, softMixPercent } from '../shared.js';
 import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tokens.js';
 
 const softVar = (role: string, mix: number): string =>
@@ -178,7 +178,9 @@ function breakpointDecls(breakpoints: Record<string, string> | undefined): strin
 /**
  * `@property` registrations for declared roles (typed, animatable theme
  * switches) and for declared custom tokens that carry a `syntax`.
- * Initial values come from the default light theme. Derivatives are not
+ * Initial values come from the default light theme — only when
+ * computationally independent (`dependentInitialValue`), since a dependent
+ * one makes the browser drop the rule. Derivatives are not
  * registered: `-soft` values can be `color-mix()` expressions (invalid as
  * `initial-value`), and `-content` is deliberately kept off the registration
  * surface to match the role-only registration zero's base.css previously
@@ -188,7 +190,9 @@ function propertyRegistrations(input: TokensInput<any>, roles: RolesDecl, light:
     const rules: string[] = [];
     for (const name of Object.keys(roles)) {
         const initial = color(light, name);
-        if (!initial) continue;
+        // `validateDesignSystem` already refuses an unparseable role colour;
+        // this guards a direct compile that skipped validation.
+        if (!initial || dependentInitialValue(initial)) continue;
         rules.push(`@property --color-${name} { syntax: '<color>'; inherits: true; initial-value: ${initial}; }`);
     }
     // Custom names may be spelled with or without the leading `--`; compare
@@ -203,8 +207,14 @@ function propertyRegistrations(input: TokensInput<any>, roles: RolesDecl, light:
         if (!PROPERTY_SYNTAX_PATTERN.test(decl.syntax)) {
             throw new Error(`[zero-kit] custom token "${name}" ${badPropertySyntaxMessage(decl.syntax)}`);
         }
-        const initial = customValues[prop];
-        if (!initial && decl.syntax !== '*') continue;
+        const universal = decl.syntax === '*';
+        // A light value the browser cannot use as `initial-value` (#184) would
+        // invalidate the whole rule: a universal syntax registers without it
+        // (the initial value is optional there), any other skips the
+        // registration — validate warns — and the token ships untyped.
+        const light = customValues[prop];
+        const initial = light && !dependentInitialValue(light) ? light : undefined;
+        if (!initial && !universal) continue;
         rules.push(
             `@property ${prop} { syntax: '${decl.syntax}'; inherits: true;${initial ? ` initial-value: ${initial};` : ''} }`,
         );

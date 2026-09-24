@@ -117,6 +117,19 @@
   optional top-level artifacts a run does not produce are removed, and
   `runStandardBuild` removes `outDir/lynx` when `'lynx'` is not a target.
   Nothing else in `outDir` is touched, so tsgo's emitted JS survives.
+### Fixed
+
+- **A typed custom token no longer emits an `@property` the browser drops
+  (#184).** The registration took the default light theme's value verbatim
+  as its `initial-value`. A value that is not computationally independent,
+  such as `1em`, `1.5rem`, `var(--color-primary)`, `currentColor`,
+  `light-dark(…)` or `env(…)`, makes the whole rule invalid, so the token
+  silently stayed unregistered. The compiler now skips that registration,
+  and `validateDesignSystem` warns and names the dependency. A universal
+  `syntax: '*'` registers without the `initial-value` instead. The token's
+  value still applies either way; only typed interpolation is lost. Role
+  registrations get the same guard on a compile that skipped validation.
+  No in-repo design system's output changed.
 
 ## [0.5.0] - 2026-09-23
 
