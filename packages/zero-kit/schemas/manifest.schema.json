@@ -339,7 +339,7 @@
                                     "$ref": "#/$defs/kebabToken"
                                 },
                                 "host": {
-                                    "description": "The same-scope part the mark is measured on when `parent` names only the containing part (menu's item-indicator: parent popup, host checkbox-item). Must itself sit inside the declared parent.",
+                                    "description": "The same-scope part the mark is measured on when `parent` names only the containing part (menu's item-indicator: parent popup, host checkbox-item). Only on a part that declares a parent, and must itself sit inside it.",
                                     "$ref": "#/$defs/kebabToken"
                                 }
                             }

@@ -70,8 +70,9 @@ export interface PartPaint {
      * The same-scope part the mark is measured ON, when `parent` names only
      * the containing part: menu's `item-indicator` declares
      * `parent: 'popup'` because it can sit in a checkbox or a radio row, and
-     * `host: 'checkbox-item'` names the row the audit builds around it. The
-     * host must itself sit inside the declared `parent`.
+     * `host: 'checkbox-item'` names the row the audit builds around it. Only
+     * on a part that declares a `parent`, and the host must itself sit
+     * inside it.
      */
     host?: string;
 }

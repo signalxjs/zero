@@ -262,12 +262,15 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                     if (!hostPart || hostPart.pseudo) {
                         throw new Error(`[zero-kit] ${at(part.name)} declares paint.host "${String(host)}", which is not another rendered part of the scope`);
                     }
-                    if (part.parent !== undefined) {
-                        let cursor = hostPart.parent;
-                        while (cursor !== undefined && cursor !== part.parent) cursor = byName.get(cursor)?.parent;
-                        if (cursor !== part.parent) {
-                            throw new Error(`[zero-kit] ${at(part.name)} declares paint.host "${host}", which does not sit inside its declared parent "${part.parent}"`);
-                        }
+                    // A host refines a declared containing part; a top-level
+                    // mark has nothing to refine, so the chain would be a guess.
+                    if (part.parent === undefined) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares paint.host but no parent — the host must sit inside the part's declared parent`);
+                    }
+                    let cursor = hostPart.parent;
+                    while (cursor !== undefined && cursor !== part.parent) cursor = byName.get(cursor)?.parent;
+                    if (cursor !== part.parent) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares paint.host "${host}", which does not sit inside its declared parent "${part.parent}"`);
                     }
                 }
             }

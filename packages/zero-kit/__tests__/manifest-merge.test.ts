@@ -293,6 +293,12 @@ describe('mergeManifests', () => {
         expect(bad({ host: 'side' })).toThrow(/does not sit inside its declared parent "outer"/);
         expect(bad(true, { pseudo: { of: 'root', selector: '::after' } })).toThrow(/pseudo part/);
         expect(bad({ host: 'inner' })).not.toThrow();
+        // A host refines a declared parent; a top-level mark has none.
+        expect(() => mergeManifests(baseManifest(), withParts([
+            { name: 'root' },
+            { name: 'row', parent: 'root' },
+            { name: 'mark', paint: { host: 'row' } },
+        ]))).toThrow(/paint\.host but no parent/);
     });
 });
 

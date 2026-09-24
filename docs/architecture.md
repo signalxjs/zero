@@ -924,7 +924,7 @@ ecosystem surface — flags against `FLAG_VOCABULARY`, states against
 states`, `carries` (named axes only, non-empty and unrepeated, never on the
 carrier or a `pseudo` part), `parent` acyclicity, and `paint` (`true` or a
 non-empty `{ glyph, only, host }`, never on a `pseudo` part, `only` one of
-the part's flags, `host` a rendered part inside the declared parent). A scope collision is a hard error naming
+the part's flags, `host` a rendered part inside the declared parent, which must exist). A scope collision is a hard error naming
 the existing owner; every merged component is stamped with its owning
 `package` (provenance), which survives compilation and drives the
 register artifact's `Exclude`-form gate and the components module's import

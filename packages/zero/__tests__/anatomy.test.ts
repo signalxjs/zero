@@ -258,7 +258,8 @@ describe('anatomy registry', () => {
                     expect(host.pseudo, `${at}: paint.host is a pseudo part`).toBeUndefined();
                     const chain: string[] = [];
                     for (let cursor = host.parent; cursor !== undefined; cursor = parts[cursor]?.parent) chain.push(cursor);
-                    if (part.parent !== undefined) expect(chain, `${at}: paint.host must sit inside the declared parent`).toContain(part.parent);
+                    expect(part.parent, `${at}: paint.host needs a declared parent to refine`).toBeDefined();
+                    expect(chain, `${at}: paint.host must sit inside the declared parent`).toContain(part.parent);
                 }
             }
         }
