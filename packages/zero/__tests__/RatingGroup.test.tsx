@@ -268,6 +268,24 @@ describe('RatingGroup', () => {
         items(container)[3]!.dispatchEvent(key(' '));
         items(container)[3]!.dispatchEvent(key('Enter'));
         expect(state.stars).toBe(2);
+
+        const other = document.createElement('div');
+        container.appendChild(other);
+        const disabledState = signal({ stars: 2 });
+        mount(other, { model: [disabledState, 'stars'], disabled: true });
+        items(other)[3]!.dispatchEvent(key(' '));
+        items(other)[3]!.dispatchEvent(key('Enter'));
+        expect(disabledState.stars).toBe(2);
+    });
+
+    it('readonly + required at 0 does not block the submit', () => {
+        const form = document.createElement('form');
+        container.appendChild(form);
+        mount(form, { name: 'stars', required: true, readonly: true });
+        const input = form.querySelector<HTMLInputElement>('[data-part="hidden-input"]')!;
+        expect(input.required).toBe(false);
+        expect(input.readOnly).toBe(true);
+        expect(form.checkValidity()).toBe(true);
     });
 
     it('required carries aria-required and blocks an unrated form submit', () => {

@@ -33,7 +33,8 @@
  * barred from constraint validation, so `required` would be decoration: an
  * unrated (0) required rating posts '' and fails `checkValidity()`, and the
  * invalid focus lands on the tab stop. The radiogroup carries
- * `aria-required`.
+ * `aria-required`. A readonly rating never blocks a submit: the input is
+ * `readonly` and drops `required`, as a native readonly control would.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -272,7 +273,11 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
                         data-part="hidden-input"
                         style={VISUALLY_HIDDEN_STYLE}
                         {...fc.hiddenAttrs()}
-                        required={ctx.required()}
+                        // A readonly rating's value is not the user's to set, so
+                        // it cannot be what blocks the submit (native readonly
+                        // inputs are barred from validation for the same reason).
+                        required={ctx.required() && !readonly()}
+                        readOnly={readonly()}
                         value={state.value === 0 ? '' : String(state.value)}
                         tabIndex={-1}
                         aria-hidden="true"

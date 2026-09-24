@@ -105,7 +105,7 @@ test.describe('half-star pointer and keyboard math', () => {
         await expect(item(page, 5)).toBeFocused();
     });
 
-    test('the posted input is a validating control, so `required` blocks an unrated submit (#174)', async ({ page }) => {
+    test('the posted input is a validating element, not `type=hidden`, so `required` can bar an empty value (#174)', async ({ page }) => {
         // `type="hidden"` is barred from constraint validation in every
         // engine; happy-dom cannot be the authority on that, a real one is.
         const verdict = await hidden(page).evaluate((el: HTMLInputElement) => {
