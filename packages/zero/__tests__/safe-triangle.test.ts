@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createPointerGrace, pointInTriangle, safeTriangle } from '../src/behaviors/safe-triangle';
+import { createPointerGrace, pointInTriangle, safeTriangle } from '../src/behaviors/safe-triangle.js';
 
 // A submenu to the right of the trigger: its near (left) edge at x=200,
 // spanning y 100..300. The pointer leaves the trigger at (180, 120).
