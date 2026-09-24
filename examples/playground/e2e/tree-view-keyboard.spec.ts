@@ -6,7 +6,7 @@
  * walk visible nodes only, ArrowRight expands-then-descends, ArrowLeft
  * collapses-then-climbs, Enter/Space select without toggling expansion,
  * disabled nodes are skipped by navigation AND typeahead, typeahead
- * moves focus by first characters, and a disabled node a pointer focused
+ * moves focus by first characters, and a disabled node that a pointer focused
  * still navigates without selecting (#177).
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
