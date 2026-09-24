@@ -33,6 +33,20 @@
  * Any of those survives a reshuffle. Document order does not.
  */
 import { expect, type Locator, type Page } from '@playwright/test';
+import { DESIGN_SYSTEM_LIST, type DesignSystemId } from '../src/design-system-list';
+
+export { DESIGN_SYSTEM_LIST, type DesignSystemId };
+
+/**
+ * Every design system the playground's toolbar offers, by id — the list a
+ * per-design-system spec iterates. Derived from the same module
+ * `src/design-systems.ts` builds the toolbar from, so a new skin is covered
+ * the moment it is registered; never retype it in a spec (`ds-smoke`
+ * fails a spec that does, and fails when the toolbar and this list disagree).
+ * A per-spec SUBSET (the skins whose drawer slides, …) stays that spec's own
+ * data.
+ */
+export const DESIGN_SYSTEMS: readonly DesignSystemId[] = DESIGN_SYSTEM_LIST.map((ds) => ds.id);
 
 /** Every `scope` part inside `root`, as a `(part) => Locator`. */
 export const partsOf = (root: Locator, scope: string) =>

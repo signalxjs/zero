@@ -20,10 +20,8 @@
  * Chromium-only: both are cascade and layout facts, engine-independent.
  */
 import { test, expect, type Locator } from '@playwright/test';
-import { rootLabelled, partsOf } from './demo';
+import { rootLabelled, partsOf, DESIGN_SYSTEMS } from './demo';
 import { bootPage } from './nav';
-
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
 const APP_LINK_CSS = 'a { color: rgb(255, 0, 0); text-decoration: underline; }';
 /** Verbatim from the README's link-button note. */

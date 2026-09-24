@@ -19,9 +19,7 @@
  */
 import { expect, test, type Locator } from '@playwright/test';
 import { bootPage } from './nav';
-import { rootLabelled, settledBox } from './demo';
-
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'];
+import { rootLabelled, settledBox, DESIGN_SYSTEMS } from './demo';
 
 /** The first grid track of every item in a timeline, in px. */
 const startTracks = (root: Locator): Promise<number[]> =>

@@ -253,6 +253,16 @@ That module also owns `settledBox(locator, what)`: measuring a part means
 waiting out its animations *and* proving it is rendered first, because
 `boundingBox()` returns **null** for anything that is not, and dereferencing
 that null reports a `TypeError` instead of "the popup was not showing".
+Use the box it returns — re-reading `boundingBox()` afterwards brings the
+unchecked null back.
+
+A spec that runs once per design system iterates `DESIGN_SYSTEMS` from that
+module, never a retyped list (#193). It is derived from
+`examples/playground/src/design-system-list.ts`, the same data the toolbar's
+registry (`src/design-systems.ts`) is built from — so a new skin is covered
+by every such spec the moment it is registered. `ds-smoke` holds both ends:
+the toolbar must offer exactly that list, and no spec may hardcode every id
+(a per-spec subset, like the skins whose drawer slides, is fine).
 
 ## Packages
 

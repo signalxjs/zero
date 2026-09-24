@@ -60,6 +60,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
+import { DESIGN_SYSTEMS } from './demo';
 // Not a hand copy, and since #403 (slice D) not a copy at all: the cell
 // product — which parts are measured, in which state combinations, through
 // which ancestor chain, under which key — is IMPORTED from `@sigx/zero-kit`,
@@ -120,8 +121,6 @@ type ManifestComponent = KitManifestComponent;
 
 const anatomy: { components: ManifestComponent[] } = JSON.parse(read('packages/zero/dist/manifest.json'));
 const baseCss = read('packages/zero/css/base.css');
-
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
 /** A design system's compiled input, loaded from its built `dist/` — see `staticMatrix`. */
 type DesignSystemModule = { designSystem: DesignSystemInput };

@@ -17,9 +17,7 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { controlledPopup, settledBox } from './demo';
-
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
+import { controlledPopup, settledBox, DESIGN_SYSTEMS } from './demo';
 
 /** The narrowest viewport a page is expected to work at (README: ~400px). */
 const PHONE = { width: 400, height: 720 };

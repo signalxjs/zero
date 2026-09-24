@@ -45,9 +45,7 @@
  * sets.
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
-import { demoLabelled, rootLabelled, settledBox } from './demo';
-
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
+import { demoLabelled, rootLabelled, settledBox, DESIGN_SYSTEMS } from './demo';
 
 /** The skins whose modal drawer sheet slides (#83); basic and brutalist keep the fade. */
 const SLIDES: ReadonlySet<string> = new Set(['daisyui', 'material', 'heroui', 'carbon']);

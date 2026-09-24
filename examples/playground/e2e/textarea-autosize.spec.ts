@@ -19,10 +19,9 @@
  * same bounds in a real layout engine.
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
-import { demoLabelled } from './demo';
+import { demoLabelled, DESIGN_SYSTEMS } from './demo';
 import { bootPage } from './nav';
 
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 const DEMO = 'Composer (1–5 rows)';
 
 const composer = (page: Page): Locator => demoLabelled(page, 'textarea', DEMO)('textarea');

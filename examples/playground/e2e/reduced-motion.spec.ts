@@ -27,10 +27,8 @@
  * spec that checked only the default one would let five regress.
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
-import { rootLabelled } from './demo';
+import { rootLabelled, DESIGN_SYSTEMS } from './demo';
 import { bootPage } from './nav';
-
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
 /**
  * The looping parts, each located by NAME rather than by document order — the

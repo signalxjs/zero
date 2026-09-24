@@ -18,7 +18,7 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { controlledPopup, settledBox } from './demo';
+import { controlledPopup, settledBox, DESIGN_SYSTEMS } from './demo';
 
 test.beforeEach(async ({ page }) => {
     await bootPage(page, 'drawer', 'basic');
@@ -168,8 +168,6 @@ test('a visually hidden title still names the panel, and paints nothing (#51, #5
     expect(box.width).toBeLessThanOrEqual(1);
     expect(box.height).toBeLessThanOrEqual(1);
 });
-
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
 /** The skins whose modal sheet slides (#83); basic and brutalist keep the fade. */
 const SLIDES: ReadonlySet<string> = new Set(['daisyui', 'material', 'heroui', 'carbon']);
