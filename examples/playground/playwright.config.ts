@@ -38,12 +38,16 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
 const baseURL = `http://localhost:${port}`;
 
 /**
- * The narrow-viewport sweep (#45) is its own project's, and only its own:
- * it walks every page in every design system, so running it again in each
- * engine and preference project would multiply the suite's slowest spec
- * for no coverage. Every other project ignores it; `narrow` runs nothing else.
+ * Every phone-width spec is the `narrow` project's, and only its own
+ * (#45): the page sweep (`narrow-viewport`) plus the per-component
+ * geometric claims it grew out of (`narrow-dialog`, `narrow-pagination`,
+ * `narrow-stats`). They are claims about our own cascade at a width, not
+ * about engine behaviour, so one Chromium project is the coverage; running
+ * them again in each engine and preference project would multiply the
+ * suite's slowest spec for nothing. Every other project ignores them, and
+ * `narrow` runs nothing else.
  */
-const NARROW_SPEC = 'narrow-viewport.spec.ts';
+const NARROW_SPECS = /narrow-[\w-]+\.spec\.ts$/;
 
 export default defineConfig({
     testDir: './e2e',
@@ -72,24 +76,24 @@ export default defineConfig({
     projects: [
         // hasTouch everywhere a touchscreen exists in the engine, so the
         // touch-tap test runs on real touch pointers, not emulated mice.
-        { name: 'chromium', testIgnore: NARROW_SPEC, use: { ...devices['Desktop Chrome'], hasTouch: true } },
-        { name: 'firefox', testIgnore: NARROW_SPEC, use: { ...devices['Desktop Firefox'] } },
-        { name: 'webkit', testIgnore: NARROW_SPEC, use: { ...devices['Desktop Safari'], hasTouch: true } },
+        { name: 'chromium', testIgnore: NARROW_SPECS, use: { ...devices['Desktop Chrome'], hasTouch: true } },
+        { name: 'firefox', testIgnore: NARROW_SPECS, use: { ...devices['Desktop Firefox'] } },
+        { name: 'webkit', testIgnore: NARROW_SPECS, use: { ...devices['Desktop Safari'], hasTouch: true } },
         {
             name: 'reduced-motion',
-            testIgnore: NARROW_SPEC,
+            testIgnore: NARROW_SPECS,
             use: { ...devices['Desktop Chrome'], contextOptions: { reducedMotion: 'reduce' } },
         },
         {
             name: 'forced-colors',
-            testIgnore: NARROW_SPEC,
+            testIgnore: NARROW_SPECS,
             use: { ...devices['Desktop Chrome'], contextOptions: { forcedColors: 'active' } },
         },
         // Phone width (#45) — the playground README's ~400px floor plus a
         // little: the width the sweep that found #43 and #44 ran at.
         {
             name: 'narrow',
-            testMatch: NARROW_SPEC,
+            testMatch: NARROW_SPECS,
             use: { ...devices['Desktop Chrome'], viewport: { width: 420, height: 900 } },
         },
     ],

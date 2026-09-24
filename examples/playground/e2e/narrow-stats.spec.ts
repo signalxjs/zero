@@ -9,40 +9,41 @@
  * root is the row's scroll box. Claims, each geometric, because only a real
  * layout can make them:
  *
- * 1. the document does not scroll sideways (at desktop width — see below);
- * 2. the root stays inside the column it sits in — and, at the case that
- *    found it, genuinely overflows: a row that fits proves nothing about
- *    scrolling;
+ * 1. the document does not scroll sideways;
+ * 2. the root stays inside the column it sits in, and genuinely overflows —
+ *    a row that fits proves nothing about scrolling;
  * 3. every value stays inside its own item, and items do not overlap — the
  *    overflow lands in the scroll box, not in the neighbouring stat;
  * 4. scrolled to its end, the last value is inside the scrollport.
  *
- * Run at the case that found it (brutalist, 1100px) and at phone width in
- * every design system. Chromium only: a claim about our own cascade, not
- * about engine behaviour.
+ * All four at the case that found it (brutalist at 1100px, a desktop width
+ * the `narrow` project's sweep never visits). At phone width, in every
+ * design system, only 3 and 4: that is the project's own viewport, where
+ * `narrow-viewport.spec.ts` already walks this page and holds 1 and 2 for
+ * every part — repeating them here would be a second spec asserting the
+ * same boxes. Runs in the `narrow` project only (Chromium): a claim about
+ * our own cascade, not about engine behaviour.
  */
 import { test, expect } from '@playwright/test';
 import { bootPage } from './nav';
 import { partsOf, rootLabelled, scrollport, settledBox, DESIGN_SYSTEMS, type DesignSystemId } from './demo';
 
-/** The narrowest viewport a page is expected to work at (README: ~400px). */
-const PHONE = { width: 400, height: 720 };
+/** The reproducer's desktop width. */
+const DESKTOP = { width: 1100, height: 800 };
 
 /** Sub-pixel slack: `boundingBox()` is fractional; the defect was ~220px. */
 const SLACK = 0.5;
 
-const CASES: readonly { ds: DesignSystemId; viewport: { width: number; height: number } }[] = [
-    { ds: 'brutalist', viewport: { width: 1100, height: 800 } },
-    ...DESIGN_SYSTEMS.map((ds) => ({ ds, viewport: PHONE })),
+/** `viewport: null` runs at the `narrow` project's own phone viewport. */
+const CASES: readonly { ds: DesignSystemId; viewport: typeof DESKTOP | null }[] = [
+    { ds: 'brutalist', viewport: DESKTOP },
+    ...DESIGN_SYSTEMS.map((ds) => ({ ds, viewport: null })),
 ];
 
 for (const { ds, viewport } of CASES) {
-    test(`${ds}: a stats row stays inside its column and scrolls in its root at ${viewport.width}px`, async ({ page }, testInfo) => {
-        test.skip(
-            testInfo.project.name !== 'chromium',
-            'claims about our own cascade, not about engine behaviour — one engine is the coverage',
-        );
-        await page.setViewportSize(viewport);
+    const at = viewport ? `${viewport.width}px` : 'phone width';
+    test(`${ds}: a stats row keeps its figures whole and reachable in its root at ${at}`, async ({ page }) => {
+        if (viewport) await page.setViewportSize(viewport);
         await bootPage(page, 'stats', ds);
         // The horizontal demo — the only one with an Uptime stat.
         const root = rootLabelled(page, 'stats', 'Uptime');
@@ -51,44 +52,37 @@ for (const { ds, viewport } of CASES) {
         const part = partsOf(root, 'stats');
         await settledBox(root, `${ds}: the stats root`);
 
-        // 1. The page itself never scrolls sideways. Desktop only for now: at
-        //    phone width the playground's own shell still overflows by 40px on
-        //    every page (#219), which the narrow-viewport sweep (#45) fixes
-        //    and then holds; claim 2 is what holds stats there meanwhile.
-        if (viewport !== PHONE) {
+        // 1–2 at the desktop reproducer only; at phone width the sweep holds them.
+        if (viewport) {
+            // 1. The page itself never scrolls sideways.
             const doc = await page.evaluate(() => ({
                 scrollWidth: document.documentElement.scrollWidth,
                 clientWidth: document.documentElement.clientWidth,
             }));
             expect(doc.scrollWidth, `${ds}: the document's scroll width`).toBeLessThanOrEqual(doc.clientWidth);
-        }
 
-        // 2. Contained, and genuinely overflowing.
-        const fit = await root.evaluate((el) => {
-            const parent = el.parentElement!;
-            const pr = parent.getBoundingClientRect();
-            const ps = getComputedStyle(parent);
-            const r = el.getBoundingClientRect();
-            return {
-                left: r.left,
-                right: r.right,
-                columnLeft: pr.left + parseFloat(ps.borderLeftWidth) + parseFloat(ps.paddingLeft),
-                columnRight: pr.right - parseFloat(ps.borderRightWidth) - parseFloat(ps.paddingRight),
-                scrollWidth: el.scrollWidth,
-                clientWidth: el.clientWidth,
-            };
-        });
-        // The reproducer must overflow, or it proves nothing about scrolling;
-        // at phone width a skin whose row still fits (daisyUI's does) is held
-        // to the containment and reachability claims all the same.
-        if (viewport !== PHONE) {
-            expect(fit.scrollWidth, `${ds}: the row overflows at ${viewport.width}px (else this proves nothing)`)
+            // 2. Contained, and genuinely overflowing.
+            const fit = await root.evaluate((el) => {
+                const parent = el.parentElement!;
+                const pr = parent.getBoundingClientRect();
+                const ps = getComputedStyle(parent);
+                const r = el.getBoundingClientRect();
+                return {
+                    left: r.left,
+                    right: r.right,
+                    columnLeft: pr.left + parseFloat(ps.borderLeftWidth) + parseFloat(ps.paddingLeft),
+                    columnRight: pr.right - parseFloat(ps.borderRightWidth) - parseFloat(ps.paddingRight),
+                    scrollWidth: el.scrollWidth,
+                    clientWidth: el.clientWidth,
+                };
+            });
+            expect(fit.scrollWidth, `${ds}: the row overflows at ${at} (else this proves nothing)`)
                 .toBeGreaterThan(fit.clientWidth);
+            expect(fit.left, `${ds}: the root's left edge against its column`)
+                .toBeGreaterThanOrEqual(fit.columnLeft - SLACK);
+            expect(fit.right, `${ds}: the root's right edge against its column`)
+                .toBeLessThanOrEqual(fit.columnRight + SLACK);
         }
-        expect(fit.left, `${ds}: the root's left edge against its column`)
-            .toBeGreaterThanOrEqual(fit.columnLeft - SLACK);
-        expect(fit.right, `${ds}: the root's right edge against its column`)
-            .toBeLessThanOrEqual(fit.columnRight + SLACK);
 
         // 3. Each value inside its own item; items side by side, never overlapping.
         const items = part('item');

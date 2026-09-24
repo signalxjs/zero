@@ -9,11 +9,12 @@
  * a real engine lays out can show that: the unit suite has no layout, and
  * the CSS goldens only prove the declaration is there, not that it suffices.
  *
- * Chromium only, one page load per design system: this is a claim about
- * our own cascade, not about engine behaviour. The check is geometric on
- * purpose — the popup's border box must sit inside the viewport on both
- * axes — rather than an assertion on `box-sizing`, because that is the fix,
- * not the requirement; a skin is free to reach the same box another way.
+ * Runs in the `narrow` project only (Chromium), one page load per design
+ * system: this is a claim about our own cascade, not about engine
+ * behaviour. The check is geometric on purpose — the popup's border box
+ * must sit inside the viewport on both axes — rather than an assertion on
+ * `box-sizing`, because that is the fix, not the requirement; a skin is
+ * free to reach the same box another way.
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
@@ -25,11 +26,7 @@ const PHONE = { width: 400, height: 720 };
 const modalTrigger = (page: Page) => page.getByRole('button', { name: 'Open dialog', exact: true });
 
 for (const ds of DESIGN_SYSTEMS) {
-    test(`${ds}: the modal dialog's box stays inside a ${PHONE.width}px viewport`, async ({ page }, testInfo) => {
-        test.skip(
-            testInfo.project.name !== 'chromium',
-            'claims about our own cascade, not about engine behaviour — one engine is the coverage',
-        );
+    test(`${ds}: the modal dialog's box stays inside a ${PHONE.width}px viewport`, async ({ page }) => {
         await page.setViewportSize(PHONE);
         await bootPage(page, 'dialog', ds);
         const trigger = modalTrigger(page);

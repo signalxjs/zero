@@ -212,8 +212,9 @@ responsive Drawer + NavList + Container composition, three engines: the
 same NavList is the docked sidebar beside `<main>` at `md` and a sheet
 below it, the trigger in the bar hides when docked, and the shell keeps one
 header and one navigation landmark either way;
-the **narrow-dialog spec** (`e2e/narrow-dialog.spec.ts`, #101) — chromium
-only, one page load per design system at a 400px viewport, it opens the
+the **narrow-dialog spec** (`e2e/narrow-dialog.spec.ts`, #101) — in the
+`narrow` project (below), one page load per design system at a 400px
+viewport, it opens the
 modal dialog and asserts the popup's *border box* sits inside the viewport
 on both axes. Geometric on purpose: a `<dialog>` keeps the UA's
 `content-box` and zero ships no reset, so a recipe's `calc(100% - 2rem)`
@@ -228,11 +229,13 @@ control is reachable scrolled to the end, and a keyboard-focused trigger at
 either end keeps its whole focus ring inside the scrollport — a scroll box
 clips at its padding box, so the recipes pad the root by the ring's reach;
 the **narrow-stats spec** (`e2e/narrow-stats.spec.ts`, #43) — the same
-shape for Stats, at the case that found it (brutalist at 1100px, where
-shout-scale values pushed the document sideways) and at 400px in every
-skin: a value never wraps, so the root is the row's scroll box — it stays
-inside its column, every value stays inside its own item, and the last one
-is reachable scrolled to the end;
+shape for Stats: a value never wraps, so the root is the row's scroll box.
+At the case that found it (brutalist at 1100px, where shout-scale values
+pushed the document sideways) the document stays put and the root stays
+inside its column while genuinely overflowing; there and at the project's
+phone width in every skin, every value stays inside its own item and the
+last one is reachable scrolled to the end (the sweep below already holds
+the phone-width containment, so the spec does not repeat it);
 the **switch forced-colors spec** (`e2e/switch-forced-colors.spec.ts`, #189)
 — forced-colors project only, all six design systems, measured in decoded
 pixels: the control differs strongly from the same box with it hidden, and
@@ -264,9 +267,11 @@ chromium, one load of `#/all`: every scope zero-basic's manifest declares
 (ecosystem `ext-stepper` included, rendered from `@sigx/zero-ext-example` on
 its own page) must render somewhere, plus the standalone `VisuallyHidden`,
 since an unrendered scope is invisible to every sweeping spec at once); and
-the **narrow-viewport sweep** (`e2e/narrow-viewport.spec.ts`, #45) — its own `narrow` project (Desktop
-Chrome at 420px; every other project `testIgnore`s the file and `narrow`
-runs nothing else), one test per design system walking every registry page:
+the **narrow-viewport sweep** (`e2e/narrow-viewport.spec.ts`, #45) — the
+`narrow` project (Desktop Chrome at 420px) owns every `narrow-*.spec.ts`,
+this sweep and the dialog, pagination and stats specs above; every other
+project `testIgnore`s them and `narrow` runs nothing else. The sweep is one
+test per design system walking every registry page:
 the document must not scroll sideways, and no visible
 `[data-scope][data-part]` may escape the content column — measured against
 `main.shell-main`'s content box, never the viewport, whose shell offsets
