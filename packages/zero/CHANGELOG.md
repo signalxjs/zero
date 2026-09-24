@@ -50,6 +50,25 @@
   `toggle` as a click, so single mode closes the others). When the model
   refuses the change (a disabled root or item), the element is
   reverted to match the model.
+### Added
+
+- `idToken(value)` (from `@sigx/zero/behaviors` and the root): encodes any
+  value into an id-safe, injective token for building DOM ids from
+  user-supplied values. ASCII letters, digits and `-` pass through; every
+  other code point (`_` included) becomes `_<hex>_`.
+
+### Fixed
+
+- **Ids built from values with whitespace (#164).** Tabs built its tab and
+  panel ids from the raw `value`, so `value="New York"` produced
+  `…-tab-New York`. `aria-controls` and `aria-labelledby` are IDREFS lists
+  split on whitespace, so both references named ids that do not exist and
+  the tab/panel association and the panel's name were lost. Listbox option
+  ids (Select, Combobox) had the same shape from the collection key: not a
+  valid HTML id, though browsers usually resolved the single-IDREF
+  `aria-activedescendant`. Both now encode the value through `idToken`, on
+  the id and on every reference to it. Ids of values made only of ASCII
+  letters, digits and `-` are unchanged.
 
 ## [0.5.0] - 2026-09-23
 

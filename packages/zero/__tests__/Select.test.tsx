@@ -60,6 +60,26 @@ describe('Select', () => {
         expect(container.querySelector<HTMLSelectElement>('select[data-part="hidden-input"]')!.value).toBe('banana');
     });
 
+    it('an option key with whitespace gets a valid id aria-activedescendant resolves (#164)', () => {
+        render(
+            <Select.Root defaultValue="" placeholder="City">
+                <Select.Trigger><Select.Value /></Select.Trigger>
+                <Select.Popup>
+                    <Select.Item value="New York">New York</Select.Item>
+                    <Select.Item value="Los Angeles">Los Angeles</Select.Item>
+                </Select.Popup>
+            </Select.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true, bubbles: true }));
+        const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+        const ref = trigger.getAttribute('aria-activedescendant')!;
+        expect(ref).not.toMatch(/\s/);
+        expect(items[0]!.id).not.toMatch(/\s/);
+        expect(document.getElementById(ref)).toBe(items[0]);
+    });
+
     it('full keyboard flow: open, arrow, select via activedescendant', () => {
         const state = signal({ fruit: '' });
         mount(state);

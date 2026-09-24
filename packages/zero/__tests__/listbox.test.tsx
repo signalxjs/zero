@@ -3,7 +3,7 @@ import { signal } from 'sigx';
 import { createModel } from '@sigx/runtime-core';
 import {
     createCollection, createListbox, createListboxCore, createListboxItem, createListController,
-    createGroupPresence, announceGroupLabel, stepKeys,
+    createGroupPresence, announceGroupLabel, stepKeys, idToken,
 } from '@sigx/zero';
 import type { Collection, ListItem } from '@sigx/zero';
 
@@ -209,6 +209,24 @@ describe('createListboxCore — highlight', () => {
         expect(lb.optionId('date')).toBe('x-option-date');
         expect(lb.activeDescendant(true)).toBe('x-option-date');
         expect(lb.activeDescendant(false)).toBeUndefined();
+    });
+
+    it('option ids are id-safe and injective over keys (#164)', () => {
+        const { m } = model<unknown>(null);
+        const lb = createListboxCore({ collection: fruits(), selection: m, idBase: 'x' });
+        expect(lb.optionId('date')).toBe('x-option-date');
+        const keys = ['New York', 'New_York', 'New\tYork', 'a.b', 'é', ''];
+        const ids = keys.map((k) => lb.optionId(k));
+        for (const id of ids) expect(id).toMatch(/^[A-Za-z0-9_-]+$/);
+        expect(new Set(ids).size).toBe(keys.length);
+    });
+
+    it('idToken encodes a value into an id-safe, injective token (#164)', () => {
+        expect(idToken('apple-2')).toBe('apple-2');
+        expect(idToken('New York')).not.toMatch(/\s/);
+        expect(idToken('New York')).not.toBe(idToken('New_York'));
+        expect(idToken('a_20_b')).not.toBe(idToken('a b'));
+        expect(idToken('😀')).toMatch(/^[A-Za-z0-9_-]+$/);
     });
 
     it('stepKeys is the pure step', () => {

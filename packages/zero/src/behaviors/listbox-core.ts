@@ -14,6 +14,7 @@
 import { signal } from 'sigx';
 import { segmentBy, type Collection } from './collection.js';
 import type { HighlightStep, ListController } from './list-core.js';
+import { idToken } from './create-id.js';
 
 export interface ListboxOptions<T> {
     collection: Collection<T, unknown>;
@@ -26,7 +27,7 @@ export interface ListboxOptions<T> {
     multiple?: () => boolean;
     /** The element registry — DOM order for JSX-mode keys, elements for scrolling. */
     list?: ListController;
-    /** Option ids are `${idBase}-option-${key}`. */
+    /** Option ids are `${idBase}-option-${idToken(key)}` (#164: a key may hold whitespace). */
     idBase: string;
     /** The filter query (Combobox's input text). */
     query?: () => string;
@@ -153,6 +154,8 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
         opts.onSelect?.(key);
     };
 
+    const optionId = (key: string): string => `${opts.idBase}-option-${idToken(key)}`;
+
     return {
         highlighted,
         multiple,
@@ -172,13 +175,13 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
             highlighted.value = selected ?? visible[0] ?? null;
         },
         pruneHighlight: (key) => { if (highlighted.value === key) highlighted.value = null; },
-        optionId: (key) => `${opts.idBase}-option-${key}`,
+        optionId,
         // Never name a key that filtering has hidden — a dangling reference is
         // invalid ARIA (the item's unmount prunes it, but a data-mode filter
         // change can precede the unmount).
         activeDescendant: (open) => {
             const key = highlighted.value;
-            return open && key !== null && visibleKeys().includes(key) ? `${opts.idBase}-option-${key}` : undefined;
+            return open && key !== null && visibleKeys().includes(key) ? optionId(key) : undefined;
         },
     };
 }

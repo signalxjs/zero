@@ -165,4 +165,28 @@ describe('Tabs', () => {
         const enabled = container.querySelector<HTMLElement>('[data-part="tab"]')!;
         expect(enabled.hasAttribute('aria-disabled')).toBe(false);
     });
+    it('values with whitespace still wire resolvable IDREFS (#164)', () => {
+        render(
+            <Tabs.Root defaultValue="New York">
+                <Tabs.List aria-label="Cities">
+                    <Tabs.Tab value="New York">NY</Tabs.Tab>
+                    <Tabs.Tab value="New_York">NY (underscore)</Tabs.Tab>
+                </Tabs.List>
+                <Tabs.Panel value="New York">ny</Tabs.Panel>
+                <Tabs.Panel value="New_York">ny2</Tabs.Panel>
+            </Tabs.Root>,
+            container,
+        );
+        const tabs = container.querySelectorAll<HTMLElement>('[role="tab"]');
+        const panels = container.querySelectorAll<HTMLElement>('[role="tabpanel"]');
+        // aria-controls / aria-labelledby are IDREFS — whitespace splits them.
+        const resolve = (refs: string) => refs.split(/\s+/).map((t) => document.getElementById(t));
+        for (const [i, tab] of [...tabs].entries()) {
+            expect(tab.id).not.toMatch(/\s/);
+            expect(resolve(tab.getAttribute('aria-controls')!)).toEqual([panels[i]]);
+            expect(resolve(panels[i]!.getAttribute('aria-labelledby')!)).toEqual([tab]);
+        }
+        // The encoding is injective: 'New York' and 'New_York' never collide.
+        expect(tabs[0]!.id).not.toBe(tabs[1]!.id);
+    });
 });
