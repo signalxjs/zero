@@ -95,6 +95,16 @@ describe('createTopLayerExit', () => {
         expect(hide).toHaveBeenCalledTimes(1);
     });
 
+    it('a withheld frame (hidden or throttled tab) cannot hold the close back', () => {
+        vi.stubGlobal('requestAnimationFrame', () => 0);
+        const hide = vi.fn();
+        createTopLayerExit().close(element([]), hide);
+        vi.advanceTimersByTime(99);
+        expect(hide).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(1);
+        expect(hide).toHaveBeenCalledTimes(1);
+    });
+
     it('closes on the next frame when nothing is animating, and ignores loops', () => {
         const hide = vi.fn();
         createTopLayerExit().close(element([fakeAnimation(Infinity)]), hide);

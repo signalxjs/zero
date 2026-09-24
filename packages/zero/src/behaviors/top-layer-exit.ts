@@ -38,6 +38,12 @@ export interface TopLayerExit {
 
 /** Slack past an animation's computed end before the timeout closes anyway. */
 const SLACK_MS = 50;
+/**
+ * The longest the look for the exit waits on a frame. A hidden or throttled
+ * tab can hold `requestAnimationFrame` back indefinitely, and the close must
+ * not be held back with it.
+ */
+const FRAME_FALLBACK_MS = 100;
 
 function overlaySupported(): boolean {
     return typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('overlay', 'auto');
@@ -63,19 +69,29 @@ export function createTopLayerExit(): TopLayerExit {
             return;
         }
         let live = true;
+        let sampled = false;
         let timer: ReturnType<typeof setTimeout> | undefined;
+        const stop = (): void => {
+            live = false;
+            cancelAnimationFrame(frame);
+            clearTimeout(frameFallback);
+            if (timer !== undefined) clearTimeout(timer);
+        };
         const finish = (): void => {
             if (!live) return;
-            live = false;
+            stop();
             pending = null;
-            if (timer !== undefined) clearTimeout(timer);
             hide();
         };
         // The closing render is a scheduled job, not part of the write that
         // got here — a frame later `data-state="closed"` has landed and the
-        // transition it starts is visible to getAnimations().
-        const frame = requestAnimationFrame(() => {
-            if (!live) return;
+        // transition it starts is visible to getAnimations(). Whichever of
+        // the frame and the fallback timeout comes first looks.
+        const sample = (): void => {
+            if (!live || sampled) return;
+            sampled = true;
+            clearTimeout(frameFallback);
+            cancelAnimationFrame(frame);
             let remaining = 0;
             const exits: Promise<unknown>[] = [];
             for (const animation of node.getAnimations()) {
@@ -92,12 +108,10 @@ export function createTopLayerExit(): TopLayerExit {
             if (exits.length === 0) return finish();
             void Promise.all(exits).then(finish);
             timer = setTimeout(finish, Math.max(0, remaining) + SLACK_MS);
-        });
-        pending = () => {
-            live = false;
-            cancelAnimationFrame(frame);
-            if (timer !== undefined) clearTimeout(timer);
         };
+        const frame = requestAnimationFrame(sample);
+        const frameFallback = setTimeout(sample, FRAME_FALLBACK_MS);
+        pending = stop;
     };
 
     return { close, cancel };
