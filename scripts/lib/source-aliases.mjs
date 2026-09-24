@@ -48,7 +48,10 @@ const OTHER_ENTRIES = {
 };
 
 /**
- * @param {URL | string} rootUrl the repo root, as a directory URL (trailing slash).
+ * @param {URL | string} rootUrl the repo root as a `file:` directory URL with a
+ *   trailing slash — a `URL`, or its string form (`import.meta.url`-style,
+ *   `pathToFileURL(dir + sep)`). Never a plain filesystem path: `/repo/`
+ *   is not a URL and throws.
  * @param {Record<string, unknown>} [zeroExports] `@sigx/zero`'s `exports` map;
  *   read from `<root>/packages/zero/package.json` when omitted.
  * @returns {{ find: RegExp, replacement: string }[]} vite `resolve.alias` entries.
