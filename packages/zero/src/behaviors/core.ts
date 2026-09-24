@@ -22,6 +22,7 @@ export { createId, useIdGenerator, zeroPlugin } from './create-id.js';
 export type { ControllableState, ControllableOptions } from './controllable.js';
 export { createControllableState, createInertState, namedModel } from './controllable.js';
 export { derivedModel } from './derived-model.js';
+export { mountScope } from './mount-scope.js';
 export { timingModifiers } from './model-modifiers.js';
 
 export type { HighlightStep, ItemElement, ListController, ListItem } from './list-core.js';

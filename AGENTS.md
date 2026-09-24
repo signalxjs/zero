@@ -500,6 +500,12 @@ reopen the PR (or push an empty commit to it) to start CI.
 - Setup functions never touch the DOM; DOM work lives in context-bound
   `onMounted`/effects. No module-global mutable state that could leak across
   SSR requests (client-only state like the dismiss layer stack is exempt).
+- sigx stops only the effects a component creates *during setup*. An
+  `effect()`/`watch()` created inside `onMounted` is owned by nothing and
+  outlives the part (#163) — run the mount hook's reactive work through a
+  `mountScope()` created in setup (`onMounted(() => scoped(() => { … }))`).
+  `__tests__/mount-effects.test.tsx` holds the popups and the toast viewport
+  to it.
 
 ## Documentation
 

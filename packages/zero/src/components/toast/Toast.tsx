@@ -42,6 +42,7 @@ import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { toastAnatomy } from './anatomy.js';
 import { createToaster, useToaster, type Toaster, type ToastData } from './toaster.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = toastAnatomy.scope;
 
@@ -140,7 +141,8 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted }
 
     let el: HTMLElement | null = null;
 
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         effect(() => {
             const showing = manager().count() > 0;
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
@@ -149,7 +151,7 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted }
             if (showing && !isShowing) node.showPopover();
             else if (!showing && isShowing) node.hidePopover!();
         });
-    });
+    }));
 
     return () => {
         const attrs = htmlAttrs(props);
@@ -240,7 +242,8 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
         fallbackHandle = setTimeout(finish, total + 50);
     };
 
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         effect(() => {
             if (props.toast.open) {
                 seenOpen = true;
@@ -248,7 +251,7 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
             }
             if (seenOpen) beginExit();
         });
-    });
+    }));
     onUnmounted(() => {
         if (fallbackHandle != null) clearTimeout(fallbackHandle);
     });

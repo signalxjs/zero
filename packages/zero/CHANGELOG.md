@@ -24,6 +24,23 @@
   `packages/ui`, and typing `u` never reached it. `BranchTrigger` now hands
   its element to the branch, which reads that row's accessible text. The
   part query remains the fallback.
+- **Effects created in `onMounted` now stop on unmount (#163).** sigx only
+  stops the effects a component creates during setup; an `effect()` created
+  inside a mount hook was owned by nothing, so it outlived its part, stayed
+  subscribed to state that survives it and re-ran a dead closure on every
+  write. The clearest case was `Toast.Viewport`, which stayed subscribed to
+  its toaster (the module-global one included) after unmounting; popups that
+  remount under a surviving root (Tooltip, Popover, Dialog, Drawer, Menu and
+  its submenus, Select, Combobox) leaked one subscription to the root's open
+  model per mount. Checkbox, Textarea, ToggleGroup, Select and Combobox
+  roots and `Toast.Root` had the same shape.
+
+### Added
+
+- `mountScope()` (`@sigx/zero/behaviors`, and `/behaviors/core`): call it
+  during setup, run a mount hook's reactive work through the function it
+  returns, and every effect or watch created there stops with the component.
+- `syncPopover` returns a stopper (it returned `void`).
 
 ## [0.5.0] - 2026-09-23
 

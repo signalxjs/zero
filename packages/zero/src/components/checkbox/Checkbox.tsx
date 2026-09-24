@@ -28,6 +28,7 @@ import { dataAttr } from '../../contract/data-attrs.js';
 import { htmlAttrs } from '../../contract/props.js';
 import type { HtmlAttrValue, WithClass, WithFormControl, WithHtmlAttrs, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
 import { checkboxAnatomy } from './anatomy.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = checkboxAnatomy.scope;
 
@@ -70,7 +71,8 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
     const focus = signal({ visible: false });
 
     let detachReset = (): void => {};
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         effect(() => {
             const indeterminate = !!props.indeterminate;
             if (inputEl) inputEl.indeterminate = indeterminate;
@@ -84,7 +86,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
                 : def;
             if (inputEl) inputEl.checked = checkedOf(state.value);
         });
-    });
+    }));
     onUnmounted(() => detachReset());
 
     const disabled = fc.disabled;

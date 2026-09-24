@@ -117,6 +117,7 @@ import type {
     WithVariantAxes,
 } from '../../contract/props.js';
 import { comboboxAnatomy } from './anatomy.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = comboboxAnatomy.scope;
 
@@ -699,7 +700,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         });
     };
     let detachReset = (): void => {};
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         effect(() => { listbox.selectedKeys(); syncHidden(); });
         // Without a name there is no hidden select — the input itself is
         // form-associated, so reset still restores.
@@ -709,7 +711,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             syncHidden();
             if (input) (input as HTMLInputElement).value = inputValue.value;
         });
-    });
+    }));
     onUnmounted(() => detachReset());
 
     const ctx: ComboboxContext = {
@@ -1280,7 +1282,8 @@ const ComboboxPopup = component<ComboboxPopupProps>(({ props, slots, onMounted }
     const combobox = useComboboxContext();
     let el: HTMLElement | null = null;
 
-    onMounted(() => { syncPopover(() => el, () => combobox.open.value); });
+    const scoped = mountScope();
+    onMounted(() => scoped(() => { syncPopover(() => el, () => combobox.open.value); }));
 
     return () => {
         const attrs = htmlAttrs(props);

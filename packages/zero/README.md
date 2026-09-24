@@ -1004,7 +1004,12 @@ same behaviors, held to the same conformance assertion:
   default contains-filter, single/multiple selection over the model,
   highlight stepping, typeahead over the visible labels, option ids),
   `createListboxItem` (the `role="option"` bag), `createGroupPresence`,
-  `syncPopover`, `useMediaQuery`, and `createVirtualList` for windowing.
+  `syncPopover` (returns its stopper), `useMediaQuery`, `createVirtualList`
+  for windowing, and `mountScope` — call it during setup and run a mount
+  hook's reactive work through it (`onMounted(() => scoped(() => { effect(…) }))`)
+  so effects created after setup still stop on unmount. sigx only owns the
+  effects a component creates *during* setup; one created inside `onMounted`
+  would otherwise outlive the part (#163).
 - `@sigx/zero/contract` also carries `JsxProps` and `FactoryBrands`: a root
   written once against `unknown` is exported through a cast to a generic call
   signature, so `items` infers `T` at the JSX level (the mechanism behind the

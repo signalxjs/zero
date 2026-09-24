@@ -52,6 +52,7 @@ import type {
     WithVariantAxes,
 } from '../../contract/props.js';
 import { toggleGroupAnatomy } from './anatomy.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = toggleGroupAnatomy.scope;
 
@@ -201,7 +202,8 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
         return (enabled.find((i) => on.includes(i.value)) ?? enabled[0])?.el() ?? null;
     };
     let detachReset = (): void => {};
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         effect(() => { selected(); syncHidden(); });
         // Without a name there is no hidden select — an item is a <button>,
         // form-associated like any control, so reset still restores.
@@ -209,7 +211,7 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
             state.value = seed();
             syncHidden();
         });
-    });
+    }));
     onUnmounted(() => detachReset());
 
     return () => {

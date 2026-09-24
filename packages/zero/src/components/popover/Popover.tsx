@@ -30,6 +30,7 @@ import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { popoverAnatomy } from './anatomy.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = popoverAnatomy.scope;
 
@@ -179,7 +180,8 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
     const popover = usePopoverContext();
     let el: HTMLElement | null = null;
 
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         const sync = (open: boolean) => {
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
             if (!node) return;
@@ -212,7 +214,7 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
             }
         };
         effect(() => sync(popover.state.value));
-    });
+    }));
 
     return () => {
         const attrs = htmlAttrs(props);
