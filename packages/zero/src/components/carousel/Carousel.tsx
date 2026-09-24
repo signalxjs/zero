@@ -17,7 +17,8 @@
  * ```
  *
  * The model follows real scroll (IntersectionObserver, mounted only) and
- * drives it back (`scrollIntoView`, smooth unless reduced motion) — see
+ * drives it back by scrolling the viewport alone (never the page — #171),
+ * smooth unless reduced motion — see
  * `anatomy.ts` for the full decision record. `label` is required: the root
  * is a `region`, and a region without a name is an axe violation.
  */
@@ -114,25 +115,33 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
 
     const scrollToItem = (i: number, behavior?: ScrollBehavior): void => {
         const el = items[i]?.el();
-        if (!el || typeof el.scrollIntoView !== 'function') return;
-        el.scrollIntoView({
+        // Scroll the VIEWPORT, never `el.scrollIntoView`: that scrolls every
+        // scrollable ancestor, the document included, so a carousel below
+        // the fold with a non-zero index jumped the page on mount and on
+        // every external model write (#171).
+        if (!el || !viewport || typeof viewport.scrollTo !== 'function') return;
+        const vp = viewport.getBoundingClientRect();
+        const box = el.getBoundingClientRect();
+        viewport.scrollTo({
+            // Centre the item in the viewport, measured as a delta between
+            // boxes rather than from `offsetLeft`: direction-agnostic, so an
+            // RTL viewport (where scrollLeft runs negative) lands right too.
+            left: viewport.scrollLeft + (box.left + box.width / 2) - (vp.left + vp.width / 2),
             // Smooth is the affordance; reduced motion collapses it to a jump.
             behavior: behavior ?? (prefersReducedMotion() ? 'auto' : 'smooth'),
-            // Logical center within the snap viewport; 'nearest' block keeps
-            // a horizontal movement from scrolling the page vertically.
-            inline: 'center',
-            block: 'nearest',
         });
     };
 
     watch(
         () => state.value,
         (v) => {
-            if (v === observedIndex) {
-                // The scroll produced this value — do not scroll back.
-                observedIndex = -1;
-                return;
-            }
+            // The scroll produced this value — do not scroll back. Kept
+            // (not cleared) on a match: a bound model echoes the write back
+            // through the prop, and the watch fires again with the same
+            // value; clearing here turned that echo into a scroll back to
+            // the slide a smooth scroll was passing, stalling it there.
+            if (v === observedIndex) return;
+            observedIndex = -1;
             scrollToItem(clamp(v));
         },
     );
@@ -209,12 +218,16 @@ const CarouselViewport = component<CarouselViewportProps>(({ props, slots, onMou
     const carousel = useCarouselContext();
     let el: HTMLElement | null = null;
     let observer: IntersectionObserver | null = null;
+    let frame = 0;
 
-    onMounted(() => {
+    const start = (): void => {
+        frame = 0;
         // The initial index may not be 0 (`defaultIndex`, a controlled
         // model) — the resting scroll position must agree with it, and no
         // watch fires for a value that never changed. An instant jump: the
-        // initial position is a fact, not an animation.
+        // initial position is a fact, not an animation. It lands BEFORE the
+        // observer exists, so the observer's first report is this slide,
+        // not slide 0 writing the model back.
         if (carousel.index() > 0) carousel.scrollToIndex(carousel.index(), 'auto');
         if (typeof IntersectionObserver === 'undefined') return;
         observer = new IntersectionObserver(
@@ -234,8 +247,18 @@ const CarouselViewport = component<CarouselViewportProps>(({ props, slots, onMou
             (target) => observer?.observe(target),
             (target) => observer?.unobserve(target),
         );
+    };
+
+    onMounted(() => {
+        // A tree can mount before it is attached (an app rendered whole,
+        // then inserted): a detached viewport has no layout, so a scroll
+        // now measures nothing and moves nothing, and the observer's first
+        // report would be slide 0. Wait one frame for the document.
+        if (el?.isConnected || typeof requestAnimationFrame !== 'function') start();
+        else frame = requestAnimationFrame(start);
     });
     onUnmounted(() => {
+        if (frame) cancelAnimationFrame(frame);
         carousel.setObserverHooks(() => {}, () => {});
         observer?.disconnect();
     });

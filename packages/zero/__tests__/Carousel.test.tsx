@@ -4,7 +4,8 @@
  * The decisions pinned here:
  * - The MODEL IS THE ACTIVE INDEX, derived from real scroll position by an
  *   IntersectionObserver (created only in onMounted — SSR never observes)
- *   and driven back by scrolling the item into view on model set. In this
+ *   and driven back by scrolling THE VIEWPORT (never the page, #171) to
+ *   centre the item on model set. In this
  *   DOM-less suite the observer half is inert by design; the e2e spec
  *   (carousel.spec.ts) owns the real-scroll claims.
  * - Prev/next are plain buttons that CLAMP (no wrap — a carousel that
@@ -18,6 +19,7 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
+import { signal } from 'sigx';
 import { Carousel, carouselAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
@@ -28,6 +30,8 @@ const parts = (c: HTMLElement, name: string) =>
     [...c.querySelectorAll<HTMLElement>(selector('carousel', name))];
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
+/** One animation frame: the viewport's mount work waits for the document. */
+const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
 
 function sample(extra: Record<string, unknown> = {}) {
     return (
@@ -119,36 +123,113 @@ describe('Carousel', () => {
         expect(dots[0]!.hasAttribute('aria-current')).toBe(false);
     });
 
-    it('a model set scrolls its item into view', async () => {
-        render(sample(), container);
-        const items = parts(container, 'item');
-        const calls: unknown[] = [];
-        for (const item of items) {
-            (item as HTMLElement & { scrollIntoView: (o: unknown) => void }).scrollIntoView =
-                (o: unknown) => calls.push(o);
+    /**
+     * Pin the geometry happy-dom cannot lay out: the viewport's box, its
+     * scroll offset, and one box per item. Returns the recorded
+     * `viewport.scrollTo` calls.
+     */
+    function layout(viewport: HTMLElement, itemLefts: number[], width = 400) {
+        const box = (left: number) => ({
+            left, right: left + width, width, top: 0, bottom: 100, height: 100, x: left, y: 0,
+            toJSON() { return this; },
+        }) as DOMRect;
+        viewport.getBoundingClientRect = () => box(0);
+        Object.defineProperty(viewport, 'scrollLeft', { configurable: true, value: 0 });
+        for (const [i, item] of parts(container, 'item').entries()) {
+            item.getBoundingClientRect = () => box(itemLefts[i]!);
         }
-        part(container, 'next-trigger').click();
-        await tick();
-        expect(calls.length).toBe(1);
-        // block: 'nearest' — the page must not scroll vertically for a
-        // horizontal carousel movement.
-        expect(calls[0]).toMatchObject({ block: 'nearest' });
-    });
+        const calls: ScrollToOptions[] = [];
+        viewport.scrollTo = ((o: ScrollToOptions) => { calls.push(o); }) as typeof viewport.scrollTo;
+        return calls;
+    }
 
-    it('a non-zero initial index scrolls its slide into place on mount, instantly', () => {
+    /** Record every `scrollIntoView` — the call that scrolls the PAGE too (#171). */
+    function spyScrollIntoView(): { calls: unknown[]; restore: () => void } {
         const calls: unknown[] = [];
         const original = HTMLElement.prototype.scrollIntoView;
         HTMLElement.prototype.scrollIntoView = function (o: unknown) { calls.push(o); } as typeof original;
+        return { calls, restore: () => { HTMLElement.prototype.scrollIntoView = original; } };
+    }
+
+    it('a model set scrolls only the viewport, never the page (#171)', async () => {
+        const spy = spyScrollIntoView();
+        try {
+            render(sample(), container);
+            await frame();
+            const calls = layout(part(container, 'viewport'), [0, 400, 800]);
+            part(container, 'next-trigger').click();
+            await tick();
+            // scrollIntoView scrolls every scrollable ancestor, the document
+            // included — a below-the-fold carousel would jump the page.
+            expect(spy.calls).toEqual([]);
+            expect(calls.length).toBe(1);
+            // Slide 2's centre (400 + 200) onto the viewport's centre (200).
+            expect(calls[0]).toMatchObject({ left: 400 });
+        } finally {
+            spy.restore();
+        }
+    });
+
+    it('the viewport scroll target is direction-agnostic: RTL scrolls negative (#171)', async () => {
+        render(sample(), container);
+        await frame();
+        // RTL: later slides lie to the LEFT, and scrollLeft runs negative.
+        const calls = layout(part(container, 'viewport'), [0, -400, -800]);
+        parts(container, 'indicator')[2]!.click();
+        await tick();
+        expect(calls[0]).toMatchObject({ left: -800 });
+    });
+
+    it('a non-zero initial index scrolls its slide into place on mount, instantly, viewport only', async () => {
+        const spy = spyScrollIntoView();
+        const calls: ScrollToOptions[] = [];
+        const original = HTMLElement.prototype.scrollTo;
+        HTMLElement.prototype.scrollTo = function (o: ScrollToOptions) { calls.push(o); } as typeof original;
         try {
             render(sample({ defaultIndex: 2 }), container);
+            await frame();
         } finally {
-            HTMLElement.prototype.scrollIntoView = original;
+            HTMLElement.prototype.scrollTo = original;
+            spy.restore();
         }
         // The resting scroll position must agree with the model — and the
         // initial position is a fact, not an animation: behavior 'auto'.
+        expect(spy.calls).toEqual([]);
         expect(calls.length).toBe(1);
         expect(calls[0]).toMatchObject({ behavior: 'auto' });
         expect(parts(container, 'item')[2]!.getAttribute('data-state')).toBe('active');
+    });
+
+    it('a bound model: a slide the scroll passes does not scroll it back (#171)', async () => {
+        // A stand-in observer: the test reports intersections by hand.
+        let report: IntersectionObserverCallback | null = null;
+        const Original = globalThis.IntersectionObserver;
+        globalThis.IntersectionObserver = class {
+            constructor(cb: IntersectionObserverCallback) { report = cb; }
+            observe() {}
+            unobserve() {}
+            disconnect() {}
+        } as unknown as typeof IntersectionObserver;
+        try {
+            const tour = signal({ index: 0 });
+            render(sample({ model: [tour, 'index'] }), container);
+            await frame();
+            const calls = layout(part(container, 'viewport'), [0, 400, 800]);
+            // An external write: scroll smoothly toward slide 3.
+            tour.index = 2;
+            await tick();
+            expect(calls).toEqual([expect.objectContaining({ left: 800 })]);
+            // Mid-scroll the observer reports slide 2 passing by. The model
+            // follows the scroll — and the bound model's echo of that write
+            // must not scroll back to slide 2, which stalled the scroll there.
+            const items = parts(container, 'item');
+            report!([{ isIntersecting: true, target: items[1]! } as unknown as IntersectionObserverEntry], {} as IntersectionObserver);
+            await tick();
+            expect(tour.index).toBe(1);
+            expect(calls.length).toBe(1);
+        } finally {
+            globalThis.IntersectionObserver = Original;
+        }
     });
 
     it('declares the activation family on item and indicator', () => {

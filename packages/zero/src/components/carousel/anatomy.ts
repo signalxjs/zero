@@ -7,8 +7,9 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * recipes give `scroll-snap-type`, each `item` a snap stop, and the model
  * (the active index) is DERIVED from real scroll position by an
  * IntersectionObserver — created only after mount, so SSR renders the
- * resting markup and never observes. Setting the model scrolls the item
- * into view (`behavior: 'smooth'`, collapsing to `auto` under
+ * resting markup and never observes. Setting the model scrolls the
+ * viewport (and only the viewport — never the page, #171) to centre the
+ * item (`behavior: 'smooth'`, collapsing to `auto` under
  * `prefers-reduced-motion` — the runtime owns that answer because it owns
  * the scroll call).
  *

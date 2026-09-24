@@ -845,6 +845,17 @@ and the popup's `aria-describedby` joins the list's id to the description's
 with no form at all. Either way the model needs no flag beside it: the
 close says what happened.
 
+**The carousel that starts mid-way.** `Carousel.Root defaultIndex={2}` (or a
+bound `model`) scrolls its slide into place on mount, and every later model
+write scrolls to its slide. Only the carousel's own viewport scrolls: zero
+centres the slide with `viewport.scrollTo`, never `scrollIntoView`, which
+would also scroll the page (#171). A carousel below the fold therefore opens
+on its slide without pulling the reader down to it, and an app can drive the
+model from elsewhere on the page without moving the page. The target is
+measured from the boxes, so it is right in an RTL viewport too. When the tree
+mounts before it is attached to the document, the viewport waits one frame
+for layout before it scrolls and starts observing.
+
 ## Responsive: breakpoints and `useMediaQuery`
 
 The design system owns the breakpoint ramp. JS reads it through the theme

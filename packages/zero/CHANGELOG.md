@@ -141,6 +141,25 @@
   keeps the Label reference (and, outside thumb mode, the Label's `for`) a
   composed widget needs. `RadioGroup.Label` no longer accepts `id` (the root is labelled by
   its own).
+### Fixed
+
+- **Carousel no longer scrolls the page (#171).** A model write, and a
+  non-zero `defaultIndex` or bound model on mount, scrolled the slide into
+  view with `scrollIntoView`, which scrolls every scrollable ancestor. A
+  carousel below the fold jumped the page on load, and an external model
+  write scrolled the page to it. The carousel now scrolls only its viewport
+  (`viewport.scrollTo`), centring the slide from a box delta, so an RTL
+  viewport lands on the slide too.
+- **Carousel opens on its `defaultIndex` / bound model (#171).** The mount
+  scroll ran in `onMounted`, which can fire before the tree is attached to
+  the document. A detached viewport has no layout, so nothing scrolled, and
+  the observer's first report then wrote slide 0 back into the model. The
+  viewport now waits one frame for the document when it is detached, and
+  creates its observer after the scroll.
+- **A bound carousel model no longer stalls a scroll (#171).** With
+  `model` bound, the observer's report of a slide a smooth scroll was
+  passing echoed back through the prop and scrolled back to that slide, so
+  a jump from slide 1 to slide 3 stopped on slide 2.
 
 ## [0.5.0] - 2026-09-23
 
