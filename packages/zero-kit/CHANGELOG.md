@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.pagination` gains `pageLabel` (zero#176)
+
+- Pagination's new per-page accessible-name prop is reserved, so a
+  vendor-named api cannot claim it as an axis prop.
+
 ### Changed
 
 - **The contrast audit's marks come from the anatomy (#31).** The indicator

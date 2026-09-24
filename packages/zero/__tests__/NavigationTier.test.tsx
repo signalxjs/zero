@@ -454,6 +454,39 @@ describe('Pagination', () => {
         expect(part(container, 'pagination', 'next-trigger').getAttribute('aria-label')).toBe('Nästa');
     });
 
+    it('names each page through pageLabel, defaulting to "Page n" (#176)', () => {
+        render(<Pagination.Root count={3} />, container);
+        const items = () => [...container.querySelectorAll<HTMLElement>(selector('pagination', 'item'))];
+        expect(items().map((i) => i.getAttribute('aria-label'))).toEqual(['Page 1', 'Page 2', 'Page 3']);
+
+        const other = document.createElement('div');
+        document.body.appendChild(other);
+        render(<Pagination.Root count={3} pageLabel={(n) => `Sida ${n}`} />, other);
+        const localized = [...other.querySelectorAll<HTMLElement>(selector('pagination', 'item'))];
+        expect(localized.map((i) => i.getAttribute('aria-label'))).toEqual(['Sida 1', 'Sida 2', 'Sida 3']);
+    });
+
+    it('keeps focus on the activated page when the window shifts (#176)', async () => {
+        // count=20 at page 4 renders 1 2 3 4 5 … 20; activating 5 slides the
+        // window to 1 … 4 5 6 … 20. Unkeyed rows let the diff patch the
+        // focused '5' button in place to read '6', so focus silently moved
+        // to a page the user did not activate.
+        render(<Pagination.Root count={20} defaultPage={4} />, container);
+        expect(rowText(container)).toEqual(['1', '2', '3', '4', '5', '…', '20']);
+        const five = [...container.querySelectorAll<HTMLElement>(selector('pagination', 'item'))]
+            .find((b) => b.textContent === '5')!;
+        five.focus();
+        five.click();
+        await Promise.resolve();
+        expect(rowText(container)).toEqual(['1', '…', '4', '5', '6', '…', '20']);
+        expect(five.isConnected).toBe(true);
+        expect(five.textContent).toBe('5');
+        expect(five.getAttribute('aria-label')).toBe('Page 5');
+        expect(five.getAttribute('aria-current')).toBe('page');
+        expect(document.activeElement).toBe(five);
+        expectAnatomy(container, paginationAnatomy);
+    });
+
     it('passes the variant axes through on the root', () => {
         render(<Pagination.Root count={2} color="primary" size="sm" />, container);
         const root = part(container, 'pagination', 'root');

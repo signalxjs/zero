@@ -71,6 +71,14 @@
 
 ### Fixed
 
+- **Pagination keeps focus on the page you activated (#176).** The row was
+  unkeyed, so when activating a page slid the window (page 5 of 20 from
+  page 4: `1 2 3 4 5 … 20` → `1 … 4 5 6 … 20`) the diff patched the
+  focused `5` button in place to read `6`, and focus silently landed on a
+  page the user had not chosen. Each page button and ellipsis is now keyed
+  by its slot. The page buttons' `aria-label` also localizes through a new
+  `pageLabel?: (n: number) => string` prop (default `` `Page ${n}` ``),
+  alongside `label`, `prevLabel` and `nextLabel`.
 - **Pagination no longer overflows a narrow container (#44).** The row is
   windowed at constant width, so its width follows `count` and the
   windowing props rather than the container. At phone width a wide window

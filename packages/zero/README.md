@@ -344,7 +344,9 @@ immediate pointer-leave close). A non-modal Dialog falls back to the
 dismiss layer where the platform fires no `cancel`. Close buttons whose
 content is a glyph (`Alert.Close`, `Toast.Close`) default to
 `aria-label="Close"` with a `label` prop override, and RatingGroup's per-item
-names localize through `itemLabel={(index, count) => …}`. Controls that
+names localize through `itemLabel={(index, count) => …}`, as Pagination's
+page buttons do through `pageLabel={(n) => …}` (default `Page n`; the
+landmark and prev/next names are `label`, `prevLabel`, `nextLabel`). Controls that
 consume the Field context (Input, Textarea, Combobox, Select, RatingGroup,
 …) adopt its control id, so `Field.Label` names them — Select's trigger
 included, a button being a labelable element. Outside a Field,

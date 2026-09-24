@@ -282,7 +282,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     'nav-list': ['id', 'label', 'title'],
     navbar: ['id', 'role', 'title'],
     'number-input': ['allowWheel', 'clampOnBlur', 'defaultValue', 'form', 'format', 'id', 'invalid', 'max', 'min', 'name', 'parse', 'readonly', 'required', 'role', 'step', 'title', 'value'],
-    pagination: ['boundaryCount', 'count', 'defaultPage', 'id', 'label', 'nextLabel', 'prevLabel', 'role', 'siblingCount', 'title', 'value'],
+    pagination: ['boundaryCount', 'count', 'defaultPage', 'id', 'label', 'nextLabel', 'pageLabel', 'prevLabel', 'role', 'siblingCount', 'title', 'value'],
     popover: ['defaultOpen', 'offset', 'placement', 'positionStrategy', 'value'],
     progress: ['id', 'max', 'min', 'title', 'value'],
     'radial-progress': ['id', 'max', 'min', 'title', 'value'],
