@@ -80,6 +80,10 @@ Never commit straight to `main`.** Repo: `signalxjs/zero`, base branch `main`.
    merging while any review thread is open, so resolve each thread you address
    (and reply on, then resolve, any you deliberately decline):
    ```sh
+   # list the open threads: id, file, first comment
+   gh api graphql -F pr=<pr> -f query='query($pr:Int!){repository(owner:"signalxjs",name:"zero"){pullRequest(number:$pr){reviewThreads(first:100){nodes{id isResolved path comments(first:1){nodes{body}}}}}}}' \
+     -q '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved|not) | "\(.id) \(.path) \(.comments.nodes[0].body[0:80])"'
+   # resolve one
    gh api graphql -f query='mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}' -f id=<thread-id>
    ```
 
