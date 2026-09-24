@@ -1263,7 +1263,17 @@ export const switchRecipe: RecipeInput = {
                 },
             },
             at: {
-                'forced-colors': { selectors: { '&::before': { display: 'none' } } },
+                // The halo is paint forced colours cannot tell from the
+                // thumb. And the thumb itself is background paint, which the
+                // mode revalues to Canvas — the bordered track survived, the
+                // handle vanished, and on/off read identically (#189). Opt
+                // the handle out of forcing and paint it in system colours:
+                // CanvasText at rest, Highlight once checked.
+                'forced-colors': {
+                    base: { forcedColorAdjust: 'none', background: 'CanvasText' },
+                    states: { checked: { background: 'Highlight' } },
+                    selectors: { '&::before': { display: 'none' } },
+                },
             },
         },
         label: { base: { fontSize: 'var(--text-md)' }, states: { checked: {}, unchecked: {} } },

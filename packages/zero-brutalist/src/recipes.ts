@@ -890,6 +890,17 @@ export const switchRecipe: RecipeInput = {
                 // that one argument and still matches the attribute forms.
                 [`&${rtl}`]: { '--switch-thumb-dir': '-1' },
             },
+            at: {
+                // The slab is background paint, which forced colours revalue
+                // to Canvas: the framed track survived and the slab inside it
+                // vanished, so on and off read identically (#189). Opt it out
+                // of forcing and paint it in system colours — CanvasText at
+                // rest, Highlight once checked.
+                'forced-colors': {
+                    base: { forcedColorAdjust: 'none', background: 'CanvasText' },
+                    states: { checked: { background: 'Highlight' } },
+                },
+            },
         },
         label: { base: { ...label, fontSize: 'var(--text-xs)' }, states: { checked: {}, unchecked: {} } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },

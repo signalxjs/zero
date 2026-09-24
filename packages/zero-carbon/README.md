@@ -131,3 +131,13 @@ chevron (margin and glyph both), the switch thumb, the collapsed tree indicator
 and the indeterminate progress sweep. The checkbox tick and the progress check
 are deliberately untouched: they are drawn from rotated borders, and a check
 mark is not mirrored in RTL — Carbon does not mirror it either.
+
+## Forced colours
+
+The toggle is background paint only, the way Carbon draws it, and forced colours
+revalue every author background to `Canvas`. So under `forced-colors: active`
+the track and thumb both used to vanish (#189). The switch now keeps a
+`CanvasText` hairline on its track in that mode (border-box, so its size holds),
+and its thumb opts out of forcing to paint `CanvasText` at rest and `Highlight`
+when checked. On and off differ by more than position. `e2e/switch-forced-colors.spec.ts`
+measures it in pixels, in all six skins.

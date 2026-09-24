@@ -123,4 +123,17 @@
     [data-scope="switch"][data-part="root"][data-color="error"] {
         --switch-accent: var(--color-error);
     }
+
+    @media (forced-colors: active) {
+        [data-scope="switch"][data-part="thumb"] {
+            forced-color-adjust: none;
+            background-color: CanvasText;
+            background-image: none;
+            box-shadow: none;
+        }
+
+        [data-scope="switch"][data-part="thumb"][data-state="checked"] {
+            background-color: Highlight;
+        }
+    }
 }

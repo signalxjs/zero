@@ -496,6 +496,14 @@ export const switchRecipe: RecipeInput = {
             selectors: {
                 '&[data-pressed]:not([data-disabled])': { filter: 'brightness(0.8)' },
             },
+            at: {
+                // The track is background paint only, and forced colours
+                // revalue every author background to Canvas — so the toggle
+                // had no edge at all there (#189). A CanvasText rule is the
+                // one edge the mode keeps; border-box holds the outer size,
+                // and the thumb's inset below gives back the pixel.
+                'forced-colors': { base: { border: '1px solid CanvasText', boxSizing: 'border-box' } },
+            },
         },
         thumb: {
             base: {
@@ -520,6 +528,23 @@ export const switchRecipe: RecipeInput = {
                 unchecked: {},
             },
             selectors: { [`&${rtl}`]: { '--switch-thumb-dir': '-1' } },
+            at: {
+                // A base-100 thumb on a forced Canvas track is Canvas on
+                // Canvas (#189). Opt the thumb out of forcing and paint it in
+                // system colours: CanvasText at rest, Highlight once checked,
+                // so on and off differ by more than position. The inset is
+                // measured from the padding box, so it drops by the track's
+                // forced 1px border to stay centred.
+                'forced-colors': {
+                    base: {
+                        forcedColorAdjust: 'none',
+                        background: 'CanvasText',
+                        top: 'calc(var(--switch-pad) - 1px)',
+                        insetInlineStart: 'calc(var(--switch-pad) - 1px)',
+                    },
+                    states: { checked: { background: 'Highlight' } },
+                },
+            },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', letterSpacing: 'var(--tracking-wide)' },
