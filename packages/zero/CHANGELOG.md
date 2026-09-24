@@ -28,6 +28,13 @@
 
 ### Fixed
 
+- **Pagination no longer overflows a narrow container (#44).** The row is
+  windowed at constant width, so its width follows `count` and the
+  windowing props rather than the container. At phone width a wide window
+  ran past its column and clipped the trailing pages in all six design
+  systems. The root is now the row's scroll box (`overflow-x: auto`, as
+  Table's root is), padded by the reach of the focus ring so the scroll
+  box does not clip it. The anatomy doc records this; no parts changed.
 - **TreeView: a branch's typeahead text with an `asChild` trigger (#157).**
   A branch found its label by querying its subtree for
   `[data-part="branch-trigger"]`. An `asChild` row that carries the app's
