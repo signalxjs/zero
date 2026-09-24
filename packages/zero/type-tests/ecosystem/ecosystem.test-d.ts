@@ -9,14 +9,15 @@
  * the scope excluded BY NAME from the ZeroScope gate while the gate keeps
  * full strength for zero-origin scopes.
  */
-import type { ColorValueFor, RecommendedRole, SizeScaleFor, ZeroScope, ZeroVocabulary } from '@sigx/zero';
+import type { ColorValueFor, RecommendedRole, RecommendedSize, SizeScaleFor, ZeroScope, ZeroVocabulary } from '@sigx/zero';
 import type { Equal, MustBeTrue } from '../assert.js';
 
 // The ecosystem scope is IN the augmented vocabulary — its entry narrows
 // exactly like a zero scope's: the pack wires a `color` axis over the whole
-// recommended role list and nothing else.
+// recommended role list and a `size` axis over the whole recommended ramp
+// (#192 — before it, `size` was offered and typed `never`).
 type _extColor = MustBeTrue<Equal<ColorValueFor<'ext-stepper'>, RecommendedRole>>;
-type _extSize = MustBeTrue<Equal<SizeScaleFor<'ext-stepper'>, never>>;
+type _extSize = MustBeTrue<Equal<SizeScaleFor<'ext-stepper'>, RecommendedSize>>;
 
 // …but it is NOT a ZeroScope: zero's own registry stays closed, which is the
 // whole design — tooling accepts a superset with provenance, the identity

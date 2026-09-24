@@ -19,7 +19,13 @@ What it publishes to design systems, from the data-only `./fragment` entry:
 - **`recipes`** — the recipe pack: default styling written against the
   *recommended* token grammar (`var(--color-primary)`,
   `var(--radius-selector)`), so any design system keeping the recommended
-  vocabulary adopts it by spreading into its `recipes`.
+  vocabulary adopts it by spreading into its `recipes`. It wires both
+  checked axes the way every sibling component does: `color` over the whole
+  recommended role list and `size` over the recommended `xs`–`xl` ramp (type
+  steps along `--text-*`, the `em` padding follows; a design system with a
+  closed ramp such as `sm | md | lg` keeps the steps it declares when the
+  pack is fitted on adoption). A disabled item fades by the adopter's own
+  `--disabled-opacity`, never a literal of the pack's.
 
 `@sigx/zero-basic` consumes both — which makes it the end-to-end proof that a
 merged scope compiles, that the generated `register.d.ts` takes the
