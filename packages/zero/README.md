@@ -80,11 +80,14 @@ the string a native radio group posts.
 
 **One roving tab stop, whatever the model says.** Tabs, ToggleGroup, Steps
 and TreeView keep exactly one item in the tab order: the selected item while
-it is rendered and enabled, else the first enabled item. A value that names
-nothing (a typo, a removed item) or only disabled items never leaves the
-group unreachable by keyboard. Horizontal arrow keys follow the reading
-direction: under `dir="rtl"` ArrowRight moves to the item on the visual
-right, which is the previous one in DOM order.
+it is rendered and enabled, else the first enabled item. Once the group has
+mounted, a value that names nothing (a typo, a removed item) or only
+disabled items never leaves it unreachable by keyboard. Server-rendered HTML
+is the one gap: until hydration, a value that names nothing yields no stop,
+because an unregistered value may still name an item that renders later.
+Horizontal arrow keys follow the reading direction: under `dir="rtl"`
+ArrowRight moves to the item on the visual right, which is the previous one
+in DOM order.
 
 **The form contract.** Every posting control takes the same five props
 (`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus
