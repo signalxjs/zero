@@ -108,9 +108,8 @@ test.describe('Select virtual', () => {
         const parts = demo(page);
         await parts('trigger').click();
         await expect(parts('popup')).toHaveAttribute('data-state', 'open');
-        await settledBox(parts('popup'), 'popup');
-        const box = await parts('popup').boundingBox();
-        expect(box!.height).toBeLessThan(page.viewportSize()!.height);
+        const box = await settledBox(parts('popup'), 'popup');
+        expect(box.height).toBeLessThan(page.viewportSize()!.height);
         await expectWindowed(parts('item'), 10_000);
         await expectViewportFilled(parts('popup'));
     });

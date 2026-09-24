@@ -77,6 +77,7 @@ import { clearThemes, getTheme, themeController } from '@sigx/zero';
 // kit's own emitted-manifest contract — the playground stops hand-declaring
 // the shape it reads (#317 item 5).
 import type { DesignSystemManifest } from '@sigx/zero-kit';
+import { DESIGN_SYSTEM_LIST, type DesignSystemId } from './design-system-list';
 
 import basicCss from '@sigx/zero-basic/css?url';
 import daisyuiCss from '@sigx/zero-daisyui/css?url';
@@ -191,51 +192,45 @@ export interface DesignSystemEntry {
     blurb: string;
 }
 
-export const designSystems: DesignSystemEntry[] = [
-    {
-        id: 'basic',
-        label: 'Basic',
+/**
+ * Everything but the id and label, keyed by id. A `Record` over
+ * `DesignSystemId` so an id added to `design-system-list.ts` without an entry
+ * here — or an entry here without an id there — is a compile error: that list
+ * is also what every per-design-system e2e spec iterates (#193).
+ */
+const REGISTRY: Record<DesignSystemId, Omit<DesignSystemEntry, 'id' | 'label'>> = {
+    basic: {
         href: basicCss,
         installThemes: installBasic,
         manifestHref: basicManifestUrl,
         blurb: 'Monograph — paper surfaces, hairline structure, one petrol ink. Readable defaults, eight colour roles.',
     },
-    {
-        id: 'daisyui',
-        label: 'daisyUI',
+    daisyui: {
         href: daisyuiCss,
         installThemes: installDaisyui,
         manifestHref: daisyuiManifestUrl,
         blurb: 'daisyUI token values over zero anatomy. No Tailwind involved.',
     },
-    {
-        id: 'material',
-        label: 'Material',
+    material: {
         href: materialCss,
         installThemes: installMaterial,
         manifestHref: materialManifestUrl,
         blurb: 'Thirteen colour roles, a level1–level5 elevation ramp, its own breakpoints.',
     },
-    {
-        id: 'brutalist',
-        label: 'Brutalist',
+    brutalist: {
         href: brutalistCss,
         installThemes: installBrutalist,
         manifestHref: brutalistManifestUrl,
         blurb: 'Generated from a style brief through the design-system skill.',
     },
-    {
-        id: 'heroui',
-        label: 'HeroUI',
+    heroui: {
         href: herouiCss,
         installThemes: installHeroui,
         manifestHref: herouiManifestUrl,
         blurb: 'No colour axis at all — colour is fused into a seven-member variant. '
             + 'Full component coverage; it exists to test the axis surface.',
     },
-    {
-        id: 'carbon',
-        label: 'Carbon',
+    carbon: {
         href: carbonCss,
         installThemes: installCarbon,
         manifestHref: carbonManifestUrl,
@@ -243,7 +238,14 @@ export const designSystems: DesignSystemEntry[] = [
             + 'with Carbon\'s double-hyphen spellings restored at the prop boundary by '
             + 'the generated ./components module. Full 23-recipe coverage.',
     },
-];
+};
+
+/** In the shared list's order — the toolbar's order, and the specs'. */
+export const designSystems: DesignSystemEntry[] = DESIGN_SYSTEM_LIST.map(({ id, label }) => ({
+    id,
+    label,
+    ...REGISTRY[id],
+}));
 
 const STORAGE_KEY = 'zero-ds';
 const LINK_ATTR = 'data-zero-ds';

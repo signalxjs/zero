@@ -9,9 +9,8 @@
  * are skin-independent and are asserted once per engine.
  */
 import { test, expect, type Page } from '@playwright/test';
+import { DESIGN_SYSTEMS } from './demo';
 import { bootPage } from './nav';
-
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
 const hiddenFieldLabel = (page: Page) =>
     page.locator('[data-scope="field"][data-part="label"][data-visually-hidden]', { hasText: 'Search the docs' });

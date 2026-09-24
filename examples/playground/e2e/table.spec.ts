@@ -10,10 +10,8 @@
  * Chromium-only: layout and cascade facts, engine-independent.
  */
 import { test, expect } from '@playwright/test';
-import { demoLabelled, rootLabelled, settledBox } from './demo';
+import { demoLabelled, rootLabelled, settledBox, DESIGN_SYSTEMS } from './demo';
 import { bootPage } from './nav';
-
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
 for (const ds of DESIGN_SYSTEMS) {
     test(`${ds}: the column spec's widths and alignment reach the screen`, async ({ page }, testInfo) => {

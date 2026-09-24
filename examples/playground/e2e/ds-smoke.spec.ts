@@ -65,29 +65,23 @@
  * Skipped on the derived chromium projects (reduced-motion, forced-colors):
  * nothing here is changed by a motion or contrast preference.
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
 import { DS_MANIFEST_VERSION } from '@sigx/zero-kit';
 import type { DesignSystemManifest } from '@sigx/zero-kit';
+import { DESIGN_SYSTEM_LIST } from './demo';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
-interface DesignSystem {
-    id: string;
-    /** The toolbar's own label — how the switcher item is named to a user. */
-    label: string;
-}
-
-const DESIGN_SYSTEMS: DesignSystem[] = [
-    { id: 'basic', label: 'Basic' },
-    { id: 'daisyui', label: 'daisyUI' },
-    { id: 'material', label: 'Material' },
-    { id: 'brutalist', label: 'Brutalist' },
-    { id: 'heroui', label: 'HeroUI' },
-    { id: 'carbon', label: 'Carbon' },
-];
+/**
+ * The playground's own registry (`src/design-system-list.ts`, via `demo.ts`),
+ * with the toolbar label each switcher item is named by. Not a literal here:
+ * the switcher block below asserts the toolbar renders exactly this list, and
+ * the scan at the end fails any spec that retypes it (#193).
+ */
+const DESIGN_SYSTEMS: readonly { id: string; label: string }[] = DESIGN_SYSTEM_LIST;
 
 // ── The declared vocabulary, read from the compiled manifests ───────────────
 
@@ -520,17 +514,28 @@ test.describe('the toolbar switcher', () => {
         // Boot on the LAST design system in the list, so the loop below opens
         // with a real change and closes by returning to one already visited —
         // the path that re-reads a cached manifest instead of fetching one.
-        await page.addInitScript(() => {
-            localStorage.setItem('zero-ds', 'carbon');
-        });
+        // Derived, not named: a skin appended to the list moves the boot with it.
+        const last = DESIGN_SYSTEMS.at(-1)!.id;
+        await page.addInitScript((id) => {
+            localStorage.setItem('zero-ds', id);
+        }, last);
         // `#/all` on purpose: the converse assertion below needs the Button
         // variant rows AND the size ramp in one document, and this test's
         // documented cost model is ONE page load for all six design systems.
         await page.goto('/#/all');
-        await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'carbon');
+        await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', last);
 
         const switcher = page.getByRole('group', { name: 'Design system' });
         const themeGroup = page.getByRole('group', { name: 'Theme' });
+
+        // The toolbar renders the WHOLE registry, in list order — it neither
+        // filters nor reorders it. That the list and the registry agree at all
+        // is a compile-time fact (`Record<DesignSystemId, …>` in
+        // src/design-systems.ts), not something this assertion proves.
+        await expect(
+            switcher.getByRole('button'),
+            'the toolbar must offer every design system in src/design-system-list.ts, in its order',
+        ).toHaveText(DESIGN_SYSTEMS.map((ds) => ds.label));
 
         for (const ds of DESIGN_SYSTEMS) {
             const vocabulary = vocabularyFor(ds.id);
@@ -586,5 +591,42 @@ test.describe('the toolbar switcher', () => {
                 `${ds.id}: the theme registry still holds another design system's themes`,
             ).toHaveText(vocabulary.themes);
         }
+    });
+});
+
+// ── One design-system list, everywhere ─────────────────────────────────────
+
+test.describe('the shared design-system list', () => {
+    test.beforeEach(({}, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium', 'a source scan — one project settles it');
+    });
+
+    /**
+     * A spec that retypes the whole list keeps covering the skins it was
+     * written against and silently skips the next one added (#193 found
+     * eleven copies). Import `DESIGN_SYSTEMS` from `./demo` instead. An array
+     * naming a SUBSET — the skins whose sheet slides — is per-spec data and
+     * is not flagged; only one naming every registered id is.
+     */
+    test('no spec retypes the full list of design systems', () => {
+        const e2eDir = dirname(fileURLToPath(import.meta.url));
+        const ids = DESIGN_SYSTEMS.map((ds) => ds.id);
+        const offenders: string[] = [];
+        for (const file of readdirSync(e2eDir).filter((name) => name.endsWith('.ts')).sort()) {
+            const source = readFileSync(join(e2eDir, file), 'utf8');
+            // Innermost bracketed literals: an id array, or an array of
+            // `{ id, label }` objects (no nested brackets in either).
+            for (const match of source.matchAll(/\[[^[\]]*\]/g)) {
+                const literal = match[0];
+                if (ids.every((id) => new RegExp(`['"\`]${id}['"\`]`).test(literal))) {
+                    const line = source.slice(0, match.index ?? 0).split('\n').length;
+                    offenders.push(`${file}:${line}`);
+                }
+            }
+        }
+        expect(
+            offenders,
+            'these specs hardcode every design system — import DESIGN_SYSTEMS from ./demo instead',
+        ).toEqual([]);
     });
 });
