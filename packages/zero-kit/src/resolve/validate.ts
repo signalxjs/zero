@@ -55,6 +55,7 @@ import { hookIssues, privateNameIssues } from './hooks.js';
 import { tokenVocabulary } from './vocabulary.js';
 import { formatOklch, solveContentLightness } from '../palette.js';
 import { tryBakeColorValue } from './color-bake.js';
+import { DEFAULT_SOFT_MIX, softMixPercent } from '../targets/shared.js';
 
 export interface ValidationIssue {
     level: 'error' | 'warning';
@@ -465,6 +466,12 @@ export function validateDesignSystem<R extends RolesDecl>(
                 `theme "${themeName}" is not a kebab-case identifier — it becomes the selector [data-theme="${themeName}"]`,
             );
         }
+        // The schema's [0, 1] bound, enforced where the build runs: outside
+        // it `color-mix()` is invalid (every var(--color-*-soft) drops at
+        // computed-value time) and the baker extrapolates to nonsense.
+        if (theme.softMix !== undefined && !(Number.isFinite(theme.softMix) && theme.softMix >= 0 && theme.softMix <= 1)) {
+            error(`themes.${themeName}`, `softMix ${theme.softMix} is not a ratio in [0, 1] — 0.16 means a 16% tint of the role over base-100`);
+        }
         checkOverride(`themes.${themeName}.system`, theme.system);
         checkSystemKeys(`themes.${themeName}.system`, theme.system);
         const colors = theme.colors as Record<string, string>;
@@ -514,10 +521,10 @@ export function validateDesignSystem<R extends RolesDecl>(
             // The colours a custom value can read: the theme's own, plus each
             // `-soft` the compiler derives rather than the theme spelling it.
             const readable: Record<string, string> = { ...colors };
-            const mix = theme.softMix ?? 0.16;
+            const mix = theme.softMix ?? DEFAULT_SOFT_MIX;
             for (const [name, decl] of Object.entries(roles)) {
                 if (decl.soft === false || readable[`${name}-soft`] || !colors[name] || !colors['base-100']) continue;
-                readable[`${name}-soft`] = `color-mix(in oklab, ${colors[name]} ${Math.round(mix * 100)}%, ${colors['base-100']})`;
+                readable[`${name}-soft`] = `color-mix(in oklab, ${colors[name]} ${softMixPercent(mix)}, ${colors['base-100']})`;
             }
             const customValues = new Map(Object.entries(theme.custom ?? {}).map(([name, value]) => [normProp(name), value]));
             for (const { fg, bg, min, decl } of declaredPairs) {

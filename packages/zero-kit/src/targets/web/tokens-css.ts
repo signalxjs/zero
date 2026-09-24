@@ -28,11 +28,11 @@ import {
     systemNodeAt,
     tokenProperty,
 } from '../../contract.js';
-import { resolveSystemTokens } from '../shared.js';
+import { DEFAULT_SOFT_MIX, resolveSystemTokens, softMixPercent } from '../shared.js';
 import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tokens.js';
 
 const softVar = (role: string, mix: number): string =>
-    `color-mix(in oklab, var(--color-${role}) ${Math.round(mix * 100)}%, var(--color-base-100))`;
+    `color-mix(in oklab, var(--color-${role}) ${softMixPercent(mix)}, var(--color-base-100))`;
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- `R` appears in both
    variance positions, so internal plumbing erases it. */
@@ -70,7 +70,7 @@ function divergentProps(a: Record<string, string>, b: Record<string, string>): S
 
 function colorDecls(theme: AnyTheme, roles: RolesDecl): string[] {
     const decls: string[] = [];
-    const mix = theme.softMix ?? 0.16;
+    const mix = theme.softMix ?? DEFAULT_SOFT_MIX;
 
     for (const [name, decl] of Object.entries(roles)) {
         const value = color(theme, name);
@@ -134,7 +134,6 @@ function rootDecls(
         ];
     }
     const decls: string[] = ['color-scheme: light dark;'];
-    const mix = light.softMix ?? 0.16;
 
     const pushPair = (token: string) => {
         const lv = color(light, token);
@@ -149,10 +148,14 @@ function rootDecls(
     for (const token of BASE_SURFACE_TOKEN_LIST) pushPair(token);
     for (const [name, decl] of Object.entries(roles)) {
         if (decl.soft === false) continue;
-        const le = color(light, `${name}-soft`);
-        const de = color(dark, `${name}-soft`);
-        if (le && de && le !== de) decls.push(`--color-${name}-soft: light-dark(${le}, ${de});`);
-        else decls.push(`--color-${name}-soft: ${le ?? softVar(name, mix)};`);
+        // Each scheme resolves its own side — its explicit value, else its
+        // own softMix — so system dark with no data-theme paints what the
+        // explicit dark theme paints. (`softVar`'s var() references are
+        // themselves light-dark pairs; only the percentage and an explicit
+        // value need splitting here.)
+        const lv = color(light, `${name}-soft`) ?? softVar(name, light.softMix ?? DEFAULT_SOFT_MIX);
+        const dv = color(dark, `${name}-soft`) ?? softVar(name, dark.softMix ?? DEFAULT_SOFT_MIX);
+        decls.push(`--color-${name}-soft: ${lv === dv ? lv : `light-dark(${lv}, ${dv})`};`);
     }
     decls.push(...systemDecls(nonColorLight));
     return decls;

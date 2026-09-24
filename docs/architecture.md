@@ -1089,7 +1089,8 @@ open — `dim` is a *theme* whose scheme is dark, not a third scheme.
 Selection is three-valued: an explicit theme name, or `null` = follow the
 system. The system default needs **no JavaScript**: compiled CSS uses
 `light-dark()` with `color-scheme: light dark` on `:root` (colour tokens
-only — a non-colour token that differs between the default themes goes into
+only, each derived `-soft` resolved per scheme from that theme's explicit
+value or its own `softMix` — a non-colour token that differs between the default themes goes into
 a `prefers-color-scheme: dark` block instead, because `light-dark()` is a
 `<color>` function). A design system with no distinct `defaultDark` has one
 scheme, and `:root` states its default theme's own — `color-scheme: dark` for
