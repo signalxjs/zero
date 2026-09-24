@@ -22,7 +22,7 @@
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { partsOf, settledBox, DESIGN_SYSTEMS } from './demo';
+import { partsOf, scrollport, settledBox, DESIGN_SYSTEMS } from './demo';
 
 /** The narrowest viewport a page is expected to work at (README: ~400px). */
 const PHONE = { width: 400, height: 720 };
@@ -35,17 +35,6 @@ const widerRow = (page: Page): Locator =>
     page.locator('[data-scope="pagination"][data-part="root"]').filter({
         has: page.getByRole('button', { name: 'Page 20', exact: true }),
     });
-
-/** The root's scrollport (its padding box) in viewport coordinates. */
-const scrollport = (root: Locator) => root.evaluate((el) => {
-    const r = el.getBoundingClientRect();
-    return {
-        left: r.left + el.clientLeft,
-        right: r.left + el.clientLeft + el.clientWidth,
-        top: r.top + el.clientTop,
-        bottom: r.top + el.clientTop + el.clientHeight,
-    };
-});
 
 /** How far the focused control's outline paints outside its border box. */
 const ringExtent = (control: Locator) => control.evaluate((el) => {

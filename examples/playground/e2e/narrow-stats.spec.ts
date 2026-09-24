@@ -21,9 +21,9 @@
  * every design system. Chromium only: a claim about our own cascade, not
  * about engine behaviour.
  */
-import { test, expect, type Locator } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { bootPage } from './nav';
-import { partsOf, rootLabelled, settledBox, DESIGN_SYSTEMS } from './demo';
+import { partsOf, rootLabelled, scrollport, settledBox, DESIGN_SYSTEMS, type DesignSystemId } from './demo';
 
 /** The narrowest viewport a page is expected to work at (README: ~400px). */
 const PHONE = { width: 400, height: 720 };
@@ -31,16 +31,10 @@ const PHONE = { width: 400, height: 720 };
 /** Sub-pixel slack: `boundingBox()` is fractional; the defect was ~220px. */
 const SLACK = 0.5;
 
-const CASES: readonly { ds: string; viewport: { width: number; height: number } }[] = [
+const CASES: readonly { ds: DesignSystemId; viewport: { width: number; height: number } }[] = [
     { ds: 'brutalist', viewport: { width: 1100, height: 800 } },
     ...DESIGN_SYSTEMS.map((ds) => ({ ds, viewport: PHONE })),
 ];
-
-/** The root's scrollport (its padding box) in viewport coordinates. */
-const scrollport = (root: Locator) => root.evaluate((el) => {
-    const r = el.getBoundingClientRect();
-    return { left: r.left + el.clientLeft, right: r.left + el.clientLeft + el.clientWidth };
-});
 
 for (const { ds, viewport } of CASES) {
     test(`${ds}: a stats row stays inside its column and scrolls in its root at ${viewport.width}px`, async ({ page }, testInfo) => {

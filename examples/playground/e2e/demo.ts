@@ -125,3 +125,19 @@ export async function settledBox(loc: Locator, what = 'element'): Promise<
     ).not.toBeNull();
     return box!;
 }
+
+/**
+ * A scroll box's scrollport — its padding box, the rectangle it clips its
+ * content to — in viewport coordinates. What a scrolled-to-end claim or a
+ * focus-ring-inside claim measures against (Pagination #44, Stats #43):
+ * the border box would count the border as visible room it is not.
+ */
+export const scrollport = (root: Locator) => root.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return {
+        left: r.left + el.clientLeft,
+        right: r.left + el.clientLeft + el.clientWidth,
+        top: r.top + el.clientTop,
+        bottom: r.top + el.clientTop + el.clientHeight,
+    };
+});
