@@ -465,9 +465,10 @@ component renders; the root is called out separately where it carries props.
   region is an axe violation)/Viewport/Item/PrevTrigger/NextTrigger/
   IndicatorGroup/Indicator(index). A scroll-snap viewport whose MODEL IS
   THE ACTIVE INDEX: derived from real scroll by an IntersectionObserver
-  (created only in onMounted — SSR never observes) and driven back by
-  scrollIntoView on model set, smooth unless prefers-reduced-motion asks
-  for a jump. APG carousel ARIA: region + aria-roledescription=carousel;
+  (created only in onMounted — SSR never observes) and driven back on model
+  set by scrolling the VIEWPORT alone (viewport.scrollTo, never
+  scrollIntoView — the page never moves, #171; RTL-correct), smooth unless
+  prefers-reduced-motion asks for a jump. APG carousel ARIA: region + aria-roledescription=carousel;
   items are "slide" groups labelled "n of m". Prev/next CLAMP (no wrap)
   and disable at their bounds; the dots are labelled BUTTONS (not tabs, no
   roving tabindex), the active one carrying aria-current. item and

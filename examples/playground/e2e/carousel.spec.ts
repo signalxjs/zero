@@ -77,3 +77,79 @@ test('a REAL scroll drives the model: the observer updates the dots', async ({ p
     await expect(dots.nth(1)).toHaveAttribute('data-state', 'active');
     await expect(demo(page)('item').nth(1)).toHaveAttribute('data-state', 'active');
 });
+
+/**
+ * #171 — a model write scrolls the VIEWPORT, never the page. The old
+ * `scrollIntoView` scrolled every scrollable ancestor, so a carousel below
+ * the fold that started mid-way pulled the document down to it on load, and
+ * an external model write scrolled the page to it again.
+ */
+test.describe('the page never scrolls for a carousel (#171)', () => {
+    // Short enough that the "Tour" demo — the page's third carousel — sits
+    // below the fold; the guard in each test proves it does.
+    test.use({ viewport: { width: 1024, height: 320 } });
+
+    /** The bound-model "Tour" carousel, which starts on stop 2. */
+    const tour = (page: Page) => demoLabelled(page, 'carousel', 'Tour stop 1');
+
+    /**
+     * Every scroll offset on the page outside the carousels' own viewports:
+     * the document's and any scrolling ancestor's (the playground's layout
+     * may scroll a region rather than the document).
+     */
+    const pageScroll = (page: Page) => page.evaluate(() => {
+        const moved = [document.scrollingElement, ...document.querySelectorAll('body *')]
+            .filter((el): el is Element => el !== null)
+            .filter((el) => !el.matches('[data-scope="carousel"][data-part="viewport"]'))
+            .filter((el) => el.scrollTop !== 0 || el.scrollLeft !== 0)
+            .map((el) => `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}: ${el.scrollTop},${el.scrollLeft}`);
+        return moved;
+    });
+
+    /** Distance between an item's centre and its viewport's centre, in px. */
+    const offCentre = (page: Page, i: number) =>
+        tour(page)('viewport').evaluate((vp, idx) => {
+            const item = vp.querySelectorAll('[data-scope="carousel"][data-part="item"]')[idx]!;
+            const a = vp.getBoundingClientRect();
+            const b = item.getBoundingClientRect();
+            return Math.round(Math.abs((b.left + b.width / 2) - (a.left + a.width / 2)));
+        }, i);
+
+    /** Press an outside button WITHOUT Playwright scrolling it into view first. */
+    const pressOutside = (page: Page, name: string) =>
+        page.getByRole('button', { name, exact: true }).evaluate((b) => (b as HTMLButtonElement).click());
+
+    test.beforeEach(async ({ page }) => {
+        // First: a page scrolled on mount (the #171 regression itself) pulls
+        // the carousel above the fold, which the layout guard below would
+        // otherwise misreport as a fixture problem.
+        expect(await pageScroll(page), 'the page scrolled on mount (#171)').toEqual([]);
+        const top = await tour(page)('viewport').evaluate((el) => el.getBoundingClientRect().top);
+        expect(top, 'the Tour carousel must start below the fold').toBeGreaterThan(320);
+    });
+
+    test('on mount: it opens on its slide, and the page stays at the top', async ({ page }) => {
+        await expect(tour(page)('item').nth(1)).toHaveAttribute('data-state', 'active');
+        await expect.poll(() => offCentre(page, 1)).toBeLessThanOrEqual(1);
+        expect(await pageScroll(page)).toEqual([]);
+    });
+
+    test('on an external model write: only the viewport scrolls', async ({ page }) => {
+        await pressOutside(page, 'Tour: last stop');
+        await expect(tour(page)('item').nth(2)).toHaveAttribute('data-state', 'active');
+        await expect.poll(() => offCentre(page, 2)).toBeLessThanOrEqual(1);
+        expect(await pageScroll(page)).toEqual([]);
+    });
+
+    test('RTL: the viewport lands on the slide, scrolling negative', async ({ page }) => {
+        // After boot — an init script runs before documentElement exists.
+        await page.evaluate(() => document.documentElement.setAttribute('dir', 'rtl'));
+        await pressOutside(page, 'Tour: first stop');
+        await expect.poll(() => offCentre(page, 0)).toBeLessThanOrEqual(1);
+        await pressOutside(page, 'Tour: last stop');
+        await expect.poll(() => offCentre(page, 2)).toBeLessThanOrEqual(1);
+        expect(await tour(page)('viewport').evaluate((el) => el.scrollLeft)).toBeLessThan(0);
+        await expect(tour(page)('item').nth(2)).toHaveAttribute('data-state', 'active');
+        expect(await pageScroll(page)).toEqual([]);
+    });
+});
