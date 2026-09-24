@@ -4789,7 +4789,11 @@ export const timeline: RecipeInput = {
                 padding: '0',
             },
             selectors: {
-                '&[data-orientation="horizontal"]': { flexDirection: 'row' },
+                // A horizontal timeline is a row of steps whose width follows
+                // the step count, not the container: at phone width it scrolls
+                // inside its own box, the answer Table and Pagination give
+                // (#45), rather than widening the page.
+                '&[data-orientation="horizontal"]': { flexDirection: 'row', overflowX: 'auto' },
             },
         },
         /**

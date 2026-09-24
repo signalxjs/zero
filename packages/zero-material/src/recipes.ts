@@ -3237,6 +3237,9 @@ export const textarea: RecipeInput = {
             base: {
                 display: 'block',
                 width: '100%',
+                // border-box, or `width: 100%` plus the padding and border is
+                // wider than the column it fills — 26–34px at phone width (#45).
+                boxSizing: 'border-box',
                 minWidth: '0',
                 appearance: 'none',
                 background: 'transparent',
@@ -4017,7 +4020,11 @@ export const timeline: RecipeInput = {
                 padding: '0',
             },
             selectors: {
-                '&[data-orientation="horizontal"]': { flexDirection: 'row' },
+                // A horizontal timeline is a row of steps whose width follows
+                // the step count, not the container: at phone width it scrolls
+                // inside its own box, the answer Table and Pagination give
+                // (#45), rather than widening the page.
+                '&[data-orientation="horizontal"]': { flexDirection: 'row', overflowX: 'auto' },
             },
         },
         /**
