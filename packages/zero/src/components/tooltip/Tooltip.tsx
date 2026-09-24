@@ -10,9 +10,10 @@
  *
  * APG tooltip semantics: opens on focus immediately and on hover after
  * `openDelay`; closes on blur and on Escape WITHOUT moving focus, and on
- * pointer leave after a short grace period (`closeDelay`, default
- * {@link TOOLTIP_CLOSE_GRACE} ms) so the pointer can cross onto the popup
- * (WCAG 1.4.13 hoverable).
+ * pointer leave after a grace period ({@link TOOLTIP_CLOSE_GRACE} ms unless
+ * `closeDelay` is set) so the pointer can cross onto the popup (WCAG 1.4.13
+ * hoverable). `closeDelay` has no single default: unset, pointer leave waits
+ * the grace period and blur closes at once; set, it applies to both.
  * The popup is `role="tooltip"` and referenced from the trigger via
  * `aria-describedby`. `popover="manual"` gives the top layer without light
  * dismiss (a tooltip must not close because the user clicked elsewhere —
@@ -46,8 +47,8 @@ interface TooltipContext {
     ids: { popup: string };
     show(immediate?: boolean): void;
     /**
-     * `pointer` hides after the hover grace period (`closeDelay`, default
-     * {@link TOOLTIP_CLOSE_GRACE}); a blur hides after `closeDelay ?? 0`.
+     * `pointer` hides after `closeDelay ?? TOOLTIP_CLOSE_GRACE` (the hover
+     * grace period); a blur hides after `closeDelay ?? 0`.
      */
     hide(pointer?: boolean): void;
     setAnchor(el: HTMLElement | null): void;

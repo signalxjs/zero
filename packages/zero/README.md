@@ -292,9 +292,10 @@ ARIA wiring is presence-aware: an overlay references its `Title` /
 title never leaves a dangling `aria-labelledby` (which would suppress the
 accessible-name fallback). Escape dismissal is universal — a tooltip closes
 from anywhere (WCAG 2.1 SC 1.4.13), and it is hoverable too: leaving the
-trigger closes it only after a short grace period (`closeDelay`, 120 ms by
-default; blur still closes at once), so the pointer can cross the offset gap
-onto the popup. A non-modal Dialog falls back to the
+trigger closes it only after a 120 ms pointer-leave grace period, so the
+pointer can cross the offset gap onto the popup. Blur still closes at once,
+and an explicit `closeDelay` replaces both (`closeDelay={0}` restores the
+immediate pointer-leave close). A non-modal Dialog falls back to the
 dismiss layer where the platform fires no `cancel`. Close buttons whose
 content is a glyph (`Alert.Close`, `Toast.Close`) default to
 `aria-label="Close"` with a `label` prop override, and RatingGroup's per-item
