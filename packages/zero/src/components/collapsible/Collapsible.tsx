@@ -11,6 +11,8 @@
  * The native element gives keyboard interaction, semantics and (server
  * rendered) zero-JS toggling for free; the component keeps the `model` in
  * charge by intercepting the summary click and rendering `open` from state.
+ * When the browser opens the element itself (find-in-page, fragment
+ * navigation), the native `toggle` event syncs back into the model.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -77,6 +79,18 @@ const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit })
             {...variantAttrs(props)}
             open={state.value}
             class={props.class}
+            onToggle={(e: Event) => {
+                // The platform opens a closed <details> by itself for
+                // find-in-page and fragment navigation (#166). Adopt that
+                // into the model; if the model refuses (a disabled root),
+                // put the element back — the vdom won't, since its `open`
+                // prop never changed.
+                // Our own writes arrive here already in agreement.
+                const el = e.currentTarget as HTMLDetailsElement;
+                if (e.target !== el || el.open === state.value) return;
+                if (!props.disabled) state.value = el.open;
+                if (el.open !== state.value) el.open = state.value;
+            }}
         >
             {slots.default?.()}
         </details>

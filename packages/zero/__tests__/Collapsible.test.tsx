@@ -62,6 +62,45 @@ describe('Collapsible', () => {
         expect(container.querySelector('[data-part="panel"]')!.getAttribute('data-state')).toBe('open');
     });
 
+    // #166: find-in-page and fragment navigation open a closed <details> by
+    // themselves, then fire `toggle`. The model has to follow, or the parts
+    // announce "closed" over an open panel and the next click only resyncs.
+    it('a native toggle (find-in-page auto-expand) syncs back into the model', async () => {
+        const state = signal({ open: false });
+        mount(state);
+        const details = container.querySelector<HTMLDetailsElement>('details')!;
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        details.open = true;
+        details.dispatchEvent(new Event('toggle'));
+        await Promise.resolve();
+        expect(state.open).toBe(true);
+        expect(details.getAttribute('data-state')).toBe('open');
+        expect(trigger.getAttribute('data-state')).toBe('open');
+        expect(trigger.getAttribute('aria-expanded')).toBe('true');
+        expect(container.querySelector('[data-part="panel"]')!.getAttribute('data-state')).toBe('open');
+        // One press closes it — no silent resync click first.
+        trigger.click();
+        expect(state.open).toBe(false);
+        expect(details.open).toBe(false);
+        expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('a native toggle on a disabled root is reverted, not adopted', async () => {
+        render(
+            <Collapsible.Root disabled>
+                <Collapsible.Trigger>Toggle</Collapsible.Trigger>
+                <Collapsible.Panel>Content</Collapsible.Panel>
+            </Collapsible.Root>,
+            container,
+        );
+        const details = container.querySelector<HTMLDetailsElement>('details')!;
+        details.open = true;
+        details.dispatchEvent(new Event('toggle'));
+        await Promise.resolve();
+        expect(details.open).toBe(false);
+        expect(details.getAttribute('data-state')).toBe('closed');
+    });
+
     it('publishes press feedback on the trigger, by pointer and by Enter', () => {
         mount(signal({ open: false }));
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;

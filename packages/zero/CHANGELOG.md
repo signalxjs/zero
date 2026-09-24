@@ -41,6 +41,15 @@
   during setup, run a mount hook's reactive work through the function it
   returns, and every effect or watch created there stops with the component.
 - `syncPopover` returns a stopper (it returned `void`).
+- **Collapsible and Accordion follow the native `<details>` toggle (#166).**
+  Both rendered `open` from the model only, so when the browser opened a
+  closed section by itself (find-in-page, fragment navigation) the parts
+  kept `data-state="closed"` and `aria-expanded="false"` over an open panel,
+  and the next click only resynced the model: closing took two presses. The
+  `toggle` event now writes the model (Accordion goes through the same
+  `toggle` as a click, so single mode closes the others). When the model
+  refuses the change (a disabled root or item), the element is
+  reverted to match the model.
 
 ## [0.5.0] - 2026-09-23
 

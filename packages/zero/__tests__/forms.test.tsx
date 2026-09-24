@@ -458,6 +458,47 @@ describe('Accordion', () => {
         expectAnatomy(container, accordionAnatomy);
     });
 
+    // #166: the browser opens a closed <details> itself on find-in-page and
+    // fragment navigation; the model must follow it.
+    it('a native toggle (find-in-page auto-expand) syncs back into the model', async () => {
+        const state = signal({ open: ['a'] });
+        mount(state);
+        const items = container.querySelectorAll<HTMLDetailsElement>('details');
+        const triggers = container.querySelectorAll<HTMLElement>('[data-part="trigger"]');
+        items[1]!.open = true;
+        items[1]!.dispatchEvent(new Event('toggle'));
+        await Promise.resolve();
+        // Single mode: the revealed item takes over, as a click would.
+        expect(state.open).toEqual(['b']);
+        expect(items[1]!.getAttribute('data-state')).toBe('open');
+        expect(triggers[1]!.getAttribute('data-state')).toBe('open');
+        expect(triggers[1]!.getAttribute('aria-expanded')).toBe('true');
+        expect(items[0]!.open).toBe(false);
+        // One press closes it.
+        triggers[1]!.click();
+        expect(state.open).toEqual([]);
+        expect(items[1]!.open).toBe(false);
+        expect(triggers[1]!.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('a native toggle the model refuses is reverted on the element', async () => {
+        render(
+            <Accordion.Root>
+                <Accordion.Item value="a" disabled>
+                    <Accordion.Trigger>Section A</Accordion.Trigger>
+                    <Accordion.Panel>Content A</Accordion.Panel>
+                </Accordion.Item>
+            </Accordion.Root>,
+            container,
+        );
+        const item = container.querySelector<HTMLDetailsElement>('details')!;
+        item.open = true;
+        item.dispatchEvent(new Event('toggle'));
+        await Promise.resolve();
+        expect(item.open).toBe(false);
+        expect(item.getAttribute('data-state')).toBe('closed');
+    });
+
     it('publishes press feedback on a trigger press and release', () => {
         mount(signal({ open: ['a'] }));
         const trigger = container.querySelector<HTMLElement>('[data-scope="accordion"][data-part="trigger"]')!;

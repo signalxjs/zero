@@ -11,7 +11,9 @@
  * ```
  *
  * The model is `string[]` (open item values). Single mode (default) keeps
- * at most one open; `collapsible={false}` keeps at least one open.
+ * at most one open; `collapsible={false}` keeps at least one open. When the
+ * browser opens an item itself (find-in-page, fragment navigation), the
+ * native `toggle` event syncs back into the model.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -126,6 +128,20 @@ const AccordionItem = component<AccordionItemProps>(({ props, slots }) => {
             data-disabled={dataAttr(itemCtx.disabled())}
             open={accordion.isOpen(props.value)}
             class={props.class}
+            onToggle={(e: Event) => {
+                // The platform opens a closed <details> by itself for
+                // find-in-page and fragment navigation (#166). Route that
+                // through `toggle` like a click (single mode then closes the
+                // others); if the model refuses (a disabled item or root, or
+                // a toggle it rejects such as collapsible={false}), put the
+                // element back — the vdom won't, since its `open` prop never
+                // changed. Our own writes arrive here already in agreement.
+                const el = e.currentTarget as HTMLDetailsElement;
+                if (e.target !== el || el.open === accordion.isOpen(props.value)) return;
+                if (!itemCtx.disabled()) accordion.toggle(props.value);
+                const open = accordion.isOpen(props.value);
+                if (el.open !== open) el.open = open;
+            }}
         >
             {slots.default?.()}
         </details>
