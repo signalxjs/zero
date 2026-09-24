@@ -70,9 +70,12 @@ function systemScheme(): 'light' | 'dark' {
             return 'light';
         }
         const state = signal({ dark: list.matches });
-        list.addEventListener?.('change', (e: MediaQueryListEvent) => {
+        const onChange = (e: MediaQueryListEvent): void => {
             state.dark = e.matches;
-        });
+        };
+        // Safari < 14 has only the deprecated `addListener`.
+        if (typeof list.addEventListener === 'function') list.addEventListener('change', onChange);
+        else list.addListener?.(onChange);
         systemSource = matchMedia;
         systemState = state;
     }

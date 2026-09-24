@@ -22,7 +22,7 @@ function mockSystemScheme(initialDark: boolean) {
     return {
         set(next: boolean) {
             dark = next;
-            for (const fn of [...listeners]) fn({ matches: next, media: list.media } as MediaQueryListEvent);
+            for (const fn of listeners) fn({ matches: next, media: list.media } as MediaQueryListEvent);
         },
         listenerCount: () => listeners.size,
     };
