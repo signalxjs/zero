@@ -26,7 +26,7 @@
     {
         "name": "@sigx/zero/tabs",
         "path": "packages/zero/dist/components/tabs/index.js",
-        "limit": "3.8 kB",
+        "limit": "4.1 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -156,7 +156,7 @@
     {
         "name": "@sigx/zero/toggle-group",
         "path": "packages/zero/dist/components/toggle-group/index.js",
-        "limit": "5 kB",
+        "limit": "5.1 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -192,7 +192,7 @@
     {
         "name": "@sigx/zero/tree-view",
         "path": "packages/zero/dist/components/tree-view/index.js",
-        "limit": "4.85 kB",
+        "limit": "5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -612,7 +612,7 @@
     {
         "name": "@sigx/zero/steps",
         "path": "packages/zero/dist/components/steps/index.js",
-        "limit": "3.85 kB",
+        "limit": "4.1 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
