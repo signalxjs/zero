@@ -99,7 +99,11 @@ and the DOM. Select, Combobox and ToggleGroup post through a real,
 visually-hidden `<select>` — one field in single mode, a repeated field per
 value under `multiple` — so `required` is a platform constraint (the invalid
 focus lands on the trigger / input / the group's tab stop) rather than an
-`aria-required` hint. The runtime
+`aria-required` hint. RatingGroup posts through a visually-hidden text
+`<input>` for the same reason (a `type="hidden"` input is barred from
+constraint validation): a required rating left at 0 fails
+`checkValidity()`, the invalid focus lands on its tab stop, and the
+radiogroup carries `aria-required`. The runtime
 half is `createFormControl` + `onFormReset` (`@sigx/zero/behaviors`), the
 one `VISUALLY_HIDDEN_STYLE` beside them.
 

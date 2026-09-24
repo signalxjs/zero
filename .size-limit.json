@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "51.1 kB",
+        "limit": "51.2 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -180,7 +180,7 @@
     {
         "name": "@sigx/zero/rating-group",
         "path": "packages/zero/dist/components/rating-group/index.js",
-        "limit": "3.75 kB",
+        "limit": "3.9 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

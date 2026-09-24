@@ -19,8 +19,10 @@
  * - A hidden control renders ONLY when `name` is set and carries `disabled`
  *   and `form` (`hiddenAttrs()`), so a disabled control never posts and the
  *   `form` attribute associates from outside the form's subtree. A hidden
- *   `<select>` adds `required` itself — `type="hidden"` inputs are barred
- *   from constraint validation, a `<select>` is not.
+ *   control that must validate adds `required` itself — a hidden
+ *   `<select>`, or RatingGroup's visually-hidden text `<input>` —
+ *   because `type="hidden"` inputs are barred from constraint validation
+ *   and those elements are not.
  * - Reset restores the component's default into the model and the element
  *   (`onFormReset`).
  */

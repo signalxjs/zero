@@ -92,6 +92,35 @@ test.describe('half-star pointer and keyboard math', () => {
         await expect(hidden(page)).toHaveValue('0.5');
         await expect(item(page, 1)).toBeFocused();
     });
+
+    test('Space and Enter commit the focused star (#174)', async ({ page }) => {
+        await item(page, 2).scrollIntoViewIfNeeded();
+        await item(page, 2).focus();
+        await page.keyboard.press('Space');
+        await expect(hidden(page)).toHaveValue('2');
+        await expect(item(page, 2)).toHaveAttribute('aria-checked', 'true');
+        await item(page, 5).focus();
+        await page.keyboard.press('Enter');
+        await expect(hidden(page)).toHaveValue('5');
+        await expect(item(page, 5)).toBeFocused();
+    });
+
+    test('the posted input is a validating element, not `type=hidden`, so `required` can bar an empty value (#174)', async ({ page }) => {
+        // `type="hidden"` is barred from constraint validation in every
+        // engine; happy-dom cannot be the authority on that, a real one is.
+        const verdict = await hidden(page).evaluate((el: HTMLInputElement) => {
+            const before = { willValidate: el.willValidate, value: el.value };
+            el.required = true;
+            el.value = '';
+            const unrated = el.checkValidity();
+            el.value = '3';
+            const rated = el.checkValidity();
+            return { ...before, unrated, rated };
+        });
+        expect(verdict.willValidate).toBe(true);
+        expect(verdict.unrated).toBe(false);
+        expect(verdict.rated).toBe(true);
+    });
 });
 
 /**

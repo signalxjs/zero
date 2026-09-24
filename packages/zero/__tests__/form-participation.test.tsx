@@ -204,7 +204,7 @@ const rows: Row[] = [
         committed: '3',
         defaultEntry: '2',
         model: { initial: 2, committed: 3 },
-        validates: false,
+        validates: true,
     },
     {
         scope: 'slider',

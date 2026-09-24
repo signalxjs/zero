@@ -45,6 +45,25 @@
 - `createTypeahead` returns a `Typeahead` (new exported type): the keydown
   handler plus `searching()`. `createListbox` gains `typeaheadSearching()`.
 
+- `mountScope()` (`@sigx/zero/behaviors`, and `/behaviors/core`): call it
+  during setup, run a mount hook's reactive work through the function it
+  returns, and every effect or watch created there stops with the component.
+- `syncPopover` returns a stopper (it returned `void`).
+- **Collapsible and Accordion follow the native `<details>` toggle (#166).**
+  Both rendered `open` from the model only, so when the browser opened a
+  closed section by itself (find-in-page, fragment navigation) the parts
+  kept `data-state="closed"` and `aria-expanded="false"` over an open panel,
+  and the next click only resynced the model: closing took two presses. The
+  `toggle` event now writes the model (Accordion goes through the same
+  `toggle` as a click, so single mode closes the others). When the model
+  refuses the change (a disabled root or item), the element is
+  reverted to match the model.
+
+- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
+  encodes a string into an id-safe token, injective over strings, for
+  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
+  other code point (`_` included) becomes `_<hex>_`.
+
 ### Fixed
 
 - **Pagination no longer overflows a narrow container (#44).** The row is
@@ -94,6 +113,7 @@
   `toggle` as a click, so single mode closes the others). When the model
   refuses the change (a disabled root or item), the element is
   reverted to match the model.
+
 - **Ids built from values with whitespace (#164).** Tabs built its tab and
   panel ids from the raw `value`, so `value="New York"` produced
   `…-tab-New York`. `aria-controls` and `aria-labelledby` are IDREFS lists
@@ -183,6 +203,25 @@
   typed past its space — and that Space shows no press feedback
   (`data-pressed` / the ripple), since it is search text. Outside a search
   Space activates as before.
+### Added
+
+- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
+  encodes a string into an id-safe token, injective over strings, for
+  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
+  other code point (`_` included) becomes `_<hex>_`.
+### Fixed
+
+- **RatingGroup: `required` is enforced, and Space/Enter commit (#174).**
+  The value posted through an `<input type="hidden">`, which the platform
+  bars from constraint validation, so a required rating left at 0 submitted
+  `''`. `hidden-input` is now a visually-hidden text `<input>` carrying
+  `required`: an unrated required rating fails `checkValidity()`, and the
+  invalid focus lands on the group's tab stop instead of a 1px input. The
+  radiogroup carries `aria-required`. Space and Enter on a focused item
+  commit its index (APG radio); an item is a `span`, so before this neither
+  key did anything, and at 0 the tab stop could not be checked from the
+  keyboard at all. The keys always commit the whole index and never
+  deselect: a half value takes the pointer or the arrows.
 
 ## [0.5.0] - 2026-09-23
 
