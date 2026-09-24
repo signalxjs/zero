@@ -1060,6 +1060,10 @@
         [data-scope="switch"][data-part="thumb"][data-state="checked"] {
             background-color: Highlight;
         }
+
+        [data-scope="switch"][data-part="control"][data-disabled] [data-scope="switch"][data-part="thumb"] {
+            background-color: GrayText;
+        }
     }
 }
 

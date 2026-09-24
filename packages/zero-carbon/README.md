@@ -139,5 +139,5 @@ revalue every author background to `Canvas`. So under `forced-colors: active`
 the track and thumb both used to vanish (#189). The switch now keeps a
 `CanvasText` hairline on its track in that mode (border-box, so its size holds),
 and its thumb opts out of forcing to paint `CanvasText` at rest and `Highlight`
-when checked. On and off differ by more than position. `e2e/switch-forced-colors.spec.ts`
+when checked. A disabled switch paints `GrayText`, the palette's own disabled ink. On and off differ by more than position. `e2e/switch-forced-colors.spec.ts`
 measures it in pixels, in all six skins.

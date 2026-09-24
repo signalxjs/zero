@@ -192,5 +192,9 @@
         [data-scope="switch"][data-part="thumb"]::before {
             display: none;
         }
+
+        [data-scope="switch"][data-part="control"][data-disabled] [data-scope="switch"][data-part="thumb"] {
+            background: GrayText;
+        }
     }
 }

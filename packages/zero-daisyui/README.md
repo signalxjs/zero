@@ -44,7 +44,8 @@ The switch knob is `currentColor` background plus shadows, which forced colours
 revalue to `Canvas` and drop. That left two identical empty pill outlines, on and
 off (#189). Under `forced-colors` the knob now opts out of forcing and paints
 `CanvasText` at rest and `Highlight` when checked, without the noise or the
-shadows. `e2e/switch-forced-colors.spec.ts` measures it in pixels.
+shadows. A disabled switch paints `GrayText`, the palette's own
+disabled ink. `e2e/switch-forced-colors.spec.ts` measures it in pixels.
 
 The palette is daisyUI **5.7.8**'s, role for role, in all five themes — checked
 against its shipped `themes.css` rather than transcribed. `light` and `dark` had

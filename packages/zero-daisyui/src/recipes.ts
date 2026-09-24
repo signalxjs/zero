@@ -803,6 +803,11 @@ export const switchRecipe: RecipeInput = {
                                 boxShadow: 'none',
                             },
                             states: { checked: { backgroundColor: 'Highlight' } },
+                            // A disabled switch draws in GrayText, the forced palette's
+                            // own disabled ink, not full-strength ink faded by an
+                            // author opacity the user's theme cannot style. Keyed off
+                            // the control's flag, which outranks `checked`.
+                            selectors: { '[data-scope="switch"][data-part="control"][data-disabled] &': { backgroundColor: 'GrayText' } },
                         },
                     },
                 },

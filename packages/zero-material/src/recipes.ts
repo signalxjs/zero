@@ -1272,7 +1272,14 @@ export const switchRecipe: RecipeInput = {
                 'forced-colors': {
                     base: { forcedColorAdjust: 'none', background: 'CanvasText' },
                     states: { checked: { background: 'Highlight' } },
-                    selectors: { '&::before': { display: 'none' } },
+                    selectors: {
+                        '&::before': { display: 'none' },
+                        // A disabled switch draws in GrayText, the forced palette's
+                        // own disabled ink, not full-strength ink faded by an
+                        // author opacity the user's theme cannot style. Keyed off
+                        // the control's flag, which outranks `checked`.
+                        '[data-scope="switch"][data-part="control"][data-disabled] &': { background: 'GrayText' },
+                    },
                 },
             },
         },
