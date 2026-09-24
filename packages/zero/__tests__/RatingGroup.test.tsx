@@ -13,6 +13,7 @@ function mount(container: HTMLElement, extra: {
     readonly?: boolean;
     disabled?: boolean;
     count?: number;
+    required?: boolean;
 } = {}) {
     const count = extra.count ?? 5;
     render(
@@ -25,6 +26,7 @@ function mount(container: HTMLElement, extra: {
             readonly={extra.readonly}
             disabled={extra.disabled}
             count={count}
+            required={extra.required}
         >
             <RatingGroup.Label>Rating</RatingGroup.Label>
             <RatingGroup.Control>
@@ -244,5 +246,58 @@ describe('RatingGroup', () => {
         mount(container, { model: [state, 'stars'], count: 3 });
         items(container)[0]!.dispatchEvent(key('End'));
         expect(state.stars).toBe(3);
+    });
+
+    it('Space and Enter on a focused item commit it (APG radio)', () => {
+        const state = signal({ stars: 0 });
+        mount(container, { model: [state, 'stars'] });
+        const all = items(container);
+        // At 0, item 1 is the tab stop — Space must be able to check it.
+        const space = key(' ');
+        all[0]!.dispatchEvent(space);
+        expect(state.stars).toBe(1);
+        expect(space.defaultPrevented).toBe(true);
+        expect(all[0]!.getAttribute('aria-checked')).toBe('true');
+        all[3]!.dispatchEvent(key('Enter'));
+        expect(state.stars).toBe(4);
+    });
+
+    it('Space/Enter commit nothing while readonly or disabled', () => {
+        const state = signal({ stars: 2 });
+        mount(container, { model: [state, 'stars'], readonly: true });
+        items(container)[3]!.dispatchEvent(key(' '));
+        items(container)[3]!.dispatchEvent(key('Enter'));
+        expect(state.stars).toBe(2);
+    });
+
+    it('required carries aria-required and blocks an unrated form submit', () => {
+        const form = document.createElement('form');
+        container.appendChild(form);
+        mount(form, { name: 'stars', required: true });
+        const control = form.querySelector<HTMLElement>('[data-part="control"]')!;
+        expect(control.getAttribute('aria-required')).toBe('true');
+        expect(form.checkValidity()).toBe(false);
+        items(form)[1]!.click();
+        expect(form.checkValidity()).toBe(true);
+        expect(new FormData(form).get('stars')).toBe('2');
+    });
+
+    it('not required: no aria-required, and an unrated form is valid', () => {
+        const form = document.createElement('form');
+        container.appendChild(form);
+        mount(form, { name: 'stars' });
+        expect(form.querySelector('[data-part="control"]')!.hasAttribute('aria-required')).toBe(false);
+        expect(form.checkValidity()).toBe(true);
+    });
+
+    it('the invalid event lands focus on the tab stop, not the 1px input', () => {
+        const form = document.createElement('form');
+        container.appendChild(form);
+        mount(form, { name: 'stars', required: true });
+        const input = form.querySelector<HTMLInputElement>('[data-part="hidden-input"]')!;
+        const invalid = new Event('invalid', { cancelable: true });
+        input.dispatchEvent(invalid);
+        expect(invalid.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(items(form)[0]);
     });
 });

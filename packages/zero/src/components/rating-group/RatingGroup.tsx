@@ -25,6 +25,15 @@
  * two values share one element, so element roving cannot express the step.
  * One tab stop (the item for ceil(value), or item 1); arrows step by 0.5
  * or 1, Home is the smallest non-zero value, End is `count` (APG rating).
+ * Space and Enter commit the focused item's index (APG radio) — an item is a
+ * `span`, so neither key synthesizes a click on its own.
+ *
+ * FORM PARTICIPATION: a visually-hidden text `<input>` (`hidden-input`),
+ * rendered only while `name` is set. Not `type="hidden"` — hidden inputs are
+ * barred from constraint validation, so `required` would be decoration: an
+ * unrated (0) required rating posts '' and fails `checkValidity()`, and the
+ * invalid focus lands on the tab stop. The radiogroup carries
+ * `aria-required`.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -32,6 +41,7 @@ import { createControllableState, createInertState, type ControllableState } fro
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { htmlAttrs } from '../../contract/props.js';
 import type { WithClass, WithFormControl, WithHtmlAttrs, WithReadonly, WithVariantAxes } from '../../contract/props.js';
@@ -64,7 +74,8 @@ interface RatingGroupContext {
     setControl(el: HTMLElement | null): void;
     registerItem(index: number, el: HTMLElement | null): void;
     commit(value: number): void;
-    keydown(e: KeyboardEvent): void;
+    /** `index` is the item the key landed on — Space/Enter commit it. */
+    keydown(e: KeyboardEvent, index: number): void;
 }
 
 function makeInert(): RatingGroupContext {
@@ -191,8 +202,20 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
             else items.delete(index);
         },
         commit,
-        keydown(e) {
+        keydown(e, index) {
             if (disabled() || readonly()) return;
+            if (e.key === ' ' || e.key === 'Enter') {
+                // APG radio: Space checks the focused radio. Enter too — a
+                // span has no implicit activation. Always the whole index:
+                // a half needs the pointer or the arrows. Not `commit()`:
+                // `deselectable` is a click affordance, and a key repeat
+                // must not toggle the rating away.
+                e.preventDefault();
+                hover.current = null;
+                state.value = clampValue(index);
+                focusTabbable();
+                return;
+            }
             // A lingering hover preview would mask the keyboard commit —
             // displayed() prefers the preview.
             hover.current = null;
@@ -244,12 +267,20 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
             {fc.hasName()
                 ? (
                     <input
-                        type="hidden"
+                        type="text"
                         data-scope={SCOPE}
                         data-part="hidden-input"
+                        style={VISUALLY_HIDDEN_STYLE}
                         {...fc.hiddenAttrs()}
+                        required={ctx.required()}
                         value={state.value === 0 ? '' : String(state.value)}
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        autoComplete="off"
                         ref={(node: HTMLInputElement | null) => { hiddenEl = node; }}
+                        // The platform's bubble would anchor to a 1px element:
+                        // cancel it and land focus where the user can act.
+                        onInvalid={(e: Event) => { e.preventDefault(); focusTabbable(); }}
                     />
                 )
                 : null}
@@ -302,6 +333,7 @@ const RatingGroupControl = component<RatingGroupControlProps>(({ props, slots })
                 data-disabled={dataAttr(ctx.disabled())}
                 data-readonly={dataAttr(ctx.readonly())}
                 data-focus-visible={dataAttr(ctx.focus.visible)}
+                aria-required={ctx.required() ? 'true' : undefined}
                 aria-labelledby={[ctx.labelId(), attrs['aria-labelledby']].filter(Boolean).join(' ') || undefined}
                 aria-describedby={[ctx.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
                 class={props.class}
@@ -411,7 +443,7 @@ const RatingGroupItem = component<RatingGroupItemProps>(({ props, slots, onUnmou
                     ctx.commit(valueAt(e));
                     ctx.hover.current = null;
                 }}
-                onKeydown={(e: KeyboardEvent) => ctx.keydown(e)}
+                onKeydown={(e: KeyboardEvent) => ctx.keydown(e, props.index)}
                 onFocus={() => { focus.visible = isFocusVisible(el); ctx.focus.visible = focus.visible; }}
                 onBlur={() => { focus.visible = false; ctx.focus.visible = false; }}
             >

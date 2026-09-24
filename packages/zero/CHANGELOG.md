@@ -183,6 +183,25 @@
   typed past its space — and that Space shows no press feedback
   (`data-pressed` / the ripple), since it is search text. Outside a search
   Space activates as before.
+### Added
+
+- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
+  encodes a string into an id-safe token, injective over strings, for
+  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
+  other code point (`_` included) becomes `_<hex>_`.
+### Fixed
+
+- **RatingGroup: `required` is enforced, and Space/Enter commit (#174).**
+  The value posted through an `<input type="hidden">`, which the platform
+  bars from constraint validation, so a required rating left at 0 submitted
+  `''`. `hidden-input` is now a visually-hidden text `<input>` carrying
+  `required`: an unrated required rating fails `checkValidity()`, and the
+  invalid focus lands on the group's tab stop instead of a 1px input. The
+  radiogroup carries `aria-required`. Space and Enter on a focused item
+  commit its index (APG radio); an item is a `span`, so before this neither
+  key did anything, and at 0 the tab stop could not be checked from the
+  keyboard at all. The keys always commit the whole index and never
+  deselect: a half value takes the pointer or the arrows.
 
 ## [0.5.0] - 2026-09-23
 
