@@ -88,6 +88,15 @@
   encodes a string into an id-safe token, injective over strings, for
   building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
   other code point (`_` included) becomes `_<hex>_`.
+### Fixed
+
+- **Tooltip is hoverable (WCAG 2.1 SC 1.4.13, #167).** `closeDelay`
+  defaulted to 0, so leaving the trigger closed the tooltip at once and the
+  pointer could never cross the `offset` gap onto the popup. A pointer
+  leave (from the trigger or the popup) now closes after a 120 ms grace
+  period that the popup's `pointerenter` cancels. Blur and Escape still
+  close immediately. An explicit `closeDelay` applies as before, and
+  `closeDelay={0}` restores the old immediate pointer-leave close.
 
 ## [0.5.0] - 2026-09-23
 

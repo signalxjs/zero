@@ -67,8 +67,63 @@ describe('Tooltip', () => {
             container.querySelector('[data-part="popup"]')!.id,
         );
         trigger.dispatchEvent(new Event('pointerleave'));
+        // A short grace period (#167) before the close, so the pointer can
+        // cross the offset gap onto the popup.
+        vi.advanceTimersByTime(150);
         expect(trigger.getAttribute('data-state')).toBe('closed');
         expect(trigger.getAttribute('aria-describedby')).toBeNull();
+    });
+
+    it('the pointer can cross from the trigger onto the popup with default props (WCAG 1.4.13 hoverable, #167)', () => {
+        render(
+            <Tooltip.Root openDelay={0}>
+                <Tooltip.Trigger>Save</Tooltip.Trigger>
+                <Tooltip.Popup>Save the document</Tooltip.Popup>
+            </Tooltip.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        trigger.dispatchEvent(new Event('pointerenter'));
+        vi.advanceTimersByTime(0);
+        expect(popup.getAttribute('data-state')).toBe('open');
+        // Leaving the trigger toward the popup: the pointer is in the gap.
+        trigger.dispatchEvent(new Event('pointerleave'));
+        expect(popup.getAttribute('data-state')).toBe('open');
+        vi.advanceTimersByTime(50);
+        popup.dispatchEvent(new Event('pointerenter'));
+        vi.advanceTimersByTime(1000);
+        expect(popup.getAttribute('data-state')).toBe('open');
+        // Leaving the popup closes after the same grace period.
+        popup.dispatchEvent(new Event('pointerleave'));
+        expect(popup.getAttribute('data-state')).toBe('open');
+        vi.advanceTimersByTime(150);
+        expect(popup.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('blur still closes immediately with default props', () => {
+        mount();
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new Event('focus'));
+        expect(trigger.getAttribute('data-state')).toBe('open');
+        trigger.dispatchEvent(new Event('blur'));
+        expect(trigger.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('closeDelay={0} opts back into an immediate pointer-leave close', () => {
+        render(
+            <Tooltip.Root openDelay={0} closeDelay={0}>
+                <Tooltip.Trigger>Save</Tooltip.Trigger>
+                <Tooltip.Popup>Save the document</Tooltip.Popup>
+            </Tooltip.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new Event('pointerenter'));
+        vi.advanceTimersByTime(0);
+        expect(trigger.getAttribute('data-state')).toBe('open');
+        trigger.dispatchEvent(new Event('pointerleave'));
+        expect(trigger.getAttribute('data-state')).toBe('closed');
     });
 
     it('opens immediately on focus and dismisses on Escape without losing state', async () => {

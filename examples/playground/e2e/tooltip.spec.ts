@@ -6,9 +6,13 @@
  * elsewhere, dismissed by Escape through a document-level listener (SC
  * 1.4.13 "dismissable"). A trigger-local keydown can never see that Escape —
  * only a real engine with a real pointer and a real focus owner proves it.
+ * It also proves SC 1.4.13 "hoverable" (#167): a real pointer crosses the
+ * real offset gap between trigger and popup, which happy-dom has no layout
+ * for.
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
+import { settledBox } from './demo';
 
 test.beforeEach(async ({ page }) => {
     await bootPage(page, 'tooltip', 'basic');
@@ -78,5 +82,26 @@ test('Escape dismisses a hover-opened tooltip while focus is elsewhere (WCAG 1.4
     // …and must not pop back up from a stale hover timer: the pointer never
     // left the trigger, so give a re-open ample time to (wrongly) fire.
     await page.waitForTimeout(900);
+    await expect(popup(page)).toHaveAttribute('data-state', 'closed');
+});
+
+test('the pointer can cross the offset gap onto the popup without it closing (WCAG 1.4.13 hoverable, #167)', async ({ page }) => {
+    const t = trigger(page);
+    await t.hover();
+    await expect(popup(page)).toHaveAttribute('data-state', 'open');
+    const from = await settledBox(t, 'tooltip trigger');
+    const to = await settledBox(popup(page), 'tooltip popup');
+    // Walk from the trigger's centre to the popup's centre in small real
+    // steps, so the pointer leaves the trigger and spends time in the gap
+    // that belongs to neither part — exactly what a user's mouse does.
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
+    // Well past the grace period: had the leave closed it, it would be gone.
+    await page.waitForTimeout(500);
+    await expect(popup(page)).toHaveAttribute('data-state', 'open');
+    await expect(popup(page)).toBeVisible();
+
+    // Leaving the popup still closes it.
+    await page.mouse.move(0, 0);
     await expect(popup(page)).toHaveAttribute('data-state', 'closed');
 });
