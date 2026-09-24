@@ -39,6 +39,19 @@
   systems. The root is now the row's scroll box (`overflow-x: auto`, as
   Table's root is), padded by the reach of the focus ring so the scroll
   box does not clip it. The anatomy doc records this; no parts changed.
+- **Popup exits play in Firefox and WebKit (#17).** The recipes fade a
+  popup out in CSS, and CSS `overlay` keeps it in the top layer while the
+  fade runs. `overlay` is Chromium-only, so on other engines the popup left
+  the top layer at once and the exit did not play. Now, on engines without
+  `overlay`, Dialog, Drawer, Popover, Menu (and its submenus), Tooltip,
+  Select and Combobox wait for the popup's exit transition or animation to
+  finish before calling `close()` / `hidePopover()`. A timeout at the
+  exit's computed length means a stalled animation cannot keep a popup open.
+  Reopening during the exit cancels the pending close. Chromium still
+  closes at once and lets CSS run the exit. With reduced motion there is
+  no exit to wait for, so the close happens on the next frame. Closes the
+  platform makes by itself (`popover="auto"` light dismiss, a
+  `<form method="dialog">` submit) are still instant on those engines.
 - **TreeView: a branch's typeahead text with an `asChild` trigger (#157).**
   A branch found its label by querying its subtree for
   `[data-part="branch-trigger"]`. An `asChild` row that carries the app's
