@@ -782,7 +782,7 @@ describe('assertNoCalcVarChains', () => {
         // top/transform/margin-left, proven on both platforms…
         expect(thumb).toContain('top: 50%;');
         expect(thumb).toContain('transform: translateY(-50%);');
-        expect(thumb).toContain('margin-left: calc(var(--size-selector) * -2.5);');
+        expect(thumb).toContain('margin-left: calc((var(--size-selector) * 6) / -2);');
         // …and neither part's paint rides on accent-color (a native-input
         // mechanism lynx has no renderer for).
         expect(range).not.toContain('accent-color');
