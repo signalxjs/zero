@@ -1069,10 +1069,22 @@ typo); property-name grammar and a `CSS_BREAKOUT` check on declaration
 values (`x;} [data-scope]{color` restyled every scoped element on the
 page); pseudo-element projections; `@keyframes` names (a keyframes named
 `none` would capture `animation: none`); theme names into
-`[data-theme="…"]`; token keys; and fragment package specifiers (selector
-injection *and* path traversal). The policy is a hard error rather than
-escaping — a recipe that needs `content: '";"'` is asked to spell it
-differently, because an escape hatch here is an injection surface.
+`[data-theme="…"]`; token keys; token *values* — every `system`,
+`systemDark`, theme `system`, `custom`, `extra` and colour value goes
+through the same `CSS_BREAKOUT` check as a recipe value (`assertTokenValue`,
+which `assertDeclaration` delegates to), because
+`radius.md: '1rem; } body { display:none } :root {'` closed the `:root`
+block and hid the page (#183); `custom[].syntax`, which is written inside a
+quoted `@property` `syntax: '…'` string and so additionally rejects quotes
+and backslashes (a quote ended the string and the rest of the descriptor
+read as CSS, #183); and fragment package specifiers (selector injection
+*and* path traversal). The token-value and syntax guards run in the
+validator, the JSON schema and both emitters. The policy is a hard error
+rather than escaping — a recipe that needs `content: '";"'` is asked to
+spell it differently, and so is a `;base64` data URI (the error message
+points a plain data URI at percent-encoding its `;` as `%3B`, and a base64
+image at being served as a file), because an escape hatch here is an
+injection surface.
 
 ## 6. The theme model
 

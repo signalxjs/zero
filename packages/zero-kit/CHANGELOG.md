@@ -49,6 +49,21 @@
   bracket, string or comment) and an item whose only `&` sits inside a nested
   list with an argument that lacks one (`':is(&:hover, svg)'`, which would
   leave `svg` global) are now build errors.
+- **Token values and `@property` syntax get the recipe break-out guard
+  (#183).** Recipe declarations have refused a brace, semicolon or newline
+  since the interpolation guards landed. The token emitters wrote `system` /
+  `systemDark` / theme `system` values, theme `custom` and `extra` values, an
+  explicit `-soft` colour and each `custom[].syntax` into the stylesheet
+  verbatim, and the validator flagged none of them. So
+  `radius.md: '1rem; } body { display:none } :root {'` emitted a rule the
+  design system never declared. `validateDesignSystem` now reports each one
+  (a `custom[].syntax` may not hold a quote or backslash either, since it
+  sits in a quoted string), `tokens.schema.json` rejects them with a
+  `pattern`, and the web and lynx token emitters throw on them. The value
+  guard's message now names the `;`-free data URI spellings (`%3B`, and
+  serving a `;base64` image as a file). A quoted `url("data:…;base64,…")`
+  is still refused, because skipping quoted strings would need a tokenizer
+  that could reopen the hole.
 
 ## [0.5.0] - 2026-09-23
 

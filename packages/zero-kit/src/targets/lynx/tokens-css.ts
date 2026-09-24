@@ -32,7 +32,7 @@ import {
     resolveRoles,
 } from '../../contract.js';
 import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tokens.js';
-import { STRUCTURAL_FALLBACKS, resolveSystemTokens } from '../shared.js';
+import { STRUCTURAL_FALLBACKS, assertTokenValue, resolveSystemTokens } from '../shared.js';
 
 /**
  * Re-exported from `../shared.ts`, where the structural fallbacks moved once
@@ -168,6 +168,8 @@ function bakedNonColor(
     };
     for (const [name, value] of Object.entries(theme.custom ?? {})) resolved[customProp(name)] = value;
     for (const [name, value] of Object.entries(theme.extra ?? {})) resolved[customProp(name)] = value;
+    // Written into `--prop: value;` verbatim, like a recipe value (#183).
+    for (const [prop, value] of Object.entries(resolved)) assertTokenValue(where, prop, String(value));
 
     const inlined = inlineNonColorVars(resolved, where, report);
 

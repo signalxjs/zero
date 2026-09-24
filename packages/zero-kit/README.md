@@ -255,6 +255,19 @@ may be a `var()` of other tokens, `color-mix()` or `light-dark()`; a
 translucent ink is composited over its surface, and a translucent surface or
 a value the kit cannot evaluate is an error rather than a skipped pair.
 
+Every value the kit writes into the stylesheet verbatim answers to one
+break-out rule: no brace, semicolon or newline, since any of them would end
+the declaration and turn the rest of the value into CSS. That covers recipe
+declarations and every token value: `system`, `systemDark` and a theme's
+`system`, its `custom` and `extra` values, and its colours. A
+`custom[].syntax` also may not hold a quote or backslash, because it is
+written inside a quoted `@property` string. `sigx zero:validate` and
+`tokens.schema.json` report a violation, and the emitters throw on one.
+Quoted strings are not exempt, so a data URI has to be written without a
+literal `;`: percent-encode the payload
+(`url("data:image/svg+xml,%3Csvg …%3E")`, with any `;` inside it as `%3B`).
+A `;base64` marker cannot be encoded, so serve a base64 image as a file.
+
 Conditional styles live in `parts.<part>.at`, keyed by a declared breakpoint
 (`@media (min-width: …)`), a built-in preference query (`reduced-motion`,
 `hover-none`, `prefers-dark`, `forced-colors`, `print`) or a raw `@` prelude
