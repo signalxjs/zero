@@ -12,7 +12,7 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { demoLabelled, settledBox } from './demo';
+import { DESIGN_SYSTEMS, demoLabelled, settledBox } from './demo';
 
 const level = (page: Page) => demoLabelled(page, 'slider', 'Level');
 const gain = (page: Page) => demoLabelled(page, 'slider', 'Gain');
@@ -72,7 +72,7 @@ test.describe('basic', () => {
     });
 });
 
-for (const ds of ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon']) {
+for (const ds of DESIGN_SYSTEMS) {
     test(`${ds}: the vertical rail stands upright with the thumb on it`, async ({ page }) => {
         await bootPage(page, 'slider', ds);
         const track = level(page)('track');
@@ -96,5 +96,35 @@ for (const ds of ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon
         expect(Math.abs(range.height - tr.height * 0.3)).toBeLessThan(3);
         const control = await settledBox(gain(page)('control'), `${ds} Gain control`);
         expect(control.height, 'the native range stands upright').toBeGreaterThan(control.width * 2);
+        // …and PAINTS upright: the fill runs from the foot. Sampled down the
+        // control's centre line at 10% from each end (value 60, so the foot
+        // is filled and the head is not) — a recipe still spelling the
+        // horizontal `to right` gradient, or a horizontal-shaped channel,
+        // paints both ends alike.
+        const [foot, head] = await pixelsAt(page, control, [0.9, 0.1]);
+        expect(colourDistance(foot!, head!), `${ds}: the native fill grows from the foot`).toBeGreaterThan(30);
     });
 }
+
+type Box = { x: number; y: number; width: number; height: number };
+
+/** RGB at fractions down a box's vertical centre line, read off a screenshot. */
+async function pixelsAt(page: Page, box: Box, fractions: number[]): Promise<number[][]> {
+    await page.mouse.move(0, 0);
+    const png = (await page.screenshot({ clip: box })).toString('base64');
+    return page.evaluate(async ({ png, fractions }) => {
+        const img = new Image();
+        img.src = `data:image/png;base64,${png}`;
+        await img.decode();
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0);
+        const x = Math.floor(canvas.width / 2);
+        return fractions.map((f) => Array.from(ctx.getImageData(x, Math.floor(canvas.height * f), 1, 1).data.slice(0, 3)));
+    }, { png, fractions });
+}
+
+const colourDistance = (a: number[], b: number[]): number =>
+    Math.hypot(a[0]! - b[0]!, a[1]! - b[1]!, a[2]! - b[2]!);

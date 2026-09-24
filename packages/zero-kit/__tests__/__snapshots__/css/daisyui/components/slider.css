@@ -88,8 +88,24 @@
     }
 
     [data-scope="slider"][data-part="control"][data-orientation="vertical"] {
-        width: auto;
+        width: var(--slider-thumb-size);
         height: var(--slider-length);
+        --slider-track: linear-gradient(to top, var(--slider-fill) var(--slider-percent, 50%), var(--color-base-300) 0);
+    }
+
+    [data-scope="slider"][data-part="control"][data-orientation="vertical"]::-webkit-slider-runnable-track {
+        width: var(--slider-track-size);
+        height: auto;
+    }
+
+    [data-scope="slider"][data-part="control"][data-orientation="vertical"]::-webkit-slider-thumb {
+        margin-top: 0;
+        margin-block-start: calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2);
+    }
+
+    [data-scope="slider"][data-part="control"][data-orientation="vertical"]::-moz-range-track {
+        width: var(--slider-track-size);
+        height: 100%;
     }
 
     [data-scope="slider"][data-part="track"] {
@@ -105,10 +121,10 @@
     }
 
     [data-scope="slider"][data-part="track"][data-orientation="vertical"] {
-        width: calc(var(--size-selector) * 2);
+        width: var(--slider-track-size);
         height: var(--slider-length);
         margin-block: 0;
-        margin-inline: calc(var(--size-selector) * 1.5);
+        margin-inline: calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2);
     }
 
     [data-scope="slider"][data-part="range"] {
@@ -149,8 +165,8 @@
         inset-block-start: auto;
         inset-inline-start: 50%;
         translate: none;
-        margin-inline-start: calc(calc(var(--size-selector) * 5) / -2);
-        margin-block-end: calc(calc(var(--size-selector) * 5) / -2);
+        margin-inline-start: calc(var(--slider-thumb-size) / -2);
+        margin-block-end: calc(var(--slider-thumb-size) / -2);
     }
 
     [data-scope="slider"][data-part="mark"] {
@@ -174,14 +190,14 @@
     [data-scope="slider"][data-part="mark"][data-orientation="vertical"] {
         inset-inline-start: 0;
         padding-block-start: 0;
-        padding-inline-start: calc(var(--size-selector) * 2 + var(--space-2xs));
+        padding-inline-start: calc(var(--slider-track-size) + var(--space-2xs));
         translate: 0 50%;
     }
 
     [data-scope="slider"][data-part="mark"][data-orientation="vertical"]::before {
         inset-block-start: 50%;
         inset-inline-start: 0;
-        width: calc(var(--size-selector) * 2);
+        width: var(--slider-track-size);
         height: 2px;
         translate: 0 -50%;
     }
