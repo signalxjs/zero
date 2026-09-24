@@ -198,8 +198,8 @@ const dismissAction: PartStyles = {
  * `@starting-style` supplies the state the entry animates FROM — without it
  * the element simply appears at its open value.
  *
- * `overlay` is Chromium-only as of writing; elsewhere the entry still animates
- * and the exit is instant.
+ * `overlay` is Chromium-only as of writing; elsewhere zero holds the native
+ * close back until this exit has played (#17), so both directions animate.
  */
 const popupPresence = (from: string): PartStyles => ({
     base: {
