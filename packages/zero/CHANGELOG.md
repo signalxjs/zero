@@ -256,6 +256,20 @@
   optional `mode` getter, and `createListboxCore`'s `emptyValue` accepts a
   getter, to carry this — a function passed as `emptyValue` is now CALLED
   on every read rather than stored as the sentinel.
+- **Slider `orientation="vertical"` (#170).** The slider anatomy has
+  declared `orientation: true` since it shipped, but Slider had no
+  `orientation` prop: no `data-orientation`, a hard-coded
+  `aria-orientation="horizontal"`, and pointer math that read only
+  `clientX`. `Slider.Root` now takes `orientation` (default `horizontal`)
+  and renders it as `data-orientation` on the root, control, track, range,
+  thumb and mark parts, and as `aria-orientation` on each thumb and the
+  native control. Vertical runs bottom-to-top, per APG: the pointer maps
+  through `clientY`, the moving parts are positioned by physical `bottom`
+  percentages (the range sized by `height`), Up/Right increase and
+  Down/Left decrease with no RTL mirroring, and the native control is
+  spelled `writing-mode: vertical-lr; direction: rtl`. All six design
+  systems style the vertical rail (web target; the rail length is the
+  `--slider-length` custom property on the root).
 
 ## [0.5.0] - 2026-09-23
 

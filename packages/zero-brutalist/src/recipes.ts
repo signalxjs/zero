@@ -1495,6 +1495,95 @@ export const slider: RecipeInput = {
         },
     },
     skipStates: { root: ['invalid', 'focus-visible'] },
+    targets: {
+        web: {
+            parts: {
+                // A vertical native range is spelled through writing mode by the
+                // runtime (#170): the long axis is the box's HEIGHT, the channel's
+                // WIDTH, and the fill grows from the foot.
+                control: {
+                    selectors: {
+                        '&[data-orientation="vertical"]': {
+                            width: 'var(--slider-thumb-size)',
+                            height: 'var(--slider-length)',
+                            '--slider-fill-dir': 'to top',
+                        },
+                        '&[data-orientation="vertical"]::-webkit-slider-runnable-track': {
+                            width: 'calc(var(--slider-track-size) + var(--border) * 2)',
+                            height: 'auto',
+                        },
+                        // Blink lays the thumb against the channel's block axis — in
+                        // vertical-lr that is its left edge.
+                        '&[data-orientation="vertical"]::-webkit-slider-thumb': {
+                            marginTop: '0',
+                            marginBlockStart: 'calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2)',
+                        },
+                        '&[data-orientation="vertical"]::-moz-range-track': {
+                            width: 'calc(var(--slider-track-size) + var(--border) * 2)',
+                            height: '100%',
+                        },
+                    },
+                },
+                // Vertical (#170): the runtime positions the moving parts by
+                // physical `bottom` percents; these turn the channel upright and
+                // re-centre the handle on the other axis. Web-only — the lynx runtime
+                // ships no vertical slider.
+                root: {
+                    selectors: {
+                        '&[data-orientation="vertical"]': {
+                            width: 'auto',
+                            alignItems: 'center',
+                            '--slider-length': 'calc(var(--size-field) * 40)',
+                        },
+                    },
+                },
+                track: {
+                    selectors: {
+                        '&[data-orientation="vertical"]': {
+                            width: 'calc(var(--slider-track-size) + var(--border) * 2)',
+                            height: 'var(--slider-length)',
+                            marginBlock: '0',
+                            marginInline: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
+                        },
+                    },
+                },
+                range: {
+                    selectors: {
+                        '&[data-orientation="vertical"]': { insetInlineStart: '0', width: '100%' },
+                    },
+                },
+                thumb: {
+                    selectors: {
+                        '&[data-orientation="vertical"]': {
+                            insetBlockStart: 'auto',
+                            insetInlineStart: '50%',
+                            translate: 'none',
+                            marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
+                            marginBlockEnd: 'calc(var(--slider-thumb-size) / -2)',
+                        },
+                    },
+                },
+                // The label sits beside the channel, centred on its tick.
+                mark: {
+                    selectors: {
+                        '&[data-orientation="vertical"]': {
+                            insetInlineStart: '0',
+                            paddingBlockStart: '0',
+                            paddingInlineStart: 'calc(var(--slider-track-size) + var(--border) * 2 + var(--space-2xs))',
+                            translate: '0 50%',
+                        },
+                        '&[data-orientation="vertical"]::before': {
+                            insetBlockStart: '50%',
+                            insetInlineStart: '0',
+                            width: 'calc(var(--slider-track-size) + var(--border) * 2)',
+                            height: '2px',
+                            translate: '0 -50%',
+                        },
+                    },
+                },
+            },
+        },
+    },
 };
 
 export const progress: RecipeInput = {

@@ -50,7 +50,8 @@ export const sliderAnatomy = defineAnatomy('slider', {
         tokens: ['color', 'radius-selector', 'size'],
     },
     // A tick from the root's `marks` prop, positioned on the track by the
-    // runtime (logical inline-start percent); carries the mark's label text
+    // runtime (logical inline-start percent; physical bottom percent when
+    // the root is `orientation="vertical"`); carries the mark's label text
     // when one is declared.
     mark: {
         element: 'span',
@@ -70,6 +71,7 @@ export const sliderAnatomy = defineAnatomy('slider', {
         parent: 'root',
     },
 }, {
+    // `data-orientation` on the root and the positioned parts (#170).
     orientation: true,
     models: [
         { concept: 'value', type: 'number | number[]', formControl: true },

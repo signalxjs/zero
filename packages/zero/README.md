@@ -157,7 +157,11 @@ with `reason` one of `close` · `cancel` · `escape` · `backdrop` ·
 in model form, so a confirm dialog needs no flag beside its model; Slider's `model` accepts `number[]` for a
 composed multi-thumb range (`Slider.Track`/`Range`/`Thumb`, thumbs clamp at
 their neighbors, `marks` renders ticks) while a scalar model keeps the native
-`<input type=range>`; Select and Combobox group options
+`<input type=range>`, and `orientation="vertical"` turns either projection
+bottom-to-top (`data-orientation` on the root and every positioned part,
+`aria-orientation` on the thumbs and the control, pointer mapped through
+`clientY`, Up/Right increase with no RTL mirroring, the native control
+spelled `writing-mode: vertical-lr; direction: rtl`); Select and Combobox group options
 (`Group`/`GroupLabel`, the optgroup equivalent).
 
 **Select and Combobox are typed generic over their items.** `items` is

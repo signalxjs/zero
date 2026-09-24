@@ -141,7 +141,9 @@ buttons on click, so a click-open leaves the restore target as body and the
 assertion would prove nothing), tooltip (hover-intent delay asserted as a
 lower bound only, and WCAG 1.4.13: Escape dismisses a hover-opened tooltip
 while focus sits elsewhere), tabs (one roving tab stop, automatic
-activation), slider drag under implicit pointer capture, tree-view
+activation), slider drag under implicit pointer capture (and, since
+#170, a vertical slider: bottom-to-top drags on both projections, and a
+rail every skin stands upright, measured in boxes), tree-view
 keyboard (expand/descend/collapse/climb, typeahead against the accessible
 text), carousel (real scroll-snap: buttons and dots move the scroll, and a
 REAL scroll drives the model back through the IntersectionObserver),

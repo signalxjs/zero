@@ -219,3 +219,106 @@ describe('Slider range', () => {
         expect(state.price).toEqual([0.3, 0.6]);
     });
 });
+
+describe('Slider orientation (#170)', () => {
+    const rect = { left: 0, top: 0, right: 10, bottom: 100, width: 10, height: 100, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
+
+    function mountVertical(state: { price: number[] }) {
+        render(
+            <Slider.Root model={[state, 'price']} min={0} max={100} orientation="vertical" marks={[50]}>
+                <Slider.Track>
+                    <Slider.Range />
+                    <Slider.Thumb label="Low" />
+                    <Slider.Thumb label="High" />
+                </Slider.Track>
+            </Slider.Root>,
+            container,
+        );
+        return {
+            root: container.querySelector<HTMLElement>('[data-part="root"]')!,
+            thumbs: container.querySelectorAll<HTMLElement>('[data-part="thumb"]'),
+            track: container.querySelector<HTMLElement>('[data-part="track"]')!,
+            range: container.querySelector<HTMLElement>('[data-part="range"]')!,
+            mark: container.querySelector<HTMLElement>('[data-part="mark"]')!,
+        };
+    }
+
+    it('defaults to horizontal and says so on the root and the positioned parts', () => {
+        mountRange(signal({ price: [20, 60] }), { marks: [50] });
+        for (const part of ['root', 'track', 'range', 'thumb', 'mark']) {
+            expect(container.querySelector(`[data-part="${part}"]`)!.getAttribute('data-orientation')).toBe('horizontal');
+        }
+    });
+
+    it('orientation="vertical" renders data-orientation and aria-orientation', () => {
+        const { thumbs } = mountVertical(signal({ price: [20, 60] }));
+        for (const part of ['root', 'track', 'range', 'thumb', 'mark']) {
+            expect(container.querySelector(`[data-part="${part}"]`)!.getAttribute('data-orientation')).toBe('vertical');
+        }
+        expect(thumbs[0]!.getAttribute('aria-orientation')).toBe('vertical');
+        expect(thumbs[1]!.getAttribute('aria-orientation')).toBe('vertical');
+        expectAnatomy(container, sliderAnatomy);
+    });
+
+    it('positions the moving parts bottom-to-top on the block axis', () => {
+        const { thumbs, range, mark } = mountVertical(signal({ price: [20, 60] }));
+        expect(thumbs[0]!.style.bottom).toBe('20%');
+        expect(thumbs[1]!.style.bottom).toBe('60%');
+        expect(thumbs[0]!.style.insetInlineStart).toBe('');
+        expect(range.style.bottom).toBe('20%');
+        expect(range.style.height).toBe('40%');
+        expect(range.style.inlineSize).toBe('');
+        expect(mark.style.bottom).toBe('50%');
+    });
+
+    it('maps the pointer through clientY, bottom-to-top', () => {
+        const state = signal({ price: [20, 60] });
+        const { track } = mountVertical(state);
+        track.getBoundingClientRect = () => rect;
+        // 70px down a 100px rail is 30% up it.
+        track.dispatchEvent(new PointerEvent('pointerdown', { button: 0, clientX: 90, clientY: 70, bubbles: true }));
+        expect(state.price).toEqual([30, 60]);
+        window.dispatchEvent(new PointerEvent('pointermove', { clientX: 0, clientY: 90 }));
+        expect(state.price).toEqual([10, 60]);
+        window.dispatchEvent(new PointerEvent('pointerup', {}));
+    });
+
+    it('arrow keys follow APG: Up/Right increase, Down/Left decrease', () => {
+        const state = signal({ price: [20, 60] });
+        const { thumbs } = mountVertical(state);
+        key(thumbs[0]!, 'ArrowUp');
+        expect(state.price).toEqual([21, 60]);
+        key(thumbs[0]!, 'ArrowRight');
+        expect(state.price).toEqual([22, 60]);
+        key(thumbs[0]!, 'ArrowDown');
+        key(thumbs[0]!, 'ArrowLeft');
+        key(thumbs[0]!, 'ArrowLeft');
+        expect(state.price).toEqual([19, 60]);
+    });
+
+    it('a vertical RTL slider does not flip Left/Right (the axis is not the reading one)', () => {
+        const state = signal({ price: [20, 60] });
+        container.setAttribute('dir', 'rtl');
+        container.style.direction = 'rtl';
+        const { thumbs } = mountVertical(state);
+        key(thumbs[0]!, 'ArrowRight');
+        expect(state.price).toEqual([21, 60]);
+    });
+
+    it('the native control projection is vertical too', () => {
+        const state = signal({ volume: 40 });
+        render(
+            <Slider.Root model={[state, 'volume']} orientation="vertical">
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        const control = container.querySelector<HTMLInputElement>('[data-part="control"]')!;
+        expect(control.getAttribute('data-orientation')).toBe('vertical');
+        expect(control.getAttribute('aria-orientation')).toBe('vertical');
+        // The platform's spelling of a bottom-to-top range.
+        expect(control.style.writingMode).toBe('vertical-lr');
+        expect(control.style.direction).toBe('rtl');
+        expectAnatomy(container, sliderAnatomy);
+    });
+});

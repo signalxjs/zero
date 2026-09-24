@@ -3,7 +3,7 @@ import { Progress, Slider } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const SliderDemos = component(() => {
-    const state = signal({ volume: 40, price: [120, 350] });
+    const state = signal({ volume: 40, price: [120, 350], level: 30, gain: 60 });
 
     return () => (
         <>
@@ -37,6 +37,26 @@ const SliderDemos = component(() => {
                 </Slider.Track>
                 <Slider.ValueText />
             </Slider.Root>
+            <h2>Vertical</h2>
+            <p>
+                <code>orientation="vertical"</code> runs the rail bottom-to-top,
+                on both projections: the composed track and the native control.
+            </p>
+            <div style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start' }}>
+                <Slider.Root model={() => state.level} orientation="vertical" marks={[0, { value: 50, label: '50' }, 100]}>
+                    <Slider.Label>Level</Slider.Label>
+                    <Slider.Track>
+                        <Slider.Range />
+                        <Slider.Thumb label="Level" />
+                    </Slider.Track>
+                    <Slider.ValueText />
+                </Slider.Root>
+                <Slider.Root model={() => state.gain} orientation="vertical">
+                    <Slider.Label>Gain</Slider.Label>
+                    <Slider.Control />
+                    <Slider.ValueText />
+                </Slider.Root>
+            </div>
             <Slider.Root defaultValue={95} invalid>
                 <Slider.Label>Invalid (above the allowed budget)</Slider.Label>
                 <Slider.Control />
