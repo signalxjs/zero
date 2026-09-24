@@ -191,6 +191,27 @@ test.describe('the layout tier resolves through the design system', () => {
         expect(await centre.evaluate((el) => getComputedStyle(el).placeItems)).toContain('center');
     });
 
+    test('justify="between" has free space to distribute, and distributes it', async ({ page }) => {
+        // #46: the demo once sat inside a flex DemoRow, which sized the Row
+        // by its own content — `space-between` computed correctly over zero
+        // free space and rendered as ordinary gaps. Reading the computed
+        // property would have passed; only the boxes show the difference.
+        await bootPage(page, 'layout', TIGHT);
+        await page.setViewportSize({ width: 1280, height: 900 });
+        const row = rootLabelled(page, 'stack', 'middle');
+        const cell = (text: string) =>
+            settledBox(row.locator('[data-scope="badge"]').filter({ hasText: text }), `the ${text} cell`);
+        const rowBox = await settledBox(row, 'the justified row');
+        const [start, middle, end] = [await cell('start'), await cell('middle'), await cell('end')];
+        const gap = await row.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
+
+        // The outer cells sit on the row's edges…
+        expect(start.x).toBeCloseTo(rowBox.x, 0);
+        expect(end.x + end.width).toBeCloseTo(rowBox.x + rowBox.width, 0);
+        // …and the space between them is distributed, not the plain gap.
+        expect(middle.x - (start.x + start.width)).toBeGreaterThan(gap * 2);
+    });
+
     test('Container bounds the page, and the bound is the skin\'s own', async ({ page }) => {
         // The measure category's whole justification: how wide a page runs is
         // identity, so two skins should disagree. Measured as boxes, at a
