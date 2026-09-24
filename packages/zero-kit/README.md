@@ -416,7 +416,8 @@ target does not leave an importable, packable leftover. Nothing else in
 Those paths — `dist/css/`, `dist/lynx/`, `dist/components.{js,d.ts}`,
 `manifest.json`, `register.{js,d.ts}`, `report.json` and `audit.json` — are
 reserved kit output: don't route tsgo emit (a `src/lynx/**` tree, a
-hand-written `src/components.ts`) there, or the next build deletes it.
+hand-written `src/components.ts`) there, or the next build overwrites or
+removes it.
 
 `targets` selects the emit targets (default `['web']`, which is today's
 output exactly). The list is validated up front: unknown names fail, `web`
