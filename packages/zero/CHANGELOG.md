@@ -284,6 +284,10 @@
   spelled `writing-mode: vertical-lr; direction: rtl`. All six design
   systems style the vertical rail (web target; the rail length is the
   `--slider-length` custom property on the root).
+- **Slider maps the pointer against the track's padding box (#170).** The
+  thumb and range are positioned by percentages of the track's padding
+  box, but the pointer was mapped against its border box, so on a bordered
+  channel (brutalist) a click landed a border-width off the value under it.
 
 ## [0.5.0] - 2026-09-23
 
