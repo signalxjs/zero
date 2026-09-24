@@ -152,8 +152,10 @@ describe('Menu', () => {
         try {
             await arrowOpens();
         } finally {
-            proto.showPopover = saved.show;
-            proto.hidePopover = saved.hide;
+            // Delete rather than assign when happy-dom had no member, so no
+            // own `undefined` property outlives the test.
+            if (saved.show) proto.showPopover = saved.show; else delete proto.showPopover;
+            if (saved.hide) proto.hidePopover = saved.hide; else delete proto.hidePopover;
             Element.prototype.matches = saved.matches;
         }
     });
