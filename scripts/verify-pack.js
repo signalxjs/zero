@@ -100,8 +100,11 @@ function packPackage(pkgPath) {
     const pkgJson = readJson(join(pkgFullPath, 'package.json'));
     run('pnpm pack --pack-destination ' + JSON.stringify(tarballDir), { cwd: pkgFullPath });
     const tarballs = readdirSync(tarballDir).filter((f) => f.endsWith('.tgz'));
+    // The exact file name `pnpm pack` writes — a prefix match would let
+    // `sigx-zero` pick up `sigx-zero-kit-*.tgz` (#195).
     const safeName = pkgJson.name.replace('@', '').replace('/', '-');
-    const match = tarballs.find((f) => f.startsWith(safeName));
+    const wantName = `${safeName}-${pkgJson.version}.tgz`;
+    const match = tarballs.find((f) => f === wantName);
     if (!match) {
         throw new Error(`Could not find tarball for ${pkgJson.name} in ${tarballDir}`);
     }
@@ -316,6 +319,33 @@ function main() {
         ].join('\n')
     );
 
+    // daisyUI's generated `./components` module (#332) is the one PUBLISHED
+    // package that ships one (heroui's and carbon's are private, and
+    // examples/typed-app only covers those) — so its export and emitted
+    // d.ts are proven here, from the tarball (#195): daisy-native props
+    // compile, and one @ts-expect-error proves the surface is narrowed.
+    writeFileSync(
+        join(appDir, 'src', 'daisyui-components-check.tsx'),
+        [
+            "import { component } from 'sigx';",
+            "import { Button } from '@sigx/zero-daisyui/components';",
+            '',
+            'export const DaisyApp = component(() => () => (',
+            '    <>',
+            '        <Button wide loading variant="dash" color="primary" size="lg">Save</Button>',
+            '        <Button.Root variant="link" circle>×</Button.Root>',
+            '        <Button',
+            "            /* @ts-expect-error — `danger` is not a daisyUI button colour */",
+            '            color="danger"',
+            '        >',
+            '            Nope',
+            '        </Button>',
+            '    </>',
+            '));',
+            '',
+        ].join('\n')
+    );
+
     // The extensionless stylesheet exports carry a `types` condition, so
     // they typecheck as side-effect imports without an app-side shim; and
     // the fragment contract version is reachable without the kit barrel —
@@ -420,6 +450,23 @@ function main() {
         ].join('\n')
     );
     run('node resolve-check.mjs', { cwd: appDir });
+
+    // daisyUI's `./components` exports only an `import` condition, so it is
+    // loaded as ESM rather than through require.resolve (#195): the module
+    // and the @sigx/zero subpaths it imports must evaluate from the tarballs.
+    writeFileSync(
+        join(appDir, 'components-check.mjs'),
+        [
+            "const mod = await import('@sigx/zero-daisyui/components');",
+            'for (const name of ["Button", "Countdown", "Tabs"]) {',
+            '    if (mod[name] == null) throw new Error(`@sigx/zero-daisyui/components does not export ${name}`);',
+            '}',
+            'if (mod.Button.Root == null) throw new Error("@sigx/zero-daisyui/components Button lost its compound statics");',
+            'console.log(`   ✓ @sigx/zero-daisyui/components (${Object.keys(mod).length} exports)`);',
+            '',
+        ].join('\n')
+    );
+    run('node components-check.mjs', { cwd: appDir });
 
     // The scaffold is only proven by what it writes AGAINST THE PUBLISHED
     // SHAPE: templates must travel in `files`, the bin must link, and the

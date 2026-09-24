@@ -431,7 +431,9 @@ other change, and the tag is what publishes:
    publishable package to the one version and cuts both CHANGELOGs
    (`[Unreleased]` → `[X.Y.Z] - <today>` under a fresh `[Unreleased]`). A
    bump from a prerelease drops it and bumps: 0.3.0-beta.1 → `minor` →
-   0.4.0.
+   0.4.0. It plans every package before writing any: a relative bump
+   refuses a tree whose publishable packages already disagree (exit 1,
+   nothing written) — `version:set X.Y.Z` puts one back in step.
 2. `pnpm typecheck && pnpm test && pnpm build && pnpm verify:pack`, then a
    PR (`chore(release): X.Y.Z`) with Copilot as reviewer, merged like any
    other — that is the release commit.
