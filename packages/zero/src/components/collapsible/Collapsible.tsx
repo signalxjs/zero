@@ -82,9 +82,9 @@ const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit })
             onToggle={(e: Event) => {
                 // The platform opens a closed <details> by itself for
                 // find-in-page and fragment navigation (#166). Adopt that
-                // into the model; if the model refuses (disabled, or a
-                // controlled parent that re-asserts), put the element back
-                // — the vdom won't, since its `open` prop never changed.
+                // into the model; if the model refuses (a disabled root),
+                // put the element back — the vdom won't, since its `open`
+                // prop never changed.
                 // Our own writes arrive here already in agreement.
                 const el = e.currentTarget as HTMLDetailsElement;
                 if (e.target !== el || el.open === state.value) return;

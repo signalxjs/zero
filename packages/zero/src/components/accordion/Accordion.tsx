@@ -132,10 +132,10 @@ const AccordionItem = component<AccordionItemProps>(({ props, slots }) => {
                 // The platform opens a closed <details> by itself for
                 // find-in-page and fragment navigation (#166). Route that
                 // through `toggle` like a click (single mode then closes the
-                // others); if the model refuses (a disabled item or root,
-                // a controlled parent that re-asserts), put the element back — the
-                // vdom won't, since its `open` prop never changed. Our own
-                // writes arrive here already in agreement.
+                // others); if the model refuses (a disabled item or root, or
+                // a toggle it rejects such as collapsible={false}), put the
+                // element back — the vdom won't, since its `open` prop never
+                // changed. Our own writes arrive here already in agreement.
                 const el = e.currentTarget as HTMLDetailsElement;
                 if (e.target !== el || el.open === accordion.isOpen(props.value)) return;
                 if (!itemCtx.disabled()) accordion.toggle(props.value);
