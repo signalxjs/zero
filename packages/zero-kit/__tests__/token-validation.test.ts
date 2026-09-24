@@ -14,7 +14,7 @@ import { describe, expect, it } from 'vitest';
 import { oklch, wcagContrast } from 'culori';
 import { anatomies } from '@sigx/zero/anatomy';
 import type { DesignSystemInput, ManifestComponent, TokensInput } from '@sigx/zero-kit';
-import { compileTokensCss, suggestContrastFix, validateDesignSystem } from '@sigx/zero-kit';
+import { buildReport, compileDesignSystem, compileTokensCss, suggestContrastFix, validateDesignSystem } from '@sigx/zero-kit';
 
 const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
 
@@ -285,5 +285,52 @@ describe('@property initial-value must be computationally independent (#184)', (
         const input = withCustom(syntax, value);
         expect(registration(input)).toContain(`initial-value: ${value};`);
         expect(warnings(input)).not.toContain('computationally independent');
+    });
+});
+
+describe('role-pair contrast reads alpha, and colour functions parse case-insensitively (#185)', () => {
+    const measured = (input: DesignSystemInput, fg: string) =>
+        buildReport(compileDesignSystem(input, manifest), input, manifest).themes[0]!.pairs
+            .find((p) => p.fg === fg);
+
+    // A 10%-opacity ink on a dark primary: nearly invisible as painted.
+    const faint = ds((t) => { t.themes.day.colors['primary-content'] = 'oklch(97% 0.01 300 / 0.1)'; });
+
+    it('the validator composites a translucent -content colour over its role before measuring', () => {
+        const result = validateDesignSystem(faint, manifest);
+        const issue = result.errors.find((e) => e.rule === 'contrast-floor' && e.message.includes('vs primary-content'));
+        expect(issue, errors(faint)).toBeDefined();
+        // Composited as the browser paints it, the pair reads ~1.23:1 — not
+        // the 7.57:1 culori reports when it drops the alpha.
+        expect(issue!.message).toMatch(/is 1\.2\d:1/);
+        expect(issue!.message).toContain('translucent');
+        // No lightness suggestion: a translucent ink's lightness is not its paint.
+        expect(issue!.suggest).toBeUndefined();
+    });
+
+    it('the report scores the same composited ratio', () => {
+        expect(measured(faint, 'primary-content')!.ratio).toBeLessThan(1.3);
+    });
+
+    it('a translucent role is composited over base-100 before its -content is measured against it', () => {
+        // Black at 10% over white paints near-white; white ink on it is unreadable.
+        const input = ds((t) => {
+            t.themes.day.colors.primary = 'oklch(0% 0 0 / 0.1)';
+            t.themes.day.colors['primary-content'] = 'oklch(100% 0 0)';
+        });
+        expect(errors(input)).toMatch(/contrast primary vs primary-content is 1\.\d\d:1/);
+        // …and says why: the surface's alpha, not the ink, is the cause.
+        expect(errors(input)).toContain('primary is translucent, composited over base-100');
+        expect(measured(input, 'primary-content')!.ratio).toBeLessThan(1.5);
+    });
+
+    it('accepts an uppercase colour function, as CSS and bakeColor do', () => {
+        const input = ds((t) => {
+            t.themes.day.colors.primary = 'OKLCH(45% 0.2 300)';
+            t.themes.day.colors['primary-content'] = 'Oklch(97% 0.01 300)';
+        });
+        expect(errors(input)).toBe('');
+        // …and the report measures it rather than skipping it as unparseable.
+        expect(measured(input, 'primary-content')!.ratio).toBeGreaterThan(7);
     });
 });

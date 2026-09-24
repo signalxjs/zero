@@ -442,7 +442,15 @@ the set down). The other rules worth knowing:
   { token, value }` under `rule: 'contrast-floor'`, so an agent iterating
   on a generated theme pastes the value rather than guessing a lightness.
   `rule` and `suggest` are optional on every issue; a rule carries them
-  only when it can vouch for a fix.
+  only when it can vouch for a fix. A role pair is measured as painted,
+  through the one reading the validator and the report share
+  (`resolve/role-contrast.ts`, #185): colour functions parse
+  case-insensitively (`OKLCH(…)` is a colour CSS paints), a translucent ink
+  is composited over its role, and a translucent role is composited over
+  `base-100` (the message says so). A translucent ink gets no lightness
+  `suggest` — its lightness is not its paint, so the message asks for more
+  alpha or a wider lightness gap instead — and a translucent `base-100`,
+  with nothing opaque under it, is an error: the pair cannot be measured.
 - **A custom colour token is measured where the design system says it is
   read.** `contrastPairs` is derived from the role declaration, so it can
   never reach a `custom` token; `tokens.contrast` declares those pairs
