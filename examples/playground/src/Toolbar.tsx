@@ -44,11 +44,6 @@ const singleSelection = (read: () => string | null, write: (value: string) => vo
 });
 
 /**
- * The box a toolbar group scrolls inside when it is wider than the bar. The
- * padding keeps the items' focus rings inside the scroller's clip — an
- * `overflow-x` other than `visible` clips both axes.
- */
-/**
  * A labelled row of the bar. `minWidth: 0` lets it shrink below its
  * content: a flex item floors at its min-content width, which here is the
  * whole segmented group, so without it the scroller below never gets a
@@ -56,6 +51,11 @@ const singleSelection = (read: () => string | null, write: (value: string) => vo
  */
 const GROUP_ROW = { display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', minWidth: 0 } as const;
 
+/**
+ * The box a toolbar group scrolls inside when it is wider than the bar. The
+ * padding keeps the items' focus rings inside the scroller's clip — an
+ * `overflow-x` other than `visible` clips both axes.
+ */
 const GROUP_SCROLLER = { boxSizing: 'border-box', maxWidth: '100%', overflowX: 'auto', padding: '0.25rem' } as const;
 
 export const Toolbar = component(() => {
