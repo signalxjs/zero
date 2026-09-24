@@ -7,7 +7,7 @@
  * actually playing in Firefox/WebKit) is `e2e/top-layer-exit.spec.ts`.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTopLayerExit } from '../src/behaviors/top-layer-exit';
+import { createTopLayerExit } from '../src/behaviors/top-layer-exit.js';
 
 interface FakeAnimation {
     effect: { getComputedTiming(): { endTime: number } };
