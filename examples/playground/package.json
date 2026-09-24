@@ -17,7 +17,7 @@
         "@sigx/zero-brutalist": "workspace:^",
         "@sigx/zero-carbon": "workspace:^",
         "@sigx/zero-daisyui": "workspace:^",
-        "@sigx/zero-ext-example": "workspace:*",
+        "@sigx/zero-ext-example": "workspace:^",
         "@sigx/zero-heroui": "workspace:^",
         "@sigx/zero-material": "workspace:^",
         "sigx": "catalog:"

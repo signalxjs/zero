@@ -21,7 +21,7 @@ const VisuallyHiddenDemos = component(() => () => (
             button's name, a heading only a screen reader needs.
         </p>
         <DemoRow>
-            <Button.Root data-demo="vh-icon-button">
+            <Button.Root>
                 <span aria-hidden="true">✕</span>
                 <VisuallyHidden>Close panel</VisuallyHidden>
             </Button.Root>

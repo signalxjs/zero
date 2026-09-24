@@ -81,7 +81,7 @@ importers:
         specifier: workspace:^
         version: link:../../packages/zero-daisyui
       '@sigx/zero-ext-example':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../../packages/zero-ext-example
       '@sigx/zero-heroui':
         specifier: workspace:^
