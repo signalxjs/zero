@@ -68,6 +68,17 @@ describe('readPublishList', () => {
         expect(list).toContain('packages/zero');
         expect(list).toContain('packages/zero-kit');
     });
+
+    it('ignores quoted paths inside comments in the array', () => {
+        const source = [
+            'const PACKAGES = [',
+            "    'packages/zero', // 'packages/zero-material' is private",
+            "    /* 'packages/zero-heroui' */",
+            "    'packages/zero-kit',",
+            '];',
+        ].join('\n');
+        expect(readPublishList(source)).toEqual(['packages/zero', 'packages/zero-kit']);
+    });
 });
 
 describe('release.yml', () => {

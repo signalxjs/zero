@@ -33,10 +33,12 @@ export function releaseTagProblems(tag, packages) {
 /**
  * The PACKAGES array from publish.js's source — the list that actually
  * publishes. Read rather than imported: publish.js runs on import. Same
- * tolerant pattern verify-pack.js uses.
+ * tolerant pattern verify-pack.js uses, except that comments are stripped
+ * first, so a quoted path inside a `//` or a block comment is not a package.
  */
 export function readPublishList(source) {
     const block = /const\s+PACKAGES\s*=\s*\[([\s\S]*?)\]/.exec(source);
     if (!block) throw new Error('Could not find the PACKAGES array in scripts/publish.js');
-    return [...block[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
+    const body = block[1].replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    return [...body.matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
 }
