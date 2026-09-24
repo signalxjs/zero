@@ -11,7 +11,7 @@ export interface PartStyles {
     base?: CssProps;
     /** state/flag/interaction name → declarations. */
     states?: Record<string, CssProps>;
-    /** Nested selectors; `&` is the part selector. */
+    /** Nested selectors; `&` is the part selector, a key without `&` selects descendants, and each item of a list key is scoped on its own. */
     selectors?: Record<string, CssProps>;
     /**
      * Conditional styles for the same part — condition → the same shape,

@@ -65,6 +65,19 @@ export const designSystem = defineDesignSystem({
 });
 ```
 
+A part's `selectors` keys are nested selectors scoped to that part: `&` is
+the part's own selector, and a key without `&` selects descendants of it. A
+key may be a selector list, and each item is scoped on its own —
+`'&:hover, svg'` compiles to `<part>:hover, <part> svg`, never a global `svg`
+rule. Only top-level commas split the list; the comma in
+`'&:not([data-disabled], [data-invalid])'` stays inside its item, as does
+one in a string, a comment or after a backslash escape. An `&` in a string,
+a comment or escaped is text and is never substituted. An item whose only
+`&`s sit inside a nested list with an argument lacking one
+(`':is(&:hover, svg)'`) is a build error — the `&` would not scope `svg` —
+while `':where(.dark &)'` and `':is(&.a, &.b)'` are fine. A key the compiler cannot balance (an unclosed bracket, string or
+comment) is a build error too, never a half-scoped rule.
+
 Only the base surfaces (`base-100/200/300/base-content`) are fixed — they
 anchor `-soft` derivation, `light-dark()` emission and theme swatches.
 `defaultDark` is optional: without it (or naming the same theme as

@@ -166,14 +166,129 @@ function emitPartStyles(
                 `[zero-kit] ${where}: the selectors key "${nested}" cannot hold a brace, semicolon or newline — it is written into a selector verbatim`,
             );
         }
-        const self = `${baseSelector}${pseudoSuffix}`;
-        const sel = nested.includes('&') ? nested.replace(/&/g, self) : `${self} ${nested}`;
-        rule(sel, props);
+        rule(scopeNestedSelector(nested, `${baseSelector}${pseudoSuffix}`, where), props);
     }
     for (const [key, nested] of Object.entries(styles.at ?? {})) {
         const condition = resolveCondition(key, context, where, registry);
         emitPartStyles(component, partName, nested, baseSelector, sink, context, registry, pseudoSuffix, [...path, condition], where);
     }
+}
+
+interface KeyAmp {
+    at: number;
+    /**
+     * The brackets enclosing it, innermost last. `args[n]` says whether the
+     * bracket's nth comma-separated argument holds an `&` — final once lexing
+     * ends.
+     */
+    frames: { args: boolean[] }[];
+}
+
+/**
+ * Lex a `selectors` key once: the index of every top-level comma, and of every
+ * `&` that is selector syntax rather than text — outside quoted strings and
+ * `/* … *\/` comments, and not escaped (`\&`). A backslash escape outside a
+ * string consumes the next character, so `.a\(b` opens no paren and `.a\"b`
+ * no string. A key the lexer cannot balance — an unterminated string or
+ * comment, a closer with no opener, an opener never closed — is a build error:
+ * returning it as one item would leave the rest of the list unscoped.
+ */
+function lexSelectorKey(text: string, where: string): { commas: number[]; amps: KeyAmp[] } {
+    const fail = (why: string): never => {
+        throw new Error(`[zero-kit] ${where}: the selectors key "${text}" cannot be parsed as a selector list — ${why}`);
+    };
+    const commas: number[] = [];
+    const amps: KeyAmp[] = [];
+    const open: { closer: string; args: boolean[] }[] = [];
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i]!;
+        if (ch === '\\') {
+            i++;
+            continue;
+        }
+        if (ch === '"' || ch === "'") {
+            let closed = false;
+            for (i++; i < text.length; i++) {
+                if (text[i] === '\\') i++;
+                else if (text[i] === ch) {
+                    closed = true;
+                    break;
+                }
+            }
+            if (!closed) fail(`it has an unterminated ${ch} string`);
+            continue;
+        }
+        if (ch === '/' && text[i + 1] === '*') {
+            const close = text.indexOf('*/', i + 2);
+            if (close < 0) fail('it has an unterminated comment');
+            i = close + 1;
+            continue;
+        }
+        if (ch === '(' || ch === '[') open.push({ closer: ch === '(' ? ')' : ']', args: [false] });
+        else if (ch === ')' || ch === ']') {
+            if (open.pop()?.closer !== ch) fail(`its "${ch}" at offset ${i} closes nothing it opened`);
+        } else if (ch === ',') {
+            if (open.length === 0) commas.push(i);
+            else open[open.length - 1]!.args.push(false);
+        } else if (ch === '&') {
+            for (const frame of open) frame.args[frame.args.length - 1] = true;
+            amps.push({ at: i, frames: [...open] });
+        }
+    }
+    if (open.length > 0) fail(`it leaves ${open.length} bracket(s) unclosed`);
+    return { commas, amps };
+}
+
+/**
+ * Scope a `selectors` key to the part it sits on (#181). A key may be a
+ * selector LIST, and every item is scoped on its own: `&` is replaced by the
+ * part's selector, and an item without `&` is a descendant of it. Scoping the
+ * key as one string would scope only the first item — `'svg, path'` would
+ * emit `[part] svg, path`, leaving `path` a global rule in the recipes layer.
+ *
+ * An item with an `&` at its top level is scoped by it, whatever its nested
+ * lists hold (`'&:not(.a, .b)'`). An item whose `&`s all sit inside brackets
+ * is scoped only if every argument of each enclosing comma-separated list
+ * holds an `&`: `':where(.dark &)'` and `':is(&.a, &.b)'` pass, while
+ * `':is(&:hover, svg)'` would leave `svg` global and is rejected. An `&` in a
+ * string, a comment or escaped is text, never substituted.
+ */
+function scopeNestedSelector(nested: string, self: string, where: string): string {
+    const { commas, amps } = lexSelectorKey(nested, where);
+    const bounds = [-1, ...commas, nested.length];
+    const out: string[] = [];
+    for (let k = 0; k < bounds.length - 1; k++) {
+        const from = bounds[k]! + 1;
+        const to = bounds[k + 1]!;
+        const item = nested.slice(from, to);
+        const trimmed = item.trim();
+        if (trimmed === '') {
+            throw new Error(
+                `[zero-kit] ${where}: the selectors key "${nested}" has an empty item in its selector list`,
+            );
+        }
+        const own = amps.filter((a) => a.at >= from && a.at < to);
+        if (own.length === 0) {
+            const lead = item.slice(0, item.length - item.trimStart().length);
+            const trail = item.slice(item.trimEnd().length);
+            out.push(`${lead}${self} ${trimmed}${trail}`);
+            continue;
+        }
+        const topLevel = own.some((a) => a.frames.length === 0);
+        if (!topLevel && own.some((a) => a.frames.some((f) => f.args.includes(false)))) {
+            throw new Error(
+                `[zero-kit] ${where}: the selectors key "${nested}" puts & only inside a nested selector list ("${trimmed}") with an argument that has no & — that argument would match outside the part; give every argument an &, write & at the top level of the item, or split the list`,
+            );
+        }
+        let scoped = '';
+        let cursor = from;
+        for (const a of own) {
+            scoped += nested.slice(cursor, a.at) + self;
+            cursor = a.at + 1;
+        }
+        out.push(scoped + nested.slice(cursor, to));
+    }
+    return out.join(',');
 }
 
 function axisAttr(axis: string, scope: string): string {
