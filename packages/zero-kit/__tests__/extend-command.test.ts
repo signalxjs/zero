@@ -22,9 +22,12 @@
  * the reason a replacement register works at all, and it is checked where it
  * was already being checked.
  */
-import { describe, expect, it } from 'vitest';
-import { exportedSubpath } from '@sigx/zero-kit';
-import { extendedCss } from '../src/commands/extend.js';
+import { afterEach, describe, expect, it } from 'vitest';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { ECOSYSTEM_ENV, exportedSubpath } from '@sigx/zero-kit';
+import { extendedCss, runExtend } from '../src/commands/extend.js';
 
 describe('extendedCss', () => {
     const compiled = {
@@ -94,5 +97,42 @@ describe('exportedSubpath', () => {
 
     it('says nothing when there is no exports map at all', () => {
         expect(exportedSubpath({ main: './dist/index.js' }, '.')).toBeUndefined();
+    });
+});
+
+describe('runExtend under ZERO_ECOSYSTEM=0 (#187)', () => {
+    const saved = process.env[ECOSYSTEM_ENV];
+    afterEach(() => {
+        if (saved === undefined) delete process.env[ECOSYSTEM_ENV];
+        else process.env[ECOSYSTEM_ENV] = saved;
+    });
+
+    it('refuses, and leaves the previous run\'s artifacts untouched', async () => {
+        // The command exists only to adopt packs. With discovery switched off
+        // the set is empty BECAUSE of the switch, not because no pack is
+        // installed — writing the pass-through artifacts would silently strip
+        // every pack scope from the app, and the log would blame the
+        // dependencies.
+        const cwd = mkdtempSync(join(tmpdir(), 'zero-kit-extend-'));
+        try {
+            const files = {
+                'zero-extend.css': '/* previous run, with ext-stepper */',
+                'zero-extend.d.ts': '// previous run, with ext-stepper',
+                'zero-extend.js': '// previous run',
+            };
+            for (const [name, body] of Object.entries(files)) writeFileSync(join(cwd, name), body);
+            const logged: string[] = [];
+            const logger = { log: (m: string) => logged.push(m), warn: (m: string) => logged.push(m), error: (m: string) => logged.push(m) };
+
+            process.env[ECOSYSTEM_ENV] = '0';
+            await expect(runExtend({ cwd, logger } as never, { ds: '@acme/zero-ds', out: '.' }))
+                .rejects.toThrow(/ZERO_ECOSYSTEM=0/);
+            for (const [name, body] of Object.entries(files)) {
+                expect(readFileSync(join(cwd, name), 'utf8'), name).toBe(body);
+            }
+            expect(logged.join('\n')).not.toContain('no dependency declares');
+        } finally {
+            rmSync(cwd, { recursive: true, force: true });
+        }
     });
 });

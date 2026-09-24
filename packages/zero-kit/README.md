@@ -750,13 +750,23 @@ a design-system package.
 
 ```
 sigx zero:validate [entry | --package <pkg>] [--manifest <path>] [--extra-manifest <path|package>]...
+                   [--[no-]ecosystem] [--ecosystem-exclude <pkg>]...
                    [--strict] [--report] [--report-json <path>] [--diff <path>]
                    [--log <path>]
 sigx zero:audit    [entry | --package <pkg>] [--manifest <path>] [--extra-manifest <path|package>]...
+                   [--[no-]ecosystem] [--ecosystem-exclude <pkg>]...
                    [--strict] [--rule <id>]... [--json <path>]
 sigx zero:build    [entry] [--manifest <path>] [--extra-manifest <path|package>]...
+                   [--[no-]ecosystem] [--ecosystem-exclude <pkg>]...
                    [--out <dir>]
+sigx zero:fragment [--manifest <path>] [--no-emit] [--strict]
+sigx zero:extend   --ds <pkg> [--out <dir>] [--manifest <path>] [--ecosystem-exclude <pkg>]...
 ```
+
+Every boolean flag takes a `--no-` form. `--ecosystem` is on by default, so
+`--no-ecosystem` is how one run skips pack adoption (`ZERO_ECOSYSTEM=0` does it
+for every run in the environment); `zero:fragment`'s `--emit` is on by
+default, so `--no-emit` checks the fragment without writing `fragment.json`.
 
 `entry` is a compiled ES module (default `./dist/design-system.js`) exporting
 the design system as `designSystem` or as its default export. `--manifest`
@@ -872,7 +882,7 @@ the `"sigx-cli"` field this plugin is itself discovered through:
 
 A design system then adopts every dependency that declares one, **by
 default** — installing the package is the opt-in. `ecosystem: false` on
-`runStandardBuild` turns it off, and `ZERO_ECOSYSTEM=0` overrides any build. Narrowing is programmatic:
+`runStandardBuild` (or `--no-ecosystem` on the CLI) turns it off, and `ZERO_ECOSYSTEM=0` overrides any build. Narrowing is programmatic:
 `ecosystem: { exclude: [...] }` or `{ include: [...] }`, where `include`
 means *only* those; the CLI surfaces the exclusion half as
 `--ecosystem-exclude` and has no `include` flag. A pack that cannot be
@@ -906,7 +916,12 @@ statement so its import position does not matter) and a `zero-extend.js` /
 augmentations collide, and they accumulate across a program rather than
 replacing one another. It
 refuses a `zeroVersion` mismatch between the installed design system and the
-app's kit.
+app's kit. It also refuses to run under `ZERO_ECOSYSTEM=0`: adopting packs is
+all it does, and with discovery switched off it would overwrite the previous
+run's artifacts with pass-through ones that drop every pack scope. It writes
+nothing in that case, so the existing files survive. (An empty set that is
+*real* — a pack removed since the last run — is still written, which is how
+that pack stops being declared.)
 
 A design system can also merge the fragment by hand — `--extra-manifest` on
 the CLI, or `mergeManifests(base, fragment)` in a `build.mjs`-style script —
@@ -943,9 +958,10 @@ that never merges the fragment simply leaves the component unstyled — which is
 still accessible and correctly attributed, the contract's baseline.
 
 The commands are namespaced so another plugin's `build` can't shadow them; the
-bare `sigx build` / `sigx validate` aliases also resolve when nothing else
-claims those names. Both exit non-zero on failure, and `sigx zero:build --help`
-prints the current flags.
+bare `sigx build` / `sigx validate` / `sigx audit` aliases also resolve when
+nothing else claims those names (`zero:fragment` and `zero:extend` have no bare
+alias). Every command exits non-zero on failure, and `sigx <command> --help`
+prints its current flags.
 
 ## The coverage report
 

@@ -43,12 +43,14 @@ const extraManifestArg = a
     .multiple()
     .describe('Ecosystem manifest fragment merged into the base manifest — repeatable. A JSON file, a JS module exporting `fragment` (or default), or a package: `@acme/x` reads its "sigx-zero" field, `@acme/x/fragment` its export');
 
-// On by default, matching `runStandardBuild`. `ZERO_ECOSYSTEM=0` is the off
-// switch — @sigx/args has no `--no-x` negation, so the env var carries it.
+// On by default, matching `runStandardBuild`. `--no-ecosystem` (@sigx/args
+// negates every boolean) turns it off for one run; `ZERO_ECOSYSTEM=0` turns it
+// off for every run in the environment, including `runStandardBuild` calls
+// that take no flags at all.
 const ecosystemArg = a
     .boolean()
     .default(true)
-    .describe('Adopt every dependency declaring a "sigx-zero" field (ZERO_ECOSYSTEM=0 turns it off)');
+    .describe('Adopt every dependency declaring a "sigx-zero" field (--no-ecosystem or ZERO_ECOSYSTEM=0 turns it off)');
 
 const ecosystemExcludeArg = a
     .string()
@@ -193,7 +195,7 @@ export default definePlugin({
             description: 'Check an ecosystem component package\'s fragment, and emit its JSON form',
             args: {
                 manifest: manifestArg,
-                emit: a.boolean().default(true).describe('Write fragment.json beside the declared fragment module'),
+                emit: a.boolean().default(true).describe('Write fragment.json beside the declared fragment module (--no-emit checks only)'),
                 strict: a.boolean().default(false).describe('Fail on warnings, not just errors'),
             },
             async run(ctx) {
