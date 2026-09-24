@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, Progress, RadialProgress, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -377,7 +377,7 @@ describe('SSR', () => {
 
     // #169: presence reports land after setup, too late for server markup —
     // resting Labels/Controls keep their references on the server.
-    it('server-renders the Label and Control references of a composed Progress and Slider', async () => {
+    it('server-renders the Label and Control references of a composed Progress, RadioGroup and Slider', async () => {
         const html = await renderApp(
             <div>
                 <Progress.Root value={40}>
@@ -386,6 +386,10 @@ describe('SSR', () => {
                 <RadialProgress.Root value={62}>
                     <RadialProgress.Label>Sync</RadialProgress.Label>
                 </RadialProgress.Root>
+                <RadioGroup.Root defaultValue="a">
+                    <RadioGroup.Label>Plan</RadioGroup.Label>
+                    <RadioGroup.Item value="a">A</RadioGroup.Item>
+                </RadioGroup.Root>
                 <Slider.Root defaultValue={30}>
                     <Slider.Label>Volume</Slider.Label>
                     <Slider.Control />
@@ -404,6 +408,7 @@ describe('SSR', () => {
         };
         expect(html).toMatch(new RegExp(`role="progressbar"[^>]*aria-labelledby="${idOf('progress', 'label')}"|aria-labelledby="${idOf('progress', 'label')}"[^>]*role="progressbar"`));
         expect(html).toContain(`aria-labelledby="${idOf('radial-progress', 'label')}"`);
+        expect(html).toContain(`aria-labelledby="${idOf('radio-group', 'label')}"`);
         const controlId = html.match(/<input[^>]*data-scope="slider"[^>]*data-part="control"[^>]*>/)?.[0].match(/\sid="([^"]+)"/)?.[1];
         expect(controlId).toBeTruthy();
         expect(html).toMatch(new RegExp(`<label[^>]*for="${controlId}"`));

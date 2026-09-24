@@ -26,7 +26,7 @@ import type { Define, JSXElement } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createCollection } from '../../behaviors/collection.js';
 import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
-import { countPresence, reportPresence } from '../../behaviors/part-presence.js';
+import { countPresence, reportPresence, settleAfterMount } from '../../behaviors/part-presence.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
@@ -96,7 +96,7 @@ export type RadioGroupRootProps<T = unknown> =
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
-const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit, signal }) => {
+const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit, signal, onMounted }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
@@ -104,8 +104,10 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit,
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-radio' });
     // Reported by RadioGroup.Label (`reportPresence`), so the reference is
-    // written only while one is rendered and never dangles (#169).
-    const present = signal({ label: 0 });
+    // written only while one is rendered and never dangles (#169) —
+    // optimistic until settled after mount, so server markup keeps it.
+    const present = signal({ label: 0, settled: false });
+    settleAfterMount(onMounted, () => { present.settled = true; });
     // Its own id, distinct from a Field's label: both may be rendered.
     const labelId = `${fc.baseId}-group-label`;
     // Data mode exactly when `items` is given and no children are — the
@@ -163,7 +165,7 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit,
                 data-required={dataAttr(ctx.required())}
                 aria-labelledby={[
                     fc.field.inert ? undefined : fc.labelId(),
-                    present.label > 0 ? labelId : undefined,
+                    !present.settled || present.label > 0 ? labelId : undefined,
                     attrs['aria-labelledby'],
                 ].filter(Boolean).join(' ') || undefined}
                 aria-describedby={[fc.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}

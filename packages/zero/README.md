@@ -308,8 +308,8 @@ the Field's label and any app `aria-labelledby`), a `Progress.Label` /
 `RadialProgress.Label` is referenced only while rendered, a range slider's
 thumbs without their own `label` are named by `Slider.Label`, and the
 Label's and ValueText's `for` appear only while a native `Slider.Control`
-is mounted. Presence reports land a microtask after mount, so Progress,
-RadialProgress and Slider render these references optimistically until
+is mounted. Presence reports land a microtask after mount, so RadioGroup,
+Progress, RadialProgress and Slider render these references optimistically until
 then: server markup keeps the Label reference (and, outside thumb mode, the
 Label's `for`) a composed widget needs, and the client drops any that
 would dangle once mounted. A progressbar's
