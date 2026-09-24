@@ -6,7 +6,7 @@
  * closing exactly one level, and focus really moving on keyboard open.
  */
 import { test, expect, type Page } from '@playwright/test';
-import { controlledPopup } from './demo';
+import { controlledPopup, settledBox } from './demo';
 import { bootPage } from './nav';
 
 test.beforeEach(async ({ page }) => {
@@ -75,4 +75,39 @@ test('a third level opens while both ancestors stay open', async ({ page }) => {
     await expect(sharePopup).toHaveAttribute('data-state', 'open');
     await expect(await popup(page)).toHaveAttribute('data-state', 'open');
     await expect(socialPopup.locator('[data-part="item"]', { hasText: 'Mastodon' })).toBeVisible();
+});
+
+test('the diagonal path to a submenu crosses a sibling without losing it (#19)', async ({ page }) => {
+    await trigger(page).click();
+    const share = subTrigger(page, 'Share');
+    const shareBox = await settledBox(share, 'the Share sub-trigger');
+    // Rest mid-item until the submenu opens, like a reader choosing it.
+    const start = { x: shareBox.x + shareBox.width / 2, y: shareBox.y + shareBox.height / 2 };
+    await page.mouse.move(start.x, start.y);
+    const sharePopup = await subPopup(page, 'Share');
+    await expect(sharePopup).toHaveAttribute('data-state', 'open');
+    const social = subTrigger(page, 'Social');
+    const socialBox = await settledBox(social, 'the Social sub-trigger');
+    const end = { x: socialBox.x + 8, y: socialBox.y + socialBox.height / 2 };
+
+    // Precondition: the straight line really crosses Delete…, the sibling
+    // below Share — otherwise this would pass without testing anything.
+    // These are the points Playwright's `steps` visit.
+    const del = (await popup(page)).locator('[data-part="item"]', { hasText: 'Delete' });
+    const delBox = await settledBox(del, 'the Delete item');
+    const steps = 30;
+    const samples = Array.from({ length: steps }, (_, i) => ({
+        x: start.x + ((end.x - start.x) * (i + 1)) / steps,
+        y: start.y + ((end.y - start.y) * (i + 1)) / steps,
+    }));
+    const inside = (p: { x: number; y: number }, b: typeof delBox) =>
+        p.x > b.x && p.x < b.x + b.width && p.y > b.y && p.y < b.y + b.height;
+    expect(samples.some((p) => inside(p, delBox)), 'the diagonal should cross the Delete item').toBe(true);
+
+    // Without the safe triangle, entering Delete… focused it and closed Share.
+    await page.mouse.move(end.x, end.y, { steps });
+    await expect(sharePopup).toHaveAttribute('data-state', 'open');
+    await expect(del).not.toHaveAttribute('data-highlighted', '');
+    const socialPopup = await subPopup(page, 'Social');
+    await expect(socialPopup).toHaveAttribute('data-state', 'open');
 });

@@ -334,6 +334,154 @@ describe('Menu submenus', () => {
         expect(subPopup.getAttribute('data-state')).toBe('open');
     });
 
+    describe('safe triangle (#19)', () => {
+        // The Share popup sits to the right: near edge x=200, y 0..200. The
+        // pointer leaves the sub-trigger at (180, 40), heading for it.
+        function mountDiagonal() {
+            render(
+                <Menu.Root>
+                    <Menu.Trigger>Actions</Menu.Trigger>
+                    <Menu.Popup>
+                        <Menu.Sub>
+                            <Menu.SubTrigger value="share">Share</Menu.SubTrigger>
+                            <Menu.SubPopup>
+                                <Menu.Item value="email">Email</Menu.Item>
+                            </Menu.SubPopup>
+                        </Menu.Sub>
+                        <Menu.Item value="delete">Delete</Menu.Item>
+                        <Menu.Sub>
+                            <Menu.SubTrigger value="more">More</Menu.SubTrigger>
+                            <Menu.SubPopup>
+                                <Menu.Item value="x">X</Menu.Item>
+                            </Menu.SubPopup>
+                        </Menu.Sub>
+                    </Menu.Popup>
+                </Menu.Root>,
+                container,
+            );
+            const subTriggers = container.querySelectorAll<HTMLElement>('[data-part="sub-trigger"]');
+            const subPopups = container.querySelectorAll<HTMLElement>('[data-part="sub-popup"]');
+            const subPopup = subPopups[0]!;
+            subPopup.getBoundingClientRect = () =>
+                ({ left: 200, top: 0, right: 360, bottom: 200, width: 160, height: 200, x: 200, y: 0 }) as DOMRect;
+            const del = [...container.querySelectorAll<HTMLElement>('[data-part="item"]')]
+                .find((el) => el.textContent === 'Delete')!;
+            vi.useFakeTimers();
+            container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+            const share = subTriggers[0]!;
+            share.dispatchEvent(new PointerEvent('pointerenter', { pointerType: 'mouse', clientX: 100, clientY: 40 }));
+            vi.advanceTimersByTime(120);
+            expect(subPopup.getAttribute('data-state')).toBe('open');
+            return { share, more: subTriggers[1]!, subPopup, morePopup: subPopups[1]!, del };
+        }
+        const at = (type: string, x: number, y: number, pointerType = 'mouse') =>
+            new PointerEvent(type, { pointerType, clientX: x, clientY: y });
+        const leave = (el: HTMLElement, pointerType = 'mouse') =>
+            el.dispatchEvent(at('pointerleave', 180, 40, pointerType));
+
+        it('a sibling crossed on the diagonal does not take hover; the submenu stays open', async () => {
+            const { share, del, subPopup } = mountDiagonal();
+            leave(share);
+            del.dispatchEvent(at('pointerenter', 185, 60));
+            del.dispatchEvent(at('pointermove', 190, 70));
+            await vi.advanceTimersByTimeAsync(0);
+            expect(document.activeElement).toBe(share);
+            expect(subPopup.getAttribute('data-state')).toBe('open');
+            subPopup.dispatchEvent(at('pointerenter', 201, 80));
+            await vi.advanceTimersByTimeAsync(1000);
+            expect(subPopup.getAttribute('data-state')).toBe('open');
+        });
+
+        it('leaving the triangle hands hover to the item under the pointer', async () => {
+            const { share, del, subPopup } = mountDiagonal();
+            leave(share);
+            del.dispatchEvent(at('pointerenter', 185, 60));
+            expect(document.activeElement).toBe(share);
+            // Straight down, away from the popup.
+            del.dispatchEvent(at('pointermove', 180, 120));
+            expect(document.activeElement).toBe(del);
+            await vi.advanceTimersByTimeAsync(0);
+            expect(subPopup.getAttribute('data-state')).toBe('closed');
+        });
+
+        it('a sibling entered outside the triangle takes hover at once', async () => {
+            const { share, del, subPopup } = mountDiagonal();
+            leave(share);
+            del.dispatchEvent(at('pointerenter', 150, 120));
+            expect(document.activeElement).toBe(del);
+            await vi.advanceTimersByTimeAsync(0);
+            expect(subPopup.getAttribute('data-state')).toBe('closed');
+        });
+
+        it('closeDelay still bounds it: a lingering pointer closes the submenu and the held item takes hover', async () => {
+            const { share, del, subPopup } = mountDiagonal();
+            leave(share);
+            del.dispatchEvent(at('pointerenter', 185, 60));
+            expect(document.activeElement).toBe(share);
+            await vi.advanceTimersByTimeAsync(320);
+            expect(subPopup.getAttribute('data-state')).toBe('closed');
+            expect(document.activeElement).toBe(del);
+        });
+
+        it('moves inside the triangle restart the close delay; a pointer that stops lets it run out', async () => {
+            const { share, del, subPopup } = mountDiagonal();
+            leave(share);
+            del.dispatchEvent(at('pointerenter', 185, 60));
+            await vi.advanceTimersByTimeAsync(250);
+            document.dispatchEvent(at('pointermove', 188, 65));
+            await vi.advanceTimersByTimeAsync(250);
+            document.dispatchEvent(at('pointermove', 192, 70));
+            await vi.advanceTimersByTimeAsync(250);
+            expect(subPopup.getAttribute('data-state')).toBe('open');
+            // A move outside the triangle does not restart it.
+            document.dispatchEvent(at('pointermove', 100, 190));
+            await vi.advanceTimersByTimeAsync(60);
+            expect(subPopup.getAttribute('data-state')).toBe('closed');
+            expect(document.activeElement).toBe(del);
+        });
+
+        it('a held sibling sub-trigger opens its own submenu when the hover is replayed', async () => {
+            const { share, more, subPopup, morePopup } = mountDiagonal();
+            leave(share);
+            more.dispatchEvent(at('pointerenter', 195, 150));
+            expect(document.activeElement).toBe(share);
+            await vi.advanceTimersByTimeAsync(320);
+            expect(subPopup.getAttribute('data-state')).toBe('closed');
+            expect(document.activeElement).toBe(more);
+            await vi.advanceTimersByTimeAsync(120);
+            expect(morePopup.getAttribute('data-state')).toBe('open');
+        });
+
+        it('a held item the pointer has left is not replayed', async () => {
+            const { share, del, subPopup } = mountDiagonal();
+            leave(share);
+            del.dispatchEvent(at('pointerenter', 185, 60));
+            del.dispatchEvent(at('pointerleave', 195, 90));
+            await vi.advanceTimersByTimeAsync(320);
+            expect(subPopup.getAttribute('data-state')).toBe('closed');
+            expect(document.activeElement).toBe(share);
+        });
+
+        it('touch gets no triangle: the delays alone apply', async () => {
+            const { share, del, subPopup } = mountDiagonal();
+            leave(share, 'touch');
+            del.dispatchEvent(at('pointerenter', 185, 60, 'touch'));
+            expect(document.activeElement).toBe(del);
+            await vi.advanceTimersByTimeAsync(0);
+            expect(subPopup.getAttribute('data-state')).toBe('closed');
+        });
+
+        it('coming back to its own trigger spends the triangle', async () => {
+            const { share, del, subPopup } = mountDiagonal();
+            leave(share);
+            share.dispatchEvent(at('pointerenter', 179, 40));
+            del.dispatchEvent(at('pointerenter', 185, 60));
+            expect(document.activeElement).toBe(del);
+            await vi.advanceTimersByTimeAsync(0);
+            expect(subPopup.getAttribute('data-state')).toBe('closed');
+        });
+    });
+
     it('focus landing on another parent-level item closes the submenu', async () => {
         const { rootTrigger, subTrigger, subPopup } = mountSub();
         rootTrigger.click();

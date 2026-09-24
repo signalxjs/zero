@@ -221,7 +221,12 @@ component renders; the root is called out separately where it carries props.
   submenu; sub-popup is a distinct part so it can animate on its own axis.
   Keyboard: ArrowRight/Enter/Space open + focus first item, ArrowLeft closes
   back (mirrored under RTL); Escape closes one level (native popover);
-  hover opens without moving focus.
+  hover opens without moving focus. Safe triangle: once a submenu is open,
+  a mouse leaving its sub-trigger toward it does not hand hover to sibling
+  items it crosses while it stays inside the triangle from the exit point
+  to the popup's near edge; each move inside restarts closeDelay, so a
+  pointer that stops lets the submenu close and the item under it take
+  hover. Touch gets no triangle. No prop — it is always on.
 - Select: Root(model=value | value[], model:open, items, itemKey, itemLabel,
   itemValue, itemDisabled, itemGroup, multiple, virtual, estimateItemSize,
   name, form, required, placeholder)/Trigger/Value/Indicator/Popup/Group/
