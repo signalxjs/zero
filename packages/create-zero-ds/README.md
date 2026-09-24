@@ -47,13 +47,23 @@ create-zero-ds <name> --brief <id> [options]
                          brief; none: the brief's Button only
   --targets web[,lynx]   emit targets (default: web)
   --dir <path>           output directory (default: ./<last segment of name>)
-  --dry-run              print the file plan, write nothing
-  --force                write into a non-empty directory
+  --dry-run              print the file plan, write nothing — it refuses a
+                         non-empty directory exactly as the real run does
+  --force                write into a non-empty directory; the file list
+                         marks each planned file that already existed
+                         (overwritten, or overwrites under --dry-run)
 ```
 
-Non-interactive by design: a missing argument is an exit code (2) and a usage
-line, never a prompt. Exit 1 is a failure the arguments could not have
-prevented (an unknown brief, a non-empty directory without `--force`).
+`<name>` must be a valid npm package name — lowercase, an optional `@scope/`,
+one name segment, no leading `.` or `_` — and its last segment, minus a
+leading `zero-`, must be kebab-case, since it becomes the design system's name.
+
+Non-interactive by design: a missing or malformed argument (including a name
+that fails either rule above) is an exit code (2) and a usage line, never a
+prompt. Exit 1 is a failure outside the argument grammar: an unknown brief, a
+non-empty directory without `--force` (with or without `--dry-run`), or
+missing templates. `--help` and `--version` work even then — the version is
+the package's own.
 
 ## Ecosystem components
 

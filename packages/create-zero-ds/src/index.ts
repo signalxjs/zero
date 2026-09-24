@@ -5,7 +5,7 @@
  */
 export { main, EXIT_FAILED, EXIT_OK, EXIT_USAGE } from './cli.js';
 export type { CliIo } from './cli.js';
-export { defaultDir, designSystemName, planScaffold, writePlan } from './scaffold.js';
+export { checkPlan, defaultDir, designSystemName, planScaffold, validatePackageName, writePlan } from './scaffold.js';
 export type { PlannedFile, ScaffoldOptions, WriteOptions } from './scaffold.js';
 export { BRIEFS_DIR, TEMPLATE_SOURCES, collectTemplates } from './collect.js';
 export { defaultTemplatesDir, loadTemplates } from './templates.js';

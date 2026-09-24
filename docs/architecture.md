@@ -1175,7 +1175,8 @@ build.mjs path cannot drift.
 logs every error-severity finding as a warning, and hands the result to
 both writers: `writeArtifacts` emits it as `dist/audit.json`
 (`schemas/audit.schema.json` — findings, waivers, summary, sorted severity →
-rule → where; every skin exports it as `./audit.json`), and `buildReport`
+rule → where; every skin, and every `create-zero-ds` scaffold, exports it as
+`./audit.json`), and `buildReport`
 takes it as a fifth input, carrying its counts under `report.audit` and
 scoring them as the sixth criterion (`auditScore`: the issues formula
 applied to findings, `info` never charged). `zero:validate --report` runs

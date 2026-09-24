@@ -35,6 +35,23 @@ export interface PlannedFile {
 /** `[a-z][a-z0-9-]*` — what a `data-scope`-adjacent identifier and a CSS-safe name both accept. */
 const KEBAB = /^[a-z][a-z0-9-]*$/;
 
+/**
+ * npm's package-name grammar (what `validate-npm-package-name` accepts for a
+ * new package): an optional lowercase `@scope/`, then one lowercase segment
+ * of lowercase letters, digits, `-`, `.` and `_`, neither starting with `.` or `_`, at most 214
+ * characters in all. Anything else scaffolds a package.json npm rejects.
+ */
+const NPM_SEGMENT = '[a-z0-9-][a-z0-9._-]*';
+const NPM_NAME = new RegExp(`^(?:@${NPM_SEGMENT}/)?${NPM_SEGMENT}$`);
+
+/** Throws unless `packageName` is a valid npm name AND yields a design-system name. */
+export function validatePackageName(packageName: string): void {
+    if (packageName.length > 214 || !NPM_NAME.test(packageName)) {
+        throw new Error(`"${packageName}" is not a valid npm package name — lowercase, an optional @scope/, one name segment of letters, digits, "-", "." or "_" (not leading . or _)`);
+    }
+    designSystemName(packageName);
+}
+
 /** The design-system name from the package name: last path segment, minus a leading `zero-`. */
 export function designSystemName(packageName: string): string {
     const segment = packageName.split('/').pop() ?? packageName;
@@ -55,6 +72,7 @@ export function planScaffold(options: ScaffoldOptions, templates: Templates): Pl
     if (!brief) {
         throw new Error(`unknown brief "${options.brief}" — available: ${Object.keys(templates.briefs).join(', ')}`);
     }
+    validatePackageName(options.name);
     const baseline = options.baseline ?? 'basic';
     const targets = options.targets ?? ['web'];
     const split = splitBrief(brief);
@@ -118,14 +136,31 @@ export interface WriteOptions {
     force?: boolean;
 }
 
-/** Write a plan under `dir`. Creates it; refuses a non-empty one unless forced. */
-export function writePlan(dir: string, plan: readonly PlannedFile[], options: WriteOptions = {}): void {
+const targetPath = (dir: string, file: PlannedFile): string => join(dir, ...file.path.split('/'));
+
+/**
+ * The checks `writePlan` makes before writing, without writing: throws for a
+ * non-empty `dir` unless forced, and returns the planned paths that already
+ * exist there (what a forced write overwrites). `--dry-run` runs this, so it
+ * refuses exactly what the real run refuses.
+ */
+export function checkPlan(dir: string, plan: readonly PlannedFile[], options: WriteOptions = {}): string[] {
     if (existsSync(dir) && readdirSync(dir).length > 0 && !options.force) {
         throw new Error(`${dir} is not empty — pass --force to write into it anyway`);
     }
+    return plan.filter((file) => existsSync(targetPath(dir, file))).map((file) => file.path);
+}
+
+/**
+ * Write a plan under `dir`. Creates it; refuses a non-empty one unless
+ * forced. Returns the planned paths that existed before and were overwritten.
+ */
+export function writePlan(dir: string, plan: readonly PlannedFile[], options: WriteOptions = {}): string[] {
+    const overwritten = checkPlan(dir, plan, options);
     for (const file of plan) {
-        const target = join(dir, ...file.path.split('/'));
+        const target = targetPath(dir, file);
         mkdirSync(dirname(target), { recursive: true });
         writeFileSync(target, file.content);
     }
+    return overwritten;
 }
