@@ -3,6 +3,7 @@
  * templates → the files), `writePlan` is the only thing that touches disk.
  */
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { builtinModules } from 'node:module';
 import { dirname, join } from 'node:path';
 import { exportedNames, referencedNames, splitBrief, withoutTypeImport } from './brief.js';
 import {
@@ -39,7 +40,8 @@ const KEBAB = /^[a-z][a-z0-9-]*$/;
  * npm's package-name grammar (what `validate-npm-package-name` accepts for a
  * new package): an optional lowercase `@scope/`, then one lowercase segment
  * of lowercase letters, digits, `-`, `.` and `_`, neither starting with `.` or `_`, at most 214
- * characters in all. Anything else scaffolds a package.json npm rejects.
+ * characters in all, and — unscoped — not a Node core-module name. Anything
+ * else scaffolds a package.json npm rejects.
  */
 const NPM_SEGMENT = '[a-z0-9-][a-z0-9._-]*';
 const NPM_NAME = new RegExp(`^(?:@${NPM_SEGMENT}/)?${NPM_SEGMENT}$`);
@@ -48,6 +50,9 @@ const NPM_NAME = new RegExp(`^(?:@${NPM_SEGMENT}/)?${NPM_SEGMENT}$`);
 export function validatePackageName(packageName: string): void {
     if (packageName.length > 214 || !NPM_NAME.test(packageName)) {
         throw new Error(`"${packageName}" is not a valid npm package name — lowercase, an optional @scope/, one name segment of letters, digits, "-", "." or "_" (not leading . or _)`);
+    }
+    if (!packageName.startsWith('@') && builtinModules.includes(packageName)) {
+        throw new Error(`"${packageName}" is a Node core module name — npm does not accept it for a new package`);
     }
     designSystemName(packageName);
 }

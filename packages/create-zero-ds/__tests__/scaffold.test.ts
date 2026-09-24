@@ -236,6 +236,11 @@ describe('options', () => {
         expect(() => planScaffold({ name: 'foo/zero-x', brief: 'glass' }, templates)).toThrow(/not a valid npm package name/);
     });
 
+    it('rejects an unscoped Node core-module name, but not a scoped one', () => {
+        expect(() => planScaffold({ name: 'http', brief: 'glass' }, templates)).toThrow(/Node core module/);
+        expect(() => planScaffold({ name: '@acme/http', brief: 'glass' }, templates)).not.toThrow();
+    });
+
     it('refuses a non-empty directory unless forced', () => {
         const dir = tempDir();
         const plan = planScaffold({ name: 'zero-x', brief: 'glass' }, templates);

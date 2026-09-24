@@ -30,7 +30,8 @@ const USAGE = `Usage: create-zero-ds <name> --brief <id> [options]
                        to the brief's vocabulary; none: the brief's Button only
   --targets web[,lynx] emit targets (default: web)
   --dir <path>         output directory (default: ./<last segment of name>)
-  --dry-run            print the file plan, write nothing
+  --dry-run            print the file plan, write nothing (same
+                       non-empty check as a real run)
   --force              write into a non-empty directory (lists what it overwrites)
   -h, --help           this text
   -v, --version        print the version`;
