@@ -138,6 +138,89 @@ describe('Menu', () => {
         expect(trigger.getAttribute('aria-expanded')).toBe('true');
     });
 
+    it('ArrowDown opens with the first enabled item focused, ArrowUp with the last (#175)', async () => {
+        // happy-dom has no popover API, and the popup only moves focus once
+        // it has shown itself — stub the three members the popup touches.
+        type PopoverProto = { showPopover?: () => void; hidePopover?: () => void };
+        const proto = HTMLElement.prototype as PopoverProto;
+        const saved = { show: proto.showPopover, hide: proto.hidePopover, matches: Element.prototype.matches };
+        proto.showPopover = function (this: HTMLElement) { this.setAttribute('data-test-popover-open', ''); };
+        proto.hidePopover = function (this: HTMLElement) { this.removeAttribute('data-test-popover-open'); };
+        (Element.prototype as { matches(sel: string): boolean }).matches = function (this: Element, sel: string) {
+            return sel === ':popover-open' ? this.hasAttribute('data-test-popover-open') : saved.matches.call(this, sel);
+        };
+        try {
+            await arrowOpens();
+        } finally {
+            proto.showPopover = saved.show;
+            proto.hidePopover = saved.hide;
+            Element.prototype.matches = saved.matches;
+        }
+    });
+
+    async function arrowOpens() {
+        mount();
+        await tick();
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+        const up = new KeyboardEvent('keydown', { key: 'ArrowUp', cancelable: true });
+        trigger.dispatchEvent(up);
+        expect(up.defaultPrevented).toBe(true);
+        expect(trigger.getAttribute('aria-expanded')).toBe('true');
+        await tick();
+        // items[2] ("Delete") is disabled — the last ENABLED item is items[1].
+        expect(document.activeElement).toBe(items[1]);
+
+        trigger.click();
+        expect(trigger.getAttribute('aria-expanded')).toBe('false');
+        // The hint is one-shot: the next ArrowDown open is back to the first.
+        await tick();
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true }));
+        await tick();
+        expect(document.activeElement).toBe(items[0]);
+
+        trigger.click();
+        await tick();
+        trigger.click();
+        await tick();
+        expect(document.activeElement).toBe(items[0]);
+    }
+
+    it('Enter on an asChild link item keeps the default so the link navigates (#175)', () => {
+        const onSelect = vi.fn();
+        render(
+            <Menu.Root onSelect={onSelect}>
+                <Menu.Trigger>M</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.Item value="a">A</Menu.Item>
+                    <Menu.Item value="l" asChild>{(p: Record<string, unknown>) => <a href="#x" {...p}>L</a>}</Menu.Item>
+                    <Menu.Item value="d" disabled asChild>{(p: Record<string, unknown>) => <a href="#y" {...p}>D</a>}</Menu.Item>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        const link = container.querySelector<HTMLAnchorElement>('a[href="#x"]')!;
+        expect(link.getAttribute('role')).toBe('menuitem');
+        const enter = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true });
+        link.dispatchEvent(enter);
+        // The browser turns an unprevented Enter on a link into its click —
+        // that click is what navigates AND (through onClick) selects once.
+        expect(enter.defaultPrevented).toBe(false);
+        expect(onSelect).not.toHaveBeenCalled();
+        link.click();
+        expect(onSelect).toHaveBeenCalledTimes(1);
+        expect(onSelect).toHaveBeenCalledWith('l');
+
+        // A disabled link item must not navigate by keyboard.
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        const disabled = container.querySelector<HTMLAnchorElement>('a[href="#y"]')!;
+        const blocked = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true });
+        disabled.dispatchEvent(blocked);
+        expect(blocked.defaultPrevented).toBe(true);
+        expect(onSelect).toHaveBeenCalledTimes(1);
+    });
+
     it('item click emits select and closes', () => {
         const onSelect = vi.fn();
         mount(onSelect);

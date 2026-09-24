@@ -73,6 +73,24 @@ const MenuDemos = component(() => () => (
             </Menu.Popup>
         </Menu.Root>
 
+        <h2>Link items</h2>
+        <p>
+            An <code>asChild</code> item can be a real <code>&lt;a href&gt;</code>:
+            Enter keeps its default, so the link navigates by keyboard as well
+            as by click. ArrowUp on a closed trigger opens on the last item.
+        </p>
+        <Menu.Root onSelect={(v) => console.log('go to select:', v)}>
+            <Menu.Trigger>Go to</Menu.Trigger>
+            <Menu.Popup>
+                <Menu.Item value="popover" asChild>
+                    {(p: PartProps) => <a {...p} href="#/popover">Popover page</a>}
+                </Menu.Item>
+                <Menu.Item value="dialog" asChild>
+                    {(p: PartProps) => <a {...p} href="#/dialog">Dialog page</a>}
+                </Menu.Item>
+            </Menu.Popup>
+        </Menu.Root>
+
         <h2>Selection items</h2>
         <p>
             APG <code>menuitemcheckbox</code> / <code>menuitemradio</code>:
