@@ -537,8 +537,10 @@ function useMenuItemCore({ signal, onUnmounted }: ItemHooks, opts: ItemCoreOpts)
         'aria-disabled': opts.disabled() ? 'true' : undefined,
         onClick: () => activate(),
         onKeydown: (e: KeyboardEvent) => {
-            press.onKeydown(e);
-            if (e.key === 'Enter' || (e.key === ' ' && !menu.searching())) {
+            // A Space that continues a search is search text, not a press.
+            const searchSpace = e.key === ' ' && menu.searching();
+            if (!searchSpace) press.onKeydown(e);
+            if (e.key === 'Enter' || (e.key === ' ' && !searchSpace)) {
                 e.preventDefault();
                 activate();
                 return;
@@ -1089,10 +1091,12 @@ const MenuSubTrigger = component<MenuSubTriggerProps>(({ props, slots, signal, o
             else sub.open(false);
         },
         onKeydown: (e: KeyboardEvent) => {
-            press.onKeydown(e);
+            // Space continues a running parent-level typeahead search — it is
+            // search text then, so it gets no press feedback either.
+            const searchSpace = e.key === ' ' && sub.parent.searching();
+            if (!searchSpace) press.onKeydown(e);
             if (props.disabled) return;
-            // Space continues a running parent-level typeahead search.
-            const openKey = e.key === 'Enter' || (e.key === ' ' && !sub.parent.searching())
+            const openKey = e.key === 'Enter' || (e.key === ' ' && !searchSpace)
                 || e.key === (sub.isRtl() ? 'ArrowLeft' : 'ArrowRight');
             if (openKey) {
                 e.preventDefault();

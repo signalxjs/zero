@@ -587,7 +587,8 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
                 if (!select.disabled()) select.open.value = !select.open.value;
             },
             onKeydown: (e: KeyboardEvent) => {
-                press.onKeydown(e);
+                // A Space that continues a search is search text, not a press.
+                if (!(e.key === ' ' && select.listbox.typeaheadSearching())) press.onKeydown(e);
                 select.triggerKeydown(e);
             },
             onKeyup: press.onKeyup,

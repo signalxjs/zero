@@ -27,6 +27,11 @@ function setup() {
     return { ta, type, hits, current: () => current };
 }
 
+// Press feedback leaves either flag behind: `data-pressed` until keyup or
+// blur (the search moves focus on), `data-press-animating` until the effect
+// ends — and happy-dom runs no animations, so it would linger.
+const pressed = (el: Element) => el.hasAttribute('data-pressed') || el.hasAttribute('data-press-animating');
+
 const keydown = (el: Element, k: string) =>
     el.dispatchEvent(new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true }));
 
@@ -76,6 +81,10 @@ describe('typeahead across Space in components', () => {
         container = document.createElement('div');
         document.body.appendChild(container);
     });
+    afterEach(() => {
+        render(null, container);
+        container.remove();
+    });
 
     it('Select (closed): "save a" lands on Save As instead of opening', () => {
         const state = signal({ v: '' });
@@ -91,7 +100,10 @@ describe('typeahead across Space in components', () => {
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
         for (const c of 'sav') keydown(trigger, c);
         expect(state.v).toBe('Save');
-        for (const c of 'e a') keydown(trigger, c);
+        for (const c of 'e ') keydown(trigger, c);
+        // The Space is search text: no press feedback on the trigger.
+        expect(pressed(trigger)).toBe(false);
+        keydown(trigger, 'a');
         expect(state.v).toBe('Save As');
         expect(trigger.getAttribute('aria-expanded')).toBe('false');
     });
@@ -110,7 +122,10 @@ describe('typeahead across Space in components', () => {
         await new Promise((r) => setTimeout(r, 0));
         const items = [...container.querySelectorAll<HTMLElement>('[data-part="item"]')];
         items[0]!.focus();
-        for (const c of 'save a') keydown(document.activeElement!, c);
+        for (const c of 'save ') keydown(document.activeElement!, c);
+        // The Space is search text: no press feedback on the focused item.
+        expect(pressed(items[1]!)).toBe(false);
+        keydown(document.activeElement!, 'a');
         expect(onSelect).not.toHaveBeenCalled();
         expect(document.activeElement).toBe(items[2]);
         // With no search running, Space activates.
@@ -137,7 +152,10 @@ describe('typeahead across Space in components', () => {
         const node = (v: string) =>
             [...container.querySelectorAll<HTMLElement>('[role="treeitem"]')].find((e) => e.textContent?.trim() === v)!;
         node('Open').focus();
-        for (const c of 'save a') keydown(document.activeElement!, c);
+        for (const c of 'save ') keydown(document.activeElement!, c);
+        // The Space is search text: no press feedback on the focused node.
+        expect(pressed(node('Save'))).toBe(false);
+        keydown(document.activeElement!, 'a');
         expect(state.v).toBe('');
         expect(document.activeElement).toBe(node('Save As'));
     });

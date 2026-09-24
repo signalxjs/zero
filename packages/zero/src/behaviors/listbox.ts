@@ -23,7 +23,11 @@ export interface WebListboxOptions<T> extends Omit<ListboxOptions<T>, 'list'> {
 }
 
 export interface Listbox<T> extends ListboxCore<T> {
-    /** First-character typeahead over the ENABLED VISIBLE labels. */
+    /**
+     * Typeahead over the ENABLED VISIBLE labels — multi-character, refining
+     * the current match within a 1s window. Single-letter cycling ("s", "s"
+     * steps through the S items) needs the window to lapse between presses.
+     */
     typeahead(e: KeyboardEvent, current: string | null, onMatch: (key: string) => void): void;
     /** A typeahead search is running — Space continues it instead of activating. */
     typeaheadSearching(): boolean;

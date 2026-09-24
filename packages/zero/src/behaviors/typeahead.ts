@@ -2,8 +2,9 @@
  * Typeahead over a list (WAI-ARIA APG menus/listboxes). Printable keys
  * accumulate into a buffer (1s window); the first enabled item whose text
  * starts with the buffer wins. The FIRST character searches from after the
- * current item (so repeated single letters step through the matches); a
- * longer buffer searches from the current item itself, so typing "sav"
+ * current item (so a single letter pressed again once the 1s window has
+ * lapsed steps through the matches — within the window "ss" is a two-letter
+ * buffer); a longer buffer searches from the current item itself, so typing "sav"
  * refines "Save" instead of bouncing between "Save" and "Save As".
  *
  * Space activates, it does not search — unless a search is running, in which

@@ -88,6 +88,8 @@ interface TreeViewContext {
     /** From a node's mount/unmount: the registry changed, re-derive the stop. */
     nodesChanged(): void;
     keydown(e: KeyboardEvent, node: TreeNodeInfo): void;
+    /** A typeahead search is running — Space is search text, not a press. */
+    searching(): boolean;
     setRoot(el: HTMLElement | null): void;
 }
 
@@ -119,6 +121,7 @@ function makeInert(): TreeViewContext {
         isTabbable: () => false,
         nodesChanged: () => {},
         keydown: () => {},
+        searching: () => false,
         setRoot: () => {},
     };
 }
@@ -228,6 +231,7 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
             }
             return tree.enabledItems()[0]?.value === value;
         },
+        searching: () => typeahead.searching(),
         keydown(e, node) {
             if (props.disabled) return;
             const expandKey = rtl() ? 'ArrowLeft' : 'ArrowRight';
@@ -383,7 +387,8 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, on
         },
         onKeydown: (e: KeyboardEvent) => {
             if (disabled()) return;
-            press.onKeydown(e);
+            // A Space that continues a search is search text, not a press.
+            if (!(e.key === ' ' && ctx.searching())) press.onKeydown(e);
             ctx.keydown(e, { value: props.value, isBranch: false, parentValue: branch.value });
         },
         onKeyup: press.onKeyup,
