@@ -25,6 +25,13 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * system's `scaleX(-1)` under its rtl guard, exactly like the other
  * pointing chevrons.
  *
+ * The window is constant-width, so its rendered width follows `count` and
+ * the windowing props, not the container. The root is therefore the row's
+ * overflow box — the part recipes give `overflow-x: auto` (Table's answer
+ * to the same problem), so a narrow container scrolls the row rather than
+ * clipping its trailing pages (#44). Wrapping was ruled out: a page range
+ * that reflows onto two lines reads as two ranges.
+ *
  * The current page is the activation state (`active|inactive`) — the same
  * governed spelling as breadcrumbs' current link and tabs' selected tab.
  */

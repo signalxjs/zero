@@ -13,7 +13,10 @@ const PaginationDemos = component(() => {
                 constant width (the sibling block slides near the edges
                 instead of shrinking). The current page carries{' '}
                 <code>aria-current="page"</code>; the <code>‹</code>/
-                <code>›</code> triggers disable at the bounds.
+                <code>›</code> triggers disable at the bounds. Because the
+                width follows the window rather than the container, the root
+                is the row's scroll box: on a narrow screen it scrolls
+                instead of clipping.
             </p>
             <Pagination.Root count={12} model={[state, 'page']} />
             <p>Page {String(state.page)} of 12 — the model is two-way.</p>

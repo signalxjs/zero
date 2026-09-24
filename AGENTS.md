@@ -217,6 +217,13 @@ on both axes. Geometric on purpose: a `<dialog>` keeps the UA's
 plus padding rendered wider than it said in four skins, which neither the
 unit suite (no layout) nor the CSS goldens (the declaration, not its
 sufficiency) could see;
+the **narrow-pagination spec** (`e2e/narrow-pagination.spec.ts`, #44) —
+the same shape at 400px for the "wider window" Pagination: the root stays
+inside its column while genuinely overflowing (the row is constant-width,
+so every skin makes the root its scroll box, Table's answer), the last
+control is reachable scrolled to the end, and a keyboard-focused trigger at
+either end keeps its whole focus ring inside the scrollport — a scroll box
+clips at its padding box, so the recipes pad the root by the ring's reach;
 and the **axe audit** (`e2e/axe-audit.spec.ts`, #326) — the ARIA counterpart
 to the contrast audit: chromium + zero-basic only (semantics are engine- and
 skin-independent), it walks every registry page (ids read from the rendered

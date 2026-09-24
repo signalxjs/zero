@@ -7406,12 +7406,16 @@
         --pg-accent-content: var(--color-base-100);
         --pg-size: calc(var(--size-field) * 10);
         --pg-font: var(--text-sm);
+        --pg-ring-room: calc(var(--border) + 3px);
     }
 
     [data-scope="pagination"][data-part="root"] {
         display: flex;
         align-items: center;
         gap: var(--space-xs);
+        overflow-x: auto;
+        padding: var(--pg-ring-room);
+        scroll-padding-inline: var(--pg-ring-room);
     }
 
     [data-scope="pagination"][data-part="item"] {
