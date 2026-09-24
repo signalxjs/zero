@@ -64,6 +64,11 @@
   building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
   other code point (`_` included) becomes `_<hex>_`.
 
+- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
+  encodes a string into an id-safe token, injective over strings, for
+  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
+  other code point (`_` included) becomes `_<hex>_`.
+
 ### Fixed
 
 - **Pagination no longer overflows a narrow container (#44).** The row is
@@ -124,6 +129,7 @@
   `aria-activedescendant`. Both now encode the value through `idToken`, on
   the id and on every reference to it. Ids of values made only of ASCII
   letters, digits and `-` are unchanged.
+
 - **Tooltip is hoverable (WCAG 2.1 SC 1.4.13, #167).** `closeDelay`
   defaulted to 0, so leaving the trigger closed the tooltip at once and the
   pointer could never cross the `offset` gap onto the popup. A pointer
@@ -142,6 +148,7 @@
   the viewport never resumes a pause it did not take. `pause()`/`resume()`
   remain one shared flag, so an app's own `pause()` is still cleared when
   the viewport releases its hold.
+
 - **Accessible names without dangling references (#169).**
   `RadioGroup.Label` now has an id and names its radiogroup outside a
   Field too; inside one it joins the Field's label (and any app
@@ -156,7 +163,6 @@
   keeps the Label reference (and, outside thumb mode, the Label's `for`) a
   composed widget needs. `RadioGroup.Label` no longer accepts `id` (the root is labelled by
   its own).
-### Fixed
 
 - **Carousel no longer scrolls the page (#171).** A model write, and a
   non-zero `defaultIndex` or bound model on mount, scrolled the slide into
