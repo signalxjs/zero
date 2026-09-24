@@ -137,7 +137,12 @@ export function externalPackage(compiled: Pick<CompiledDesignSystem, 'externalSc
 export interface CompiledDesignSystem {
     name: string;
     tokensCss: string;
-    /** component scope → compiled recipe CSS. */
+    /**
+     * component scope → compiled recipe CSS. A bare `@layer zero.recipes { … }`
+     * block with no layer-order statement: a caller that writes it as a
+     * standalone file must prepend `LAYER_ORDER_STATEMENT`, as `writeArtifacts`
+     * and `extendedCss` do (#180).
+     */
     componentCss: Record<string, string>;
     /** tokens + all components + raw css, in order. */
     indexCss: string;
