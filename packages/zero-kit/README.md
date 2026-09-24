@@ -102,7 +102,9 @@ computationally independent (no `var()`, `env()`, `light-dark()`,
 `currentColor`, or font/container-relative unit such as `em`, `rem`, `ch`,
 `cqi`), or the browser drops the whole rule. The compiler skips such a
 registration and `validate` warns: the token still ships its value, untyped.
-A universal `syntax: '*'` registers without the `initial-value` instead.
+A universal `syntax: '*'` needs no independence (it keeps `1em`), but a
+substitution function (`var()`, `env()`, `attr()`) is still invalid there, so
+it registers without the `initial-value` instead.
 `writeArtifacts` additionally emits `dist/register.d.ts` — a **generated,
 never authored** augmentation of `@sigx/zero`'s `ZeroVocabulary`, so an app
 importing `@sigx/<ds>/register` gets the design system's themes, tokens and

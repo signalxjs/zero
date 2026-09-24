@@ -28,7 +28,7 @@ import {
     systemNodeAt,
     tokenProperty,
 } from '../../contract.js';
-import { DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, assertTokenValue, badPropertySyntaxMessage, dependentInitialValue, resolveSystemTokens, softMixPercent } from '../shared.js';
+import { DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, assertTokenValue, badPropertySyntaxMessage, dependentInitialValue, resolveSystemTokens, softMixPercent, substitutionFunction } from '../shared.js';
 import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tokens.js';
 
 const softVar = (role: string, mix: number): string =>
@@ -209,11 +209,15 @@ function propertyRegistrations(input: TokensInput<any>, roles: RolesDecl, light:
         }
         const universal = decl.syntax === '*';
         // A light value the browser cannot use as `initial-value` (#184) would
-        // invalidate the whole rule: a universal syntax registers without it
-        // (the initial value is optional there), any other skips the
-        // registration — validate warns — and the token ships untyped.
-        const light = customValues[prop];
-        const initial = light && !dependentInitialValue(light) ? light : undefined;
+        // invalidate the whole rule. A typed syntax needs a computationally
+        // independent value, so it skips the registration — validate warns —
+        // and the token ships untyped. A universal syntax takes any token
+        // stream (a relative unit included) except a substitution function,
+        // and registers without the value when it has one: the initial value
+        // is optional there.
+        const lightValue = customValues[prop];
+        const usable = lightValue && !(universal ? substitutionFunction(lightValue) : dependentInitialValue(lightValue));
+        const initial = usable ? lightValue : undefined;
         if (!initial && !universal) continue;
         rules.push(
             `@property ${prop} { syntax: '${decl.syntax}'; inherits: true;${initial ? ` initial-value: ${initial};` : ''} }`,

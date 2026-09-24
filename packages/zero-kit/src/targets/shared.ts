@@ -329,18 +329,42 @@ export const RESERVED_KEYFRAMES_NAMES = new Set(['none', 'inherit', 'initial', '
  * resolvable without the element), matching the engines.
  */
 export function dependentInitialValue(value: string): string | undefined {
-    const fn = /\b(var|env|attr|light-dark)\(/i.exec(value);
-    if (fn) return `${fn[1]!.toLowerCase()}()`;
-    if (/(?<![\w-])currentcolor(?![\w-])/i.test(value)) return 'currentColor';
-    const keyword = /^\s*(inherit|initial|unset|revert|revert-layer)\s*$/i.exec(value);
+    const code = withoutOpaqueTokens(value);
+    const substitution = substitutionFunction(value);
+    if (substitution) return substitution;
+    if (/(?<![\w-])light-dark\(/i.test(code)) return 'light-dark()';
+    if (/(?<![\w-])currentcolor(?![\w-])/i.test(code)) return 'currentColor';
+    const keyword = /^\s*(inherit|initial|unset|revert|revert-layer)\s*$/i.exec(code);
     if (keyword) return `the CSS-wide keyword ${keyword[1]!.toLowerCase()}`;
-    const unit = RELATIVE_LENGTH.exec(value);
+    const unit = RELATIVE_LENGTH.exec(code);
     if (unit) return `the relative unit ${unit[1]!.toLowerCase()}`;
     return undefined;
 }
 
-/** A number followed by a font- or container-relative length unit. */
-const RELATIVE_LENGTH = /(?:\d|\.)(r?em|r?ex|r?cap|r?ch|r?ic|r?lh|cq(?:w|h|i|b|min|max))(?![\w-])/i;
+/**
+ * The substitution function (`var()`, `env()`, `attr()`) in a value, or
+ * `undefined`. Unlike the rest of `dependentInitialValue`'s checks, this one
+ * also binds a universal `syntax: '*'` registration: independence is only
+ * required of a typed syntax, but engines reject a substitution function in
+ * any `initial-value`.
+ */
+export function substitutionFunction(value: string): string | undefined {
+    const fn = /(?<![\w-])(var|env|attr)\(/i.exec(withoutOpaqueTokens(value));
+    return fn ? `${fn[1]!.toLowerCase()}()` : undefined;
+}
+
+/**
+ * The value with its opaque tokens blanked — quoted strings and unquoted
+ * `url(…)` — so `url(icon2ex.svg)` or `"2em"` never read as a unit or a
+ * function.
+ */
+const withoutOpaqueTokens = (value: string): string =>
+    value
+        .replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g, '""')
+        .replace(/(?<![\w-])url\(\s*[^'")\s][^)]*\)/gi, 'url()');
+
+/** A number token followed by a font- or container-relative length unit. */
+const RELATIVE_LENGTH = /(?<![\w#.])\d*\.?\d+(r?em|r?ex|r?cap|r?ch|r?ic|r?lh|cq(?:w|h|i|b|min|max))(?![\w-])/i;
 
 /** Either token tier's shape — `SystemTokens` and `ThemeSystem` are structurally alike. */
 export type AnyTokenSystem = SystemTokens | ThemeSystem<SystemTokens>;

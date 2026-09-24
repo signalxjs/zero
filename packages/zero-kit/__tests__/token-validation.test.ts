@@ -258,8 +258,24 @@ describe('@property initial-value must be computationally independent (#184)', (
         expect(warnings(input)).not.toContain('computationally independent');
     });
 
+    it("keeps a universal ('*') initial-value that is only a relative unit", () => {
+        const input = withCustom('*', '1em');
+        expect(registration(input)).toContain("@property --gap { syntax: '*'; inherits: true; initial-value: 1em; }");
+        expect(warnings(input)).not.toContain('computationally independent');
+    });
+
+    it.each([
+        ['<length>', '-1em'],
+        ['<length>', '.5rem'],
+    ])('skips a %s registration whose light value is %s', (syntax, value) => {
+        expect(registration(withCustom(syntax, value))).toBeNull();
+    });
+
     it.each([
         ['<length>', '12px'],
+        ['<url>', 'url(icon2ex.svg)'],
+        ['<url>', 'url("var(--x)-2em.svg")'],
+        ['<string>', '"2em"'],
         ['<length>', '50vw'],
         ['<length-percentage>', '50%'],
         ['<color>', 'oklch(45% 0.2 300)'],

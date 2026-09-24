@@ -126,7 +126,8 @@
   `light-dark(…)` or `env(…)`, makes the whole rule invalid, so the token
   silently stayed unregistered. The compiler now skips that registration,
   and `validateDesignSystem` warns and names the dependency. A universal
-  `syntax: '*'` registers without the `initial-value` instead. The token's
+  `syntax: '*'` keeps a relative unit, and registers without the
+  `initial-value` only when the value holds `var()`, `env()` or `attr()`. The token's
   value still applies either way; only typed interpolation is lost. Role
   registrations get the same guard on a compile that skipped validation.
   No in-repo design system's output changed.
