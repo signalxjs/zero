@@ -95,4 +95,54 @@ describe('selectors keys that are selector lists', () => {
         expect(() => compile({ 'svg, , path': { fill: 'red' } })).toThrow(/empty item/);
         expect(() => compile({ '&:hover,': { fill: 'red' } })).toThrow(/empty item/);
     });
+
+    it('splits past a backslash escape and a comment instead of swallowing the rest of the list', () => {
+        const css = compile({
+            '.a\\(b, path': { fill: 'red' },
+            '.a\\"b, path': { fill: 'blue' },
+            "svg /* it's */, path": { fill: 'green' },
+        });
+        expect(preludesFor(css, 'fill: red')[0]!.split(',').map((s) => s.trim())).toEqual([`${ROOT} .a\\(b`, `${ROOT} path`]);
+        expect(preludesFor(css, 'fill: blue')[0]!.split(',').map((s) => s.trim())).toEqual([
+            `${ROOT} .a\\"b`,
+            `${ROOT} path`,
+        ]);
+        expect(preludesFor(css, 'fill: green')[0]!.split(',').map((s) => s.trim())).toEqual([
+            `${ROOT} svg /* it's */`,
+            `${ROOT} path`,
+        ]);
+    });
+
+    it('rejects a key it cannot balance rather than returning it as one item', () => {
+        expect(() => compile({ ':is(svg, path': { fill: 'red' } })).toThrow(/unclosed/);
+        expect(() => compile({ 'svg), path': { fill: 'red' } })).toThrow(/closes nothing/);
+        expect(() => compile({ ':is(svg], path': { fill: 'red' } })).toThrow(/closes nothing/);
+        expect(() => compile({ '[title="x], path': { fill: 'red' } })).toThrow(/unterminated " string/);
+        expect(() => compile({ 'svg /* x, path': { fill: 'red' } })).toThrow(/unterminated comment/);
+    });
+
+    it('never substitutes an & that is text — in a string, a comment or escaped', () => {
+        const css = compile({
+            '[title="x & y"], svg': { color: 'red' },
+            'svg /* & */': { color: 'blue' },
+            '.a\\&b': { color: 'green' },
+        });
+        expect(items(preludesFor(css, 'color: red')[0]!)).toEqual([`${ROOT} [title="x & y"]`, `${ROOT} svg`]);
+        expect(preludesFor(css, 'color: blue')).toEqual([`${ROOT} svg /* & */`]);
+        expect(preludesFor(css, 'color: green')).toEqual([`${ROOT} .a\\&b`]);
+    });
+
+    it('rejects an & that sits only inside a nested list, whose siblings it would not scope', () => {
+        expect(() => compile({ ':is(&:hover, svg)': { color: 'red' } })).toThrow(/nested selector list/);
+        expect(() => compile({ 'svg, :where(&.a, .b) path': { color: 'red' } })).toThrow(/nested selector list/);
+    });
+
+    it('accepts an & inside a single-argument function, or beside a top-level &', () => {
+        const css = compile({
+            ':where(.dark &)': { color: 'red' },
+            '&:not(&.a, .b)': { color: 'blue' },
+        });
+        expect(preludesFor(css, 'color: red')).toEqual([`:where(.dark ${ROOT})`]);
+        expect(preludesFor(css, 'color: blue')).toEqual([`${ROOT}:not(${ROOT}.a, .b)`]);
+    });
 });

@@ -42,8 +42,13 @@
   `zero.recipes`. The compiler now splits the key on top-level commas (not
   the ones inside `:not(…)`, an attribute selector or a string) and scopes
   each item on its own. A list whose items all carry `&` compiles
-  byte-identical, so no shipped design system's CSS changes. An empty item
-  (`'svg, , path'`) is now a build error.
+  byte-identical, so no shipped design system's CSS changes. The split
+  skips strings, `/* … */` comments and backslash escapes, and `&` is
+  substituted only where it is selector syntax (not in `[title="x & y"]`).
+  An empty item (`'svg, , path'`), a key that does not balance (an unclosed
+  bracket, string or comment) and an item whose only `&` sits inside a nested
+  list (`':is(&:hover, svg)'`, which would leave `svg` global) are now build
+  errors.
 
 ## [0.5.0] - 2026-09-23
 

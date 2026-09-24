@@ -174,30 +174,62 @@ function emitPartStyles(
     }
 }
 
+interface KeyAmp {
+    at: number;
+    /** The brackets enclosing it, innermost last — `holdsComma` is final once lexing ends. */
+    frames: { holdsComma: boolean }[];
+}
+
 /**
- * Split a selector list on its TOP-LEVEL commas — a comma inside `:not(…)`,
- * an attribute selector or a quoted string belongs to its item. Items keep
- * their surrounding whitespace so a list rejoined with `,` is byte-identical.
+ * Lex a `selectors` key once: the index of every top-level comma, and of every
+ * `&` that is selector syntax rather than text — outside quoted strings and
+ * `/* … *\/` comments, and not escaped (`\&`). A backslash escape outside a
+ * string consumes the next character, so `.a\(b` opens no paren and `.a\"b`
+ * no string. A key the lexer cannot balance — an unterminated string or
+ * comment, a closer with no opener, an opener never closed — is a build error:
+ * returning it as one item would leave the rest of the list unscoped.
  */
-function splitSelectorList(text: string): string[] {
-    const out: string[] = [];
-    let depth = 0;
-    let start = 0;
+function lexSelectorKey(text: string, where: string): { commas: number[]; amps: KeyAmp[] } {
+    const fail = (why: string): never => {
+        throw new Error(`[zero-kit] ${where}: the selectors key "${text}" cannot be parsed as a selector list — ${why}`);
+    };
+    const commas: number[] = [];
+    const amps: KeyAmp[] = [];
+    const open: { closer: string; holdsComma: boolean }[] = [];
     for (let i = 0; i < text.length; i++) {
-        const ch = text[i];
-        if (ch === '"' || ch === "'") {
-            for (i++; i < text.length && text[i] !== ch; i++) if (text[i] === '\\') i++;
+        const ch = text[i]!;
+        if (ch === '\\') {
+            i++;
             continue;
         }
-        if (ch === '(' || ch === '[') depth++;
-        else if (ch === ')' || ch === ']') depth--;
-        else if (ch === ',' && depth === 0) {
-            out.push(text.slice(start, i));
-            start = i + 1;
+        if (ch === '"' || ch === "'") {
+            let closed = false;
+            for (i++; i < text.length; i++) {
+                if (text[i] === '\\') i++;
+                else if (text[i] === ch) {
+                    closed = true;
+                    break;
+                }
+            }
+            if (!closed) fail(`it has an unterminated ${ch} string`);
+            continue;
         }
+        if (ch === '/' && text[i + 1] === '*') {
+            const close = text.indexOf('*/', i + 2);
+            if (close < 0) fail('it has an unterminated comment');
+            i = close + 1;
+            continue;
+        }
+        if (ch === '(' || ch === '[') open.push({ closer: ch === '(' ? ')' : ']', holdsComma: false });
+        else if (ch === ')' || ch === ']') {
+            if (open.pop()?.closer !== ch) fail(`its "${ch}" at offset ${i} closes nothing it opened`);
+        } else if (ch === ',') {
+            if (open.length === 0) commas.push(i);
+            else open[open.length - 1]!.holdsComma = true;
+        } else if (ch === '&') amps.push({ at: i, frames: [...open] });
     }
-    out.push(text.slice(start));
-    return out;
+    if (open.length > 0) fail(`it leaves ${open.length} bracket(s) unclosed`);
+    return { commas, amps };
 }
 
 /**
@@ -206,22 +238,48 @@ function splitSelectorList(text: string): string[] {
  * part's selector, and an item without `&` is a descendant of it. Scoping the
  * key as one string would scope only the first item — `'svg, path'` would
  * emit `[part] svg, path`, leaving `path` a global rule in the recipes layer.
+ *
+ * Only an `&` at the item's top level scopes it: `':is(&:hover, svg)'` would
+ * otherwise leave its `svg` argument global, so an item whose `&`s all sit
+ * inside a nested list with siblings is rejected. An `&` in a string, a
+ * comment or escaped is text, never substituted.
  */
 function scopeNestedSelector(nested: string, self: string, where: string): string {
-    return splitSelectorList(nested)
-        .map((item) => {
-            const trimmed = item.trim();
-            if (trimmed === '') {
-                throw new Error(
-                    `[zero-kit] ${where}: the selectors key "${nested}" has an empty item in its selector list`,
-                );
-            }
-            if (trimmed.includes('&')) return item.replace(/&/g, self);
+    const { commas, amps } = lexSelectorKey(nested, where);
+    const bounds = [-1, ...commas, nested.length];
+    const out: string[] = [];
+    for (let k = 0; k < bounds.length - 1; k++) {
+        const from = bounds[k]! + 1;
+        const to = bounds[k + 1]!;
+        const item = nested.slice(from, to);
+        const trimmed = item.trim();
+        if (trimmed === '') {
+            throw new Error(
+                `[zero-kit] ${where}: the selectors key "${nested}" has an empty item in its selector list`,
+            );
+        }
+        const own = amps.filter((a) => a.at >= from && a.at < to);
+        if (own.length === 0) {
             const lead = item.slice(0, item.length - item.trimStart().length);
             const trail = item.slice(item.trimEnd().length);
-            return `${lead}${self} ${trimmed}${trail}`;
-        })
-        .join(',');
+            out.push(`${lead}${self} ${trimmed}${trail}`);
+            continue;
+        }
+        const topLevel = own.some((a) => a.frames.length === 0);
+        if (!topLevel && own.some((a) => a.frames.some((f) => f.holdsComma))) {
+            throw new Error(
+                `[zero-kit] ${where}: the selectors key "${nested}" puts & only inside a nested selector list ("${trimmed}") — its other arguments would match outside the part; write & at the top level of the item or split the list`,
+            );
+        }
+        let scoped = '';
+        let cursor = from;
+        for (const a of own) {
+            scoped += nested.slice(cursor, a.at) + self;
+            cursor = a.at + 1;
+        }
+        out.push(scoped + nested.slice(cursor, to));
+    }
+    return out.join(',');
 }
 
 function axisAttr(axis: string, scope: string): string {
