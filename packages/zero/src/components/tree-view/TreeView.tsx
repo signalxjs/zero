@@ -52,6 +52,7 @@ import type {
     WithHtmlAttrs,
     WithVariantAxes,
 } from '../../contract/props.js';
+import { isRtl } from '../../behaviors/direction.js';
 import { treeViewAnatomy } from './anatomy.js';
 
 const SCOPE = treeViewAnatomy.scope;
@@ -84,6 +85,8 @@ interface TreeViewContext {
     toggleBranch(value: string): void;
     select(value: string): void;
     isTabbable(value: string): boolean;
+    /** From a node's mount/unmount: the registry changed, re-derive the stop. */
+    nodesChanged(): void;
     keydown(e: KeyboardEvent, node: TreeNodeInfo): void;
     setRoot(el: HTMLElement | null): void;
 }
@@ -114,6 +117,7 @@ function makeInert(): TreeViewContext {
         toggleBranch: () => {},
         select: () => {},
         isTabbable: () => false,
+        nodesChanged: () => {},
         keydown: () => {},
         setRoot: () => {},
     };
@@ -139,7 +143,7 @@ export type TreeViewRootProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
+const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMounted, signal }) => {
     const selected = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
@@ -156,16 +160,16 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
     const isExpanded = (value: string): boolean => expanded.value.includes(value);
     const tree = createTreeController({ isExpanded });
 
-    const isRtl = (): boolean => {
-        const el = rootEl;
-        if (!el) return false;
-        try {
-            if (el.matches(':dir(rtl)')) return true;
-        } catch {
-            // :dir() unsupported — fall through to computed style.
-        }
-        return typeof getComputedStyle === 'function' && getComputedStyle(el).direction === 'rtl';
-    };
+    const rtl = (): boolean => isRtl(rootEl);
+
+    // The registry isn't reactive (#165): `settled` flips once the root has
+    // mounted (every first-render node has registered), and `version` bumps
+    // on each later node mount/unmount so `isTabbable` re-derives the stop.
+    const registry = signal({ settled: false, version: 0 });
+    onMounted(() => {
+        registry.settled = true;
+        registry.version++;
+    });
 
     const roving = createRovingKeydown({
         list: tree,
@@ -196,6 +200,9 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
             if (props.disabled) return;
             selected.value = value;
         },
+        nodesChanged() {
+            if (registry.settled) registry.version++;
+        },
         isTabbable(value) {
             // One tab stop: the selected node while it is VISIBLE and
             // enabled, else the first visible enabled node — a selection
@@ -205,22 +212,26 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
             // initial render can transiently see an incomplete registry
             // (a second stop that heals on the first interaction), which
             // beats a permanently missing one.
+            void registry.version;
             const sel = selected.value;
             if (sel !== '') {
                 const selNode = tree.findNode(sel);
-                // Unregistered means "registers later this render pass" —
-                // the claim stands, or the initial render would hand a
-                // second stop to the first node. Registered-but-hidden (a
-                // collapsed ancestor) or disabled genuinely falls back.
-                if (!selNode) return sel === value;
-                if (!selNode.disabled() && tree.find(sel)) return sel === value;
+                // Unregistered BEFORE the root mounts means "registers later
+                // this render pass" — the claim stands, or the initial render
+                // would hand a second stop to the first node. Once mounted,
+                // an unregistered value names nothing (a typo, a removed
+                // node, #165) and falls back like a registered-but-hidden
+                // (collapsed ancestor) or disabled one.
+                if (!selNode) {
+                    if (!registry.settled) return sel === value;
+                } else if (!selNode.disabled() && tree.find(sel)) return sel === value;
             }
             return tree.enabledItems()[0]?.value === value;
         },
         keydown(e, node) {
             if (props.disabled) return;
-            const expandKey = isRtl() ? 'ArrowLeft' : 'ArrowRight';
-            const collapseKey = isRtl() ? 'ArrowRight' : 'ArrowLeft';
+            const expandKey = rtl() ? 'ArrowLeft' : 'ArrowRight';
+            const collapseKey = rtl() ? 'ArrowRight' : 'ArrowLeft';
 
             if (e.key === expandKey) {
                 e.preventDefault();
@@ -319,7 +330,7 @@ export type TreeViewItemProps =
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
-const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onUnmounted, signal }) => {
+const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, onUnmounted, signal }) => {
     const ctx = useTreeViewContext();
     const branch = useTreeBranchContext();
     let el: HTMLElement | null = null;
@@ -341,7 +352,11 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onUnmounted, 
         textValue: () => el?.textContent?.trim() ?? props.value,
     };
     const unregister = ctx.tree.registerNode(node);
-    onUnmounted(() => unregister());
+    onMounted(() => ctx.nodesChanged());
+    onUnmounted(() => {
+        unregister();
+        ctx.nodesChanged();
+    });
 
     const isSelected = (): boolean => ctx.selected.value === props.value;
 
@@ -403,7 +418,7 @@ export type TreeViewBranchProps =
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
-const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onUnmounted, signal }) => {
+const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onMounted, onUnmounted, signal }) => {
     const ctx = useTreeViewContext();
     const parent = useTreeBranchContext();
     let el: HTMLElement | null = null;
@@ -432,7 +447,11 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onUnmount
         },
     };
     const unregister = ctx.tree.registerNode(node);
-    onUnmounted(() => unregister());
+    onMounted(() => ctx.nodesChanged());
+    onUnmounted(() => {
+        unregister();
+        ctx.nodesChanged();
+    });
 
     defineProvide(useTreeBranchContext, () => ({
         value: props.value,

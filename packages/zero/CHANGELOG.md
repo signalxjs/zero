@@ -29,6 +29,10 @@
   during setup, run a mount hook's reactive work through the function it
   returns, and every effect or watch created there stops with the component.
 - `syncPopover` returns a stopper (it returned `void`).
+- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
+  encodes a string into an id-safe token, injective over strings, for
+  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
+  other code point (`_` included) becomes `_<hex>_`.
 
 ### Fixed
 
@@ -79,15 +83,6 @@
   `toggle` as a click, so single mode closes the others). When the model
   refuses the change (a disabled root or item), the element is
   reverted to match the model.
-### Added
-
-- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
-  encodes a string into an id-safe token, injective over strings, for
-  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
-  other code point (`_` included) becomes `_<hex>_`.
-
-### Fixed
-
 - **Ids built from values with whitespace (#164).** Tabs built its tab and
   panel ids from the raw `value`, so `value="New York"` produced
   `…-tab-New York`. `aria-controls` and `aria-labelledby` are IDREFS lists
@@ -98,15 +93,6 @@
   `aria-activedescendant`. Both now encode the value through `idToken`, on
   the id and on every reference to it. Ids of values made only of ASCII
   letters, digits and `-` are unchanged.
-
-### Added
-
-- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
-  encodes a string into an id-safe token, injective over strings, for
-  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
-  other code point (`_` included) becomes `_<hex>_`.
-### Fixed
-
 - **Tooltip is hoverable (WCAG 2.1 SC 1.4.13, #167).** `closeDelay`
   defaulted to 0, so leaving the trigger closed the tooltip at once and the
   pointer could never cross the `offset` gap onto the popup. A pointer
@@ -125,8 +111,6 @@
   the viewport never resumes a pause it did not take. `pause()`/`resume()`
   remain one shared flag, so an app's own `pause()` is still cleared when
   the viewport releases its hold.
-### Fixed
-
 - **Accessible names without dangling references (#169).**
   `RadioGroup.Label` now has an id and names its radiogroup outside a
   Field too; inside one it joins the Field's label (and any app
@@ -160,6 +144,17 @@
   `model` bound, the observer's report of a slide a smooth scroll was
   passing echoed back through the prop and scrolled back to that slide, so
   a jump from slide 1 to slide 3 stopped on slide 2.
+- **A roving group always keeps a tab stop (#165).** Tabs, ToggleGroup and
+  Steps made only the selected item tabbable whenever a value was set, so a
+  value naming no rendered item (a typo, a removed tab) or only a disabled
+  one left every item at `tabIndex=-1` and the group unreachable by
+  keyboard. The stop now falls back to the first enabled item, and moves
+  again when items are added or removed. TreeView already fell back for a
+  disabled or collapsed-away selection, but a value naming no node still
+  left the tree unreachable; it now falls back too.
+- **Tabs and Steps honour `dir="rtl"` (#165).** Their horizontal arrow keys
+  ignored the reading direction, so ArrowRight moved to the visually left
+  item. They now flip under RTL like ToggleGroup and TreeView.
 
 ## [0.5.0] - 2026-09-23
 

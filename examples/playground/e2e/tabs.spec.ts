@@ -9,7 +9,7 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { demoLabelled } from './demo';
+import { demoLabelled, settledBox } from './demo';
 
 test.beforeEach(async ({ page }) => {
     await bootPage(page, 'tabs', 'basic');
@@ -90,4 +90,24 @@ test('panels: the active one is shown, the rest are platform-hidden, each labell
     await tab(page, 'Details').click();
     await expect(detailsPanel).toBeVisible();
     await expect(overviewPanel).toBeHidden();
+});
+
+test('under dir="rtl" the horizontal arrows follow the reading direction (#165)', async ({ page }) => {
+    // AFTER boot: an init script runs before documentElement exists (rtl.spec.ts).
+    await page.evaluate(() => { document.documentElement.dir = 'rtl'; });
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await tab(page, 'Details').click();
+    await expect(tab(page, 'Details')).toBeFocused();
+
+    // Overview comes first in DOM order, which under RTL is visually RIGHT.
+    const overview = await settledBox(tab(page, 'Overview'), 'Overview tab');
+    const details = await settledBox(tab(page, 'Details'), 'Details tab');
+    expect(overview.x).toBeGreaterThan(details.x);
+
+    await page.keyboard.press('ArrowRight');
+    await expect(tab(page, 'Overview')).toBeFocused();
+    await expect(tab(page, 'Overview')).toHaveAttribute('data-state', 'active');
+
+    await page.keyboard.press('ArrowLeft');
+    await expect(tab(page, 'Details')).toBeFocused();
 });

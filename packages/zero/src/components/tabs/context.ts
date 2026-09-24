@@ -2,6 +2,7 @@ import { defineInjectable, defineProvide } from 'sigx';
 import { createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import type { ListController } from '../../behaviors/list.js';
 import { createListController } from '../../behaviors/list.js';
+import { createRovingTabStop, type RovingTabStop } from '../../behaviors/roving.js';
 import type { Orientation } from '../../contract/data-attrs.js';
 
 export type TabsActivationMode = 'automatic' | 'manual';
@@ -9,6 +10,7 @@ export type TabsActivationMode = 'automatic' | 'manual';
 export interface TabsContext {
     state: ControllableState<string>;
     list: ListController;
+    tabStop: RovingTabStop;
     orientation(): Orientation;
     activationMode(): TabsActivationMode;
     loop(): boolean;
@@ -18,9 +20,11 @@ export interface TabsContext {
 }
 
 function makeInertTabs(): TabsContext {
+    const list = createListController();
     return {
         state: createInertState<string>(''),
-        list: createListController(),
+        list,
+        tabStop: createRovingTabStop(list),
         orientation: () => 'horizontal',
         activationMode: () => 'automatic',
         loop: () => true,
