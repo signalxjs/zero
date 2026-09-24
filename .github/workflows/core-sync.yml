@@ -90,9 +90,17 @@ jobs:
       - run: pnpm test
       - run: pnpm verify:catalog
 
+      # A PR opened with the default GITHUB_TOKEN starts no `pull_request`
+      # workflows, so ci.yml (lint, e2e, verify-pack, the Node matrix) never
+      # ran on it and `gh pr checks` stayed empty (#196). CORE_SYNC_TOKEN — a
+      # fine-grained PAT or GitHub App token with contents + pull-requests
+      # write on this repo — makes the PR's events count. Until a maintainer
+      # adds it, the fallback still opens the PR; close and reopen it (or push
+      # an empty commit to the branch) to start CI.
       - name: Open / update alignment PR
         uses: peter-evans/create-pull-request@v8
         with:
+          token: ${{ secrets.CORE_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
           branch: chore/align-with-core
           commit-message: "chore: align with core ${{ steps.target.outputs.minor }}"
           title: "chore: align with core ${{ steps.target.outputs.minor }}"
@@ -110,7 +118,7 @@ jobs:
             touched: they release on their own tier. See core's
             `docs/ecosystem-release.md` for the order.
 
-            Review, then merge + cut a release per RELEASING.md.
+            Review, then merge + cut a release per AGENTS.md, "Cutting a release".
           # The requested-reviewers API takes the `[bot]`-suffixed slug; a bare
           # `copilot` does not resolve to the review bot and the request is
           # silently dropped. (The review AUTHOR login comes back without the

@@ -42,11 +42,20 @@ export default defineConfig({
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
-    reporter: process.env.CI ? 'github' : 'list',
+    // On CI the HTML report is written too, and ci.yml uploads it (with
+    // test-results/) when the job fails — the annotations alone said which
+    // test failed, never why (#196).
+    reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
     // Generous by design: assertions poll an instrumentation log, and the
     // slowest engine under full parallel load decides the budget.
     expect: { timeout: 10_000 },
-    use: { baseURL },
+    use: {
+        baseURL,
+        // Retries are CI-only (above), so this records a trace exactly when
+        // a test failed once — free on a passing run.
+        trace: 'on-first-retry',
+        screenshot: 'only-on-failure',
+    },
     webServer: {
         command: `pnpm dev --port ${port} --strictPort`,
         url: baseURL,
