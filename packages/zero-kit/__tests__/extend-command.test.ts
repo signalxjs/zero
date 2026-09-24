@@ -113,6 +113,15 @@ describe('runExtend under ZERO_ECOSYSTEM=0 (#187)', () => {
         // installed — writing the pass-through artifacts would silently strip
         // every pack scope from the app, and the log would blame the
         // dependencies.
+        //
+        // What this pins is the ORDERING: the refusal comes before the design
+        // system is resolved. `@acme/zero-ds` is deliberately not installed,
+        // so a check placed after resolution throws "not installed" and fails
+        // the regex. It cannot drive the buggy path to the write itself —
+        // that needs a real design system's built entry, which the module
+        // runner cannot import (see the header) — so the byte-identity and
+        // log assertions below hold only because nothing ran, not because a
+        // reached write was proven to preserve pack scopes.
         const cwd = mkdtempSync(join(tmpdir(), 'zero-kit-extend-'));
         try {
             const files = {
