@@ -263,7 +263,21 @@ and the **scope-coverage spec** (`e2e/scope-coverage.spec.ts`, #194) —
 chromium, one load of `#/all`: every scope zero-basic's manifest declares
 (ecosystem `ext-stepper` included, rendered from `@sigx/zero-ext-example` on
 its own page) must render somewhere, plus the standalone `VisuallyHidden`,
-since an unrendered scope is invisible to every sweeping spec at once): `pnpm build`,
+since an unrendered scope is invisible to every sweeping spec at once); and
+the **narrow-viewport sweep** (`e2e/narrow-viewport.spec.ts`, #45) — its own `narrow` project (Desktop
+Chrome at 420px; every other project `testIgnore`s the file and `narrow`
+runs nothing else), one test per design system walking every registry page:
+the document must not scroll sideways, and no visible
+`[data-scope][data-part]` may escape the content column — measured against
+`main.shell-main`'s content box, never the viewport, whose shell offsets
+would bury the signal. Out of scope by construction: parts inside an
+ancestor whose `overflow-x` is not `visible` (the scroller itself is still
+measured — that is how a scrolling pagination or horizontal timeline
+passes), `position: fixed` parts, and 1px visually-hidden boxes. Deliberate
+exceptions are `{ ds, scope, part, reason }` rows in
+`e2e/narrow-allowlist.json` (`ds: "*"` for all six; the final slider mark's
+label is the one today), and stale rows fail like the axe allowlist's
+(target it with `--project=narrow`): `pnpm build`,
 then `pnpm --filter zero-playground e2e` (first run:
 `pnpm --filter zero-playground exec playwright install`). Filtering needs
 `exec` — `pnpm --filter zero-playground e2e -- <name>` drops the argument and
