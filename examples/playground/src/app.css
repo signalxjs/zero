@@ -168,6 +168,14 @@ body {
     flex-shrink: 0;
 }
 
+/* The Layout page's visible bound (#46; see BOUND in pages/layout.tsx). An
+   outline, not a border: it takes no space, so a measured box is the same
+   with or without it. Dashed, so it never reads as the focus ring above. */
+.demo-bound {
+    outline: 1px dashed color-mix(in oklab, var(--color-base-content) 45%, transparent);
+    outline-offset: -1px;
+}
+
 /* The responsive drawer's page (#82): the docked panel beside the content. */
 .demo-dock {
     display: flex;

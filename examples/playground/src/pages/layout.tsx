@@ -16,6 +16,21 @@ const Cell = component<{ children?: unknown }>(({ slots }) => () => (
     <Badge>{slots.default?.()}</Badge>
 ), { name: 'Cell' });
 
+/**
+ * The page's one convention for making a bound visible (#46).
+ *
+ * A layout component's whole job is to constrain space, and a constraint
+ * drawn in `--color-base-100` on a `--color-base-100` page is invisible: the
+ * widths are real (layout.spec.ts measures them) and a reader still cannot
+ * see them. Any demo whose point is WHERE an element's edges are gets this
+ * class on that element — demo chrome, not a tint: a `color` on a Box would
+ * paint the child rather than the bound, would need a role heroui and carbon
+ * do not declare, and would render an axis value ds-smoke has to account
+ * for. Styled in app.css as a dashed outline, which takes no space, so every
+ * measured box is the same with or without it.
+ */
+const BOUND = 'demo-bound';
+
 const LayoutDemos = component(() => () => (
     <>
         <p>
@@ -51,13 +66,20 @@ const LayoutDemos = component(() => () => (
         ))}
 
         <h3>align and justify</h3>
-        <DemoRow>
-            <Row gap="md" align="center" justify="between" padY="sm">
-                <Cell>start</Cell>
-                <Cell>middle</Cell>
-                <Cell>end</Cell>
-            </Row>
-        </DemoRow>
+        <p>
+            <code>justify="between"</code> distributes the row's free space,
+            so the row has to have some: it sits at block level, full width,
+            with its edge drawn so the distribution has something to be
+            measured against.
+        </p>
+        {/* Not inside a DemoRow, for the reason the Spacer demo below gives:
+            a Row nested in that flex row is sized by its own content, and
+            `space-between` over zero free space renders as ordinary gaps. */}
+        <Row class={BOUND} gap="md" align="center" justify="between" padY="sm">
+            <Cell>start</Cell>
+            <Cell>middle</Cell>
+            <Cell>end</Cell>
+        </Row>
 
         <h3>Spacer</h3>
         <p>
@@ -166,15 +188,15 @@ const LayoutDemos = component(() => () => (
             these change width.
         </p>
         <Col gap="sm">
-            <Container measure="xs" padY="xs"><Box pad="sm">measure="xs"</Box></Container>
-            <Container measure="sm" padY="xs"><Box pad="sm">measure="sm"</Box></Container>
-            <Container measure="md" padY="xs"><Box pad="sm">measure="md"</Box></Container>
+            <Container class={BOUND} measure="xs" padY="xs"><Box pad="sm">measure="xs"</Box></Container>
+            <Container class={BOUND} measure="sm" padY="xs"><Box pad="sm">measure="sm"</Box></Container>
+            <Container class={BOUND} measure="md" padY="xs"><Box pad="sm">measure="md"</Box></Container>
         </Col>
         <p>
             <code>measure="prose"</code> is the reading measure, in{' '}
             <code>ch</code>, so it tracks the type rather than the page.
         </p>
-        <Container measure="prose" padY="xs">
+        <Container class={BOUND} measure="prose" padY="xs">
             <Box pad="md">
                 <code>measure="prose"</code> — a paragraph bounded by the
                 reading measure rather than by the window. Line length is a
