@@ -70,6 +70,13 @@
   the id and on every reference to it. Ids of values made only of ASCII
   letters, digits and `-` are unchanged.
 
+### Added
+
+- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
+  encodes a string into an id-safe token, injective over strings, for
+  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
+  other code point (`_` included) becomes `_<hex>_`.
+
 ## [0.5.0] - 2026-09-23
 
 ### Added
