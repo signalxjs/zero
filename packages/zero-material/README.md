@@ -73,6 +73,16 @@ the axis instead of past an empty half of each item.
 `axes.shape` there and nowhere else. One declaration on the root, whose
 `overflow: hidden` clips the image and the initials alike. `rounded` is Material's small shape; unset, the avatar is the circle it always was.
 
+## Disabled overlay triggers
+
+A disabled Dialog, Popover, Tooltip, Menu or Drawer trigger fades the way
+a disabled Button does: `opacity: var(--disabled-opacity)` and
+`cursor: not-allowed` (#191). The dismiss actions (Dialog's close and cancel,
+and the close on Popover and Drawer) fade the same way. These parts paint the
+accent ink, and that overrides the browser's grey text for `:disabled`. Before
+this change a disabled trigger lost only its hover layer and kept its full
+colour and pointer cursor.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors
