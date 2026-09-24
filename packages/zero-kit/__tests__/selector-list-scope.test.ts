@@ -101,7 +101,10 @@ describe('selectors keys that are selector lists', () => {
             '.a\\(b, path': { fill: 'red' },
             '.a\\"b, path': { fill: 'blue' },
             "svg /* it's */, path": { fill: 'green' },
+            '.foo\\,bar, path': { fill: 'navy' },
         });
+        // An escaped comma is part of the identifier, not a list separator.
+        expect(preludesFor(css, 'fill: navy')).toEqual([`${ROOT} .foo\\,bar, ${ROOT} path`]);
         expect(preludesFor(css, 'fill: red')[0]!.split(',').map((s) => s.trim())).toEqual([`${ROOT} .a\\(b`, `${ROOT} path`]);
         expect(preludesFor(css, 'fill: blue')[0]!.split(',').map((s) => s.trim())).toEqual([
             `${ROOT} .a\\"b`,
