@@ -24,7 +24,7 @@
  *   (error); for a design system `extendDesignSystem` derived, a patch that
  *   reaches a name the base keeps private is a warning (`resolve/hooks.ts`).
  */
-import { converter, interpolate, parse, wcagContrast } from 'culori';
+import { converter, parse, wcagContrast } from 'culori';
 import type { Color } from 'culori';
 import type { ZeroManifest } from '../contract.js';
 import { badAxisValue } from './messages.js';
@@ -55,6 +55,7 @@ import { hookIssues, privateNameIssues } from './hooks.js';
 import { tokenVocabulary } from './vocabulary.js';
 import { formatOklch, solveContentLightness } from '../palette.js';
 import { tryBakeColorValue } from './color-bake.js';
+import { compositeOver, measureRolePair, parseCssColor } from './role-contrast.js';
 import { CSS_BREAKOUT, DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, badPropertySyntaxMessage, breakoutMessage, dependentInitialValue, softMixPercent } from '../targets/shared.js';
 
 export interface ValidationIssue {
@@ -138,7 +139,7 @@ function pairEndColor(
     // A plain colour is read as written, the way the role pairs read theirs
     // (baking rounds to 8-bit hex, which can flip a ratio sitting on the
     // floor); only an expression goes through the baker.
-    const direct = parse(value);
+    const direct = parseCssColor(value);
     if (direct) return { color: direct };
     const baked = tryBakeColorValue(value, colors, colorScheme);
     const color = 'hex' in baked ? parse(baked.hex) : undefined;
@@ -495,7 +496,7 @@ export function validateDesignSystem<R extends RolesDecl>(
             const value = colors[token];
             if (!value) {
                 error(`themes.${themeName}`, `missing color token "${token}" (declared by the design system)`);
-            } else if (!parse(value)) {
+            } else if (!parseCssColor(value)) {
                 error(`themes.${themeName}`, `color token "${token}" is not a parseable color: "${value}"`);
             }
         }
@@ -512,10 +513,13 @@ export function validateDesignSystem<R extends RolesDecl>(
             }
         }
         for (const [bg, fg] of pairs) {
-            const a = colors[bg];
-            const b = colors[fg];
-            if (!a || !b || !parse(a) || !parse(b)) continue;
-            const ratio = wcagContrast(a, b);
+            const reading = measureRolePair(colors, bg, fg);
+            if (!reading) continue;
+            if ('unmeasured' in reading) {
+                error(`themes.${themeName}`, `contrast ${bg} vs ${fg} cannot be measured: ${reading.unmeasured}`);
+                continue;
+            }
+            const { ratio } = reading;
             if (ratio >= CONTRAST_AA) continue;
             // The fix is solved at AA even for the 3:1 error tier: a value
             // that only just clears 3:1 would come straight back as the
@@ -523,7 +527,17 @@ export function validateDesignSystem<R extends RolesDecl>(
             // paste and move on from.
             const level = ratio < 3 ? 'error' : 'warning';
             const said = `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (${ratio < 3 ? '< 3:1' : `< ${CONTRAST_AA}:1 AA`})`;
-            const value = suggestContrastFix(a, b, CONTRAST_AA);
+            if (reading.translucentFg) {
+                // A translucent ink gets no suggestion: its lightness is not its paint.
+                (level === 'error' ? errors : warnings).push({
+                    level,
+                    where: `themes.${themeName}`,
+                    message: `${said} — ${fg} is translucent, composited over ${bg}; raise its alpha or its lightness gap`,
+                    rule: 'contrast-floor',
+                });
+                continue;
+            }
+            const value = suggestContrastFix(reading.bg, reading.fg, CONTRAST_AA);
             const issue: ValidationIssue = value
                 ? {
                     level,
@@ -568,9 +582,7 @@ export function validateDesignSystem<R extends RolesDecl>(
                 }
                 // A translucent ink is read where it lands: composited over
                 // the surface, as the browser paints it.
-                const ink = (f.alpha ?? 1) < 1
-                    ? interpolate([b, { ...f, alpha: 1 }], 'rgb')(f.alpha ?? 1)
-                    : f;
+                const ink = compositeOver(f, b);
                 const ratio = wcagContrast(ink, b);
                 if (ratio >= min) continue;
                 const said = `contrast ${decl.bg} vs ${decl.fg} is ${ratio.toFixed(2)}:1 (< ${min}:1 declared in tokens.contrast${decl.description ? ` — ${decl.description}` : ''})`;

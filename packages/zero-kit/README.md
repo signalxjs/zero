@@ -240,7 +240,12 @@ package's extensionless stylesheet exports (`./css`, `./css/tokens`,
 `import '<pkg>/css'` fails TypeScript's side-effect-import check.
 
 The WCAG check covers every `role` / `role-content` pair and the base pairs
-on its own. A `custom` colour token — a dim caption ink, a status tone — is
+on its own, measured as the browser paints them: a translucent `-content`
+ink is composited over its role, and a translucent role over `base-100`
+first (a translucent `base-100` has nothing opaque under it and is an
+error). The validator and the report's per-theme table share that one
+reading. Colour values parse case-insensitively, as CSS does — `OKLCH(…)`
+validates. A `custom` colour token — a dim caption ink, a status tone — is
 measured when the design system declares the pair it is read on:
 
 ```ts

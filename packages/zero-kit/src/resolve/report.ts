@@ -24,7 +24,6 @@
  *   vocabulary, so a value held back everywhere on purpose says nothing while a
  *   component lagging behind its siblings does.
  */
-import { parse, wcagContrast } from 'culori';
 import type { ManifestComponent, ManifestPart, ZeroManifest } from '../contract.js';
 import { contrastPairs } from '../contract.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../design-system.js';
@@ -34,6 +33,7 @@ import type { PartStyles, RecipeInput } from '../recipes.js';
 import type { DesignSystemApi, MappedGrade } from '../api.js';
 import { apiGrade, modifierGrade } from '../api.js';
 import type { ValidationResult } from './validate.js';
+import { measureRolePair } from './role-contrast.js';
 import type { ContrastMatrix } from '../audit/contrast/matrix.js';
 import type { ReportScore } from './score.js';
 import { computeScore, formatScore } from './score.js';
@@ -493,14 +493,15 @@ function themeReports(ds: DesignSystemInput, compiled: CompiledDesignSystem): Th
         const colors = theme.colors as Record<string, string>;
         const measured: Array<{ bg: string; fg: string; ratio: number }> = [];
         for (const [bg, fg] of pairs) {
-            const a = colors[bg];
-            const b = colors[fg];
-            // Same guard as the validator: an unparseable or missing token is
-            // an error there, and silence here rather than a bogus ratio.
-            if (!a || !b || !parse(a) || !parse(b)) continue;
+            // The validator's own reading (translucency composited, colour
+            // functions case-insensitive): an unparseable, missing or
+            // unmeasurable pair is an error there, and silence here rather
+            // than a bogus ratio.
+            const reading = measureRolePair(colors, bg, fg);
+            if (!reading || 'unmeasured' in reading) continue;
             // Rounded: this lands in a committed artifact, and raw float tails
             // would make every report a diff against itself across platforms.
-            measured.push({ bg, fg, ratio: Number(wcagContrast(a, b).toFixed(2)) });
+            measured.push({ bg, fg, ratio: Number(reading.ratio.toFixed(2)) });
         }
         const worst = measured.reduce<(typeof measured)[number] | null>(
             (min, pair) => (min === null || pair.ratio < min.ratio ? pair : min),

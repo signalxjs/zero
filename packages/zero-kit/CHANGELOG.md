@@ -20,6 +20,19 @@
 
 ### Fixed
 
+- **Role-pair contrast reads alpha, and colour functions parse
+  case-insensitively (#185).** The `contrast-floor` rule and the report's
+  per-theme table measured `role` / `role-content` on the raw strings, and
+  culori's WCAG luminance drops alpha — so a 10%-opacity `primary-content`
+  on a dark primary passed at 7.57:1 while it paints at 1.23:1. Both now
+  share one reading (`resolve/role-contrast.ts`): a translucent ink is
+  composited over its role (an error or warning with no lightness
+  `suggest`, since a translucent ink's lightness is not its paint), a
+  translucent role over `base-100`, and a translucent `base-100` is an
+  error. The validator also rejected `OKLCH(…)` as "not a parseable color"
+  although CSS and `bakeColor` accept it; theme colours now parse
+  lower-cased, like the baker. No shipped design system's report changed.
+
 - **`sigx zero:fragment`'s lynx probe defines the standard non-colour
   tokens (#158).** The hostile-vocabulary probe withheld the colour roles
   and the size ramp, as it should. It also withheld every `--space-*`,
