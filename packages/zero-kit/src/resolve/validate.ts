@@ -652,7 +652,7 @@ export function validateDesignSystem<R extends RolesDecl>(
             if (why) {
                 warn(
                     `themes.${ds.tokens.defaultLight}`,
-                    `custom token "${name}" has the light value "${value}", which is not computationally independent (${why}) — it cannot be an @property initial-value, so @property ${normProp(name)} is not registered and the token loses its ${decl.syntax} typing; use an absolute value (px, a literal colour) in ${ds.tokens.defaultLight}, or declare syntax '*'`,
+                    `custom token "${name}" has the light value "${value}", which is not computationally independent (${why}) — it cannot be an @property initial-value, so @property ${normProp(name)} is not registered and the token loses its ${decl.syntax} typing; give ${ds.tokens.defaultLight} a literal ${decl.syntax} value that depends on nothing (e.g. px rather than em, a literal colour rather than var()), or declare syntax '*'`,
                 );
             }
         }
