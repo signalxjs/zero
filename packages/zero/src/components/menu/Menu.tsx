@@ -458,6 +458,7 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
     let el: HTMLElement | null = null;
     // Outside Chromium the native close waits for the exit to play (#17).
     const exit = createTopLayerExit();
+    let wasOpen = false;
 
     const scoped = mountScope();
     onMounted(() => scoped(() => {
@@ -467,14 +468,17 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
             if (!node || typeof node.showPopover !== 'function') return;
             if (open) exit.cancel();
             const showing = node.matches(':popover-open');
-            // The one-shot hint is spent on every open — including a reopen
-            // mid-exit, when the popover is still showing — so a stale
-            // 'last' never leaks into the next, unrelated open.
-            const end = open ? menu.takeOpenFocus() : 'first';
-            if (open && !showing) {
-                node.showPopover();
+            const opening = open && !wasOpen;
+            wasOpen = open;
+            if (open && !showing) node.showPopover();
+            if (opening) {
                 // Focus lands on the first enabled item — the last after an
-                // ArrowUp open (APG menu button).
+                // ArrowUp open (APG menu button). Keyed to the closed → open
+                // transition, not to showing the popover: outside Chromium a
+                // reopen mid-exit finds it still :popover-open, and it must
+                // both move focus and spend the one-shot hint, or a stale
+                // 'last' would leak into the next, unrelated open.
+                const end = menu.takeOpenFocus();
                 const items = menu.list.enabledItems();
                 items[end === 'last' ? items.length - 1 : 0]?.el()?.focus();
             } else if (!open && showing) {

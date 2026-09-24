@@ -186,14 +186,17 @@ describe('Menu', () => {
         expect(document.activeElement).toBe(items[0]);
 
         // A reopen by ArrowUp while the popup is still showing (outside
-        // Chromium the exit animation keeps it :popover-open) spends the
-        // hint too — the next, unrelated click open lands on the first item.
+        // Chromium the exit animation keeps it :popover-open) still moves
+        // focus and spends the hint — the next, unrelated click open lands
+        // on the first item.
         trigger.click();
         await tick();
         const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
         popup.setAttribute('data-test-popover-open', '');
+        trigger.focus();
         trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', cancelable: true }));
         await tick();
+        expect(document.activeElement).toBe(items[1]);
         trigger.click();
         await tick();
         popup.removeAttribute('data-test-popover-open');
