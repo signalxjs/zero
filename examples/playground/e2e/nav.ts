@@ -39,6 +39,16 @@ export async function bootPage(page: Page, pageId: string, ds: string): Promise<
     await page.addInitScript((id) => {
         localStorage.setItem('zero-ds', id);
     }, ds);
+    await gotoPage(page, pageId, ds);
+}
+
+/**
+ * Navigate to `pageId` on a page whose design system `bootPage` already
+ * pinned, with the same three waits. For a spec that reloads many times
+ * (the axe audit's fresh load per scan): calling `bootPage` again would
+ * register another init script on every load, and they accumulate.
+ */
+export async function gotoPage(page: Page, pageId: string, ds: string): Promise<void> {
     await page.goto(`/#/${pageId}`);
     await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', ds);
     await expect(page.locator(`link[data-zero-ds="${ds}"]:not([media])`)).toHaveCount(1);

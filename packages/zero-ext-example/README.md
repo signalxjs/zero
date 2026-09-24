@@ -37,7 +37,7 @@ unstyled-but-accessible.
 
 The playground renders it on its own page (`#/ext-stepper`, #194), so the
 e2e sweeps — ds-smoke, press-feedback, the axe audit — see the adopted scope
-in zero-basic, and `e2e/scope-coverage.spec.ts` fails if any scope a design
+in zero-basic, and `examples/playground/e2e/scope-coverage.spec.ts` fails if any scope a design
 system declares goes unrendered again.
 
 Zero has since **promoted the stepper pattern into a first-class `steps`

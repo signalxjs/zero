@@ -28,7 +28,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
-import { bootPage } from './nav';
+import { bootPage, gotoPage } from './nav';
 import { controlledPopup, demoPosting } from './demo';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -200,12 +200,17 @@ const SCANS: Record<string, Scan[]> = {
     // (defaultValue / defaultOpen), so their panels are already in the tree.
 };
 
-/** Every scan's starting point: a fresh document on `pageId`. */
+/**
+ * Every scan's starting point: a fresh document on `pageId`. The design
+ * system was pinned once by the test's initial `bootPage`, whose init script
+ * persists across navigations — so this uses `gotoPage`, not another
+ * `bootPage`, which would stack one more init script per scan.
+ */
 async function freshBoot(page: Page, pageId: string): Promise<void> {
-    // A second `bootPage` onto the SAME id would be a no-op hash navigation,
+    // Navigating straight to the SAME id would be a no-op hash navigation,
     // leaving the previous scan's open surfaces in place.
     await page.goto('about:blank');
-    await bootPage(page, pageId, 'basic');
+    await gotoPage(page, pageId, 'basic');
 }
 
 interface Finding {
