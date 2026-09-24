@@ -51,7 +51,12 @@
  * and opening a sibling submenu closes the other. Keyboard: ArrowRight (LTR)
  * / Enter / Space open and focus the first item, ArrowLeft closes back to
  * the sub-trigger. Hover opens/closes with intent delays and never moves
- * focus into the submenu.
+ * focus into the submenu. Once a submenu is open, a mouse leaving its
+ * trigger toward it gets a safe triangle (#19): sibling items crossed on
+ * the diagonal do not take hover while the pointer stays between the exit
+ * point and the submenu's near edge. `closeDelay` still bounds it — a
+ * pointer that lingers closes the submenu, and the item under it then
+ * takes hover.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
@@ -64,6 +69,7 @@ import { createAnchorPosition, pointAnchor, type Placement, type PositionAnchor,
 import { createFocusRestore } from '../../behaviors/focus.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
+import { createPointerGrace, pointInTriangle, safeTriangle, type Point, type PointerGrace } from '../../behaviors/safe-triangle.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
@@ -99,6 +105,33 @@ interface MenuContext {
      */
     openAt(x: number, y: number): void;
     setPopup(el: HTMLElement | null): void;
+    /**
+     * This level's safe-triangle hover grace (#19): an open child submenu
+     * starts it, the level's items consult it before taking hover.
+     */
+    grace: PointerGrace;
+}
+
+const pointOf = (e: PointerEvent): Point => ({ x: e.clientX, y: e.clientY });
+
+/**
+ * Hover for an item of a level whose child submenu may hold a safe
+ * triangle: held while the pointer is inside it, taken on the first move
+ * outside it (or replayed by the submenu when its close delay runs out).
+ */
+function graceHover(grace: PointerGrace, hover: () => void) {
+    const take = (e: PointerEvent): void => {
+        if (grace.holds(pointOf(e), hover)) return;
+        grace.release();
+        hover();
+    };
+    return {
+        enter: take,
+        // Only a held item listens to moves — without a grace, hover stays
+        // enter-only, exactly as before.
+        move: (e: PointerEvent): void => { if (grace.isHeld(hover)) take(e); },
+        leave: (): void => grace.release(hover),
+    };
 }
 
 function makeInert(): MenuContext {
@@ -113,6 +146,7 @@ function makeInert(): MenuContext {
         setAnchor: () => {},
         openAt: () => {},
         setPopup: () => {},
+        grace: createPointerGrace(),
     };
 }
 
@@ -185,6 +219,7 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
             else state.value = true;
         },
         setPopup: (el) => { popup = el; },
+        grace: createPointerGrace(),
     };
     defineProvide(useMenuContext, () => ctx);
 
@@ -480,6 +515,7 @@ function useMenuItemCore({ signal, onUnmounted }: ItemHooks, opts: ItemCoreOpts)
     const activate = (): void => {
         if (!opts.disabled()) opts.activate();
     };
+    const hover = graceHover(menu.grace, () => el?.focus());
 
     /** The behavior half of the part bag; the caller adds identity + ARIA. */
     const handlers = (): Omit<PartProps, 'data-scope' | 'data-part'> => ({
@@ -498,11 +534,15 @@ function useMenuItemCore({ signal, onUnmounted }: ItemHooks, opts: ItemCoreOpts)
             menu.keydown(e, opts.value());
         },
         onKeyup: press.onKeyup,
-        onPointerenter: () => { el?.focus(); },
+        onPointerenter: hover.enter,
+        onPointermove: hover.move,
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
-        onPointerleave: press.onPointerleave,
+        onPointerleave: (e: PointerEvent) => {
+            press.onPointerleave(e);
+            hover.leave();
+        },
         onFocus: () => { focus.highlighted = true; },
         onBlur: (e: FocusEvent) => {
             press.onBlur(e);
@@ -722,6 +762,10 @@ interface MenuSubContext {
     scheduleOpen(): void;
     scheduleClose(): void;
     cancelTimers(): void;
+    /** A mouse left the sub-trigger at `e`: start the safe triangle toward the open popup. */
+    startGrace(e: PointerEvent): void;
+    /** The pointer reached the popup or came back to the trigger: the triangle is spent. */
+    endGrace(): void;
     consumePendingFocus(): boolean;
     isRtl(): boolean;
     setSubTrigger(el: HTMLElement | null): void;
@@ -739,6 +783,8 @@ function makeInertSub(): MenuSubContext {
         scheduleOpen: () => {},
         scheduleClose: () => {},
         cancelTimers: () => {},
+        startGrace: () => {},
+        endGrace: () => {},
         consumePendingFocus: () => false,
         isRtl: () => false,
         setSubTrigger: () => {},
@@ -776,6 +822,14 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
     let pendingFocus = false;
     let openHandle: ReturnType<typeof setTimeout> | null = null;
     let closeHandle: ReturnType<typeof setTimeout> | null = null;
+    // Identity of this submenu's safe triangle in the PARENT level's grace.
+    const graceOwner = {};
+    let stopGraceMoves: (() => void) | null = null;
+    const endGrace = (): (() => void) | null => {
+        stopGraceMoves?.();
+        stopGraceMoves = null;
+        return parent.grace.end(graceOwner);
+    };
 
     const isRtl = (): boolean => {
         const el = subTrigger;
@@ -794,6 +848,16 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
         openHandle = closeHandle = null;
     };
 
+    const armClose = (): void => {
+        closeHandle = setTimeout(() => {
+            // The delay ran out with the pointer still short of the popup:
+            // the sibling it rests on takes the hover it was held from.
+            const replay = endGrace();
+            close(false);
+            replay?.();
+        }, props.closeDelay ?? 300);
+    };
+
     const open = (focusFirst: boolean): void => {
         cancelTimers();
         pendingFocus = focusFirst;
@@ -802,6 +866,7 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
 
     const close = (refocusTrigger: boolean): void => {
         cancelTimers();
+        endGrace();
         pendingFocus = false;
         state.value = false;
         if (refocusTrigger) subTrigger?.focus();
@@ -845,6 +910,7 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
         // popup; submenus anchor to their sub-trigger, so this is inert.
         openAt: () => {},
         setPopup: (el) => { subPopup = el; },
+        grace: createPointerGrace(),
     };
     defineProvide(useMenuContext, () => subCtx);
 
@@ -860,9 +926,31 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
         },
         scheduleClose: () => {
             cancelTimers();
-            closeHandle = setTimeout(() => close(false), props.closeDelay ?? 300);
+            armClose();
         },
         cancelTimers,
+        startGrace: (e) => {
+            endGrace();
+            // Touch has no hover to protect, and a closed or unmeasurable
+            // popup has no edge to aim at — the delays alone apply.
+            if (e.pointerType === 'touch' || !state.value || !subPopup || typeof document === 'undefined') return;
+            const tri = safeTriangle(pointOf(e), subPopup.getBoundingClientRect());
+            if (!tri) return;
+            const inside = (p: Point): boolean => pointInTriangle(p, tri);
+            parent.grace.start(graceOwner, inside);
+            // Travel time is not lingering: every move still inside the
+            // triangle restarts the close delay, so a slow, steady approach
+            // arrives. A pointer that stops (or strays) lets it run out.
+            const onMove = (ev: PointerEvent): void => {
+                if (closeHandle != null && inside(pointOf(ev))) {
+                    clearTimeout(closeHandle);
+                    armClose();
+                }
+            };
+            document.addEventListener('pointermove', onMove, true);
+            stopGraceMoves = () => document.removeEventListener('pointermove', onMove, true);
+        },
+        endGrace: () => { endGrace(); },
         consumePendingFocus: () => {
             const wanted = pendingFocus;
             pendingFocus = false;
@@ -898,7 +986,17 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
     watch(
         () => state.value,
         (openNow, _prev, onCleanup) => {
-            if (!openNow || typeof document === 'undefined') return;
+            if (!openNow) {
+                // A native close (Escape, light dismiss) writes the state
+                // straight from `toggle`, bypassing close(): the triangle
+                // and a pending close must not outlive it — a later timer
+                // would replay a held hover into a closed menu.
+                if (closeHandle != null) clearTimeout(closeHandle);
+                closeHandle = null;
+                endGrace();
+                return;
+            }
+            if (typeof document === 'undefined') return;
             const onFocusin = (e: FocusEvent): void => {
                 const target = e.target as Node | null;
                 if (!target) return;
@@ -910,7 +1008,10 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
         },
     );
 
-    onUnmounted(() => cancelTimers());
+    onUnmounted(() => {
+        cancelTimers();
+        endGrace();
+    });
 
     return () => <>{slots.default?.()}</>;
 }, { name: 'Menu.Sub' });
@@ -938,6 +1039,10 @@ const MenuSubTrigger = component<MenuSubTriggerProps>(({ props, slots, signal, o
     });
 
     const value = (): string => props.value ?? sub.ids.trigger;
+    const hover = graceHover(sub.parent.grace, () => {
+        el?.focus();
+        if (!props.disabled) sub.scheduleOpen();
+    });
 
     // A parent-level item: arrows and typeahead at the parent level rove
     // through it like any other item. It never emits `select`.
@@ -983,16 +1088,21 @@ const MenuSubTrigger = component<MenuSubTriggerProps>(({ props, slots, signal, o
             sub.parent.keydown(e, value());
         },
         onKeyup: press.onKeyup,
-        onPointerenter: () => {
-            el?.focus();
-            if (!props.disabled) sub.scheduleOpen();
+        onPointerenter: (e: PointerEvent) => {
+            // Back on its own trigger: this submenu's triangle is spent. A
+            // SIBLING submenu's triangle can still hold this trigger.
+            sub.endGrace();
+            hover.enter(e);
         },
+        onPointermove: hover.move,
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
         onPointerleave: (e: PointerEvent) => {
             press.onPointerleave(e);
+            hover.leave();
             sub.scheduleClose();
+            sub.startGrace(e);
         },
         onFocus: () => { focus.highlighted = true; },
         onBlur: (e: FocusEvent) => {
@@ -1069,7 +1179,10 @@ const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) 
                     if (!open && el?.contains(document.activeElement)) sub.subTrigger()?.focus();
                     sub.state.value = open;
                 }}
-                onPointerenter={() => sub.cancelTimers()}
+                onPointerenter={() => {
+                    sub.cancelTimers();
+                    sub.endGrace();
+                }}
                 onPointerleave={() => sub.scheduleClose()}
             >
                 {slots.default?.()}

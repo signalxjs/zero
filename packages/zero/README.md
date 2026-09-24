@@ -111,7 +111,11 @@ inputs. SSR-safe ids via `app.use(zeroPlugin())` per request.
 The peer-parity surfaces ship too: Menu has stateful items
 (`Menu.CheckboxItem`, `Menu.RadioGroup`/`Menu.RadioItem` — APG
 menuitemcheckbox/menuitemradio; toggling keeps the menu open unless the item
-sets `closeOnSelect`); Dialog has an alert-dialog preset
+sets `closeOnSelect`), and its submenus predict the pointer: a mouse
+heading diagonally for an open submenu does not hand hover to the sibling
+items it crosses while it stays inside the safe triangle between where it
+left the sub-trigger and the submenu's near edge — `closeDelay` still closes
+the submenu if the pointer stops short; Dialog has an alert-dialog preset
 (`role="alertdialog"`: no backdrop dismiss, initial focus on the
 least-destructive `Dialog.Cancel`), and every Dialog/Drawer close reports
 why on a `close` event that follows `openChange(false)` — `{ reason, value }`
