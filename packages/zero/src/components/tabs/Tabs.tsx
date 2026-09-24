@@ -20,7 +20,8 @@ import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState } from '../../behaviors/controllable.js';
 import { createListController, type ListItem } from '../../behaviors/list.js';
-import { createRovingKeydown } from '../../behaviors/roving.js';
+import { createRovingKeydown, createRovingTabStop } from '../../behaviors/roving.js';
+import { isRtl } from '../../behaviors/direction.js';
 import { createId, idToken } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
@@ -47,13 +48,16 @@ export type TabsRootProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const TabsRoot = component<TabsRootProps>(({ props, slots, emit }) => {
+const TabsRoot = component<TabsRootProps>(({ props, slots, emit, onMounted }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
         (v) => emit('valueChange', v),
     );
     const list = createListController();
+    const tabStop = createRovingTabStop(list);
+    onMounted(() => tabStop.settle());
+    let rootEl: HTMLElement | null = null;
     const baseId = createId('zx-tabs');
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
     const activationMode = (): TabsActivationMode => props.activationMode ?? 'automatic';
@@ -62,6 +66,7 @@ const TabsRoot = component<TabsRootProps>(({ props, slots, emit }) => {
         list,
         orientation,
         loop: () => props.loop ?? true,
+        rtl: () => isRtl(rootEl),
         onMove(item: ListItem) {
             if (activationMode() === 'automatic') state.value = item.value;
         },
@@ -70,6 +75,7 @@ const TabsRoot = component<TabsRootProps>(({ props, slots, emit }) => {
     const ctx: TabsContext = {
         state,
         list,
+        tabStop,
         orientation,
         activationMode,
         loop: () => props.loop ?? true,
@@ -87,6 +93,7 @@ const TabsRoot = component<TabsRootProps>(({ props, slots, emit }) => {
             data-orientation={orientation()}
             {...variantAttrs(props)}
             class={props.class}
+            ref={(node: HTMLElement | null) => { rootEl = node; }}
         >
             {slots.default?.()}
         </div>
@@ -126,7 +133,7 @@ export type TabsTabProps =
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
-const TabsTab = component<TabsTabProps>(({ props, slots, onUnmounted, signal }) => {
+const TabsTab = component<TabsTabProps>(({ props, slots, onMounted, onUnmounted, signal }) => {
     const tabs = useTabsContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
@@ -143,7 +150,11 @@ const TabsTab = component<TabsTabProps>(({ props, slots, onUnmounted, signal }) 
         textValue: () => el?.textContent?.trim() ?? props.value,
     };
     const unregister = tabs.list.register(item);
-    onUnmounted(() => unregister());
+    onMounted(() => tabs.tabStop.changed());
+    onUnmounted(() => {
+        unregister();
+        tabs.tabStop.changed();
+    });
 
     const isSelected = (): boolean => tabs.state.value === props.value;
 
@@ -152,11 +163,11 @@ const TabsTab = component<TabsTabProps>(({ props, slots, onUnmounted, signal }) 
         tabs.state.value = props.value;
     };
 
+    // One tab stop: the selected tab while it is registered and enabled,
+    // else the first enabled tab (#165).
     const isTabbable = (): boolean => {
-        if (isSelected()) return true;
-        if (tabs.state.value !== '') return false;
-        // No selection anywhere: the first enabled tab stays tabbable.
-        return tabs.list.enabledItems()[0]?.value === props.value;
+        const v = tabs.state.value;
+        return tabs.tabStop.isTabStop(props.value, v !== '' ? [v] : []);
     };
 
     const bag = (): PartProps => ({

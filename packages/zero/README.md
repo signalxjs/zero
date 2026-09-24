@@ -78,6 +78,14 @@ binds a multiple group. RadioGroup takes `items` too (`itemKey` is the
 posted value, `itemLabel`, `itemDisabled`, the `item` slot); its model stays
 the string a native radio group posts.
 
+**One roving tab stop, whatever the model says.** Tabs, ToggleGroup, Steps
+and TreeView keep exactly one item in the tab order: the selected item while
+it is rendered and enabled, else the first enabled item. A value that names
+nothing (a typo, a removed item) or only disabled items never leaves the
+group unreachable by keyboard. Horizontal arrow keys follow the reading
+direction: under `dir="rtl"` ArrowRight moves to the item on the visual
+right, which is the previous one in DOM order.
+
 **The form contract.** Every posting control takes the same five props
 (`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus
 `readonly` where the platform has it) and answers to a `Field.Root` for all

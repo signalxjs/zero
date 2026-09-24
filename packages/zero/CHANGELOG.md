@@ -160,6 +160,15 @@
   `model` bound, the observer's report of a slide a smooth scroll was
   passing echoed back through the prop and scrolled back to that slide, so
   a jump from slide 1 to slide 3 stopped on slide 2.
+- **A roving group always keeps a tab stop (#165).** Tabs, ToggleGroup and
+  Steps made only the selected item tabbable whenever a value was set, so a
+  value naming no rendered item (a typo, a removed tab) or only a disabled
+  one left every item at `tabIndex=-1` and the group unreachable by
+  keyboard. The stop now falls back to the first enabled item, and moves
+  again when items are added or removed.
+- **Tabs and Steps honour `dir="rtl"` (#165).** Their horizontal arrow keys
+  ignored the reading direction, so ArrowRight moved to the visually left
+  item. They now flip under RTL like ToggleGroup and TreeView.
 
 ## [0.5.0] - 2026-09-23
 

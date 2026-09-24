@@ -30,7 +30,8 @@ import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createListController, type ListController, type ListItem } from '../../behaviors/list.js';
 import { createPressFeedback } from '../../behaviors/press.js';
-import { createRovingKeydown } from '../../behaviors/roving.js';
+import { createRovingKeydown, createRovingTabStop, type RovingTabStop } from '../../behaviors/roving.js';
+import { isRtl } from '../../behaviors/direction.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import type { Orientation } from '../../contract/data-attrs.js';
@@ -46,6 +47,7 @@ export type StepsPhase = 'active' | 'complete' | 'inactive';
 interface StepsContext {
     state: ControllableState<string>;
     list: ListController;
+    tabStop: RovingTabStop;
     orientation(): Orientation;
     disabled(): boolean;
     select(value: string): void;
@@ -57,9 +59,11 @@ interface StepsItemContext {
 }
 
 function makeInert(): StepsContext {
+    const list = createListController();
     return {
         state: createInertState<string>(''),
-        list: createListController(),
+        list,
+        tabStop: createRovingTabStop(list),
         orientation: () => 'horizontal',
         disabled: () => false,
         select: () => {},
@@ -89,19 +93,23 @@ export type StepsRootProps =
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
-const StepsRoot = component<StepsRootProps>(({ props, slots, emit }) => {
+const StepsRoot = component<StepsRootProps>(({ props, slots, emit, onMounted }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultStep ?? '',
         (v) => emit('stepChange', v),
     );
     const list = createListController();
+    const tabStop = createRovingTabStop(list);
+    onMounted(() => tabStop.settle());
+    let rootEl: HTMLElement | null = null;
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
 
     const roving = createRovingKeydown({
         list,
         orientation,
         loop: () => props.loop ?? false,
+        rtl: () => isRtl(rootEl),
         // Focus moves, the step doesn't: selection is click/Space/Enter only.
         onMove: () => {},
     });
@@ -109,6 +117,7 @@ const StepsRoot = component<StepsRootProps>(({ props, slots, emit }) => {
     const ctx: StepsContext = {
         state,
         list,
+        tabStop,
         orientation,
         disabled: () => !!props.disabled,
         select: (value) => { state.value = value; },
@@ -129,6 +138,7 @@ const StepsRoot = component<StepsRootProps>(({ props, slots, emit }) => {
                 data-disabled={dataAttr(props.disabled)}
                 {...variantAttrs(props)}
                 class={props.class}
+                ref={(node: HTMLElement | null) => { rootEl = node; }}
             >
                 {slots.default?.()}
             </div>
@@ -153,7 +163,7 @@ export type StepsItemProps =
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
-const StepsItem = component<StepsItemProps>(({ props, slots, onUnmounted, signal }) => {
+const StepsItem = component<StepsItemProps>(({ props, slots, onMounted, onUnmounted, signal }) => {
     const steps = useStepsContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
@@ -172,7 +182,11 @@ const StepsItem = component<StepsItemProps>(({ props, slots, onUnmounted, signal
         textValue: () => el?.textContent?.trim() ?? props.value,
     };
     const unregister = steps.list.register(item);
-    onUnmounted(() => unregister());
+    onMounted(() => steps.tabStop.changed());
+    onUnmounted(() => {
+        unregister();
+        steps.tabStop.changed();
+    });
 
     const phase = (): StepsPhase => {
         const current = steps.state.value;
@@ -198,11 +212,11 @@ const StepsItem = component<StepsItemProps>(({ props, slots, onUnmounted, signal
     defineProvide(useStepsItemContext, () => ({ phase }));
 
     const isTabbable = (): boolean => {
-        // One tab stop: the active step, else the first enabled item.
+        // One tab stop: the active step while it is registered and enabled,
+        // else the first enabled item (#165).
         if (disabled()) return false;
         const current = steps.state.value;
-        if (current) return props.value === current;
-        return steps.list.enabledItems()[0]?.value === props.value;
+        return steps.tabStop.isTabStop(props.value, current ? [current] : []);
     };
 
     const bag = (): PartProps => ({

@@ -35,7 +35,8 @@ import { createFormControl, settleHiddenSelect } from '../../behaviors/form-cont
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { createListController, type ListController, type ListItem } from '../../behaviors/list.js';
-import { createRovingKeydown } from '../../behaviors/roving.js';
+import { createRovingKeydown, createRovingTabStop, type RovingTabStop } from '../../behaviors/roving.js';
+import { isRtl } from '../../behaviors/direction.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
@@ -63,6 +64,7 @@ interface ToggleGroupContext {
     selected(): string[];
     multiple(): boolean;
     list: ListController;
+    rovingStop: RovingTabStop;
     orientation(): Orientation;
     disabled(): boolean;
     toggle(value: string): void;
@@ -70,11 +72,13 @@ interface ToggleGroupContext {
 }
 
 function makeInert(): ToggleGroupContext {
+    const inertList = createListController();
     return {
         state: createInertState<string | string[]>(''),
         selected: () => [],
         multiple: () => false,
-        list: createListController(),
+        list: inertList,
+        rovingStop: createRovingTabStop(inertList),
         orientation: () => 'horizontal',
         disabled: () => false,
         toggle: () => {},
@@ -138,22 +142,14 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
     let hidden: HTMLSelectElement | null = null;
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
 
-    const isRtl = (): boolean => {
-        const el = rootEl;
-        if (!el) return false;
-        try {
-            if (el.matches(':dir(rtl)')) return true;
-        } catch {
-            // :dir() unsupported — fall through to computed style.
-        }
-        return typeof getComputedStyle === 'function' && getComputedStyle(el).direction === 'rtl';
-    };
+    const rovingStop = createRovingTabStop(list);
+    onMounted(() => rovingStop.settle());
 
     const roving = createRovingKeydown({
         list,
         orientation,
         loop: () => props.loop ?? true,
-        rtl: isRtl,
+        rtl: () => isRtl(rootEl),
         // Focus moves, selection doesn't: toggles activate on click/Space/
         // Enter, never on focus — roving here is pure navigation.
         onMove: () => {},
@@ -164,6 +160,7 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emi
         selected,
         multiple: () => !!props.multiple,
         list,
+        rovingStop,
         orientation,
         disabled: fc.disabled,
         toggle: (value) => {
@@ -286,7 +283,7 @@ export type ToggleGroupItemProps =
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
-const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onUnmounted, signal }) => {
+const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onMounted, onUnmounted, signal }) => {
     const group = useToggleGroupContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
@@ -310,24 +307,19 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onUnmou
         textValue: () => el?.textContent?.trim() ?? props.value,
     };
     const unregister = group.list.register(item);
-    onUnmounted(() => unregister());
+    onMounted(() => group.rovingStop.changed());
+    onUnmounted(() => {
+        unregister();
+        group.rovingStop.changed();
+    });
 
     const isOn = (): boolean => group.selected().includes(props.value);
 
     const isTabbable = (): boolean => {
         // One tab stop: the first enabled on item, else the first enabled
-        // item (Tabs' rule, generalized to a set). Decided from the model
-        // first and the list second — registration isn't reactive, so an
-        // item may only depend on items registered BEFORE it (render order),
-        // which both list lookups below satisfy.
+        // item — also when the pressed values name no enabled item (#165).
         if (disabled()) return false;
-        const selected = group.selected();
-        if (selected.includes(props.value)) {
-            const firstOn = group.list.items().find((i) => selected.includes(i.value) && !i.disabled());
-            return firstOn?.value === props.value;
-        }
-        if (selected.length > 0) return false;
-        return group.list.enabledItems()[0]?.value === props.value;
+        return group.rovingStop.isTabStop(props.value, group.selected());
     };
 
     const bag = (): PartProps => ({

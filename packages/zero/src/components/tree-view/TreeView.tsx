@@ -52,6 +52,7 @@ import type {
     WithHtmlAttrs,
     WithVariantAxes,
 } from '../../contract/props.js';
+import { isRtl } from '../../behaviors/direction.js';
 import { treeViewAnatomy } from './anatomy.js';
 
 const SCOPE = treeViewAnatomy.scope;
@@ -156,16 +157,7 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
     const isExpanded = (value: string): boolean => expanded.value.includes(value);
     const tree = createTreeController({ isExpanded });
 
-    const isRtl = (): boolean => {
-        const el = rootEl;
-        if (!el) return false;
-        try {
-            if (el.matches(':dir(rtl)')) return true;
-        } catch {
-            // :dir() unsupported — fall through to computed style.
-        }
-        return typeof getComputedStyle === 'function' && getComputedStyle(el).direction === 'rtl';
-    };
+    const rtl = (): boolean => isRtl(rootEl);
 
     const roving = createRovingKeydown({
         list: tree,
@@ -219,8 +211,8 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
         },
         keydown(e, node) {
             if (props.disabled) return;
-            const expandKey = isRtl() ? 'ArrowLeft' : 'ArrowRight';
-            const collapseKey = isRtl() ? 'ArrowRight' : 'ArrowLeft';
+            const expandKey = rtl() ? 'ArrowLeft' : 'ArrowRight';
+            const collapseKey = rtl() ? 'ArrowRight' : 'ArrowLeft';
 
             if (e.key === expandKey) {
                 e.preventDefault();
