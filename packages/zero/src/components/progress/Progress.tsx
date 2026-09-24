@@ -14,7 +14,7 @@
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
-import { countPresence, reportPresence } from '../../behaviors/part-presence.js';
+import { countPresence, reportPresence, settleAfterMount } from '../../behaviors/part-presence.js';
 import { createId } from '../../behaviors/create-id.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
@@ -60,14 +60,16 @@ export type ProgressRootProps =
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
-const ProgressRoot = component<ProgressRootProps>(({ props, slots, signal }) => {
+const ProgressRoot = component<ProgressRootProps>(({ props, slots, signal, onMounted }) => {
     const baseId = createId('zx-progress');
     const min = () => props.min ?? 0;
     const max = () => props.max ?? 100;
     const value = () => props.value ?? null;
     // Reported by the Label (`reportPresence`): the root references it only
-    // while it is actually rendered.
-    const present = signal({ label: 0 });
+    // while it is actually rendered — optimistic until settled after mount,
+    // so server markup keeps the reference a composed bar needs.
+    const present = signal({ label: 0, settled: false });
+    settleAfterMount(onMounted, () => { present.settled = true; });
     // aria-valuenow must sit inside [aria-valuemin, aria-valuemax] (#169).
     const valueNow = (): number | undefined => {
         const v = value();
@@ -112,7 +114,7 @@ const ProgressRoot = component<ProgressRootProps>(({ props, slots, signal }) => 
                 aria-valuemax={max()}
                 aria-valuenow={valueNow()}
                 aria-labelledby={[
-                    present.label > 0 ? ctx.ids.label : undefined,
+                    !present.settled || present.label > 0 ? ctx.ids.label : undefined,
                     attrs['aria-labelledby'],
                 ].filter(Boolean).join(' ') || undefined}
                 style={percent() != null ? { '--progress-percent': `${percent()}%` } : undefined}

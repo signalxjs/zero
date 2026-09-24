@@ -136,9 +136,11 @@
   projection has none). `Progress.Root` and `RadialProgress.Root` reference
   their Label only while one is rendered, and clamp `aria-valuenow` to
   `[min, max]`. These references follow the Label/Control's presence, which
-  is reported a microtask after mount: server-rendered markup gains them at
-  hydration. `RadioGroup.Label` no longer accepts `id` (the root is
-  labelled by its own).
+  is reported a microtask after mount; until then Progress, RadialProgress
+  and Slider render them optimistically, so server markup keeps the Label
+  reference (and, outside thumb mode, the Label's `for`) a composed widget
+  needs. `RadioGroup.Label` no longer accepts `id` (the root is labelled by
+  its own).
 
 ## [0.5.0] - 2026-09-23
 

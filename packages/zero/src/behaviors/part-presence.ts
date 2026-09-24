@@ -11,9 +11,23 @@
  * one's withdrawal and the new one's report landing in either order — still
  * reads as present.
  *
- * Server-rendered, the report lands at hydration: nothing re-renders on the
- * server after a part registers.
+ * Server-rendered, a report would land too late: nothing re-renders on the
+ * server after a part registers, and a Label or native Control is resting
+ * content, not a closed popup. So a root that references resting content is
+ * optimistic until it has mounted (`settleAfterMount`): the server writes
+ * the reference a composed widget needs (the old unconditional markup), the
+ * client's first render matches it for hydration, and a microtask after
+ * mount — after every part's report — the real count takes over.
  */
+
+/**
+ * The root side of an optimistic reference: `settle` runs a microtask after
+ * mount, queued behind the reports its parts made during setup. Never on the
+ * server, where `onMounted` does not run.
+ */
+export function settleAfterMount(onMounted: (fn: () => void) => void, settle: () => void): void {
+    onMounted(() => queueMicrotask(settle));
+}
 
 /** The root side: one report applied to a count (read `> 0`). */
 export function countPresence(count: number, present: boolean): number {

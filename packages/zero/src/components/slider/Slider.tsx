@@ -45,7 +45,7 @@ import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { derivedModel } from '../../behaviors/derived-model.js';
-import { countPresence, reportPresence } from '../../behaviors/part-presence.js';
+import { countPresence, reportPresence, settleAfterMount } from '../../behaviors/part-presence.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -200,7 +200,12 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-slider' });
     const focusVisible = signal({ visible: false });
-    const present = signal({ label: 0, control: 0 });
+    // Optimistic until settled after mount (`settleAfterMount`), so server
+    // markup keeps the Label's `for` and the thumbs' `aria-labelledby` a
+    // composed slider needs — except `for` in thumb mode (an array value),
+    // which renders no native Control.
+    const present = signal({ label: 0, control: 0, settled: false });
+    settleAfterMount(onMounted, () => { present.settled = true; });
     const thumbs: ThumbEntry[] = [];
     let track: HTMLElement | null = null;
     let dragIndex: number | null = null;
@@ -285,8 +290,8 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             control: fc.controlId(),
             label: fc.labelId(),
         },
-        labelPresent: () => present.label > 0,
-        controlPresent: () => present.control > 0,
+        labelPresent: () => (present.settled ? present.label > 0 : true),
+        controlPresent: () => (present.settled ? present.control > 0 : !Array.isArray(state.value)),
         setLabelPresent: (p) => { present.label = countPresence(present.label, p); },
         setControlPresent: (p) => { present.control = countPresence(present.control, p); },
         focusVisible,
