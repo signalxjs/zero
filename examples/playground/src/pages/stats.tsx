@@ -10,7 +10,8 @@ const StatsDemos = component(() => () => (
             container, no state, no ARIA. Both the root and every item carry{' '}
             <code>data-orientation</code>, because the between-item divider is
             directional CSS on the item and a sibling selector cannot see the
-            root.
+            root. A value never wraps, so a row too wide for its container
+            scrolls inside the root instead of pushing the page sideways.
         </p>
         <Stats.Root>
             <Stats.Item>

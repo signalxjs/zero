@@ -224,6 +224,12 @@ so every skin makes the root its scroll box, Table's answer), the last
 control is reachable scrolled to the end, and a keyboard-focused trigger at
 either end keeps its whole focus ring inside the scrollport — a scroll box
 clips at its padding box, so the recipes pad the root by the ring's reach;
+the **narrow-stats spec** (`e2e/narrow-stats.spec.ts`, #43) — the same
+shape for Stats, at the case that found it (brutalist at 1100px, where
+shout-scale values pushed the document sideways) and at 400px in every
+skin: a value never wraps, so the root is the row's scroll box — it stays
+inside its column, every value stays inside its own item, and the last one
+is reachable scrolled to the end;
 and the **axe audit** (`e2e/axe-audit.spec.ts`, #326) — the ARIA counterpart
 to the contrast audit: chromium + zero-basic only (semantics are engine- and
 skin-independent), it walks every registry page (ids read from the rendered

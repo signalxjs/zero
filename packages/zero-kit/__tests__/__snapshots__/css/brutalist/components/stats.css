@@ -5,6 +5,7 @@
 
     [data-scope="stats"][data-part="root"] {
         display: flex;
+        overflow-x: auto;
         border: calc(var(--border) * 2) solid var(--color-base-content);
         background: var(--color-base-100);
         box-shadow: var(--shadow-sm);
@@ -42,6 +43,7 @@
 
     [data-scope="stats"][data-part="value"] {
         grid-column: 1;
+        white-space: nowrap;
         font-size: var(--text-3xl);
         font-weight: var(--weight-bold);
         font-variant-numeric: tabular-nums;
