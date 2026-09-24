@@ -40,11 +40,16 @@ export function createTypeahead(opts: TypeaheadOptions): Typeahead {
         if (now - lastTime > WINDOW_MS) buffer = '';
         // Space activates, it does not search — unless a search is running.
         if (e.key === ' ' && buffer === '') return;
+        // Nothing to search: no search starts, so `searching()` never holds
+        // Space back from activation over an empty or all-disabled list.
+        const items = opts.list.enabledItems();
+        if (items.length === 0) {
+            buffer = '';
+            return;
+        }
         lastTime = now;
         buffer += e.key.toLowerCase();
 
-        const items = opts.list.enabledItems();
-        if (items.length === 0) return;
         const at = currentValue == null ? -1 : items.findIndex((i) => i.value === currentValue);
         // One character steps past the current item; more refine it in place.
         let start = 0;

@@ -75,6 +75,16 @@ describe('createTypeahead', () => {
     });
 });
 
+describe('createTypeahead over no enabled items', () => {
+    it('starts no search, so Space is never held back', () => {
+        const list = createListController();
+        list.register({ id: 'a', value: 'a', disabled: () => true, el: () => null, textValue: () => 'Alpha' });
+        const ta = createTypeahead({ list, onMatch: () => {} });
+        ta(new KeyboardEvent('keydown', { key: 'a', cancelable: true }), null);
+        expect(ta.searching()).toBe(false);
+    });
+});
+
 describe('typeahead across Space in components', () => {
     let container: HTMLElement;
     beforeEach(() => {
