@@ -5,6 +5,9 @@ on:
     branches: [main]
   push:
     branches: [main]
+  # The merge queue (#159) builds each queued group on a temporary ref and
+  # waits for the required checks to report on it.
+  merge_group:
 
 concurrency:
   group: ci-${{ github.ref }}

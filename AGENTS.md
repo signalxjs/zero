@@ -76,24 +76,33 @@ Never commit straight to `main`.** Repo: `signalxjs/zero`, base branch `main`.
    ```
    Address every actionable comment with follow-up commits and push. If the review
    doesn't re-trigger on its own, re-request it: `gh pr edit <pr> --add-reviewer @copilot`.
-   Repeat until Copilot has no remaining actionable feedback.
-
-6. **Merge it yourself.** Once Copilot's feedback is resolved, CI is green, and —
-   for user-facing changes — the docs issue is filed on the docs repo and linked
-   from the PR (see "Documentation"), merge (squash — repo rules block merge
-   commits) and clean up:
+   Repeat until Copilot has no remaining actionable feedback. The ruleset blocks
+   merging while any review thread is open, so resolve each thread you address
+   (and reply on, then resolve, any you deliberately decline):
    ```sh
-   pr=123                                     # your PR number (digits only)
-   gh pr checks "$pr"                         # must be all green first
-   gh pr merge "$pr" --squash --delete-branch \
-     --subject "$(gh pr view "$pr" --json title -q .title) (#$pr)" \
-     --body "$(gh pr view "$pr" --json body -q .body)"
+   gh api graphql -f query='mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}' -f id=<thread-id>
    ```
-   Pass `--subject`/`--body` explicitly, exactly as above — GitHub appends
-   `Co-authored-by:` trailers to every message it generates itself whenever a
-   branch-commit author differs from the merging account; an explicit message is
-   used verbatim, so no trailers. If you used a worktree, remove it afterward:
-   `pnpm wt rm <name>`.
+
+6. **Merge it yourself — through the merge queue.** Once Copilot's feedback is
+   resolved, the PR's checks are green (the `e2e` job too — it is not a
+   required check, so the queue will not wait for it), and — for user-facing
+   changes — the docs issue is filed on the docs repo and linked from the PR
+   (see "Documentation"), enqueue it:
+   ```sh
+   gh pr merge <pr> --squash --auto
+   ```
+   `main` has a merge queue (#159): it tests queued PRs in groups against the
+   latest `main` and squash-merges them, so there is no "update branch" step —
+   don't rebase a PR just to make it current. The squash commit takes the PR
+   title plus ` (#<pr>)` as its subject and the PR description as its body
+   (repo settings), so write the description as the commit body you want. If
+   the queue evicts a PR, there is a real conflict (usually a CHANGELOG
+   `[Unreleased]` entry): rebase on `main`, keep both sides, push, and enqueue
+   again. Making the CHANGELOG entry the PR's last commit keeps that window
+   small. GitHub generates the queue's commit message itself, and it appends
+   `Co-authored-by:` trailers when a branch commit's author differs from the
+   merging account, so keep every commit on your branch authored by you. If
+   you used a worktree, remove it once the PR has landed: `pnpm wt rm <name>`.
 
 ## Build, Test, Lint
 
