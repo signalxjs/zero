@@ -33,6 +33,17 @@
   `writeArtifacts` now prefixes each per-component file with
   `LAYER_ORDER_STATEMENT`, and `extendedCss` emits it once after its header
   comment. `compiled.componentCss` and `index.css` are unchanged.
+- **Every item of a `selectors` list key is scoped to its part (#181).** The
+  web recipe compiler scoped a `selectors` key as one string. It replaced
+  `&` across the whole key, or prefixed the part's selector when the key held
+  no `&`. For a selector list that scoped only the first item, so
+  `'svg, path'` emitted `<part> svg, path` and `'&:hover, svg'` emitted
+  `<part>:hover, svg`. The unscoped items became global rules in
+  `zero.recipes`. The compiler now splits the key on top-level commas (not
+  the ones inside `:not(…)`, an attribute selector or a string) and scopes
+  each item on its own. A list whose items all carry `&` compiles
+  byte-identical, so no shipped design system's CSS changes. An empty item
+  (`'svg, , path'`) is now a build error.
 
 ## [0.5.0] - 2026-09-23
 

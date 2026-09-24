@@ -65,6 +65,13 @@ export const designSystem = defineDesignSystem({
 });
 ```
 
+A part's `selectors` keys are nested selectors scoped to that part: `&` is
+the part's own selector, and a key without `&` selects descendants of it. A
+key may be a selector list, and each item is scoped on its own —
+`'&:hover, svg'` compiles to `<part>:hover, <part> svg`, never a global `svg`
+rule. Only top-level commas split the list; the comma in
+`'&:not([data-disabled], [data-invalid])'` stays inside its item.
+
 Only the base surfaces (`base-100/200/300/base-content`) are fixed — they
 anchor `-soft` derivation, `light-dark()` emission and theme swatches.
 `defaultDark` is optional: without it (or naming the same theme as

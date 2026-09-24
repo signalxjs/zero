@@ -166,14 +166,62 @@ function emitPartStyles(
                 `[zero-kit] ${where}: the selectors key "${nested}" cannot hold a brace, semicolon or newline — it is written into a selector verbatim`,
             );
         }
-        const self = `${baseSelector}${pseudoSuffix}`;
-        const sel = nested.includes('&') ? nested.replace(/&/g, self) : `${self} ${nested}`;
-        rule(sel, props);
+        rule(scopeNestedSelector(nested, `${baseSelector}${pseudoSuffix}`, where), props);
     }
     for (const [key, nested] of Object.entries(styles.at ?? {})) {
         const condition = resolveCondition(key, context, where, registry);
         emitPartStyles(component, partName, nested, baseSelector, sink, context, registry, pseudoSuffix, [...path, condition], where);
     }
+}
+
+/**
+ * Split a selector list on its TOP-LEVEL commas — a comma inside `:not(…)`,
+ * an attribute selector or a quoted string belongs to its item. Items keep
+ * their surrounding whitespace so a list rejoined with `,` is byte-identical.
+ */
+function splitSelectorList(text: string): string[] {
+    const out: string[] = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (ch === '"' || ch === "'") {
+            for (i++; i < text.length && text[i] !== ch; i++) if (text[i] === '\\') i++;
+            continue;
+        }
+        if (ch === '(' || ch === '[') depth++;
+        else if (ch === ')' || ch === ']') depth--;
+        else if (ch === ',' && depth === 0) {
+            out.push(text.slice(start, i));
+            start = i + 1;
+        }
+    }
+    out.push(text.slice(start));
+    return out;
+}
+
+/**
+ * Scope a `selectors` key to the part it sits on (#181). A key may be a
+ * selector LIST, and every item is scoped on its own: `&` is replaced by the
+ * part's selector, and an item without `&` is a descendant of it. Scoping the
+ * key as one string would scope only the first item — `'svg, path'` would
+ * emit `[part] svg, path`, leaving `path` a global rule in the recipes layer.
+ */
+function scopeNestedSelector(nested: string, self: string, where: string): string {
+    return splitSelectorList(nested)
+        .map((item) => {
+            const trimmed = item.trim();
+            if (trimmed === '') {
+                throw new Error(
+                    `[zero-kit] ${where}: the selectors key "${nested}" has an empty item in its selector list`,
+                );
+            }
+            if (trimmed.includes('&')) return item.replace(/&/g, self);
+            const lead = item.slice(0, item.length - item.trimStart().length);
+            const trail = item.slice(item.trimEnd().length);
+            return `${lead}${self} ${trimmed}${trail}`;
+        })
+        .join(',');
 }
 
 function axisAttr(axis: string, scope: string): string {
