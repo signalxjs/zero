@@ -10,15 +10,18 @@
  *
  * The probe wraps `sigx`'s `effect` so every effect created while a part
  * mounts is counted each time it runs. After the part unmounts, writes to
- * the surviving state must run none of them.
+ * the surviving state must run none of them. Where nothing the effect reads
+ * outlives the part (Checkbox), the test invokes each runner directly
+ * instead: a stopped runner is a no-op, a leaked one runs.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
 import type { EffectFn, EffectOptions } from 'sigx';
-import { Checkbox, Dialog, Menu, Popover, Toast, Tooltip, createToaster, syncPopover } from '@sigx/zero';
+import { Checkbox, Dialog, Drawer, Menu, Popover, Select, Toast, Tooltip, createToaster, syncPopover } from '@sigx/zero';
 
-const probe = vi.hoisted(() => ({ tracking: false, runs: [] as { n: number }[] }));
+type Rec = { n: number; runner?: () => void };
+const probe = vi.hoisted(() => ({ tracking: false, runs: [] as Rec[] }));
 
 vi.mock('sigx', async (importOriginal) => {
     const actual = await importOriginal<typeof import('sigx')>();
@@ -26,9 +29,11 @@ vi.mock('sigx', async (importOriginal) => {
         ...actual,
         effect: (fn: EffectFn, options?: EffectOptions) => {
             if (!probe.tracking) return actual.effect(fn, options);
-            const rec = { n: 0 };
+            const rec: Rec = { n: 0 };
             probe.runs.push(rec);
-            return actual.effect(() => { rec.n++; fn(); }, options);
+            const runner = actual.effect(() => { rec.n++; fn(); }, options);
+            rec.runner = runner;
+            return runner;
         },
     };
 });
@@ -36,7 +41,7 @@ vi.mock('sigx', async (importOriginal) => {
 const tick = () => new Promise<void>((r) => setTimeout(r, 10));
 
 /** Effects created while `mount` runs; resets their run counts. */
-async function track(mount: () => void): Promise<{ n: number }[]> {
+async function track(mount: () => void): Promise<Rec[]> {
     probe.runs = [];
     probe.tracking = true;
     try {
@@ -50,7 +55,12 @@ async function track(mount: () => void): Promise<{ n: number }[]> {
     return created;
 }
 
-const totalRuns = (recs: { n: number }[]): number => recs.reduce((s, r) => s + r.n, 0);
+const totalRuns = (recs: Rec[]): number => recs.reduce((s, r) => s + r.n, 0);
+
+/** Invokes every tracked runner; a stopped one does not run its effect. */
+function poke(recs: Rec[]): void {
+    for (const rec of recs) rec.runner?.();
+}
 
 describe('effects created in onMounted stop on unmount (#163)', () => {
     let container: HTMLElement;
@@ -128,7 +138,9 @@ describe('effects created in onMounted stop on unmount (#163)', () => {
     });
 
     // The other popups that sync a native surface to the root's open model.
-    const popups: [string, (state: { open: boolean }, show: { on: boolean }) => unknown][] = [
+    // The third column is the part the popup renders, so the test can prove
+    // it really unmounted.
+    const popups: [string, (state: { open: boolean }, show: { on: boolean }) => unknown, string?][] = [
         ['Popover.Popup', (state, show) => (
             <Popover.Root model={[state, 'open']}>
                 <Popover.Trigger>Open</Popover.Trigger>
@@ -147,8 +159,22 @@ describe('effects created in onMounted stop on unmount (#163)', () => {
                 {show.on ? <Menu.Popup><Menu.Item value="a">A</Menu.Item></Menu.Popup> : null}
             </Menu.Root>
         )],
+        // Select.Popup reaches syncPopover through the listbox root's open model.
+        ['Select.Popup', (state, show) => (
+            <Select.Root model:open={[state, 'open']}>
+                <Select.Trigger><Select.Value /></Select.Trigger>
+                {show.on ? <Select.Popup><Select.Item value="a">A</Select.Item></Select.Popup> : null}
+            </Select.Root>
+        )],
+        // Drawer.Panel syncs its own dialog (modal or docked) to the open model.
+        ['Drawer.Panel', (state, show) => (
+            <Drawer.Root model={[state, 'open']}>
+                <Drawer.Trigger>Menu</Drawer.Trigger>
+                {show.on ? <Drawer.Panel><Drawer.Title>Navigation</Drawer.Title></Drawer.Panel> : null}
+            </Drawer.Root>
+        ), 'panel'],
     ];
-    for (const [name, view] of popups) {
+    for (const [name, view, part = 'popup'] of popups) {
         it(`${name} under a surviving root`, async () => {
             const state = signal({ open: false });
             const show = signal({ on: false });
@@ -159,7 +185,7 @@ describe('effects created in onMounted stop on unmount (#163)', () => {
             expect(recs.length).toBeGreaterThan(0);
             show.on = false;
             await tick();
-            expect(container.querySelector('[data-part="popup"]')).toBeNull();
+            expect(container.querySelector(`[data-part="${part}"]`)).toBeNull();
             state.open = true;
             await tick();
             state.open = false;
@@ -196,7 +222,11 @@ describe('effects created in onMounted stop on unmount (#163)', () => {
         expect(totalRuns(recs)).toBe(0);
     });
 
-    it('Checkbox under a surviving root', async () => {
+    it('Checkbox: its mount effect is stopped on unmount', async () => {
+        // The mount effect reads only `props.indeterminate`, and an unmounted
+        // part's props are never written again — no outside write can reach
+        // a leaked effect. So the test invokes the runner itself: a stopped
+        // runner is a no-op, a leaked one re-runs its dead closure.
         const flag = signal({ indeterminate: false });
         const show = signal({ on: false });
         const App = component(() => () => (
@@ -210,6 +240,7 @@ describe('effects created in onMounted stop on unmount (#163)', () => {
         await tick();
         expect(container.querySelector('[data-scope="checkbox"]')).toBeNull();
         flag.indeterminate = true;
+        poke(recs);
         await tick();
         expect(totalRuns(recs)).toBe(0);
     });
