@@ -49,7 +49,7 @@
   `toggle` event now writes the model (Accordion goes through the same
   `toggle` as a click, so single mode closes the others). When the model
   refuses the change (a disabled root or item), the element is
-  closed again.
+  reverted to match the model.
 
 ## [0.5.0] - 2026-09-23
 
