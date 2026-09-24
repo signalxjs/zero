@@ -48,6 +48,7 @@ describe('the primary button fill (#190)', () => {
         expect(fills.length).toBeGreaterThan(0);
         expect(fills.filter((f) => f.includes('var(--carbon-interactive)'))).toEqual([]);
         expect(fills).toEqual(expect.arrayContaining([
+            '--btn-fill: var(--carbon-button-primary)',
             '--btn-fill-hover: var(--carbon-button-primary)',
             expect.stringMatching(/^--btn-fill-active: .*var\(--carbon-button-primary\)/),
         ]));

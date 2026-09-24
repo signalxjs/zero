@@ -33,7 +33,7 @@ export const roles = {} as const satisfies Record<string, RoleDecl>;
  * fills the *kinds* resolve to, not members of a colour axis.
  */
 export const custom = {
-    'carbon-interactive': { description: 'The interactive accent — links, focus, selection and the transparent button kinds\' ink ($interactive: blue 60 / blue 50).', syntax: '<color>' },
+    'carbon-interactive': { description: 'The interactive accent — links, focus, selection and the transparent button kinds\' ink ($interactive: blue 60 on white, blue 50 on g100).', syntax: '<color>' },
     'carbon-interactive-ink': { description: 'Ink on an interactive or primary-button fill.', syntax: '<color>' },
     'carbon-button-primary': { description: 'The primary button fill ($button-primary) — blue 60 in every theme, unlike $interactive, which lightens on g100 (#190).', syntax: '<color>' },
     'carbon-secondary': { description: 'The secondary fill (gray 80).', syntax: '<color>' },
