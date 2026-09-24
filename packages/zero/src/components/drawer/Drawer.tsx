@@ -45,6 +45,7 @@ import { createFocusRestore } from '../../behaviors/focus.js';
 import { breakpointQuery, useMediaQuery } from '../../behaviors/media-query.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
+import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
@@ -361,6 +362,9 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
     // server's `initial: true` here), so its panel is open in markup too.
     const openInMarkup = drawer.docked() || (!drawer.modal() && drawer.state.value) ? true : undefined;
 
+    // Outside Chromium the native close waits for the exit to play (#17).
+    const exit = createTopLayerExit();
+
     const scoped = mountScope();
     onMounted(() => scoped(() => {
         // Up through showModal() — the one open state a regime switch has to
@@ -371,6 +375,9 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
             const open = drawer.state.value;
             const node = el;
             if (!node || typeof node.showModal !== 'function') return;
+            // A reopen, or a regime switch, overrides an exit in flight: the
+            // branches below then see the panel as it still is (open).
+            if (open || docked) exit.cancel();
             if (docked) {
                 // Docked is the server's markup exactly: `open` as an
                 // attribute. Never show() — that runs the dialog focusing
@@ -419,8 +426,11 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                     node.show();
                 }
             } else if (!open && node.open) {
-                sheet = false;
-                node.close();
+                exit.close(node, () => {
+                    if (drawer.state.value || drawer.docked() || !node.open) return;
+                    sheet = false;
+                    node.close();
+                });
             }
         };
         effect(sync);

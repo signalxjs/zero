@@ -25,6 +25,7 @@ import { createControllableState, createInertState, type ControllableState } fro
 import { createId } from '../../behaviors/create-id.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
+import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
@@ -215,6 +216,8 @@ export type TooltipPopupProps = WithClass & Omit<WithHtmlAttrs, 'id' | 'role'> &
 const TooltipPopup = component<TooltipPopupProps>(({ props, slots, onMounted }) => {
     const tooltip = useTooltipContext();
     let el: HTMLElement | null = null;
+    // Outside Chromium the native close waits for the exit to play (#17).
+    const exit = createTopLayerExit();
 
     const scoped = mountScope();
     onMounted(() => scoped(() => {
@@ -222,9 +225,14 @@ const TooltipPopup = component<TooltipPopupProps>(({ props, slots, onMounted }) 
             const open = tooltip.state.value;
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
             if (!node || typeof node.showPopover !== 'function') return;
+            if (open) exit.cancel();
             const showing = node.matches(':popover-open');
             if (open && !showing) node.showPopover();
-            else if (!open && showing) node.hidePopover!();
+            else if (!open && showing) {
+                exit.close(node, () => {
+                    if (!tooltip.state.value && node.matches(':popover-open')) node.hidePopover!();
+                });
+            }
         });
     }));
 

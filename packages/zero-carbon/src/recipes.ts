@@ -2392,8 +2392,8 @@ export const combobox: RecipeInput = {
         // A layer under an overlay shadow — no border, no padding: Carbon
         // menus are flush lists. Presence is the popup pattern: entry from
         // `@starting-style`, exit held open by the two allow-discrete
-        // transitions (`overlay` is Chromium-only; elsewhere the exit
-        // degrades to instant).
+        // transitions (`overlay` is Chromium-only; elsewhere zero defers the
+        // native close until the exit has played, #17).
         popup: {
             base: {
                 minWidth: '12rem',

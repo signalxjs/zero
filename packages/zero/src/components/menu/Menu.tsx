@@ -70,6 +70,7 @@ import { createFocusRestore } from '../../behaviors/focus.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { createPointerGrace, pointInTriangle, safeTriangle, type Point, type PointerGrace } from '../../behaviors/safe-triangle.js';
+import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
@@ -426,6 +427,8 @@ export type MenuPopupProps =
 const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
+    // Outside Chromium the native close waits for the exit to play (#17).
+    const exit = createTopLayerExit();
 
     const scoped = mountScope();
     onMounted(() => scoped(() => {
@@ -433,13 +436,16 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
             const open = menu.state.value;
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
             if (!node || typeof node.showPopover !== 'function') return;
+            if (open) exit.cancel();
             const showing = node.matches(':popover-open');
             if (open && !showing) {
                 node.showPopover();
                 // Focus lands on the first enabled item (APG menu button).
                 menu.list.enabledItems()[0]?.el()?.focus();
             } else if (!open && showing) {
-                node.hidePopover!();
+                exit.close(node, () => {
+                    if (!menu.state.value && node.matches(':popover-open')) node.hidePopover!();
+                });
             }
         });
     }));
@@ -1138,6 +1144,7 @@ const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) 
     // The shadowed context — this IS the sub's own list/state.
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
+    const exit = createTopLayerExit();
 
     const scoped = mountScope();
     onMounted(() => scoped(() => {
@@ -1145,6 +1152,7 @@ const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) 
             const open = sub.state.value;
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
             if (!node || typeof node.showPopover !== 'function') return;
+            if (open) exit.cancel();
             const showing = node.matches(':popover-open');
             if (open && !showing) {
                 node.showPopover();
@@ -1152,7 +1160,9 @@ const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) 
                 // was a keyboard gesture — hover leaves it on the trigger.
                 if (sub.consumePendingFocus()) menu.list.enabledItems()[0]?.el()?.focus();
             } else if (!open && showing) {
-                node.hidePopover!();
+                exit.close(node, () => {
+                    if (!sub.state.value && node.matches(':popover-open')) node.hidePopover!();
+                });
             }
         });
     }));

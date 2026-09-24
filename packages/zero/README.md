@@ -113,6 +113,18 @@ section), the native `toggle` event writes the model — an Accordion in single
 mode then closes the others, as a click would — and a change the model
 refuses (a disabled root or item) is put back on the element.
 
+**Popup exits play in every engine** (#17). A design system animates a
+popup's exit in CSS off `data-state="closed"`, and on Chromium CSS `overlay`
+keeps the element in the top layer while it plays. Firefox and WebKit have
+no `overlay`, so there Dialog, Drawer, Popover, Menu, Tooltip, Select and
+Combobox hold the native `close()` / `hidePopover()` back until the popup's
+own exit transition or animation has finished — never longer than its
+computed length, so a stalled one cannot leave a popup stuck open. For
+that span the popup is still shown natively (a modal dialog stays modal),
+and reopening it cancels the pending close. A close the platform makes by
+itself — `popover="auto"` light dismiss, a `<form method="dialog">` submit —
+has already happened when zero hears of it, and stays instant there.
+
 The peer-parity surfaces ship too: Menu has stateful items
 (`Menu.CheckboxItem`, `Menu.RadioGroup`/`Menu.RadioItem` — APG
 menuitemcheckbox/menuitemradio; toggling keeps the menu open unless the item
@@ -326,8 +338,8 @@ system keys the sheet's geometry on `[data-l-dock="sheet"]` and the sheet
 keeps its box while it leaves. That is what lets material, daisyUI, HeroUI
 and Carbon slide the sheet in from its edge and back out to it (the travel
 flips with the placement and with `dir="rtl"`; reduced motion drops it), while
-basic and brutalist keep the fade. Outside Chromium the exit is instant —
-`overlay` is Chromium-only (#17).
+basic and brutalist keep the fade. Outside Chromium the exit plays through
+zero's deferred close (#17).
 
 **One drawer for both regimes: `modal={{ below: 'md' }}`.** A modal sheet
 below the design system's `md`, the panel docked open inline at or above it —

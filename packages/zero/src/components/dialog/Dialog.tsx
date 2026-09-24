@@ -32,6 +32,7 @@ import { createDismissable } from '../../behaviors/dismiss.js';
 import { createFocusRestore } from '../../behaviors/focus.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
+import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
@@ -272,11 +273,15 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
     // Modal stays a client call: the top layer cannot be expressed in markup.
     const openInMarkup = !dialog.modal() && dialog.state.value ? true : undefined;
 
+    // Outside Chromium the native close waits for the exit to play (#17).
+    const exit = createTopLayerExit();
+
     const scoped = mountScope();
     onMounted(() => scoped(() => {
         const sync = (open: boolean) => {
             const node = el;
             if (!node || typeof node.showModal !== 'function') return;
+            if (open) exit.cancel();
             if (open && !node.open) {
                 // A popup below another element mounts before its parent
                 // has inserted the subtree, and `showModal()` on a detached
@@ -293,7 +298,9 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
                 if (dialog.modal()) node.showModal();
                 else node.show();
             } else if (!open && node.open) {
-                node.close();
+                exit.close(node, () => {
+                    if (!dialog.state.value && node.open) node.close();
+                });
             }
         };
         effect(() => sync(dialog.state.value));
