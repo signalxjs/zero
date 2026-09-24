@@ -90,6 +90,16 @@ describe('createCollection — data mode', () => {
         expect(c.keys()).toEqual(['a']);
     });
 
+    it('an explicit mode decides reactively: a list that arrives later flips jsx to data (#172)', () => {
+        const state = signal({ list: undefined as string[] | undefined });
+        const items = () => state.list;
+        const c = createCollection<string>({ items, mode: () => (items() !== undefined ? 'data' : 'jsx') });
+        expect(c.mode()).toBe('jsx');
+        state.list = ['a'];
+        expect(c.mode()).toBe('data');
+        expect(c.keys()).toEqual(['a']);
+    });
+
     it('items are read reactively', () => {
         const state = signal({ list: ['a'] as string[] });
         const c = createCollection<string>({ items: () => state.list });

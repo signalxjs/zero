@@ -230,6 +230,15 @@
   it, in the browser only. `toggle()` was already correct, since it reads the
   scheme when called. The page colours were never affected: they follow
   `light-dark()` in CSS.
+- **`items` that arrive after the first render (#172).** Select, Combobox
+  and RadioGroup decided their data mode once, at setup: an `items` prop
+  that was `undefined` on the first render (a list still loading) left the
+  root hand-written for its whole life, so the later list rendered no items
+  and posted no options. The mode is now reactive — the root turns
+  data-driven when `items` arrives, and its "nothing selected" sentinel
+  follows (`null` in data mode). `createCollection` takes an optional
+  `mode` getter, and `createListboxCore`'s `emptyValue` accepts a getter,
+  to carry this.
 
 ## [0.5.0] - 2026-09-23
 

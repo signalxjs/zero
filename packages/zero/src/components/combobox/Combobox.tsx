@@ -346,7 +346,10 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     // given — an EMPTY list counts, sigx props being plain values that a
     // later list arrives into — so the mode never flips on what the list
     // holds, and an omitted `items` is the hand-written (string-model) shape
-    // the overloads promise.
+    // the overloads promise. The decision is REACTIVE (#172): an `items` that
+    // is undefined on the first render (still loading) and arrives later
+    // turns the root data-driven then — the collection's mode and the empty
+    // sentinel follow; the '' seed reads as empty under either.
     // In trigger mode the children are the textarea, so `items` alone decides.
     const items = (): ReadonlyArray<unknown> | undefined =>
         (triggerMode ? props.items : slots.default || props.items === undefined ? undefined : props.items);
@@ -372,7 +375,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     const fc = createFormControl({ props: () => props, idBase: 'zx-combobox', controlPart: 'input' });
     const baseId = fc.baseId;
     const collection = createCollection<unknown, unknown>({
-        items: items() ? items : undefined,
+        items,
+        mode: () => (items() !== undefined ? 'data' : 'jsx'),
         itemKey: props.itemKey,
         itemLabel: props.itemLabel,
         itemValue: props.itemValue,
@@ -405,7 +409,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         idBase: baseId,
         query: () => inputValue.value,
         filter: props.filter,
-        emptyValue: emptyValue(),
+        emptyValue,
         // A single selection fills the input with the label and closes; a
         // multiple one toggles, clears the query and stays open.
         onSelect: (key) => {

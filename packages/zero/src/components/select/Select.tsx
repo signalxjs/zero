@@ -205,7 +205,10 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     // given — an EMPTY list counts, sigx props being plain values that a
     // later list arrives into — so the mode never flips on what the list
     // holds, and an omitted `items` is the hand-written (string-model) shape
-    // the overloads promise.
+    // the overloads promise. The decision is REACTIVE (#172): an `items` that
+    // is undefined on the first render (still loading) and arrives later
+    // turns the root data-driven then — the collection's mode and the empty
+    // sentinel follow; the '' seed reads as empty under either.
     const items = (): ReadonlyArray<unknown> | undefined => (slots.default || props.items === undefined ? undefined : props.items);
     const emptyValue = (): unknown => (items() ? null : '');
     // The seed is exactly what the consumer provided — an explicit
@@ -224,7 +227,8 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     const fc = createFormControl({ props: () => props, idBase: 'zx-select', controlPart: 'trigger' });
     const baseId = fc.baseId;
     const collection = createCollection<unknown, unknown>({
-        items: items() ? items : undefined,
+        items,
+        mode: () => (items() !== undefined ? 'data' : 'jsx'),
         itemKey: props.itemKey,
         itemLabel: props.itemLabel,
         itemValue: props.itemValue,
@@ -246,7 +250,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         multiple,
         list,
         idBase: baseId,
-        emptyValue: emptyValue(),
+        emptyValue,
         // A single selection closes; a multiple one toggles and stays open.
         onSelect: () => { if (!multiple()) setOpen(false); },
     });
