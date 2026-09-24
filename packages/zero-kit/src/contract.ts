@@ -164,6 +164,13 @@ export const TOKEN_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export const AXIS_VALUE_PATTERN = /^[a-z0-9]+(-+[a-z0-9]+)*$/;
 
 /**
+ * The `-soft` mix ratio every theme defaults to when it declares none — the
+ * one default every evaluator (web + lynx emitters, validator, contrast
+ * audit, palette derivation) reads, so they cannot drift apart.
+ */
+export const DEFAULT_SOFT_MIX = 0.16;
+
+/**
  * Fixed-size alias for the text ramp: for every emitted `--text-<key>` the
  * compiler also emits `--text-fixed-<key>` — on the web a pure indirection
  * (`--text-fixed-sm: var(--text-sm)`); on a target with a runtime font scale
@@ -173,13 +180,6 @@ export const AXIS_VALUE_PATTERN = /^[a-z0-9]+(-+[a-z0-9]+)*$/;
  * spelling a `fixed-*` name wins over the derived alias. Mirrors
  * `TEXT_FIXED_PREFIX` in `@sigx/zero/contract` (parity-tested).
  */
-/**
- * The `-soft` mix ratio every theme defaults to when it declares none — the
- * one default every evaluator (web + lynx emitters, validator, contrast
- * audit, palette derivation) reads, so they cannot drift apart.
- */
-export const DEFAULT_SOFT_MIX = 0.16;
-
 export const TEXT_FIXED_PREFIX = '--text-fixed-';
 
 /**
