@@ -154,7 +154,7 @@
   scroll ran in `onMounted`, which can fire before the tree is attached to
   the document. A detached viewport has no layout, so nothing scrolled, and
   the observer's first report then wrote slide 0 back into the model. The
-  viewport now waits one frame for the document when it is detached, and
+  viewport now waits frame by frame until it is attached (bounded), and
   creates its observer after the scroll.
 - **A bound carousel model no longer stalls a scroll (#171).** With
   `model` bound, the observer's report of a slide a smooth scroll was

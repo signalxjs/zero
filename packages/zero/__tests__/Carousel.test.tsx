@@ -200,6 +200,39 @@ describe('Carousel', () => {
         expect(parts(container, 'item')[2]!.getAttribute('data-state')).toBe('active');
     });
 
+    it('a tree mounted detached waits for the document before its mount scroll (#171)', async () => {
+        const calls: ScrollToOptions[] = [];
+        const original = HTMLElement.prototype.scrollTo;
+        HTMLElement.prototype.scrollTo = function (o: ScrollToOptions) { calls.push(o); } as typeof original;
+        let observers = 0;
+        const Original = globalThis.IntersectionObserver;
+        globalThis.IntersectionObserver = class {
+            constructor() { observers++; }
+            observe() {}
+            unobserve() {}
+            disconnect() {}
+        } as unknown as typeof IntersectionObserver;
+        try {
+            const detached = document.createElement('div');
+            render(sample({ defaultIndex: 2 }), detached);
+            // Detached for several frames: no layout, so no scroll and no
+            // observer yet — its first report would write slide 0 back.
+            await frame();
+            await frame();
+            await frame();
+            expect(calls).toEqual([]);
+            expect(observers).toBe(0);
+            container.appendChild(detached);
+            await frame();
+            expect(calls).toEqual([expect.objectContaining({ behavior: 'auto' })]);
+            expect(observers).toBe(1);
+            expect(parts(detached, 'item')[2]!.getAttribute('data-state')).toBe('active');
+        } finally {
+            HTMLElement.prototype.scrollTo = original;
+            globalThis.IntersectionObserver = Original;
+        }
+    });
+
     it('a bound model: a slide the scroll passes does not scroll it back (#171)', async () => {
         // A stand-in observer: the test reports intersections by hand.
         let report: IntersectionObserverCallback | null = null;

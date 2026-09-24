@@ -120,6 +120,10 @@ test.describe('the page never scrolls for a carousel (#171)', () => {
         page.getByRole('button', { name, exact: true }).evaluate((b) => (b as HTMLButtonElement).click());
 
     test.beforeEach(async ({ page }) => {
+        // First: a page scrolled on mount (the #171 regression itself) pulls
+        // the carousel above the fold, which the layout guard below would
+        // otherwise misreport as a fixture problem.
+        expect(await pageScroll(page), 'the page scrolled on mount (#171)').toEqual([]);
         const top = await tour(page)('viewport').evaluate((el) => el.getBoundingClientRect().top);
         expect(top, 'the Tour carousel must start below the fold').toBeGreaterThan(320);
     });

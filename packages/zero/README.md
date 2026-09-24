@@ -853,8 +853,8 @@ would also scroll the page (#171). A carousel below the fold therefore opens
 on its slide without pulling the reader down to it, and an app can drive the
 model from elsewhere on the page without moving the page. The target is
 measured from the boxes, so it is right in an RTL viewport too. When the tree
-mounts before it is attached to the document, the viewport waits one frame
-for layout before it scrolls and starts observing.
+mounts before it is attached to the document, the viewport waits, frame by frame,
+until it is attached (about a second at most) before it scrolls and starts observing.
 
 ## Responsive: breakpoints and `useMediaQuery`
 

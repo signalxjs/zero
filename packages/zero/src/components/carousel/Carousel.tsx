@@ -219,9 +219,24 @@ const CarouselViewport = component<CarouselViewportProps>(({ props, slots, onMou
     let el: HTMLElement | null = null;
     let observer: IntersectionObserver | null = null;
     let frame = 0;
+    // Frames left to wait for a detached viewport to be attached.
+    let waits = 60;
+
+    /**
+     * Start once the viewport is in the document: a tree can mount before
+     * it is attached (an app rendered whole, then inserted), and a detached
+     * viewport has no layout — a scroll then measures nothing and moves
+     * nothing, and the observer's first report would be slide 0 writing
+     * the model back. Re-arm per frame until connected, bounded so a tree
+     * that is never attached still starts (and stops polling).
+     */
+    const startWhenConnected = (): void => {
+        frame = 0;
+        if (el?.isConnected || waits-- <= 0 || typeof requestAnimationFrame !== 'function') start();
+        else frame = requestAnimationFrame(startWhenConnected);
+    };
 
     const start = (): void => {
-        frame = 0;
         // The initial index may not be 0 (`defaultIndex`, a controlled
         // model) — the resting scroll position must agree with it, and no
         // watch fires for a value that never changed. An instant jump: the
@@ -249,14 +264,7 @@ const CarouselViewport = component<CarouselViewportProps>(({ props, slots, onMou
         );
     };
 
-    onMounted(() => {
-        // A tree can mount before it is attached (an app rendered whole,
-        // then inserted): a detached viewport has no layout, so a scroll
-        // now measures nothing and moves nothing, and the observer's first
-        // report would be slide 0. Wait one frame for the document.
-        if (el?.isConnected || typeof requestAnimationFrame !== 'function') start();
-        else frame = requestAnimationFrame(start);
-    });
+    onMounted(startWhenConnected);
     onUnmounted(() => {
         if (frame) cancelAnimationFrame(frame);
         carousel.setObserverHooks(() => {}, () => {});
