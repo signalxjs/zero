@@ -51,6 +51,17 @@ curve (`moderate-02`, 240ms) and out on the exit curve, instead of fading
 (#83). The travel flips with the placement and with `dir="rtl"`, and reduced
 motion drops it.
 
+### The primary button keeps blue 60 on g100
+
+Carbon has two blues where a naive port has one: `$interactive` (links,
+focus, selection, the ghost and tertiary kinds' ink) lightens to blue 50 on
+`g100` so it reads on the dark base, while `$button-primary` stays blue 60 in
+every theme. The skin used to paint the primary button with the interactive
+blue, which left its white label at 3.74:1 on `g100` (#190). The fill is its
+own custom token now, `carbon-button-primary`, and the tertiary kind's solid
+hover takes it too. `carbon-interactive` is unchanged, so every other use of
+the lighter blue stays where it was.
+
 ### Notification kind, without a colour axis
 
 `roles: {}` means `toast({ color })` has nothing to select here — the recipe
