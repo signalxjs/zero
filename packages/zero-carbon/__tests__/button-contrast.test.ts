@@ -11,7 +11,7 @@ import { describe, it, expect } from 'vitest';
 import { anatomies } from '@sigx/zero/anatomy';
 import { auditDesignSystem } from '@sigx/zero-kit';
 import type { ManifestComponent } from '@sigx/zero-kit';
-import { designSystem } from '@sigx/zero-carbon';
+import { button, designSystem } from '@sigx/zero-carbon';
 
 const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
 const AA = 4.5;
@@ -30,8 +30,31 @@ describe('the primary button fill (#190)', () => {
         expect(below).toEqual([]);
     });
 
-    it('g100 keeps the lighter interactive blue for links and focus — only the button fill moved', () => {
+    it('no button fill paints with the interactive accent — resting, hover or pressed', () => {
+        // The static matrix measures resting/focus/loading cells only; the
+        // tertiary kind's solid hover and pressed fills sit under the white
+        // label too, so hold every fill slot in the recipe to the button token.
+        const fills: string[] = [];
+        const walk = (node: unknown): void => {
+            if (node === null || typeof node !== 'object') return;
+            for (const [key, value] of Object.entries(node)) {
+                if (typeof value === 'string' && key.startsWith('--btn-fill')) fills.push(`${key}: ${value}`);
+                else walk(value);
+            }
+        };
+        walk(button);
+        expect(fills.length).toBeGreaterThan(0);
+        expect(fills.filter((f) => f.includes('var(--carbon-interactive)'))).toEqual([]);
+        expect(fills).toEqual(expect.arrayContaining([
+            '--btn-fill-hover: var(--carbon-button-primary)',
+            expect.stringMatching(/^--btn-fill-active: .*var\(--carbon-button-primary\)/),
+        ]));
+    });
+
+    it('g100 keeps a lighter interactive accent than the button fill — only the fill moved', () => {
+        const lightness = (color: string) => Number(/oklch\(([\d.]+)%/.exec(color)![1]);
         const g100 = designSystem.tokens.themes!['g100']!.custom!;
-        expect(g100['carbon-interactive']).toBe('oklch(62% 0.19 262)');
+        expect(g100['carbon-interactive']).not.toBe(g100['carbon-button-primary']);
+        expect(lightness(g100['carbon-interactive']!)).toBeGreaterThan(lightness(g100['carbon-button-primary']!));
     });
 });
