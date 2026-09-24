@@ -65,8 +65,10 @@ jobs:
         run: pnpm test
 
   e2e:
-    # Already ran on the PR; the queue only waits on the required checks.
-    if: github.event_name != 'merge_group'
+    # A required check, so it also runs in the merge queue: a PR's own run
+    # predates whatever landed ahead of it (#159). The suite takes ~17 min;
+    # the timeout keeps a hung browser from holding the queue for hours.
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
