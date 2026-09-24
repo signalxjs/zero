@@ -35,6 +35,16 @@ drifted a major version behind (#231): among others, light's `primary` was
 and dark's `primary-content` was a *dark* ink where 5.7.8 pairs a light one.
 `dim`, `nord` and `sunset` were already exact.
 
+Three content roles are the exception, in `light` and `dark` only (#34). daisy
+ships `secondary-content` at **3.05:1** on `secondary` in both themes, and dark
+`primary-content` at **4.14:1** on `primary` — below AA for the label text each
+pair exists to carry, and the kit's validator warned for them on every build.
+Each now takes the lightness the validator suggests, keeping daisy's hue:
+`secondary-content` is a dark ink, `oklch(24.2% 0.028 342.258)`, and dark
+`primary-content` a near-white `oklch(98.9% 0.005 272.314)` (chroma drops to
+what stays in gamut that close to white). `dim`, `nord` and `sunset` clear AA
+as shipped.
+
 The checkbox's print fallback names `--print-ink` where real daisy names no ink
 at all — its glyph inherits `--color-primary-content` and prints at 1.37:1, a
 pale lavender on white paper (#233). Fidelity to a mark nobody can see is not
@@ -53,7 +63,8 @@ daisy's 20% reads 1.44:1 on `nord`, a raw-role `neutral` ghost button 1.22:1 in
 every dark theme, and 5.7.8's own lighter `error` 2.87:1 as message text on
 white — and 3:1 is the floor a mark owes the reader. The ratios and their
 per-theme measurements are recorded at each declaration in `src/recipes.ts`;
-every other value in this package is daisy's.
+every other value in this package is daisy's, bar the three content roles
+above.
 
 `select`, `combobox` and `number-input` share one field metric — the same
 `--size-field` height ramp, inset and `--shadow-xs` lift — so two controls in a
