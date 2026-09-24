@@ -29,8 +29,12 @@ export function compositeOver(color: Color, under: Color): Color {
 }
 
 export type RolePairReading =
-    /** `bg` / `fg` are the colours as painted (composited); `translucentFg` says the ink carried alpha. */
-    | { ratio: number; bg: Color; fg: Color; translucentFg: boolean }
+    /**
+     * `bg` / `fg` are the colours as painted (composited); `translucentFg`
+     * says the ink carried alpha, `translucentBg` that the surface did (and
+     * was composited over base-100).
+     */
+    | { ratio: number; bg: Color; fg: Color; translucentFg: boolean; translucentBg: boolean }
     | { unmeasured: string };
 
 /**
@@ -54,5 +58,5 @@ export function measureRolePair(colors: Record<string, string>, bg: string, fg: 
         surface = compositeOver(b, page);
     }
     const ink = compositeOver(f, surface);
-    return { ratio: wcagContrast(ink, surface), bg: surface, fg: f, translucentFg: (f.alpha ?? 1) < 1 };
+    return { ratio: wcagContrast(ink, surface), bg: surface, fg: f, translucentFg: (f.alpha ?? 1) < 1, translucentBg: surface !== b };
 }

@@ -526,7 +526,8 @@ export function validateDesignSystem<R extends RolesDecl>(
             // warning on the next run, which is not a fix an author can
             // paste and move on from.
             const level = ratio < 3 ? 'error' : 'warning';
-            const said = `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (${ratio < 3 ? '< 3:1' : `< ${CONTRAST_AA}:1 AA`})`;
+            const composited = reading.translucentBg ? ` — ${bg} is translucent, composited over base-100` : '';
+            const said = `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (${ratio < 3 ? '< 3:1' : `< ${CONTRAST_AA}:1 AA`})${composited}`;
             if (reading.translucentFg) {
                 // A translucent ink gets no suggestion: its lightness is not its paint.
                 (level === 'error' ? errors : warnings).push({

@@ -319,6 +319,8 @@ describe('role-pair contrast reads alpha, and colour functions parse case-insens
             t.themes.day.colors['primary-content'] = 'oklch(100% 0 0)';
         });
         expect(errors(input)).toMatch(/contrast primary vs primary-content is 1\.\d\d:1/);
+        // …and says why: the surface's alpha, not the ink, is the cause.
+        expect(errors(input)).toContain('primary is translucent, composited over base-100');
         expect(measured(input, 'primary-content')!.ratio).toBeLessThan(1.5);
     });
 
