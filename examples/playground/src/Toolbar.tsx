@@ -43,6 +43,21 @@ const singleSelection = (read: () => string | null, write: (value: string) => vo
     },
 });
 
+/**
+ * The box a toolbar group scrolls inside when it is wider than the bar. The
+ * padding keeps the items' focus rings inside the scroller's clip — an
+ * `overflow-x` other than `visible` clips both axes.
+ */
+/**
+ * A labelled row of the bar. `minWidth: 0` lets it shrink below its
+ * content: a flex item floors at its min-content width, which here is the
+ * whole segmented group, so without it the scroller below never gets a
+ * narrower box to scroll in.
+ */
+const GROUP_ROW = { display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', minWidth: 0 } as const;
+
+const GROUP_SCROLLER = { boxSizing: 'border-box', maxWidth: '100%', overflowX: 'auto', padding: '0.25rem' } as const;
+
 export const Toolbar = component(() => {
     const state = signal({
         // Mirrors the live stylesheet. Updated only AFTER the swap resolves,
@@ -112,36 +127,46 @@ export const Toolbar = component(() => {
                   * carried by every design system because the anatomy requires
                   * it, and is the same claim to a screen reader as to the eye.
                   */}
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={GROUP_ROW}>
                     <strong style={{ fontSize: 'var(--text-sm)' }}>Design system</strong>
-                    <ToggleGroup.Root
-                        size="sm"
-                        label="Design system"
-                        model={[dsSelection, 'value']}
-                        deselectable={false}
-                        disabled={state.busy}
-                    >
-                        {designSystems.map((ds) => (
-                            <ToggleGroup.Item value={ds.id}>{ds.label}</ToggleGroup.Item>
-                        ))}
-                    </ToggleGroup.Root>
+                    {/*
+                      * A segmented control does not wrap, and six skins (or
+                      * daisyUI's five themes) are wider than a phone. The
+                      * group scrolls inside its own box instead of pushing
+                      * the page sideways (#45) — both groups, same reason.
+                      */}
+                    <div style={GROUP_SCROLLER}>
+                        <ToggleGroup.Root
+                            size="sm"
+                            label="Design system"
+                            model={[dsSelection, 'value']}
+                            deselectable={false}
+                            disabled={state.busy}
+                        >
+                            {designSystems.map((ds) => (
+                                <ToggleGroup.Item value={ds.id}>{ds.label}</ToggleGroup.Item>
+                            ))}
+                        </ToggleGroup.Root>
+                    </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={GROUP_ROW}>
                     <strong style={{ fontSize: 'var(--text-sm)' }}>Theme</strong>
-                    <ToggleGroup.Root
-                        size="sm"
-                        label="Theme"
-                        model={[themeSelection, 'value']}
-                        deselectable={false}
-                    >
-                        {themes.map((theme) => (
-                            <ToggleGroup.Item value={theme.name}>
-                                <Swatch theme={theme.swatch} />
-                                {theme.name}
-                            </ToggleGroup.Item>
-                        ))}
-                    </ToggleGroup.Root>
+                    <div style={GROUP_SCROLLER}>
+                        <ToggleGroup.Root
+                            size="sm"
+                            label="Theme"
+                            model={[themeSelection, 'value']}
+                            deselectable={false}
+                        >
+                            {themes.map((theme) => (
+                                <ToggleGroup.Item value={theme.name}>
+                                    <Swatch theme={theme.swatch} />
+                                    {theme.name}
+                                </ToggleGroup.Item>
+                            ))}
+                        </ToggleGroup.Root>
+                    </div>
                     {/*
                       * `system` is not a member of the theme selection — it is
                       * the absence of one, so it sits outside the group, and

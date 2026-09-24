@@ -38,15 +38,23 @@ const IndicatorDemos = component(() => () => (
         <p>
             All eight slots, on one box:
         </p>
+        {/*
+          * Inline padding the size of the widest label's overhang: a badge
+          * CENTRED on a start-side corner hangs half its width past the box,
+          * and a box at the column's edge would carry it out of the column
+          * (the narrow-viewport sweep, #45).
+          */}
         <DemoRow gap="3rem" align="center">
-            <Indicator.Root>
-                {(['top-start', 'top', 'top-end', 'start', 'end', 'bottom-start', 'bottom', 'bottom-end'] as const).map((p) => (
-                    <Indicator.Item placement={p}>
-                        <Badge size="sm">{p}</Badge>
-                    </Indicator.Item>
-                ))}
-                <div style="inline-size: 14rem; block-size: 6rem; border: 1px dashed var(--color-base-300); border-radius: var(--radius-box)"></div>
-            </Indicator.Root>
+            <div style="padding-inline: 3.5rem">
+                <Indicator.Root>
+                    {(['top-start', 'top', 'top-end', 'start', 'end', 'bottom-start', 'bottom', 'bottom-end'] as const).map((p) => (
+                        <Indicator.Item placement={p}>
+                            <Badge size="sm">{p}</Badge>
+                        </Indicator.Item>
+                    ))}
+                    <div style="inline-size: 14rem; block-size: 6rem; border: 1px dashed var(--color-base-300); border-radius: var(--radius-box)"></div>
+                </Indicator.Root>
+            </div>
         </DemoRow>
     </>
 ), { name: 'IndicatorDemos' });

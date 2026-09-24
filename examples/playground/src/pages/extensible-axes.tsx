@@ -17,7 +17,7 @@ const ExtensibleAxesDemos = component(() => () => (
             .axis-demo [data-density="compact"] { padding-block: 0.15rem; font-size: 0.8rem; }
             .axis-demo [data-density="spacious"] { padding-block: 0.7rem; letter-spacing: 0.04em; }
         `}</style>
-        <div class="axis-demo" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div class="axis-demo" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
             <Button.Root axes={{ density: 'compact' }}>compact</Button.Root>
             <Button.Root>default</Button.Root>
             <Button.Root axes={{ density: 'spacious' }}>spacious</Button.Root>
