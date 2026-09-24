@@ -22,7 +22,7 @@
  * the reason a replacement register works at all, and it is checked where it
  * was already being checked.
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -101,7 +101,12 @@ describe('exportedSubpath', () => {
 });
 
 describe('runExtend under ZERO_ECOSYSTEM=0 (#187)', () => {
-    const saved = process.env[ECOSYSTEM_ENV];
+    // Captured per test, not at module evaluation: anything that set the
+    // switch between import and this test would otherwise be restored wrong.
+    let saved: string | undefined;
+    beforeEach(() => {
+        saved = process.env[ECOSYSTEM_ENV];
+    });
     afterEach(() => {
         if (saved === undefined) delete process.env[ECOSYSTEM_ENV];
         else process.env[ECOSYSTEM_ENV] = saved;
