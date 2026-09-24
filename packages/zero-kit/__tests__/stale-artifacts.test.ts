@@ -87,4 +87,13 @@ describe('stale dist artifacts (#186)', { timeout: 30_000 }, () => {
         expect(existsSync(join(outDir, 'report.json'))).toBe(false);
         expect(existsSync(join(outDir, 'manifest.json'))).toBe(true);
     });
+
+    it('an invalid scope throws before the previous build is cleared', async () => {
+        const outDir = tempDir();
+        const compiled = compileDesignSystem(basicDS, manifest);
+        await writeArtifacts(compiled, outDir);
+        const bad = { ...compiled, componentCss: { ...compiled.componentCss, '../escape': '' } };
+        await expect(writeArtifacts(bad, outDir)).rejects.toThrow(/kebab-case/);
+        expect(existsSync(join(outDir, 'css', 'components', 'button.css'))).toBe(true);
+    });
 });
