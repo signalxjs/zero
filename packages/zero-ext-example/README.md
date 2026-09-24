@@ -24,7 +24,9 @@ What it publishes to design systems, from the data-only `./fragment` entry:
   recommended role list and `size` over the recommended `xs`–`xl` ramp (type
   steps along `--text-*`, the `em` padding follows; a design system with a
   closed ramp such as `sm | md | lg` keeps the steps it declares when the
-  pack is fitted on adoption). A disabled item fades by the adopter's own
+  pack is fitted on adoption). An item with no `size` renders the `md` step
+  (`--text-md`) rather than inheriting its surrounding font size — the
+  un-attributed render is the middle step, as in every sibling skin. A disabled item fades by the adopter's own
   `--disabled-opacity`, never a literal of the pack's.
 
 `@sigx/zero-basic` consumes both — which makes it the end-to-end proof that a

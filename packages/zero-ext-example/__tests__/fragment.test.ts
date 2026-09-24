@@ -14,7 +14,8 @@ import type { DesignSystemInput, ManifestComponent, TokensInput } from '@sigx/ze
 import { SIZE_SCALE_LIST } from '@sigx/zero/contract';
 import { fragment, recipes } from '@sigx/zero-ext-example/fragment';
 
-const manifest = { components: fragment.components as ManifestComponent[] };
+const components: ManifestComponent[] = fragment.components;
+const manifest = { components };
 
 const tokens = (sizes: readonly string[]): TokensInput => ({
     roles: { primary: {} },
