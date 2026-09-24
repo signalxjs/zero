@@ -309,9 +309,9 @@ the Field's label and any app `aria-labelledby`), a `Progress.Label` /
 thumbs without their own `label` are named by `Slider.Label`, and the
 Label's and ValueText's `for` appear only while a native `Slider.Control`
 is mounted. Presence reports land a microtask after mount, so RadioGroup,
-Progress, RadialProgress and Slider render these references optimistically until
-then: server markup keeps the Label reference (and, outside thumb mode, the
-Label's `for`) a composed widget needs, and the client drops any that
+Progress, RadialProgress and Slider render these references optimistically
+until then: server markup keeps the Label reference (and, outside thumb
+mode, the Label's `for`) a composed widget needs, and the client drops any that
 would dangle once mounted. A progressbar's
 `aria-valuenow` is clamped to `[min, max]`. Escape dismissal is universal — a tooltip closes
 from anywhere (WCAG 2.1 SC 1.4.13), and it is hoverable too: leaving the

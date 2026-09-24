@@ -137,9 +137,9 @@
   their Label only while one is rendered, and clamp `aria-valuenow` to
   `[min, max]`. These references follow the Label/Control's presence, which
   is reported a microtask after mount; until then RadioGroup, Progress,
-  RadialProgress and Slider render them optimistically, so server markup keeps the Label
-  reference (and, outside thumb mode, the Label's `for`) a composed widget
-  needs. `RadioGroup.Label` no longer accepts `id` (the root is labelled by
+  RadialProgress and Slider render them optimistically, so server markup
+  keeps the Label reference (and, outside thumb mode, the Label's `for`) a
+  composed widget needs. `RadioGroup.Label` no longer accepts `id` (the root is labelled by
   its own).
 
 ## [0.5.0] - 2026-09-23
