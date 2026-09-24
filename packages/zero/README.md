@@ -106,7 +106,12 @@ its label, not the control.
 ```
 Native-platform first: `<dialog>` +
 top layer (no Portal), the `popover` attribute, `<details>`, real form
-inputs. SSR-safe ids via `app.use(zeroPlugin())` per request.
+inputs. SSR-safe ids via `app.use(zeroPlugin())` per request. Collapsible
+and Accordion keep their model in step with the `<details>` they render: when
+the browser opens one itself (find-in-page, a `#fragment` link into a closed
+section), the native `toggle` event writes the model — an Accordion in single
+mode then closes the others, as a click would — and a change the model
+refuses (a disabled root or item) is put back on the element.
 
 The peer-parity surfaces ship too: Menu has stateful items
 (`Menu.CheckboxItem`, `Menu.RadioGroup`/`Menu.RadioItem` — APG
