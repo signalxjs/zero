@@ -36,7 +36,7 @@ import { auditDesignSystem } from '../audit/index.js';
 import { LAYER_ORDER_STATEMENT } from '../contract.js';
 import { compileDesignSystem } from '../design-system.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../design-system.js';
-import { exportedSubpath, installedPackageDir, resolveEcosystem, zeroKitVersion } from '../discover.js';
+import { ECOSYSTEM_ENV, exportedSubpath, installedPackageDir, resolveEcosystem, zeroKitVersion } from '../discover.js';
 import { attributeFindings, packagesByScope, whereWithOwner } from '../manifest.js';
 import { compileRegisterDts, compileRegisterJs } from '../targets/web/register-dts.js';
 import { validateDesignSystem } from '../resolve/validate.js';
@@ -79,6 +79,18 @@ export function extendedCss(
 }
 
 export async function runExtend(env: CommandEnv, opts: ExtendCommandOptions): Promise<void> {
+    // The env switch contradicts the command: adopting packs is all it does.
+    // Discovery would come back empty BECAUSE of the switch, and the
+    // pass-through write below would then strip every pack scope from the
+    // app's artifacts while the log blamed its dependencies. Refuse before
+    // touching anything, so the previous run's files survive.
+    if (process.env[ECOSYSTEM_ENV] === '0') {
+        throw new Error(
+            `[zero-kit] zero:extend adopts ecosystem packs, but ${ECOSYSTEM_ENV}=0 switches their discovery off`
+            + ' — unset it to extend, or leave the existing artifacts as they are (nothing was written)',
+        );
+    }
+
     // The design system's own compiled input, through its public export.
     const entry = packageDesignSystemEntry(env.cwd, opts.ds, 'extended');
     const dsDir = installedPackageDir(env.cwd, opts.ds)!;

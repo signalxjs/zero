@@ -109,6 +109,27 @@ describe('detect', () => {
     });
 });
 
+describe('--no-<flag> negation (#187)', () => {
+    // @sigx/args negates every boolean unless it opts out, so the off switch
+    // for a default-true flag is a flag, not only an env var — and the help
+    // text has to say so, since `--no-emit` is zero:fragment's only useful form.
+    const describeOf = (cmd: string, flag: string): string =>
+        (shapeOf(cmd)[flag] as unknown as { '~def': { description?: string } })['~def'].description ?? '';
+
+    it('turns --ecosystem off on every command that adopts packs', () => {
+        for (const cmd of ['zero:build', 'zero:validate', 'zero:audit']) {
+            expect(parseArgs([], shapeOf(cmd)).args.ecosystem, cmd).toBe(true);
+            expect(parseArgs(['--no-ecosystem'], shapeOf(cmd)).args.ecosystem, cmd).toBe(false);
+            expect(describeOf(cmd, 'ecosystem'), cmd).toContain('--no-ecosystem');
+        }
+    });
+
+    it('turns zero:fragment\'s --emit off, and says so in its help', () => {
+        expect(parseArgs(['--no-emit'], shapeOf('zero:fragment')).args.emit).toBe(false);
+        expect(describeOf('zero:fragment', 'emit')).toContain('--no-emit');
+    });
+});
+
 describe('zero:build args', () => {
     const shape = shapeOf('zero:build');
 

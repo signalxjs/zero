@@ -131,6 +131,20 @@
   value still applies either way; only typed interpolation is lost. Role
   registrations get the same guard on a compile that skipped validation.
   No in-repo design system's output changed.
+### Fixed
+
+- **`sigx zero:extend` refuses to run under `ZERO_ECOSYSTEM=0` (#187).** The
+  switch emptied pack discovery, and the command's deliberate pass-through
+  write then overwrote `zero-extend.css` / `.d.ts` / `.js` without any pack
+  scope, logging that no dependency declares a `"sigx-zero"` field — false
+  when the switch was the cause. It now throws before writing anything, so
+  the previous run's artifacts survive. A genuinely empty set (a pack
+  removed since the last run) is still written.
+- **The CLI documents its `--no-` flags (#187).** `@sigx/args` negates every
+  boolean, so `--no-ecosystem` (build / validate / audit) and
+  `zero:fragment`'s `--no-emit` always worked; the flag help and the README
+  now say so, and the README synopsis lists all five commands with their
+  ecosystem flags.
 
 ## [0.5.0] - 2026-09-23
 
