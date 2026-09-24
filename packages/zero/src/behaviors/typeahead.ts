@@ -47,7 +47,8 @@ export function createTypeahead(opts: TypeaheadOptions): Typeahead {
         if (items.length === 0) return;
         const at = currentValue == null ? -1 : items.findIndex((i) => i.value === currentValue);
         // One character steps past the current item; more refine it in place.
-        const start = at < 0 ? 0 : buffer.length > 1 ? at : at + 1;
+        let start = 0;
+        if (at >= 0) start = buffer.length === 1 ? at + 1 : at;
         const rotated = [...items.slice(start), ...items.slice(0, start)];
         const match = rotated.find((i) => i.textValue().toLowerCase().startsWith(buffer));
         if (match) {

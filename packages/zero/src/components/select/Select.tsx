@@ -359,11 +359,12 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         triggerKeydown(e) {
             if (ctx.disabled()) return;
             const key = e.key;
-            // Space continues a running typeahead search ("Save As"), open
-            // or closed; only outside one does it open / select.
-            const space = key === ' ' && !listbox.typeaheadSearching();
+            // `activateSpace`: a Space that opens / selects. While a typeahead
+            // search is running Space is search text instead ("Save As"),
+            // open or closed, and falls through to the typeahead below.
+            const activateSpace = key === ' ' && !listbox.typeaheadSearching();
             if (!openState.value) {
-                if (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Enter' || space) {
+                if (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Enter' || activateSpace) {
                     e.preventDefault();
                     setOpen(true);
                     return;
@@ -386,7 +387,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
                 listbox.move(key === 'PageDown' ? page : -page);
                 return;
             }
-            if (key === 'Enter' || space) {
+            if (key === 'Enter' || activateSpace) {
                 e.preventDefault();
                 const h = listbox.highlighted.value;
                 if (h != null) listbox.select(h);
