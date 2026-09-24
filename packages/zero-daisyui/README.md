@@ -36,10 +36,10 @@ and dark's `primary-content` was a *dark* ink where 5.7.8 pairs a light one.
 `dim`, `nord` and `sunset` were already exact.
 
 Three content-role values are the exception, in `light` and `dark` only (#34):
-two roles across the two themes. daisy
-ships `secondary-content` at **3.05:1** on `secondary` in both themes, and dark
-`primary-content` at **4.14:1** on `primary` — below AA for the label text each
-pair exists to carry, and the kit's validator warned for them on every build.
+two roles across the two themes. daisy ships `secondary-content` at **3.05:1**
+on `secondary` in both themes, and dark `primary-content` at **4.14:1** on
+`primary` — below AA for the label text each pair exists to carry, and the
+kit's validator warned for them on every build.
 Each now takes the lightness the validator suggests, keeping daisy's hue:
 `secondary-content` is a dark ink, `oklch(24.2% 0.028 342.258)`, and dark
 `primary-content` a near-white `oklch(98.9% 0.005 272.314)` (chroma drops to
