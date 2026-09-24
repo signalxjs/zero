@@ -29,10 +29,21 @@
   during setup, run a mount hook's reactive work through the function it
   returns, and every effect or watch created there stops with the component.
 - `syncPopover` returns a stopper (it returned `void`).
+- **Collapsible and Accordion follow the native `<details>` toggle (#166).**
+  Both rendered `open` from the model only, so when the browser opened a
+  closed section by itself (find-in-page, fragment navigation) the parts
+  kept `data-state="closed"` and `aria-expanded="false"` over an open panel,
+  and the next click only resynced the model: closing took two presses. The
+  `toggle` event now writes the model (Accordion goes through the same
+  `toggle` as a click, so single mode closes the others). When the model
+  refuses the change (a disabled root or item), the element is
+  reverted to match the model.
 - `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
   encodes a string into an id-safe token, injective over strings, for
   building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
   other code point (`_` included) becomes `_<hex>_`.
+- `createTypeahead` returns a `Typeahead` (new exported type): the keydown
+  handler plus `searching()`. `createListbox` gains `typeaheadSearching()`.
 
 ### Fixed
 
@@ -155,6 +166,23 @@
 - **Tabs and Steps honour `dir="rtl"` (#165).** Their horizontal arrow keys
   ignored the reading direction, so ArrowRight moved to the visually left
   item. They now flip under RTL like ToggleGroup and TreeView.
+- **Typeahead no longer bounces on a multi-character search (#173).** Every
+  keystroke searched from AFTER the current item, so typing "sav" over
+  Open / Save / Save As went Save → Save As → Save. The first character
+  still steps past the current item (a letter pressed again once the 1s
+  buffer window has lapsed cycles to the next match — within the window
+  "ss" is a two-letter search); a longer
+  buffer now searches from the current item, so it refines the match in
+  place. This affects Menu, Menu.Sub, TreeView and Select — where the
+  closed single Select changed its selected value on every keystroke.
+- **Space continues a running typeahead search, and only a running one.**
+  The 1s buffer reset now runs before the Space guard, so a stale buffer no
+  longer turns Space into a search. Menu items and sub-triggers, TreeView
+  nodes and the Select trigger now hand Space to the typeahead while a
+  search is running instead of activating, so a label like "Save As" can be
+  typed past its space — and that Space shows no press feedback
+  (`data-pressed` / the ripple), since it is search text. Outside a search
+  Space activates as before.
 
 ## [0.5.0] - 2026-09-23
 
