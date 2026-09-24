@@ -206,6 +206,12 @@ sigx zero:audit      # does what it built say what it claims — read from the c
 sigx zero:build      # dist/css/index.css + per-component files + breakpoints.css + manifest + report + audit
 ```
 
+Every emitted stylesheet a consumer can import on its own — `index.css`,
+`tokens.css`, each `css/components/<scope>.css`, and `zero:extend`'s
+`zero-extend.css` — opens with the shared cascade-layer order statement
+(`LAYER_ORDER_STATEMENT`), so it may be imported before or after
+`@sigx/zero/css` without inverting the layers.
+
 `dist/css/index.d.ts` is an empty module: point the `types` condition of the
 package's extensionless stylesheet exports (`./css`, `./css/tokens`,
 `./css/*`) at it, as the shipped skins and `create-zero-ds` do, or
@@ -831,7 +837,8 @@ the build.
 
 `sigx zero:extend --ds <package> --out <dir>`, run in an **app**, compiles an
 already-published design system against that app's own ecosystem packs. It
-writes `zero-extend.css` (the added scopes only) and a `zero-extend.js` /
+writes `zero-extend.css` (the added scopes only, opening with the layer-order
+statement so its import position does not matter) and a `zero-extend.js` /
 `.d.ts` pair — a replacement register, shaped like a design system's own
 `/register`. The app imports the `.js` and **removes** its
 `<package>/register` import: `ZeroVocabulary.components` is a property, so two

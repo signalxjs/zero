@@ -24,7 +24,7 @@ import { join, relative, resolve, sep } from 'node:path';
 import { createRequire } from 'node:module';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import type { ValidateFunction } from 'ajv/dist/2020.js';
-import { TOKEN_KEY_PATTERN } from './contract.js';
+import { LAYER_ORDER_STATEMENT, TOKEN_KEY_PATTERN } from './contract.js';
 import type { CompiledComponentApi } from './api.js';
 import type {
     CompiledComponentAxes,
@@ -277,7 +277,11 @@ export async function writeArtifacts(
                 `[zero-kit] compiled scope "${scope}" is not a kebab-case identifier — it becomes the css/components/<scope>.css filename, so anything else could escape the output directory`,
             );
         }
-        await write(join(componentsDir, `${scope}.css`), css);
+        // Each per-component file is public (`./css/*`) and importable on its
+        // own, so it states the layer order itself: imported first, a bare
+        // `@layer zero.recipes { … }` would create that layer before
+        // fallback/tokens and invert them (#180, the per-file form of #318).
+        await write(join(componentsDir, `${scope}.css`), `${LAYER_ORDER_STATEMENT}\n\n${css}`);
     }
     await write(join(cssDir, 'index.css'), compiled.indexCss);
     await write(join(cssDir, 'index.d.ts'), CSS_EXPORT_DTS);

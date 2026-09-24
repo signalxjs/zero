@@ -922,7 +922,9 @@ specifiers.
 ```
 
 It is declared in `packages/zero/css/base.css` **and** emitted atop every
-compiled `tokens.css`, because the *first* mention of a layer fixes its
+compiled `tokens.css` and `index.css`, every per-component
+`css/components/<scope>.css` (public as `./css/*`, #180) and the
+`zero:extend` add-on `zero-extend.css`, because the *first* mention of a layer fixes its
 position: a design-system stylesheet parsed before base.css would otherwise
 create `zero.tokens` first and leave the fallbacks above it. Restating the
 order is idempotent; relying on load order is not. What each layer holds:
