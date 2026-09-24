@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -373,5 +373,51 @@ describe('SSR', () => {
         } finally {
             clearThemes();
         }
+    });
+
+    // #169: presence reports land after setup, too late for server markup —
+    // resting Labels/Controls keep their references on the server.
+    it('server-renders the Label and Control references of a composed Progress, RadioGroup and Slider', async () => {
+        const html = await renderApp(
+            <div>
+                <Progress.Root value={40}>
+                    <Progress.Label>Upload</Progress.Label>
+                </Progress.Root>
+                <RadialProgress.Root value={62}>
+                    <RadialProgress.Label>Sync</RadialProgress.Label>
+                </RadialProgress.Root>
+                <RadioGroup.Root defaultValue="a">
+                    <RadioGroup.Label>Plan</RadioGroup.Label>
+                    <RadioGroup.Item value="a">A</RadioGroup.Item>
+                </RadioGroup.Root>
+                <Slider.Root defaultValue={30}>
+                    <Slider.Label>Volume</Slider.Label>
+                    <Slider.Control />
+                </Slider.Root>
+                <Slider.Root defaultValue={[20, 80]}>
+                    <Slider.Label>Price</Slider.Label>
+                    <Slider.Track><Slider.Thumb /><Slider.Thumb /></Slider.Track>
+                </Slider.Root>
+            </div>,
+        );
+        const idOf = (scope: string, part: string): string => {
+            const tag = html.match(new RegExp(`<[^>]*data-scope="${scope}"[^>]*data-part="${part}"[^>]*>`, 'g'));
+            const id = tag?.map((t) => t.match(/\sid="([^"]+)"/)?.[1]).find(Boolean);
+            if (!id) throw new Error(`no id on ${scope}.${part}`);
+            return id;
+        };
+        expect(html).toMatch(new RegExp(`role="progressbar"[^>]*aria-labelledby="${idOf('progress', 'label')}"|aria-labelledby="${idOf('progress', 'label')}"[^>]*role="progressbar"`));
+        expect(html).toContain(`aria-labelledby="${idOf('radial-progress', 'label')}"`);
+        expect(html).toContain(`aria-labelledby="${idOf('radio-group', 'label')}"`);
+        const controlId = html.match(/<input[^>]*data-scope="slider"[^>]*data-part="control"[^>]*>/)?.[0].match(/\sid="([^"]+)"/)?.[1];
+        expect(controlId).toBeTruthy();
+        expect(html).toMatch(new RegExp(`<label[^>]*for="${controlId}"`));
+        // Thumb mode renders no native Control: its Label writes no `for`,
+        // and the unnamed thumbs are labelled by it.
+        const labels = html.match(/<label[^>]*data-scope="slider"[^>]*>/g) ?? [];
+        expect(labels).toHaveLength(2);
+        expect(labels[1]).not.toMatch(/\sfor=/);
+        const priceId = labels[1].match(/\sid="([^"]+)"/)?.[1];
+        expect(html.match(new RegExp(`role="slider"[^>]*aria-labelledby="${priceId}"|aria-labelledby="${priceId}"[^>]*role="slider"`, 'g'))).toHaveLength(2);
     });
 });

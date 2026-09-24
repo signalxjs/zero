@@ -268,7 +268,7 @@ describe('RadioGroup', () => {
 });
 
 describe('Slider', () => {
-    it('renders a native range under the model with percent custom property', () => {
+    it('renders a native range under the model with percent custom property', async () => {
         const state = signal({ volume: 30 });
         render(
             <Slider.Root model={[state, 'volume']} min={0} max={100}>
@@ -280,6 +280,8 @@ describe('Slider', () => {
         );
         expectAnatomy(container, sliderAnatomy);
         const input = container.querySelector<HTMLInputElement>('input[type="range"]')!;
+        // `for` is written once the Control has reported its presence (#169).
+        await tick();
         expect(container.querySelector('label')!.getAttribute('for')).toBe(input.id);
         input.value = '55';
         input.dispatchEvent(new Event('input', { bubbles: true }));
