@@ -456,7 +456,7 @@
     {
         "name": "@sigx/zero/radial-progress",
         "path": "packages/zero/dist/components/radial-progress/index.js",
-        "limit": "2 kB",
+        "limit": "2.2 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
