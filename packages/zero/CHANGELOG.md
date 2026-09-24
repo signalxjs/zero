@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Menu submenus: safe-triangle pointer prediction (#19).** A mouse
+  heading diagonally for an open submenu used to cross a sibling item of
+  the parent menu, which took hover, moved focus and closed the submenu.
+  Now, while the pointer stays inside the triangle between the point where
+  it left the sub-trigger and the submenu's near edge, sibling items do not
+  take hover. Each move inside the triangle restarts `closeDelay`. A pointer
+  that stops short still closes the submenu when the delay runs out, and the
+  item under it then takes hover. Touch input gets no triangle. There is no
+  new prop, and `openDelay`/`closeDelay` behave as before.
+
 ### Fixed
 
 - **TreeView: a branch's typeahead text with an `asChild` trigger (#157).**
