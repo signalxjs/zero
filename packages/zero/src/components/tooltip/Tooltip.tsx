@@ -9,7 +9,11 @@
  * ```
  *
  * APG tooltip semantics: opens on focus immediately and on hover after
- * `openDelay`; closes on blur/leave and on Escape WITHOUT moving focus.
+ * `openDelay`; closes on blur and on Escape WITHOUT moving focus, and on
+ * pointer leave after a grace period ({@link TOOLTIP_CLOSE_GRACE} ms unless
+ * `closeDelay` is set) so the pointer can cross onto the popup (WCAG 1.4.13
+ * hoverable). `closeDelay` has no single default: unset, pointer leave waits
+ * the grace period and blur closes at once; set, it applies to both.
  * The popup is `role="tooltip"` and referenced from the trigger via
  * `aria-describedby`. `popover="manual"` gives the top layer without light
  * dismiss (a tooltip must not close because the user clicked elsewhere —
@@ -30,11 +34,23 @@ import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = tooltipAnatomy.scope;
 
+/**
+ * Default pointer-leave grace period (ms). The popup sits `offset` px off
+ * its trigger, so a pointer moving from one to the other crosses a gap that
+ * belongs to neither; the popup's `pointerenter` cancels this timer. Without
+ * it the tooltip is not hoverable (WCAG 2.1 SC 1.4.13, #167).
+ */
+const TOOLTIP_CLOSE_GRACE = 120;
+
 interface TooltipContext {
     state: ControllableState<boolean>;
     ids: { popup: string };
     show(immediate?: boolean): void;
-    hide(): void;
+    /**
+     * `pointer` hides after `closeDelay ?? TOOLTIP_CLOSE_GRACE` (the hover
+     * grace period); a blur hides after `closeDelay ?? 0`.
+     */
+    hide(pointer?: boolean): void;
     setAnchor(el: HTMLElement | null): void;
     getAnchor(): HTMLElement | null;
     setPopup(el: HTMLElement | null): void;
@@ -97,10 +113,12 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
             clearTimeout(openTimer);
             openTimer = setTimeout(() => { state.value = true; }, props.openDelay ?? 600);
         },
-        hide() {
+        hide(pointer = false) {
             clearTimeout(openTimer);
             clearTimeout(closeTimer);
-            const delay = props.closeDelay ?? 0;
+            // Blur keeps closing immediately by default — focus has left for
+            // good; only a pointer can be on its way to the popup.
+            const delay = props.closeDelay ?? (pointer ? TOOLTIP_CLOSE_GRACE : 0);
             if (delay === 0) state.value = false;
             else closeTimer = setTimeout(() => { state.value = false; }, delay);
         },
@@ -169,7 +187,7 @@ const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
                 attrs['aria-describedby'],
             ].filter(Boolean).join(' ') || undefined,
             onPointerenter: () => tooltip.show(),
-            onPointerleave: () => tooltip.hide(),
+            onPointerleave: () => tooltip.hide(true),
             onFocus: () => tooltip.show(true),
             onBlur: () => tooltip.hide(),
             // Escape is handled by the dismiss layer in Root (document-level,
@@ -222,7 +240,7 @@ const TooltipPopup = component<TooltipPopupProps>(({ props, slots, onMounted }) 
             class={props.class}
             ref={(node: HTMLElement | null) => { el = node; tooltip.setPopup(node); }}
             onPointerenter={() => tooltip.show(true)}
-            onPointerleave={() => tooltip.hide()}
+            onPointerleave={() => tooltip.hide(true)}
         >
             {slots.default?.()}
         </div>
