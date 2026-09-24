@@ -462,6 +462,22 @@ describe('Menu submenus', () => {
             expect(document.activeElement).toBe(share);
         });
 
+        it('a native close mid-triangle ends it: no replay, no lingering move listener', async () => {
+            const { share, del, subPopup } = mountDiagonal();
+            leave(share);
+            del.dispatchEvent(at('pointerenter', 185, 60));
+            // Escape / light dismiss: the popover closes and reports it via toggle.
+            const toggle = new Event('toggle') as Event & { newState: string };
+            Object.defineProperty(toggle, 'newState', { value: 'closed' });
+            subPopup.dispatchEvent(toggle);
+            await vi.advanceTimersByTimeAsync(0);
+            expect(subPopup.getAttribute('data-state')).toBe('closed');
+            document.dispatchEvent(at('pointermove', 188, 65));
+            await vi.advanceTimersByTimeAsync(1000);
+            expect(document.activeElement).toBe(share);
+            expect(vi.getTimerCount()).toBe(0);
+        });
+
         it('touch gets no triangle: the delays alone apply', async () => {
             const { share, del, subPopup } = mountDiagonal();
             leave(share, 'touch');

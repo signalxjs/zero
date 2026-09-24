@@ -986,7 +986,17 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
     watch(
         () => state.value,
         (openNow, _prev, onCleanup) => {
-            if (!openNow || typeof document === 'undefined') return;
+            if (!openNow) {
+                // A native close (Escape, light dismiss) writes the state
+                // straight from `toggle`, bypassing close(): the triangle
+                // and a pending close must not outlive it — a later timer
+                // would replay a held hover into a closed menu.
+                if (closeHandle != null) clearTimeout(closeHandle);
+                closeHandle = null;
+                endGrace();
+                return;
+            }
+            if (typeof document === 'undefined') return;
             const onFocusin = (e: FocusEvent): void => {
                 const target = e.target as Node | null;
                 if (!target) return;
