@@ -28,8 +28,11 @@ UIs people read all day.
   rating star are geometry that interpolates, so a mark's weight is Monograph's
   and not the reader's font's, and it draws itself out of the corner rather than
   scaling up (nothing scales here). Under `forced-colors` and on paper the
-  checkbox falls back to a `✔`/`−` glyph; the rating keeps its geometry, because
-  no glyph can say "half". A `RatingGroup.Item` rendering its **own** symbol
+  checkbox falls back to a `✔`/`−` glyph. The rating keeps its geometry under
+  `forced-colors`, because no swapped glyph can say "half"; on paper — where a
+  reader can switch background graphics off and take any drawn fill with it —
+  it prints glyph ink instead, an outline `☆` under a solid `★`, each clipped to
+  its side of the fraction, so a half still prints as half (#25). A `RatingGroup.Item` rendering its **own** symbol
   through the slot opts out of the drawn geometry and gets the colour treatment
   only — the slot hands you the state, so drawing your own half is yours to do.
 - **A hairline that IS the mark is drawn in ink, not in `base-300`** — the

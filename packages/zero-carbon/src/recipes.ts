@@ -2844,22 +2844,31 @@ export const ratingGroup: RecipeInput = {
                 // A fill is meaning here — half of it is the whole point — so
                 // both fallbacks keep the geometry and re-source its paint
                 // rather than swapping in a glyph that cannot say "half":
-                // the forced palette's own ink, and an explicit instruction to
-                // print the fill that `print-color-adjust: economy` would drop.
+                // the forced palette's own ink, and on paper border ink, which
+                // `print-color-adjust: economy` cannot drop.
                 'forced-colors': {
                     selectors: {
                         '&::before': { borderColor: 'CanvasText' },
                         '&::after': { background: 'CanvasText' },
                     },
                 },
-                // The mark is background paint, which paper drops by default;
-                // `exact` asks for it back. A reader who disables background
-                // graphics can still refuse, and the row prints blank rather
-                // than misstating the value — glyph ink would survive it, #230.
+                // The fill is background paint, which paper drops by default,
+                // and `exact` only asks for it back — a reader who disables
+                // background graphics refuses it, and the row printed blank
+                // (#25). So on paper the fill is BORDER ink, which no print
+                // setting drops: half the box's side as a solid border on
+                // every edge paints the whole box, and the `scale` above still
+                // cuts it to the fraction. A square has no glyph that fills
+                // its frame exactly; a border does. Frame and fill both take
+                // `--print-ink` — paper is not theme-aware, and the strong
+                // border tone is near-white under a dark theme (#233).
                 print: {
                     selectors: {
-                        '&::before': { printColorAdjust: 'exact' },
-                        '&::after': { printColorAdjust: 'exact' },
+                        '&::before': { borderColor: 'var(--print-ink)' },
+                        '&::after': {
+                            background: 'none',
+                            border: 'calc(var(--rating-size) / 2) solid var(--print-ink)',
+                        },
                     },
                 },
             },

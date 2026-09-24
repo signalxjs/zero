@@ -127,11 +127,12 @@
 
     @media print {
         [data-scope="rating-group"][data-part="item"]::before {
-            print-color-adjust: exact;
+            border-color: var(--print-ink);
         }
 
         [data-scope="rating-group"][data-part="item"]::after {
-            print-color-adjust: exact;
+            background: none;
+            border: calc(var(--rating-size) / 2) solid var(--print-ink);
         }
     }
 }

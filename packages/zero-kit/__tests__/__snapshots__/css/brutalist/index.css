@@ -4614,7 +4614,13 @@
 
     @media print {
         [data-scope="rating-group"][data-part="item"] {
-            print-color-adjust: exact;
+            border-color: var(--print-ink);
+            background: transparent;
+        }
+
+        [data-scope="rating-group"][data-part="item"]::before {
+            background: none;
+            border: calc(var(--rating-size) / 2 - var(--space-2xs)) solid var(--print-ink);
         }
     }
 }

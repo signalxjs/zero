@@ -151,6 +151,19 @@
         }
     }
 
+    @media print {
+        [data-scope="rating-group"][data-part="item"][data-state="half"] {
+            background-image: none;
+            color: var(--rating-fill);
+            -webkit-text-fill-color: currentColor;
+            clip-path: inset(0 50% 0 0);
+        }
+
+        [data-scope="rating-group"][data-part="item"][data-state="half"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+            clip-path: inset(0 0 0 50%);
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="rating-group"][data-part="item"] {
             transition: none;

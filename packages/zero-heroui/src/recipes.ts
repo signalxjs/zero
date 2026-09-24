@@ -2235,6 +2235,38 @@ const ratingSystemFill: CssProps = {
 };
 
 /**
+ * The print stand-in for the drawn star: glyph ink instead of background
+ * paint (#25). `☆` (U+2606) underneath, `★` (U+2605) on top — the runtime's
+ * own default pair, so no font coverage is at stake — each clipped to its side
+ * of `--rating-fill-stop`, so a half is half a solid star beside half an
+ * outline one and the state stays geometric. Both in `--print-ink`: paper is
+ * not theme-aware (#233), and the solid/outline shape is what separates them.
+ * The item's `color: transparent` is inherited, so each glyph restores its own
+ * ink; the fill still grows from the leading edge.
+ */
+const ratingPrintGlyph = (content: string, clipPath: string): CssProps => ({
+    content,
+    inset: '0',
+    clipPath,
+    backgroundColor: 'transparent',
+    backgroundImage: 'none',
+    color: 'var(--print-ink)',
+    WebkitTextFillColor: 'currentcolor',
+    fontSize: 'var(--rating-size)',
+    lineHeight: 'var(--leading-none)',
+    textAlign: 'center',
+});
+
+const ratingPrintGlyphs: PartStyles = {
+    selectors: {
+        '&::before': ratingPrintGlyph('"\\2606"', 'inset(0 0 0 var(--rating-fill-stop))'),
+        '&::after': ratingPrintGlyph('"\\2605"', 'inset(0 calc(100% - var(--rating-fill-stop)) 0 0)'),
+        [`&${rtl}::before`]: { clipPath: 'inset(0 var(--rating-fill-stop) 0 0)' },
+        [`&${rtl}::after`]: { clipPath: 'inset(0 0 0 calc(100% - var(--rating-fill-stop)))' },
+    },
+};
+
+/**
  * The star is DRAWN — a clip-path polygon over a two-layer paint — and the
  * item's own symbol is hidden behind it. Two reasons, both load-bearing:
  *
@@ -2366,16 +2398,11 @@ export const ratingGroup: RecipeInput = {
                     },
                 },
                 // Paper drops background paint under `print-color-adjust:
-                // economy`, and the fill IS the value here — so ask for it.
-                // A reader who turns background graphics off can still refuse:
-                // the row then prints blank rather than lying about the value.
-                // Glyph ink would survive that — #230.
-                print: {
-                    selectors: {
-                        '&::before': { printColorAdjust: 'exact' },
-                        '&::after': { printColorAdjust: 'exact' },
-                    },
-                },
+                // economy`, and asking for it back with `exact` is a request a
+                // reader can refuse by turning background graphics off — the
+                // row then printed blank. So on paper the two layers become
+                // GLYPH ink, which no print setting drops (#25).
+                print: ratingPrintGlyphs,
             },
         },
     },
