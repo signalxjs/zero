@@ -399,15 +399,32 @@ describe('contrast margin per theme', () => {
     });
 
     it('counts the sub-AA pairs the validator warns about', () => {
-        // daisyUI's light theme has one pair between 3:1 and 4.5:1; the
-        // validator warns for it, and the report has to show the same margin.
-        const daisy = reportFor(daisyDS as DesignSystemInput);
+        // daisyUI's own light theme has one pair between 3:1 and 4.5:1 —
+        // `secondary-content` at 3.05:1, which zero-daisyui no longer ships
+        // (#34) — so restore daisy's value here: the validator warns for it,
+        // and the report has to show the same margin.
+        const base = daisyDS as DesignSystemInput;
+        const lightTheme = base.tokens.themes.light;
+        const daisyUpstream = {
+            ...base,
+            tokens: {
+                ...base.tokens,
+                themes: {
+                    ...base.tokens.themes,
+                    light: {
+                        ...lightTheme,
+                        colors: { ...lightTheme.colors, 'secondary-content': 'oklch(94% 0.028 342.258)' },
+                    },
+                },
+            },
+        } as DesignSystemInput;
+        const daisy = reportFor(daisyUpstream);
         const light = daisy.themes.find((t) => t.name === 'light')!;
         expect(light.belowAA).toBe(1);
         expect(light.belowMin).toBe(0);
         expect(light.minContrast!).toBeLessThan(4.5);
 
-        const warnings = validateDesignSystem(daisyDS as DesignSystemInput, manifest).warnings
+        const warnings = validateDesignSystem(daisyUpstream, manifest).warnings
             .filter((w) => w.where === 'themes.light' && w.message.includes('contrast'));
         expect(warnings).toHaveLength(light.belowAA);
     });

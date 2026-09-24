@@ -1,7 +1,10 @@
 /**
  * zero-daisyui tokens — daisyUI's "light" and "dark" theme values on the
  * zero contract. Values match the daisy presets `@sigx/daisyui` ships, so a
- * zero app skinned with this package sits visually next to a daisy app.
+ * zero app skinned with this package sits visually next to a daisy app —
+ * except three sub-AA content pairs daisy ships in `light`/`dark` (two roles,
+ * `secondary-content` in both and dark `primary-content`; #34), each marked
+ * where it is declared.
  */
 import { layoutScopes } from '@sigx/zero-kit/define';
 import type { CustomTokenDecl, RoleDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
@@ -244,7 +247,12 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 primary: 'oklch(45% 0.24 277.023)',
                 'primary-content': 'oklch(93% 0.034 272.788)',
                 secondary: 'oklch(65% 0.241 354.308)',
-                'secondary-content': 'oklch(94% 0.028 342.258)',
+                // Not daisy's value (#34): daisy ships a light pink
+                // `oklch(94% 0.028 342.258)` here, 3.05:1 on `secondary` —
+                // below AA for the label text this pair exists to carry. This
+                // is the lightness the kit's contrast validator suggests
+                // (solveContentLightness), keeping daisy's hue and chroma.
+                'secondary-content': 'oklch(24.2% 0.028 342.258)',
                 accent: 'oklch(77% 0.152 181.912)',
                 'accent-content': 'oklch(38% 0.063 188.416)',
                 neutral: 'oklch(14% 0.005 285.823)',
@@ -270,9 +278,15 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'base-300': 'oklch(21.15% 0.012 254.09)',
                 'base-content': 'oklch(97.807% 0.029 256.847)',
                 primary: 'oklch(58% 0.233 277.117)',
-                'primary-content': 'oklch(96% 0.018 272.314)',
+                // Not daisy's values (#34), as in `light`: daisy's dark
+                // `primary-content` is `oklch(96% 0.018 272.314)` at 4.14:1
+                // on `primary`, and its `secondary-content` the same 3.05:1
+                // light pink. Both take the validator's suggested lightness,
+                // keeping daisy's hue (the primary one's chroma drops to what
+                // stays in gamut that close to white).
+                'primary-content': 'oklch(98.9% 0.005 272.314)',
                 secondary: 'oklch(65% 0.241 354.308)',
-                'secondary-content': 'oklch(94% 0.028 342.258)',
+                'secondary-content': 'oklch(24.2% 0.028 342.258)',
                 accent: 'oklch(77% 0.152 181.912)',
                 'accent-content': 'oklch(38% 0.063 188.416)',
                 neutral: 'oklch(14% 0.005 285.823)',
