@@ -21,7 +21,7 @@ import type { Define } from 'sigx';
 import { createControllableState } from '../../behaviors/controllable.js';
 import { createListController, type ListItem } from '../../behaviors/list.js';
 import { createRovingKeydown } from '../../behaviors/roving.js';
-import { createId } from '../../behaviors/create-id.js';
+import { createId, idToken } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
@@ -73,8 +73,8 @@ const TabsRoot = component<TabsRootProps>(({ props, slots, emit }) => {
         orientation,
         activationMode,
         loop: () => props.loop ?? true,
-        tabId: (value) => `${baseId}-tab-${value}`,
-        panelId: (value) => `${baseId}-panel-${value}`,
+        tabId: (value) => `${baseId}-tab-${idToken(value)}`,
+        panelId: (value) => `${baseId}-panel-${idToken(value)}`,
         keydown: roving,
     };
     provideTabsContext(ctx);

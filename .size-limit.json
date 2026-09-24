@@ -62,7 +62,7 @@
     {
         "name": "@sigx/zero/select",
         "path": "packages/zero/dist/components/select/index.js",
-        "limit": "8.75 kB",
+        "limit": "8.8 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

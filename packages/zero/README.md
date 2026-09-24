@@ -999,7 +999,11 @@ same behaviors, held to the same conformance assertion:
   for the outcome. `FRAGMENT_VERSION` is the version a
   fragment declares — here so a package's `./fragment` entry can read it at
   runtime without the kit, which is only its devDependency.
-- `@sigx/zero/behaviors` — controllable state, SSR-safe ids, roving tabindex,
+- `@sigx/zero/behaviors` — controllable state, SSR-safe ids (`createId`, plus
+  `idToken(value: string)` to put a user-supplied string inside an id —
+  injective over strings, so distinct values never share an id: whitespace
+  would split the IDREFS that point at it, so build both the `id` and every
+  `aria-*` reference with it), roving tabindex,
   dismissal, focus management (`createFocusRestore`, `focusFirst`,
   `getTabbables`), list/tree registration with listbox-highlight stepping
   (`moveHighlight`, `optionText`), typeahead, anchor positioning, press
@@ -1008,7 +1012,7 @@ same behaviors, held to the same conformance assertion:
   `itemLabel` / `itemValue` / `itemDisabled` / `itemGroup`, with JSX items
   registering into the same list), `createListbox` (visibility with a
   default contains-filter, single/multiple selection over the model,
-  highlight stepping, typeahead over the visible labels, option ids),
+  highlight stepping, typeahead over the visible labels, id-safe option ids),
   `createListboxItem` (the `role="option"` bag), `createGroupPresence`,
   `syncPopover` (returns its stopper), `useMediaQuery`, `createVirtualList`
   for windowing, and `mountScope` — call it during setup and run a mount

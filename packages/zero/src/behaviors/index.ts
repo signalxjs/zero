@@ -1,7 +1,7 @@
 // Headless behavior layer — plain setup-time factories over signals.
 
 export type { IdGenerator } from './create-id.js';
-export { createId, useIdGenerator, zeroPlugin } from './create-id.js';
+export { createId, idToken, useIdGenerator, zeroPlugin } from './create-id.js';
 
 export type { ControllableState, ControllableOptions } from './controllable.js';
 export { createControllableState, createInertState, namedModel } from './controllable.js';
