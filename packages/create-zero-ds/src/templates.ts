@@ -3,7 +3,7 @@
  * (collected at build time by `scripts/collect-templates.mjs`).
  */
 import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export interface Versions {
@@ -27,7 +27,26 @@ export interface Templates {
 
 /** The package's own `templates/` folder — the published location. */
 export function defaultTemplatesDir(): string {
-    return fileURLToPath(new URL('../templates/', import.meta.url));
+    return join(packageRoot(), 'templates');
+}
+
+/**
+ * The package root, from this module's own path (`src/` or `dist/`, one
+ * level down either way). A path join rather than `new URL('../', …)`:
+ * under a DOM test environment the global `URL` is not Node's, and
+ * `fileURLToPath` rejects it.
+ */
+function packageRoot(): string {
+    return join(dirname(fileURLToPath(import.meta.url)), '..');
+}
+
+/**
+ * This package's own version, from its package.json — which ships in every
+ * install, unlike `templates/` (built), so `--version` never needs them.
+ */
+export function ownVersion(): string {
+    const pkg = JSON.parse(readFileSync(join(packageRoot(), 'package.json'), 'utf8')) as { version: string };
+    return pkg.version;
 }
 
 const BRIEF_FILE = /^brief\.([a-z0-9-]+)\.ts\.txt$/;

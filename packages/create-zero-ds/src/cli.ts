@@ -5,9 +5,9 @@
  */
 import { parseArgs } from 'node:util';
 import { resolve } from 'node:path';
-import { defaultDir, planScaffold, writePlan } from './scaffold.js';
+import { checkPlan, defaultDir, planScaffold, validatePackageName, writePlan } from './scaffold.js';
 import type { ScaffoldOptions } from './scaffold.js';
-import { loadTemplates } from './templates.js';
+import { loadTemplates, ownVersion } from './templates.js';
 import type { Templates } from './templates.js';
 import type { Target } from './render.js';
 
@@ -17,6 +17,8 @@ export interface CliIo {
     cwd: string;
     /** Override for tests — the templates to scaffold from. */
     templates?: Templates;
+    /** Override for tests — where to load templates from when `templates` is not given. */
+    templatesDir?: string;
 }
 
 const USAGE = `Usage: create-zero-ds <name> --brief <id> [options]
@@ -28,8 +30,9 @@ const USAGE = `Usage: create-zero-ds <name> --brief <id> [options]
                        to the brief's vocabulary; none: the brief's Button only
   --targets web[,lynx] emit targets (default: web)
   --dir <path>         output directory (default: ./<last segment of name>)
-  --dry-run            print the file plan, write nothing
-  --force              write into a non-empty directory
+  --dry-run            print the file plan, write nothing (same
+                       non-empty check as a real run)
+  --force              write into a non-empty directory (lists what it overwrites)
   -h, --help           this text
   -v, --version        print the version`;
 
@@ -73,23 +76,33 @@ export async function main(argv: readonly string[], io: CliIo = {
         return EXIT_USAGE;
     }
     const { values, positionals } = parsed;
+    const load = (): Templates => io.templates ?? loadTemplates(io.templatesDir);
 
-    let templates: Templates;
-    try {
-        templates = io.templates ?? loadTemplates();
-    } catch (error) {
-        io.stderr(`create-zero-ds: ${(error as Error).message}`);
-        return EXIT_FAILED;
-    }
-
+    // --help and --version answer without the templates: those are built
+    // (a half-built checkout has none), and neither flag needs them — the
+    // brief list is a bonus, the version is this package's own.
     if (values.help) {
         io.stdout(USAGE);
-        io.stdout(`\nBriefs: ${Object.keys(templates.briefs).join(', ')}`);
+        try {
+            const briefs = Object.keys(load().briefs).join(', ');
+            io.stdout('');
+            io.stdout(`Briefs: ${briefs}`);
+        } catch {
+            // No templates — the usage text stands on its own.
+        }
         return EXIT_OK;
     }
     if (values.version) {
-        io.stdout(templates.versions.version);
+        io.stdout(ownVersion());
         return EXIT_OK;
+    }
+
+    let templates: Templates;
+    try {
+        templates = load();
+    } catch (error) {
+        io.stderr(`create-zero-ds: ${(error as Error).message}`);
+        return EXIT_FAILED;
     }
 
     const name = positionals[0];
@@ -100,6 +113,13 @@ export async function main(argv: readonly string[], io: CliIo = {
     }
     if (!values.brief) {
         io.stderr(`create-zero-ds: --brief is required — one of: ${Object.keys(templates.briefs).join(', ')}`);
+        io.stderr(USAGE);
+        return EXIT_USAGE;
+    }
+    try {
+        validatePackageName(name);
+    } catch (error) {
+        io.stderr(`create-zero-ds: ${(error as Error).message}`);
         io.stderr(USAGE);
         return EXIT_USAGE;
     }
@@ -124,14 +144,20 @@ export async function main(argv: readonly string[], io: CliIo = {
     const dir = resolve(io.cwd, (values.dir as string | undefined) ?? defaultDir(name));
     try {
         const plan = planScaffold(options, templates);
+        const force = values.force === true;
         if (values['dry-run']) {
+            // The same refusal the real run makes, so a dry run that passes
+            // means the real one will too.
+            const existing = new Set(checkPlan(dir, plan, { force }));
             io.stdout(`Would write ${plan.length} files into ${dir}:`);
-            for (const file of plan) io.stdout(`  ${file.path}  (${file.content.length} bytes)`);
+            for (const file of plan) {
+                io.stdout(`  ${file.path}  (${file.content.length} bytes)${existing.has(file.path) ? '  (overwrites)' : ''}`);
+            }
             return EXIT_OK;
         }
-        writePlan(dir, plan, { force: values.force === true });
+        const overwritten = new Set(writePlan(dir, plan, { force }));
         io.stdout(`Scaffolded ${name} from the "${options.brief}" brief into ${dir}:`);
-        for (const file of plan) io.stdout(`  ${file.path}`);
+        for (const file of plan) io.stdout(`  ${file.path}${overwritten.has(file.path) ? '  (overwritten)' : ''}`);
         io.stdout('');
         io.stdout('Next:');
         io.stdout(`  cd ${dir}`);

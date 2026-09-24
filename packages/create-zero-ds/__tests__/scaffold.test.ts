@@ -224,6 +224,23 @@ describe('options', () => {
         expect(() => planScaffold({ name: 'zero-x', brief: 'bauhaus' }, templates)).toThrow(/available: .*riso/);
     });
 
+    it('the package exports every artifact runStandardBuild writes, audit.json included (#188)', () => {
+        const plan = planScaffold({ name: 'zero-x', brief: 'glass' }, templates);
+        const pkg = JSON.parse(plan.find((f) => f.path === 'package.json')!.content) as { exports: Record<string, unknown> };
+        expect(pkg.exports['./manifest.json']).toBe('./dist/manifest.json');
+        expect(pkg.exports['./report.json']).toBe('./dist/report.json');
+        expect(pkg.exports['./audit.json']).toBe('./dist/audit.json');
+    });
+
+    it('rejects a name npm would reject', () => {
+        expect(() => planScaffold({ name: 'foo/zero-x', brief: 'glass' }, templates)).toThrow(/not a valid npm package name/);
+    });
+
+    it('rejects an unscoped Node core-module name, but not a scoped one', () => {
+        expect(() => planScaffold({ name: 'http', brief: 'glass' }, templates)).toThrow(/Node core module/);
+        expect(() => planScaffold({ name: '@acme/http', brief: 'glass' }, templates)).not.toThrow();
+    });
+
     it('refuses a non-empty directory unless forced', () => {
         const dir = tempDir();
         const plan = planScaffold({ name: 'zero-x', brief: 'glass' }, templates);

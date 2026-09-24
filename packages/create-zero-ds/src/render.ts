@@ -38,6 +38,7 @@ export function renderPackageJson(ctx: RenderContext): string {
         './css/*': { types: './dist/css/index.d.ts', default: './dist/css/components/*.css' },
         './manifest.json': './dist/manifest.json',
         './report.json': './dist/report.json',
+        './audit.json': './dist/audit.json',
     };
     if (lynx(ctx)) {
         exports['./lynx/index.css'] = './dist/lynx/index.css';
