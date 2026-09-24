@@ -170,11 +170,37 @@
 
     @media print {
         [data-scope="rating-group"][data-part="item"]::before {
-            print-color-adjust: exact;
+            content: "\2606";
+            inset: 0;
+            clip-path: inset(0 0 0 var(--rating-fill-stop));
+            background-color: transparent;
+            background-image: none;
+            color: var(--print-ink);
+            -webkit-text-fill-color: currentcolor;
+            font-size: var(--rating-size);
+            line-height: var(--leading-none);
+            text-align: center;
         }
 
         [data-scope="rating-group"][data-part="item"]::after {
-            print-color-adjust: exact;
+            content: "\2605";
+            inset: 0;
+            clip-path: inset(0 calc(100% - var(--rating-fill-stop)) 0 0);
+            background-color: transparent;
+            background-image: none;
+            color: var(--print-ink);
+            -webkit-text-fill-color: currentcolor;
+            font-size: var(--rating-size);
+            line-height: var(--leading-none);
+            text-align: center;
+        }
+
+        [data-scope="rating-group"][data-part="item"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::before {
+            clip-path: inset(0 var(--rating-fill-stop) 0 0);
+        }
+
+        [data-scope="rating-group"][data-part="item"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::after {
+            clip-path: inset(0 0 0 calc(100% - var(--rating-fill-stop)));
         }
     }
 

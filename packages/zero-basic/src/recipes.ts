@@ -3231,6 +3231,46 @@ const STAR_SPENT = 'polygon(98% 4.3%, 98% 37.7%, 98% 39.2%, 98% 61.4%, 98% 95.7%
  */
 const DEFAULT_SYMBOL = '&:not(:has(> *))';
 
+/**
+ * The print stand-in for a drawn rating mark: glyph ink instead of background
+ * paint (#25).
+ *
+ * Every drawn star is background paint clipped to a shape, and paper drops
+ * backgrounds by default. `print-color-adjust: exact` asks for them back, but
+ * it is a request — a reader who turns background graphics off in the print
+ * dialog gets it ignored, and the row printed blank. Glyph ink survives
+ * every print setting, so on paper the pseudo-elements stop being paint and
+ * become text: `☆` (U+2606) underneath, `★` (U+2605) on top, both from the
+ * runtime's own default pair, so no font coverage is at stake. Each is
+ * clipped to its side of the fraction — `cover` is how much of the mark the
+ * ink covers — so a half is half a solid star beside half an outline one:
+ * the state stays geometric, which is the one thing a swapped glyph could
+ * not carry. Ink is `--print-ink` for both, since paper is not theme-aware
+ * (#233); the solid/outline shape is what separates them.
+ *
+ * `prefix` scopes the pair to the symbol the design system draws, so a
+ * consumer's own symbol is left alone on paper as it is on screen.
+ */
+const ratingPrintGlyphs = (prefix: string, cover: string): PartStyles => {
+    const glyph = (content: string, clipPath: string): CssProps => ({
+        content,
+        position: 'absolute',
+        inset: '0',
+        background: 'none',
+        clipPath,
+        color: 'var(--print-ink)',
+        fontSize: 'var(--rating-size)',
+        lineHeight: 'var(--leading-none)',
+        textAlign: 'center',
+    });
+    return {
+        selectors: {
+            [`${prefix}::before`]: glyph('"\\2606"', `inset(0 0 0 ${cover})`),
+            [`${prefix}::after`]: glyph('"\\2605"', `inset(0 calc(100% - ${cover}) 0 0)`),
+        },
+    };
+};
+
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
     // The default fill is the same deepened mix the colour variants use —
@@ -3309,9 +3349,9 @@ export const ratingGroup: RecipeInput = {
                 // The two marks drive the drawn symbol; `color` is what a
                 // consumer's own `currentColor` SVG rides on. Both, so neither
                 // rendering has a state that paints like its neighbour.
-                full: { color: 'var(--rating-fill)', '--rating-mark': STAR, '--rating-ghost': STAR_SPENT },
-                half: { color: 'var(--rating-fill)', '--rating-mark': STAR_LEFT, '--rating-ghost': STAR_RIGHT },
-                empty: { '--rating-mark': STAR_NONE, '--rating-ghost': STAR },
+                full: { color: 'var(--rating-fill)', '--rating-mark': STAR, '--rating-ghost': STAR_SPENT, '--rating-cover': '100%' },
+                half: { color: 'var(--rating-fill)', '--rating-mark': STAR_LEFT, '--rating-ghost': STAR_RIGHT, '--rating-cover': '50%' },
+                empty: { '--rating-mark': STAR_NONE, '--rating-ghost': STAR, '--rating-cover': '0%' },
                 highlighted: { color: 'var(--rating-fill)' },
                 disabled: { cursor: 'not-allowed' },
                 readonly: { cursor: 'default' },
@@ -3333,7 +3373,6 @@ export const ratingGroup: RecipeInput = {
                     inset: '0',
                     background: 'var(--rating-track)',
                     clipPath: 'var(--rating-ghost)',
-                    printColorAdjust: 'exact',
                     transition: 'clip-path var(--duration-fast) var(--ease-standard)',
                 },
                 // The ink.
@@ -3343,7 +3382,6 @@ export const ratingGroup: RecipeInput = {
                     inset: '0',
                     background: 'var(--rating-fill)',
                     clipPath: 'var(--rating-mark)',
-                    printColorAdjust: 'exact',
                     transition: 'clip-path var(--duration-fast) var(--ease-standard)',
                 },
             },
@@ -3360,6 +3398,15 @@ export const ratingGroup: RecipeInput = {
                         [`${DEFAULT_SYMBOL}::after`]: { background: 'CanvasText', forcedColorAdjust: 'none' },
                     },
                 },
+                // Paper drops background paint (`print-color-adjust:
+                // economy`), and asking for it back with `exact` is a request
+                // a reader can refuse by turning background graphics off —
+                // which printed the whole row blank. So paper gets GLYPH ink,
+                // which no print setting drops: an outline star underneath, a
+                // solid one on top, each clipped to its side of the fraction
+                // (#25). Clipping a glyph still says "half" where swapping the
+                // glyph cannot — zero's default half is a full `★` (#222).
+                print: ratingPrintGlyphs(DEFAULT_SYMBOL, 'var(--rating-cover)'),
             },
         },
     },

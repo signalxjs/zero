@@ -4617,17 +4617,20 @@
         color: var(--rating-fill);
         --rating-mark: polygon(50% 4.3%, 62.5% 37.7%, 98% 39.2%, 70.2% 61.4%, 79.7% 95.7%, 50% 76%, 20.3% 95.7%, 29.8% 61.4%, 2% 39.2%, 37.5% 37.7%);
         --rating-ghost: polygon(98% 4.3%, 98% 37.7%, 98% 39.2%, 98% 61.4%, 98% 95.7%, 98% 76%, 98% 95.7%, 98% 61.4%, 98% 39.2%, 98% 37.7%);
+        --rating-cover: 100%;
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="half"] {
         color: var(--rating-fill);
         --rating-mark: polygon(48% 4.3%, 48% 37.7%, 48% 39.2%, 48% 61.4%, 48% 95.7%, 48% 76%, 20.3% 95.7%, 29.8% 61.4%, 2% 39.2%, 37.5% 37.7%);
         --rating-ghost: polygon(52% 4.3%, 62.5% 37.7%, 98% 39.2%, 70.2% 61.4%, 79.7% 95.7%, 52% 76%, 52% 95.7%, 52% 61.4%, 52% 39.2%, 52% 37.7%);
+        --rating-cover: 50%;
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="empty"] {
         --rating-mark: polygon(2% 4.3%, 2% 37.7%, 2% 39.2%, 2% 61.4%, 2% 95.7%, 2% 76%, 2% 95.7%, 2% 61.4%, 2% 39.2%, 2% 37.7%);
         --rating-ghost: polygon(50% 4.3%, 62.5% 37.7%, 98% 39.2%, 70.2% 61.4%, 79.7% 95.7%, 50% 76%, 20.3% 95.7%, 29.8% 61.4%, 2% 39.2%, 37.5% 37.7%);
+        --rating-cover: 0%;
     }
 
     [data-scope="rating-group"][data-part="item"][data-highlighted] {
@@ -4658,7 +4661,6 @@
         inset: 0;
         background: var(--rating-track);
         clip-path: var(--rating-ghost);
-        print-color-adjust: exact;
         transition: clip-path var(--duration-fast) var(--ease-standard);
     }
 
@@ -4668,7 +4670,6 @@
         inset: 0;
         background: var(--rating-fill);
         clip-path: var(--rating-mark);
-        print-color-adjust: exact;
         transition: clip-path var(--duration-fast) var(--ease-standard);
     }
 
@@ -4729,6 +4730,32 @@
         [data-scope="rating-group"][data-part="item"]:not(:has(> *))::after {
             background: CanvasText;
             forced-color-adjust: none;
+        }
+    }
+
+    @media print {
+        [data-scope="rating-group"][data-part="item"]:not(:has(> *))::before {
+            content: "\2606";
+            position: absolute;
+            inset: 0;
+            background: none;
+            clip-path: inset(0 0 0 var(--rating-cover));
+            color: var(--print-ink);
+            font-size: var(--rating-size);
+            line-height: var(--leading-none);
+            text-align: center;
+        }
+
+        [data-scope="rating-group"][data-part="item"]:not(:has(> *))::after {
+            content: "\2605";
+            position: absolute;
+            inset: 0;
+            background: none;
+            clip-path: inset(0 calc(100% - var(--rating-cover)) 0 0);
+            color: var(--print-ink);
+            font-size: var(--rating-size);
+            line-height: var(--leading-none);
+            text-align: center;
         }
     }
 }

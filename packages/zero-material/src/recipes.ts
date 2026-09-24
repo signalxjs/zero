@@ -2865,6 +2865,26 @@ export const ratingGroup: RecipeInput = {
                         },
                     },
                 },
+                // The half's ink is a BACKGROUND clipped to the text, and paper
+                // drops backgrounds by default — the half printed blank, the
+                // one state the gradient exists to draw (#25). On paper the
+                // glyph keeps its own ink and the item itself is clipped to
+                // the leading half instead: `clip-path` is geometry, not
+                // paint, so no print setting drops it, and the trailing half
+                // stays absent exactly as it is on screen.
+                print: {
+                    states: {
+                        half: {
+                            backgroundImage: 'none',
+                            color: 'var(--rating-fill)',
+                            WebkitTextFillColor: 'currentColor',
+                            clipPath: 'inset(0 50% 0 0)',
+                        },
+                    },
+                    selectors: {
+                        [`&[data-state="half"]${rtl}`]: { clipPath: 'inset(0 0 0 50%)' },
+                    },
+                },
             },
         },
     },

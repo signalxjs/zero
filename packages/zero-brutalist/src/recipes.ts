@@ -2394,12 +2394,26 @@ export const ratingGroup: RecipeInput = {
                     selectors: { '&::before': { background: 'CanvasText' } },
                 },
                 // Same reasoning on paper, different mechanism: printing drops
-                // backgrounds by default, which would take the entire meter
-                // with it, so the meter asks for its paint explicitly. A reader
-                // who disables background graphics can still refuse — the meter
-                // then prints blank instead of overstating the value; glyph ink
-                // is the fix if that ever matters (#230).
-                print: { base: { printColorAdjust: 'exact' } },
+                // backgrounds by default, and `print-color-adjust: exact` is
+                // only a request — a reader who disables background graphics
+                // refuses it, and the meter printed blank (#25). So on paper
+                // the slab is BORDER ink, which no print setting drops: half
+                // the slab's side as a solid border on every edge paints the
+                // whole slab, and the clip above still cuts it to the
+                // fraction. Frame and slab both take `--print-ink` — the page
+                // ink is white under a dark theme, on white paper (#233) —
+                // and the cell's own paper-coloured fill steps aside, so a
+                // reader who DOES print backgrounds under a dark theme gets
+                // no dark cell for the black slab to vanish into.
+                print: {
+                    base: { borderColor: 'var(--print-ink)', background: 'transparent' },
+                    selectors: {
+                        '&::before': {
+                            background: 'none',
+                            border: 'calc(var(--rating-size) / 2 - var(--space-2xs)) solid var(--print-ink)',
+                        },
+                    },
+                },
             },
         },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
