@@ -296,6 +296,99 @@ describe('TreeView', () => {
         expect(byValue(container, 'README.md').tabIndex).toBe(-1);
     });
 
+    // #177: a pointer focuses a disabled node (tabindex=-1 still takes a
+    // click's focus), and its keydown used to return before roving — the
+    // arrows, Home/End and typeahead went dead there. Navigation must
+    // still work FROM a disabled node; only activation and expansion stay
+    // blocked.
+    describe('keys pressed while a disabled node has focus (#177)', () => {
+        function mountDisabled(c: HTMLElement, state = signal({ v: '' }), expanded = signal({ v: [] as string[] })) {
+            render(
+                <TreeView.Root model={[state, 'v']} model:expandedValues={[expanded, 'v']}>
+                    <TreeView.Tree>
+                        <TreeView.Item value="alpha">alpha</TreeView.Item>
+                        <TreeView.Item value="bravo" disabled>bravo</TreeView.Item>
+                        <TreeView.Item value="charlie">charlie</TreeView.Item>
+                        <TreeView.Branch value="delta" disabled>
+                            <TreeView.BranchTrigger>delta</TreeView.BranchTrigger>
+                            <TreeView.BranchContent>
+                                <TreeView.Item value="delta/x">x</TreeView.Item>
+                            </TreeView.BranchContent>
+                        </TreeView.Branch>
+                        <TreeView.Item value="echo">echo</TreeView.Item>
+                    </TreeView.Tree>
+                </TreeView.Root>,
+                c,
+            );
+            return { state, expanded };
+        }
+
+        it('a disabled item roves: Up/Down to its enabled neighbours, Home/End to the edges', () => {
+            mountDisabled(container);
+            const bravo = byValue(container, 'bravo');
+            bravo.focus();
+            bravo.dispatchEvent(key('ArrowDown'));
+            expect(document.activeElement).toBe(byValue(container, 'charlie'));
+            bravo.focus();
+            bravo.dispatchEvent(key('ArrowUp'));
+            expect(document.activeElement).toBe(byValue(container, 'alpha'));
+            bravo.focus();
+            bravo.dispatchEvent(key('End'));
+            expect(document.activeElement).toBe(byValue(container, 'echo'));
+            bravo.focus();
+            bravo.dispatchEvent(key('Home'));
+            expect(document.activeElement).toBe(byValue(container, 'alpha'));
+        });
+
+        it('typeahead runs from a disabled item', () => {
+            mountDisabled(container);
+            const bravo = byValue(container, 'bravo');
+            bravo.focus();
+            bravo.dispatchEvent(key('e'));
+            expect(document.activeElement).toBe(byValue(container, 'echo'));
+        });
+
+        it('a disabled item still refuses Enter and Space', () => {
+            const { state } = mountDisabled(container);
+            const bravo = byValue(container, 'bravo');
+            bravo.focus();
+            bravo.dispatchEvent(key('Enter'));
+            bravo.dispatchEvent(key(' '));
+            expect(state.v).toBe('');
+            expect(bravo.hasAttribute('data-selected')).toBe(false);
+        });
+
+        it('a disabled branch roves but neither expands nor selects', () => {
+            const { state, expanded } = mountDisabled(container);
+            const delta = byValue(container, 'delta');
+            delta.focus();
+            delta.dispatchEvent(key('ArrowRight'));
+            expect(expanded.v).toEqual([]);
+            expect(delta.getAttribute('aria-expanded')).toBe('false');
+            delta.dispatchEvent(key('Enter'));
+            delta.dispatchEvent(key(' '));
+            expect(state.v).toBe('');
+            delta.dispatchEvent(key('ArrowDown'));
+            expect(document.activeElement).toBe(byValue(container, 'echo'));
+            delta.focus();
+            delta.dispatchEvent(key('ArrowUp'));
+            expect(document.activeElement).toBe(byValue(container, 'charlie'));
+        });
+
+        it('an expanded disabled branch neither collapses, nor strands its children', () => {
+            const { expanded } = mountDisabled(container, undefined, signal({ v: ['delta'] }));
+            const delta = byValue(container, 'delta');
+            delta.focus();
+            delta.dispatchEvent(key('ArrowLeft'));
+            expect(expanded.v).toEqual(['delta']);
+            // Moving into the open subtree is navigation, not expansion.
+            delta.dispatchEvent(key('ArrowRight'));
+            expect(document.activeElement).toBe(byValue(container, 'x'));
+            byValue(container, 'x').dispatchEvent(key('ArrowLeft'));
+            expect(document.activeElement).toBe(delta);
+        });
+    });
+
     it('selection survives collapsing its branch', () => {
         const state = signal({ file: '' });
         mountTree(container, { model: [state, 'file'], defaultExpandedValues: ['src'] });

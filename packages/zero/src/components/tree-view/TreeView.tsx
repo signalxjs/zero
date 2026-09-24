@@ -192,6 +192,19 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
             : [...expanded.value, value];
     };
 
+    /**
+     * The nearest enabled visible node BEFORE `value` (`forward`, so a step
+     * forward from it lands after `value`) or AFTER it (a step back lands
+     * before `value`); null when that side has none.
+     */
+    const standIn = (value: string, forward: boolean): string | null => {
+        const visible = tree.visibleItems();
+        const at = visible.findIndex((n) => n.value === value);
+        if (at === -1) return null;
+        const side = forward ? visible.slice(0, at).reverse() : visible.slice(at + 1);
+        return side.find((n) => !n.disabled())?.value ?? null;
+    };
+
     const ctx: TreeViewContext = {
         selected,
         tree,
@@ -236,11 +249,15 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
             if (props.disabled) return;
             const expandKey = rtl() ? 'ArrowLeft' : 'ArrowRight';
             const collapseKey = rtl() ? 'ArrowRight' : 'ArrowLeft';
+            // A disabled node still gets focus from a pointer (tabindex=-1
+            // takes a click's focus), so its keys must still NAVIGATE —
+            // only activation and expansion stay blocked (#177).
+            const inert = !!tree.findNode(node.value)?.disabled();
 
             if (e.key === expandKey) {
                 e.preventDefault();
                 if (node.isBranch && !isExpanded(node.value)) {
-                    toggleBranch(node.value);
+                    if (!inert) toggleBranch(node.value);
                 } else if (node.isBranch) {
                     tree.childrenOf(node.value).find((c) => !c.disabled())?.el()?.focus();
                 }
@@ -249,7 +266,7 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
             if (e.key === collapseKey) {
                 e.preventDefault();
                 if (node.isBranch && isExpanded(node.value)) {
-                    toggleBranch(node.value);
+                    if (!inert) toggleBranch(node.value);
                 } else if (node.parentValue !== null) {
                     tree.findNode(node.parentValue)?.el()?.focus();
                 }
@@ -258,11 +275,26 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
             // Space continues a running typeahead search ("Save As").
             if (e.key === 'Enter' || (e.key === ' ' && !typeahead.searching())) {
                 e.preventDefault();
-                ctx.select(node.value);
+                if (!inert) ctx.select(node.value);
+                return;
+            }
+            // Roving and typeahead index the ENABLED nodes, where a disabled
+            // one is absent (Down would jump to the first node, Up to the
+            // last, typeahead would search from the top). Stand in its
+            // nearest enabled neighbour on the side the key moves away
+            // from, so a step lands on the node next to it. Home/End need
+            // no stand-in: they ignore where they start.
+            if (!inert) {
+                roving(e, node.value);
+                if (!e.defaultPrevented) typeahead(e, node.value);
+                return;
+            }
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                roving(e, standIn(node.value, e.key === 'ArrowDown') ?? node.value);
                 return;
             }
             roving(e, node.value);
-            if (!e.defaultPrevented) typeahead(e, node.value);
+            if (!e.defaultPrevented) typeahead(e, standIn(node.value, true));
         },
         setRoot: (el) => { rootEl = el; },
     };
@@ -386,7 +418,8 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, on
             if (!disabled()) ctx.select(props.value);
         },
         onKeydown: (e: KeyboardEvent) => {
-            if (disabled()) return;
+            // No early return when disabled: press feedback is gated by
+            // isDisabled, and ctx.keydown still roves from here (#177).
             // A Space that continues a search is search text, not a press.
             if (!(e.key === ' ' && ctx.searching())) press.onKeydown(e);
             ctx.keydown(e, { value: props.value, isBranch: false, parentValue: branch.value });
@@ -486,8 +519,10 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onMounted
             ref={(n: HTMLElement | null) => { el = n; }}
             onKeydown={(e: KeyboardEvent) => {
                 // Bubbled keydowns from descendant treeitems handle
-                // themselves — only events targeting THIS branch count.
-                if (disabled() || e.target !== el) return;
+                // themselves — only events targeting THIS branch count. A
+                // disabled branch still navigates (#177); ctx.keydown
+                // blocks its selection and expansion.
+                if (e.target !== el) return;
                 ctx.keydown(e, { value: props.value, isBranch: true, parentValue: parent.value });
             }}
             onFocus={(e: FocusEvent) => {
