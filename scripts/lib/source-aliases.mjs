@@ -15,7 +15,14 @@
  *   bare `'@sigx/zero'` entry used to swallow any subpath without its own
  *   entry and resolve `@sigx/zero/theme` to `src/index.ts/theme`. Every entry
  *   here is an anchored regex, so order no longer decides the match; a last
- *   `@sigx/zero/*` → `src/*` fallback mirrors the tsconfig `paths`.
+ *   `@sigx/zero/*` → `src/*` fallback covers unexported modules.
+ *
+ * The root tsconfig resolves the same specifiers through its `paths`
+ * candidates (`src/components/*\/index.ts`, `src/*\/index.ts`, `src/*`),
+ * which reach the same files — typecheck runs before any build in CI, so a
+ * subpath only this map resolved would typecheck against a missing `dist/`.
+ * packages/zero/__tests__/type-test-paths.test.ts holds that `paths` map to
+ * the same `exports` this module reads, so the two resolvers cannot drift.
  */
 import { readFileSync } from 'node:fs';
 // node:url's URL, not the global one — under a DOM test environment the
