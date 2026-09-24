@@ -4559,9 +4559,27 @@ export const pagination: RecipeInput = {
         '--pg-accent-content': 'var(--color-primary-content)',
         '--pg-size': 'calc(var(--size-field) * 10)',
         '--pg-font': 'var(--text-sm)',
+        // How far the focus ring reaches outside a control: the root's
+        // scroll box pads by it so the ring is never clipped (#44).
+        '--pg-ring-room': '5px',
     },
     parts: {
-        root: { base: { display: 'flex', alignItems: 'center', gap: 'var(--space-2xs)' } },
+        root: {
+            // The row's own scroll box (#44): the window is constant-width by
+            // design, so a narrow container scrolls it rather than clipping
+            // it — Table's answer. The padding is room for the focus ring's
+            // 3px + 2px offset, which the scroll box would otherwise clip at
+            // the row's edges; the matching scroll padding keeps it clear
+            // when focus scrolls a page into view.
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                overflowX: 'auto',
+                padding: 'var(--pg-ring-room)',
+                scrollPaddingInline: 'var(--pg-ring-room)',
+            },
+        },
         item: {
             base: {
                 display: 'inline-flex',

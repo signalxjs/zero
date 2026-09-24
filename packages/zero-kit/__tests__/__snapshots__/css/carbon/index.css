@@ -5233,6 +5233,7 @@
         display: flex;
         align-items: center;
         gap: 0;
+        overflow-x: auto;
     }
 
     [data-scope="pagination"][data-part="item"] {

@@ -4420,7 +4420,12 @@ export const pagination: RecipeInput = {
         '--pg-font': 'var(--text-sm)',
     },
     parts: {
-        root: { base: { display: 'flex', alignItems: 'center', gap: '0' } },
+        root: {
+            // The row's own scroll box (#44): the window is constant-width by
+            // design, so a narrow container scrolls it rather than clipping it —
+            // Table's answer. No padding: the focus ring is drawn inset.
+            base: { display: 'flex', alignItems: 'center', gap: '0', overflowX: 'auto' },
+        },
         item: {
             base: {
                 display: 'inline-flex',
