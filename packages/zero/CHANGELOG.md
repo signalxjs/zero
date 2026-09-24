@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **TreeView: a branch's typeahead text with an `asChild` trigger (#157).**
+  A branch found its label by querying its subtree for
+  `[data-part="branch-trigger"]`. An `asChild` row that carries the app's
+  own `data-scope`/`data-part` did not match, so the text fell back to the
+  branch's `value`. With path values, a nested folder `ui` matched as
+  `packages/ui`, and typing `u` never reached it. `BranchTrigger` now hands
+  its element to the branch, which reads that row's accessible text. The
+  part query remains the fallback.
+
 ## [0.5.0] - 2026-09-23
 
 ### Added

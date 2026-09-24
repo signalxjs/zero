@@ -96,6 +96,12 @@ interface TreeBranchContext {
      * it so recipes ring the row, never the whole subtree.
      */
     focus: { visible: boolean };
+    /**
+     * The BranchTrigger hands the branch its element, so typeahead reads
+     * the row it was given — an `asChild` row may carry the app's own
+     * `data-scope`/`data-part`, which a part-name query cannot find (#157).
+     */
+    setTrigger(el: HTMLElement | null): void;
 }
 
 function makeInert(): TreeViewContext {
@@ -115,7 +121,7 @@ function makeInert(): TreeViewContext {
 
 export const useTreeViewContext = defineInjectable<TreeViewContext>(() => makeInert());
 export const useTreeBranchContext = defineInjectable<TreeBranchContext>(
-    () => ({ value: null, focus: { visible: false } }),
+    () => ({ value: null, focus: { visible: false }, setTrigger: () => {} }),
 );
 
 // ── Root ──
@@ -401,6 +407,7 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onUnmount
     const ctx = useTreeViewContext();
     const parent = useTreeBranchContext();
     let el: HTMLElement | null = null;
+    let triggerEl: HTMLElement | null = null;
     const focus = signal({ visible: false });
 
     const disabled = (): boolean => !!props.disabled || ctx.disabled();
@@ -416,16 +423,22 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onUnmount
         // not the row's decoration either: the default BranchIndicator is a
         // `›` glyph, and `textContent` would put it FIRST, so typeahead
         // could never match a branch by the label the user actually reads.
-        // What typeahead searches is the accessible text (#326).
+        // What typeahead searches is the accessible text (#326). The row is
+        // the element the BranchTrigger registered — whatever an `asChild`
+        // row is stamped with (#157) — with the part query as the fallback.
         textValue: () => {
-            const row = el?.querySelector('[data-part="branch-trigger"]');
+            const row = triggerEl ?? el?.querySelector('[data-part="branch-trigger"]');
             return row ? visibleText(row).trim() || props.value : props.value;
         },
     };
     const unregister = ctx.tree.registerNode(node);
     onUnmounted(() => unregister());
 
-    defineProvide(useTreeBranchContext, () => ({ value: props.value, focus }));
+    defineProvide(useTreeBranchContext, () => ({
+        value: props.value,
+        focus,
+        setTrigger: (n) => { triggerEl = n; },
+    }));
 
     const isOpen = (): boolean => ctx.isExpanded(props.value);
     const isSelected = (): boolean => ctx.selected.value === props.value;
@@ -494,7 +507,10 @@ const TreeViewBranchTrigger = component<TreeViewBranchTriggerProps>(({ props, sl
         // The branch element (the treeitem) owns focus; the row mirrors it
         // so recipes ring the row, never the whole subtree.
         'data-focus-visible': dataAttr(branch.focus.visible),
-        ref: (n: HTMLElement | null) => { el = n; },
+        ref: (n: HTMLElement | null) => {
+            el = n;
+            branch.setTrigger(n);
+        },
         onClick: () => {
             if (disabled()) return;
             ctx.toggleBranch(value());
