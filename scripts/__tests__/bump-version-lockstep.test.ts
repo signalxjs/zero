@@ -40,6 +40,8 @@ describe('bump-version lockstep', () => {
         // realpath: macOS's tmpdir is a symlink, and the script only runs as a CLI
         // when its own URL matches argv[1].
         root = realpathSync(mkdtempSync(join(tmpdir(), 'bump-version-')));
+        // cpSync would create the parent itself; explicit, not load-bearing.
+        mkdirSync(join(root, 'scripts'), { recursive: true });
         cpSync(join(scriptsDir, 'bump-version.js'), join(root, 'scripts', 'bump-version.js'));
         cpSync(join(scriptsDir, 'lib'), join(root, 'scripts', 'lib'), { recursive: true });
     });
