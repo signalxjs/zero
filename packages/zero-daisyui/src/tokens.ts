@@ -2,8 +2,9 @@
  * zero-daisyui tokens — daisyUI's "light" and "dark" theme values on the
  * zero contract. Values match the daisy presets `@sigx/daisyui` ships, so a
  * zero app skinned with this package sits visually next to a daisy app —
- * except three content roles in `light`/`dark` that daisy ships below AA
- * (#34), each marked where it is declared.
+ * except three sub-AA content pairs daisy ships in `light`/`dark` (two roles,
+ * `secondary-content` in both and dark `primary-content`; #34), each marked
+ * where it is declared.
  */
 import { layoutScopes } from '@sigx/zero-kit/define';
 import type { CustomTokenDecl, RoleDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';

@@ -35,7 +35,8 @@ drifted a major version behind (#231): among others, light's `primary` was
 and dark's `primary-content` was a *dark* ink where 5.7.8 pairs a light one.
 `dim`, `nord` and `sunset` were already exact.
 
-Three content roles are the exception, in `light` and `dark` only (#34). daisy
+Three content-role values are the exception, in `light` and `dark` only (#34):
+two roles across the two themes. daisy
 ships `secondary-content` at **3.05:1** on `secondary` in both themes, and dark
 `primary-content` at **4.14:1** on `primary` — below AA for the label text each
 pair exists to carry, and the kit's validator warned for them on every build.
@@ -63,7 +64,7 @@ daisy's 20% reads 1.44:1 on `nord`, a raw-role `neutral` ghost button 1.22:1 in
 every dark theme, and 5.7.8's own lighter `error` 2.87:1 as message text on
 white — and 3:1 is the floor a mark owes the reader. The ratios and their
 per-theme measurements are recorded at each declaration in `src/recipes.ts`;
-every other value in this package is daisy's, bar the three content roles
+every other value in this package is daisy's, bar the three content-role values
 above.
 
 `select`, `combobox` and `number-input` share one field metric — the same
