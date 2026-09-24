@@ -25,6 +25,10 @@
   that stops short still closes the submenu when the delay runs out, and the
   item under it then takes hover. Touch input gets no triangle. There is no
   new prop, and `openDelay`/`closeDelay` behave as before.
+- `mountScope()` (`@sigx/zero/behaviors`, and `/behaviors/core`): call it
+  during setup, run a mount hook's reactive work through the function it
+  returns, and every effect or watch created there stops with the component.
+- `syncPopover` returns a stopper (it returned `void`).
 
 ### Fixed
 
