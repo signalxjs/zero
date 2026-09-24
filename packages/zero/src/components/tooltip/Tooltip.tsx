@@ -26,6 +26,7 @@ import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { tooltipAnatomy } from './anatomy.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = tooltipAnatomy.scope;
 
@@ -197,7 +198,8 @@ const TooltipPopup = component<TooltipPopupProps>(({ props, slots, onMounted }) 
     const tooltip = useTooltipContext();
     let el: HTMLElement | null = null;
 
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         effect(() => {
             const open = tooltip.state.value;
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
@@ -206,7 +208,7 @@ const TooltipPopup = component<TooltipPopupProps>(({ props, slots, onMounted }) 
             if (open && !showing) node.showPopover();
             else if (!open && showing) node.hidePopover!();
         });
-    });
+    }));
 
     return () => (
         <div

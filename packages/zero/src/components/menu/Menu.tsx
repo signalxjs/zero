@@ -75,6 +75,7 @@ import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { menuAnatomy } from './anatomy.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = menuAnatomy.scope;
 
@@ -426,7 +427,8 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
 
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         effect(() => {
             const open = menu.state.value;
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
@@ -440,7 +442,7 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
                 node.hidePopover!();
             }
         });
-    });
+    }));
 
     return () => {
         const attrs = htmlAttrs(props);
@@ -1137,7 +1139,8 @@ const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) 
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
 
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         effect(() => {
             const open = sub.state.value;
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
@@ -1152,7 +1155,7 @@ const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) 
                 node.hidePopover!();
             }
         });
-    });
+    }));
 
     return () => {
         const attrs = htmlAttrs(props);

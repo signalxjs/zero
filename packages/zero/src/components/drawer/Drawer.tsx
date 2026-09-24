@@ -52,6 +52,7 @@ import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import type { ZeroBreakpointName } from '../../contract/vocabulary.js';
 import { drawerAnatomy } from './anatomy.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = drawerAnatomy.scope;
 
@@ -360,7 +361,8 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
     // server's `initial: true` here), so its panel is open in markup too.
     const openInMarkup = drawer.docked() || (!drawer.modal() && drawer.state.value) ? true : undefined;
 
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         // Up through showModal() — the one open state a regime switch has to
         // take down with close() rather than by the attribute.
         let sheet = false;
@@ -422,7 +424,7 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
             }
         };
         effect(sync);
-    });
+    }));
 
     return () => {
         const attrs = htmlAttrs(props);

@@ -75,6 +75,7 @@ import type {
     WithVariantAxes,
 } from '../../contract/props.js';
 import { selectAnatomy } from './anatomy.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = selectAnatomy.scope;
 
@@ -321,7 +322,8 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         });
     };
     let detachReset = (): void => {};
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         effect(() => { listbox.selectedKeys(); syncHidden(); });
         // Without a name there is no hidden select — the trigger is a
         // <button>, form-associated like any control, so reset still restores.
@@ -329,7 +331,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
             state.value = seed();
             syncHidden();
         });
-    });
+    }));
     onUnmounted(() => detachReset());
 
     const ctx: SelectContext = {
@@ -672,7 +674,8 @@ const SelectPopup = component<SelectPopupProps>(({ props, slots, onMounted }) =>
     const select = useSelectContext();
     let el: HTMLElement | null = null;
 
-    onMounted(() => { syncPopover(() => el, () => select.open.value); });
+    const scoped = mountScope();
+    onMounted(() => scoped(() => { syncPopover(() => el, () => select.open.value); }));
 
     return () => {
         const attrs = htmlAttrs(props);

@@ -50,6 +50,7 @@ import type {
     WithVisuallyHidden,
 } from '../../contract/props.js';
 import { textareaAnatomy } from './anatomy.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = textareaAnatomy.scope;
 
@@ -255,7 +256,8 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
 
     let detachReset = (): void => {};
     let autosize: Autosize | null = null;
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         const node = el;
         node?.addEventListener('input', onInput);
         detachInput = () => node?.removeEventListener('input', onInput);
@@ -281,7 +283,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
             void ctx.state.value;
             autosize?.refresh();
         });
-    });
+    }));
     onUnmounted(() => {
         claim?.release();
         detachReset();

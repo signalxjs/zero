@@ -37,6 +37,7 @@ import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { dialogAnatomy } from './anatomy.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = dialogAnatomy.scope;
 
@@ -271,7 +272,8 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
     // Modal stays a client call: the top layer cannot be expressed in markup.
     const openInMarkup = !dialog.modal() && dialog.state.value ? true : undefined;
 
-    onMounted(() => {
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
         const sync = (open: boolean) => {
             const node = el;
             if (!node || typeof node.showModal !== 'function') return;
@@ -295,7 +297,7 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
             }
         };
         effect(() => sync(dialog.state.value));
-    });
+    }));
 
     return () => {
         const attrs = htmlAttrs(props);
