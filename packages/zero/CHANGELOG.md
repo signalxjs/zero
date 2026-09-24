@@ -92,15 +92,6 @@
   `toggle` as a click, so single mode closes the others). When the model
   refuses the change (a disabled root or item), the element is
   reverted to match the model.
-### Added
-
-- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
-  encodes a string into an id-safe token, injective over strings, for
-  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
-  other code point (`_` included) becomes `_<hex>_`.
-
-### Fixed
-
 - **Ids built from values with whitespace (#164).** Tabs built its tab and
   panel ids from the raw `value`, so `value="New York"` produced
   `…-tab-New York`. `aria-controls` and `aria-labelledby` are IDREFS lists
