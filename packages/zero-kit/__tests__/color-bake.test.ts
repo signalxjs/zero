@@ -74,6 +74,11 @@ describe('color-mix() percentage normalization (#182)', () => {
         expect(() => bake('color-mix(in srgb, red, blue 120%)')).toThrow(/within 0%\.\.100%/);
     });
 
+    it('rejects a malformed percentage instead of baking NaN', () => {
+        expect(() => bake('color-mix(in srgb, red 1.2.3%, blue)')).toThrow(/malformed/);
+        expect(() => bake('color-mix(in srgb, red .%, blue)')).toThrow(/malformed/);
+    });
+
     it('parses a percentage written before the colour', () => {
         expect(bake('color-mix(in srgb, 30% red, blue)')).toBe(bake('color-mix(in srgb, red 30%, blue)'));
         expect(bake('color-mix(in srgb, red, 70% blue)')).toBe(bake('color-mix(in srgb, red 30%, blue)'));

@@ -290,6 +290,13 @@ export function bakeColorValue(
             };
             const a = component(args[1]!);
             const b = component(args[2]!);
+            // A malformed number (`red 1.2.3%`, `.%`) parses to NaN, which
+            // would flow through the math below and bake a bogus hex.
+            for (const c of [a, b]) {
+                if (c.pct !== undefined && !Number.isFinite(c.pct)) {
+                    throw new Error(`[zero-kit] ${where}: "${expr}" is invalid — malformed color-mix() percentage`);
+                }
+            }
             // CSS normalization: a missing percentage takes the complement;
             // both missing is 50/50.
             const pa = a.pct ?? (b.pct !== undefined ? 100 - b.pct : 50);
