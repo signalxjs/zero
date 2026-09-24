@@ -21,8 +21,7 @@ import { BELOW_PREFIX, BUILTIN_CONDITIONS } from '../recipes.js';
 import { generateTypeScale } from '../scale.js';
 import type { SystemTokens, ThemeSystem, TypographyDecl } from '../tokens.js';
 
-/** The `-soft` mix ratio every theme defaults to when it declares none. */
-export const DEFAULT_SOFT_MIX = 0.16;
+export { DEFAULT_SOFT_MIX } from '../contract.js';
 
 /**
  * A `softMix` ratio as the percentage `color-mix()` takes — unrounded, so the

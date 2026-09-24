@@ -73,8 +73,10 @@ describe('softMix percentage', () => {
 
     it('carries no float noise', () => {
         const t = clone();
-        themes(t).basic.softMix = 0.07; // 0.07 * 100 === 7.000000000000001
-        expect(compileTokensCss(t)).toContain('var(--color-primary) 7%,');
+        themes(t).basic.softMix = 0.145; // 0.145 * 100 === 14.499999999999998
+        const css = compileTokensCss(t);
+        expect(css).toContain('var(--color-primary) 14.5%,');
+        expect(css).not.toContain('14.49999');
     });
 });
 

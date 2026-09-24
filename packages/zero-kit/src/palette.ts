@@ -37,7 +37,7 @@
  *   to a different colour than the one measured.
  */
 import type { RoleDecl } from './contract.js';
-import { requiredColorTokens, resolveRoles } from './contract.js';
+import { DEFAULT_SOFT_MIX, requiredColorTokens, resolveRoles } from './contract.js';
 import type { RolesDecl, ThemeColors, ThemeInput } from './tokens.js';
 import type { SystemTokens } from './tokens.js';
 
@@ -380,7 +380,7 @@ export function derivePalette<R extends RolesDecl = RolesDecl>(opts: DerivePalet
     const contentFloor = opts.floors?.content ?? 4.5;
     const baseFloor = opts.floors?.base ?? 7;
     const inkFloor = opts.floors?.ink ?? 3;
-    const softMix = opts.softMix ?? 0.16;
+    const softMix = opts.softMix ?? DEFAULT_SOFT_MIX;
     const seeds = (opts.seeds ?? {}) as Partial<Record<string, number | RoleSeed>>;
     const rotation = HARMONY[opts.harmony ?? 'analogous'];
 

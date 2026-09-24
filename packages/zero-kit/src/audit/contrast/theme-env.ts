@@ -18,7 +18,7 @@
  * resolved lazily by the cascade at the node that reads them, which is also
  * where a recipe-local override of the same property would have to win.
  */
-import { BASE_SURFACE_TOKEN_LIST, TEXT_FIXED_PREFIX, resolveRoles } from '../../contract.js';
+import { BASE_SURFACE_TOKEN_LIST, DEFAULT_SOFT_MIX, TEXT_FIXED_PREFIX, resolveRoles } from '../../contract.js';
 import type { DesignSystemInput } from '../../design-system.js';
 import { bakeColor, bakeSoft, foldConstantCalc } from '../../resolve/color-bake.js';
 import { STRUCTURAL_FALLBACKS, resolveSystemTokens } from '../../targets/shared.js';
@@ -61,7 +61,7 @@ function bakedColors(
 ): Record<string, string> {
     const colors = theme.colors as Record<string, string>;
     const out: Record<string, string> = {};
-    const mix = theme.softMix ?? 0.16;
+    const mix = theme.softMix ?? DEFAULT_SOFT_MIX;
     const push = (token: string): void => {
         const value = colors[token];
         if (!value) return;
