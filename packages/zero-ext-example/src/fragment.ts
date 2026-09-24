@@ -49,14 +49,14 @@ export const recipes: RecipeInput[] = [{
                 // grammar answers to an adopter's density override the same
                 // way its own components do.
                 //
-                // WITH a fallback, which a design system's own recipes do not
-                // need and a PACK does. `system.spacing` is optional, and a
-                // design system that omits it emits no `--space-*` at all;
+                // WITH a fallback, which is optional for a pack since #158
+                // but still buys something. `system.spacing` is optional, and
+                // a design system that omits it emits no `--space-*` at all;
                 // on web zero's base.css still resolves the reference from
-                // `@layer zero.fallback`, but lynx has no such layer, so the
-                // declaration would be dropped and the part would paint
-                // nothing. `sigx zero:fragment`'s hostile-vocabulary probe
-                // refuses exactly this, which is how it was found.
+                // `@layer zero.fallback`, but lynx has no such layer, so that
+                // adopter's lynx build would fail on the dangling reference.
+                // `sigx zero:fragment`'s probe assumes the recommended
+                // non-colour keys are defined, so it passes a bare reference.
                 gap: 'var(--space-md, 0.5rem)',
                 alignItems: 'center',
             },

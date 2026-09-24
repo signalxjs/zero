@@ -396,14 +396,19 @@ arithmetic rather than a step, so `calc(var(--space-lg) - 2px)` already rides
 the ramp; only top-level components of a value are judged. And `0` needs no
 token.
 
-One authoring rule follows for **recipe packs** specifically, and was found by
-`zero:fragment`'s hostile-vocabulary probe rather than by reasoning:
-`system.spacing` is optional, and a design system that omits it emits no
-`--space-*` at all. On web `css/base.css` still resolves the reference from
-`@layer zero.fallback`; lynx has no such layer, so the declaration is dropped
-and the part paints nothing. A design system's own recipes may write
-`var(--space-md)`; a pack that may be adopted by any design system writes
-`var(--space-md, 0.5rem)`.
+A **recipe pack** may read the ramp bare too (#158). `system.spacing` is
+optional, and a design system that omits it emits no `--space-*` at all: on
+web `css/base.css` still resolves the reference from `@layer zero.fallback`,
+but lynx has no such layer. `zero:fragment`'s hostile-vocabulary probe
+nevertheless defines every recommended non-colour key (`--space-*`,
+`--font-*`, `--weight-*`, `--leading-*`, `--tracking-*`, `--measure-*`,
+`--shadow-*`, `--duration-*`, `--ease-*`) at base.css's values, because
+every real design system defines them, and a pack should not have to carry
+fallbacks for vocabulary it did not invent. What it withholds is the colour
+roles and the size ramp. An adopter that emits lynx and does omit a category
+does not ship invisible parts: its own lynx build fails on the dangling-var
+check, which names the property. A pack that wants to survive that adopter
+too can still write `var(--space-md, 0.5rem)`.
 
 ### 3.2 Build-time validation
 
@@ -1425,8 +1430,8 @@ the architecture facts, briefly:
   `FRAGMENT_VERSION`, the schema, the merge, `"files"` coverage of the
   declared path, recipes confined to declared parts and scopes, the
   `componentExportName` root export, and a hostile-vocabulary probe (fitted
-  to no colour roles and no size ramp, does the pack still compile — and
-  still paint). It is why a fragment's `version` can come from zero's copy
+  to no colour roles and no size ramp, but the recommended non-colour
+  tokens defined, does the pack still compile — and still paint). It is why a fragment's `version` can come from zero's copy
   of `FRAGMENT_VERSION` (`@sigx/zero/contract`, parity-tested against the
   kit's) or a hand-written literal, and why the kit is a devDependency of
   every component package.
