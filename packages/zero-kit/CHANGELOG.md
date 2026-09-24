@@ -47,8 +47,8 @@
   substituted only where it is selector syntax (not in `[title="x & y"]`).
   An empty item (`'svg, , path'`), a key that does not balance (an unclosed
   bracket, string or comment) and an item whose only `&` sits inside a nested
-  list (`':is(&:hover, svg)'`, which would leave `svg` global) are now build
-  errors.
+  list with an argument that lacks one (`':is(&:hover, svg)'`, which would
+  leave `svg` global) are now build errors.
 
 ## [0.5.0] - 2026-09-23
 

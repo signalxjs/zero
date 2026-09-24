@@ -176,8 +176,12 @@ function emitPartStyles(
 
 interface KeyAmp {
     at: number;
-    /** The brackets enclosing it, innermost last — `holdsComma` is final once lexing ends. */
-    frames: { holdsComma: boolean }[];
+    /**
+     * The brackets enclosing it, innermost last. `args[n]` says whether the
+     * bracket's nth comma-separated argument holds an `&` — final once lexing
+     * ends.
+     */
+    frames: { args: boolean[] }[];
 }
 
 /**
@@ -195,7 +199,7 @@ function lexSelectorKey(text: string, where: string): { commas: number[]; amps: 
     };
     const commas: number[] = [];
     const amps: KeyAmp[] = [];
-    const open: { closer: string; holdsComma: boolean }[] = [];
+    const open: { closer: string; args: boolean[] }[] = [];
     for (let i = 0; i < text.length; i++) {
         const ch = text[i]!;
         if (ch === '\\') {
@@ -220,13 +224,16 @@ function lexSelectorKey(text: string, where: string): { commas: number[]; amps: 
             i = close + 1;
             continue;
         }
-        if (ch === '(' || ch === '[') open.push({ closer: ch === '(' ? ')' : ']', holdsComma: false });
+        if (ch === '(' || ch === '[') open.push({ closer: ch === '(' ? ')' : ']', args: [false] });
         else if (ch === ')' || ch === ']') {
             if (open.pop()?.closer !== ch) fail(`its "${ch}" at offset ${i} closes nothing it opened`);
         } else if (ch === ',') {
             if (open.length === 0) commas.push(i);
-            else open[open.length - 1]!.holdsComma = true;
-        } else if (ch === '&') amps.push({ at: i, frames: [...open] });
+            else open[open.length - 1]!.args.push(false);
+        } else if (ch === '&') {
+            for (const frame of open) frame.args[frame.args.length - 1] = true;
+            amps.push({ at: i, frames: [...open] });
+        }
     }
     if (open.length > 0) fail(`it leaves ${open.length} bracket(s) unclosed`);
     return { commas, amps };
@@ -239,10 +246,12 @@ function lexSelectorKey(text: string, where: string): { commas: number[]; amps: 
  * key as one string would scope only the first item — `'svg, path'` would
  * emit `[part] svg, path`, leaving `path` a global rule in the recipes layer.
  *
- * Only an `&` at the item's top level scopes it: `':is(&:hover, svg)'` would
- * otherwise leave its `svg` argument global, so an item whose `&`s all sit
- * inside a nested list with siblings is rejected. An `&` in a string, a
- * comment or escaped is text, never substituted.
+ * An item with an `&` at its top level is scoped by it, whatever its nested
+ * lists hold (`'&:not(.a, .b)'`). An item whose `&`s all sit inside brackets
+ * is scoped only if every argument of each enclosing comma-separated list
+ * holds an `&`: `':where(.dark &)'` and `':is(&.a, &.b)'` pass, while
+ * `':is(&:hover, svg)'` would leave `svg` global and is rejected. An `&` in a
+ * string, a comment or escaped is text, never substituted.
  */
 function scopeNestedSelector(nested: string, self: string, where: string): string {
     const { commas, amps } = lexSelectorKey(nested, where);
@@ -266,9 +275,9 @@ function scopeNestedSelector(nested: string, self: string, where: string): strin
             continue;
         }
         const topLevel = own.some((a) => a.frames.length === 0);
-        if (!topLevel && own.some((a) => a.frames.some((f) => f.holdsComma))) {
+        if (!topLevel && own.some((a) => a.frames.some((f) => f.args.includes(false)))) {
             throw new Error(
-                `[zero-kit] ${where}: the selectors key "${nested}" puts & only inside a nested selector list ("${trimmed}") — its other arguments would match outside the part; write & at the top level of the item or split the list`,
+                `[zero-kit] ${where}: the selectors key "${nested}" puts & only inside a nested selector list ("${trimmed}") with an argument that has no & — that argument would match outside the part; give every argument an &, write & at the top level of the item, or split the list`,
             );
         }
         let scoped = '';

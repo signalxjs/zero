@@ -73,9 +73,9 @@ rule. Only top-level commas split the list; the comma in
 `'&:not([data-disabled], [data-invalid])'` stays inside its item, as does
 one in a string, a comment or after a backslash escape. An `&` in a string,
 a comment or escaped is text and is never substituted. An item whose only
-`&`s sit inside a nested list (`':is(&:hover, svg)'`) is a build error — the
-`&` would not scope `svg` — while a single-argument `':where(.dark &)'` is
-fine. A key the compiler cannot balance (an unclosed bracket, string or
+`&`s sit inside a nested list with an argument lacking one
+(`':is(&:hover, svg)'`) is a build error — the `&` would not scope `svg` —
+while `':where(.dark &)'` and `':is(&.a, &.b)'` are fine. A key the compiler cannot balance (an unclosed bracket, string or
 comment) is a build error too, never a half-scoped rule.
 
 Only the base surfaces (`base-100/200/300/base-content`) are fixed — they

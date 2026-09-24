@@ -138,14 +138,17 @@ describe('selectors keys that are selector lists', () => {
     it('rejects an & that sits only inside a nested list, whose siblings it would not scope', () => {
         expect(() => compile({ ':is(&:hover, svg)': { color: 'red' } })).toThrow(/nested selector list/);
         expect(() => compile({ 'svg, :where(&.a, .b) path': { color: 'red' } })).toThrow(/nested selector list/);
+        expect(() => compile({ ':is(:where(.x &), svg)': { color: 'red' } })).toThrow(/nested selector list/);
     });
 
-    it('accepts an & inside a single-argument function, or beside a top-level &', () => {
+    it('accepts an & in a nested list whose every argument has one, or beside a top-level &', () => {
         const css = compile({
             ':where(.dark &)': { color: 'red' },
             '&:not(&.a, .b)': { color: 'blue' },
+            ':is(&.a, &.b)': { color: 'green' },
         });
         expect(preludesFor(css, 'color: red')).toEqual([`:where(.dark ${ROOT})`]);
         expect(preludesFor(css, 'color: blue')).toEqual([`${ROOT}:not(${ROOT}.a, .b)`]);
+        expect(preludesFor(css, 'color: green')).toEqual([`:is(${ROOT}.a, ${ROOT}.b)`]);
     });
 });
