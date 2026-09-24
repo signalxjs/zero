@@ -22,6 +22,17 @@
   was never enforced in the build: `softMix: 16` compiled to an invalid
   `color-mix(… 1600% …)` that silently dropped every `-soft` surface on web
   and made the baker extrapolate.
+- **Per-component stylesheets and `zero-extend.css` state the cascade-layer
+  order (#180).** `css/components/<scope>.css` (public as `./css/*`) and the
+  `sigx zero:extend` add-on stylesheet were bare `@layer zero.recipes { … }`
+  blocks. Imported before `@sigx/zero/css` or the design system's
+  `tokens.css`, one created `zero.recipes` first, and base.css's order
+  statement then appended `zero.fallback` and `zero.tokens` above it, so
+  base.css's fallback rules on real parts (the windowed Select/Combobox
+  popup bound) beat the design system's recipe — the per-file form of #318.
+  `writeArtifacts` now prefixes each per-component file with
+  `LAYER_ORDER_STATEMENT`, and `extendedCss` emits it once after its header
+  comment. `compiled.componentCss` and `index.css` are unchanged.
 
 ## [0.5.0] - 2026-09-23
 
