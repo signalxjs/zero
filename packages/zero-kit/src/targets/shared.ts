@@ -76,9 +76,7 @@ export function assertDeclaration(where: string, prop: string, value: string): v
             `[zero-kit] ${where} declares "${prop}", which is not a CSS property name — it would be written into the stylesheet verbatim`,
         );
     }
-    if (CSS_BREAKOUT.test(value)) {
-        throw new Error(`[zero-kit] ${where}: the value of "${prop}" ${breakoutMessage(value)}`);
-    }
+    assertTokenValue(where, prop, value);
 }
 
 /**
