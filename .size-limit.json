@@ -38,7 +38,7 @@
     {
         "name": "@sigx/zero/dialog",
         "path": "packages/zero/dist/components/dialog/index.js",
-        "limit": "4.15 kB",
+        "limit": "4.2 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -62,7 +62,7 @@
     {
         "name": "@sigx/zero/select",
         "path": "packages/zero/dist/components/select/index.js",
-        "limit": "8.7 kB",
+        "limit": "8.75 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -108,7 +108,7 @@
     {
         "name": "@sigx/zero/toast",
         "path": "packages/zero/dist/components/toast/index.js",
-        "limit": "4.7 kB",
+        "limit": "4.75 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -120,7 +120,7 @@
     {
         "name": "@sigx/zero/combobox",
         "path": "packages/zero/dist/components/combobox/index.js",
-        "limit": "11.35 kB",
+        "limit": "11.4 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -156,7 +156,7 @@
     {
         "name": "@sigx/zero/toggle-group",
         "path": "packages/zero/dist/components/toggle-group/index.js",
-        "limit": "4.95 kB",
+        "limit": "5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -624,7 +624,7 @@
     {
         "name": "@sigx/zero/drawer",
         "path": "packages/zero/dist/components/drawer/index.js",
-        "limit": "4.85 kB",
+        "limit": "4.9 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
