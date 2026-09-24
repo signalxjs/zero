@@ -449,6 +449,25 @@ describe('tokens.schema.json', () => {
         expectValid(validateTokens, asJson(ds.tokens), `${name} tokens`);
     });
 
+    it('rejects a token value or custom syntax that would break out of its declaration (#183)', () => {
+        const base = asJson(basicDS.tokens) as { system: Record<string, Record<string, unknown>>; custom?: Record<string, unknown>; themes: Record<string, Record<string, unknown>>; defaultLight: string };
+        const with_ = (mutate: (t: typeof base) => void) => {
+            const t = structuredClone(base);
+            mutate(t);
+            return t;
+        };
+        const theme = base.defaultLight;
+        expect(validateTokens(with_((t) => { t.system['radius']!['md'] = '1rem; } body { display:none } :root {'; }))).toBe(false);
+        expect(validateTokens(with_((t) => { t.themes[theme]!['extra'] = { evil: 'red; } html{display:none' }; }))).toBe(false);
+        expect(validateTokens(with_((t) => { t.themes[theme]!['custom'] = { ink: 'red }' }; }))).toBe(false);
+        expect(validateTokens(with_((t) => {
+            (t.themes[theme]!['colors'] as Record<string, string>)['primary-soft'] = 'red; } body{x:y}';
+        }))).toBe(false);
+        expect(validateTokens(with_((t) => { t.custom = { ink: { syntax: "<color>'; } body{x:y} @property --z {syntax:'*" } }; }))).toBe(false);
+        expect(validateTokens(with_((t) => { t.custom = { ink: { syntax: '<color>\\' } }; }))).toBe(false);
+        expectValid(validateTokens, with_((t) => { t.custom = { ink: { syntax: '<length> | <percentage>' } }; }), 'a multi-type syntax');
+    });
+
     it('rejects an unknown top-level key', () => {
         const bad = asJson(basicDS.tokens) as Record<string, unknown>;
         bad['palette'] = {};

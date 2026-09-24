@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://signalxjs.github.io/zero/schemas/tokens.schema.json",
     "title": "SignalX Zero design-system tokens (TokensInput)",
-    "description": "The argument to @sigx/zero-kit's defineTokens(), as plain JSON data: the design system's color-role vocabulary, size-axis ramp, non-color token categories, breakpoints, custom tokens and themes. An AI (or any tool) can emit this JSON, wrap it in defineTokens(...) and run `sigx zero:validate` \u2014 this schema catches structural mistakes before the validator's deeper semantic checks (completeness, WCAG contrast, undeclared references) take over. Values are CSS text and deliberately unconstrained here: the compiler accepts any value the browser would.",
+    "description": "The argument to @sigx/zero-kit's defineTokens(), as plain JSON data: the design system's color-role vocabulary, size-axis ramp, non-color token categories, breakpoints, custom tokens and themes. An AI (or any tool) can emit this JSON, wrap it in defineTokens(...) and run `sigx zero:validate` \u2014 this schema catches structural mistakes before the validator's deeper semantic checks (completeness, WCAG contrast, undeclared references) take over. Values are CSS text and otherwise unconstrained here, except that none may hold a brace, semicolon or newline: each is written into a declaration verbatim.",
     "type": "object",
     "additionalProperties": false,
     "required": [
@@ -126,8 +126,9 @@
                         "type": "string"
                     },
                     "syntax": {
-                        "description": "CSS @property syntax string (e.g. \"<color>\", \"<length>\") \u2192 typed registration in the compiled CSS.",
-                        "type": "string"
+                        "description": "CSS @property syntax string (e.g. \"<color>\", \"<length> | <percentage>\") \u2192 typed registration in the compiled CSS. Written inside a quoted string, so it may not hold a quote, backslash, brace, semicolon or newline.",
+                        "type": "string",
+                        "pattern": "^[^'\"\\\\{};\\n\\r]+$"
                     }
                 }
             }
@@ -220,11 +221,17 @@
             "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
         },
         "tokenValue": {
-            "description": "A CSS value as authored \u2014 string, or a bare number for unitless values.",
+            "description": "A CSS value as authored \u2014 string, or a bare number for unitless values. A string may not hold a brace, semicolon or newline: it is written into a `--prop: value;` declaration verbatim.",
             "type": [
                 "string",
                 "number"
-            ]
+            ],
+            "pattern": "^[^{};\\n\\r]*$"
+        },
+        "cssText": {
+            "description": "A CSS value written into a `--prop: value;` declaration verbatim \u2014 so no brace, semicolon or newline, which would end the declaration.",
+            "type": "string",
+            "pattern": "^[^{};\\n\\r]*$"
         },
         "roleDecl": {
             "description": "Declaration of one color role.",
@@ -457,7 +464,8 @@
                     },
                     "additionalProperties": {
                         "type": "string",
-                        "minLength": 1
+                        "minLength": 1,
+                        "pattern": "^[^{};\\n\\r]*$"
                     }
                 },
                 "system": {
@@ -468,14 +476,14 @@
                     "description": "Values for the design system's declared `custom` tokens.",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "string"
+                        "$ref": "#/$defs/cssText"
                     }
                 },
                 "extra": {
                     "description": "DS-specific extra tokens, emitted verbatim \u2014 the undeclared escape hatch (prefer `custom`; the validator warns here).",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "string"
+                        "$ref": "#/$defs/cssText"
                     }
                 }
             }

@@ -55,7 +55,7 @@ import { hookIssues, privateNameIssues } from './hooks.js';
 import { tokenVocabulary } from './vocabulary.js';
 import { formatOklch, solveContentLightness } from '../palette.js';
 import { tryBakeColorValue } from './color-bake.js';
-import { DEFAULT_SOFT_MIX, softMixPercent } from '../targets/shared.js';
+import { CSS_BREAKOUT, DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, badPropertySyntaxMessage, breakoutMessage, softMixPercent } from '../targets/shared.js';
 
 export interface ValidationIssue {
     level: 'error' | 'warning';
@@ -190,9 +190,15 @@ const VAR_REF = /var\(\s*(--[A-Za-z0-9_-]+)\s*(,)?/g;
  * `<length>` is deliberately NOT checked: `0`, percentages, `em`-relative and
  * functional values are all legitimate, and the false-positive risk outweighs
  * the benefit — a rule that flags correct values gets switched off.
+ *
+ * Every grammar: no brace, semicolon or newline. The value is written into a
+ * `--prop: value;` declaration verbatim, so one would end it and everything
+ * after would be read as CSS — the recipe guard (`assertDeclaration`),
+ * reported here with the other issues instead of thrown by the emitter (#183).
  */
 function badValue(syntax: string, value: unknown): string | undefined {
     const text = String(value);
+    if (CSS_BREAKOUT.test(text)) return `the value ${breakoutMessage(text)}`;
     if (isWhollyFunctional(text)) return undefined;
 
     if (syntax === '<time>' && !TIME_VALUE.test(text)) {
@@ -282,6 +288,12 @@ export function validateDesignSystem<R extends RolesDecl>(
                 );
             }
         }
+        // The syntax is written inside a quoted `@property` string, so a
+        // quote ends it early on top of the declaration break-outs (#183).
+        const syntax = customDecls[name]?.syntax;
+        if (syntax !== undefined && !PROPERTY_SYNTAX_PATTERN.test(syntax)) {
+            error('tokens.custom', `custom token "${name}" ${badPropertySyntaxMessage(syntax)}`);
+        }
         const clash = declaredCustom.get(prop);
         if (clash) {
             error('tokens.custom', `custom tokens "${clash}" and "${name}" both emit ${prop} — declare one spelling`);
@@ -338,9 +350,13 @@ export function validateDesignSystem<R extends RolesDecl>(
     checkSystemKeys('tokens.system', declaredSystem);
     checkSystemKeys('tokens.systemDark', ds.tokens.systemDark);
     for (const category of TOKEN_CATEGORIES) {
-        if (category.shape === 'scalar') continue;
         const path = category.path.join('.');
         const node = systemNodeAt(declaredSystem, category.path);
+        if (category.shape === 'scalar') {
+            const bad = node === undefined ? undefined : badValue(category.syntax, node);
+            if (bad) error(`tokens.system.${path}`, bad);
+            continue;
+        }
         if (node !== undefined && !isKeyMap(node)) {
             // Emission would otherwise spread a string into `--radius-0`,
             // `--radius-1`, … or silently drop it.
@@ -483,6 +499,13 @@ export function validateDesignSystem<R extends RolesDecl>(
                 error(`themes.${themeName}`, `color token "${token}" is not a parseable color: "${value}"`);
             }
         }
+        // Parsing covers only the required colours; an explicit `-soft` is
+        // emitted verbatim too, so every colour gets the break-out check.
+        for (const [token, value] of Object.entries(colors)) {
+            if (typeof value === 'string' && CSS_BREAKOUT.test(value)) {
+                error(`themes.${themeName}`, `color token "${token}": the value ${breakoutMessage(value)}`);
+            }
+        }
         for (const token of Object.keys(colors)) {
             if (!declared.has(token)) {
                 error(`themes.${themeName}`, `color token "${token}" is not in the declared vocabulary — add it to tokens.roles or remove it`);
@@ -582,9 +605,12 @@ export function validateDesignSystem<R extends RolesDecl>(
                 error(`themes.${themeName}`, `missing value for declared custom token "${name}"`);
             }
         }
-        for (const name of Object.keys(theme.custom ?? {})) {
+        for (const [name, value] of Object.entries(theme.custom ?? {})) {
             if (!declaredCustom.has(normProp(name))) {
                 error(`themes.${themeName}`, `custom token "${name}" is not declared in tokens.custom`);
+            }
+            if (CSS_BREAKOUT.test(String(value))) {
+                error(`themes.${themeName}.custom`, `"${name}": the value ${breakoutMessage(String(value))}`);
             }
         }
         if (theme.extra && Object.keys(theme.extra).length > 0) {
@@ -592,9 +618,14 @@ export function validateDesignSystem<R extends RolesDecl>(
             // Escape hatch or not, an extra's NAME is still emitted as a
             // custom property verbatim — the same silent-drop trap as
             // `tokens.custom`, checked with the same grammar.
-            for (const name of Object.keys(theme.extra)) {
+            for (const [name, value] of Object.entries(theme.extra)) {
                 if (!TOKEN_KEY_PATTERN.test(normProp(name).slice(2))) {
                     error(`themes.${themeName}.extra`, `extra token "${name}" is not a kebab-case identifier (it becomes the custom property ${normProp(name)})`);
+                }
+                // Escape hatch for the name's typing, not for the value's
+                // grammar: it is emitted verbatim all the same (#183).
+                if (CSS_BREAKOUT.test(String(value))) {
+                    error(`themes.${themeName}.extra`, `"${name}": the value ${breakoutMessage(String(value))}`);
                 }
             }
         }

@@ -28,7 +28,7 @@ import {
     systemNodeAt,
     tokenProperty,
 } from '../../contract.js';
-import { DEFAULT_SOFT_MIX, resolveSystemTokens, softMixPercent } from '../shared.js';
+import { DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, assertTokenValue, badPropertySyntaxMessage, resolveSystemTokens, softMixPercent } from '../shared.js';
 import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tokens.js';
 
 const softVar = (role: string, mix: number): string =>
@@ -199,6 +199,10 @@ function propertyRegistrations(input: TokensInput<any>, roles: RolesDecl, light:
     for (const [name, decl] of Object.entries(input.custom ?? {})) {
         if (!decl.syntax) continue;
         const prop = customProp(name);
+        // Written inside a quoted string: a quote would close it (#183).
+        if (!PROPERTY_SYNTAX_PATTERN.test(decl.syntax)) {
+            throw new Error(`[zero-kit] custom token "${name}" ${badPropertySyntaxMessage(decl.syntax)}`);
+        }
         const initial = customValues[prop];
         if (!initial && decl.syntax !== '*') continue;
         rules.push(
@@ -244,8 +248,8 @@ function withTextFixedAliases(props: Record<string, string>): Record<string, str
  * scheme needs the `prefers-color-scheme` treatment regardless of which
  * authoring field it came from.
  */
-function nonColorFor(input: TokensInput<any, any>, theme: AnyTheme): Record<string, string> {
-    return withTextFixedAliases({
+function nonColorFor(input: TokensInput<any, any>, theme: AnyTheme, where: string): Record<string, string> {
+    const props = withTextFixedAliases({
         ...resolveSystemTokens(
             input.system,
             theme.colorScheme === 'dark' ? input.systemDark : undefined,
@@ -253,6 +257,17 @@ function nonColorFor(input: TokensInput<any, any>, theme: AnyTheme): Record<stri
         ),
         ...themeOwnProps(theme),
     });
+    // Every one of these is written into a `--prop: value;` declaration
+    // verbatim — the recipe values' break-out guard, applied here (#183).
+    for (const [prop, value] of Object.entries(props)) assertTokenValue(where, prop, value);
+    return props;
+}
+
+/** Colours too: only the required ones are parsed by the validator, and an explicit `-soft` is emitted verbatim. */
+function assertThemeColors(theme: AnyTheme, where: string): void {
+    for (const [token, value] of Object.entries(theme.colors as Record<string, string>)) {
+        assertTokenValue(where, `--color-${token}`, String(value));
+    }
 }
 
 /**
@@ -312,8 +327,9 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
         ? input.themes[input.defaultDark]
         : undefined;
 
-    const nonColorLight = nonColorFor(input, light);
-    const nonColorDark = dark ? nonColorFor(input, dark) : {};
+    for (const [name, theme] of Object.entries(input.themes)) assertThemeColors(theme, `tokens, theme "${name}"`);
+    const nonColorLight = nonColorFor(input, light, `tokens, theme "${input.defaultLight}"`);
+    const nonColorDark = dark ? nonColorFor(input, dark, `tokens, theme "${input.defaultDark}"`) : {};
     // Properties that resolve differently per scheme. These need the
     // `prefers-color-scheme` block below AND must be restated by every theme
     // block — otherwise a `<div data-theme="light">` nested under a
@@ -388,7 +404,7 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
                 `[zero-kit] theme "${name}" is not a kebab-case identifier — it becomes the selector [data-theme="${name}"]`,
             );
         }
-        const nonColor = nonColorFor(input, theme);
+        const nonColor = nonColorFor(input, theme, `tokens, theme "${name}"`);
         // Emit only what this theme actually changes relative to the :root
         // defaults, plus the scheme-divergent set. Everything else is
         // inherited, so restating it would be dead weight in every theme.

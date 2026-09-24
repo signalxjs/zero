@@ -88,6 +88,27 @@ describe('declaration values', () => {
     });
 });
 
+describe('data: URIs in a declaration value (#183)', () => {
+    it('still rejects a ;base64 data URI, but names the ;-free spellings', () => {
+        expect(() => compile({
+            parts: { root: { base: { backgroundImage: 'url("data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=")' } } },
+        })).toThrow(/data: URI.*%3B.*;base64/s);
+    });
+
+    it('keeps the plain message for a value that is not a data: URI', () => {
+        expect(() => compile({
+            parts: { root: { base: { color: 'red; color: blue' } } },
+        })).toThrow(/cannot hold a brace, semicolon or newline — it would end the declaration and everything after it would be read as CSS$/);
+    });
+
+    it('accepts a percent-encoded, semicolon-free SVG data URI', () => {
+        const css = compile({
+            parts: { root: { base: { backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27/%3E")' } } },
+        });
+        expect(css).toContain('background-image: url("data:image/svg+xml,%3Csvg');
+    });
+});
+
 describe('keyframes names', () => {
     it('rejects a name that escapes into a selector', () => {
         expect(() => compile({

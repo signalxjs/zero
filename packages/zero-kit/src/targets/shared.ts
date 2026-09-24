@@ -48,10 +48,27 @@ export const PROPERTY_NAME_PATTERN = /^(?:--[A-Za-z_][A-Za-z0-9_-]*|-?[a-z][a-z0
 /**
  * What can never appear in a declaration value or a selector fragment: the
  * structural characters that end the current declaration/rule and start
- * another. Quotes, commas and parens all stay legal — `content: '";"'` is the
- * one legitimate spelling this rejects, and a hard error beats an escape.
+ * another. Quotes, commas and parens all stay legal. The guard does not skip
+ * quoted strings — a tokenizer that got escapes or an unbalanced quote wrong
+ * would reopen the surface — so `content: '";"'` and a `;base64` data URI are
+ * the legitimate spellings it rejects, and a hard error beats an escape.
+ * `breakoutMessage` names the `;`-free spellings for the data URI case (#183).
  */
 export const CSS_BREAKOUT = /[{};\n\r]/;
+
+/**
+ * Why a value failed `CSS_BREAKOUT`, as the tail of an error message. A
+ * `data:` URI gets the workaround spelled out: its `;` can be percent-encoded
+ * (`%3B`) in a plain (non-base64) payload, but the `;base64` marker itself
+ * cannot, so a base64 image has to be served as a file instead.
+ */
+export function breakoutMessage(value: string): string {
+    const base = 'cannot hold a brace, semicolon or newline — it would end the declaration and everything after it would be read as CSS';
+    if (!/\bdata:/i.test(value)) return base;
+    return `${base}. For a data: URI, write the payload percent-encoded with no literal ";" `
+        + '(e.g. url("data:image/svg+xml,%3Csvg …%3E"), with any ";" inside it as %3B); '
+        + 'a ";base64" marker cannot be encoded, so serve a base64 image as a file and reference it with url()';
+}
 
 export function assertDeclaration(where: string, prop: string, value: string): void {
     if (!PROPERTY_NAME_PATTERN.test(kebab(prop))) {
@@ -60,11 +77,32 @@ export function assertDeclaration(where: string, prop: string, value: string): v
         );
     }
     if (CSS_BREAKOUT.test(value)) {
-        throw new Error(
-            `[zero-kit] ${where}: the value of "${prop}" cannot hold a brace, semicolon or newline — it would end the declaration and everything after it would be read as CSS`,
-        );
+        throw new Error(`[zero-kit] ${where}: the value of "${prop}" ${breakoutMessage(value)}`);
     }
 }
+
+/**
+ * A token VALUE (a category value, a `custom` / `extra` value, a colour) is
+ * written into a `--prop: value;` declaration exactly like a recipe value, so
+ * it gets the same break-out guard (#183). The property name is the
+ * compiler's own spelling here, already held to the token-key grammar.
+ */
+export function assertTokenValue(where: string, prop: string, value: string): void {
+    if (CSS_BREAKOUT.test(value)) {
+        throw new Error(`[zero-kit] ${where}: the value of "${prop}" ${breakoutMessage(value)}`);
+    }
+}
+
+/**
+ * An `@property` `syntax` descriptor is written inside a single-quoted string
+ * (`syntax: '<color>';`), so a quote or backslash ends that string early on
+ * top of the usual structural characters. The grammar itself (`<length> |
+ * <percentage>`, `<color>#`, `*`, custom idents) never needs any of them.
+ */
+export const PROPERTY_SYNTAX_PATTERN = /^[^'"\\{};\n\r]+$/;
+
+export const badPropertySyntaxMessage = (syntax: string): string =>
+    `has syntax ${JSON.stringify(syntax)}, which cannot hold a quote, backslash, brace, semicolon or newline — it is written into a quoted @property syntax string, and everything after the break would be read as CSS`;
 
 export const declBlock = (props: CssProps, indentation: string, where = 'recipe'): string =>
     Object.entries(props)
