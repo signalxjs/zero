@@ -42,7 +42,9 @@ describe('the primary button fill (#190)', () => {
                 else walk(value);
             }
         };
-        walk(button);
+        // Only the declaration-bearing sections: `hooks` documents the same
+        // property names in prose, which is not a fill.
+        walk([button.tokens, button.parts, button.variants, button.modifiers]);
         expect(fills.length).toBeGreaterThan(0);
         expect(fills.filter((f) => f.includes('var(--carbon-interactive)'))).toEqual([]);
         expect(fills).toEqual(expect.arrayContaining([
