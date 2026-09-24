@@ -84,7 +84,9 @@ export async function main(argv: readonly string[], io: CliIo = {
     if (values.help) {
         io.stdout(USAGE);
         try {
-            io.stdout(`\nBriefs: ${Object.keys(load().briefs).join(', ')}`);
+            const briefs = Object.keys(load().briefs).join(', ');
+            io.stdout('');
+            io.stdout(`Briefs: ${briefs}`);
         } catch {
             // No templates — the usage text stands on its own.
         }
