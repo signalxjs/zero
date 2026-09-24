@@ -5,6 +5,9 @@ on:
     branches: [main]
   push:
     branches: [main]
+  # The merge queue (#159) builds each queued group on a temporary ref and
+  # waits for the required checks to report on it.
+  merge_group:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -62,6 +65,8 @@ jobs:
         run: pnpm test
 
   e2e:
+    # Already ran on the PR; the queue only waits on the required checks.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -116,6 +121,8 @@ jobs:
         run: pnpm verify:pack
 
   coverage:
+    # Already ran on the PR; the queue only waits on the required checks.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
