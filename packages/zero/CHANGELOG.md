@@ -111,8 +111,6 @@
   the viewport never resumes a pause it did not take. `pause()`/`resume()`
   remain one shared flag, so an app's own `pause()` is still cleared when
   the viewport releases its hold.
-### Fixed
-
 - **Accessible names without dangling references (#169).**
   `RadioGroup.Label` now has an id and names its radiogroup outside a
   Field too; inside one it joins the Field's label (and any app
