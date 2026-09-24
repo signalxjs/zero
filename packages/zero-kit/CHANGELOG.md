@@ -20,6 +20,20 @@
 
 ### Fixed
 
+- **`sigx zero:fragment`'s lynx probe defines the standard non-colour
+  tokens (#158).** The hostile-vocabulary probe withheld the colour roles
+  and the size ramp, as it should. It also withheld every `--space-*`,
+  `--font-*`, `--weight-*`, `--leading-*`, `--tracking-*`, `--measure-*`,
+  `--shadow-*`, `--duration-*` and `--ease-*` key, so the lynx dangling-var
+  check failed a pack for vocabulary every real design system defines. A
+  pack written to the recommended grammar had to carry a fallback on every
+  such reference. The probe now defines each recommended key at
+  `@sigx/zero/css`'s fallback values, pinned by a test. A step the fit
+  collapses to its category's resting key (`--tracking-wider` →
+  `--tracking-normal`) resolves too. A pack needs fallbacks only for its
+  own tokens. An adopter that emits lynx and omits a category still fails
+  its own lynx build on the dangling reference, so a pack may keep
+  `var(--space-md, 0.5rem)` if it wants to survive that adopter.
 - **`:root` `-soft` tints follow the system scheme (#179).** The default
   light/dark pair emitted `light-dark()` for `<role>-soft` only when both
   themes spelled it; otherwise the light side — its explicit value or its
