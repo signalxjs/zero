@@ -23,7 +23,7 @@ describe('items that arrive after the first render (#172)', () => {
         const s = signal({ list: undefined as string[] | undefined, value: undefined as unknown });
         const App = component(() => () => (
             <Select.Root
-                items={s.list as string[]}
+                items={s.list}
                 name="later"
                 placeholder="Loading…"
                 onValueChange={(v: unknown) => { s.value = v; }}
@@ -51,7 +51,7 @@ describe('items that arrive after the first render (#172)', () => {
         const s = signal({ list: undefined as string[] | undefined, value: undefined as unknown });
         const App = component(() => () => (
             <Combobox.Root
-                items={s.list as string[]}
+                items={s.list}
                 name="later"
                 defaultOpen
                 onValueChange={(v: unknown) => { s.value = v; }}
@@ -71,7 +71,7 @@ describe('items that arrive after the first render (#172)', () => {
 
     it('RadioGroup renders one radio per item once the list resolves', async () => {
         const s = signal({ list: undefined as string[] | undefined });
-        const App = component(() => () => <RadioGroup.Root items={s.list as string[]} name="plan" />);
+        const App = component(() => () => <RadioGroup.Root items={s.list} name="plan" />);
         render(<App />, container);
         expect(itemCount()).toBe(0);
         s.list = ['free', 'pro'];

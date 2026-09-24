@@ -521,13 +521,15 @@ export type SelectRoot = {
     (props: JsxProps<SelectRootProps<unknown, string[]>> & { items?: undefined; defaultValue?: string[]; itemValue?: undefined; multiple: true }): JSXElement;
     // An item model is `T | null`: nothing selected is `null` (the runtime
     // writes it on clear, reset and a platform write), never a fake item.
-    <T>(props: JsxProps<SelectRootProps<T, T | null>> & { items: ReadonlyArray<T>; defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
-    <T>(props: JsxProps<SelectRootProps<T, T[]>> & { items: ReadonlyArray<T>; defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
+    // `items` may be `undefined` while a list loads (`items={query.data}`,
+    // #172): a present-but-undefined prop is still this data shape.
+    <T>(props: JsxProps<SelectRootProps<T, T | null>> & { items: ReadonlyArray<T> | undefined; defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
+    <T>(props: JsxProps<SelectRootProps<T, T[]>> & { items: ReadonlyArray<T> | undefined; defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
     // A value model is `V | null` for the same reason — V is whatever
     // `itemValue` returns (a number as readily as a string), so no member of
     // it can stand for "nothing selected".
-    <T, V>(props: JsxProps<SelectRootProps<T, V | null>> & { items: ReadonlyArray<T>; defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
-    <T, V>(props: JsxProps<SelectRootProps<T, V[]>> & { items: ReadonlyArray<T>; defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
+    <T, V>(props: JsxProps<SelectRootProps<T, V | null>> & { items: ReadonlyArray<T> | undefined; defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
+    <T, V>(props: JsxProps<SelectRootProps<T, V[]>> & { items: ReadonlyArray<T> | undefined; defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
 } & FactoryBrands;
 
 const SelectRoot = SelectRootImpl as unknown as SelectRoot;

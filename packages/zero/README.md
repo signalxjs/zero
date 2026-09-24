@@ -176,8 +176,10 @@ into the same collection. An `items` that is still `undefined` on the first
 render (a list still loading) may arrive later: the root turns data-driven
 the moment it does — Select, Combobox and RadioGroup alike — and "nothing
 selected" becomes `null` from then on (an uncontrolled model seeded `''`
-still reads as empty). Passing `[]` while loading keeps the model's shape
-fixed from the start. Combobox filters by default — a contains-match on
+still reads as empty). The types follow: `items={query.data}` typed
+`T[] | undefined` picks the data overload, so the model is `T | null` (or
+`V | null` with `itemValue`) with no cast. Passing `[]` while loading keeps
+the model's shape fixed from the start. Combobox filters by default — a contains-match on
 the label — `filter` replaces the rule and `filter={false}` shows a
 server-filtered list as is; `Combobox.Empty` renders only while nothing is
 visible. Under `multiple`, Combobox renders each chosen value as a tag in

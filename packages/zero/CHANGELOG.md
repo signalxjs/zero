@@ -236,9 +236,12 @@
   root hand-written for its whole life, so the later list rendered no items
   and posted no options. The mode is now reactive — the root turns
   data-driven when `items` arrives, and its "nothing selected" sentinel
-  follows (`null` in data mode). `createCollection` takes an optional
-  `mode` getter, and `createListboxCore`'s `emptyValue` accepts a getter,
-  to carry this.
+  follows (`null` in data mode). The data-mode overloads of `Select.Root`
+  and `Combobox.Root` now accept `items: T[] | undefined`, so
+  `items={query.data}` types without a cast. `createCollection` takes an
+  optional `mode` getter, and `createListboxCore`'s `emptyValue` accepts a
+  getter, to carry this — a function passed as `emptyValue` is now CALLED
+  on every read rather than stored as the sentinel.
 
 ## [0.5.0] - 2026-09-23
 

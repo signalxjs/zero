@@ -4,13 +4,20 @@
  * `items` infer `T` while the model stays the posted string.
  */
 import { signal } from 'sigx';
-import { Combobox, RadioGroup, ToggleGroup } from '@sigx/zero';
+import { Combobox, RadioGroup, Select, ToggleGroup } from '@sigx/zero';
 
 interface Plan { id: string; name: string }
 const plans: Plan[] = [];
-const state = signal({ align: '', marks: [] as string[], plan: '', n: 0, planObjs: [] as Plan[], code: '' as string | null });
+const state = signal({ align: '', marks: [] as string[], plan: '', n: 0, planObjs: [] as Plan[], code: '' as string | null, planObj: null as Plan | null });
+// A list still loading (#172): `items` is `T[] | undefined`, the usual shape of a query result.
+const loading = null as unknown as Plan[] | undefined;
 
 // ── valid ──
+// Items that arrive later type as data mode: the model is the item (or itemValue's V), nullable.
+export const selectLoading = <Select.Root items={loading} model={() => state.planObj} onValueChange={(v) => v?.name} />;
+export const selectLoadingKeys = <Select.Root items={loading} itemValue={(p) => p.id} model={() => state.code} />;
+export const comboboxLoading = <Combobox.Root items={loading} multiple model={() => state.planObjs} />;
+export const radioLoading = <RadioGroup.Root items={loading} itemKey={(p) => p.id} model={() => state.plan} />;
 export const single = <ToggleGroup.Root model={() => state.align} defaultValue="left" onValueChange={(v) => v.toUpperCase()} />;
 export const multiple = <ToggleGroup.Root multiple model={() => state.marks} defaultValue={['b']} onValueChange={(v) => v.length} />;
 export const radioItems = <RadioGroup.Root items={plans} itemKey={(p) => p.id} itemLabel={(p) => p.name} model={() => state.plan} slots={{ item: ({ item }) => <b>{item.name}</b> }} />;
@@ -51,5 +58,9 @@ export const e2 = <ToggleGroup.Root multiple model={() => state.align} />;
 export const e3 = <ToggleGroup.Root defaultValue={['a']} />;
 // @ts-expect-error — the model is the posted string, never the item
 export const e4 = <RadioGroup.Root items={plans} model={() => state.n} />;
+// @ts-expect-error — a loading list is still data mode: the model is the item, not the key string
+export const e12 = <Select.Root items={loading} model={() => state.align} />;
+// @ts-expect-error — the same for Combobox
+export const e13 = <Combobox.Root items={loading} model={() => state.align} />;
 // @ts-expect-error — itemKey's parameter is the item
 export const e5 = <RadioGroup.Root items={plans} itemKey={(p: number) => String(p)} />;

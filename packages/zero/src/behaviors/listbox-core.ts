@@ -49,7 +49,7 @@ export interface ListboxOptions<T> {
      * can arrive after the first render passes one (#172). A model value is
      * never a function, so the sentinel itself cannot be one.
      */
-    emptyValue?: unknown;
+    emptyValue?: unknown | (() => unknown);
     /** After a selection lands (Select closes; Combobox closes and fills its input). */
     onSelect?: (key: string) => void;
 }
