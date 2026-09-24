@@ -21,6 +21,16 @@ import { BELOW_PREFIX, BUILTIN_CONDITIONS } from '../recipes.js';
 import { generateTypeScale } from '../scale.js';
 import type { SystemTokens, ThemeSystem, TypographyDecl } from '../tokens.js';
 
+export { DEFAULT_SOFT_MIX } from '../contract.js';
+
+/**
+ * A `softMix` ratio as the percentage `color-mix()` takes — unrounded, so the
+ * live web tint and the validator mix at the exact ratio the baker
+ * (`bakeSoft`: lynx, the audit) evaluates, and fixed to four places so
+ * float noise (`0.07 * 100`) never reaches the CSS.
+ */
+export const softMixPercent = (mix: number): string => `${+(mix * 100).toFixed(4)}%`;
+
 export const kebab = (prop: string): string =>
     prop.startsWith('--') ? prop : prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
 

@@ -71,6 +71,13 @@ anchor `-soft` derivation, `light-dark()` emission and theme swatches.
 `defaultLight`) there is one scheme, and `:root` takes the default theme's
 own `colorScheme` — a dark-only design system names its dark theme as
 `defaultLight` and ships `color-scheme: dark`.
+Each `<role>-soft` is the theme's explicit value, else a live
+`color-mix(in oklab, var(--color-<role>) <softMix>%, var(--color-base-100))`.
+`softMix` is a ratio in `[0, 1]` (default `0.16`; anything outside is a
+validation error) and is written unrounded — `0.125` is `12.5%`, the ratio
+the lynx target and the contrast audit bake. On `:root` each scheme resolves
+its own side, so system dark with no `data-theme` paints the dark theme's
+tint (its explicit value or its own `softMix`), not the light one's.
 Declared roles are `@property`-registered in the compiled CSS and surfaced,
 with `sizes`, `variants`, `modifiers`, `axes`, `system`, `custom` and
 `breakpoints`, in the DS's `dist/manifest.json` (which also lists every custom

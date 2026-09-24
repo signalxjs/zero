@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **`:root` `-soft` tints follow the system scheme (#179).** The default
+  light/dark pair emitted `light-dark()` for `<role>-soft` only when both
+  themes spelled it; otherwise the light side — its explicit value or its
+  `softMix` — was written for both schemes. So system dark with no
+  `data-theme` painted the light tint, and a dark-only explicit value was
+  ignored. This shipped: zero-basic (softMix 0.10 / 0.14), daisyui, material
+  and brutalist all rendered their light percentage under system dark. Each
+  scheme now resolves its own side (explicit value, else its own `softMix`),
+  and `light-dark()` is emitted whenever the two differ.
+- **`softMix` is written unrounded.** The web emitter and the validator's
+  contrast-pair map rounded the percentage (`0.125` → `13%`) while the lynx
+  target and the audit bake the exact ratio; all four now agree on `12.5%`
+  (fixed to four places, so no float noise reaches the CSS). No in-repo
+  design system changes — every shipped `softMix` is a whole percent.
+- **`softMix` outside `[0, 1]` is a validation error.** The schema's bound
+  was never enforced in the build: `softMix: 16` compiled to an invalid
+  `color-mix(… 1600% …)` that silently dropped every `-soft` surface on web
+  and made the baker extrapolate.
+
 ## [0.5.0] - 2026-09-23
 
 ### Fixed

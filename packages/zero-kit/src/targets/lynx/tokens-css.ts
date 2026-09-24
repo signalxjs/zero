@@ -26,6 +26,7 @@
  */
 import {
     BASE_SURFACE_TOKEN_LIST,
+    DEFAULT_SOFT_MIX,
     TEXT_FIXED_PREFIX,
     TOKEN_KEY_PATTERN,
     resolveRoles,
@@ -112,7 +113,7 @@ function bakedColors(
     report: LynxCapabilityReport,
 ): Record<string, string> {
     const out: Record<string, string> = {};
-    const mix = theme.softMix ?? 0.16;
+    const mix = theme.softMix ?? DEFAULT_SOFT_MIX;
 
     const push = (token: string) => {
         const value = color(theme, token);
