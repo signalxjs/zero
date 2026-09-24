@@ -786,12 +786,17 @@ and `0`. Rules in `@layer zero.structure` are not graded either: that is
 zero's geometry the kit writes into a component stylesheet (a stacked
 table's visually hidden head), not the skin's spacing.
 
-A **recipe pack** should give its ramp references a fallback —
-`var(--space-md, 0.5rem)`. `system.spacing` is optional, and a design system
-that omits it emits no `--space-*`; on web zero's base stylesheet still
-resolves the reference, but lynx has no fallback layer, so the declaration
-would be dropped and the part would paint nothing. `sigx zero:fragment`'s
-hostile-vocabulary probe refuses exactly that.
+A **recipe pack** may read the standard ramps bare — `var(--space-md)`,
+`var(--font-mono)`, `var(--duration-fast)`. `sigx zero:fragment`'s
+hostile-vocabulary probe withholds the colour roles and the size ramp, but it
+defines every recommended key of `--space-*`, `--font-*`, `--weight-*`,
+`--leading-*`, `--tracking-*`, `--measure-*`, `--shadow-*`, `--duration-*`
+and `--ease-*` at `@sigx/zero/css`'s fallback values, since every real design
+system defines them (#158). A pack needs fallbacks only for its own tokens.
+`system.spacing` is still optional, though, and lynx has no fallback layer:
+an adopter that emits lynx and omits a category fails its own lynx build on
+the dangling-var check, which names the property. A pack that wants to survive
+that adopter too can still write `var(--space-md, 0.5rem)`.
 
 ## Ecosystem components
 

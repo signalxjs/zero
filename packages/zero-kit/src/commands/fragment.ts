@@ -106,10 +106,52 @@ function fragmentValidator(): ValidateFunction {
  * ramp. What an adopting skin like zero-heroui actually offers — and the
  * shape a pack written to the recommended grammar has to be *fitted* onto
  * rather than assume.
+ *
+ * What it does NOT withhold is the standard non-colour vocabulary (#158):
+ * every recommended key of `--font-*`, `--weight-*`, `--leading-*`,
+ * `--tracking-*`, `--space-*`, `--measure-*`, `--shadow-*`, `--duration-*`
+ * and `--ease-*`, at `@sigx/zero/css/base.css`'s own fallback values. Every
+ * design system defines those, so a recipe in the recommended grammar reads
+ * them bare — and lynx has no base stylesheet, so without them here the
+ * dangling-var gate would fail a pack for vocabulary it never invented. The
+ * `--radius-*`/`--size-*`/`--text-*` ramps need no entry: the lynx emitter
+ * already writes `STRUCTURAL_FALLBACKS` into `.zx-root`. A step off the
+ * recommended ramp (`--tracking-wider`) is collapsed by the fit to its
+ * category's resting step, which is always one of these, so it resolves too.
+ * Values are pinned to base.css in `fragment-command.test.ts`.
  */
-const HOSTILE_TOKENS: TokensInput = {
+export const HOSTILE_TOKENS: TokensInput = {
     roles: {},
     sizes: [],
+    system: {
+        typography: {
+            fonts: {
+                sans: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+                serif: 'ui-serif, Georgia, Cambria, serif',
+                mono: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                display: 'var(--font-sans)',
+            },
+            weights: { normal: 400, medium: 500, semibold: 600, bold: 700 },
+            leading: { none: 1, tight: 1.25, normal: 1.5, relaxed: 1.75 },
+            tracking: { tight: '-0.01em', normal: '0em', wide: '0.05em' },
+        },
+        spacing: {
+            '2xs': '0.125rem', xs: '0.25rem', sm: '0.375rem', md: '0.5rem',
+            lg: '0.75rem', xl: '1rem', '2xl': '1.5rem',
+        },
+        measure: { xs: '20rem', sm: '30rem', md: '48rem', lg: '64rem', xl: '80rem', prose: '65ch' },
+        shadow: {
+            xs: '0 1px 2px oklch(0% 0 0 / 0.06)',
+            sm: '0 1px 3px oklch(0% 0 0 / 0.1)',
+            md: '0 4px 12px -2px oklch(0% 0 0 / 0.12)',
+            lg: '0 12px 32px -8px oklch(0% 0 0 / 0.18)',
+            xl: '0 24px 56px -12px oklch(0% 0 0 / 0.24)',
+        },
+        motion: {
+            durations: { instant: '0ms', fast: '120ms', normal: '200ms', slow: '320ms' },
+            easings: { linear: 'linear', standard: 'cubic-bezier(0.2, 0, 0, 1)', emphasized: 'cubic-bezier(0.3, 0, 0, 1)' },
+        },
+    },
     themes: {
         probe: {
             colorScheme: 'light',

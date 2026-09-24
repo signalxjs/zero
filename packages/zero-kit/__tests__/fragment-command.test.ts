@@ -13,11 +13,16 @@
  * `commands/audit.ts` is, and `checkFragment` — everything after the imports
  * — is what this exercises.
  */
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
 import { FRAGMENT_VERSION } from '@sigx/zero-kit';
 import type { ManifestComponent, ManifestFragment, RecipeInput, ZeroManifest } from '@sigx/zero-kit';
-import { checkFragment, rootEntry } from '../src/commands/fragment.js';
+import { HOSTILE_TOKENS, checkFragment, rootEntry } from '../src/commands/fragment.js';
+import { TOKEN_CATEGORIES, tokenProperty } from '../src/contract.js';
+import { STRUCTURAL_FALLBACKS, resolveSystemTokens } from '../src/targets/shared.js';
 import type { FragmentCheckInput } from '../src/commands/fragment.js';
 
 const stepper = defineAnatomy('acme-stepper', {
@@ -266,6 +271,74 @@ describe('checkFragment', () => {
         const result = checkFragment(input({ module: { fragment: fragment(), recipes: [pressy] } }));
         expect(errors(result)).toEqual([]);
         expect(warnings(result).join('\n')).toMatch(/not lynx-clean/);
+    });
+
+    it('lets a pack read the standard token vocabulary bare on the lynx probe (#158)', () => {
+        // Every design system defines --space-*, --font-*, … — so a recipe in
+        // the recommended grammar reads them without a fallback. The probe
+        // must define them too, or the lynx dangling-var gate fails the pack
+        // for vocabulary it never invented.
+        const standard: RecipeInput = {
+            component: 'acme-stepper',
+            parts: {
+                root: { base: { display: 'flex', gap: 'var(--space-2xs)', padding: 'var(--space-2xl)', maxWidth: 'var(--measure-prose)' } },
+                item: {
+                    base: {
+                        fontFamily: 'var(--font-mono)',
+                        fontWeight: 'var(--weight-semibold)',
+                        lineHeight: 'var(--leading-tight)',
+                        letterSpacing: 'var(--tracking-wide)',
+                        boxShadow: 'var(--shadow-lg)',
+                        transitionDuration: 'var(--duration-fast)',
+                        transitionTimingFunction: 'var(--ease-standard)',
+                    },
+                    states: { active: {}, inactive: {} },
+                },
+            },
+        };
+        const result = checkFragment(input({ module: { fragment: fragment(), recipes: [standard] } }));
+        expect(errors(result)).toEqual([]);
+        expect(warnings(result)).toEqual([]);
+    });
+
+    it('resolves a step the probe does not declare once the fitter snaps it (#158)', () => {
+        // `--tracking-wider` is an extra step of the pack's own design
+        // system: the fitter collapses it to the resting `--tracking-normal`,
+        // which must then resolve on the probe rather than dangle.
+        const extra: RecipeInput = {
+            component: 'acme-stepper',
+            parts: {
+                root: { base: { letterSpacing: 'var(--tracking-wider)', gap: 'var(--space-3xl)' } },
+                item: { base: { color: 'var(--color-base-content)' }, states: { active: {}, inactive: {} } },
+            },
+        };
+        const result = checkFragment(input({ module: { fragment: fragment(), recipes: [extra] } }));
+        expect(errors(result)).toEqual([]);
+    });
+});
+
+/**
+ * The probe defines the standard non-colour vocabulary at base.css's own
+ * fallback values (#158). Two copies of the same numbers drift, so — like the
+ * lynx `STRUCTURAL_FALLBACKS` pin — this reads the base.css that ships.
+ */
+describe('the lynx probe vocabulary', () => {
+    const baseCss = readFileSync(
+        createRequire(join(process.cwd(), 'noop.js')).resolve('@sigx/zero/css'),
+        'utf8',
+    );
+    const probe = resolveSystemTokens(HOSTILE_TOKENS.system);
+
+    it.each(Object.entries(probe))('%s matches base.css', (prop, value) => {
+        expect(baseCss).toContain(`${prop}: ${value};`);
+    });
+
+    it('covers every recommended key the lynx structural fallbacks leave out', () => {
+        const missing = TOKEN_CATEGORIES
+            .filter((c) => c.shape === 'scale')
+            .flatMap((c) => c.recommended.map((key) => tokenProperty(c, key)))
+            .filter((prop) => !(prop in STRUCTURAL_FALLBACKS) && !(prop in probe));
+        expect(missing).toEqual([]);
     });
 });
 

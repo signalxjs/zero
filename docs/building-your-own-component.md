@@ -142,7 +142,11 @@ build:
 - and a **hostile-vocabulary probe**: your pack, fitted to a design system
   with no colour roles and no size ramp, still compiles — and still paints. A
   scope that draws only through the colour axis renders as nothing there, and
-  you should hear that from this command rather than from an adopter.
+  you should hear that from this command rather than from an adopter. The
+  probe does define the recommended non-colour tokens (`--space-*`,
+  `--font-*`, `--weight-*`, `--leading-*`, `--tracking-*`, `--measure-*`,
+  `--shadow-*`, `--duration-*`, `--ease-*`), so your recipes may read those
+  bare. Only your own tokens need a `var(--x, <fallback>)` for lynx.
 
 It warns rather than fails on an unprefixed scope (what counts as a vendor is
 not checkable; the collision it invites later is), and on a pack that is not
