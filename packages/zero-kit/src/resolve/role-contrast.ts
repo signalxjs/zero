@@ -58,5 +58,5 @@ export function measureRolePair(colors: Record<string, string>, bg: string, fg: 
         surface = compositeOver(b, page);
     }
     const ink = compositeOver(f, surface);
-    return { ratio: wcagContrast(ink, surface), bg: surface, fg: f, translucentFg: (f.alpha ?? 1) < 1, translucentBg: surface !== b };
+    return { ratio: wcagContrast(ink, surface), bg: surface, fg: ink, translucentFg: (f.alpha ?? 1) < 1, translucentBg: surface !== b };
 }
