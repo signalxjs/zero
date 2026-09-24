@@ -107,6 +107,16 @@
   lynx with its 17th function onward left as raw `oklch()`. It affects the
   lynx target and the static contrast matrix; no in-repo design system
   writes any of these forms, so no emitted byte changed.
+- **A rebuild no longer leaves stale artifacts in `dist/` (#186).**
+  `writeArtifacts` and `writeLynxArtifacts` only ever wrote, so a removed
+  recipe's `css/components/<scope>.css` stayed importable through the
+  `./css/*` export (and packable from a dirty local dist), as did
+  `components.{js,d.ts}` after the api was dropped, `audit.json` after
+  `audit: false`, and `dist/lynx/` after the lynx target was dropped. Now
+  `css/components/` and `lynx/components/` are cleared before writing, the
+  optional top-level artifacts a run does not produce are removed, and
+  `runStandardBuild` removes `outDir/lynx` when `'lynx'` is not a target.
+  Nothing else in `outDir` is touched, so tsgo's emitted JS survives.
 
 ## [0.5.0] - 2026-09-23
 

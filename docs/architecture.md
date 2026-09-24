@@ -1203,7 +1203,11 @@ once in `@sigx/zero-kit/build`, and a skin's `build.mjs` is ~15 lines of
 declaration passing. The CLI (`sigx zero:build` / `zero:validate` /
 `zero:audit`, aliased `build`/`validate`/`audit`, discovered through the
 `"sigx-cli"` field) calls the same functions, so the CLI path and the
-build.mjs path cannot drift.
+build.mjs path cannot drift. A rebuild into an existing `dist/` also clears
+what the kit owns (#186) — `css/components/`, `lynx/components/`, `lynx/`
+when it is not a target, and any optional artifact (`components.{js,d.ts}`,
+`report.json`, `audit.json`) the run does not produce — after every
+validation that can throw, and never `outDir` itself, where tsgo's JS lives.
 
 **The audit is an artifact as well as a command.** After the compile,
 `runStandardBuild` runs `auditDesignSystem` on it (opt-out `audit: false`),

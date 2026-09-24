@@ -17,7 +17,7 @@
  * (wired by `runStandardBuild`), so one file still answers "what did this
  * design system ship".
  */
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -279,26 +279,17 @@ export async function writeLynxArtifacts(
 ): Promise<string[]> {
     const lynxDir = join(outDir, 'lynx');
     const componentsDir = join(lynxDir, 'components');
-    await mkdir(componentsDir, { recursive: true });
 
-    const written: string[] = [];
-    const write = async (path: string, content: string) => {
-        await writeFile(path, content.endsWith('\n') ? content : content + '\n');
-        written.push(path);
-    };
-
-    await write(join(lynxDir, 'tokens.css'), lynx.tokensCss);
-    for (const [scope, css] of Object.entries(lynx.componentCss)) {
+    // Everything that can throw runs before anything is cleared (#186), so a
+    // failed build never erases the previous good lynx output.
+    for (const scope of Object.keys(lynx.componentCss)) {
         // Same backstop as the web artifacts: the scope IS the filename.
         if (!TOKEN_KEY_PATTERN.test(scope)) {
             throw new Error(
                 `[zero-kit] compiled scope "${scope}" is not a kebab-case identifier — it becomes the lynx/components/<scope>.css filename, so anything else could escape the output directory`,
             );
         }
-        await write(join(componentsDir, `${scope}.css`), css);
     }
-    await write(join(lynxDir, 'index.css'), lynx.indexCss);
-
     const lynxManifest: LynxTargetManifest = {
         ...manifest,
         $schema: LYNX_MANIFEST_SCHEMA_URL,
@@ -324,6 +315,23 @@ export async function writeLynxArtifacts(
             + `lynx-manifest.schema.json — refusing to write it:\n${details}`,
         );
     }
+
+    // Same rule as the web artifacts (#186): a removed recipe's lynx CSS must
+    // not survive a rebuild, so the kit-owned components directory is cleared.
+    await rm(componentsDir, { recursive: true, force: true });
+    await mkdir(componentsDir, { recursive: true });
+
+    const written: string[] = [];
+    const write = async (path: string, content: string) => {
+        await writeFile(path, content.endsWith('\n') ? content : content + '\n');
+        written.push(path);
+    };
+
+    await write(join(lynxDir, 'tokens.css'), lynx.tokensCss);
+    for (const [scope, css] of Object.entries(lynx.componentCss)) {
+        await write(join(componentsDir, `${scope}.css`), css);
+    }
+    await write(join(lynxDir, 'index.css'), lynx.indexCss);
     await write(join(lynxDir, 'manifest.json'), JSON.stringify(emitted, null, 2));
     return written;
 }
