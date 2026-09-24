@@ -107,8 +107,6 @@
   lynx with its 17th function onward left as raw `oklch()`. It affects the
   lynx target and the static contrast matrix; no in-repo design system
   writes any of these forms, so no emitted byte changed.
-### Fixed
-
 - **A rebuild no longer leaves stale artifacts in `dist/` (#186).**
   `writeArtifacts` and `writeLynxArtifacts` only ever wrote, so a removed
   recipe's `css/components/<scope>.css` stayed importable through the
