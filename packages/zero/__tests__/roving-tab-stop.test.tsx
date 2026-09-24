@@ -1,13 +1,13 @@
 /**
  * #165 — the roving tab stop of Tabs, ToggleGroup and Steps survives a
  * value that names no enabled item (a typo, a removed item, a disabled
- * one), and Tabs/Steps flip horizontal arrows under `dir="rtl"` like
+ * one) — as does TreeView's, and Tabs/Steps flip horizontal arrows under `dir="rtl"` like
  * ToggleGroup and TreeView already did.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
-import { Steps, Tabs, ToggleGroup } from '@sigx/zero';
+import { Steps, Tabs, ToggleGroup, TreeView } from '@sigx/zero';
 
 const tabIndexes = (c: HTMLElement, part: string): number[] =>
     [...c.querySelectorAll<HTMLElement>(`[data-part="${part}"]`)].map((el) => el.tabIndex);
@@ -146,6 +146,51 @@ describe('roving tab stop (#165)', () => {
             );
             expect(tabIndexes(c, 'item')).toEqual([-1, 0]);
             expectOneFocusableStop(c, 'item');
+        });
+        it('TreeView: an unknown value leaves the first enabled node as the stop', () => {
+            render(
+                <TreeView.Root defaultValue="typo">
+                    <TreeView.Label>F</TreeView.Label>
+                    <TreeView.Tree>
+                        <TreeView.Item value="a">A</TreeView.Item>
+                        <TreeView.Item value="b">B</TreeView.Item>
+                    </TreeView.Tree>
+                </TreeView.Root>,
+                c,
+            );
+            expect(tabIndexes(c, 'item')).toEqual([0, -1]);
+            expectOneFocusableStop(c, 'item');
+        });
+
+        it('TreeView: a selected node that renders after the others still claims the stop alone', () => {
+            render(
+                <TreeView.Root defaultValue="b">
+                    <TreeView.Label>F</TreeView.Label>
+                    <TreeView.Tree>
+                        <TreeView.Item value="a">A</TreeView.Item>
+                        <TreeView.Item value="b">B</TreeView.Item>
+                    </TreeView.Tree>
+                </TreeView.Root>,
+                c,
+            );
+            expect(tabIndexes(c, 'item')).toEqual([-1, 0]);
+        });
+
+        it('TreeView: removing the selected node moves the stop to the first enabled node', () => {
+            const show = signal({ b: true });
+            render(
+                <TreeView.Root defaultValue="b">
+                    <TreeView.Label>F</TreeView.Label>
+                    <TreeView.Tree>
+                        <TreeView.Item value="a">A</TreeView.Item>
+                        {() => (show.b ? <TreeView.Item value="b">B</TreeView.Item> : null)}
+                    </TreeView.Tree>
+                </TreeView.Root>,
+                c,
+            );
+            expect(tabIndexes(c, 'item')).toEqual([-1, 0]);
+            show.b = false;
+            expect(tabIndexes(c, 'item')).toEqual([0]);
         });
     });
 

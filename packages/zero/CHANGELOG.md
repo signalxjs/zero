@@ -29,6 +29,19 @@
   during setup, run a mount hook's reactive work through the function it
   returns, and every effect or watch created there stops with the component.
 - `syncPopover` returns a stopper (it returned `void`).
+- **Collapsible and Accordion follow the native `<details>` toggle (#166).**
+  Both rendered `open` from the model only, so when the browser opened a
+  closed section by itself (find-in-page, fragment navigation) the parts
+  kept `data-state="closed"` and `aria-expanded="false"` over an open panel,
+  and the next click only resynced the model: closing took two presses. The
+  `toggle` event now writes the model (Accordion goes through the same
+  `toggle` as a click, so single mode closes the others). When the model
+  refuses the change (a disabled root or item), the element is
+  reverted to match the model.
+- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
+  encodes a string into an id-safe token, injective over strings, for
+  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
+  other code point (`_` included) becomes `_<hex>_`.
 
 ### Fixed
 
@@ -165,7 +178,9 @@
   value naming no rendered item (a typo, a removed tab) or only a disabled
   one left every item at `tabIndex=-1` and the group unreachable by
   keyboard. The stop now falls back to the first enabled item, and moves
-  again when items are added or removed.
+  again when items are added or removed. TreeView already fell back for a
+  disabled or collapsed-away selection, but a value naming no node still
+  left the tree unreachable; it now falls back too.
 - **Tabs and Steps honour `dir="rtl"` (#165).** Their horizontal arrow keys
   ignored the reading direction, so ArrowRight moved to the visually left
   item. They now flip under RTL like ToggleGroup and TreeView.
