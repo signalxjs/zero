@@ -552,11 +552,10 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** ext-stepper — color wired. */
+            /** ext-stepper — color, size wired. */
             'ext-stepper': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
-                /** Accepts `size` at runtime, but no basic recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no basic recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;

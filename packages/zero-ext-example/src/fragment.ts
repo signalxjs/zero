@@ -68,6 +68,10 @@ export const recipes: RecipeInput[] = [{
                 borderRadius: 'var(--radius-selector, 0.25rem)',
                 background: 'var(--color-base-100)',
                 color: 'var(--color-base-content)',
+                // The `md` step of the size axis below — the un-attributed
+                // render IS the middle step, the convention every in-repo
+                // skin follows. Padding is in `em`, so it rides the type.
+                fontSize: 'var(--text-md, 1rem)',
                 paddingInline: '0.75em',
                 paddingBlock: '0.375em',
                 cursor: 'pointer',
@@ -88,7 +92,12 @@ export const recipes: RecipeInput[] = [{
                     outlineOffset: '2px',
                 },
                 disabled: {
-                    opacity: '0.5',
+                    // The adopter's own fade (#192): every skin sets
+                    // `--disabled-opacity` (0.25–0.5), and a literal here
+                    // made the stepper the one part that ignored it. The
+                    // fallback is zero's base.css default, for lynx, which
+                    // has no fallback layer.
+                    opacity: 'var(--disabled-opacity, 0.4)',
                     cursor: 'not-allowed',
                 },
             },
@@ -100,6 +109,21 @@ export const recipes: RecipeInput[] = [{
     // exactly that), and an adopting register module proves an ecosystem
     // scope narrows exactly like a zero one (type-tests/ecosystem/).
     variants: {
+        // The size axis over the recommended ramp (#192). An adopter that
+        // declares a size axis offers `size` on every scope, so a pack that
+        // wired none shipped a prop typed `never` and an axis-coverage
+        // warning. Size moves metrics only: the type steps along
+        // `--text-*` and the `em` padding follows. A closed ramp (heroui's
+        // `sm | md | lg`) is fitted on adoption — the off-ramp steps drop.
+        size: {
+            xs: { item: { base: { fontSize: 'var(--text-xs, 0.75rem)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-sm, 0.875rem)' } } },
+            // The base already is the middle step; an empty entry emits no
+            // rule and keeps it.
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-lg, 1.125rem)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-xl, 1.25rem)' } } },
+        },
         color: Object.fromEntries(RECOMMENDED_ROLE_LIST.map((role) => [role, {
             item: {
                 states: {
