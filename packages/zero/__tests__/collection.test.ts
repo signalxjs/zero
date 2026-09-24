@@ -100,6 +100,17 @@ describe('createCollection — data mode', () => {
         expect(c.keys()).toEqual(['a']);
     });
 
+    it('items() follows the mode: a mode that says jsx hides the data list', () => {
+        const state = signal({ jsx: true });
+        const c = createCollection<string>({ items: () => ['a', 'b'], mode: () => (state.jsx ? 'jsx' : 'data') });
+        expect(c.items()).toEqual([]);
+        expect(c.keys()).toEqual([]);
+        expect(c.byKey('a')).toBeUndefined();
+        state.jsx = false;
+        expect(c.items()).toEqual(['a', 'b']);
+        expect(c.byKey('a')).toBe('a');
+    });
+
     it('items are read reactively', () => {
         const state = signal({ list: ['a'] as string[] });
         const c = createCollection<string>({ items: () => state.list });
