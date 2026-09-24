@@ -619,7 +619,7 @@ test.describe('the shared design-system list', () => {
             for (const match of source.matchAll(/\[[^[\]]*\]/g)) {
                 const literal = match[0];
                 if (ids.every((id) => new RegExp(`['"\`]${id}['"\`]`).test(literal))) {
-                    const line = source.slice(0, match.index).split('\n').length;
+                    const line = source.slice(0, match.index ?? 0).split('\n').length;
                     offenders.push(`${file}:${line}`);
                 }
             }
