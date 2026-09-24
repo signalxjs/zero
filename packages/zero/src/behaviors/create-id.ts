@@ -48,8 +48,11 @@ const ID_SAFE = /[A-Za-z0-9-]/;
  * `apple`); every other code point — `_` included, since it is the escape —
  * becomes `_<hex>_`. The mapping is injective over strings: `New York` →
  * `New_20_York` and `New_York` → `New_5f_York` never collide, so two
- * distinct values never share an id. The result is also a valid CSS identifier tail, so a
- * `#${id}` selector needs no escaping.
+ * distinct values never share an id. The token contains only characters a
+ * CSS identifier allows after its first one, so an id that *ends* with it
+ * behind an ident-start prefix (`zx-tabs-1-tab-…`) needs no selector
+ * escaping. Used as a whole id, a token that starts with a digit still
+ * does (`#\31 …`), so reach for `CSS.escape` there.
  *
  * Build BOTH sides of a reference with it — the element's `id` and every
  * attribute naming it — or they drift apart.
