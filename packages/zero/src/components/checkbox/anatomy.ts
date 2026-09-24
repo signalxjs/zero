@@ -16,6 +16,7 @@ export const checkboxAnatomy = defineAnatomy('checkbox', {
     },
     indicator: {
         element: 'span',
+        paint: true,
         parent: 'control',
         states: ['checked', 'unchecked', 'indeterminate'],
         tokens: ['color'],

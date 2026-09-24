@@ -49,6 +49,11 @@ export const menuAnatomy = defineAnatomy('menu', {
     // both hosts sit inside the popup — the ancestor walk accepts either.
     'item-indicator': {
         element: 'span',
+        // No glyph: zero renders an empty span and the recipe draws the
+        // mark. `parent` names the containing popup; the mark sits on a
+        // checkbox or radio ROW, and radio-item shares the checkbox row's
+        // grammar in every skin, so one host measures both.
+        paint: { host: 'checkbox-item' },
         parent: 'popup',
         states: ['checked', 'unchecked'],
         tokens: ['color'],

@@ -658,6 +658,13 @@ export function parseLayoutAttr(name: string): { attr: LayoutAttrName; breakpoin
 
 // ── Minimal structural mirror of @sigx/zero's AnatomyJSON/manifest types ──
 
+/** A paint part's facts — zero's `PartPaint` (see `ManifestPart.paint`). */
+export interface ManifestPaint {
+    glyph?: string;
+    only?: string;
+    host?: string;
+}
+
 export interface ManifestPart {
     name: string;
     element: string;
@@ -704,6 +711,16 @@ export interface ManifestPart {
      * present; absent for every part the runtime never hides.
      */
     hiddenIn?: readonly string[];
+    /**
+     * Present when the part's job is PAINT rather than text (#31) — zero's
+     * `PartSpec.paint`. The contrast audit's indicator matrix measures
+     * exactly the declared paint parts: `glyph` is the default mark zero
+     * renders without children, `only` the flag the part cannot exist
+     * without (one of its `flags`), `host` the part the mark is measured on
+     * when `parent` names only the containing part. `true` when none apply;
+     * absent for parts that paint nothing of their own.
+     */
+    paint?: true | ManifestPaint;
     tokens?: readonly string[];
     asChild?: boolean;
     /**

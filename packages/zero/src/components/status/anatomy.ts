@@ -19,6 +19,9 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const statusAnatomy = defineAnatomy('status', {
     root: {
         element: 'span',
+        // Spinner's static sibling (#334): an empty element whose whole job is
+        // paint.
+        paint: true,
         tokens: ['color', 'size'],
     },
 });

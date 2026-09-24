@@ -47,12 +47,15 @@ export const paginationAnatomy = defineAnatomy('pagination', {
     },
     'prev-trigger': {
         element: 'button',
+        // The `‹`/`›` glyph is the only affordance for "there are more pages" (#339).
+        paint: { glyph: '‹' },
         parent: 'root',
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size'],
     },
     'next-trigger': {
         element: 'button',
+        paint: { glyph: '›' },
         parent: 'root',
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size'],

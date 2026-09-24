@@ -233,4 +233,52 @@ describe('anatomy registry', () => {
         expect(carrying).toContain('timeline.marker');
         expect(carrying).toContain('steps.item');
     });
+
+    it('a paint declaration is consistent with its own part', () => {
+        // `paint` (#31) is what the contrast audit measures as a mark. `only`
+        // names one of the part's own flags; `host` names a rendered part
+        // inside the declared parent; `glyph` is a real character; a pseudo
+        // part renders nothing to measure.
+        type P = { parent?: string; flags?: readonly string[]; pseudo?: unknown; paint?: true | { glyph?: string; only?: string; host?: string } };
+        const painting: string[] = [];
+        for (const anatomy of Object.values(anatomies)) {
+            const parts = anatomy.parts as Record<string, P>;
+            for (const [name, part] of Object.entries(parts)) {
+                if (part.paint === undefined) continue;
+                const at = `${anatomy.scope}.${name}`;
+                painting.push(at);
+                expect(part.pseudo, `${at}: a pseudo part paints nothing of its own`).toBeUndefined();
+                if (part.paint === true) continue;
+                expect(Object.keys(part.paint).length, `${at}: an empty paint object — declare paint: true`).toBeGreaterThan(0);
+                if (part.paint.glyph !== undefined) expect(part.paint.glyph.length, `${at}: empty glyph`).toBeGreaterThan(0);
+                if (part.paint.only !== undefined) expect(part.flags ?? [], `${at}: paint.only`).toContain(part.paint.only);
+                if (part.paint.host !== undefined) {
+                    const host = parts[part.paint.host];
+                    expect(host, `${at}: paint.host "${part.paint.host}" is not a declared part`).toBeDefined();
+                    expect(host.pseudo, `${at}: paint.host is a pseudo part`).toBeUndefined();
+                    const chain: string[] = [];
+                    for (let cursor = host.parent; cursor !== undefined; cursor = parts[cursor]?.parent) chain.push(cursor);
+                    expect(part.parent, `${at}: paint.host needs a declared parent to refine`).toBeDefined();
+                    expect(chain, `${at}: paint.host must sit inside the declared parent`).toContain(part.parent);
+                }
+            }
+        }
+        expect(painting).toContain('rating-group.item');
+        expect(painting).toContain('menu.item-indicator');
+    });
+
+    it('every part the paint-only naming pattern picks declares paint', () => {
+        // The part-name vocabulary reserves `indicator`, `<thing>-indicator`,
+        // `thumb` and `range` for marks; one of those with no `text` hint and
+        // no `paint` is a mark the contrast audit would silently skip.
+        const undeclared: string[] = [];
+        for (const anatomy of Object.values(anatomies)) {
+            for (const [name, part] of Object.entries<{ tokens?: readonly string[]; paint?: unknown }>(anatomy.parts)) {
+                if (/^(?:.*-)?(?:indicator|thumb|range)$/.test(name) && !part.tokens?.includes('text') && part.paint === undefined) {
+                    undeclared.push(`${anatomy.scope}.${name}`);
+                }
+            }
+        }
+        expect(undeclared).toEqual([]);
+    });
 });

@@ -246,6 +246,22 @@ and a part the runtime never hides omits the key — the schema rejects an
 empty array, since a key claiming nothing reads as a fact where there is
 none.
 
+**`paint` is an audit fact (#31).** A part whose job is paint rather than
+text — checkbox's `indicator`, switch's `thumb`, the rating star, the
+spinner, timeline's `marker` — declares `paint`, and the contrast audit's
+indicator matrix measures exactly the declared parts, static and in the
+browser, against the 3:1 non-text floor. `paint: true` when the mark needs
+nothing more; otherwise `{ glyph?, only?, host? }`: the default mark zero
+renders without children (`▾`, `✓`, `›`, `★`), the flag the part cannot
+exist without (`select.item-indicator` mounts only while `selected`), and
+the part the mark is measured on when `parent` names only the containing
+one (menu's `item-indicator` sits in a checkbox or radio row; `parent` is
+the popup, `host` the checkbox row). It replaced a hand table in the kit,
+so an ecosystem component declares its own mark. The part-name vocabulary
+(`indicator`, `<thing>-indicator`, `thumb`, `range`) survives as a guard:
+such a part with no `text` hint and no `paint` fails zero's anatomy suite
+and the audit's coverage check.
+
 **Pseudo parts.** A part that renders no element of its own (dialog's
 `backdrop`) declares `pseudo: { of, selector }`; selectors compose with the
 pseudo-element last, so states narrow the host — the only thing an attribute
@@ -857,7 +873,7 @@ layout family as `layoutPrefix` plus a `layoutVocabulary` of attribute →
 permitted values and whether it varies per breakpoint), the
 token grammar (`colors`, `categories`, recommended ramps), and `components`
 — an **array** of `anatomy.toJSON()` snapshots, each part with its
-`parent`, `states`, `flags`, `placements`, `layout`, `carries`, `hiddenIn`, `pseudo`, hints, and
+`parent`, `states`, `flags`, `placements`, `layout`, `carries`, `hiddenIn`, `paint`, `pseudo`, hints, and
 ready-made per-state selector fragments (what the recipe compiler
 consumes), and — for a component whose API carries state — `models`: one
 entry per model with what it binds (`name`, absent for the unnamed `model`
@@ -906,7 +922,9 @@ selector-breakout characters, and then the shared vocabularies on the
 ecosystem surface — flags against `FLAG_VOCABULARY`, states against
 `STATE_NAMES` with synonyms in the message, placements, `hiddenIn ⊆
 states`, `carries` (named axes only, non-empty and unrepeated, never on the
-carrier or a `pseudo` part), and `parent` acyclicity. A scope collision is a hard error naming
+carrier or a `pseudo` part), `parent` acyclicity, and `paint` (`true` or a
+non-empty `{ glyph, only, host }`, never on a `pseudo` part, `only` one of
+the part's flags, `host` a rendered part inside the declared parent, which must exist). A scope collision is a hard error naming
 the existing owner; every merged component is stamped with its owning
 `package` (provenance), which survives compilation and drives the
 register artifact's `Exclude`-form gate and the components module's import
@@ -1493,7 +1511,7 @@ checking a fraction of what it claimed.)
 | Register compile gate | `zero-kit/__tests__/register-dts-compile.test.ts` | Every skin's emitted `register.d.ts` compiles with `skipLibCheck: false` against a generated stub of `@sigx/zero`, so the artifact's self-assertions actually execute ([§3.5](#35-the-register-artifact)). |
 | Typed-app capstone | `examples/typed-app` (CI, after build) | The consumer side: three isolated programs against **emitted `dist/`** through real package exports — register narrowing, the no-register components surface, and carbon's values remap. |
 | Interaction e2e (22 specs) | `examples/playground/e2e/` — press-feedback, dialog, drawer, popover, tooltip, menu-submenu, context-menu, combobox, select, toast-presence, tabs, tree-view, slider, number-input, rating-group, carousel, diff | Real-browser contracts (chromium/firefox/webkit, plus reduced-motion and forced-colors projects), under the **locator law** (`e2e/demo.ts`): a part is located through a named root, never page-wide selectors or cross-demo positional indexing. |
-| Static contrast matrix | `zero-kit/src/audit/contrast/` via the `contrast/*` audit rules; `contrast-static.test.ts` (the six skins at zero `contrast/*` errors and a named set of unmeasured reasons each; one red fixture per browser finding — #210, #116, #211, #207 — and one per `unmeasured` reason), `contrast-selector.test.ts`, `contrast-cascade.test.ts` | The browser contrast audit's two matrices computed from **compiled CSS**: the same cell product (ported, the indicator chains now derived from the part tree), a three-valued selector matcher for the emitted grammar, a computed-style model for what a reading depends on, the same compositing and floors. Every cell the reader cannot judge is `unmeasured` with a closed reason and reported as `info` — never a pass. Reachable by a design system built outside this repo. |
+| Static contrast matrix | `zero-kit/src/audit/contrast/` via the `contrast/*` audit rules; `contrast-static.test.ts` (the six skins at zero `contrast/*` errors and a named set of unmeasured reasons each; one red fixture per browser finding — #210, #116, #211, #207 — and one per `unmeasured` reason), `contrast-selector.test.ts`, `contrast-cascade.test.ts` | The browser contrast audit's two matrices computed from **compiled CSS**: the same cell product (ported; the marks are the anatomy's declared `paint` parts, #31, and their chains are derived from the part tree), a three-valued selector matcher for the emitted grammar, a computed-style model for what a reading depends on, the same compositing and floors. Every cell the reader cannot judge is `unmeasured` with a closed reason and reported as `info` — never a pass. Reachable by a design system built outside this repo. |
 | Contrast audit | `e2e/contrast-audit.spec.ts` | Two matrices over every state combination × skin × theme: text legibility for text-bearing parts and indicator paint for parts whose job is paint, measured in their real ancestor chains (derived from the part tree); each skin's wired axis surface rides the text matrix, and a mark on a part that re-carries a colour axis (#94, timeline's marker) is measured once per wired colour with the attribute on the part itself (`axisHost`: the nearest re-carrier in the chain, else the root) — as is text on or inside such a part (#112, steps' item: the active title, the disc's digit), even in a scope with no variant, where colour is otherwise left to the token validator; 3:1 hard floor, 2:1 for `disabled` measured pre-fade. The ground truth the static matrix answers to. |
 | Contrast parity gate | `e2e/contrast-audit.spec.ts`, the parity block in every `contrast:` / `indicator contrast:` test, plus `reference media` | The static matrix against the browser matrix on every cell the static side CLAIMS: one cell product (the spec imports `textCells`/`axisCellsFor`/`indicatorCellsFor`/`cellKey` from the kit — a reading the static side does not list, or a claim the browser has no reading for, is a disagreement), painted-at-all agrees, ratios agree to `max(0.15, 2%)` (8-bit premultiplied canvas compositing of a translucent wash over a dark surface), floor verdicts agree except within tolerance of the floor (annotated). The measured share is pinned per skin from BOTH ends (`STATIC_COVERAGE`, +5 points of headroom): the estimate can neither retreat into `unmeasured` unnoticed nor quietly claim more. `reference media` holds the chromium project to `REFERENCE_MEDIA`. Its first run found three misreads in the estimate — `calc()` border widths read as zero, the UA stylesheet's `buttontext` on real form controls, and `color-mix()` inventing a hue for an achromatic endpoint — all fixed in the kit, never by bending the browser side. The converse came later (#123): an achromatic colour WRITTEN in the mix's own space (`oklch(100% 0 0)` mixed `in oklch`) is never converted, so its hue is real and the browser interpolates toward it — the baker keeps the components an operand wrote in the mix space, and the theme environment hands `color-mix()` the tokens as written. |
 | DS smoke | `e2e/ds-smoke.spec.ts` | All six skins: `hidden` computes `display: none`, no undeclared axis/mod value renders, the runtime swap leaves one live stylesheet and re-seeds vocabulary + themes, boot logs no console error. |

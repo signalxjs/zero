@@ -73,7 +73,6 @@ import {
     AXIS_CELL_BUDGET,
     DISABLED_FLOOR,
     FLOOR,
-    INDICATORS,
     REFERENCE_MEDIA,
     auditDesignSystem,
     axisCellsFor,
@@ -83,6 +82,7 @@ import {
     colourBearingAxes,
     derivedChainAncestors,
     indicatorCellsFor,
+    paintSpecs,
     textCells,
     uncoveredPaintParts,
 } from '@sigx/zero-kit';
@@ -328,15 +328,14 @@ function installColorMath(): void {
 
 // ── The indicator matrix (#228) ─────────────────────────────────────────────
 //
-// The selection rule (`PAINT_ONLY_PART`), the hand opt-ins and the `glyph` /
-// `only` facts are the kit's `INDICATORS` table (`zero-kit/src/audit/contrast/
-// paint-parts.ts`), with the ancestor chains DERIVED from the anatomy's part
-// tree — every containing part up to the top, popup ancestors pinned open.
-// The hand-listed chains this file used to carry were pinned equal to the
-// derived ones, row for row, in the kit's `contrast-static.test.ts` before
-// they were retired here; one entry (`menu`) keeps a hand chain, because the
-// anatomy names the containing popup while the mark sits on a host ROW the
-// tree does not know.
+// Which parts are marks, and their `glyph` / `only` / `host` facts, are
+// DECLARED in each anatomy (`PartSpec.paint`, #31) and read by the kit's
+// `paintSpecs` (`zero-kit/src/audit/contrast/paint-parts.ts`), with the
+// ancestor chains DERIVED from the anatomy's part tree — every containing
+// part up to the top, popup ancestors pinned open. The hand-listed chains
+// this file used to carry were pinned equal to the derived ones, row for row,
+// in the kit's `contrast-static.test.ts` before they were retired here; menu's
+// mark reaches the host ROW the tree does not know through `paint.host`.
 //
 // Per design system, because a mark on a part that RE-CARRIES a colour axis
 // (#94 — timeline's marker takes `color`) is also measured once per value the
@@ -377,14 +376,14 @@ interface IndicatorReading {
 test('indicator coverage: every paint-only part has an ancestor chain', ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
 
-    // The kit's own guard, as a function — the same selection rule and the
-    // same table the static matrix measures.
+    // The kit's own guard, as a function — the same declarations the static
+    // matrix measures.
     expect(
         uncoveredPaintParts(anatomy.components),
-        'paint-only parts with no ancestor chain declared — add them to INDICATORS in the kit (or, if the web never renders them, to NOT_RENDERED_ON_WEB)',
+        'paint-only parts that do not declare `paint` in their anatomy — the matrix would skip them',
     ).toEqual([]);
-    // And not vacuously: the table must name the marks the six skins draw.
-    expect(INDICATORS.length).toBeGreaterThanOrEqual(20);
+    // And not vacuously: the anatomy must name the marks the six skins draw.
+    expect(paintSpecs(anatomy.components).length).toBeGreaterThanOrEqual(20);
 });
 
 /**
@@ -1317,7 +1316,7 @@ for (const ds of DESIGN_SYSTEMS) {
             // never asserted here.
             const painted = readings.filter((r) => !r.unpainted);
             const paintedParts = new Set(painted.map((r) => `${r.scope}/${r.part}`));
-            for (const spec of INDICATORS) {
+            for (const spec of paintSpecs(anatomy.components)) {
                 if (paintedParts.has(`${spec.scope}/${spec.part}`)) continue;
                 testInfo.annotations.push({
                     type: 'indicator-never-painted',

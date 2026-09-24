@@ -44,6 +44,39 @@ export interface PartPseudo {
  */
 export type CarriedAxis = 'color' | 'size' | 'variant';
 
+/**
+ * The facts a PAINT part declares (`PartSpec.paint`) beyond being one — what
+ * the contrast audit needs to measure the mark the way a reader sees it.
+ * Each key is optional; a paint part with none of them declares
+ * `paint: true`.
+ */
+export interface PartPaint {
+    /**
+     * The default mark the component itself renders when the app passes no
+     * children (`Select.Indicator` → `▾`, item indicators → `✓`,
+     * `TreeView.BranchIndicator` → `›`, `RatingGroup.Item` → `★`). Omitted
+     * when the recipe draws the mark (checkbox, switch, progress): zero
+     * renders no glyph there, and the audit measures what is on screen.
+     */
+    glyph?: string;
+    /**
+     * The flag the part cannot exist WITHOUT — one of its own `flags`.
+     * `Select.Item` mounts its `✓` only while selected, always with
+     * `data-selected=""` on it, so a reading without the flag measures a
+     * state that never renders.
+     */
+    only?: string;
+    /**
+     * The same-scope part the mark is measured ON, when `parent` names only
+     * the containing part: menu's `item-indicator` declares
+     * `parent: 'popup'` because it can sit in a checkbox or a radio row, and
+     * `host: 'checkbox-item'` names the row the audit builds around it. Only
+     * on a part that declares a `parent`, and the host must itself sit
+     * inside it.
+     */
+    host?: string;
+}
+
 export interface PartSpec {
     /**
      * Default rendered element, e.g. 'button', 'dialog', 'input'. For a
@@ -148,6 +181,19 @@ export interface PartSpec {
      * that re-carries nothing OMITS the key, on the `hiddenIn` reasoning.
      */
     carries?: readonly CarriedAxis[];
+    /**
+     * True (or the mark's facts, `PartPaint`) when the part's job is PAINT
+     * rather than text — a check, a thumb, a range, a dot, a spinner, a
+     * star. A reader who cannot see it cannot use the control, so it answers
+     * to WCAG 1.4.11's non-text floor: the contrast audit (static and in the
+     * browser) measures every declared paint part in every state, inside its
+     * real ancestor chain. Declared rather than guessed from the part's
+     * name, so a mark the naming pattern cannot see (the rating star, the
+     * timeline marker) is measured like any other, and an ecosystem
+     * component declares its own. A part that paints nothing of its own —
+     * a surface, a text part — OMITS the key.
+     */
+    paint?: true | PartPaint;
     /** Contract token groups that typically style this part. */
     tokens?: readonly TokenHint[];
     /** True when the part supports `asChild`. */

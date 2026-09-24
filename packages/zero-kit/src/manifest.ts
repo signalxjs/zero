@@ -232,6 +232,48 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                     cursor = byName.get(cursor)?.parent;
                 }
             }
+            // A declared paint part (#31) is what the contrast audit measures
+            // as a mark — so its facts must resolve against the part itself:
+            // `only` one of its flags, `host` a rendered part inside the
+            // declared parent (the tree is acyclic by now, so the walk ends).
+            for (const part of component.parts) {
+                const paint: unknown = part.paint;
+                if (paint === undefined) continue;
+                if (part.pseudo) {
+                    throw new Error(`[zero-kit] ${at(part.name)} is a pseudo part — it renders no element to paint`);
+                }
+                if (paint === true) continue;
+                if (typeof paint !== 'object' || paint === null || Array.isArray(paint) || Object.keys(paint).length === 0) {
+                    throw new Error(`[zero-kit] ${at(part.name)} has a "paint" that is neither true nor a non-empty object of { glyph, only, host }`);
+                }
+                const { glyph, only, host, ...rest } = paint as { glyph?: unknown; only?: unknown; host?: unknown };
+                const unknownKey = Object.keys(rest)[0];
+                if (unknownKey !== undefined) {
+                    throw new Error(`[zero-kit] ${at(part.name)} declares paint.${unknownKey}, which is not one of glyph, only, host`);
+                }
+                if (glyph !== undefined && (typeof glyph !== 'string' || glyph.length === 0)) {
+                    throw new Error(`[zero-kit] ${at(part.name)} declares a paint.glyph that is not a non-empty string`);
+                }
+                if (only !== undefined && (typeof only !== 'string' || !(part.flags ?? []).includes(only))) {
+                    throw new Error(`[zero-kit] ${at(part.name)} declares paint.only "${String(only)}", which is not one of the part's own flags`);
+                }
+                if (host !== undefined) {
+                    const hostPart = typeof host === 'string' && host !== part.name ? byName.get(host) : undefined;
+                    if (!hostPart || hostPart.pseudo) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares paint.host "${String(host)}", which is not another rendered part of the scope`);
+                    }
+                    // A host refines a declared containing part; a top-level
+                    // mark has nothing to refine, so the chain would be a guess.
+                    if (part.parent === undefined) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares paint.host but no parent — the host must sit inside the part's declared parent`);
+                    }
+                    let cursor = hostPart.parent;
+                    while (cursor !== undefined && cursor !== part.parent) cursor = byName.get(cursor)?.parent;
+                    if (cursor !== part.parent) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares paint.host "${host}", which does not sit inside its declared parent "${part.parent}"`);
+                    }
+                }
+            }
             // The models a fragment claims follow zero's naming rule — the
             // companions are DERIVED from the concept, so a fragment spelling
             // them differently is describing an API zero's tooling would

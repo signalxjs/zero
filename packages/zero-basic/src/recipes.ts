@@ -4235,7 +4235,7 @@ export const divider: RecipeInput = {
  * content — it is the absence of content, and a placeholder loud enough to
  * clear a 3:1 UI-component floor would read as a filled block someone meant.
  * That is why it is not in the contrast audit's indicator matrix and the
- * spinner is: see the note beside `INDICATORS`.
+ * spinner is: see the note beside spinner's `paint` in its anatomy.
  */
 export const skeleton: RecipeInput = {
     component: 'skeleton',

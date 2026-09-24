@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **The contrast audit's marks come from the anatomy (#31).** The indicator
+  matrix measures the parts that declare `paint` in the manifest, read by
+  the new `paintSpecs(components)`. The hand table is gone: `INDICATORS`
+  and `NOT_RENDERED_ON_WEB` are removed, and `IndicatorSpec` trades
+  `ancestors` for `host`, which menu's `item-indicator` uses to reach its
+  row. `uncoveredPaintParts` now reports a part named like a mark
+  (`indicator`, `<thing>-indicator`, `thumb`, `range`) with no `text` hint
+  that does not declare `paint`. `manifest.schema.json` accepts `paint`
+  (`true` or a non-empty `{ glyph, only, host }`), `ManifestPart` carries
+  it (`ManifestPaint`), and `mergeManifests` holds a fragment to it: never
+  on a `pseudo` part, `only` one of the part's flags, `host` a rendered
+  part inside the declared parent. No audit cell changed in any in-repo
+  design system.
+
 ### Fixed
 
 - **`:root` `-soft` tints follow the system scheme (#179).** The default

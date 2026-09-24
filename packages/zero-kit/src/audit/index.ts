@@ -95,8 +95,6 @@ export { blend, contrast, hasInk, luminance, parseColor, resolveOver } from './c
 export type { Cell, Combo, IndicatorCell, IndicatorSpec, NodeSpec, WiredAxes } from './contrast/cells-index.js';
 export {
     AXIS_CELL_BUDGET,
-    INDICATORS,
-    NOT_RENDERED_ON_WEB,
     PAINT_ONLY_PART,
     axisCellsFor,
     axisHost,
@@ -109,6 +107,7 @@ export {
     indicatorAncestors,
     indicatorCellsFor,
     indicatorChains,
+    paintSpecs,
     restingCombos,
     textCells,
     uncoveredPaintParts,

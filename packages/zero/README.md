@@ -985,7 +985,8 @@ same behaviors, held to the same conformance assertion:
   (`parent` — which same-scope part each part renders inside) and, for parts
   that carry `data-placement`, the `placements` subset; parts that take
   layout attributes name theirs as `layout`; a part that re-carries a named
-  axis beside the scope's carrier names it in `carries` — and `toJSON()`
+  axis beside the scope's carrier names it in `carries`; a part whose job
+  is paint rather than text (a check, a thumb, a dot) declares `paint` — and `toJSON()`
   emits exactly the shape zero's own `manifest.json` carries per component.
   States are governed: every value must be a member of `STATE_VOCABULARY`
   (with `STATE_SYNONYMS` naming the member for a rejected spelling), flags of
@@ -1087,6 +1088,16 @@ downstream platform's build.
   disc, bridge and title. The nearest carrier wins: a design system's
   compiled CSS lets the part's own value outrank the carrier's, and a part
   without one follows the carrier.
+- A part's `paint` says its job is PAINT rather than text (#31) — a check,
+  a thumb, a range, a dot, a spinner, the rating star. The contrast audit
+  measures every declared paint part against the 3:1 non-text floor, in
+  every state, inside its real ancestor chain. `paint: true` when nothing
+  more is needed; otherwise `{ glyph?, only?, host? }`: the default mark
+  zero renders without children (`select.indicator` → `▾`), the flag the
+  part cannot exist without (`select.item-indicator` only mounts
+  `selected`), and the part the mark is measured on when `parent` names
+  only the containing one (`menu.item-indicator` → `checkbox-item`). An
+  ecosystem component declares its own marks the same way.
 - A part's `parent` names the same-scope part it renders inside — the
   anatomy's part TREE, from which tooling derives real ancestor chains
   (the contrast audit builds its measurement DOM from it) instead of

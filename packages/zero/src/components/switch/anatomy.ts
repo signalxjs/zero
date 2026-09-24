@@ -20,6 +20,7 @@ export const switchAnatomy = defineAnatomy('switch', {
     },
     thumb: {
         element: 'span',
+        paint: true,
         parent: 'control',
         states: ['checked', 'unchecked'],
         tokens: ['color', 'radius-selector'],

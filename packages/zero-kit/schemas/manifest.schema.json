@@ -320,6 +320,32 @@
                     "items": { "$ref": "#/$defs/kebabToken" },
                     "minItems": 1
                 },
+                "paint": {
+                    "description": "Present when the part's job is paint rather than text — a check, a thumb, a range, a dot, a spinner, a star (#31). The contrast audit (static and in the browser) measures every declared paint part against WCAG 1.4.11's non-text floor in every state, inside its real ancestor chain. `true` when the mark needs no further facts; otherwise an object of them. Omitted entirely for parts that paint nothing of their own; never an empty object.",
+                    "oneOf": [
+                        { "const": true },
+                        {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "minProperties": 1,
+                            "properties": {
+                                "glyph": {
+                                    "description": "The default mark the component renders when the app passes no children (select's indicator → ▾, an item indicator → ✓). Omitted when the recipe draws the mark.",
+                                    "type": "string",
+                                    "minLength": 1
+                                },
+                                "only": {
+                                    "description": "The flag the part cannot exist without — one of its own flags (select's item-indicator mounts only while selected, always with data-selected on it).",
+                                    "$ref": "#/$defs/kebabToken"
+                                },
+                                "host": {
+                                    "description": "The same-scope part the mark is measured on when `parent` names only the containing part (menu's item-indicator: parent popup, host checkbox-item). Only on a part that declares a parent, and must itself sit inside it.",
+                                    "$ref": "#/$defs/kebabToken"
+                                }
+                            }
+                        }
+                    ]
+                },
                 "tokens": {
                     "description": "Contract token groups that typically style this part — a hint for tooling, closed because the hint vocabulary is defined by zero.",
                     "type": "array",

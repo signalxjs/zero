@@ -4,6 +4,18 @@
 
 ### Added
 
+- **A declared `paint` hint on `PartSpec` (#31).** A part whose job is paint
+  rather than text declares `paint: true`, or `{ glyph?, only?, host? }`
+  when the mark needs more: the default mark zero renders without children
+  (`▾`, `✓`, `›`, `★`), the flag the part cannot exist without, and the part
+  the mark is measured on when `parent` names only the containing one. The
+  21 marks the contrast audit measures declare it: checkbox, radio-group,
+  switch, progress, slider, menu, select, combobox, tree-view,
+  rating-group, spinner, status, timeline, badge, carousel, diff,
+  radial-progress and pagination. `toJSON()` emits it into `manifest.json`,
+  and the new `PartPaint` type is exported. An ecosystem component
+  declares its own marks the same way, and the audit measures them with no
+  kit change.
 - **Menu submenus: safe-triangle pointer prediction (#19).** A mouse
   heading diagonally for an open submenu used to cross a sibling item of
   the parent menu, which took hover, moved focus and closed the submenu.

@@ -35,12 +35,16 @@ export const sliderAnatomy = defineAnatomy('slider', {
     },
     range: {
         element: 'div',
+        // The composed range slider's marks (#325), painted on the rail
+        // exactly like progress's.
+        paint: true,
         parent: 'track',
         flags: ['disabled'],
         tokens: ['color', 'radius-selector'],
     },
     thumb: {
         element: 'div',
+        paint: true,
         parent: 'track',
         flags: ['disabled', 'pressed', 'focus-visible'],
         tokens: ['color', 'radius-selector', 'size'],

@@ -15,6 +15,11 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const spinnerAnatomy = defineAnatomy('spinner', {
     root: {
         element: 'span',
+        // Pure paint (#314): an invisible spinner is a real bug, and the
+        // non-text floor is 3:1. Skeleton deliberately does NOT declare it — it
+        // is the absence of content, and a placeholder loud enough to clear
+        // 3:1 would read as a filled block someone meant.
+        paint: true,
         tokens: ['color', 'size'],
     },
 });

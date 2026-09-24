@@ -255,6 +255,51 @@ describe('mergeManifests', () => {
         expect(() => mergeManifests(baseManifest(), withPart({ parent: 'root' })))
             .toThrow(/its own parent/);
     });
+
+    // ── Paint parts (#31): the facts must resolve against the part ──
+    const withParts = (parts: Array<Partial<ManifestComponent['parts'][number]> & { name: string }>): ManifestFragment => ({
+        version: 1,
+        package: '@acme/zero-stepper',
+        components: [{ scope: 'acme-meter', parts: parts.map((p) => ({ element: 'span', selectors: {}, ...p })) }],
+    });
+
+    it('accepts a fragment part declaring paint, and carries it through', () => {
+        const merged = mergeManifests(baseManifest(), withParts([
+            { name: 'root' },
+            { name: 'row', parent: 'root' },
+            { name: 'mark', parent: 'root', flags: ['selected'], paint: { glyph: '✓', only: 'selected', host: 'row' } },
+            { name: 'dot', parent: 'root', paint: true },
+        ]));
+        const parts = merged.components.find((c) => c.scope === 'acme-meter')!.parts;
+        expect(parts.find((p) => p.name === 'mark')!.paint).toEqual({ glyph: '✓', only: 'selected', host: 'row' });
+        expect(parts.find((p) => p.name === 'dot')!.paint).toBe(true);
+    });
+
+    it('rejects a paint declaration whose facts do not resolve against the part', () => {
+        const bad = (paint: unknown, extra: object = {}) => () => mergeManifests(baseManifest(), withParts([
+            { name: 'root' },
+            { name: 'outer', parent: 'root' },
+            { name: 'inner', parent: 'outer' },
+            { name: 'side', parent: 'root' },
+            { name: 'mark', parent: 'outer', flags: ['selected'], paint: paint as true, ...extra },
+        ]));
+        expect(bad({})).toThrow(/neither true nor a non-empty object/);
+        expect(bad(false)).toThrow(/neither true nor a non-empty object/);
+        expect(bad({ colour: 'red' })).toThrow(/paint\.colour/);
+        expect(bad({ glyph: '' })).toThrow(/paint\.glyph/);
+        expect(bad({ only: 'disabled' })).toThrow(/paint\.only "disabled"/);
+        expect(bad({ host: 'ghost' })).toThrow(/paint\.host "ghost"/);
+        expect(bad({ host: 'mark' })).toThrow(/paint\.host "mark"/);
+        expect(bad({ host: 'side' })).toThrow(/does not sit inside its declared parent "outer"/);
+        expect(bad(true, { pseudo: { of: 'root', selector: '::after' } })).toThrow(/pseudo part/);
+        expect(bad({ host: 'inner' })).not.toThrow();
+        // A host refines a declared parent; a top-level mark has none.
+        expect(() => mergeManifests(baseManifest(), withParts([
+            { name: 'root' },
+            { name: 'row', parent: 'root' },
+            { name: 'mark', paint: { host: 'row' } },
+        ]))).toThrow(/paint\.host but no parent/);
+    });
 });
 
 describe('a merged ecosystem scope in the pipeline', () => {

@@ -39,6 +39,9 @@ export const diffAnatomy = defineAnatomy('diff', {
     },
     handle: {
         element: 'div',
+        // The grab affordance must clear the non-text floor against the root's
+        // resting surface.
+        paint: true,
         parent: 'root',
         flags: ['focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'size'],

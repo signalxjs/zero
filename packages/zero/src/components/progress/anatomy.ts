@@ -18,6 +18,7 @@ export const progressAnatomy = defineAnatomy('progress', {
     },
     range: {
         element: 'div',
+        paint: true,
         parent: 'track',
         states: ['loading', 'complete', 'indeterminate'],
         tokens: ['color', 'radius-selector'],

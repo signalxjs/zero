@@ -59,6 +59,9 @@ export const carouselAnatomy = defineAnatomy('carousel', {
     },
     indicator: {
         element: 'button',
+        // Both states are measured — an inactive dot a viewer cannot find is a
+        // pagination they cannot use.
+        paint: true,
         parent: 'indicator-group',
         states: ['active', 'inactive'],
         flags: ['disabled', 'focus-visible', 'pressed'],

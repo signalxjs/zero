@@ -5,7 +5,7 @@
  * `manifest.json` is generated from it.
  */
 export { defineAnatomy } from './contract/anatomy.js';
-export type { Anatomy, AnatomyJSON, CarriedAxis, PartSpec, PartJSON, TokenHint, ModelSpec, ModelJSON } from './contract/anatomy.js';
+export type { Anatomy, AnatomyJSON, CarriedAxis, PartPaint, PartSpec, PartJSON, TokenHint, ModelSpec, ModelJSON } from './contract/anatomy.js';
 
 import type { Anatomy } from './contract/anatomy.js';
 import { tabsAnatomy } from './components/tabs/anatomy.js';

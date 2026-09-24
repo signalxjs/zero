@@ -18,11 +18,10 @@ export {
 } from './cells.js';
 export type { Cell, Combo, IndicatorCell, NodeSpec, WiredAxes } from './cells.js';
 export {
-    INDICATORS,
-    NOT_RENDERED_ON_WEB,
     PAINT_ONLY_PART,
     indicatorAncestors,
     indicatorChains,
+    paintSpecs,
     indicatorCells as indicatorCellsFor,
     uncoveredPaintParts,
 } from './paint-parts.js';
