@@ -260,9 +260,11 @@ A spec that runs once per design system iterates `DESIGN_SYSTEMS` from that
 module, never a retyped list (#193). It is derived from
 `examples/playground/src/design-system-list.ts`, the same data the toolbar's
 registry (`src/design-systems.ts`) is built from — so a new skin is covered
-by every such spec the moment it is registered. `ds-smoke` holds both ends:
-the toolbar must offer exactly that list, and no spec may hardcode every id
-(a per-spec subset, like the skins whose drawer slides, is fine).
+by every such spec the moment it is registered. The list and the registry
+are kept in sync at compile time (a `Record<DesignSystemId, …>`); `ds-smoke`
+adds that the toolbar renders the whole registry in list order, and that no
+spec may hardcode every id (a per-spec subset, like the skins whose drawer
+slides, is fine).
 
 ## Packages
 

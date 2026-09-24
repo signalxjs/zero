@@ -514,24 +514,27 @@ test.describe('the toolbar switcher', () => {
         // Boot on the LAST design system in the list, so the loop below opens
         // with a real change and closes by returning to one already visited —
         // the path that re-reads a cached manifest instead of fetching one.
-        await page.addInitScript(() => {
-            localStorage.setItem('zero-ds', 'carbon');
-        });
+        // Derived, not named: a skin appended to the list moves the boot with it.
+        const last = DESIGN_SYSTEMS.at(-1)!.id;
+        await page.addInitScript((id) => {
+            localStorage.setItem('zero-ds', id);
+        }, last);
         // `#/all` on purpose: the converse assertion below needs the Button
         // variant rows AND the size ramp in one document, and this test's
         // documented cost model is ONE page load for all six design systems.
         await page.goto('/#/all');
-        await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'carbon');
+        await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', last);
 
         const switcher = page.getByRole('group', { name: 'Design system' });
         const themeGroup = page.getByRole('group', { name: 'Theme' });
 
-        // The toolbar offers exactly the shared list, in its order — so a
-        // skin registered without it (or it without the skin) fails HERE,
-        // rather than every per-design-system spec silently skipping it.
+        // The toolbar renders the WHOLE registry, in list order — it neither
+        // filters nor reorders it. That the list and the registry agree at all
+        // is a compile-time fact (`Record<DesignSystemId, …>` in
+        // src/design-systems.ts), not something this assertion proves.
         await expect(
             switcher.getByRole('button'),
-            'the toolbar and the e2e design-system list disagree — both must read src/design-system-list.ts',
+            'the toolbar must offer every design system in src/design-system-list.ts, in its order',
         ).toHaveText(DESIGN_SYSTEMS.map((ds) => ds.label));
 
         for (const ds of DESIGN_SYSTEMS) {
