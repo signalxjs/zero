@@ -696,6 +696,15 @@ const outlinedTrigger: CssProps = {
     cursor: 'pointer',
 };
 
+/**
+ * The disabled state every overlay trigger and dismiss action wears — the
+ * button's own fade (#191). These parts paint an author ink, which overrides
+ * the UA's GrayText for `:disabled`, and `pressable` only drops the hover and
+ * press layers — so without this a disabled trigger kept its full accent and
+ * a pointer cursor.
+ */
+const disabledFade: CssProps = { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' };
+
 /** What every outlined-trigger recipe declares — the accent's resting value. */
 const overlayTriggerTokens = { '--overlay-accent': 'var(--color-primary)' };
 
@@ -730,7 +739,7 @@ export const dialog: RecipeInput = {
     parts: {
         trigger: withPresence(pressable('dialog', 'var(--overlay-accent)'), {
             base: outlinedTrigger,
-            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
+            states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
         popup: withPresence(popupPresence('translateY(24px) scale(0.94)'), {
             // Mobile-first: Material's full-screen dialog below `sm`.
@@ -811,7 +820,7 @@ export const dialog: RecipeInput = {
                 ...label,
                 cursor: 'pointer',
             },
-            states: { disabled: {}, ...focusRing },
+            states: { disabled: disabledFade, ...focusRing },
         }),
         // The alertdialog's least-destructive action — Material's text
         // button, same as close (M3 gives both dialog actions text style).
@@ -826,7 +835,7 @@ export const dialog: RecipeInput = {
                 ...label,
                 cursor: 'pointer',
             },
-            states: { disabled: {}, ...focusRing },
+            states: { disabled: disabledFade, ...focusRing },
         }),
     },
     keyframes: rippleKeyframes('dialog'),
@@ -844,7 +853,7 @@ export const popover: RecipeInput = {
     parts: {
         trigger: withPresence(pressable('popover', 'var(--overlay-accent)'), {
             base: outlinedTrigger,
-            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
+            states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
         popup: withPresence(popupPresence('scale(0.9)'), {
             base: { ...floating, padding: 'var(--space-md)', maxWidth: '20rem' },
@@ -861,7 +870,7 @@ export const popover: RecipeInput = {
                 cursor: 'pointer',
                 ...label,
             },
-            states: { disabled: {}, ...focusRing },
+            states: { disabled: disabledFade, ...focusRing },
         }),
     },
     keyframes: rippleKeyframes('popover'),
@@ -887,7 +896,7 @@ export const tooltip: RecipeInput = {
         // deliberate deviation: nothing opens.
         trigger: {
             base: { ...outlinedTrigger, cursor: 'help' },
-            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
+            states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         },
         popup: withPresence(popupPresence('scale(0.85)'), {
             base: {
@@ -912,7 +921,7 @@ export const menu: RecipeInput = {
     parts: {
         trigger: withPresence(pressable('menu', 'var(--overlay-accent)'), {
             base: outlinedTrigger,
-            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
+            states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
         popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
         // The popup keeps no overflow clip; the item's own clips its ripple.
@@ -4933,7 +4942,7 @@ export const drawer: RecipeInput = {
     parts: {
         trigger: withPresence(pressable('drawer', 'var(--overlay-accent)'), {
             base: outlinedTrigger,
-            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
+            states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
         panel: withPresence(withPresence(popupPresence('none'), sheetSlide(
             'var(--duration-normal) var(--ease-emphasized-decelerate)',
@@ -5005,7 +5014,7 @@ export const drawer: RecipeInput = {
                 ...label,
                 cursor: 'pointer',
             },
-            states: { disabled: {}, ...focusRing },
+            states: { disabled: disabledFade, ...focusRing },
         }),
     },
     keyframes: rippleKeyframes('drawer'),

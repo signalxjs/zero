@@ -17,6 +17,11 @@
         cursor: help;
     }
 
+    [data-scope="tooltip"][data-part="trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
     [data-scope="tooltip"][data-part="trigger"]:focus-visible {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;

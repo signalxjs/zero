@@ -20,6 +20,11 @@
         cursor: pointer;
     }
 
+    [data-scope="popover"][data-part="trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
     [data-scope="popover"][data-part="trigger"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;
@@ -98,6 +103,11 @@
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
         letter-spacing: var(--tracking-wide);
+    }
+
+    [data-scope="popover"][data-part="close"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
     }
 
     [data-scope="popover"][data-part="close"][data-focus-visible] {
