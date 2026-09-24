@@ -464,6 +464,8 @@ describe('Pagination', () => {
         render(<Pagination.Root count={3} pageLabel={(n) => `Sida ${n}`} />, other);
         const localized = [...other.querySelectorAll<HTMLElement>(selector('pagination', 'item'))];
         expect(localized.map((i) => i.getAttribute('aria-label'))).toEqual(['Sida 1', 'Sida 2', 'Sida 3']);
+        render(null, other);
+        other.remove();
     });
 
     it('keeps focus on the activated page when the window shifts (#176)', async () => {
