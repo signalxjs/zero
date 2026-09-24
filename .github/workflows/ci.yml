@@ -91,11 +91,44 @@ jobs:
       - name: Typed-app typecheck (emitted artifacts)
         run: pnpm --filter zero-typed-app typecheck
 
+      # Browser binaries are cached on the Playwright version (#196). The
+      # system libraries still come from apt every run — `install-deps` —
+      # so a hit only saves the download, not the whole step.
+      - name: Resolve Playwright version
+        id: playwright
+        run: echo "version=$(pnpm --filter zero-playground exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ms-playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
       - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm --filter zero-playground exec playwright install --with-deps chromium firefox webkit
+
+      - name: Install Playwright system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter zero-playground exec playwright install-deps chromium firefox webkit
 
       - name: Real-browser interaction suite
         run: pnpm --filter zero-playground e2e
+
+      # A failure used to leave only the github-reporter annotations (#196).
+      # The HTML report plus test-results/ carry the traces recorded on the
+      # first retry (playwright.config.ts), openable with `playwright
+      # show-trace` or `show-report`.
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            examples/playground/playwright-report/
+            examples/playground/test-results/
+          retention-days: 14
 
   verify-pack:
     runs-on: ubuntu-latest

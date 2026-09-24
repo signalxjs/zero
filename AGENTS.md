@@ -227,7 +227,9 @@ runs everything; use
 The dev server's port is `ZERO_E2E_PORT` (default 5199) — set it to run the
 suite from two worktrees at once, since `reuseExistingServer` would otherwise
 let the second borrow the first's server and test the wrong code. CI runs them
-on every PR. The root `pnpm
+on every PR, records a trace on each test's first retry, and on failure
+uploads `playwright-report/` + `test-results/` as the `playwright-report`
+artifact (`playwright show-report` / `show-trace` on the download). The root `pnpm
 typecheck` excludes `examples/`, so the playground has its own:
 `pnpm --filter zero-playground typecheck`.
 
@@ -389,7 +391,11 @@ other change, and the tag is what publishes:
    PR (`chore(release): X.Y.Z`) with Copilot as reviewer, merged like any
    other — that is the release commit.
 3. On `main` at that commit: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-   `release.yml` lints, typechecks, builds, tests, verify-packs and
+   `release.yml` first fails unless the tag equals every publishable
+   package's version (`scripts/check-release-tag.mjs`, #196 — a tag on the
+   wrong commit used to skip everything on npm and still cut a GitHub
+   release; run it locally with `node scripts/check-release-tag.mjs vX.Y.Z`),
+   then lints, typechecks, builds, tests, verify-packs and
    publishes the five packages with npm trusted publishing (OIDC — no
    token) and provenance, then creates the GitHub release. A plain tag
    lands on npm `latest`; a prerelease tag (`v0.4.0-rc.1`, still possible
@@ -405,6 +411,13 @@ registry), then add the trusted publisher for it on npmjs.com and re-run
 the failed workflow. And **the `beta` dist-tag is frozen at 0.3.0-beta.1**:
 a consumer still pinning `beta` sees nothing after it — pin `latest` or a
 caret range.
+
+**Core alignment PRs** (`core-sync.yml`) open with the `CORE_SYNC_TOKEN`
+secret — a fine-grained PAT or GitHub App token with contents +
+pull-requests write on this repo — because a PR opened with the default
+`GITHUB_TOKEN` starts no `pull_request` workflows, so CI never ran on it.
+Without the secret the workflow falls back to `GITHUB_TOKEN`: close and
+reopen the PR (or push an empty commit to it) to start CI.
 
 ## The anatomy contract (repo-specific law)
 

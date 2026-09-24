@@ -1,8 +1,6 @@
-# TODO(sigx-standard): this workflow publishes to npm via trusted publishing
-# (OIDC). It expects `scripts/publish.js` (publishes the repo's package(s) in
-# dependency order) and `scripts/verify-pack.js`. Copy both from signalxjs/core
-# as a starting point, or replace the "Publish to npm" / "Verify pack" steps
-# with your own. Configure trusted publishing per-package on npmjs.com first.
+# Publishes every package in scripts/publish.js to npm with trusted publishing
+# (OIDC, configured per package on npmjs.com), then cuts the GitHub release.
+# The release process lives in AGENTS.md, "Cutting a release".
 name: Release
 
 on:
@@ -29,6 +27,15 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      # First, before anything builds (#196): the tag must equal every
+      # publishable package's version. publish.js publishes what package.json
+      # says and skips what npm already has, so a v0.6.0 tag on the 0.5.0
+      # commit used to skip everything, exit 0 and still cut a GitHub release
+      # — and a prerelease tag on a stable version would publish to `latest`.
+      # Needs no dependencies: the runner's own node reads the package.json files.
+      - name: Check tag matches package versions
+        run: node scripts/check-release-tag.mjs "$GITHUB_REF_NAME"
 
       - uses: pnpm/action-setup@v6
 
