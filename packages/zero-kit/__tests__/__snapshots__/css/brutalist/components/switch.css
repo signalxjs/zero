@@ -138,4 +138,19 @@
         --switch-accent: var(--color-error);
         --switch-on-accent: var(--color-error-content);
     }
+
+    @media (forced-colors: active) {
+        [data-scope="switch"][data-part="thumb"] {
+            forced-color-adjust: none;
+            background: CanvasText;
+        }
+
+        [data-scope="switch"][data-part="thumb"][data-state="checked"] {
+            background: Highlight;
+        }
+
+        [data-scope="switch"][data-part="control"][data-disabled] [data-scope="switch"][data-part="thumb"] {
+            background: GrayText;
+        }
+    }
 }

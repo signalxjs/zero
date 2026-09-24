@@ -96,4 +96,13 @@ not flip, and it turned out four more did not either. What moved with them: the
 toast viewport's start/end placements, the submenu chevron glyph, the collapsed
 tree indicator and the indeterminate progress sweep.
 
+## Forced colours
+
+The switch slab is background paint, which forced colours revalue to `Canvas`.
+The bordered track survived, but the slab inside it vanished, so on and off read
+identically (#189). Under `forced-colors: active` the slab now opts out of
+forcing and paints `CanvasText` at rest and `Highlight` when checked. A disabled
+switch paints `GrayText`, the palette's own disabled ink.
+`e2e/switch-forced-colors.spec.ts` measures it in pixels, in all six skins.
+
 MIT © Andreas Ekdahl

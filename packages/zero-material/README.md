@@ -93,4 +93,13 @@ have: written bare, `:dir(rtl)` outranked the `forced-colors` override beneath
 it, so a half star kept its gradient where it should have dropped to
 `CanvasText`. Written `:where(…)` the two tie and the later rule wins.
 
+## Forced colours
+
+The switch handle is background paint, which forced colours revalue to `Canvas`.
+The bordered track survived, but the handle inside it vanished, so on and off read
+identically (#189). Under `forced-colors: active` the handle now opts out of
+forcing and paints `CanvasText` at rest and `Highlight` when checked. A disabled
+switch paints `GrayText`, the palette's own disabled ink.
+`e2e/switch-forced-colors.spec.ts` measures it in pixels, in all six skins.
+
 MIT © Andreas Ekdahl

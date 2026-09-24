@@ -787,6 +787,29 @@ export const switchRecipe: RecipeInput = {
                             + '0 1px color-mix(in oklab, currentColor calc(var(--depth) * 10%), #0000)',
                         transition: 'background-color var(--duration-instant) var(--ease-standard)',
                     },
+                    at: {
+                        // The knob is `currentColor` background plus shadows:
+                        // forced colours revalue the one to Canvas and drop the
+                        // others, leaving two empty pill outlines that read the
+                        // same on and off (#189). Opt the knob out of forcing
+                        // and paint it in system colours — CanvasText at rest,
+                        // Highlight once checked. The noise and the shadows go
+                        // too: unforced, they would mix the forced ink back in.
+                        'forced-colors': {
+                            base: {
+                                forcedColorAdjust: 'none',
+                                backgroundColor: 'CanvasText',
+                                backgroundImage: 'none',
+                                boxShadow: 'none',
+                            },
+                            states: { checked: { backgroundColor: 'Highlight' } },
+                            // A disabled switch draws in GrayText, the forced palette's
+                            // own disabled ink, not full-strength ink faded by an
+                            // author opacity the user's theme cannot style. Keyed off
+                            // the control's flag, which outranks `checked`.
+                            selectors: { '[data-scope="switch"][data-part="control"][data-disabled] &': { backgroundColor: 'GrayText' } },
+                        },
+                    },
                 },
             },
         },

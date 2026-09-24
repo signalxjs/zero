@@ -230,6 +230,13 @@ shout-scale values pushed the document sideways) and at 400px in every
 skin: a value never wraps, so the root is the row's scroll box — it stays
 inside its column, every value stays inside its own item, and the last one
 is reachable scrolled to the end;
+the **switch forced-colors spec** (`e2e/switch-forced-colors.spec.ts`, #189)
+— forced-colors project only, all six design systems, measured in decoded
+pixels: the control differs strongly from the same box with it hidden, and
+checked differs strongly from unchecked. Forced colours revalue every author
+background to Canvas, so a background-only track or thumb vanished in four
+skins. Byte-equal screenshots are too weak a test here, because daisyUI's
+noise texture made two identical-looking states differ;
 and the **axe audit** (`e2e/axe-audit.spec.ts`, #326) — the ARIA counterpart
 to the contrast audit: chromium + zero-basic only (semantics are engine- and
 skin-independent), it walks every registry page (ids read from the rendered
