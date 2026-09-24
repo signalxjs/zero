@@ -16,6 +16,7 @@ import type { DesignSystemInput } from './design-system.js';
 import { compileDesignSystem } from './design-system.js';
 import type { CompiledDesignSystem } from './design-system.js';
 import { readFileSync } from 'node:fs';
+import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ManifestFragment } from './manifest.js';
 import { attributeFindings, mergeManifests, packagesByScope, whereWithOwner } from './manifest.js';
@@ -229,6 +230,10 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     const written = await writeArtifacts(compiled, outDir, report, audit);
     if (lynx) {
         written.push(...await writeLynxArtifacts(compiled, lynx, buildDsManifest(compiled), outDir));
+    } else {
+        // Dropping the lynx target must drop its output too (#186): outDir/lynx
+        // is written by the kit alone, so a stale copy is removed whole.
+        await rm(join(outDir, 'lynx'), { recursive: true, force: true });
     }
     logger.log(`[${ds.name}] built ${written.length} artifacts`);
     return { result, written };

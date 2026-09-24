@@ -18,7 +18,7 @@
  * dist/components.js        (data-only adapt() wiring for the same — issue #179; only with an `api`)
  * ```
  */
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import { createRequire } from 'node:module';
@@ -233,6 +233,11 @@ export const CSS_EXPORT_DTS = [
  * no coverage report keeps working unchanged; every other artifact is written
  * either way. `audit` likewise: the audit result becomes `audit.json` (its
  * summary already sits in the report, when both were built together).
+ *
+ * A rebuild into the same `outDir` leaves no stale artifact behind:
+ * `css/components/` is cleared first, and `components.{js,d.ts}`,
+ * `report.json` and `audit.json` are removed when this run does not write
+ * them. Nothing else in `outDir` is touched.
  */
 export async function writeArtifacts(
     compiled: CompiledDesignSystem,
@@ -242,7 +247,6 @@ export async function writeArtifacts(
 ): Promise<string[]> {
     const cssDir = join(outDir, 'css');
     const componentsDir = join(cssDir, 'components');
-    await mkdir(componentsDir, { recursive: true });
 
     const written: string[] = [];
     const write = async (path: string, content: string) => {
@@ -265,6 +269,21 @@ export async function writeArtifacts(
             + `ds-manifest.schema.json — refusing to write it:\n${details}`,
         );
     }
+
+    // A rebuild into an existing outDir must leave nothing behind from the
+    // previous run (#186): the package exports `./css/*` straight from
+    // css/components/, so a removed recipe's stale <scope>.css would stay
+    // importable — and packable. The directory is the kit's alone, so it is
+    // cleared whole; every other artifact this run does not write is removed
+    // by name. Never outDir itself: tsgo emits the package's own JS there.
+    await rm(componentsDir, { recursive: true, force: true });
+    await mkdir(componentsDir, { recursive: true });
+    const stale = [
+        ...(compiled.componentApi ? [] : ['components.d.ts', 'components.js']),
+        ...(report ? [] : ['report.json']),
+        ...(audit ? [] : ['audit.json']),
+    ];
+    for (const file of stale) await rm(join(outDir, file), { force: true });
 
     await write(join(cssDir, 'tokens.css'), compiled.tokensCss);
     for (const [scope, css] of Object.entries(compiled.componentCss)) {

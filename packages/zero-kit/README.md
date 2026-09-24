@@ -406,6 +406,14 @@ audit (below) never fails the build: its findings are logged, written as
 `dist/audit.json`, summarised in `report.json` under `audit` and scored;
 `audit: false` skips all of that.
 
+A rebuild into an existing `dist/` leaves nothing stale behind (#186):
+`css/components/` (and `lynx/components/`) is cleared before it is written,
+`components.{js,d.ts}`, `report.json` and `audit.json` are removed when the
+run does not produce them, and `dist/lynx/` is removed when `'lynx'` is not a
+target. So a removed recipe, a dropped api, `audit: false` or a dropped lynx
+target does not leave an importable, packable leftover. Nothing else in
+`outDir` is touched — tsgo's emitted `dist/*.js` lives there too.
+
 `targets` selects the emit targets (default `['web']`, which is today's
 output exactly). The list is validated up front: unknown names fail, `web`
 is not optional (every other target emits beside it), and `'lynx'` — the

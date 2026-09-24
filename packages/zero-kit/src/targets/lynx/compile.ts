@@ -17,7 +17,7 @@
  * (wired by `runStandardBuild`), so one file still answers "what did this
  * design system ship".
  */
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -279,6 +279,9 @@ export async function writeLynxArtifacts(
 ): Promise<string[]> {
     const lynxDir = join(outDir, 'lynx');
     const componentsDir = join(lynxDir, 'components');
+    // Same rule as the web artifacts (#186): a removed recipe's lynx CSS must
+    // not survive a rebuild, so the kit-owned components directory is cleared.
+    await rm(componentsDir, { recursive: true, force: true });
     await mkdir(componentsDir, { recursive: true });
 
     const written: string[] = [];
