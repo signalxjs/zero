@@ -337,7 +337,7 @@
         "@sigx/vite": "catalog:",
         "happy-dom": "^20.0.11",
         "sigx": "catalog:",
-        "typescript": "^6.0.3",
+        "typescript": "^7.0.2",
         "vite": "^8.0.3",
         "vitest": "^4.1.1"
     },
