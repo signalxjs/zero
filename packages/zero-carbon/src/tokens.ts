@@ -33,8 +33,9 @@ export const roles = {} as const satisfies Record<string, RoleDecl>;
  * fills the *kinds* resolve to, not members of a colour axis.
  */
 export const custom = {
-    'carbon-interactive': { description: 'The primary action fill (blue 60).', syntax: '<color>' },
-    'carbon-interactive-ink': { description: 'Ink on the primary fill.', syntax: '<color>' },
+    'carbon-interactive': { description: 'The interactive accent — links, focus, selection and the transparent button kinds\' ink ($interactive: blue 60 on white, blue 50 on g100).', syntax: '<color>' },
+    'carbon-interactive-ink': { description: 'Ink on an interactive or primary-button fill.', syntax: '<color>' },
+    'carbon-button-primary': { description: 'The primary button fill ($button-primary) — blue 60 in every theme, unlike $interactive, which lightens on g100 (#190).', syntax: '<color>' },
     'carbon-secondary': { description: 'The secondary fill (gray 80).', syntax: '<color>' },
     'carbon-secondary-ink': { description: 'Ink on the secondary fill.', syntax: '<color>' },
     'carbon-danger': { description: 'The destructive fill (red 60).', syntax: '<color>' },
@@ -198,6 +199,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
             custom: {
                 'carbon-interactive': 'oklch(53% 0.23 262)',
                 'carbon-interactive-ink': 'oklch(100% 0 0)',
+                'carbon-button-primary': 'oklch(53% 0.23 262)',
                 'carbon-secondary': 'oklch(35.6% 0 0)',
                 'carbon-secondary-ink': 'oklch(100% 0 0)',
                 'carbon-danger': 'oklch(55.6% 0.213 27)',
@@ -221,6 +223,11 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
             custom: {
                 'carbon-interactive': 'oklch(62% 0.19 262)',
                 'carbon-interactive-ink': 'oklch(100% 0 0)',
+                // Carbon keeps $button-primary at blue 60 on g100 while
+                // $interactive lightens to blue 50: the lighter blue reads
+                // as ink on the dark base, but under a white label it is
+                // 3.74:1 (#190). Same value as white, on purpose.
+                'carbon-button-primary': 'oklch(53% 0.23 262)',
                 'carbon-secondary': 'oklch(48.4% 0 0)',
                 'carbon-secondary-ink': 'oklch(100% 0 0)',
                 'carbon-danger': 'oklch(60% 0.19 25)',

@@ -3,6 +3,7 @@
 
 @property --carbon-interactive { syntax: '<color>'; inherits: true; initial-value: oklch(53% 0.23 262); }
 @property --carbon-interactive-ink { syntax: '<color>'; inherits: true; initial-value: oklch(100% 0 0); }
+@property --carbon-button-primary { syntax: '<color>'; inherits: true; initial-value: oklch(53% 0.23 262); }
 @property --carbon-secondary { syntax: '<color>'; inherits: true; initial-value: oklch(35.6% 0 0); }
 @property --carbon-secondary-ink { syntax: '<color>'; inherits: true; initial-value: oklch(100% 0 0); }
 @property --carbon-danger { syntax: '<color>'; inherits: true; initial-value: oklch(55.6% 0.213 27); }
@@ -74,6 +75,7 @@
         --disabled-opacity: 0.25;
         --carbon-interactive: oklch(53% 0.23 262);
         --carbon-interactive-ink: oklch(100% 0 0);
+        --carbon-button-primary: oklch(53% 0.23 262);
         --carbon-secondary: oklch(35.6% 0 0);
         --carbon-secondary-ink: oklch(100% 0 0);
         --carbon-danger: oklch(55.6% 0.213 27);
@@ -2300,7 +2302,7 @@
 
 @layer zero.recipes {
     [data-scope="button"][data-part="root"] {
-        --btn-fill: var(--carbon-interactive);
+        --btn-fill: var(--carbon-button-primary);
         --btn-ink: var(--carbon-interactive-ink);
         --btn-line: transparent;
         --btn-fill-hover: color-mix(in oklab, var(--btn-fill) 90%, black);
@@ -2376,8 +2378,8 @@
         --btn-fill: transparent;
         --btn-ink: var(--carbon-interactive);
         --btn-line: var(--carbon-interactive);
-        --btn-fill-hover: var(--carbon-interactive);
-        --btn-fill-active: color-mix(in oklab, var(--carbon-interactive) 78%, black);
+        --btn-fill-hover: var(--carbon-button-primary);
+        --btn-fill-active: color-mix(in oklab, var(--carbon-button-primary) 78%, black);
         --btn-ink-hover: var(--carbon-interactive-ink);
     }
 

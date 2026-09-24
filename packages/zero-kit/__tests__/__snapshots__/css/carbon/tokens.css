@@ -2,6 +2,7 @@
 
 @property --carbon-interactive { syntax: '<color>'; inherits: true; initial-value: oklch(53% 0.23 262); }
 @property --carbon-interactive-ink { syntax: '<color>'; inherits: true; initial-value: oklch(100% 0 0); }
+@property --carbon-button-primary { syntax: '<color>'; inherits: true; initial-value: oklch(53% 0.23 262); }
 @property --carbon-secondary { syntax: '<color>'; inherits: true; initial-value: oklch(35.6% 0 0); }
 @property --carbon-secondary-ink { syntax: '<color>'; inherits: true; initial-value: oklch(100% 0 0); }
 @property --carbon-danger { syntax: '<color>'; inherits: true; initial-value: oklch(55.6% 0.213 27); }
@@ -73,6 +74,7 @@
         --disabled-opacity: 0.25;
         --carbon-interactive: oklch(53% 0.23 262);
         --carbon-interactive-ink: oklch(100% 0 0);
+        --carbon-button-primary: oklch(53% 0.23 262);
         --carbon-secondary: oklch(35.6% 0 0);
         --carbon-secondary-ink: oklch(100% 0 0);
         --carbon-danger: oklch(55.6% 0.213 27);

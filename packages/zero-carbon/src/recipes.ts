@@ -1802,7 +1802,7 @@ export const button: RecipeInput = {
      * 48px default) — the defaults live in the base, so variants only rebind.
      */
     tokens: {
-        '--btn-fill': 'var(--carbon-interactive)',
+        '--btn-fill': 'var(--carbon-button-primary)',
         '--btn-ink': 'var(--carbon-interactive-ink)',
         '--btn-line': 'transparent',
         // Hover/pressed are per-kind rebinds, not a filter — a brightness
@@ -1908,8 +1908,10 @@ export const button: RecipeInput = {
                         '--btn-fill': 'transparent',
                         '--btn-ink': 'var(--carbon-interactive)',
                         '--btn-line': 'var(--carbon-interactive)',
-                        '--btn-fill-hover': 'var(--carbon-interactive)',
-                        '--btn-fill-active': 'color-mix(in oklab, var(--carbon-interactive) 78%, black)',
+                        // The solid hover is a white-label fill, so it takes
+                        // the button fill, not the lighter interactive ink (#190).
+                        '--btn-fill-hover': 'var(--carbon-button-primary)',
+                        '--btn-fill-active': 'color-mix(in oklab, var(--carbon-button-primary) 78%, black)',
                         '--btn-ink-hover': 'var(--carbon-interactive-ink)',
                     },
                 },
