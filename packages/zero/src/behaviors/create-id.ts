@@ -36,26 +36,28 @@ export function createId(prefix = 'zx'): string {
     return useIdGenerator().next(prefix);
 }
 
+const ID_SAFE = /[A-Za-z0-9-]/;
+
 /**
- * Encode an arbitrary value (a tab's `value`, a collection key) into a token
+ * Encode a string (a tab's `value`, a collection key) into a token
  * that is safe inside a DOM id. HTML ids must not contain whitespace, and the
  * IDREFS attributes that point at them (`aria-controls`, `aria-labelledby`)
  * split on whitespace — so `tab-New York` names two ids that do not exist.
  *
  * ASCII letters, digits and `-` pass through unchanged (so `apple` stays
  * `apple`); every other code point — `_` included, since it is the escape —
- * becomes `_<hex>_`. The mapping is injective: `New York` → `New_20_York` and
- * `New_York` → `New_5f_York` never collide, so two distinct values never
- * share an id. The result is also a valid CSS identifier tail, so a
+ * becomes `_<hex>_`. The mapping is injective over strings: `New York` →
+ * `New_20_York` and `New_York` → `New_5f_York` never collide, so two
+ * distinct values never share an id. The result is also a valid CSS identifier tail, so a
  * `#${id}` selector needs no escaping.
  *
  * Build BOTH sides of a reference with it — the element's `id` and every
  * attribute naming it — or they drift apart.
  */
-export function idToken(value: unknown): string {
+export function idToken(value: string): string {
     let out = '';
-    for (const ch of String(value)) {
-        out += /[A-Za-z0-9-]/.test(ch) ? ch : `_${ch.codePointAt(0)!.toString(16)}_`;
+    for (const ch of value) {
+        out += ID_SAFE.test(ch) ? ch : `_${ch.codePointAt(0)!.toString(16)}_`;
     }
     return out;
 }

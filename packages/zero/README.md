@@ -999,7 +999,8 @@ same behaviors, held to the same conformance assertion:
   fragment declares — here so a package's `./fragment` entry can read it at
   runtime without the kit, which is only its devDependency.
 - `@sigx/zero/behaviors` — controllable state, SSR-safe ids (`createId`, plus
-  `idToken(value)` to put a user-supplied value inside an id: whitespace
+  `idToken(value: string)` to put a user-supplied string inside an id —
+  injective over strings, so distinct values never share an id: whitespace
   would split the IDREFS that point at it, so build both the `id` and every
   `aria-*` reference with it), roving tabindex,
   dismissal, focus management (`createFocusRestore`, `focusFirst`,
