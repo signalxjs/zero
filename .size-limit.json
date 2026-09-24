@@ -108,7 +108,7 @@
     {
         "name": "@sigx/zero/toast",
         "path": "packages/zero/dist/components/toast/index.js",
-        "limit": "4.75 kB",
+        "limit": "4.9 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

@@ -131,7 +131,7 @@ export type ToastViewportProps =
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default', ToastData>;
 
-const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted }) => {
+const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted, onUnmounted }) => {
     const injected = useToaster();
     const manager = (): Toaster => props.toaster ?? injected;
     const placement = (): ToastPlacement => props.placement ?? 'bottom-end';
@@ -141,8 +141,53 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted }
 
     let el: HTMLElement | null = null;
 
+    // The viewport holds the queue's pause while the pointer or focus is in
+    // it. `pause()`/`resume()` are one shared flag, not a count: the
+    // viewport only avoids resuming when it never paused, so an app's own
+    // `pause()` is still released by the viewport's `resume()`.
+    let hovering = false;
+    let focused = false;
+    // The toaster the hold was taken on, so a `toaster` prop swap mid-hold
+    // releases the one that was paused.
+    let heldBy: Toaster | null = null;
+    let recheck: ReturnType<typeof setTimeout> | null = null;
+    const sync = (): void => {
+        const want = hovering || focused;
+        if (want === (heldBy != null)) return;
+        if (want) {
+            heldBy = manager();
+            heldBy.pause();
+        } else {
+            const held = heldBy!;
+            heldBy = null;
+            held.resume();
+        }
+    };
+
     const scoped = mountScope();
     onMounted(() => scoped(() => {
+        // Removing the focused node (closing a toast from its Close button)
+        // fires no focusout in Firefox/WebKit/the spec, and Chromium's goes to
+        // the detached node, so it never bubbles here: re-read focus after
+        // every removal instead (#168). An emptied viewport is hidden, so
+        // nothing can be hovering it either.
+        // By id, not length: at the cap a removal promotes a queued toast.
+        let lastIds = new Set(manager().toasts().map((t) => t.id));
+        effect(() => {
+            const ids = new Set(manager().toasts().map((t) => t.id));
+            const removed = [...lastIds].some((id) => !ids.has(id));
+            lastIds = ids;
+            if (!removed || heldBy == null) return;
+            if (recheck != null) clearTimeout(recheck);
+            // After the re-render has detached the removed toast.
+            recheck = setTimeout(() => {
+                recheck = null;
+                if (manager().count() === 0) hovering = false;
+                const active = typeof document === 'undefined' ? null : document.activeElement;
+                if (focused && !(el && active && el.contains(active))) focused = false;
+                sync();
+            }, 0);
+        });
         effect(() => {
             const showing = manager().count() > 0;
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
@@ -152,6 +197,11 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted }
             else if (!showing && isShowing) node.hidePopover!();
         });
     }));
+    onUnmounted(() => {
+        if (recheck != null) clearTimeout(recheck);
+        hovering = focused = false;
+        sync();
+    });
 
     return () => {
         const attrs = htmlAttrs(props);
@@ -167,11 +217,11 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted }
                 tabIndex={-1}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; }}
-                onPointerenter={() => manager().pause()}
-                onPointerleave={() => manager().resume()}
-                onFocusin={() => manager().pause()}
+                onPointerenter={() => { hovering = true; sync(); }}
+                onPointerleave={() => { hovering = false; sync(); }}
+                onFocusin={() => { focused = true; sync(); }}
                 onFocusout={(e: FocusEvent) => {
-                    if (!el?.contains(e.relatedTarget as Node | null)) manager().resume();
+                    if (!el?.contains(e.relatedTarget as Node | null)) { focused = false; sync(); }
                 }}
             >
                 {manager().toasts().map((t) =>
