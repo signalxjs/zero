@@ -137,12 +137,14 @@ body {
      * border-box, or `width: 100%` plus the padding below is 3rem WIDER than
      * the grid track — invisible beside the sidebar, where the track has
      * room to spare, and a 40px sideways scroll on every page once the
-     * shell collapses to one column (#45).
+     * shell collapses to one column (#45). The max-width adds the inline
+     * padding back, so the desktop content column stays the 46rem it was
+     * under content-box (the layout spec reads Container measures in it).
      */
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
-    max-width: 46rem;
+    max-width: calc(46rem + 3rem);
     margin: 0 auto;
     padding: 2rem 1.5rem;
 }
