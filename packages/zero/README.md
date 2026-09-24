@@ -88,9 +88,12 @@ because an unregistered value may still name an item that renders later.
 Horizontal arrow keys follow the reading direction: under `dir="rtl"`
 ArrowRight moves to the item on the visual right, which is the previous one
 in DOM order.
-A disabled TreeView node that a pointer focused still navigates: the arrow
-keys, Home/End and typeahead move from it to its enabled neighbours, while
-selecting (Enter/Space) and expanding or collapsing it stay blocked.
+
+**A disabled TreeView node still navigates.** A pointer can focus a disabled
+node, and from there the arrow keys, Home/End and typeahead move to its
+enabled neighbours (ArrowLeft on an open disabled branch climbs to the
+parent), while selecting (Enter/Space) and expanding or collapsing it stay
+blocked.
 
 **The form contract.** Every posting control takes the same five props
 (`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus

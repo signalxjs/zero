@@ -109,7 +109,8 @@
   pressed on a disabled node now navigate — Up/Down move to the enabled
   node on either side of it (not the first or last), typeahead searches
   from after it, and ArrowRight enters an already-open subtree while
-  ArrowLeft climbs to the parent. Selection (Enter/Space) and expansion
+  ArrowLeft climbs to the parent (an open disabled branch, which cannot
+  collapse, climbs too). Selection (Enter/Space) and expansion
   (ArrowRight/ArrowLeft toggling) stay blocked.
 - **Pagination no longer overflows a narrow container (#44).** The row is
   windowed at constant width, so its width follows `count` and the

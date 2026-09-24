@@ -387,6 +387,33 @@ describe('TreeView', () => {
             byValue(container, 'x').dispatchEvent(key('ArrowLeft'));
             expect(document.activeElement).toBe(delta);
         });
+
+        it('ArrowLeft on an open disabled branch climbs to its parent', () => {
+            const expanded = signal({ v: ['outer', 'outer/inner'] as string[] });
+            render(
+                <TreeView.Root model:expandedValues={[expanded, 'v']}>
+                    <TreeView.Tree>
+                        <TreeView.Branch value="outer">
+                            <TreeView.BranchTrigger>outer</TreeView.BranchTrigger>
+                            <TreeView.BranchContent>
+                                <TreeView.Branch value="outer/inner" disabled>
+                                    <TreeView.BranchTrigger>inner</TreeView.BranchTrigger>
+                                    <TreeView.BranchContent>
+                                        <TreeView.Item value="outer/inner/leaf">leaf</TreeView.Item>
+                                    </TreeView.BranchContent>
+                                </TreeView.Branch>
+                            </TreeView.BranchContent>
+                        </TreeView.Branch>
+                    </TreeView.Tree>
+                </TreeView.Root>,
+                container,
+            );
+            const inner = byValue(container, 'inner');
+            inner.focus();
+            inner.dispatchEvent(key('ArrowLeft'));
+            expect(expanded.v).toEqual(['outer', 'outer/inner']);
+            expect(document.activeElement).toBe(byValue(container, 'outer'));
+        });
     });
 
     it('selection survives collapsing its branch', () => {

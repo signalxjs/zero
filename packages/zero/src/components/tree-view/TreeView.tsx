@@ -265,8 +265,10 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
             }
             if (e.key === collapseKey) {
                 e.preventDefault();
-                if (node.isBranch && isExpanded(node.value)) {
-                    if (!inert) toggleBranch(node.value);
+                // An open disabled branch cannot collapse, so the key climbs
+                // to the parent instead of going dead there.
+                if (node.isBranch && isExpanded(node.value) && !inert) {
+                    toggleBranch(node.value);
                 } else if (node.parentValue !== null) {
                     tree.findNode(node.parentValue)?.el()?.focus();
                 }
