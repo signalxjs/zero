@@ -279,19 +279,40 @@ export function bakeColorValue(
                     `[zero-kit] ${where}: cannot evaluate "${expr}" — color-mix() needs "in <space>, <color> <pct>?, <color> <pct>?" with a known space (${Object.keys(MIX_SPACES).join(', ')})`,
                 );
             }
+            // CSS allows the percentage on either side of the colour:
+            // `red 30%` and `30% red` are the same operand.
             const component = (arg: string): { color: string; pct?: number } => {
-                const pct = /\s([0-9.]+)%\s*$/.exec(arg);
-                return pct
-                    ? { color: arg.slice(0, pct.index).trim(), pct: Number(pct[1]) }
-                    : { color: arg.trim() };
+                const trailing = /\s([0-9.]+)%\s*$/.exec(arg);
+                if (trailing) return { color: arg.slice(0, trailing.index).trim(), pct: Number(trailing[1]) };
+                const leading = /^\s*([0-9.]+)%\s+/.exec(arg);
+                if (leading) return { color: arg.slice(leading[0].length).trim(), pct: Number(leading[1]) };
+                return { color: arg.trim() };
             };
             const a = component(args[1]!);
             const b = component(args[2]!);
+            // A malformed number (`red 1.2.3%`, `.%`) parses to NaN, which
+            // would flow through the math below and bake a bogus hex.
+            for (const c of [a, b]) {
+                if (c.pct !== undefined && !Number.isFinite(c.pct)) {
+                    throw new Error(`[zero-kit] ${where}: "${expr}" is invalid — malformed color-mix() percentage`);
+                }
+            }
             // CSS normalization: a missing percentage takes the complement;
             // both missing is 50/50.
             const pa = a.pct ?? (b.pct !== undefined ? 100 - b.pct : 50);
             const pb = b.pct ?? 100 - pa;
-            const t = pb / (pa + pb);
+            const sum = pa + pb;
+            // CSS Color 5: two percentages summing to zero make the whole
+            // function invalid — not black, which is what t = NaN formats as.
+            if (sum === 0) {
+                throw new Error(`[zero-kit] ${where}: "${expr}" is invalid — color-mix() percentages sum to 0%`);
+            }
+            // Likewise a percentage outside [0%, 100%]: `red 150%, blue`
+            // would give blue -50% and extrapolate past red rather than mix.
+            if (pa < 0 || pa > 100 || pb < 0 || pb > 100) {
+                throw new Error(`[zero-kit] ${where}: "${expr}" is invalid — color-mix() percentages must be within 0%..100%`);
+            }
+            const t = pb / sum;
             // PREMULTIPLIED, as CSS Color 5 specifies for color-mix(): a
             // colour mixed toward `transparent` keeps its own lightness and
             // hue and only loses alpha. Plain interpolation drags it toward
@@ -318,14 +339,21 @@ export function bakeColorValue(
             );
             const mixer = interpolateWithPremultipliedAlpha(carried, space);
             const mixed = mixer(t);
-            const alpha = mixed.alpha ?? 1;
+            // CSS Color 5: a sum under 100% is an alpha multiplier on the
+            // result — `red 30%, blue 30%` is the 50/50 purple at alpha 0.6.
+            const alpha = (mixed.alpha ?? 1) * (sum < 100 ? sum / 100 : 1);
+            if (alpha < 1) mixed.alpha = alpha;
             return alpha >= 1 ? formatHex(mixed) : formatHex8(mixed);
         }
         return bakeColor(substituteColorVars(expr), where);
     };
 
+    // No iteration cap: every pass replaces one top-level colour function
+    // with a hex literal (or throws), so the loop ends when none are left.
+    // A fixed cap (16, before #182) silently left the rest of a long
+    // gradient or many-layer shadow raw for a target that cannot parse it.
     let out = value;
-    for (let guard = 0; guard < 16; guard++) {
+    for (;;) {
         const match = COLOR_FN_START.exec(out);
         if (!match) break;
         const open = out.indexOf('(', match.index);

@@ -418,6 +418,14 @@ beside the web artifacts, with every declaration translated, dropped with a
 a recipe restates web-runtime references and lynx replacements in its
 `targets.web` / `targets.lynx` sections.
 
+Lynx parses hex, `rgb()` and `hsl()` only, so the lynx target bakes every
+other colour function — `oklch()`, `light-dark()`, `color-mix()` — to a hex
+literal per theme, however many a value holds. `color-mix()` follows CSS
+Color 5's percentage rules: a percentage may sit before or after its colour,
+two that sum to under 100% scale the result's alpha by that sum
+(`red 30%, blue 30%` is purple at alpha 0.6), and two that sum to 0% — or
+a percentage above 100% — are an error, as the spec makes them invalid.
+
 ## The authoring surface in a browser graph
 
 The kit's barrel is Node-only — a design-system package may never

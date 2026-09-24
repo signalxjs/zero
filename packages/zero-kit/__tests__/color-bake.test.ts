@@ -52,3 +52,47 @@ describe('color-mix() missing components', () => {
         expect(a.alpha).toBeUndefined();
     });
 });
+
+// #182: CSS Color 5 §2.1 percentage normalization, in full. A sum under 100
+// scales the result's alpha by it; a zero sum is invalid; the percentage may
+// be written before the colour as well as after it.
+describe('color-mix() percentage normalization (#182)', () => {
+    const bake = (v: string) => bakeColorValue(v, {}, 'light', 'test');
+
+    it('scales alpha by the sum when the percentages add up to less than 100', () => {
+        expect(bake('color-mix(in srgb, red 50%, blue 50%)')).toBe('#800080');
+        expect(bake('color-mix(in srgb, red 30%, blue 30%)')).toBe('#80008099');
+        expect(bake('color-mix(in srgb, red 20%, blue 20%)')).toBe('#80008066');
+    });
+
+    it('rejects two percentages that sum to zero instead of baking black', () => {
+        expect(() => bake('color-mix(in srgb, red 0%, blue 0%)')).toThrow(/sum to 0%/);
+    });
+
+    it('rejects a percentage above 100 instead of extrapolating', () => {
+        expect(() => bake('color-mix(in srgb, red 150%, blue)')).toThrow(/within 0%\.\.100%/);
+        expect(() => bake('color-mix(in srgb, red, blue 120%)')).toThrow(/within 0%\.\.100%/);
+    });
+
+    it('rejects a malformed percentage instead of baking NaN', () => {
+        expect(() => bake('color-mix(in srgb, red 1.2.3%, blue)')).toThrow(/malformed/);
+        expect(() => bake('color-mix(in srgb, red .%, blue)')).toThrow(/malformed/);
+    });
+
+    it('parses a percentage written before the colour', () => {
+        expect(bake('color-mix(in srgb, 30% red, blue)')).toBe(bake('color-mix(in srgb, red 30%, blue)'));
+        expect(bake('color-mix(in srgb, red, 70% blue)')).toBe(bake('color-mix(in srgb, red 30%, blue)'));
+    });
+});
+
+// #182: a value with more than 16 top-level colour functions (a long gradient,
+// a many-layer shadow) must bake every one of them, not silently stop.
+describe('bakeColorValue: no cap on colour functions (#182)', () => {
+    it('bakes all eighteen top-level functions of a long list', () => {
+        const v = Array.from({ length: 18 }, (_, i) => `oklch(50% 0.1 ${i * 10})`).join(', ');
+        const out = bakeColorValue(v, {}, 'light', 'test');
+        expect(out).not.toMatch(/oklch\(/);
+        expect(out.split(', ')).toHaveLength(18);
+        for (const part of out.split(', ')) expect(part).toMatch(/^#[0-9a-f]{6}$/);
+    });
+});

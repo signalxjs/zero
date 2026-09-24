@@ -80,6 +80,19 @@
   serving a `;base64` image as a file). A quoted `url("data:…;base64,…")`
   is still refused, because skipping quoted strings would need a tokenizer
   that could reopen the hole.
+- **The colour baker follows CSS Color 5's `color-mix()` percentage rules
+  (#182).** Two percentages summing to under 100% now scale the result's
+  alpha: `color-mix(in srgb, red 30%, blue 30%)` bakes `#80008099`, where it
+  came out as the opaque 50/50 `#800080`. Two that sum to 0% throw, since
+  the spec makes the function invalid; the baker used to emit opaque black.
+  So does a percentage above 100% (`red 150%, blue`), which used to
+  extrapolate past the first colour.
+  A percentage written before its colour (`30% red`) parses, where it threw
+  "cannot resolve". And `bakeColorValue` no longer stops after 16 top-level
+  colour functions: a longer gradient or multi-layer shadow used to reach
+  lynx with its 17th function onward left as raw `oklch()`. It affects the
+  lynx target and the static contrast matrix; no in-repo design system
+  writes any of these forms, so no emitted byte changed.
 
 ## [0.5.0] - 2026-09-23
 
