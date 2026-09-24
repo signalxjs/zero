@@ -55,7 +55,7 @@ import { hookIssues, privateNameIssues } from './hooks.js';
 import { tokenVocabulary } from './vocabulary.js';
 import { formatOklch, solveContentLightness } from '../palette.js';
 import { tryBakeColorValue } from './color-bake.js';
-import { CSS_BREAKOUT, DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, badPropertySyntaxMessage, breakoutMessage, softMixPercent } from '../targets/shared.js';
+import { CSS_BREAKOUT, DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, badPropertySyntaxMessage, breakoutMessage, dependentInitialValue, softMixPercent } from '../targets/shared.js';
 
 export interface ValidationIssue {
     level: 'error' | 'warning';
@@ -635,6 +635,27 @@ export function validateDesignSystem<R extends RolesDecl>(
     }
     if (!ds.tokens.themes[ds.tokens.defaultLight]) {
         error('tokens', `defaultLight "${ds.tokens.defaultLight}" is not a defined theme`);
+    }
+    // A typed custom token's `@property` takes the default light theme's value
+    // as its `initial-value`, which must be computationally independent or
+    // the browser drops the whole rule (#184). The compiler skips such a
+    // registration (a universal '*' syntax registers without the initial
+    // value instead); say so, since the token then ships untyped — its value
+    // still applies, only typed interpolation is lost.
+    const lightTheme = ds.tokens.themes[ds.tokens.defaultLight];
+    if (lightTheme) {
+        const lightCustom = new Map(Object.entries(lightTheme.custom ?? {}).map(([name, value]) => [normProp(name), String(value)]));
+        for (const [name, decl] of Object.entries(customDecls)) {
+            if (!decl.syntax || decl.syntax === '*') continue;
+            const value = lightCustom.get(normProp(name));
+            const why = value === undefined ? undefined : dependentInitialValue(value);
+            if (why) {
+                warn(
+                    `themes.${ds.tokens.defaultLight}`,
+                    `custom token "${name}" has the light value "${value}", which is not computationally independent (${why}) — it cannot be an @property initial-value, so @property ${normProp(name)} is not registered and the token loses its ${decl.syntax} typing; give ${ds.tokens.defaultLight} a literal ${decl.syntax} value that depends on nothing (e.g. px rather than em, a literal colour rather than var()), or declare syntax '*'`,
+                );
+            }
+        }
     }
     if (ds.tokens.defaultDark && !ds.tokens.themes[ds.tokens.defaultDark]) {
         error('tokens', `defaultDark "${ds.tokens.defaultDark}" is not a defined theme`);

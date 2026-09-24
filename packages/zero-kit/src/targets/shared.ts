@@ -315,6 +315,57 @@ export function assertAxisToken(kind: 'axis' | 'value' | 'modifier', token: stri
 export const KEYFRAMES_NAME_PATTERN = /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/;
 export const RESERVED_KEYFRAMES_NAMES = new Set(['none', 'inherit', 'initial', 'unset', 'revert', 'revert-layer', 'default']);
 
+/**
+ * Why a value cannot be an `@property` `initial-value`, or `undefined` when
+ * it can. css-properties-values-api requires the initial value of a
+ * non-universal registration to be *computationally independent* — a
+ * computed value knowable without the element — or the whole `@property`
+ * rule is invalid, and the browser drops it silently: the token keeps its
+ * value as an untyped custom property and loses only typing and
+ * interpolation. What breaks independence: a substitution function
+ * (`var()`, `env()`, `attr()`), `light-dark()` (it reads `color-scheme`),
+ * `currentColor`, a CSS-wide keyword, and a font- or container-relative
+ * length unit. Viewport units and percentages are independent (both stay
+ * resolvable without the element), matching the engines.
+ */
+export function dependentInitialValue(value: string): string | undefined {
+    const code = withoutOpaqueTokens(value);
+    const substitution = substitutionFunction(value);
+    if (substitution) return substitution;
+    if (/(?<![\w-])light-dark\(/i.test(code)) return 'light-dark()';
+    if (/(?<![\w-])currentcolor(?![\w-])/i.test(code)) return 'currentColor';
+    const keyword = /^\s*(inherit|initial|unset|revert|revert-layer)\s*$/i.exec(code);
+    if (keyword) return `the CSS-wide keyword ${keyword[1]!.toLowerCase()}`;
+    const unit = RELATIVE_LENGTH.exec(code);
+    if (unit) return `the relative unit ${unit[1]!.toLowerCase()}`;
+    return undefined;
+}
+
+/**
+ * The substitution function (`var()`, `env()`, `attr()`) in a value, or
+ * `undefined`. Unlike the rest of `dependentInitialValue`'s checks, this one
+ * also binds a universal `syntax: '*'` registration: independence is only
+ * required of a typed syntax, but engines reject a substitution function in
+ * any `initial-value`.
+ */
+export function substitutionFunction(value: string): string | undefined {
+    const fn = /(?<![\w-])(var|env|attr)\(/i.exec(withoutOpaqueTokens(value));
+    return fn ? `${fn[1]!.toLowerCase()}()` : undefined;
+}
+
+/**
+ * The value with its opaque tokens blanked — quoted strings and unquoted
+ * `url(…)` — so `url(icon2ex.svg)` or `"2em"` never read as a unit or a
+ * function.
+ */
+const withoutOpaqueTokens = (value: string): string =>
+    value
+        .replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g, '""')
+        .replace(/(?<![\w-])url\(\s*[^'")\s][^)]*\)/gi, 'url()');
+
+/** A number token followed by a font- or container-relative length unit. */
+const RELATIVE_LENGTH = /(?<![\w#.])\d*\.?\d+(r?em|r?ex|r?cap|r?ch|r?ic|r?lh|cq(?:w|h|i|b|min|max))(?![\w-])/i;
+
 /** Either token tier's shape — `SystemTokens` and `ThemeSystem` are structurally alike. */
 export type AnyTokenSystem = SystemTokens | ThemeSystem<SystemTokens>;
 
