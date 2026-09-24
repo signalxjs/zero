@@ -111,15 +111,6 @@
   `aria-activedescendant`. Both now encode the value through `idToken`, on
   the id and on every reference to it. Ids of values made only of ASCII
   letters, digits and `-` are unchanged.
-
-### Added
-
-- `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
-  encodes a string into an id-safe token, injective over strings, for
-  building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
-  other code point (`_` included) becomes `_<hex>_`.
-### Fixed
-
 - **Tooltip is hoverable (WCAG 2.1 SC 1.4.13, #167).** `closeDelay`
   defaulted to 0, so leaving the trigger closed the tooltip at once and the
   pointer could never cross the `offset` gap onto the popup. A pointer
