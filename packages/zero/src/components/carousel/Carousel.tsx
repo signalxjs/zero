@@ -124,8 +124,10 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
         const box = el.getBoundingClientRect();
         viewport.scrollTo({
             // Centre the item in the viewport, measured as a delta between
-            // boxes rather than from `offsetLeft`: direction-agnostic, so an
-            // RTL viewport (where scrollLeft runs negative) lands right too.
+            // boxes rather than from `offsetLeft`: direction-agnostic, since
+            // the delta is added to scrollLeft in whatever RTL convention the
+            // engine reads and writes it (CSSOM's negative one in current
+            // engines), so an RTL viewport lands right too.
             left: viewport.scrollLeft + (box.left + box.width / 2) - (vp.left + vp.width / 2),
             // Smooth is the affordance; reduced motion collapses it to a jump.
             behavior: behavior ?? (prefersReducedMotion() ? 'auto' : 'smooth'),
