@@ -92,6 +92,8 @@ interface MenuContext {
     triggerPresent(): boolean;
     setTriggerPresent(present: boolean): void;
     keydown(e: KeyboardEvent, value: string): void;
+    /** A typeahead search is running in this list — Space continues it instead of activating. */
+    searching(): boolean;
     /**
      * Emit `select` and close per the root's `closeOnSelect` — unless the
      * activating item overrides the close decision (`closeOverride`): a
@@ -144,6 +146,7 @@ function makeInert(): MenuContext {
         triggerPresent: () => false,
         setTriggerPresent: () => {},
         keydown: () => {},
+        searching: () => false,
         select: () => {},
         setAnchor: () => {},
         openAt: () => {},
@@ -210,6 +213,7 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
             roving(e, value);
             if (!e.defaultPrevented) typeahead(e, value);
         },
+        searching: () => typeahead.searching(),
         select(value, closeOverride) {
             emit('select', value);
             if (closeOverride ?? (props.closeOnSelect ?? true)) state.value = false;
@@ -534,7 +538,7 @@ function useMenuItemCore({ signal, onUnmounted }: ItemHooks, opts: ItemCoreOpts)
         onClick: () => activate(),
         onKeydown: (e: KeyboardEvent) => {
             press.onKeydown(e);
-            if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === 'Enter' || (e.key === ' ' && !menu.searching())) {
                 e.preventDefault();
                 activate();
                 return;
@@ -910,6 +914,7 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
             roving(e, value);
             if (!e.defaultPrevented) typeahead(e, value);
         },
+        searching: () => typeahead.searching(),
         select(value, closeOverride) {
             parent.select(value, closeOverride);
         },
@@ -1086,7 +1091,8 @@ const MenuSubTrigger = component<MenuSubTriggerProps>(({ props, slots, signal, o
         onKeydown: (e: KeyboardEvent) => {
             press.onKeydown(e);
             if (props.disabled) return;
-            const openKey = e.key === 'Enter' || e.key === ' '
+            // Space continues a running parent-level typeahead search.
+            const openKey = e.key === 'Enter' || (e.key === ' ' && !sub.parent.searching())
                 || e.key === (sub.isRtl() ? 'ArrowLeft' : 'ArrowRight');
             if (openKey) {
                 e.preventDefault();

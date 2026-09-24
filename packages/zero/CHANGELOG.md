@@ -155,6 +155,24 @@
 - **Tabs and Steps honour `dir="rtl"` (#165).** Their horizontal arrow keys
   ignored the reading direction, so ArrowRight moved to the visually left
   item. They now flip under RTL like ToggleGroup and TreeView.
+- **Typeahead no longer bounces on a multi-character search (#173).** Every
+  keystroke searched from AFTER the current item, so typing "sav" over
+  Open / Save / Save As went Save → Save As → Save. The first character
+  still steps past the current item (repeated letters cycle); a longer
+  buffer now searches from the current item, so it refines the match in
+  place. This affects Menu, Menu.Sub, TreeView and Select — where the
+  closed single Select changed its selected value on every keystroke.
+- **Space continues a running typeahead search, and only a running one.**
+  The 1s buffer reset now runs before the Space guard, so a stale buffer no
+  longer turns Space into a search. Menu items and sub-triggers, TreeView
+  nodes and the Select trigger now hand Space to the typeahead while a
+  search is running instead of activating, so a label like "Save As" can be
+  typed past its space. Outside a search Space activates as before.
+
+### Added
+
+- `createTypeahead` returns a `Typeahead` (new exported type): the keydown
+  handler plus `searching()`. `createListbox` gains `typeaheadSearching()`.
 
 ## [0.5.0] - 2026-09-23
 

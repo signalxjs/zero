@@ -25,6 +25,8 @@ export interface WebListboxOptions<T> extends Omit<ListboxOptions<T>, 'list'> {
 export interface Listbox<T> extends ListboxCore<T> {
     /** First-character typeahead over the ENABLED VISIBLE labels. */
     typeahead(e: KeyboardEvent, current: string | null, onMatch: (key: string) => void): void;
+    /** A typeahead search is running — Space continues it instead of activating. */
+    typeaheadSearching(): boolean;
     /**
      * Replace how a highlight is brought into view — a windowed list
      * scrolls to an option that may not be rendered yet, where the default
@@ -86,6 +88,7 @@ export function createListbox<T>(opts: WebListboxOptions<T>): Listbox<T> {
                 relay = null;
             }
         },
+        typeaheadSearching: () => run.searching(),
     };
 }
 

@@ -359,8 +359,11 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         triggerKeydown(e) {
             if (ctx.disabled()) return;
             const key = e.key;
+            // Space continues a running typeahead search ("Save As"), open
+            // or closed; only outside one does it open / select.
+            const space = key === ' ' && !listbox.typeaheadSearching();
             if (!openState.value) {
-                if (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Enter' || key === ' ') {
+                if (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Enter' || space) {
                     e.preventDefault();
                     setOpen(true);
                     return;
@@ -383,7 +386,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
                 listbox.move(key === 'PageDown' ? page : -page);
                 return;
             }
-            if (key === 'Enter' || key === ' ') {
+            if (key === 'Enter' || space) {
                 e.preventDefault();
                 const h = listbox.highlighted.value;
                 if (h != null) listbox.select(h);

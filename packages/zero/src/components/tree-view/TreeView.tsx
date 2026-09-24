@@ -251,7 +251,8 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
                 }
                 return;
             }
-            if (e.key === 'Enter' || e.key === ' ') {
+            // Space continues a running typeahead search ("Save As").
+            if (e.key === 'Enter' || (e.key === ' ' && !typeahead.searching())) {
                 e.preventDefault();
                 ctx.select(node.value);
                 return;

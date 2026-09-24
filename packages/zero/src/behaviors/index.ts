@@ -30,7 +30,7 @@ export type { TreeItem, TreeController } from './tree.js';
 export { createFocusRestore, focusFirst, getTabbables } from './focus.js';
 
 export { createTypeahead } from './typeahead.js';
-export type { TypeaheadOptions } from './typeahead.js';
+export type { Typeahead, TypeaheadOptions } from './typeahead.js';
 
 export { createAnchorPosition, fixedPositionStrategy, pointAnchor } from './position.js';
 export type {

@@ -1064,13 +1064,17 @@ same behaviors, held to the same conformance assertion:
   `aria-*` reference with it), roving tabindex,
   dismissal, focus management (`createFocusRestore`, `focusFirst`,
   `getTabbables`), list/tree registration with listbox-highlight stepping
-  (`moveHighlight`, `optionText`), typeahead, anchor positioning, press
-  feedback, the form contract (`createFormControl`, `onFormReset`), and the
+  (`moveHighlight`, `optionText`), typeahead (`createTypeahead`: a
+  multi-character search refines the current match instead of stepping past
+  it, and its `searching()` tells a caller that routes Space to activation to
+  hand Space to a running search, so "Save As" is reachable), anchor
+  positioning, press feedback, the form contract (`createFormControl`, `onFormReset`), and the
   listbox layer: `createCollection` (items as data — `itemKey` /
   `itemLabel` / `itemValue` / `itemDisabled` / `itemGroup`, with JSX items
   registering into the same list), `createListbox` (visibility with a
   default contains-filter, single/multiple selection over the model,
-  highlight stepping, typeahead over the visible labels, id-safe option ids),
+  highlight stepping, typeahead over the visible labels with
+  `typeaheadSearching()`, id-safe option ids),
   `createListboxItem` (the `role="option"` bag), `createGroupPresence`,
   `syncPopover` (returns its stopper), `useMediaQuery`, `createVirtualList`
   for windowing, and `mountScope` — call it during setup and run a mount
