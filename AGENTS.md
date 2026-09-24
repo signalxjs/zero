@@ -241,8 +241,12 @@ and the **axe audit** (`e2e/axe-audit.spec.ts`, #326) — the ARIA counterpart
 to the contrast audit: chromium + zero-basic only (semantics are engine- and
 skin-independent), it walks every registry page (ids read from the rendered
 sidebar — importing the registry would drag every page's JSX through
-Playwright's transpiler), opens the primary overlay on pages whose component
-idles closed (a closed popup contributes nothing to the scanned tree), and
+Playwright's transpiler), scans each page once per surface that idles closed
+(`SCANS`: a named step list per state, each from a fresh load — every
+dialog and alertdialog, the submenus, the context menu, each select and
+combobox popup incl. grouped/virtual and the forms page's, and the app
+shell's sheet at a narrow viewport, #194; a closed popup contributes nothing
+to the scanned tree), and
 hard-fails on serious/critical WCAG A/AA violations. `color-contrast` is
 disabled by name: contrast answers to the contrast audit's own floors, not
 axe's single resting-state sample. Documented exceptions live in
@@ -251,7 +255,12 @@ fail the spec, and a real bug never goes there — it gets fixed in
 `packages/zero`, which is how this audit already paid for itself: a nameless
 Select trigger (`role="combobox"` prohibits name-from-content — hence
 `Select.Trigger`'s `label` prop), an invalid `aria-expanded` on the
-role-less context-menu surface, and unlabelled combobox demo inputs): `pnpm build`,
+role-less context-menu surface, and unlabelled combobox demo inputs);
+and the **scope-coverage spec** (`e2e/scope-coverage.spec.ts`, #194) —
+chromium, one load of `#/all`: every scope zero-basic's manifest declares
+(ecosystem `ext-stepper` included, rendered from `@sigx/zero-ext-example` on
+its own page) must render somewhere, plus the standalone `VisuallyHidden`,
+since an unrendered scope is invisible to every sweeping spec at once): `pnpm build`,
 then `pnpm --filter zero-playground e2e` (first run:
 `pnpm --filter zero-playground exec playwright install`). Filtering needs
 `exec` — `pnpm --filter zero-playground e2e -- <name>` drops the argument and
