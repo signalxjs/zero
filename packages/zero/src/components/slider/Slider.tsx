@@ -165,6 +165,27 @@ function makeInert(): SliderContext {
 
 export const useSliderContext = defineInjectable<SliderContext>(() => makeInert());
 
+/**
+ * The track's PADDING box in viewport coordinates. The positioned parts'
+ * percentages resolve against it, so the pointer must too — a bordered
+ * channel (brutalist) would otherwise map a click a border-width off where
+ * the thumb lands. The border insets are scaled by the rendered/layout
+ * ratio so a transformed track still maps; with no layout (a zero
+ * `offsetWidth`, e.g. a simulated DOM) the border box stands in.
+ */
+function paddingBox(el: HTMLElement): { left: number; bottom: number; width: number; height: number } {
+    const rect = el.getBoundingClientRect();
+    if (!el.offsetWidth || !el.offsetHeight) {
+        return { left: rect.left, bottom: rect.bottom, width: rect.width, height: rect.height };
+    }
+    const sx = rect.width / el.offsetWidth;
+    const sy = rect.height / el.offsetHeight;
+    const left = rect.left + el.clientLeft * sx;
+    const top = rect.top + el.clientTop * sy;
+    const height = el.clientHeight * sy;
+    return { left, bottom: top + height, width: el.clientWidth * sx, height };
+}
+
 /** `:dir(rtl)` with the computed-style fallback — the shape Menu.tsx uses. */
 function isRtl(el: HTMLElement | null): boolean {
     if (!el) return false;
@@ -338,8 +359,8 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
         thumbIndex: (entry) => Math.max(0, thumbs.indexOf(entry)),
         focusThumb: (index) => { thumbs[index]?.el()?.focus(); },
         trackToValue(e) {
-            const rect = track?.getBoundingClientRect();
-            if (!rect) return min();
+            if (!track) return min();
+            const rect = paddingBox(track);
             let ratio: number;
             if (ctx.orientation() === 'vertical') {
                 if (rect.height <= 0) return min();

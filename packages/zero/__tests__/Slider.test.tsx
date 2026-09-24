@@ -283,6 +283,20 @@ describe('Slider orientation (#170)', () => {
         window.dispatchEvent(new PointerEvent('pointerup', {}));
     });
 
+    it('maps the pointer against the padding box, not the border box', () => {
+        const state = signal({ price: [20, 60] });
+        const { track } = mountVertical(state);
+        // A 10px-bordered channel: border box y 0..120, padding box y 10..110.
+        track.getBoundingClientRect = () =>
+            ({ left: 80, right: 100, top: 0, bottom: 120, width: 20, height: 120, x: 80, y: 0, toJSON() {} }) as DOMRect;
+        const layout = { offsetWidth: 20, offsetHeight: 120, clientLeft: 0, clientTop: 10, clientWidth: 20, clientHeight: 100 };
+        for (const [k, v] of Object.entries(layout)) Object.defineProperty(track, k, { value: v, configurable: true });
+        // 80px down the viewport is 70px into the 100px padding box: 30% up.
+        track.dispatchEvent(new PointerEvent('pointerdown', { button: 0, clientX: 90, clientY: 80, bubbles: true }));
+        expect(state.price).toEqual([30, 60]);
+        window.dispatchEvent(new PointerEvent('pointerup', {}));
+    });
+
     it('arrow keys follow APG: Up/Right increase, Down/Left decrease', () => {
         const state = signal({ price: [20, 60] });
         const { thumbs } = mountVertical(state);
