@@ -300,6 +300,11 @@ export function bakeColorValue(
             if (sum === 0) {
                 throw new Error(`[zero-kit] ${where}: "${expr}" is invalid — color-mix() percentages sum to 0%`);
             }
+            // Likewise a percentage outside [0%, 100%]: `red 150%, blue`
+            // would give blue -50% and extrapolate past red rather than mix.
+            if (pa < 0 || pa > 100 || pb < 0 || pb > 100) {
+                throw new Error(`[zero-kit] ${where}: "${expr}" is invalid — color-mix() percentages must be within 0%..100%`);
+            }
             const t = pb / sum;
             // PREMULTIPLIED, as CSS Color 5 specifies for color-mix(): a
             // colour mixed toward `transparent` keeps its own lightness and

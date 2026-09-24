@@ -85,6 +85,8 @@
   alpha: `color-mix(in srgb, red 30%, blue 30%)` bakes `#80008099`, where it
   came out as the opaque 50/50 `#800080`. Two that sum to 0% throw, since
   the spec makes the function invalid; the baker used to emit opaque black.
+  So does a percentage above 100% (`red 150%, blue`), which used to
+  extrapolate past the first colour.
   A percentage written before its colour (`30% red`) parses, where it threw
   "cannot resolve". And `bakeColorValue` no longer stops after 16 top-level
   colour functions: a longer gradient or multi-layer shadow used to reach

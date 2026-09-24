@@ -69,6 +69,11 @@ describe('color-mix() percentage normalization (#182)', () => {
         expect(() => bake('color-mix(in srgb, red 0%, blue 0%)')).toThrow(/sum to 0%/);
     });
 
+    it('rejects a percentage above 100 instead of extrapolating', () => {
+        expect(() => bake('color-mix(in srgb, red 150%, blue)')).toThrow(/within 0%\.\.100%/);
+        expect(() => bake('color-mix(in srgb, red, blue 120%)')).toThrow(/within 0%\.\.100%/);
+    });
+
     it('parses a percentage written before the colour', () => {
         expect(bake('color-mix(in srgb, 30% red, blue)')).toBe(bake('color-mix(in srgb, red 30%, blue)'));
         expect(bake('color-mix(in srgb, red, 70% blue)')).toBe(bake('color-mix(in srgb, red 30%, blue)'));
