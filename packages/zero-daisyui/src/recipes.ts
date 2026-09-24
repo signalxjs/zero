@@ -2051,18 +2051,20 @@ export const slider: RecipeInput = {
         } } }])),
         // daisy's `.range-{xs…xl}` ramp: `--range-thumb-size` at ×4…×8 of
         // `--size-selector` (1 / 1.25 / 1.5 / 1.75 / 2rem), the track half
-        // of it — so every step, `md` included, moves the whole widget.
+        // of it — so every step moves the whole widget; the un-attributed
+        // (and `md`) render takes the middle step from `tokens:`.
         size: {
             xs: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 2)', '--slider-thumb-size': 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
             sm: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 2.5)', '--slider-thumb-size': 'calc(var(--size-selector) * 5)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
-            md: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 3)', '--slider-thumb-size': 'calc(var(--size-selector) * 6)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            // `md`'s metrics ARE the `tokens:` defaults — one source of truth.
+            md: { label: { base: { fontSize: 'var(--text-sm)' } } },
             lg: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 3.5)', '--slider-thumb-size': 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
             xl: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 4)', '--slider-thumb-size': 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
     // Base equals the default — `tokens:` binds the primary accent and the
-    // middle-step metrics, and `md` restates those metrics and the label
-    // font-size the base already declares — so the twins restate it;
+    // middle-step metrics, and `md` only restates the label font-size the
+    // base already declares — so the twins restate it;
     // declared for the manifest (signalxjs/lynx#1070).
     defaultVariants: { color: 'primary', size: 'md' },
     skipStates: { root: ['invalid', 'focus-visible'] },

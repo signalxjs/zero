@@ -3085,16 +3085,6 @@
         --slider-thumb-size: calc(var(--size-selector) * 5);
     }
 
-    [data-scope="slider"][data-part="root"][data-size="md"] {
-        --slider-track-size: calc(var(--size-selector) * 3);
-        --slider-thumb-size: calc(var(--size-selector) * 6);
-    }
-
-    [data-scope="slider"][data-part="root"]:not([data-size]) {
-        --slider-track-size: calc(var(--size-selector) * 3);
-        --slider-thumb-size: calc(var(--size-selector) * 6);
-    }
-
     [data-scope="slider"][data-part="root"][data-size="lg"] {
         --slider-track-size: calc(var(--size-selector) * 3.5);
         --slider-thumb-size: calc(var(--size-selector) * 7);
