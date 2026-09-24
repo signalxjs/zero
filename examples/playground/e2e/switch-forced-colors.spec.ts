@@ -60,7 +60,11 @@ async function strongDiff(page: Page, a: Buffer, b: Buffer): Promise<number> {
             return ctx.getImageData(0, 0, bmp.width, bmp.height);
         };
         const [x, y] = await Promise.all([decode(pa), decode(pb)]);
-        if (x.width !== y.width || x.height !== y.height) return Number.POSITIVE_INFINITY;
+        // A size mismatch is a broken comparison, not a strong difference:
+        // throw rather than let it pass the lower-bound assertions.
+        if (x.width !== y.width || x.height !== y.height) {
+            throw new Error(`screenshot sizes differ: ${x.width}x${x.height} vs ${y.width}x${y.height}`);
+        }
         const lum = (d: Uint8ClampedArray, i: number) => 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
         let n = 0;
         for (let i = 0; i < x.data.length; i += 4) {
