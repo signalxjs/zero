@@ -60,8 +60,10 @@ describe('theme controller — follow-system (#178)', () => {
         effect(() => {
             seen.push(ctl.resolvedScheme());
         });
+        os.set(true);
         os.set(false);
-        expect(seen.at(-1)).toBe('dark');
+        // An explicit theme does not depend on the OS: the reader never re-ran.
+        expect(seen).toEqual(['dark']);
 
         // Back to following the system: the reader tracks the OS again.
         ctl.setTheme(null);
