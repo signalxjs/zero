@@ -467,12 +467,15 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
             if (!node || typeof node.showPopover !== 'function') return;
             if (open) exit.cancel();
             const showing = node.matches(':popover-open');
+            // The one-shot hint is spent on every open — including a reopen
+            // mid-exit, when the popover is still showing — so a stale
+            // 'last' never leaks into the next, unrelated open.
+            const end = open ? menu.takeOpenFocus() : 'first';
             if (open && !showing) {
                 node.showPopover();
                 // Focus lands on the first enabled item — the last after an
                 // ArrowUp open (APG menu button).
                 const items = menu.list.enabledItems();
-                const end = menu.takeOpenFocus();
                 items[end === 'last' ? items.length - 1 : 0]?.el()?.focus();
             } else if (!open && showing) {
                 exit.close(node, () => {
