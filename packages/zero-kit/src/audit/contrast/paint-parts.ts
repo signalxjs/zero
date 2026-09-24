@@ -1,32 +1,35 @@
 /**
- * The indicator matrix's selection rule and its hand table (#228) — moved
- * here from `examples/playground/e2e/contrast-audit.spec.ts` so the kit and
- * the browser spec measure ONE list of marks.
+ * The indicator matrix's selection (#228) — which parts are MARKS, and the
+ * facts each one needs to be measured the way a reader sees it.
  *
- * Selection rule — which parts are "indicators", read off the anatomy rather
- * than listed by hand:
+ * Declared, not listed: since #31 a part says it is paint in its own anatomy
+ * (`PartSpec.paint` in `@sigx/zero`, emitted into `manifest.json` as
+ * `paint: true` or `{ glyph?, only?, host? }`). The hand table that lived
+ * here — the `INDICATORS` rows with their `glyph`/`only` facts, the hand
+ * opt-ins for the marks the naming pattern cannot see (the rating star, the
+ * spinner, the timeline marker, …) and the empty `NOT_RENDERED_ON_WEB` — is
+ * gone, so an ecosystem component declares its own indicator and the audit
+ * measures it like one of zero's.
  *
- *   a part is an indicator when it declares no `text` token AND its name
- *   comes from the anatomy's closed paint-only vocabulary — `indicator`,
- *   `<thing>-indicator`, `thumb`, `range`.
+ * The naming pattern survives as a GUARD, not a selector: a part whose name
+ * comes from the anatomy's closed paint-only vocabulary — `indicator`,
+ * `<thing>-indicator`, `thumb`, `range` — with no `text` hint and no
+ * `paint` is a mark the audit would silently skip (`uncoveredPaintParts`).
  *
  * The rule sketched in #228 — "tokens include `color` but not `text`, and 2+
  * `data-state` values" — was tried first and rejected: it drags in a dozen
  * SURFACES (dialog/popup, menu/popup, collapsible/root, …) which legitimately
  * paint the same base surface the page paints — measured as "ink" those read
- * ~1:1 and would fail for being correct — and MISSES select/item-indicator
- * and tree-view/branch-indicator. The parts the vocabulary cannot name (the
- * rating star, the spinner, the timeline marker, the diff handle, the
- * pagination arrows) are opted in by hand below, each with its reason.
+ * ~1:1 and would fail for being correct.
  *
- * What changed in the move: the ancestor chains are DERIVED from the anatomy's
- * part tree (`PartSpec.parent`, #317) instead of restated per entry. A popup
- * ancestor is pinned open — a closed popup is `visibility: hidden`, which
- * inherits, so a `✓` inside a default-state popup would measure as "not
- * painted" and the cell would silently vanish. A trigger with an `open` state
- * is NOT pinned: the resting trigger is the one a reader sees. One entry
- * (`menu`) keeps a hand chain, because the anatomy names the containing part
- * (the popup) while the mark sits on a host ROW the tree does not know.
+ * The ancestor chains are DERIVED from the anatomy's part tree
+ * (`PartSpec.parent`, #317). A popup ancestor is pinned open — a closed popup
+ * is `visibility: hidden`, which inherits, so a `✓` inside a default-state
+ * popup would measure as "not painted" and the cell would silently vanish. A
+ * trigger with an `open` state is NOT pinned: the resting trigger is the one
+ * a reader sees. A mark whose `parent` names only the containing part (menu's
+ * `item-indicator`: the popup) declares `paint.host` — the row it is
+ * measured on — and the chain runs through the host instead.
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
 import { isPopupPart } from '../rules/state-legibility.js';
@@ -36,87 +39,31 @@ import { chainFor, combosFor } from './cells.js';
 export const PAINT_ONLY_PART = /^(?:.*-)?(?:indicator|thumb|range)$/;
 
 /**
- * Selected parts the web never renders. Empty since #325 — slider's
- * track/range/thumb used to be the Lynx-only projection, but the composed
- * range slider renders them for real now. Kept for the next
- * platform-divergent part.
- */
-export const NOT_RENDERED_ON_WEB: ReadonlySet<string> = new Set<string>([]);
-
-/**
- * `glyph` is the default mark the component itself renders when the app
- * passes no children (`Select.Indicator` → `▾`, item indicators → `✓`,
- * `TreeView.BranchIndicator` → `›`, `RatingGroup.Item` → `★`). The
- * checkbox/radio/switch/progress marks are drawn by the recipe, not by zero,
- * so those parts carry no glyph — as they are on screen.
- *
- * `only` is the flag the part cannot exist WITHOUT — the indicator's own
- * version of an ancestor's `=state` pin. `Select.Item` and `Combobox.Item`
- * mount the `✓` only while selected, and always with `data-selected=""` on it.
- *
- * `ancestors`, when present, REPLACES the derived chain; see the file header.
+ * One declared paint part, resolved — what the matrix measures. `glyph`,
+ * `only` and `host` are the part's `paint` facts (see `ManifestPaint`).
  */
 export interface IndicatorSpec {
     scope: string;
     part: string;
     glyph?: string;
     only?: string;
-    ancestors?: readonly string[];
+    host?: string;
 }
 
-export const INDICATORS: readonly IndicatorSpec[] = [
-    { scope: 'checkbox', part: 'indicator' },
-    { scope: 'radio-group', part: 'item-indicator' },
-    { scope: 'switch', part: 'thumb' },
-    { scope: 'progress', part: 'range' },
-    // The composed range slider's marks (#325) — real web parts, painted on
-    // the rail exactly like progress's.
-    { scope: 'slider', part: 'range' },
-    { scope: 'slider', part: 'thumb' },
-    // Menu's checked mark (#325). No glyph: zero renders an empty span and the
-    // recipe draws the mark. The anatomy's containing part is the popup; the
-    // mark sits on the checkbox-item ROW, and radio-item shares the same row
-    // grammar in all six design systems, so one host chain measures both.
-    { scope: 'menu', part: 'item-indicator', ancestors: ['popup=open', 'checkbox-item'] },
-    { scope: 'select', part: 'indicator', glyph: '▾' },
-    { scope: 'select', part: 'item-indicator', glyph: '✓', only: 'selected' },
-    { scope: 'combobox', part: 'item-indicator', glyph: '✓', only: 'selected' },
-    { scope: 'tree-view', part: 'branch-indicator', glyph: '›' },
-    // The one non-`indicator`-named mark; `★` for every state — the recipes
-    // differ in `color`, not in the glyph.
-    { scope: 'rating-group', part: 'item', glyph: '★' },
-    // Spinner (#314): pure paint on the page; an invisible one is a real bug —
-    // WCAG 1.4.11's non-text floor is the same 3:1. SKELETON is deliberately
-    // NOT here: it is the absence of content, and a placeholder loud enough to
-    // clear 3:1 would read as a filled block someone meant.
-    { scope: 'spinner', part: 'root' },
-    // Status is spinner's static sibling (#334): an empty element whose whole
-    // job is paint.
-    { scope: 'status', part: 'root' },
-    // Timeline's marker (#334): the dot on the axis, named after what it is
-    // rather than its job.
-    { scope: 'timeline', part: 'marker' },
-    // Badge's status dot (zero#130): paint beside the pill's text, in the
-    // pill's ink at rest and, re-carrying `color`, a role's fill inside a
-    // ring in the role's `-content` ink — the marker's construction, measured
-    // once per wired colour on its own attribute like the marker's.
-    { scope: 'badge', part: 'dot' },
-    // The carousel dot: auto-selected by the paint-only pattern. Both states
-    // are measured — an inactive dot a viewer cannot find is a pagination they
-    // cannot use.
-    { scope: 'carousel', part: 'indicator' },
-    // Diff's divider handle: its grab affordance must clear the non-text floor
-    // against the root's resting surface.
-    { scope: 'diff', part: 'handle' },
-    // RadialProgress's ring (#334): painted ON the root as a background-colour
-    // ink under conic/annulus masks — background-colour rather than a gradient
-    // image precisely so this matrix can read it.
-    { scope: 'radial-progress', part: 'root' },
-    // Pagination's prev/next triggers (#339): the `‹`/`›` glyph is the only
-    // affordance for "there are more pages".
-    { scope: 'pagination', part: 'prev-trigger', glyph: '‹' },
-    { scope: 'pagination', part: 'next-trigger', glyph: '›' },
-];
+/** Every part the anatomy declares as paint, in manifest order. */
+export function paintSpecs(anatomy: readonly ManifestComponent[]): IndicatorSpec[] {
+    return anatomy.flatMap((component) => component.parts.flatMap((part): IndicatorSpec[] => {
+        if (part.paint === undefined) return [];
+        const facts = part.paint === true ? {} : part.paint;
+        return [{
+            scope: component.scope,
+            part: part.name,
+            ...(facts.glyph !== undefined ? { glyph: facts.glyph } : {}),
+            ...(facts.only !== undefined ? { only: facts.only } : {}),
+            ...(facts.host !== undefined ? { host: facts.host } : {}),
+        }];
+    }));
+}
 
 /**
  * The ancestor chain of a mark, derived from the part tree: every containing
@@ -135,31 +82,31 @@ export function indicatorAncestors(component: ManifestComponent, part: ManifestP
     return ancestors;
 }
 
-/** The chain each entry resolves to — hand-declared or derived. */
+/**
+ * The chain each declared paint part resolves to — derived from the part
+ * tree, through `paint.host` when the mark declares one.
+ */
 export function indicatorChains(anatomy: readonly ManifestComponent[]): Array<{ spec: IndicatorSpec; ancestors: string[] }> {
-    return INDICATORS.flatMap((spec) => {
-        const component = anatomy.find((c) => c.scope === spec.scope);
-        const part = component?.parts.find((p) => p.name === spec.part);
-        // A design system audited against a manifest that lacks the scope
-        // (an ecosystem-only manifest, a stripped fixture) simply has no such
-        // mark to measure.
-        if (!component || !part) return [];
-        return [{ spec, ancestors: spec.ancestors ? [...spec.ancestors] : indicatorAncestors(component, part) }];
+    return paintSpecs(anatomy).map((spec) => {
+        const component = anatomy.find((c) => c.scope === spec.scope)!;
+        const part = component.parts.find((p) => p.name === spec.part)!;
+        if (spec.host === undefined) return { spec, ancestors: indicatorAncestors(component, part) };
+        const host = component.parts.find((p) => p.name === spec.host);
+        if (!host) throw new Error(`[zero-kit] ${spec.scope}/${spec.part} declares paint.host "${spec.host}", which the anatomy does not declare`);
+        return { spec, ancestors: [...indicatorAncestors(component, host), host.name] };
     });
 }
 
 /**
- * Paint-only parts the selection rule picks that no entry covers — the
- * browser spec's `indicator coverage` guard, as a function. Non-empty means a
- * new mark shipped without a chain: add it to `INDICATORS` (or, if the web
- * never renders it, to `NOT_RENDERED_ON_WEB`).
+ * Parts the paint-only naming pattern picks that do not declare `paint` —
+ * the browser spec's `indicator coverage` guard, as a function. Non-empty
+ * means a mark shipped without the declaration, and the matrix skips it:
+ * declare `paint` on the part in its `anatomy.ts`.
  */
 export function uncoveredPaintParts(anatomy: readonly ManifestComponent[]): string[] {
-    const covered = new Set(INDICATORS.map((i) => `${i.scope}/${i.part}`));
     return anatomy.flatMap((component) => component.parts
-        .filter((part) => !part.tokens?.includes('text') && PAINT_ONLY_PART.test(part.name))
-        .map((part) => `${component.scope}/${part.name}`))
-        .filter((key) => !NOT_RENDERED_ON_WEB.has(key) && !covered.has(key));
+        .filter((part) => part.paint === undefined && !part.tokens?.includes('text') && PAINT_ONLY_PART.test(part.name))
+        .map((part) => `${component.scope}/${part.name}`));
 }
 
 /**

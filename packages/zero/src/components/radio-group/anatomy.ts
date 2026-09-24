@@ -28,6 +28,7 @@ export const radioGroupAnatomy = defineAnatomy('radio-group', {
     },
     'item-indicator': {
         element: 'span',
+        paint: true,
         parent: 'item-control',
         states: ['checked', 'unchecked'],
         tokens: ['color'],

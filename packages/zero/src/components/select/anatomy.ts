@@ -23,6 +23,7 @@ export const selectAnatomy = defineAnatomy('select', {
     },
     indicator: {
         element: 'span',
+        paint: { glyph: '▾' },
         parent: 'trigger',
         states: ['open', 'closed'],
         tokens: ['color'],
@@ -66,6 +67,8 @@ export const selectAnatomy = defineAnatomy('select', {
     },
     'item-indicator': {
         element: 'span',
+        // Mounted only while its item is selected, always with the flag on it.
+        paint: { glyph: '✓', only: 'selected' },
         parent: 'item',
         flags: ['selected'],
         tokens: ['color'],

@@ -19,7 +19,7 @@
 import { describe, it, expect } from 'vitest';
 import { anatomies } from '@sigx/zero/anatomy';
 import {
-    INDICATORS, auditDesignSystem, indicatorChains, uncoveredPaintParts,
+    auditDesignSystem, indicatorChains, paintSpecs, uncoveredPaintParts,
 } from '@sigx/zero-kit';
 import type {
     AuditRuleId, ContrastCell, DesignSystemInput, ManifestComponent, RecipeInput, TokensInput, UnmeasuredReason,
@@ -100,14 +100,15 @@ describe('the six skins clear the floors statically', () => {
 // ── The cell product ────────────────────────────────────────────────────────
 
 describe('the cell product is the browser spec\'s', () => {
-    it('every paint-only part the selection rule picks has an entry', () => {
+    it('every part the paint-only naming pattern picks declares paint', () => {
         expect(uncoveredPaintParts(manifest.components)).toEqual([]);
     });
 
     it('the chains the part tree derives are the ones the spec declared by hand', () => {
         // The browser spec's `INDICATORS` table, ancestors outermost first,
-        // as it stood when the table moved into the kit (#403). One entry
-        // (`menu`) keeps a hand chain; every other row is derived.
+        // as it stood when the table moved into the kit (#403) — and since
+        // #31 the anatomy's `paint` declarations replace the table itself.
+        // `menu` reaches its row through `paint.host`; every chain is derived.
         const hand: Record<string, string[]> = {
             'checkbox/indicator': ['root', 'control'],
             'radio-group/item-indicator': ['root', 'item', 'item-control'],
@@ -133,7 +134,35 @@ describe('the cell product is the browser spec\'s', () => {
         };
         const derived = Object.fromEntries(indicatorChains(manifest.components).map(({ spec, ancestors }) => [`${spec.scope}/${spec.part}`, ancestors]));
         expect(derived).toEqual(hand);
-        expect(INDICATORS.length).toBe(Object.keys(hand).length);
+        expect(paintSpecs(manifest.components).length).toBe(Object.keys(hand).length);
+    });
+
+    it("the declared glyph / only / host facts are the retired table's", () => {
+        const facts = Object.fromEntries(paintSpecs(manifest.components)
+            .filter((spec) => spec.glyph ?? spec.only ?? spec.host)
+            .map(({ scope, part, ...rest }) => [`${scope}/${part}`, rest]));
+        expect(facts).toEqual({
+            'menu/item-indicator': { host: 'checkbox-item' },
+            'select/indicator': { glyph: '▾' },
+            'select/item-indicator': { glyph: '✓', only: 'selected' },
+            'combobox/item-indicator': { glyph: '✓', only: 'selected' },
+            'tree-view/branch-indicator': { glyph: '›' },
+            'rating-group/item': { glyph: '★' },
+            'pagination/prev-trigger': { glyph: '‹' },
+            'pagination/next-trigger': { glyph: '›' },
+        });
+    });
+
+    it('an ecosystem part that declares paint is measured with no kit change', () => {
+        const ext: ManifestComponent = {
+            scope: 'ext-meter',
+            parts: [
+                { name: 'root', element: 'div', selectors: {} },
+                { name: 'needle', element: 'span', parent: 'root', states: ['active', 'inactive'], paint: true, selectors: { active: '[data-state="active"]', inactive: '[data-state="inactive"]' } },
+            ],
+        };
+        expect(indicatorChains([ext]).map(({ spec, ancestors }) => [spec.part, ancestors])).toEqual([['needle', ['root']]]);
+        expect(uncoveredPaintParts([ext])).toEqual([]);
     });
 });
 

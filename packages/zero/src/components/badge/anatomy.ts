@@ -37,6 +37,9 @@ export const badgeAnatomy = defineAnatomy('badge', {
      */
     dot: {
         element: 'span',
+        // The status dot (#130): the pill's ink at rest, a role's fill when it
+        // re-carries `color`.
+        paint: true,
         parent: 'root',
         states: ['running'],
         carries: ['color'],

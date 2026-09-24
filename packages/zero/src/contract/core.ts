@@ -79,7 +79,7 @@ export {
     SPACE_STEPS,
 } from './layout-attrs.js';
 
-export type { Anatomy, AnatomyJSON, CarriedAxis, PartSpec, PartJSON, PartPseudo, TokenHint, ModelSpec, ModelJSON } from './anatomy.js';
+export type { Anatomy, AnatomyJSON, CarriedAxis, PartPaint, PartSpec, PartJSON, PartPseudo, TokenHint, ModelSpec, ModelJSON } from './anatomy.js';
 export { defineAnatomy, defaultPropOf, changeEventOf } from './anatomy.js';
 
 export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX } from './variant-attrs.js';

@@ -93,6 +93,8 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
     },
     'item-indicator': {
         element: 'span',
+        // Mounted only while its item is selected, always with the flag on it.
+        paint: { glyph: '✓', only: 'selected' },
         parent: 'item',
         flags: ['selected'],
         tokens: ['color'],

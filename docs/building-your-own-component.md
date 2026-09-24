@@ -50,6 +50,9 @@ Rules that make it a *zero* anatomy:
   borrowing `active`/`closed`. Boolean flags come from zero's shared
   `FLAG_VOCABULARY` (never invent synonyms) and render presence-only.
 - A part the runtime hides with `hidden` in some state declares `hiddenIn`.
+- A part whose job is paint rather than text — a check, a dot, a needle —
+  declares `paint` (`true`, or `{ glyph?, only?, host? }`), and the contrast
+  audit measures it against the 3:1 non-text floor like zero's own marks.
 - `anatomy.toJSON()` emits exactly the manifest component shape — you never
   hand-write manifest JSON.
 
@@ -124,8 +127,8 @@ build:
   hand-written literal;
 - the JSON validates against `schemas/fragment.schema.json`, and
   `mergeManifests` accepts it against the installed `@sigx/zero`: flags,
-  governed states, placements, `hiddenIn`, the part tree, and a scope nobody
-  else claims;
+  governed states, placements, `hiddenIn`, `paint`, the part tree, and a
+  scope nobody else claims;
 - the declared fragment path is inside your `"files"` — present locally and
   missing for every consumer is the failure you cannot see from your own
   checkout. Strict for an exact path and for a directory prefix (`dist`,

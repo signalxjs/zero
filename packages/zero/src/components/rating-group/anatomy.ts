@@ -30,6 +30,8 @@ export const ratingGroupAnatomy = defineAnatomy('rating-group', {
     },
     item: {
         element: 'span',
+        // `★` in every state — the recipes differ in `color`, not in the glyph.
+        paint: { glyph: '★' },
         parent: 'control',
         states: ['full', 'half', 'empty'],
         flags: ['highlighted', 'disabled', 'readonly', 'focus-visible'],

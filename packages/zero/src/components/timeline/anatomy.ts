@@ -36,6 +36,8 @@ export const timelineAnatomy = defineAnatomy('timeline', {
     },
     marker: {
         element: 'div',
+        // The dot on the axis (#334), named after what it is rather than its job.
+        paint: true,
         parent: 'item',
         // Per-entry colour (#94): the marker re-carries `color`, so one
         // event's dot can say "failed" while the timeline stays neutral.

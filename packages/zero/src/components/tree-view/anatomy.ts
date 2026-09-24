@@ -50,6 +50,7 @@ export const treeViewAnatomy = defineAnatomy('tree-view', {
     },
     'branch-indicator': {
         element: 'span',
+        paint: { glyph: '›' },
         parent: 'branch-trigger',
         states: ['open', 'closed'],
     },

@@ -20,6 +20,9 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const radialProgressAnatomy = defineAnatomy('radial-progress', {
     root: {
         element: 'div',
+        // The ring (#334), painted ON the root as a background-colour ink under
+        // conic/annulus masks.
+        paint: true,
         states: ['loading', 'complete', 'indeterminate'],
         tokens: ['color', 'size'],
     },
