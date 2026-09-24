@@ -1875,7 +1875,15 @@ export const progress: RecipeInput = {
 
 export const slider: RecipeInput = {
     component: 'slider',
-    tokens: { '--slider-accent': 'var(--color-primary)' },
+    // daisy's `.range` metrics: the thumb is `--range-thumb-size`
+    // (×6 of `--size-selector` at md, ×4…×8 across the ramp — the same
+    // selector ramp checkbox rides) and the track is half of it. Both the
+    // native control and the composed parts read these.
+    tokens: {
+        '--slider-accent': 'var(--color-primary)',
+        '--slider-track-size': 'calc(var(--size-selector) * 3)',
+        '--slider-thumb-size': 'calc(var(--size-selector) * 6)',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)', width: '100%' },
@@ -1885,25 +1893,99 @@ export const slider: RecipeInput = {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
             states: { disabled: {} },
         },
+        // A custom skin (`appearance: none`), ported from daisyUI 5's
+        // `range.css`: a `--radius-selector` track half the thumb's height,
+        // and daisy's real range thumb — a `base-100` knob inside a
+        // `.25rem` ring of the fill ink (daisy's `--range-p`), carrying the
+        // same `--depth` inset shading the checkbox and radio wear. daisy
+        // throws the elapsed fill as a 100cqw box-shadow off the thumb and
+        // clips it with `overflow: hidden`; here the track reads the
+        // runtime-published `--slider-percent` as a gradient stop instead,
+        // as every other skin does. The fill is deepened toward
+        // `base-content` the way `progressFill` deepens daisy's bar — a raw
+        // role on the base-300 rail is exactly the #210/#228 bug class.
+        //
+        // The rebuild is also the correctness move (see the kit skill): Blink
+        // treats range inputs as ALWAYS `:focus-visible`, even on mouse
+        // focus, so the base kills the native outline and the
+        // `focus-visible` state — compiled to the runtime's keyboard-only
+        // `[data-focus-visible]` flag — draws the ring only when it means it.
         control: {
-            base: { width: '100%', accentColor: 'var(--slider-accent)', cursor: 'pointer' },
+            base: {
+                appearance: 'none',
+                width: '100%',
+                height: 'var(--slider-thumb-size)',
+                margin: '0',
+                background: 'transparent',
+                cursor: 'pointer',
+                outline: 'none',
+                // Kept for the forced-colors fallback below, where native
+                // rendering takes over and still honours the accent.
+                accentColor: 'var(--slider-accent)',
+                // `--slider-fill` and `--slider-track` live in targets.web
+                // below: the fill is a color-mix() the lynx emitter drops,
+                // and the track reads the runtime-published
+                // `--slider-percent`, a web-only mechanism.
+            },
             states: {
                 disabled: { cursor: 'not-allowed' },
                 'focus-visible': { outline: '2px solid var(--slider-accent)', outlineOffset: '2px' },
                 // `invalid` is semantic: it stays error under every colour
-                // variant, on purpose.
-                invalid: { accentColor: 'var(--color-error)' },
+                // variant, on purpose — the accent indirection swaps the
+                // fill, the thumb ring, the focus ring and the forced-colors
+                // fallback together.
+                invalid: { '--slider-accent': 'var(--color-error)' },
+            },
+            selectors: {
+                // Vendor pseudos cannot share a selector list — one unknown
+                // selector invalidates the whole rule — so each engine gets
+                // its own copy reading the shared custom properties.
+                '&::-webkit-slider-runnable-track': {
+                    height: 'var(--slider-track-size)',
+                    borderRadius: 'var(--radius-selector)',
+                    background: 'var(--slider-track)',
+                },
+                '&::-webkit-slider-thumb': {
+                    appearance: 'none',
+                    boxSizing: 'border-box',
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    marginTop: 'calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2)',
+                    borderRadius: 'calc(var(--radius-selector) + min(0.25rem, var(--radius-selector) * 3))',
+                    border: '0.25rem solid var(--slider-fill)',
+                    background: 'var(--color-base-100)',
+                    boxShadow: '0 -1px var(--depth-shade) inset, 0 8px 0 -4px var(--depth-sheen) inset',
+                },
+                '&::-moz-range-track': {
+                    height: 'var(--slider-track-size)',
+                    borderRadius: 'var(--radius-selector)',
+                    background: 'var(--slider-track)',
+                },
+                '&::-moz-range-thumb': {
+                    boxSizing: 'border-box',
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    borderRadius: 'calc(var(--radius-selector) + min(0.25rem, var(--radius-selector) * 3))',
+                    border: '0.25rem solid var(--slider-fill)',
+                    background: 'var(--color-base-100)',
+                    boxShadow: '0 -1px var(--depth-shade) inset, 0 8px 0 -4px var(--depth-sheen) inset',
+                },
+            },
+            at: {
+                // Native rendering knows forced colors better than a custom
+                // skin; the retained accentColor keeps the fallback branded.
+                'forced-colors': { base: { appearance: 'auto' } },
             },
         },
-        // The composed range projection (#325). The native control above
-        // stays UA-drawn behind `accentColor`; the composed parts restate the
-        // same accent as real boxes. The fill is deepened toward
-        // `base-content` the way `progressFill` deepens daisy's bar — a raw
-        // role on the base-300 rail is exactly the #210/#228 bug class.
+        // The composed range projection (#325): the same metrics as the
+        // native control above, restating its accent as real boxes. The
+        // fill is the same deepened ink the native track paints.
         track: {
             base: {
-                height: 'calc(var(--size-selector) * 2)',
-                marginBlock: 'calc(var(--size-selector) * 1.5)',
+                height: 'var(--slider-track-size)',
+                // Reserve the thumb's overhang so the row's box matches the
+                // native control's.
+                marginBlock: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
                 borderRadius: '9999px',
                 background: 'var(--color-base-300)',
                 cursor: 'pointer',
@@ -1921,11 +2003,11 @@ export const slider: RecipeInput = {
         thumb: {
             base: {
                 boxSizing: 'border-box',
-                width: 'calc(var(--size-selector) * 5)',
-                height: 'calc(var(--size-selector) * 5)',
+                width: 'var(--slider-thumb-size)',
+                height: 'var(--slider-thumb-size)',
                 insetBlockStart: '50%',
                 translate: '0 -50%',
-                marginInlineStart: 'calc(var(--size-selector) * -2.5)',
+                marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
                 borderRadius: '9999px',
                 background: 'color-mix(in oklab, var(--slider-accent) 90%, var(--color-base-content))',
                 cursor: 'pointer',
@@ -1940,7 +2022,7 @@ export const slider: RecipeInput = {
         },
         mark: {
             base: {
-                paddingBlockStart: 'calc(var(--size-selector) * 2 + var(--space-2xs))',
+                paddingBlockStart: 'calc(var(--slider-track-size) + var(--space-2xs))',
                 fontSize: 'var(--text-xs)',
                 lineHeight: '1',
                 whiteSpace: 'nowrap',
@@ -1954,7 +2036,7 @@ export const slider: RecipeInput = {
                     insetBlockStart: '0',
                     insetInlineStart: '-1px',
                     width: '2px',
-                    height: 'calc(var(--size-selector) * 2)',
+                    height: 'var(--slider-track-size)',
                     background: 'var(--color-base-content)',
                 },
             },
@@ -1967,33 +2049,52 @@ export const slider: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--slider-accent': `var(--color-${c})`,
         } } }])),
-        // A native range widget: only its box height is size-able without an
-        // appearance:none rebuild, so the ramp moves the box and the text.
+        // daisy's `.range-{xs…xl}` ramp: `--range-thumb-size` at ×4…×8 of
+        // `--size-selector` (1 / 1.25 / 1.5 / 1.75 / 2rem), the track half
+        // of it — so every step moves the whole widget; the un-attributed
+        // (and `md`) render takes the middle step from `tokens:`.
         size: {
-            xs: { control: { base: { height: 'calc(var(--size-selector) * 3)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
-            sm: { control: { base: { height: 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            xs: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 2)', '--slider-thumb-size': 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 2.5)', '--slider-thumb-size': 'calc(var(--size-selector) * 5)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            // `md`'s metrics ARE the `tokens:` defaults — one source of truth.
             md: { label: { base: { fontSize: 'var(--text-sm)' } } },
-            lg: { control: { base: { height: 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
-            xl: { control: { base: { height: 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+            lg: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 3.5)', '--slider-thumb-size': 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 4)', '--slider-thumb-size': 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
-    // Base equals the default — `tokens:` binds the primary accent, and `md`
-    // only restates the label font-size the base already declares (the
-    // control's base height IS the middle step) — so the twins restate it;
+    // Base equals the default — `tokens:` binds the primary accent and the
+    // middle-step metrics, and `md` only restates the label font-size the
+    // base already declares — so the twins restate it;
     // declared for the manifest (signalxjs/lynx#1070).
     defaultVariants: { color: 'primary', size: 'md' },
     skipStates: { root: ['invalid', 'focus-visible'] },
     // ONE design decision, two paints. On the web the accent reaches the
-    // screen twice: the native control is UA-drawn behind `accent-color`, and
-    // the composed range/thumb deepen the accent with `color-mix()`. Lynx
-    // renders neither spelling — `accent-color` styles a native
-    // `<input type=range>` lynx does not have, and the emitter drops
-    // `color-mix()` as unresolvable — so the compiled range and thumb shipped
-    // with no paint at all: grey track, invisible fill, invisible knob
-    // (measured on device, signalxjs/lynx#1075). The geometry all survives
-    // (the sizes are direct calc(), proven working); paint is the only gap,
-    // so this section only restates paint, in lynx-expressible spellings.
+    // screen twice, both times deepened with `color-mix()`: the native
+    // control's gradient track and thumb ring (via `--slider-fill`, below),
+    // and the composed range/thumb. Lynx renders neither — it has no native
+    // `<input type=range>`, and the emitter drops `color-mix()` as
+    // unresolvable — so the compiled range and thumb once shipped with no
+    // paint at all: grey track, invisible fill, invisible knob (measured on
+    // device, signalxjs/lynx#1075). The geometry all survives (the sizes are
+    // direct calc() over the metric tokens); paint is the only gap, so the
+    // lynx section only restates paint, in lynx-expressible spellings, plus
+    // the physical restatement of the logical geometry.
     targets: {
+        web: {
+            parts: {
+                control: {
+                    base: {
+                        // The fill ink, deepened like the composed range.
+                        '--slider-fill': 'color-mix(in oklab, var(--slider-accent) 90%, var(--color-base-content))',
+                        // The filled track reads the runtime-published
+                        // `--slider-percent` — web-only (`RUNTIME_PROPERTIES`);
+                        // the lynx runtime paints its own track/range parts.
+                        '--slider-track':
+                            'linear-gradient(to right, var(--slider-fill) var(--slider-percent, 50%), var(--color-base-300) 0)',
+                    },
+                },
+            },
+        },
         lynx: {
             parts: {
                 track: {
@@ -2003,14 +2104,14 @@ export const slider: RecipeInput = {
                     // the emitter refuses them. Physical is the lynx
                     // target's norm — no RTL flow there.
                     base: {
-                        marginTop: 'calc(var(--size-selector) * 1.5)',
-                        marginBottom: 'calc(var(--size-selector) * 1.5)',
+                        marginTop: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
+                        marginBottom: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
                     },
                 },
                 mark: {
                     // Same #1084 verdict: the tick labels hang below the
                     // track off a physical padding.
-                    base: { paddingTop: 'calc(var(--size-selector) * 2 + var(--space-2xs))' },
+                    base: { paddingTop: 'calc(var(--slider-track-size) + var(--space-2xs))' },
                 },
                 range: {
                     // The web fill deepens the accent 90/10 toward
@@ -2048,7 +2149,7 @@ export const slider: RecipeInput = {
                         border: '0.25rem solid var(--slider-accent)',
                         top: '50%',
                         transform: 'translateY(-50%)',
-                        marginLeft: 'calc(var(--size-selector) * -2.5)',
+                        marginLeft: 'calc(var(--slider-thumb-size) / -2)',
                     },
                 },
             },

@@ -28,6 +28,18 @@ each is geometry that interpolates between states, so it rides the size ramp and
 animates. Under `forced-colors` and `print` the checkbox swaps to a `✔`/`−`
 glyph; the rating keeps its geometry, since no glyph can say "half".
 
+The slider is **rebuilt** with `appearance: none` (#26), like every other skin,
+instead of a stock native range behind `accent-color`: daisy's `range.css` track
+(half the thumb's height, `--radius-selector`) and its real thumb — a `base-100`
+knob in a `.25rem` ring of the fill ink, with the `--depth` shading. The whole
+widget rides daisy's `range-{xs…xl}` ramp through `--slider-thumb-size`
+(×4…×8 of `--size-selector`) and `--slider-track-size` (half of it), `md`
+included, and the composed range parts read the same two tokens. The elapsed
+fill is the progress bar's 90/10 deepened accent, painted from the
+runtime-published `--slider-percent`; `invalid` still turns fill and rings to
+`error` under every colour variant. Under `forced-colors` the native widget
+comes back.
+
 The palette is daisyUI **5.7.8**'s, role for role, in all five themes — checked
 against its shipped `themes.css` rather than transcribed. `light` and `dark` had
 drifted a major version behind (#231): among others, light's `primary` was
