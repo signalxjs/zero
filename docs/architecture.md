@@ -1140,7 +1140,11 @@ a `prefers-color-scheme: dark` block instead, because `light-dark()` is a
 `<color>` function). A design system with no distinct `defaultDark` has one
 scheme, and `:root` states its default theme's own — `color-scheme: dark` for
 a dark-only system, never a hard-coded `light`. The controller only manages
-*explicit* choices via the `data-theme` attribute.
+*explicit* choices via the `data-theme` attribute. Its `resolvedScheme()` is
+still reactive in follow-system mode, so script-side displays (a toggle icon)
+track the OS: one lazily-created, client-only `(prefers-color-scheme: dark)`
+signal with a `change` listener, shared by every controller on the page
+(#178).
 
 **`pickThemeFor` prefers declared defaults.** The registry stores each
 source's `defaultLight`/`defaultDark` and prefers them (when registered

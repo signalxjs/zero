@@ -46,6 +46,39 @@ export const DEFAULT_STORAGE_KEY = 'zero-theme';
 
 const isClient = (): boolean => typeof document !== 'undefined';
 
+const DARK_QUERY = '(prefers-color-scheme: dark)';
+
+/**
+ * The OS colour scheme as a signal, shared by every controller on the page.
+ * Created lazily on the first follow-system read, on the client only, with
+ * one `change` listener for the page's lifetime — a controller owns no
+ * teardown, so a per-controller listener would leak one per provider mount.
+ * Client-only state, so a module global is fine (it never exists under SSR).
+ * Re-created only if the global `matchMedia` itself is replaced (a test
+ * double); in a browser that never happens.
+ */
+let systemSource: typeof matchMedia | null = null;
+let systemState: { dark: boolean } | null = null;
+
+function systemScheme(): 'light' | 'dark' {
+    if (!isClient() || typeof matchMedia !== 'function') return 'light';
+    if (systemSource !== matchMedia || !systemState) {
+        let list: MediaQueryList;
+        try {
+            list = matchMedia(DARK_QUERY);
+        } catch {
+            return 'light';
+        }
+        const state = signal({ dark: list.matches });
+        list.addEventListener?.('change', (e: MediaQueryListEvent) => {
+            state.dark = e.matches;
+        });
+        systemSource = matchMedia;
+        systemState = state;
+    }
+    return systemState.dark ? 'dark' : 'light';
+}
+
 export function createThemeController(options: ThemeControllerOptions = {}): ThemeController {
     const storageKey = options.storageKey ?? DEFAULT_STORAGE_KEY;
     const state = signal({ theme: options.initial ?? null as string | null });
@@ -62,17 +95,6 @@ export function createThemeController(options: ThemeControllerOptions = {}): The
             document.documentElement.setAttribute('data-theme', state.theme);
         }
     }
-
-    const systemScheme = (): 'light' | 'dark' => {
-        if (isClient() && typeof matchMedia === 'function') {
-            try {
-                return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            } catch {
-                return 'light';
-            }
-        }
-        return 'light';
-    };
 
     const setTheme = (name: string | null): void => {
         state.theme = name;
