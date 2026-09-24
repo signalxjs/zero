@@ -7781,6 +7781,7 @@
 
     [data-scope="stats"][data-part="root"] {
         display: flex;
+        overflow-x: auto;
         background: var(--color-surface-container);
         color: var(--color-surface-container-content);
         border-radius: var(--radius-box);
@@ -7816,6 +7817,7 @@
 
     [data-scope="stats"][data-part="value"] {
         grid-column: 1;
+        white-space: nowrap;
         font-size: var(--text-2xl);
         font-weight: var(--weight-medium);
         font-variant-numeric: tabular-nums;

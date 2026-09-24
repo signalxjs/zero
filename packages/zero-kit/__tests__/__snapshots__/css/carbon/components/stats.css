@@ -1,6 +1,7 @@
 @layer zero.recipes {
     [data-scope="stats"][data-part="root"] {
         display: flex;
+        overflow-x: auto;
         background: var(--color-base-200);
         border: var(--border) solid var(--carbon-line);
         border-radius: 0;
@@ -36,6 +37,7 @@
 
     [data-scope="stats"][data-part="value"] {
         grid-column: 1;
+        white-space: nowrap;
         font-size: var(--text-2xl);
         font-weight: var(--weight-normal);
         font-variant-numeric: tabular-nums;

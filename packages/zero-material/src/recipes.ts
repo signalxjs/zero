@@ -3787,8 +3787,17 @@ export const stats: RecipeInput = {
     tokens: { '--stats-accent': 'var(--color-surface-container-content)' },
     parts: {
         root: {
+            // The row's own scroll box (#43): a value never wraps or shrinks
+            // (`nowrap` below), so a row too wide for its container scrolls
+            // inside the root — daisyUI's own `.stats` behaviour, and Table's
+            // and Pagination's answer — instead of pushing the page sideways.
+            // Items keep their flex automatic minimum — their min-content
+            // width — so the overflow lands here rather than in the next
+            // item. No ring room: a stat is not focusable, and anything a
+            // consumer puts in one sits inside the item's own padding.
             base: {
                 display: 'flex',
+                overflowX: 'auto',
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
                 borderRadius: 'var(--radius-box)',
@@ -3826,6 +3835,8 @@ export const stats: RecipeInput = {
         value: {
             base: {
                 gridColumn: '1',
+                // A figure is read whole: `$12 930` never breaks at its space.
+                whiteSpace: 'nowrap',
                 fontSize: 'var(--text-2xl)',
                 fontWeight: 'var(--weight-medium)',
                 fontVariantNumeric: 'tabular-nums',
