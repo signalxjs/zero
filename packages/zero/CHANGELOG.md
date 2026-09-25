@@ -2,6 +2,45 @@
 
 ## [Unreleased]
 
+### Added — Toast keyboard access: F8 and Escape (#269)
+
+- **`Toast.Viewport` takes `hotkey`** (`readonly string[] | false`,
+  default `['F8']`): keys that must all be down — modifiers named by their
+  event flag (`['altKey', 'KeyT']`), the rest by `KeyboardEvent.code` or
+  `key` — move focus to the first toast from anywhere in the document. The
+  document listener is attached only while there are toasts. The viewport's
+  `label` is now a template whose `{hotkey}` names it: the default
+  `"Notifications ({hotkey})"` reads "Notifications (F8)", and
+  `hotkey={false}` drops the ` ({hotkey})` suffix.
+- **Escape inside a toast dismisses it** and calls `preventDefault()`; an
+  Escape an inner widget already handled does not.
+- **Toast roots are focusable** (`tabindex="-1"`), and so always named:
+  by the Title, else (with no app `aria-label`/`aria-labelledby`) the
+  Description, else `aria-label="Notification"`.
+
+### Fixed — Toast focus, announcements, stacking and timers (#269)
+
+- **Closing a focused toast no longer drops focus on `<body>`.** Before the
+  root is removed, focus moves to the next toast, else the previous one,
+  else the element focus came from when it entered the viewport, else the
+  viewport.
+- **Announcements are reliable and never doubled.** The always-mounted
+  viewport is now the polite live region (`aria-live="polite"`,
+  `aria-relevant="additions text"`, `aria-atomic="false"`), and each root a
+  named `role="group"` instead of a `status`/`alert` region inserted with
+  its content. A `role: 'alert'` toast's root is `aria-live="off"`; its
+  text is spoken through a visually-hidden `aria-live="assertive"` span the
+  viewport renders beside the region, filled a frame after mount and again
+  when the alert's text changes.
+- **A toast raised over a modal dialog is seen.** A toast arriving while
+  the viewport already shows re-shows it (`hidePopover()` +
+  `showPopover()`), moving it to the top of the top layer, and focus inside
+  survives the re-show. Its controls stay inert under the modal, by spec.
+- **Timers pause while the page is not being looked at.** The viewport's
+  hold is now a set — hover, focus, a hidden document
+  (`visibilitychange`) and an unfocused window (`blur`/`focus`) — and the
+  queue resumes only once all have gone.
+
 ### Added — range stepping: `valueCommit`, `largeStep`, `minStepsBetweenThumbs`, Diff `getValueText` and `disabled` (#272)
 
 - **Slider `valueCommit`** fires with the model's shape (`number` or
