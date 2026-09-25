@@ -7,9 +7,11 @@
  * This walks every page of the playground (the ids come from the rendered
  * sidebar, which derives from `src/pages/registry.ts` — importing the
  * registry here would drag every page's JSX through Playwright's
- * transpiler), opens the primary overlay on pages whose component idles
- * closed (a closed dialog is display:none — axe skips it entirely), and
- * hard-fails on any serious or critical WCAG A/AA violation.
+ * transpiler), scans each page once per surface that idles closed — every
+ * dialog, submenu, context menu, select/combobox popup and the app shell's
+ * narrow-viewport sheet (`SCANS` below; a closed popup is display:none, so
+ * axe skips it entirely) — and hard-fails on any serious or critical WCAG
+ * A/AA violation.
  *
  * Chromium-only, zero-basic only: the tree axe audits is the runtime's
  * output, which is engine- and design-system-independent — recipes add
@@ -26,8 +28,8 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
-import { bootPage } from './nav';
-import { demoPosting } from './demo';
+import { bootPage, gotoPage } from './nav';
+import { controlledPopup, demoPosting } from './demo';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -42,52 +44,178 @@ const allowlist: AllowlistEntry[] = JSON.parse(
 );
 
 /**
- * Openers for pages whose primary surface idles closed. Axe only audits the
- * rendered tree — a closed popup contributes nothing — so each of these
- * puts the page into its interesting state before the scan.
+ * The states each page is scanned in. Axe only audits the rendered tree — a
+ * closed popup is display:none and contributes nothing — so a page whose
+ * surfaces idle closed lists one SCAN per surface: a named sequence of steps
+ * that puts the page into that state, after which the page is scanned. Every
+ * scan starts from a fresh load of its page, so no state leaks from one scan
+ * into the next (an open submenu, a narrowed viewport).
+ *
+ * One scan per page was the old shape (#194), and it left every surface but
+ * the first unscanned: submenus, the context menu, the alertdialogs, the
+ * grouped and virtual selects, the forms page's popups, the app-shell's
+ * modal sheet. A page absent from this map is scanned once, as it idles.
  */
-const OPENERS: Record<string, (page: Page) => Promise<void>> = {
-    dialog: async (page) => {
-        await page.getByRole('button', { name: 'Open dialog', exact: true }).click();
-        await expect(page.locator('[data-scope="dialog"][data-part="popup"][data-state="open"]')).toBeVisible();
-    },
-    drawer: async (page) => {
-        await page.getByRole('button', { name: 'Open drawer', exact: true }).click();
-        // By name: the page also idles a responsive drawer docked open (#82).
-        await expect(page.getByRole('dialog', { name: 'Navigation', exact: true })).toBeVisible();
-    },
-    popover: async (page) => {
-        await page.getByRole('button', { name: 'Filters', exact: true }).click();
-        await expect(page.locator('[data-scope="popover"][data-part="popup"][data-state="open"]')).toBeVisible();
-    },
-    tooltip: async (page) => {
-        // Focus opens immediately — no intent delay to wait out.
-        await page.getByRole('button', { name: 'Hover me', exact: true }).focus();
-        await expect(page.locator('[data-scope="tooltip"][data-part="popup"][data-state="open"]')).toBeVisible();
-    },
-    menu: async (page) => {
-        await page.getByRole('button', { name: 'Actions', exact: true }).click();
-        await expect(page.locator('[data-scope="menu"][data-part="popup"][data-state="open"]')).toBeVisible();
-    },
-    select: async (page) => {
-        await demoPosting(page, 'select', 'fruit')('trigger').click();
-        await expect(demoPosting(page, 'select', 'fruit')('popup')).toHaveAttribute('data-state', 'open');
-    },
-    combobox: async (page) => {
+interface Scan {
+    /** What the scan covers, for the report. */
+    name: string;
+    /** Runs the steps. Viewport changes are undone after the scan. */
+    open: (page: Page) => Promise<void>;
+    /** A viewport to scan at instead of the project's (the app-shell sheet). */
+    viewport?: { width: number; height: number };
+}
+
+const openDialog = (label: string) => async (page: Page) => {
+    await page.getByRole('button', { name: label, exact: true }).click();
+    // By the trigger's own aria-controls: the page holds several dialogs.
+    const popup = await controlledPopup(page, page.getByRole('button', { name: label, exact: true }), label);
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await expect(popup).toBeVisible();
+};
+
+const openSelect = (scope: 'select' | 'combobox', name: string) => async (page: Page) => {
+    const demo = demoPosting(page, scope, name);
+    await demo('trigger').click();
+    await expect(demo('popup')).toHaveAttribute('data-state', 'open');
+    await expect(demo('popup')).toBeVisible();
+};
+
+const menuTrigger = (page: Page, name: string) => page.getByRole('button', { name, exact: true });
+const subTrigger = (page: Page, text: string) =>
+    page.locator('[data-scope="menu"][data-part="sub-trigger"]', { hasText: text });
+
+/** Open a submenu from its (already visible) sub-trigger, by keyboard. */
+async function openSub(page: Page, text: string): Promise<void> {
+    await subTrigger(page, text).focus();
+    await page.keyboard.press('ArrowRight');
+    const popup = await controlledPopup(page, subTrigger(page, text), `the ${text} sub-trigger`);
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await expect(popup).toBeVisible();
+}
+
+async function openMenu(page: Page, name: string): Promise<void> {
+    await menuTrigger(page, name).click();
+    const popup = await controlledPopup(page, menuTrigger(page, name), `the ${name} menu trigger`);
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await expect(popup).toBeVisible();
+}
+
+const SCANS: Record<string, Scan[]> = {
+    dialog: [
+        { name: 'modal dialog', open: openDialog('Open dialog') },
+        { name: 'non-modal find bar', open: openDialog('Open find bar') },
+        { name: 'alertdialog', open: openDialog('Delete file…') },
+        { name: 'alertdialog with dependents', open: openDialog('Delete workspace…') },
+    ],
+    drawer: [{
+        name: 'modal drawer',
+        open: async (page) => {
+            await page.getByRole('button', { name: 'Open drawer', exact: true }).click();
+            // By name: the page also idles a responsive drawer docked open (#82).
+            await expect(page.getByRole('dialog', { name: 'Navigation', exact: true })).toBeVisible();
+        },
+    }],
+    popover: [{
+        name: 'popover',
+        open: async (page) => {
+            await page.getByRole('button', { name: 'Filters', exact: true }).click();
+            await expect(page.locator('[data-scope="popover"][data-part="popup"][data-state="open"]')).toBeVisible();
+        },
+    }],
+    tooltip: [{
+        name: 'tooltip',
+        open: async (page) => {
+            // Focus opens immediately — no intent delay to wait out.
+            await page.getByRole('button', { name: 'Hover me', exact: true }).focus();
+            await expect(page.locator('[data-scope="tooltip"][data-part="popup"][data-state="open"]')).toBeVisible();
+        },
+    }],
+    menu: [
+        { name: 'Actions menu', open: (page) => openMenu(page, 'Actions') },
+        {
+            name: 'Actions menu, nested submenus open',
+            open: async (page) => {
+                await openMenu(page, 'Actions');
+                await openSub(page, 'Share');
+                await openSub(page, 'Social');
+            },
+        },
+        {
+            name: 'context menu with its submenu open',
+            open: async (page) => {
+                const surface = page.locator('[data-scope="menu"][data-part="context-trigger"]');
+                await surface.scrollIntoViewIfNeeded();
+                await surface.click({ button: 'right' });
+                const popup = await controlledPopup(page, surface, 'the context surface');
+                await expect(popup).toHaveAttribute('data-state', 'open');
+                await expect(popup).toBeVisible();
+                await openSub(page, 'Send to');
+            },
+        },
+        { name: 'selection-items menu', open: (page) => openMenu(page, 'View') },
+    ],
+    select: [
+        { name: 'children select', open: openSelect('select', 'fruit') },
+        { name: 'options-driven select', open: openSelect('select', 'sugar-fruit') },
+        { name: 'grouped select', open: openSelect('select', 'grouped-fruit') },
+        { name: 'virtual select', open: openSelect('select', 'station') },
+        { name: 'virtual grouped select', open: openSelect('select', 'station-by-line') },
+    ],
+    combobox: [
         // A bare input click only focuses — the caret Trigger is the opener.
-        await demoPosting(page, 'combobox', 'country')('trigger').click();
-        await expect(demoPosting(page, 'combobox', 'country')('popup')).toHaveAttribute('data-state', 'open');
-    },
-    toast: async (page) => {
-        await page.getByRole('button', { name: 'Success toast', exact: true }).click();
-        await expect(page.locator('[data-scope="toast"][data-part="root"]', { hasText: 'Saved' })).toBeVisible();
-    },
-    // accordion and collapsible need no opener: both demos idle OPEN
+        { name: 'children combobox', open: openSelect('combobox', 'country') },
+        { name: 'grouped combobox', open: openSelect('combobox', 'grouped-country') },
+        { name: 'virtual combobox', open: openSelect('combobox', 'station-search') },
+        { name: 'virtual grouped combobox', open: openSelect('combobox', 'station-search-by-line') },
+    ],
+    forms: [
+        { name: 'form select', open: openSelect('select', 'form-fruit') },
+        { name: 'form combobox', open: openSelect('combobox', 'form-country') },
+    ],
+    'app-shell': [
+        { name: 'docked sidebar', open: async () => {} },
+        {
+            // Below `md` the same NavList is a modal sheet — a presentation
+            // the desktop viewport never renders.
+            name: 'narrow: modal navigation sheet',
+            viewport: { width: 600, height: 720 },
+            open: async (page) => {
+                const shell = page.locator('[data-demo="app-shell"]');
+                const trigger = shell.locator('[data-scope="drawer"][data-part="trigger"]');
+                await trigger.click();
+                const panel = await controlledPopup(page, trigger, 'the shell drawer trigger');
+                await expect(panel).toBeVisible();
+                await expect(panel).toHaveAttribute('data-l-dock', 'sheet');
+            },
+        },
+    ],
+    toast: [{
+        name: 'toast',
+        open: async (page) => {
+            await page.getByRole('button', { name: 'Success toast', exact: true }).click();
+            await expect(page.locator('[data-scope="toast"][data-part="root"]', { hasText: 'Saved' })).toBeVisible();
+        },
+    }],
+    // accordion and collapsible need no scan list: both demos idle OPEN
     // (defaultValue / defaultOpen), so their panels are already in the tree.
 };
 
+/**
+ * Every scan's starting point: a fresh document on `pageId`. The design
+ * system was pinned once by the test's initial `bootPage`, whose init script
+ * persists across navigations — so this uses `gotoPage`, not another
+ * `bootPage`, which would stack one more init script per scan.
+ */
+async function freshBoot(page: Page, pageId: string): Promise<void> {
+    // Navigating straight to the SAME id would be a no-op hash navigation,
+    // leaving the previous scan's open surfaces in place.
+    await page.goto('about:blank');
+    await gotoPage(page, pageId, 'basic');
+}
+
 interface Finding {
     pageId: string;
+    scan: string;
     rule: string;
     impact: string;
     target: string;
@@ -99,9 +227,9 @@ const allowlisted = (rule: string, target: string): AllowlistEntry | undefined =
 
 test('axe: every registry page (overlays open) is free of serious/critical WCAG A/AA violations', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'semantics are engine-independent — one engine is enough');
-    // ~35 pages × one scan each; the default budget is per-action, not
-    // per-test, but be explicit about the shape of this test.
-    test.setTimeout(300_000);
+    // ~60 pages, ~85 scans, each from a fresh load; the default budget is
+    // per-action, not per-test, but be explicit about the shape of this test.
+    test.setTimeout(600_000);
 
     // The sidebar derives from the registry — its links ARE the page list.
     // `all` is excluded: it re-renders every page's demos on one document,
@@ -114,51 +242,57 @@ test('axe: every registry page (overlays open) is free of serious/critical WCAG 
         .map((h) => h.replace(/^#\//, ''))
         .filter((id) => id !== '' && id !== 'all');
     expect(pageIds.length).toBeGreaterThan(30);
-    // A stale opener is a silent coverage hole: its page would simply never
-    // be opened. Fail loudly instead.
-    for (const id of Object.keys(OPENERS)) {
-        expect(pageIds, `opener for unknown page id "${id}"`).toContain(id);
+    // A stale scan list is a silent coverage hole: its page would simply
+    // never be opened. Fail loudly instead.
+    for (const id of Object.keys(SCANS)) {
+        expect(pageIds, `scans for unknown page id "${id}"`).toContain(id);
     }
 
     const findings: Finding[] = [];
     const usedAllowlist = new Set<AllowlistEntry>();
+    const defaultViewport = page.viewportSize();
 
     for (const pageId of pageIds) {
-        await bootPage(page, pageId, 'basic');
-        await OPENERS[pageId]?.(page);
+        for (const scan of SCANS[pageId] ?? [{ name: 'idle', open: async () => {} }]) {
+            if (scan.viewport) await page.setViewportSize(scan.viewport);
+            await freshBoot(page, pageId);
+            await scan.open(page);
 
-        const results = await new AxeBuilder({ page })
-            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa'])
-            // Contrast is governed by contrast-audit.spec.ts, which checks
-            // every state × flag × design system × theme against deliberate
-            // floors (3:1, with a disabled-state carve-out) — axe's single
-            // resting-state sample would re-litigate that policy, not add
-            // coverage. Everything else runs.
-            .disableRules(['color-contrast'])
-            .analyze();
+            const results = await new AxeBuilder({ page })
+                .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa'])
+                // Contrast is governed by contrast-audit.spec.ts, which checks
+                // every state × flag × design system × theme against deliberate
+                // floors (3:1, with a disabled-state carve-out) — axe's single
+                // resting-state sample would re-litigate that policy, not add
+                // coverage. Everything else runs.
+                .disableRules(['color-contrast'])
+                .analyze();
+            if (scan.viewport && defaultViewport) await page.setViewportSize(defaultViewport);
 
-        for (const violation of results.violations) {
-            if (violation.impact !== 'serious' && violation.impact !== 'critical') continue;
-            for (const node of violation.nodes) {
-                const target = node.target.join(' ');
-                const entry = allowlisted(violation.id, target);
-                if (entry) {
-                    usedAllowlist.add(entry);
-                    continue;
+            for (const violation of results.violations) {
+                if (violation.impact !== 'serious' && violation.impact !== 'critical') continue;
+                for (const node of violation.nodes) {
+                    const target = node.target.join(' ');
+                    const entry = allowlisted(violation.id, target);
+                    if (entry) {
+                        usedAllowlist.add(entry);
+                        continue;
+                    }
+                    findings.push({
+                        pageId,
+                        scan: scan.name,
+                        rule: violation.id,
+                        impact: violation.impact,
+                        target,
+                        help: violation.help,
+                    });
                 }
-                findings.push({
-                    pageId,
-                    rule: violation.id,
-                    impact: violation.impact,
-                    target,
-                    help: violation.help,
-                });
             }
         }
     }
 
     const report = findings
-        .map((f) => `[${f.pageId}] ${f.rule} (${f.impact}) at ${f.target} — ${f.help}`)
+        .map((f) => `[${f.pageId} · ${f.scan}] ${f.rule} (${f.impact}) at ${f.target} — ${f.help}`)
         .join('\n');
     expect(findings, `axe violations:\n${report}`).toEqual([]);
 

@@ -63,6 +63,8 @@ import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
 import { extensibleAxesPage } from './extensible-axes';
+import { stepperPage } from './stepper';
+import { visuallyHiddenPage } from './visually-hidden';
 import { aboutPage } from './about';
 import { layoutPage } from './layout';
 
@@ -140,6 +142,7 @@ export const pages: PageEntry[] = [
     skeletonPage,
     spinnerPage,
     kbdPage,
+    visuallyHiddenPage,
     statusPage,
     indicatorPage,
     statsPage,
@@ -155,5 +158,6 @@ export const pages: PageEntry[] = [
     sizeRampPage,
     extensibleRolesPage,
     extensibleAxesPage,
+    stepperPage,
     aboutPage,
 ];
