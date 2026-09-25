@@ -113,9 +113,21 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
     // reads the DOM-ordered collection, never registration order.
     const reg = signal({ count: 0, order: 0 });
     const registered: ItemEntry[] = [];
+    // Sorted once per (count, order) change, not per call: every Item reads
+    // its index during render, and a re-sort per read made a render pass
+    // O(n² log n) in `compareDocumentPosition` calls. `version` counts
+    // every add and remove (a swap in one tick leaves `count` unchanged);
+    // `order` is read for reactivity and bumps when an element mounts.
+    let version = 0;
+    let sorted: ItemEntry[] = [];
+    let sortedKey = '';
     const items = (): ItemEntry[] => {
-        void reg.order;
-        return sortByDomOrder(registered);
+        const key = `${version}:${reg.count}:${reg.order}`;
+        if (key !== sortedKey) {
+            sorted = sortByDomOrder(registered);
+            sortedKey = key;
+        }
+        return sorted;
     };
     let viewport: HTMLElement | null = null;
     // The index the observer last reported — a model write matching it came
@@ -180,11 +192,13 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
         scrollToIndex: (i, behavior) => scrollToItem(clamp(i), behavior),
         registerItem(entry) {
             registered.push(entry);
+            version += 1;
             reg.count = registered.length;
             return () => {
                 const i = registered.indexOf(entry);
                 if (i !== -1) {
                     registered.splice(i, 1);
+                    version += 1;
                     reg.count = registered.length;
                 }
             };

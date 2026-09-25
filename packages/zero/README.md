@@ -705,7 +705,9 @@ rings inside the box. While a `Table.Caption` is rendered the wrapper is a
 `role="region"` labelled by it (`aria-labelledby`, presence-tracked like
 Field's references, so it never dangles); without one, the app's
 `aria-label`/`aria-labelledby` names the region; with neither it stays a
-plain focusable box rather than a nameless landmark. The caption carries
+plain focusable box rather than a nameless landmark. Server markup assumes
+a caption only when the app gave no name — an app-named table keeps its
+own name until a mounted caption is confirmed. The caption carries
 that id, so `Table.Caption` takes no `id` of its own
 (`TableCaptionProps`).
 

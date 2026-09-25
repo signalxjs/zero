@@ -441,4 +441,20 @@ describe('SSR', () => {
         expect(input).toMatch(/\sinputmode="numeric"/i);
         expect(input).toMatch(/\spattern="\[0-9\]\+"/);
     });
+    // #270: the table's scroll region is optimistic about its caption only
+    // when the app gave no name — an app-named table keeps that name on the
+    // server rather than an IDREF to a caption that may not exist.
+    it('server-renders an app-named table region with its own name, not a caption reference', async () => {
+        const html = await renderApp(
+            <Table.Root aria-label="Revenue">
+                <Table.Body>
+                    <Table.Row><Table.Cell>1</Table.Cell></Table.Row>
+                </Table.Body>
+            </Table.Root>,
+        );
+        const root = html.match(/<div[^>]*data-scope="table"[^>]*data-part="root"[^>]*>/)?.[0] ?? '';
+        expect(root).toMatch(/\srole="region"/);
+        expect(root).toMatch(/\saria-label="Revenue"/);
+        expect(root).not.toMatch(/aria-labelledby/);
+    });
 });

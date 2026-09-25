@@ -200,7 +200,12 @@ const TableRoot = component<TableRootProps>(({ props, slots, signal, onMounted }
         // the caption while one is rendered, else by the app's own name for
         // the table. With neither there is nothing to call the region, so it
         // stays a plain focusable box rather than a nameless landmark.
-        const captioned = !present.settled || present.caption > 0;
+        // Before settling (and always on the server) the caption reference
+        // is optimistic ONLY when the app gave no name: an app-named table
+        // keeps its own name until a mounted caption is confirmed, so the
+        // server never trades a real name for a possibly dangling IDREF.
+        const appNamed = Boolean(tableAttrs['aria-labelledby'] || tableAttrs['aria-label']);
+        const captioned = present.caption > 0 || (!present.settled && !appNamed);
         const labelledBy = captioned ? ctx.captionId : tableAttrs['aria-labelledby'];
         const label = captioned ? undefined : tableAttrs['aria-label'];
         return (
