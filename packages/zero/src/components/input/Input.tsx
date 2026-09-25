@@ -30,6 +30,8 @@ import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { useTextControlBinding } from '../../behaviors/text-control-binding.js';
 import { dataAttr } from '../../contract/data-attrs.js';
+import { nativeTextAttrs } from '../../contract/native-text-attrs.js';
+import type { Autocapitalize, EnterKeyHint, InputMode, NativeTextJsx } from '../../contract/native-text-attrs.js';
 import { htmlAttrs } from '../../contract/props.js';
 import type {
     TextControlHandle,
@@ -65,6 +67,8 @@ interface InputContext {
     defaultValue(): string;
     autocomplete(): string | undefined;
     maxlength(): number | undefined;
+    /** The native constraint and hint attributes, as JSX props for the input. */
+    nativeAttrs(): NativeTextJsx;
     inputId(): string;
     labelId(): string | undefined;
     describedBy(): string | undefined;
@@ -85,6 +89,7 @@ function makeInert(): InputContext {
         defaultValue: () => '',
         autocomplete: () => undefined,
         maxlength: () => undefined,
+        nativeAttrs: () => ({}),
         inputId: () => 'zx-input-inert',
         labelId: () => undefined,
         describedBy: () => undefined,
@@ -108,6 +113,20 @@ export type InputRootProps =
     /** Native autofill hint — `email`, `current-password`, `off`, … */
     & Define.Prop<'autocomplete', string, false>
     & Define.Prop<'maxlength', number, false>
+    & Define.Prop<'minlength', number, false>
+    /** A regular expression the whole value must match (native constraint validation). */
+    & Define.Prop<'pattern', string, false>
+    /** Which virtual keyboard to show — `numeric` for a code, `email`, … */
+    & Define.Prop<'inputmode', InputMode, false>
+    /** What the virtual keyboard's Enter key says — `search`, `send`, `next`, … */
+    & Define.Prop<'enterkeyhint', EnterKeyHint, false>
+    /** Spell-check the value; renders `spellcheck="true"`/`"false"`. Unset leaves the browser's default. */
+    & Define.Prop<'spellcheck', boolean, false>
+    & Define.Prop<'autocapitalize', Autocapitalize, false>
+    /** Safari's autocorrection — `off` for codes, usernames, addresses. */
+    & Define.Prop<'autocorrect', 'on' | 'off', false>
+    /** Focus the input when the page loads (the native `autofocus`). */
+    & Define.Prop<'autofocus', boolean, false>
     & WithFormControl
     & WithReadonly
     & WithModelModifiers
@@ -135,6 +154,16 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
         defaultValue: () => props.defaultValue ?? '',
         autocomplete: () => props.autocomplete,
         maxlength: () => props.maxlength,
+        nativeAttrs: () => ({
+            ...nativeTextAttrs(props),
+            pattern: props.pattern,
+            inputMode: props.inputmode,
+            // Not `autocorrect`: Safari reflects it as a BOOLEAN property,
+            // which would read the "off" token as true. The camel spelling
+            // is no property anywhere, so sigx writes the attribute (HTML
+            // lowercases the name).
+            autoCorrect: props.autocorrect,
+        }),
         // Inside a Field the field owns the id, so its `<label for>` lands on
         // this input; standalone we mint our own.
         inputId: fc.controlId,
@@ -288,6 +317,7 @@ const InputInput = component<InputInputProps>(({ props, expose, onMounted, onUnm
                 form={ctx.form()}
                 autoComplete={ctx.autocomplete()}
                 maxLength={ctx.maxlength()}
+                {...ctx.nativeAttrs()}
                 data-scope={SCOPE}
                 data-part="input"
                 data-disabled={dataAttr(ctx.disabled())}

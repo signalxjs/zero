@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, Field, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -419,5 +419,26 @@ describe('SSR', () => {
         expect(labels[1]).not.toMatch(/\sfor=/);
         const priceId = labels[1].match(/\sid="([^"]+)"/)?.[1];
         expect(html.match(new RegExp(`role="slider"[^>]*aria-labelledby="${priceId}"|aria-labelledby="${priceId}"[^>]*role="slider"`, 'g'))).toHaveLength(2);
+    });
+
+    // #266: a Field's describedby is optimistic on the server — nothing
+    // re-renders there after the Description/Error report — and the text
+    // controls' enumerated `spellcheck` keeps its "false" token.
+    it("server-renders a Field control's description ids and the native text attributes", async () => {
+        const html = await renderApp(
+            <Field.Root>
+                <Input.Root spellcheck={false} inputmode="numeric" pattern="[0-9]+">
+                    <Input.Control><Input.Input /></Input.Control>
+                </Input.Root>
+                <Field.Description>Digits only.</Field.Description>
+            </Field.Root>,
+        );
+        const input = html.match(/<input[^>]*data-scope="input"[^>]*>/)?.[0] ?? '';
+        const describedBy = input.match(/aria-describedby="([^"]+)"/)?.[1] ?? '';
+        expect(describedBy.split(' ')).toHaveLength(2);
+        expect(html).toMatch(new RegExp(`<p[^>]*id="${describedBy.split(' ')[0]}"`));
+        expect(input).toMatch(/\sspellcheck="false"/i);
+        expect(input).toMatch(/\sinputmode="numeric"/i);
+        expect(input).toMatch(/\spattern="\[0-9\]\+"/);
     });
 });

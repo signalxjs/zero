@@ -204,6 +204,9 @@ export type {
     InputInputProps,
     InputHandle,
     InputType,
+    InputMode,
+    EnterKeyHint,
+    Autocapitalize,
 } from './components/input/index.js';
 
 export { Textarea, textareaAnatomy, useTextareaContext } from './components/textarea/index.js';

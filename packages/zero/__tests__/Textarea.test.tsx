@@ -313,6 +313,30 @@ describe('Textarea', () => {
             expect(el.style.height).toBe('20px');
         });
     });
+
+    it('renders the typed native constraint and hint attributes on the textarea (#266)', () => {
+        render(
+            <Textarea.Root minlength={10} wrap="hard" spellcheck enterkeyhint="send" autocapitalize="sentences" autofocus>
+                <Textarea.Textarea />
+            </Textarea.Root>,
+            container,
+        );
+        const el = box(container);
+        expect(el.getAttribute('minlength')).toBe('10');
+        expect(el.getAttribute('wrap')).toBe('hard');
+        expect(el.getAttribute('spellcheck')).toBe('true');
+        expect(el.getAttribute('enterkeyhint')).toBe('send');
+        expect(el.getAttribute('autocapitalize')).toBe('sentences');
+        expect(el.hasAttribute('autofocus')).toBe(true);
+    });
+
+    it('renders none of them when unset', () => {
+        mount(container);
+        const el = box(container);
+        for (const name of ['minlength', 'wrap', 'spellcheck', 'enterkeyhint', 'autocapitalize', 'autofocus']) {
+            expect(el.hasAttribute(name), name).toBe(false);
+        }
+    });
 });
 
 describe('the contract around data-autosize', () => {
