@@ -50,7 +50,7 @@ const TextareaDemos = component(() => {
                 and the height itself where the engine cannot.
             </p>
             <DemoRow gap="1rem" align="flex-end">
-                <Textarea.Root model={() => state.draft} name="draft" minRows={1} maxRows={5}>
+                <Textarea.Root model={() => state.draft} name="draft" minRows={1} maxRows={5} enterkeyhint="send">
                     <Textarea.Label>Composer (1–5 rows)</Textarea.Label>
                     <Textarea.Textarea placeholder="Write a message…" />
                 </Textarea.Root>
@@ -63,7 +63,7 @@ const TextareaDemos = component(() => {
             <DemoRow gap="1rem" align="flex-start">
                 <Field.Root invalid required>
                     <Field.Label>Why are you appealing?</Field.Label>
-                    <Textarea.Root rows={3}>
+                    <Textarea.Root rows={3} minlength={20} spellcheck autocapitalize="sentences">
                         <Textarea.Textarea placeholder="A sentence or two" />
                     </Textarea.Root>
                     <Field.Description>Plain text; markdown is not rendered.</Field.Description>

@@ -1,5 +1,5 @@
 import { component, signal } from 'sigx';
-import { Progress, Slider } from '@sigx/zero';
+import { Field, Progress, Slider } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const SliderDemos = component(() => {
@@ -57,6 +57,20 @@ const SliderDemos = component(() => {
                     <Slider.ValueText />
                 </Slider.Root>
             </div>
+            <p>
+                Inside a <code>Field</code> the native control and every thumb
+                take the field's <code>aria-describedby</code>, and{' '}
+                <code>getValueText</code> speaks for the native control as it
+                does for a thumb.
+            </p>
+            <Field.Root data-demo="slider-field">
+                <Field.Label>Brightness</Field.Label>
+                <Slider.Root defaultValue={70} getValueText={(v) => `${v} percent`}>
+                    <Slider.Control />
+                    <Slider.ValueText />
+                </Slider.Root>
+                <Field.Description>Applies to every display.</Field.Description>
+            </Field.Root>
             <Slider.Root defaultValue={95} invalid>
                 <Slider.Label>Invalid (above the allowed budget)</Slider.Label>
                 <Slider.Control />
