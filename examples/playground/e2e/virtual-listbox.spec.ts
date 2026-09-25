@@ -265,10 +265,18 @@ test.describe('Combobox virtual', () => {
         await expect(parts('item').first()).toHaveAttribute('aria-setsize', '111');
         await expectViewportFilled(parts('popup'));
 
-        // Closed, ArrowUp opens on the last visible option.
+        // Escape closes and drops the query nothing was picked from (#265)…
         await input.press('Escape');
         await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
-        await input.press('ArrowUp');
+        await expect(input).toHaveValue('');
+        // …so the filtered far end is reached open: PageDown to the last option.
+        await input.pressSequentially('Station 99');
+        await expect(parts('item').first()).toHaveAttribute('aria-setsize', '111');
+        let last = 0;
+        for (let i = 0; i < 60 && last < 111; i++) {
+            await input.press('PageDown');
+            last = Number(await (await active(page, input)).getAttribute('aria-posinset'));
+        }
         await expectHighlightShown(page, input, parts('popup'), 'Station 9999', 111);
         await input.press('PageUp');
         const paged = Number(await (await active(page, input)).getAttribute('aria-posinset'));

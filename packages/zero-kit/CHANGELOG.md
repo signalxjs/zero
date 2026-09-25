@@ -10,6 +10,11 @@
   `minlength`, `spellcheck` and `wrap`. A vendor-named api cannot claim
   them as axis props.
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.combobox` gains `openOnClick` (zero#265)
+
+- Combobox's new root prop is reserved, so a vendor-named api cannot claim
+  it as an axis prop.
+
 ### Changed — the text matrix measures stats' re-carried colour (zero#161)
 
 - `stats.item` is the third re-carrier, and the first with no text of its

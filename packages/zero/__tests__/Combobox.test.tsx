@@ -726,3 +726,278 @@ describe('Combobox over the collection (#445)', () => {
         });
     });
 });
+
+describe('Combobox text resync, APG keys and openOnClick (#265)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    const COUNTRIES = [
+        { code: 'fr', name: 'France' },
+        { code: 'de', name: 'Germany' },
+        { code: 'es', name: 'Spain' },
+    ];
+    type Country = (typeof COUNTRIES)[number];
+
+    function countries(opts: { value?: Country | null; openOnClick?: boolean } = {}) {
+        const state = signal({ value: (opts.value === undefined ? COUNTRIES[0]! : opts.value) as Country | null, query: '', open: false });
+        const changes: Array<Country | null> = [];
+        const texts: string[] = [];
+        render(
+            <form>
+                <Combobox.Root
+                    items={COUNTRIES}
+                    itemKey={(c) => c.code}
+                    itemLabel={(c) => c.name}
+                    model={[state, 'value']}
+                    model:inputValue={[state, 'query']}
+                    model:open={[state, 'open']}
+                    onValueChange={(v) => changes.push(v)}
+                    onInputValueChange={(v) => texts.push(v)}
+                    openOnClick={opts.openOnClick}
+                    name="country"
+                />
+                <button type="button" id="elsewhere">elsewhere</button>
+            </form>,
+            container,
+        );
+        return {
+            state,
+            changes,
+            texts,
+            input: container.querySelector<HTMLInputElement>('[data-part="input"]')!,
+            hidden: container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!,
+            trigger: container.querySelector<HTMLElement>('[data-part="trigger"]')!,
+            elsewhere: container.querySelector<HTMLElement>('#elsewhere')!,
+            items: () => [...container.querySelectorAll<HTMLElement>('[data-part="item"]')],
+        };
+    }
+    function type(input: HTMLInputElement, text: string) {
+        input.value = text;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    function key(el: HTMLElement, k: string, init: KeyboardEventInit = {}) {
+        const e = new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true, ...init });
+        el.dispatchEvent(e);
+        return e;
+    }
+    function blur(input: HTMLInputElement, to: Element | null) {
+        input.dispatchEvent(new FocusEvent('blur', { relatedTarget: to }));
+    }
+
+    it('a blur to elsewhere reverts typed text to the value it posts', async () => {
+        const { state, input, hidden, elsewhere, texts } = countries();
+        expect(input.value).toBe('France');
+        type(input, 'Ger');
+        expect(state.open).toBe(true);
+        blur(input, elsewhere);
+        await tick();
+        expect(state.open).toBe(false);
+        expect(state.value).toEqual(COUNTRIES[0]);
+        expect(input.value).toBe('France');
+        expect(texts.at(-1)).toBe('France');
+        expect(hidden.value).toBe('fr');
+    });
+
+    it('a blur that stays inside the combobox (the trigger) does not resync', () => {
+        const { state, input, trigger } = countries();
+        type(input, 'Ger');
+        blur(input, trigger);
+        expect(state.query).toBe('Ger');
+        expect(state.open).toBe(true);
+    });
+
+    it('a blur to nowhere while open is left to the press (option click or outside press)', () => {
+        const { state, input } = countries();
+        type(input, 'Ger');
+        blur(input, null);
+        expect(state.query).toBe('Ger');
+        // The outside press closes — and the close resyncs.
+        document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+        document.body.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(state.open).toBe(false);
+        expect(state.query).toBe('France');
+    });
+
+    it('emptied text clears the value on blur', async () => {
+        const { state, input, hidden, elsewhere, changes } = countries();
+        type(input, '');
+        blur(input, elsewhere);
+        await tick();
+        expect(state.value).toBe(null);
+        expect(changes).toEqual([null]);
+        expect(input.value).toBe('');
+        expect(hidden.value).toBe('');
+    });
+
+    it('with no value, stray text is dropped on blur', () => {
+        const { state, input, elsewhere, changes } = countries({ value: null });
+        type(input, 'Ger');
+        blur(input, elsewhere);
+        expect(state.query).toBe('');
+        expect(state.value).toBe(null);
+        expect(changes).toEqual([]);
+    });
+
+    it('Tab closes and resyncs', () => {
+        const { state, input } = countries();
+        type(input, 'Spa');
+        expect(key(input, 'Tab').defaultPrevented).toBe(false);
+        expect(state.open).toBe(false);
+        expect(state.query).toBe('France');
+    });
+
+    it('Escape while open closes and reverts the text', () => {
+        const { state, input } = countries();
+        type(input, 'Spa');
+        expect(key(input, 'Escape').defaultPrevented).toBe(true);
+        expect(state.open).toBe(false);
+        expect(state.query).toBe('France');
+        expect(state.value).toEqual(COUNTRIES[0]);
+    });
+
+    it('Escape while closed clears the text and the value, and is swallowed only then', async () => {
+        const { state, input, hidden } = countries();
+        expect(state.open).toBe(false);
+        expect(key(input, 'Escape').defaultPrevented).toBe(true);
+        await tick();
+        expect(state.query).toBe('');
+        expect(state.value).toBe(null);
+        expect(hidden.value).toBe('');
+        // Nothing left to clear: Escape reaches an enclosing layer.
+        expect(key(input, 'Escape').defaultPrevented).toBe(false);
+    });
+
+    it('Alt+ArrowDown opens without moving the highlight — onto the chosen option', () => {
+        const { state, input, items } = countries();
+        key(input, 'ArrowDown', { altKey: true });
+        expect(state.open).toBe(true);
+        expect(input.getAttribute('aria-activedescendant')).toBe(items()[0]!.id);
+        // …and onto none without a value.
+        key(input, 'Escape');
+        const fresh = document.body.appendChild(document.createElement('div'));
+        const s = signal({ value: null as Country | null, open: false });
+        render(<Combobox.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} model={[s, 'value']} model:open={[s, 'open']} />, fresh);
+        const other = fresh.querySelector<HTMLInputElement>('[data-part="input"]')!;
+        expect(key(other, 'ArrowDown', { altKey: true }).defaultPrevented).toBe(true);
+        expect(s.open).toBe(true);
+        expect(other.getAttribute('aria-activedescendant')).toBe(null);
+    });
+
+    it('Alt+ArrowUp commits the highlighted option and closes', () => {
+        const { state, input } = countries({ value: null });
+        key(input, 'ArrowDown', { altKey: true }); // nothing highlighted
+        key(input, 'ArrowDown'); // France
+        key(input, 'ArrowDown'); // Germany
+        expect(key(input, 'ArrowUp', { altKey: true }).defaultPrevented).toBe(true);
+        expect(state.open).toBe(false);
+        expect(state.value).toEqual(COUNTRIES[1]);
+        expect(state.query).toBe('Germany');
+    });
+
+    it('openOnClick: a click on the input opens the popup; off by default', () => {
+        const off = countries();
+        off.input.click();
+        expect(off.state.open).toBe(false);
+        container = document.body.appendChild(document.createElement('div'));
+        const on = countries({ openOnClick: true });
+        on.input.click();
+        expect(on.state.open).toBe(true);
+    });
+
+    it('allowCustom commits the typed text on blur', () => {
+        const state = signal({ value: '', query: '' });
+        render(
+            <>
+                <Combobox.Root items={['apple', 'banana']} allowCustom model={[state, 'value']} model:inputValue={[state, 'query']} />
+                <button type="button" id="out">out</button>
+            </>,
+            container,
+        );
+        const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+        type(input, 'kiwi');
+        blur(input, container.querySelector('#out'));
+        expect(state.value).toBe('kiwi');
+        expect(state.query).toBe('kiwi');
+        type(input, 'BANANA');
+        blur(input, container.querySelector('#out'));
+        expect(state.value).toBe('banana');
+        expect(state.query).toBe('banana');
+    });
+
+    it('allowCustom resyncs to the remembered label when the named option has unmounted', async () => {
+        const state = signal({ value: '', query: '', show: true });
+        render(
+            <>
+                <Combobox.Root allowCustom model={[state, 'value']} model:inputValue={[state, 'query']}>
+                    <Combobox.Control><Combobox.Input /></Combobox.Control>
+                    <Combobox.Popup>
+                        {() => (state.show ? <Combobox.Item value="banana">Banana Split</Combobox.Item> : null)}
+                    </Combobox.Popup>
+                </Combobox.Root>
+                <button type="button" id="out">out</button>
+            </>,
+            container,
+        );
+        const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+        type(input, 'banana split');
+        blur(input, container.querySelector('#out'));
+        expect(state.value).toBe('banana');
+        expect(state.query).toBe('Banana Split');
+        state.show = false; // the consumer's filter unmounts it
+        await tick();
+        type(input, 'BANANA SPLIT');
+        blur(input, container.querySelector('#out'));
+        expect(state.value).toBe('banana');
+        expect(state.query).toBe('Banana Split');
+    });
+
+    it('multiple: a blur drops the typed query and keeps the tags', () => {
+        const state = signal({ values: ['apple'] as string[], query: '' });
+        render(
+            <>
+                <Combobox.Root items={['apple', 'banana']} multiple model={[state, 'values']} model:inputValue={[state, 'query']} />
+                <button type="button" id="out">out</button>
+            </>,
+            container,
+        );
+        const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+        type(input, 'ban');
+        blur(input, container.querySelector('#out'));
+        expect(state.query).toBe('');
+        expect(state.values).toEqual(['apple']);
+    });
+
+    it('hand-written items: the chosen label survives the item being filtered away', async () => {
+        const state = signal({ value: '', query: '' });
+        const List = component(() => () => (
+            <>
+                {FRUIT.filter((f) => f.toLowerCase().includes(state.query.toLowerCase())).map((f) => (
+                    <Combobox.Item value={f.toLowerCase()} key={f}>{f}</Combobox.Item>
+                ))}
+            </>
+        ), { name: 'List' });
+        render(
+            <>
+                <Combobox.Root model={[state, 'value']} model:inputValue={[state, 'query']}>
+                    <Combobox.Control><Combobox.Input /></Combobox.Control>
+                    <Combobox.Popup><List /></Combobox.Popup>
+                </Combobox.Root>
+                <button type="button" id="out">out</button>
+            </>,
+            container,
+        );
+        const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+        type(input, 'ch');
+        container.querySelector<HTMLElement>('[data-part="item"]')!.click();
+        expect(state.value).toBe('cherry');
+        type(input, 'ban'); // Cherry unmounts
+        await tick();
+        blur(input, container.querySelector('#out'));
+        expect(state.query).toBe('Cherry');
+        expect(state.value).toBe('cherry');
+    });
+});

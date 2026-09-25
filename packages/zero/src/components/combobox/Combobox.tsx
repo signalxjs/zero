@@ -81,7 +81,7 @@
  * dismiss layer: native `auto` light dismiss would close the list on a caret
  * click in the input.
  */
-import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect, untrack, watch } from 'sigx';
 import type { Define, JSXElement } from 'sigx';
 import { createControllableState, createInertState, namedModel, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
@@ -152,6 +152,10 @@ interface ComboboxContext {
     focusInput(): void;
     inputKeydown(e: KeyboardEvent): void;
     onInput(value: string): void;
+    /** A pointer click on the input — opens under `openOnClick`. */
+    inputClick(): void;
+    /** The input lost focus — resyncs the text unless focus stayed in the combobox. */
+    inputBlur(e: FocusEvent): void;
     /** Trigger mode: the popup keeps focus in the textarea, and names itself by it. */
     triggerMode(): boolean;
     /** The id the popup is labelled by — the input's, or in trigger mode the textarea's. */
@@ -191,6 +195,8 @@ function makeInert(): ComboboxContext {
         focusInput: () => {},
         inputKeydown: () => {},
         onInput: () => {},
+        inputClick: () => {},
+        inputBlur: () => {},
         triggerMode: () => false,
         labelledBy: () => undefined,
         virtual: { current: null },
@@ -235,6 +241,8 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
      */
     & Define.Prop<'allowCustom', boolean, false>
     & Define.Prop<'placeholder', string, false>
+    /** A pointer click on the input opens the popup (default false: typing and the arrows do). */
+    & Define.Prop<'openOnClick', boolean, false>
     /**
      * Window the options (#96): only those near the popup's scroll position
      * are rendered. Takes the strategy from its own entry, so only a list
@@ -415,7 +423,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         onSelect: (key) => {
             if (triggerMode) { commit(key); return; }
             if (multiple()) { inputValue.value = ''; return; }
-            inputValue.value = collection.label(key);
+            // Remembered: a consumer-filtered item may unmount before the
+            // text is next resynced from the value.
+            inputValue.value = tagLabel(key);
             setOpen(false);
         },
     });
@@ -516,7 +526,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         if (!multiple()) {
             if (key === '') return;
             state.value = collection.valueForKey(key);
-            inputValue.value = collection.label(key);
+            // Remembered, like onSelect: the named option may have unmounted.
+            inputValue.value = tagLabel(key);
             setOpen(false);
             return;
         }
@@ -525,6 +536,34 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             state.value = [...current, collection.valueForKey(key)];
         }
         inputValue.value = '';
+    };
+
+    /**
+     * Resync the text with the value (#265) — on a close, and on a blur
+     * that leaves the combobox — so what the input shows is what posts.
+     * Single mode: empty text clears the value; other text reverts to the
+     * value's label ('' for none). `allowCustom` commits the text instead.
+     * Multiple mode: the typed query is dropped (the tags are the value).
+     */
+    const commitInputText = (): void => {
+        if (triggerMode || fc.disabled() || fc.readonly()) return;
+        const text = inputValue.value;
+        if (multiple()) {
+            if (text !== '') inputValue.value = '';
+            return;
+        }
+        const keys = listbox.selectedKeys();
+        if (text.trim() === '') {
+            if (keys.length > 0) listbox.clear();
+            if (inputValue.value !== '') inputValue.value = '';
+            return;
+        }
+        if (props.allowCustom) {
+            commitText(text.trim());
+            return;
+        }
+        const display = keys.length > 0 ? tagLabel(keys[0]!) : '';
+        if (text !== display) inputValue.value = display;
     };
 
     // ── Trigger mode ──
@@ -686,9 +725,15 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
 
     // A close clears the highlight however the open state was written (a
     // consumer's `model:open` included); an open leaves it to the arrows.
+    // It also resyncs the text (#265): Escape, Tab, an outside press, the
+    // trigger's toggle — a closed list never leaves a stray query behind.
     watch(
         () => openState.value,
-        (open) => { if (!open) listbox.highlighted.value = null; },
+        (open) => {
+            if (open) return;
+            listbox.highlighted.value = null;
+            untrack(commitInputText);
+        },
     );
 
     const syncHidden = (): void => {
@@ -750,6 +795,27 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             if (ctx.disabled() || ctx.readonly()) return;
             if (pageKey(e)) return;
             const key = e.key;
+            if (e.altKey && (key === 'ArrowDown' || key === 'ArrowUp')) {
+                // APG: Alt+Down opens without moving the highlight — onto
+                // the chosen option if it is listed, else none; Alt+Up
+                // commits the highlight and closes.
+                if (key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (openState.value) return;
+                    setOpen(true);
+                    const chosen = listbox.selectedKeys()[0];
+                    if (chosen !== undefined && listbox.isVisible(chosen) && !collection.isDisabled(chosen)) {
+                        listbox.highlighted.value = chosen;
+                    }
+                    return;
+                }
+                if (!openState.value) return;
+                e.preventDefault();
+                const h = listbox.highlighted.value;
+                if (h != null) listbox.select(h);
+                setOpen(false);
+                return;
+            }
             if (key === 'ArrowDown' || key === 'ArrowUp') {
                 e.preventDefault();
                 if (!openState.value) {
@@ -784,13 +850,28 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             }
             if (key === 'Escape') {
                 if (openState.value) {
+                    // The close reverts the text (the open watch).
                     e.preventDefault();
                     setOpen(false);
+                    return;
                 }
+                // Closed: Escape clears (APG) — the text, and in single
+                // mode the value with it, so nothing posts that the input
+                // no longer shows. Swallowed only when it cleared something:
+                // an empty combobox lets Escape reach an enclosing layer.
+                const single = !multiple();
+                const hasValue = single && listbox.selectedKeys().length > 0;
+                if (inputValue.value === '' && !hasValue) return;
+                e.preventDefault();
+                if (hasValue) listbox.clear();
+                if (inputValue.value !== '') inputValue.value = '';
                 return;
             }
             if (key === 'Tab') {
-                setOpen(false);
+                // An open list's close resyncs (the open watch); a closed
+                // one resyncs here.
+                if (openState.value) setOpen(false);
+                else commitInputText();
                 return;
             }
             // Home/End & the rest stay with the text caret (APG editable
@@ -799,6 +880,21 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         onInput(value) {
             inputValue.value = value;
             if (!openState.value && !ctx.disabled() && !ctx.readonly()) setOpen(true);
+        },
+        inputClick() {
+            if (props.openOnClick && !openState.value && !ctx.disabled() && !ctx.readonly()) setOpen(true);
+        },
+        inputBlur(e) {
+            // Focus moving within the combobox (the trigger, a tag's remove)
+            // is not leaving it. Nowhere, with the list open, is a press on
+            // the list (its options take no focus) or outside it — the
+            // option's click selects; the outside press closes, and the
+            // close resyncs.
+            const to = e.relatedTarget as Node | null;
+            if (to && (control?.contains(to) || popup?.contains(to) || trigger?.contains(to))) return;
+            if (!to && openState.value) return;
+            if (openState.value) setOpen(false);
+            else commitInputText();
         },
         triggerMode: () => triggerMode,
         labelledBy: () => (triggerMode ? trig.textId || undefined : fc.controlId()),
@@ -1195,7 +1291,11 @@ const ComboboxInput = component<ComboboxInputProps>(({ props }) => {
                 onInput={(e: Event) => { combobox.onInput((e.target as HTMLInputElement).value); }}
                 onKeydown={(e: KeyboardEvent) => { combobox.inputKeydown(e); }}
                 onFocus={() => { combobox.inputFocusVisible.value = isFocusVisible(el); }}
-                onBlur={() => { combobox.inputFocusVisible.value = false; }}
+                onClick={() => { combobox.inputClick(); }}
+                onBlur={(e: FocusEvent) => {
+                    combobox.inputFocusVisible.value = false;
+                    combobox.inputBlur(e);
+                }}
             />
         );
     };
