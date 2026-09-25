@@ -867,8 +867,10 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
                 return;
             }
             if (key === 'Tab') {
-                setOpen(false);
-                commitInputText();
+                // An open list's close resyncs (the open watch); a closed
+                // one resyncs here.
+                if (openState.value) setOpen(false);
+                else commitInputText();
                 return;
             }
             // Home/End & the rest stay with the text caret (APG editable
