@@ -126,9 +126,10 @@
   popover's `inset: 0` beat the written `left`. The strategy now sets
   `right`/`bottom` to `auto`. Third, a popup whose content or anchor
   resized without a scroll or window resize stayed where it was. A
-  `ResizeObserver` on the popup and an element anchor now schedules one
+  `ResizeObserver` on the popup and the anchor element now schedules one
   update per frame. The direction is read from the anchor element. A
-  virtual anchor can name a `contextElement` to read it from, and
+  virtual anchor can name a `contextElement`, observed and read in its
+  place, and
   `caretAnchor` names its text control. Without one, the popup's own
   direction is used. Combobox no longer mirrors its placement itself, so
   under RTL its mention list reports `bottom-start`, not `bottom-end`.
