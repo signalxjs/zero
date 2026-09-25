@@ -261,6 +261,8 @@ describe('Select readonly', () => {
         );
         parts('select', 'item')[1]!.click();
         expect(state.fruit).toBe('apple');
+        // Inert, not merely value-guarded: the activation does not close it.
+        expect(open.value).toBe(true);
     });
 
     it('adopts readonly from its Field, and a readonly required select never blocks the submit', () => {

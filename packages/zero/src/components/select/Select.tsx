@@ -268,7 +268,9 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         idBase: baseId,
         emptyValue,
         // A single selection closes; a multiple one toggles and stays open.
-        onSelect: () => { if (!multiple()) setOpen(false); },
+        // A readonly select's option is inert: it neither writes nor closes
+        // a popup the app opened.
+        onSelect: () => { if (!multiple() && !fc.readonly()) setOpen(false); },
     });
     // The hidden select's `<option selected>` attributes say it; the
     // property settles it in every DOM, after the options exist (#145).
