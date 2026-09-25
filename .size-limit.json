@@ -216,7 +216,7 @@
     {
         "name": "@sigx/zero/textarea",
         "path": "packages/zero/dist/components/textarea/index.js",
-        "limit": "3.93 kB",
+        "limit": "3.94 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -468,7 +468,7 @@
     {
         "name": "@sigx/zero/table",
         "path": "packages/zero/dist/components/table/index.js",
-        "limit": "2.4 kB",
+        "limit": "2.8 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -492,7 +492,7 @@
     {
         "name": "@sigx/zero/carousel",
         "path": "packages/zero/dist/components/carousel/index.js",
-        "limit": "3.8 kB",
+        "limit": "3.94 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

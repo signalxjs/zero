@@ -10,7 +10,9 @@
  *   (carousel.spec.ts) owns the real-scroll claims.
  * - Prev/next are plain buttons that CLAMP (no wrap — a carousel that
  *   wraps announces "1 of 5" after "5 of 5", which reads as a bug), and
- *   each disables at its bound.
+ *   each is aria-disabled at its bound — still focusable, so the press
+ *   that reaches the end keeps focus (#270).
+ * - Slides are indexed in DOCUMENT order, not registration order (#270).
  * - The dots are BUTTONS, not tabs: APG's grouped-carousel pagination.
  *   No roving tabindex — every dot is a tab stop with its own label.
  * - ARIA per APG carousel: root is a labelled region with
@@ -69,6 +71,57 @@ describe('Carousel', () => {
         // A scrollable region must be keyboard-reachable — focused, the
         // platform's arrow keys scroll it.
         expect(part(container, 'viewport').getAttribute('tabindex')).toBe('0');
+        // Slide changes the user did not focus are announced politely, one
+        // slide at a time (#270).
+        expect(part(container, 'viewport').getAttribute('aria-live')).toBe('polite');
+        expect(part(container, 'viewport').getAttribute('aria-atomic')).toBe('false');
+    });
+
+    it('an app can silence the live region (auto-rotation)', () => {
+        render(
+            <Carousel.Root label="Rotating">
+                <Carousel.Viewport aria-live="off">
+                    <Carousel.Item>One</Carousel.Item>
+                </Carousel.Viewport>
+            </Carousel.Root>,
+            container,
+        );
+        expect(part(container, 'viewport').getAttribute('aria-live')).toBe('off');
+    });
+
+    it('indexes slides in document order: a slide mounted first after mount is 1 of n (#270)', async () => {
+        // Keyed, so the existing slides keep their instances (and their
+        // registrations) and the new one registers LAST while it renders
+        // first — the case registration order got wrong.
+        const slides = signal({ names: ['a', 'b'] });
+        const model = signal({ index: 1 });
+        render(
+            <Carousel.Root label="Featured" model={[model, 'index']}>
+                <Carousel.Viewport>
+                    {() => slides.names.map((n) => <Carousel.Item key={n} id={`slide-${n}`}>{n}</Carousel.Item>)}
+                </Carousel.Viewport>
+                <Carousel.NextTrigger>Next</Carousel.NextTrigger>
+            </Carousel.Root>,
+            container,
+        );
+        const slide = (name: string) => container.querySelector<HTMLElement>(`#slide-${name}`)!;
+        expect(slide('a').getAttribute('aria-label')).toBe('1 of 2');
+        expect(slide('b').getAttribute('data-state')).toBe('active');
+
+        slides.names = ['intro', 'a', 'b'];
+        await tick();
+        // The intro registered LAST but sits FIRST: labels, the active
+        // state and every other index follow the document.
+        expect(slide('intro').getAttribute('aria-label')).toBe('1 of 3');
+        expect(slide('a').getAttribute('aria-label')).toBe('2 of 3');
+        expect(slide('b').getAttribute('aria-label')).toBe('3 of 3');
+        expect(slide('a').getAttribute('data-state')).toBe('active');
+        expect(parts(container, 'item')[1]).toBe(slide('a'));
+        // Next steps to the slide that FOLLOWS in the document.
+        part(container, 'next-trigger').click();
+        expect(model.index).toBe(2);
+        expect(slide('b').getAttribute('data-state')).toBe('active');
+        expectAnatomy(container, carouselAnatomy);
     });
 
     it('items are slides, labelled "n of m" from registration', () => {
@@ -84,22 +137,31 @@ describe('Carousel', () => {
         expect(items[1]!.getAttribute('data-state')).toBe('inactive');
     });
 
-    it('next/prev step the model and clamp at the bounds, disabling there', () => {
+    it('next/prev step the model and clamp at the bounds, aria-disabled there', () => {
         render(sample(), container);
         const prev = part(container, 'prev-trigger') as unknown as HTMLButtonElement;
         const next = part(container, 'next-trigger') as unknown as HTMLButtonElement;
 
-        // At index 0 prev has nowhere to go.
-        expect(prev.disabled).toBe(true);
+        // At index 0 prev has nowhere to go — aria-disabled, never native
+        // `disabled`, which would drop focus to <body> (#270).
+        expect(prev.disabled).toBe(false);
+        expect(prev.getAttribute('aria-disabled')).toBe('true');
         expect(prev.getAttribute('data-disabled')).toBe('');
-        expect(next.disabled).toBe(false);
+        expect(next.hasAttribute('aria-disabled')).toBe(false);
+        prev.click();
+        expect(parts(container, 'item')[0]!.getAttribute('data-state')).toBe('active');
 
+        next.focus();
         next.click();
         expect(parts(container, 'item')[1]!.getAttribute('data-state')).toBe('active');
         next.click();
         expect(parts(container, 'item')[2]!.getAttribute('data-state')).toBe('active');
-        // Clamped: a third click stays at the end, and next is disabled.
-        expect(next.disabled).toBe(true);
+        // Clamped: a third click stays at the end; next keeps focus.
+        expect(next.disabled).toBe(false);
+        expect(next.getAttribute('aria-disabled')).toBe('true');
+        expect(next.getAttribute('data-disabled')).toBe('');
+        expect(document.activeElement).toBe(next);
+        expect(prev.hasAttribute('aria-disabled')).toBe(false);
         next.click();
         expect(parts(container, 'item')[2]!.getAttribute('data-state')).toBe('active');
 
@@ -271,5 +333,8 @@ describe('Carousel', () => {
         // The dot is a paint part: no text hint, so the contrast audit's
         // indicator matrix (not the text matrix) grades it.
         expect(carouselAnatomy.parts.indicator.tokens).not.toContain('text');
+        // Every dot names a slide that exists: none is ever disabled, so
+        // the flag is not declared (#270).
+        expect(carouselAnatomy.parts.indicator.flags).not.toContain('disabled');
     });
 });

@@ -206,8 +206,8 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
 
     const stepper = (partName: 'prev-trigger' | 'next-trigger') => {
         const step = partName === 'prev-trigger' ? -1 : 1;
-        const disabled = (): boolean =>
-            !!props.disabled || (step === -1 ? page() <= 1 : page() >= count());
+        const atBound = (): boolean => (step === -1 ? page() <= 1 : page() >= count());
+        const disabled = (): boolean => !!props.disabled || atBound();
         const label = partName === 'prev-trigger'
             ? props.prevLabel ?? 'Previous page'
             : props.nextLabel ?? 'Next page';
@@ -219,7 +219,13 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
                 data-disabled={dataAttr(disabled())}
                 data-focus-visible={dataAttr(focus.visibleKey === partName)}
                 aria-label={label}
-                disabled={disabled()}
+                // A bound is aria-disabled, not natively disabled: `disabled`
+                // would drop focus to <body> on the very press that reaches
+                // the first or last page. The trigger stays focusable and a
+                // press is a no-op. The Root's `disabled` still disables it
+                // natively, like every other button in the row.
+                aria-disabled={!props.disabled && atBound() ? 'true' : undefined}
+                disabled={!!props.disabled}
                 onClick={() => { if (!disabled()) select(page() + step); }}
                 onFocus={() => { focus.visibleKey = isFocusVisible(els.get(partName) ?? null) ? partName : ''; }}
                 ref={(node: HTMLElement | null) => { track(partName, node); }}

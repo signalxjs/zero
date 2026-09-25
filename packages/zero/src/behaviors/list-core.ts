@@ -61,7 +61,7 @@ export interface ListController<E extends ItemElement = ItemElement> {
  * derived phases from the arbitrary answer. Disconnected elements now take
  * the registration-order fallback exactly like absent ones.
  */
-export function sortByDomOrder<T extends ListItem>(registered: readonly T[]): T[] {
+export function sortByDomOrder<T extends Pick<ListItem, 'el'>>(registered: readonly T[]): T[] {
     const withEl = registered.filter((i) => i.el()?.isConnected);
     if (withEl.length < 2) return [...registered];
     const sorted = [...withEl].sort((a, b) => {

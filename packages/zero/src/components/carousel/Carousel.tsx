@@ -26,6 +26,7 @@ import { component, compound, defineInjectable, defineProvide, watch } from 'sig
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { sortByDomOrder } from '../../behaviors/list-core.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
@@ -51,6 +52,8 @@ interface CarouselContext {
     /** Scroll one item into view directly — the viewport's initial sync. */
     scrollToIndex(index: number, behavior: ScrollBehavior): void;
     registerItem(entry: ItemEntry): () => void;
+    /** An item's element mounted — DOM order may have changed. */
+    itemMounted(): void;
     itemIndex(entry: ItemEntry): number;
     /** The observer's writes must not scroll back — see the watch. */
     observed(index: number): void;
@@ -70,6 +73,7 @@ function makeInert(): CarouselContext {
         goTo: () => {},
         scrollToIndex: () => {},
         registerItem: () => () => {},
+        itemMounted: () => {},
         itemIndex: () => 0,
         observed: () => {},
         setViewport: () => {},
@@ -102,9 +106,17 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
         (v) => emit('indexChange', v),
     );
     // Registration count in a signal: "n of m" labels and bound-clamping
-    // re-render as items arrive.
-    const reg = signal({ count: 0 });
-    const items: ItemEntry[] = [];
+    // re-render as items arrive. `order` bumps when an item's element
+    // mounts: a slide rendered conditionally AHEAD of the others registers
+    // last but sits first, and only its mounted element can say so — every
+    // index (labels, active state, scroll target, the observer's report)
+    // reads the DOM-ordered collection, never registration order.
+    const reg = signal({ count: 0, order: 0 });
+    const registered: ItemEntry[] = [];
+    const items = (): ItemEntry[] => {
+        void reg.order;
+        return sortByDomOrder(registered);
+    };
     let viewport: HTMLElement | null = null;
     // The index the observer last reported — a model write matching it came
     // FROM scroll, so scrolling again would fight the user's finger.
@@ -114,7 +126,7 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
         Math.min(Math.max(0, reg.count - 1), Math.max(0, Math.round(i)));
 
     const scrollToItem = (i: number, behavior?: ScrollBehavior): void => {
-        const el = items[i]?.el();
+        const el = items()[i]?.el();
         // Scroll the VIEWPORT, never `el.scrollIntoView`: that scrolls every
         // scrollable ancestor, the document included, so a carousel below
         // the fold with a non-zero index jumped the page on mount and on
@@ -167,17 +179,18 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
         },
         scrollToIndex: (i, behavior) => scrollToItem(clamp(i), behavior),
         registerItem(entry) {
-            items.push(entry);
-            reg.count = items.length;
+            registered.push(entry);
+            reg.count = registered.length;
             return () => {
-                const i = items.indexOf(entry);
+                const i = registered.indexOf(entry);
                 if (i !== -1) {
-                    items.splice(i, 1);
-                    reg.count = items.length;
+                    registered.splice(i, 1);
+                    reg.count = registered.length;
                 }
             };
         },
-        itemIndex: (entry) => Math.max(0, items.indexOf(entry)),
+        itemMounted: () => { reg.order += 1; },
+        itemIndex: (entry) => Math.max(0, items().indexOf(entry)),
         observed(i) {
             if (i === state.value) return;
             observedIndex = i;
@@ -185,7 +198,7 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
         },
         setViewport: (el) => { viewport = el; },
         viewportEl: () => viewport,
-        itemEls: () => items.map((e) => e.el()).filter((el): el is HTMLElement => el !== null),
+        itemEls: () => items().map((e) => e.el()).filter((el): el is HTMLElement => el !== null),
     };
     defineProvide(useCarouselContext, () => ctx);
     onUnmounted(() => { /* the viewport owns observer teardown */ });
@@ -275,6 +288,13 @@ const CarouselViewport = component<CarouselViewportProps>(({ props, slots, onMou
 
     return () => (
         <div
+            // The slides change without the user's focus moving to them
+            // (prev/next, a dot, a swipe): a polite live region announces
+            // the newly visible slide. Not atomic — only the slide that
+            // changed is read, not the whole strip. Before the app's
+            // attributes, so an app that auto-rotates can set `off`.
+            aria-live="polite"
+            aria-atomic="false"
             {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="viewport"
@@ -309,6 +329,7 @@ const CarouselItem = component<CarouselItemProps>(({ props, slots, onMounted, on
     // Late-arriving items (rendered after the viewport mounted) must reach
     // the observer too — the viewport publishes hooks for exactly this.
     onMounted(() => {
+        carousel.itemMounted();
         if (el) carousel.observeEl(el);
     });
     onUnmounted(() => {
@@ -360,6 +381,7 @@ const stepTrigger = (
             getElement: () => el,
             isDisabled: () => atBound(),
         });
+        const advance = (): void => { if (!atBound()) carousel.goTo(carousel.index() + step); };
 
         return () => {
             const attrs = htmlAttrs(props);
@@ -371,11 +393,16 @@ const stepTrigger = (
                     data-part={partName}
                     data-disabled={dataAttr(atBound())}
                     data-focus-visible={dataAttr(focus.visible)}
-                    disabled={atBound()}
+                    // At a bound the trigger is aria-disabled, NOT natively
+                    // disabled: a native `disabled` drops focus to <body>
+                    // the moment the user steps onto the last slide, and a
+                    // keyboard user has to find their way back. It stays
+                    // focusable and a press is a no-op.
+                    aria-disabled={atBound() ? 'true' : undefined}
                     aria-label={props.label ?? attrs['aria-label'] ?? defaultLabel}
                     class={props.class}
                     ref={(node: HTMLElement | null) => { el = node; }}
-                    onClick={() => carousel.goTo(carousel.index() + step)}
+                    onClick={advance}
                     onKeydown={press.onKeydown}
                     onKeyup={press.onKeyup}
                     onPointerdown={press.onPointerdown}

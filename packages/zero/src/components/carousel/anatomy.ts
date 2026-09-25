@@ -15,9 +15,14 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *
  * ARIA per the APG carousel pattern: root is a labelled `region` with
  * `aria-roledescription="carousel"`; each item announces as a "slide"
- * group labelled "n of m". Prev/next are plain buttons that CLAMP (no
- * wrap — "1 of 5" after "5 of 5" reads as a bug) and disable at their
- * bounds. The dots are BUTTONS with per-dot labels (APG grouped-carousel
+ * group labelled "n of m" — n counted in DOCUMENT order, so a slide
+ * rendered conditionally ahead of the others takes its real place. The
+ * viewport is a polite, non-atomic live region, so a slide change the
+ * user did not focus is still announced. Prev/next are plain buttons that
+ * CLAMP (no wrap — "1 of 5" after "5 of 5" reads as a bug) and are
+ * `aria-disabled` (+ `data-disabled`) at their bounds — never natively
+ * disabled, which would drop keyboard focus to the body on the press that
+ * reaches the end; they stay focusable and a press is a no-op. The dots are BUTTONS with per-dot labels (APG grouped-carousel
  * pagination), not tabs — no roving tabindex, every dot its own stop; the
  * active dot also carries `aria-current`. Horizontal only: a vertical
  * scroll-snap gallery is a scrolling page, not a carousel.
@@ -65,7 +70,9 @@ export const carouselAnatomy = defineAnatomy('carousel', {
         paint: true,
         parent: 'indicator-group',
         states: ['active', 'inactive'],
-        flags: ['disabled', 'focus-visible', 'pressed'],
+        // No `disabled`: every dot names a slide that exists, so none is
+        // ever rendered disabled.
+        flags: ['focus-visible', 'pressed'],
         tokens: ['color', 'radius-selector', 'size'],
     },
 }, {
