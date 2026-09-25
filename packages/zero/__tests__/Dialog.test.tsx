@@ -458,9 +458,16 @@ describe('Dialog dismissal guards (#260)', () => {
         return { popup, log };
     }
 
+    // The event stops at this test's container: an open non-modal dialog an
+    // earlier test left mounted keeps a document-level dismiss layer, and
+    // that layer would prevent the Escape itself. Only the popup's own guard
+    // is under test here.
     const escape = (target: HTMLElement) => {
         const e = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+        const stop = (ev: Event) => ev.stopPropagation();
+        container.addEventListener('keydown', stop);
         target.dispatchEvent(e);
+        container.removeEventListener('keydown', stop);
         return e;
     };
 
