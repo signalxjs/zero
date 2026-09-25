@@ -209,6 +209,25 @@
   direction is used. Combobox no longer mirrors its placement itself, so
   under RTL its mention list reports `bottom-start`, not `bottom-end`.
 
+- **Overlays no longer steal focus back on close (#262).** Popover, Menu,
+  a non-modal Dialog and an inline Drawer restored focus to the element
+  focused before opening whenever they closed — so clicking into a text
+  field outside an open popover light-dismissed it and then pulled focus
+  back to the trigger, and a Tab out did the same. `createFocusRestore`
+  now takes `{ getSurface, fallback }` and restores only while focus is on
+  nothing or still inside the surface; when the remembered element is gone
+  or can no longer take focus, it falls back to the trigger.
+- **Tabbable detection honours what the browser does (#262).**
+  `getTabbables` skips controls under `[inert]`, under a `hidden`
+  attribute, not rendered per `checkVisibility` (`display: none`,
+  `visibility: hidden`, a closed `<details>`), or disabled by a
+  `<fieldset disabled>` (except inside its first `<legend>`); it reaches
+  `summary`, `iframe`, `audio`/`video[controls]` and any
+  `contenteditable`, and treats a named radio group (per form owner, as the
+  browser scopes it) as one stop (its checked radio, or its first).
+  `focusFirst` passes over a tabbable that refuses focus and, when it falls
+  back to the container, gives it `tabIndex = -1` if it had none. New
+  export: `isFocusable(el)`.
 - **Pagination keeps focus on the page you activated (#176).** The row was
   unkeyed, so when activating a page slid the window (page 5 of 20 from
   page 4: `1 2 3 4 5 … 20` → `1 … 4 5 6 … 20`) the diff patched the
