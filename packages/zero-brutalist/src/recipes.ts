@@ -765,6 +765,9 @@ export const select: RecipeInput = {
             states: {
                 open: { boxShadow: 'none', transform: 'translate(2px, 2px)' },
                 closed: {},
+                // Readonly lies flat, like disabled but unfaded: a raised offset
+                // shadow reads as pressable, and a readonly control is not.
+                readonly: { boxShadow: 'none', cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 invalid: { borderColor: 'var(--color-error)' },
                 ...focusRing,
@@ -857,7 +860,7 @@ export const switchRecipe: RecipeInput = {
     parts: {
         root: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
-            states: { checked: {}, unchecked: {}, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+            states: { checked: {}, unchecked: {}, readonly: { cursor: 'default' }, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
         control: {
             base: {
@@ -876,6 +879,9 @@ export const switchRecipe: RecipeInput = {
                 // the inked track and the accent one alike, because neither
                 // paints the border.
                 invalid: { borderColor: 'var(--color-error)' },
+                // Readonly lies flat, like disabled but unfaded: a raised offset
+                // shadow reads as pressable, and a readonly control is not.
+                readonly: { boxShadow: 'none' },
                 ...focusRing,
             },
         },
@@ -1057,7 +1063,7 @@ export const checkbox: RecipeInput = {
     parts: {
         root: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
-            states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+            states: { checked: {}, unchecked: {}, indeterminate: {}, readonly: { cursor: 'default' }, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
         control: {
             base: tickBox('var(--checkbox-size)'),
@@ -1073,6 +1079,9 @@ export const checkbox: RecipeInput = {
                 // and it survives the checked fill and the indeterminate one
                 // because the frame is not what either of them paints.
                 invalid: { borderColor: 'var(--color-error)' },
+                // Readonly lies flat, like disabled but unfaded: a raised offset
+                // shadow reads as pressable, and a readonly control is not.
+                readonly: { boxShadow: 'none' },
                 ...focusRing,
             },
         },
@@ -1171,22 +1180,29 @@ export const radioGroup: RecipeInput = {
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            // `invalid` paints on each `item-control`, which carries the flag
+            // itself (#267) — the root only groups the items.
             states: { invalid: {}, required: {} },
-            selectors: {
-                // `invalid` is a fact about the GROUP — `item-control` carries
-                // no flag of its own — so the frame is turned from the root.
-                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--color-error)' },
-            },
         },
         label: { base: { ...label, fontSize: 'var(--text-sm)' } },
         item: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
-            states: { disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+            states: { readonly: { cursor: 'default' }, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
         // Square, like everything else. A brutalist radio is not a circle.
         'item-control': {
             base: tickBox('var(--radio-size)'),
-            states: { checked: { background: 'var(--radio-accent)' }, unchecked: {}, ...focusRing },
+            states: {
+                checked: { background: 'var(--radio-accent)' },
+                unchecked: {},
+                // The system's error idiom: the frame turns error, over the
+                // checked fill as over the empty box.
+                invalid: { borderColor: 'var(--color-error)' },
+                // Readonly lies flat, like disabled but unfaded: a raised offset
+                // shadow reads as pressable, and a readonly control is not.
+                readonly: { boxShadow: 'none' },
+                ...focusRing,
+            },
         },
         'item-indicator': {
             base: {
@@ -1359,6 +1375,13 @@ export const slider: RecipeInput = {
                 // Both shadows go, not just the handle's: a raised offset
                 // shadow reads as pressable here, so a disabled slider lies
                 // flat on the page — the same collapse button makes.
+                // Readonly lies flat, like disabled but unfaded: a raised offset
+                // shadow reads as pressable, and a readonly control is not.
+                readonly: {
+                    cursor: 'default',
+                    '--slider-track-shadow': 'none',
+                    '--slider-thumb-shadow': 'none',
+                },
                 disabled: {
                     cursor: 'not-allowed',
                     '--slider-track-shadow': 'none',
@@ -1438,7 +1461,8 @@ export const slider: RecipeInput = {
             },
             states: {
                 // The whole instrument lies flat when disabled — same as the
-                // native control's collapse.
+                // native control's collapse — and when readonly, unfaded.
+                readonly: { cursor: 'default', boxShadow: 'none' },
                 disabled: { cursor: 'not-allowed', boxShadow: 'none' },
             },
         },
@@ -1467,6 +1491,7 @@ export const slider: RecipeInput = {
                 // The stamp — the handle drops its shadow and shoves itself
                 // into where the shadow was, exactly as button does.
                 pressed: { boxShadow: 'none' },
+                readonly: { cursor: 'default', boxShadow: 'none' },
                 disabled: { cursor: 'not-allowed', boxShadow: 'none' },
                 ...focusRing,
             },

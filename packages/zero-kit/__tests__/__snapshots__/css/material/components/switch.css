@@ -14,6 +14,10 @@
         -webkit-tap-highlight-color: transparent;
     }
 
+    [data-scope="switch"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="switch"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -46,7 +50,7 @@
         outline-offset: 2px;
     }
 
-    [data-scope="switch"][data-part="control"]:hover:not([data-disabled]) [data-part="thumb"]::before {
+    [data-scope="switch"][data-part="control"]:hover:not([data-disabled], [data-readonly]) [data-part="thumb"]::before {
         opacity: 0.08;
     }
 
@@ -174,7 +178,7 @@
     }
 
     @media (hover: none) {
-        [data-scope="switch"][data-part="control"]:hover:not([data-disabled]) [data-part="thumb"]::before {
+        [data-scope="switch"][data-part="control"]:hover:not([data-disabled], [data-readonly]) [data-part="thumb"]::before {
             opacity: 0;
         }
     }

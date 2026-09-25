@@ -13,6 +13,10 @@
         cursor: pointer;
     }
 
+    [data-scope="switch"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="switch"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;

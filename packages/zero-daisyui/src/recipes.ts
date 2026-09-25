@@ -672,6 +672,8 @@ export const switchRecipe: RecipeInput = {
         root: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-lg)', cursor: 'pointer' },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {},
                 unchecked: {},
@@ -1474,6 +1476,8 @@ export const checkbox: RecipeInput = {
         root: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-md)', cursor: 'pointer' },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {}, unchecked: {}, indeterminate: {},
             },
@@ -1546,6 +1550,8 @@ export const checkbox: RecipeInput = {
                 // `invalid` is semantic, not an accent: it stays error under
                 // every colour variant, on purpose.
                 invalid: { borderColor: 'var(--color-error)' },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: {},
             },
         },
@@ -1672,13 +1678,9 @@ export const radioGroup: RecipeInput = {
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
+            // `invalid` paints on each `item-control`, which carries the flag
+            // itself (#267) — the root only groups the items.
             states: { invalid: {}, required: {} },
-            selectors: {
-                // `invalid` is a fact about the GROUP — `item-control` carries
-                // no flag of its own — and it is semantic: it stays error
-                // under every colour variant.
-                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--color-error)' },
-            },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
@@ -1687,6 +1689,8 @@ export const radioGroup: RecipeInput = {
         item: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-md)', cursor: 'pointer' },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {}, unchecked: {},
             },
@@ -1721,6 +1725,10 @@ export const radioGroup: RecipeInput = {
                     animation: 'var(--duration-fast) var(--ease-standard) zero-daisy-radio',
                 },
                 unchecked: {},
+                // `invalid` is semantic: it stays error under every colour
+                // variant, and after `checked` so it holds whichever radio is
+                // chosen.
+                invalid: { borderColor: 'var(--color-error)' },
                 'focus-visible': { outline: '2px solid var(--radio-accent)', outlineOffset: '2px' },
                 disabled: {},
             },
@@ -1970,6 +1978,8 @@ export const slider: RecipeInput = {
                 // `--slider-percent`, a web-only mechanism.
             },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
                 'focus-visible': { outline: '2px solid var(--slider-accent)', outlineOffset: '2px' },
                 // `invalid` is semantic: it stays error under every colour
@@ -2032,7 +2042,7 @@ export const slider: RecipeInput = {
                 background: 'var(--color-base-300)',
                 cursor: 'pointer',
             },
-            states: { disabled: { cursor: 'not-allowed' } },
+            states: { readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
         },
         range: {
             base: {
@@ -2059,6 +2069,8 @@ export const slider: RecipeInput = {
             states: {
                 'focus-visible': { outline: '2px solid var(--slider-accent)', outlineOffset: '2px' },
                 pressed: {},
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
             },
         },
@@ -2403,6 +2415,8 @@ export const select: RecipeInput = {
             },
             states: {
                 hover: { borderColor: 'var(--color-base-content)' },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 open: { borderColor: 'var(--select-accent)' },
                 closed: {},

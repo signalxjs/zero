@@ -365,6 +365,8 @@ export const switchRecipe: RecipeInput = {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
             states: {
                 checked: {}, unchecked: {},
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 invalid: {}, required: {},
             },
@@ -918,6 +920,8 @@ export const checkbox: RecipeInput = {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
             states: {
                 checked: {}, unchecked: {}, indeterminate: {},
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 invalid: {}, required: {},
             },
@@ -1057,9 +1061,6 @@ export const radioGroup: RecipeInput = {
             },
             selectors: {
                 '&[data-orientation="horizontal"]': { flexDirection: 'row' },
-                // `invalid` lands on the root; the border that shows it lives
-                // on each control.
-                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--hero-danger)' },
             },
         },
         label: {
@@ -1075,6 +1076,8 @@ export const radioGroup: RecipeInput = {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
             states: {
                 checked: {}, unchecked: {},
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
         },
@@ -1093,6 +1096,10 @@ export const radioGroup: RecipeInput = {
             states: {
                 checked: { borderColor: 'var(--hero-primary)' },
                 unchecked: {},
+                // The danger border, on the control that carries the flag
+                // (#267) — after `checked`, so it holds whichever radio is
+                // chosen, as the checkbox's does.
+                invalid: { borderColor: 'var(--hero-danger)' },
                 disabled: {},
                 ...focusRing,
             },
@@ -1260,6 +1267,8 @@ export const slider: RecipeInput = {
                 pressed: { '--slider-thumb-scale': '0.94' },
                 // `invalid` is semantic: the whole fill turns danger.
                 invalid: { '--slider-accent': 'var(--hero-danger)' },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
             },
             selectors: {
@@ -1316,7 +1325,7 @@ export const slider: RecipeInput = {
                 background: 'var(--color-base-300)',
                 cursor: 'pointer',
             },
-            states: { disabled: { cursor: 'not-allowed' } },
+            states: { readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
         },
         range: {
             base: {
@@ -1346,6 +1355,8 @@ export const slider: RecipeInput = {
             states: {
                 pressed: { scale: '0.94' },
                 'focus-visible': { boxShadow: '0 0 0 2px var(--hero-focus), var(--shadow-sm)' },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
             },
         },
@@ -1542,6 +1553,8 @@ export const select: RecipeInput = {
                 hover: { borderColor: 'var(--color-base-content)' },
                 invalid: { borderColor: 'var(--hero-danger)' },
                 placeholder: { color: 'var(--hero-muted)' },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },

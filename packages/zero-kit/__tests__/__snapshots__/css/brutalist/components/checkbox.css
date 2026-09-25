@@ -13,6 +13,10 @@
         cursor: pointer;
     }
 
+    [data-scope="checkbox"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="checkbox"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -42,6 +46,10 @@
 
     [data-scope="checkbox"][data-part="control"][data-invalid] {
         border-color: var(--color-error);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-readonly] {
+        box-shadow: none;
     }
 
     [data-scope="checkbox"][data-part="control"][data-focus-visible] {

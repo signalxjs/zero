@@ -480,6 +480,8 @@ export const switchRecipe: RecipeInput = {
                 cursor: 'pointer',
             },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {},
                 unchecked: {},
@@ -1113,6 +1115,8 @@ export const checkbox: RecipeInput = {
                 cursor: 'pointer',
             },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {},
                 unchecked: {},
@@ -1264,14 +1268,9 @@ export const radioGroup: RecipeInput = {
                 gap: 'var(--space-sm)',
                 fontFamily: 'var(--font-sans)',
             },
+            // `invalid` paints on each `item-control`, which carries the flag
+            // itself (#267) — the root only groups the items.
             states: { invalid: {}, required: {} },
-            selectors: {
-                // `invalid` is a fact about the GROUP — `item-control` carries
-                // no flag of its own. Carbon's radio marks its error on the
-                // circle itself rather than with the fields' inset rule, so
-                // this is a border and not an outline.
-                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--carbon-danger)' },
-            },
         },
         label: {
             // The group legend speaks label-01, same as Field's label.
@@ -1291,6 +1290,8 @@ export const radioGroup: RecipeInput = {
                 cursor: 'pointer',
             },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {},
                 unchecked: {},
@@ -1310,6 +1311,10 @@ export const radioGroup: RecipeInput = {
             states: {
                 checked: {},
                 unchecked: {},
+                // Carbon's radio marks its error on the circle itself rather
+                // than with the fields' inset rule, so this is a border and
+                // not an outline.
+                invalid: { borderColor: 'var(--carbon-danger)' },
                 disabled: {},
                 ...focusRing,
             },
@@ -1525,6 +1530,8 @@ export const slider: RecipeInput = {
                     '--slider-track':
                         'linear-gradient(to right, var(--carbon-danger) var(--slider-percent, 50%), var(--carbon-line) 0)',
                 },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
             },
             selectors: {
@@ -1578,7 +1585,7 @@ export const slider: RecipeInput = {
                 background: 'var(--color-base-300)',
                 cursor: 'pointer',
             },
-            states: { disabled: { cursor: 'not-allowed' } },
+            states: { readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
         },
         range: {
             base: {
@@ -1611,6 +1618,8 @@ export const slider: RecipeInput = {
                 // A drag has no one-shot — the ring doubling as the held
                 // feedback is the whole press treatment, as on the control.
                 pressed: { boxShadow: thumbRing },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
             },
         },
@@ -1808,6 +1817,8 @@ export const select: RecipeInput = {
             },
             states: {
                 ...fieldHover,
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: {
                     opacity: 'var(--disabled-opacity)',
                     cursor: 'not-allowed',

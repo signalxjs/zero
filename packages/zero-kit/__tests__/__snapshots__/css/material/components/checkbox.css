@@ -15,6 +15,10 @@
         -webkit-tap-highlight-color: transparent;
     }
 
+    [data-scope="checkbox"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="checkbox"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -71,7 +75,7 @@
         transition: opacity var(--duration-fast) var(--ease-standard);
     }
 
-    [data-scope="checkbox"][data-part="control"]:hover:not([data-disabled])::before {
+    [data-scope="checkbox"][data-part="control"]:hover:not([data-disabled], [data-readonly])::before {
         opacity: 0.08;
     }
 
@@ -272,7 +276,7 @@
     }
 
     @media (hover: none) {
-        [data-scope="checkbox"][data-part="control"]:hover:not([data-disabled])::before {
+        [data-scope="checkbox"][data-part="control"]:hover:not([data-disabled], [data-readonly])::before {
             opacity: 0;
         }
     }

@@ -1878,6 +1878,11 @@
         transform: translate(2px, 2px);
     }
 
+    [data-scope="select"][data-part="trigger"][data-readonly] {
+        box-shadow: none;
+        cursor: default;
+    }
+
     [data-scope="select"][data-part="trigger"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -2099,6 +2104,10 @@
         cursor: pointer;
     }
 
+    [data-scope="switch"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="switch"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -2123,6 +2132,10 @@
 
     [data-scope="switch"][data-part="control"][data-invalid] {
         border-color: var(--color-error);
+    }
+
+    [data-scope="switch"][data-part="control"][data-readonly] {
+        box-shadow: none;
     }
 
     [data-scope="switch"][data-part="control"][data-focus-visible] {
@@ -2256,6 +2269,10 @@
         cursor: pointer;
     }
 
+    [data-scope="checkbox"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="checkbox"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -2285,6 +2302,10 @@
 
     [data-scope="checkbox"][data-part="control"][data-invalid] {
         border-color: var(--color-error);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-readonly] {
+        box-shadow: none;
     }
 
     [data-scope="checkbox"][data-part="control"][data-focus-visible] {
@@ -2505,10 +2526,6 @@
         gap: var(--space-sm);
     }
 
-    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
-        border-color: var(--color-error);
-    }
-
     [data-scope="radio-group"][data-part="label"] {
         font-family: var(--font-mono);
         font-weight: var(--weight-semibold);
@@ -2522,6 +2539,10 @@
         align-items: center;
         gap: var(--space-sm);
         cursor: pointer;
+    }
+
+    [data-scope="radio-group"][data-part="item"][data-readonly] {
+        cursor: default;
     }
 
     [data-scope="radio-group"][data-part="item"][data-disabled] {
@@ -2545,6 +2566,14 @@
 
     [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
         background: var(--radio-accent);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-readonly] {
+        box-shadow: none;
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
@@ -2905,6 +2934,12 @@
         --slider-track: linear-gradient(var(--slider-fill-dir), var(--slider-accent) var(--slider-percent, 50%), var(--color-base-100) 0);
     }
 
+    [data-scope="slider"][data-part="control"][data-readonly] {
+        cursor: default;
+        --slider-track-shadow: none;
+        --slider-thumb-shadow: none;
+    }
+
     [data-scope="slider"][data-part="control"][data-disabled] {
         cursor: not-allowed;
         --slider-track-shadow: none;
@@ -3010,6 +3045,11 @@
         cursor: pointer;
     }
 
+    [data-scope="slider"][data-part="track"][data-readonly] {
+        cursor: default;
+        box-shadow: none;
+    }
+
     [data-scope="slider"][data-part="track"][data-disabled] {
         cursor: not-allowed;
         box-shadow: none;
@@ -3050,6 +3090,11 @@
     }
 
     [data-scope="slider"][data-part="thumb"][data-pressed] {
+        box-shadow: none;
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-readonly] {
+        cursor: default;
         box-shadow: none;
     }
 

@@ -30,6 +30,10 @@
         background: var(--carbon-field-hover);
     }
 
+    [data-scope="select"][data-part="trigger"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="select"][data-part="trigger"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
