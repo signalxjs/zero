@@ -184,6 +184,57 @@ describe('Input', () => {
         expect(root.getAttribute('data-disabled')).toBe('');
     });
 
+    it('renders the typed native constraint and hint attributes on the input (#266)', () => {
+        render(
+            <Input.Root
+                minlength={3}
+                pattern="[0-9]+"
+                inputmode="numeric"
+                enterkeyhint="done"
+                spellcheck={false}
+                autocapitalize="off"
+                autocorrect="off"
+                autofocus
+            >
+                <Input.Control><Input.Input /></Input.Control>
+            </Input.Root>,
+            container,
+        );
+        const el = field(container);
+        expect(el.getAttribute('minlength')).toBe('3');
+        expect(el.getAttribute('pattern')).toBe('[0-9]+');
+        expect(el.getAttribute('inputmode')).toBe('numeric');
+        expect(el.getAttribute('enterkeyhint')).toBe('done');
+        // Enumerated, not boolean: `false` is the token, not an absence.
+        expect(el.getAttribute('spellcheck')).toBe('false');
+        expect(el.getAttribute('autocapitalize')).toBe('off');
+        expect(el.getAttribute('autocorrect')).toBe('off');
+        expect(el.hasAttribute('autofocus')).toBe(true);
+    });
+
+    it('renders none of them when unset', () => {
+        mount(container);
+        const el = field(container);
+        for (const name of ['minlength', 'pattern', 'inputmode', 'enterkeyhint', 'spellcheck', 'autocapitalize', 'autocorrect', 'autofocus']) {
+            expect(el.hasAttribute(name), name).toBe(false);
+        }
+    });
+
+    it('native constraint validation honours pattern and minlength', () => {
+        render(
+            <Input.Root pattern="[0-9]{4}">
+                <Input.Control><Input.Input /></Input.Control>
+            </Input.Root>,
+            container,
+        );
+        const el = field(container);
+        type(el, 'abcd');
+        expect(el.checkValidity()).toBe(false);
+        expect(el.validity.patternMismatch).toBe(true);
+        type(el, '1234');
+        expect(el.checkValidity()).toBe(true);
+    });
+
     it('passes the variant axes through as data attributes', () => {
         render(
             <Input.Root color="primary" size="lg">

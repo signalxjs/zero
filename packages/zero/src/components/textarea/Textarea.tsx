@@ -37,6 +37,8 @@ import { useTextControlBinding } from '../../behaviors/text-control-binding.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
+import { nativeTextAttrs } from '../../contract/native-text-attrs.js';
+import type { Autocapitalize, EnterKeyHint, NativeTextJsx } from '../../contract/native-text-attrs.js';
 import { htmlAttrs } from '../../contract/props.js';
 import type {
     TextControlHandle,
@@ -63,6 +65,8 @@ interface TextareaContext {
     defaultValue(): string;
     autocomplete(): string | undefined;
     maxlength(): number | undefined;
+    /** The native constraint and hint attributes, as JSX props for the textarea. */
+    nativeAttrs(): NativeTextJsx;
     rows(): number | undefined;
     /** The autosize bounds, or `undefined` when the box keeps its `rows`. */
     autosize(): AutosizeBounds | undefined;
@@ -85,6 +89,7 @@ function makeInert(): TextareaContext {
         defaultValue: () => '',
         autocomplete: () => undefined,
         maxlength: () => undefined,
+        nativeAttrs: () => ({}),
         rows: () => undefined,
         autosize: () => undefined,
         controlId: () => 'zx-textarea-inert',
@@ -114,6 +119,19 @@ export type TextareaRootProps =
     /** Native autofill hint — `street-address`, `off`, … */
     & Define.Prop<'autocomplete', string, false>
     & Define.Prop<'maxlength', number, false>
+    & Define.Prop<'minlength', number, false>
+    /**
+     * How the value posts: `soft` (the default) as typed, `hard` with the
+     * visual line breaks inserted.
+     */
+    & Define.Prop<'wrap', 'soft' | 'hard', false>
+    /** What the virtual keyboard's Enter key says — `send` for a composer, … */
+    & Define.Prop<'enterkeyhint', EnterKeyHint, false>
+    /** Spell-check the value; renders `spellcheck="true"`/`"false"`. Unset leaves the browser's default. */
+    & Define.Prop<'spellcheck', boolean, false>
+    & Define.Prop<'autocapitalize', Autocapitalize, false>
+    /** Focus the textarea when the page loads (the native `autofocus`). */
+    & Define.Prop<'autofocus', boolean, false>
     & Define.Prop<'rows', number, false>
     /**
      * Grow with the content, never below this many lines (default 1 when
@@ -150,6 +168,7 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
         defaultValue: () => props.defaultValue ?? '',
         autocomplete: () => props.autocomplete,
         maxlength: () => props.maxlength,
+        nativeAttrs: () => ({ ...nativeTextAttrs(props), wrap: props.wrap }),
         rows: () => props.rows,
         autosize: () => {
             if (props.minRows == null && props.maxRows == null) return undefined;
@@ -309,6 +328,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
                 form={ctx.form()}
                 autoComplete={ctx.autocomplete()}
                 maxLength={ctx.maxlength()}
+                {...ctx.nativeAttrs()}
                 rows={bounds ? bounds.min : ctx.rows()}
                 data-scope={SCOPE}
                 data-part="textarea"

@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
-import { Slider, sliderAnatomy } from '@sigx/zero';
+import { Field, Slider, sliderAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 let container: HTMLElement;
@@ -334,5 +334,63 @@ describe('Slider orientation (#170)', () => {
         expect(control.style.writingMode).toBe('vertical-lr');
         expect(control.style.direction).toBe('rtl');
         expectAnatomy(container, sliderAnatomy);
+    });
+});
+
+describe('Slider in a Field (#266)', () => {
+    const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+    it("the native control carries the Field's description and getValueText", async () => {
+        render(
+            <Field.Root>
+                <Slider.Root defaultValue={30} getValueText={(v) => `${v} percent`}>
+                    <Slider.Label>Volume</Slider.Label>
+                    <Slider.Control aria-describedby="extra" />
+                </Slider.Root>
+                <Field.Description>Applies to every speaker.</Field.Description>
+            </Field.Root>,
+            container,
+        );
+        await tick();
+        const control = container.querySelector<HTMLInputElement>('[data-scope="slider"][data-part="control"]')!;
+        const description = container.querySelector('[data-scope="field"][data-part="description"]')!;
+        expect(control.getAttribute('aria-describedby')).toBe(`${description.id} extra`);
+        expect(control.getAttribute('aria-valuetext')).toBe('30 percent');
+    });
+
+    it("every thumb carries the Field's description", async () => {
+        render(
+            <Field.Root invalid>
+                <Slider.Root defaultValue={[20, 80]}>
+                    <Slider.Track>
+                        <Slider.Thumb label="Minimum" />
+                        <Slider.Thumb label="Maximum" />
+                    </Slider.Track>
+                </Slider.Root>
+                <Field.Description>In dollars.</Field.Description>
+                <Field.Error>Too wide.</Field.Error>
+            </Field.Root>,
+            container,
+        );
+        await tick();
+        const ids = ['description', 'error']
+            .map((p) => container.querySelector(`[data-scope="field"][data-part="${p}"]`)!.id)
+            .join(' ');
+        const thumbs = container.querySelectorAll('[data-scope="slider"][data-part="thumb"]');
+        expect(thumbs).toHaveLength(2);
+        for (const thumb of thumbs) expect(thumb.getAttribute('aria-describedby')).toBe(ids);
+    });
+
+    it('a standalone slider renders no aria-describedby', async () => {
+        render(
+            <Slider.Root defaultValue={30}>
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        await tick();
+        const control = container.querySelector('[data-scope="slider"][data-part="control"]')!;
+        expect(control.hasAttribute('aria-describedby')).toBe(false);
+        expect(control.hasAttribute('aria-valuetext')).toBe(false);
     });
 });

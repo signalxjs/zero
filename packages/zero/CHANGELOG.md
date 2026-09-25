@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+### Added — typed native constraint and keyboard-hint props on Input and Textarea (#266)
+
+- **`Input.Root`** takes `minlength`, `pattern`, `inputmode`,
+  `enterkeyhint`, `spellcheck`, `autocapitalize`, `autocorrect`
+  (`'on' | 'off'`) and `autofocus`; **`Textarea.Root`** takes `minlength`,
+  `wrap` (`'soft' | 'hard'`), `spellcheck`, `autocapitalize`,
+  `enterkeyhint` and `autofocus`. They used to be dropped; they now render
+  on the `<input>` / `<textarea>`, so the platform's constraint validation
+  honours `pattern` and `minlength`. `spellcheck` is a boolean rendering
+  the enumerated `"true"` / `"false"` token (unset keeps the browser
+  default). The new `InputMode`, `EnterKeyHint` and `Autocapitalize` types
+  are exported. There is no native `size`: `size` on a Root is the size
+  axis.
+
+### Fixed — a Field control's `aria-describedby` never dangles (#266)
+
+- **`Field.Description` and `Field.Error` report their presence** (as a
+  RadioGroup label does, #169). A control's `aria-describedby` names only
+  the ones rendered, follows an Error rendered on and off, joins an app's
+  own ids, and is absent when neither is rendered. Server markup and the
+  hydrating first render still name both, and the client settles a
+  microtask after mount.
+- **Slider joins its Field.** `Slider.Control` and every `Slider.Thumb`
+  carry the Field's description/error ids (joined with an app's
+  `aria-describedby`), and the native control renders `aria-valuetext`
+  from `getValueText`, as the thumbs already did.
+
 ### Added — per-item colour: `Stats.Item color` (#161)
 
 - **`stats.item` re-carries the colour axis** (`carries: ['color']`, as

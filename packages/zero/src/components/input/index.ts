@@ -7,4 +7,5 @@ export type {
     InputHandle,
     InputType,
 } from './Input.js';
+export type { InputMode, EnterKeyHint, Autocapitalize } from '../../contract/native-text-attrs.js';
 export { inputAnatomy } from './anatomy.js';

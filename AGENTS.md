@@ -157,7 +157,11 @@ logical inline-size, which the physical-direction lint cannot see), and
 the `createVirtualList` behavior (#56: measured rows tile with no gap
 under real layout, stick-to-bottom follows the tail and lets go on a
 wheel scroll up, a prepend leaves the row being read in place, and no
-"ResizeObserver loop" error in any engine) — plus
+"ResizeObserver loop" error in any engine), and field-describedby (#266:
+a Field control's `aria-describedby` follows a `Field.Error` rendered on
+and off by the platform's own `pattern` check and never names a missing
+id, and `spellcheck="false"` / `autocorrect="off"` survive as tokens in
+WebKit, whose `autocorrect` property is a boolean) — plus
 reduced-motion and forced-colors projects, and
 the state-matrix contrast audit — two matrices over every state combination ×
 design system × theme, hard-fail below 3:1, chromium-only: **text legibility**

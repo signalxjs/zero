@@ -5,7 +5,7 @@ import { pickRole } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const InputDemos = component(() => {
-    const state = signal({ email: '' });
+    const state = signal({ email: '', code: '', codeError: '' });
 
     return () => (
         <>
@@ -77,6 +77,44 @@ const InputDemos = component(() => {
                     </Input.Root>
                     <Field.Description>We only use this for receipts.</Field.Description>
                     <Field.Error>That address is already registered.</Field.Error>
+                </Field.Root>
+            </DemoRow>
+            <p>
+                The native constraint and keyboard hints are typed props on
+                the Root — <code>pattern</code>, <code>minlength</code>,{' '}
+                <code>inputmode</code>, <code>enterkeyhint</code>,{' '}
+                <code>autocorrect</code>, <code>spellcheck</code> — so the
+                browser's own validation runs. The error below exists only
+                while the value fails it, and the input's{' '}
+                <code>aria-describedby</code> follows: it never names an id
+                nothing carries.
+            </p>
+            <DemoRow gap="1rem" align="flex-start">
+                <Field.Root invalid={!!state.codeError} data-demo="verification-code">
+                    <Field.Label>Verification code</Field.Label>
+                    <Input.Root
+                        model={() => state.code}
+                        name="code"
+                        pattern="[0-9]{6}"
+                        maxlength={6}
+                        inputmode="numeric"
+                        enterkeyhint="done"
+                        autocomplete="one-time-code"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck={false}
+                    >
+                        <Input.Control>
+                            <Input.Input
+                                placeholder="123456"
+                                onInput={(e: Event) => {
+                                    const el = e.target as HTMLInputElement;
+                                    state.codeError = el.value === '' || el.checkValidity() ? '' : 'Six digits, nothing else.';
+                                }}
+                            />
+                        </Input.Control>
+                    </Input.Root>
+                    {state.codeError ? <Field.Error>{state.codeError}</Field.Error> : null}
                 </Field.Root>
             </DemoRow>
             <p><small>Email model: <code>{state.email || '—'}</code></small></p>

@@ -113,6 +113,27 @@ radiogroup carries `aria-required`. The runtime
 half is `createFormControl` + `onFormReset` (`@sigx/zero/behaviors`), the
 one `VISUALLY_HIDDEN_STYLE` beside them.
 
+**Native constraints and keyboard hints are typed props.** `Input.Root`
+takes `minlength`, `pattern`, `inputmode`, `enterkeyhint`, `spellcheck`,
+`autocapitalize`, `autocorrect` (`'on' | 'off'`) and `autofocus`
+beside `autocomplete` / `maxlength`; `Textarea.Root` takes `minlength`,
+`wrap` (`'soft' | 'hard'`), `spellcheck`, `autocapitalize`,
+`enterkeyhint` and `autofocus`. They render on the `<input>` /
+`<textarea>`, so the platform's own constraint validation runs
+(`checkValidity()` honours `pattern`), and a misspelt `inputmode` is a
+compile error (`InputMode`, `EnterKeyHint` and `Autocapitalize` are
+exported). `spellcheck` is a boolean that renders the enumerated
+`"true"` / `"false"` token; unset leaves the browser's default. There is
+no native `size` (the character width): `size` on a Root is the design
+system's size axis (`data-size`), so width belongs to the recipe.
+
+```tsx
+<Input.Root name="code" pattern="[0-9]{6}" inputmode="numeric" enterkeyhint="done"
+    autocomplete="one-time-code" autocorrect="off" spellcheck={false}>
+    <Input.Control><Input.Input /></Input.Control>
+</Input.Root>
+```
+
 **A sized Field sizes its control.** A control with no `size` of its own
 renders its Field's, the same way it adopts the Field's flags, so a compact
 field is one prop — the label goes with `visuallyHidden`. The control's own
@@ -354,7 +375,14 @@ is mounted. Presence reports land a microtask after mount, so RadioGroup,
 Progress, RadialProgress and Slider render these references optimistically
 until then: server markup keeps the Label reference (and, outside thumb
 mode, the Label's `for`) a composed widget needs, and the client drops any that
-would dangle once mounted. A progressbar's
+would dangle once mounted. A Field works the same way (#266): every
+control's `aria-describedby` names `Field.Description` and `Field.Error`
+only while they are rendered — an Error rendered on and off with the
+value's validity is followed — joined with any app `aria-describedby`, and
+the attribute is absent when neither is (server markup names both). A
+`Slider.Control` and every `Slider.Thumb` inside a Field take its
+description ids too, and `getValueText` speaks for the native control as
+it does for a thumb (`aria-valuetext`). A progressbar's
 `aria-valuenow` is clamped to `[min, max]`. Escape dismissal is universal — a tooltip closes
 from anywhere (WCAG 2.1 SC 1.4.13), and it is hoverable too: leaving the
 trigger closes it only after a 120 ms pointer-leave grace period, so the
