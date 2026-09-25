@@ -97,6 +97,17 @@
   (`defaultPrevented`, or a target inside an open `:popover-open` /
   `dialog:modal` within the surface), so the first Escape closes the inner
   popup and the next closes the dialog.
+- **Dialog and Drawer: a backdrop press has to start outside, and Escape
+  cannot close a non-dismissible modal (#260).** Selecting text inside a
+  modal and releasing over the backdrop closed it, because the click lands
+  on the `<dialog>` element outside its box. The backdrop (Drawer's scrim)
+  now dismisses only when the press also started there. Also, browsers let
+  a page cancel only the first close request made without a fresh user
+  activation, so pressing Escape a second time closed a
+  `dismissible={false}` modal in every engine. Zero now prevents the Escape
+  keydown itself, except while a nested dialog or a Menu, Select or Popover
+  open inside owns Escape. A close request that still gets through (the
+  Android back gesture) reopens the modal while the model says open.
 - **Pagination keeps focus on the page you activated (#176).** The row was
   unkeyed, so when activating a page slid the window (page 5 of 20 from
   page 4: `1 2 3 4 5 … 20` → `1 … 4 5 6 … 20`) the diff patched the

@@ -74,6 +74,19 @@ const DrawerDemos = component(({ signal }) => {
                     <Drawer.Close>Close app menu</Drawer.Close>
                 </Drawer.Panel>
             </Drawer.Root>
+            <p>
+                <code>dismissible={'{false}'}</code>: the scrim and Escape leave
+                the sheet up, however many times Escape is pressed (#260) — only
+                its own action closes it.
+            </p>
+            <Drawer.Root dismissible={false}>
+                <Drawer.Trigger>Open pinned drawer</Drawer.Trigger>
+                <Drawer.Panel>
+                    <Drawer.Title>Unsaved changes</Drawer.Title>
+                    <p>Review your edits before leaving this panel.</p>
+                    <Drawer.Close>Done reviewing</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>
             <p>Inline (non-modal) — furniture, not a popup:</p>
             <Drawer.Root modal={false} label="Filters">
                 <Drawer.Trigger>Open filters</Drawer.Trigger>

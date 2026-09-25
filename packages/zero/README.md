@@ -163,7 +163,13 @@ why on a `close` event that follows `openChange(false)` — `{ reason, value }`
 with `reason` one of `close` · `cancel` · `escape` · `backdrop` ·
 `programmatic` (Drawer has no `cancel`) and `value` from the closing
 `Dialog.Close value="…"`, the `<form method="dialog">` + `returnValue` pair
-in model form, so a confirm dialog needs no flag beside its model; Slider's `model` accepts `number[]` for a
+in model form, so a confirm dialog needs no flag beside its model; a modal
+Dialog or Drawer dismisses on the backdrop only when the press both starts
+and ends outside its box, so dragging a text selection out over the backdrop
+never closes it, and `dismissible={false}` holds however often Escape is
+pressed (zero prevents the Escape keydown itself, because browsers let a page
+cancel only the first close request made without a fresh user activation);
+Slider's `model` accepts `number[]` for a
 composed multi-thumb range (`Slider.Track`/`Range`/`Thumb`, thumbs clamp at
 their neighbors, `marks` renders ticks) while a scalar model keeps the native
 `<input type=range>`, and `orientation="vertical"` turns either projection

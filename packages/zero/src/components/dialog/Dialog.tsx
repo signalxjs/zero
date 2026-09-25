@@ -30,6 +30,7 @@ import { createControllableState, createInertState, type ControllableState } fro
 import { createId } from '../../behaviors/create-id.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { createFocusRestore } from '../../behaviors/focus.js';
+import { createModalDismiss } from '../../behaviors/modal-dismiss.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
@@ -276,6 +277,19 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
     // Outside Chromium the native close waits for the exit to play (#17).
     const exit = createTopLayerExit();
 
+    // The backdrop press and the Escape close request (#260). An
+    // alertdialog never light-dismisses: the pattern exists to interrupt,
+    // so the answer has to be one of its actions (APG; Radix AlertDialog
+    // behaves the same). Escape stays live via `cancel`, under `dismissible`.
+    const guard = createModalDismiss({
+        getElement: () => el,
+        isModalOpen: () => dialog.modal() && dialog.state.value,
+        backdropDismisses: () => dialog.dismissible() && dialog.role() !== 'alertdialog',
+        escapeDismisses: () => dialog.dismissible(),
+        shouldStayOpen: () => dialog.modal() && dialog.state.value,
+        dismissBackdrop: () => dialog.requestClose('backdrop'),
+    });
+
     const scoped = mountScope();
     onMounted(() => scoped(() => {
         const sync = (open: boolean) => {
@@ -329,6 +343,9 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
                 class={props.class}
                 ref={(node: HTMLDialogElement | null) => { el = node; }}
                 onClose={() => {
+                    // A close request the platform would not let zero cancel
+                    // (see `modal-dismiss`) reopens while the model says open.
+                    if (guard.reopenIfForced()) return;
                     // Still open in the model means zero did not start this
                     // close: a native close() or a <form method="dialog">.
                     dialog.requestClose('programmatic', el?.returnValue || undefined);
@@ -337,28 +354,23 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
                     // Native Escape: let the model decide. Prevent the default
                     // close and route through state so non-dismissible dialogs
                     // stay open and controlled parents stay authoritative.
+                    guard.noteCancel(e);
                     e.preventDefault();
                     if (dialog.dismissible()) dialog.requestClose('escape');
                 }}
-                onClick={(e: MouseEvent) => {
-                    // A ::backdrop click targets the <dialog> element itself —
-                    // but so does a click on the dialog's own padding. Geometry
-                    // decides: only a pointer position outside the dialog's box
-                    // can be the backdrop. Modal only — a non-modal dialog has
-                    // no backdrop at all. An alertdialog never light-dismisses:
-                    // the pattern exists to interrupt, so the answer has to be
-                    // one of its actions (APG; Radix AlertDialog behaves the
-                    // same). Escape stays live via `cancel` above.
-                    if (dialog.role() === 'alertdialog') return;
-                    if (!dialog.modal() || !dialog.dismissible()) return;
-                    if (!el || e.target !== el) return;
-                    // A keyboard-synthesized click carries no geometry.
-                    if (e.detail === 0) return;
-                    const rect = el.getBoundingClientRect();
-                    const inside = e.clientX >= rect.left && e.clientX <= rect.right
-                        && e.clientY >= rect.top && e.clientY <= rect.bottom;
-                    if (!inside) dialog.requestClose('backdrop');
-                }}
+                // Escape on a non-dismissible modal never becomes a close
+                // request: Chromium stops letting `cancel` be prevented after
+                // the first one without a fresh user activation.
+                onKeydown={guard.onKeydown}
+                // A ::backdrop click targets the <dialog> element itself — but
+                // so does a click on the dialog's own padding, and one pressed
+                // on text inside and released over the backdrop. Geometry
+                // decides, at both ends of the press: only a press that starts
+                // AND ends outside the dialog's box is the backdrop. Modal
+                // only — a non-modal dialog has no backdrop at all.
+                onPointerdown={guard.onPointerdown}
+                onPointercancel={guard.onPointercancel}
+                onClick={guard.onClick}
             >
                 {slots.default?.()}
             </dialog>

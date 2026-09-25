@@ -13,7 +13,7 @@ import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { Drawer, clearThemes, drawerAnatomy, registerThemes } from '@sigx/zero';
 import type { DrawerCloseDetail } from '@sigx/zero';
-import { expectAnatomy } from './helpers';
+import { expectAnatomy, pressDialog } from './helpers';
 
 /** Presence flags land one microtask after the render pass; settle them. */
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -248,7 +248,7 @@ describe('Drawer close reason (#52) — Dialog\'s contract, minus cancel', () =>
 
         panel.dispatchEvent(new Event('cancel', { cancelable: true }));
         state.open = true;
-        panel.dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        pressDialog(panel, { x: 300, y: 50 });
         state.open = true;
         state.open = false;
         expect(log.filter(([name]) => name === 'close')).toEqual([
@@ -486,5 +486,52 @@ describe('Drawer responsive regime (#82) — modal={{ below }}', () => {
             </Drawer.Root>,
             container,
         )).toThrow(/breakpoint "xl" is not declared/);
+    });
+});
+
+describe('Drawer dismissal guards (#260) — Dialog\'s', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    function mountGuarded(state: { open: boolean }, opts: { dismissible?: boolean } = {}) {
+        render(
+            <Drawer.Root model={[state, 'open']} dismissible={opts.dismissible}>
+                <Drawer.Panel>
+                    <Drawer.Title>Navigation</Drawer.Title>
+                    <p data-testid="text">Selectable text</p>
+                    <Drawer.Close>Close</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        const panel = part(container, 'panel') as HTMLDialogElement;
+        panel.getBoundingClientRect = () =>
+            ({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
+        return panel;
+    }
+
+    it('a press from text inside released over the scrim does not dismiss; one from the scrim does', () => {
+        const state = signal({ open: true });
+        const panel = mountGuarded(state);
+        const text = container.querySelector<HTMLElement>('[data-testid="text"]')!;
+        pressDialog(panel, { x: 50, y: 50, target: text }, { x: 300, y: 50 });
+        expect(state.open).toBe(true);
+        pressDialog(panel, { x: 300, y: 50 });
+        expect(state.open).toBe(false);
+    });
+
+    it('Escape on a non-dismissible sheet is prevented; a forced close request reopens it', () => {
+        const state = signal({ open: true });
+        const panel = mountGuarded(state, { dismissible: false });
+        const e = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+        panel.dispatchEvent(e);
+        expect(e.defaultPrevented).toBe(true);
+        panel.dispatchEvent(new Event('cancel', { cancelable: false }));
+        panel.close();
+        expect(panel.open).toBe(true);
+        expect(state.open).toBe(true);
     });
 });

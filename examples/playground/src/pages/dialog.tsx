@@ -63,6 +63,39 @@ const DialogDemos = component(() => {
                 </Dialog.Popup>
             </Dialog.Root>
 
+            <h2>Non-dismissible</h2>
+            <p>
+                <code>dismissible={'{false}'}</code>: neither Escape nor the
+                backdrop closes it — only its own action does. Escape stays
+                refused however many times it is pressed (#260: Chromium lets
+                a page prevent only the first close request without a fresh
+                user activation, so zero stops the keydown instead), while a
+                menu open inside it still closes on Escape. And selecting
+                text by dragging out over the backdrop never dismisses any
+                dialog: a backdrop press has to start there.
+            </p>
+            <Dialog.Root dismissible={false}>
+                <Dialog.Trigger>Open required dialog</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Title>Accept the terms</Dialog.Title>
+                    <Dialog.Description>
+                        Read these terms before you continue. Drag across this
+                        sentence and release over the backdrop: the selection
+                        is yours, and the dialog stays.
+                    </Dialog.Description>
+                    <Menu.Root>
+                        <Menu.Trigger>More options</Menu.Trigger>
+                        <Menu.Popup>
+                            <Menu.Item value="print">Print terms</Menu.Item>
+                            <Menu.Item value="download">Download terms</Menu.Item>
+                        </Menu.Popup>
+                    </Menu.Root>
+                    <Dialog.Footer>
+                        <Dialog.Close>Accept</Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Popup>
+            </Dialog.Root>
+
             <h2>Alert dialog</h2>
             <p>
                 <code>role="alertdialog"</code> tightens the pattern: the

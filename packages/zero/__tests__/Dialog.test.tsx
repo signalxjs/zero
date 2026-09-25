@@ -3,7 +3,7 @@ import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { Dialog, dialogAnatomy } from '@sigx/zero';
 import type { DialogCloseDetail } from '@sigx/zero';
-import { expectAnatomy } from './helpers';
+import { expectAnatomy, pressDialog } from './helpers';
 
 /** Presence flags land one microtask after the render pass; settle them. */
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -192,10 +192,10 @@ describe('Dialog', () => {
         popup.getBoundingClientRect = () =>
             ({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
         // Inside the dialog's own box: its padding, not the backdrop.
-        popup.dispatchEvent(new MouseEvent('click', { clientX: 50, clientY: 50, detail: 1, bubbles: true }));
+        pressDialog(popup, { x: 50, y: 50 });
         expect(state.open).toBe(true);
         // Outside the box: only the ::backdrop can be there.
-        popup.dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        pressDialog(popup, { x: 300, y: 50 });
         expect(state.open).toBe(false);
     });
 
@@ -205,7 +205,7 @@ describe('Dialog', () => {
         const popup = container.querySelector<HTMLDialogElement>('dialog')!;
         popup.getBoundingClientRect = () =>
             ({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
-        popup.dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        pressDialog(popup, { x: 300, y: 50 });
         expect(state.open).toBe(true);
     });
 
@@ -262,7 +262,7 @@ describe('Dialog as alertdialog', () => {
         const popup = container.querySelector<HTMLDialogElement>('dialog')!;
         popup.getBoundingClientRect = () =>
             ({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
-        popup.dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        pressDialog(popup, { x: 300, y: 50 });
         expect(state.open).toBe(true);
     });
 
@@ -368,7 +368,7 @@ describe('Dialog close reason (#52)', () => {
     it('a backdrop click reports `backdrop`', () => {
         const state = signal({ open: true });
         const log = mountRecorded(state);
-        popupOf().dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        pressDialog(popupOf(), { x: 300, y: 50 });
         expect(log).toEqual([['openChange', false], ['close', { reason: 'backdrop' }]]);
     });
 
@@ -424,5 +424,143 @@ describe('Dialog close reason (#52)', () => {
         mountRecorded(signal({ open: true }));
         expect(container.querySelector<HTMLElement>('[data-part="close"]')!.getAttribute('value')).toBe('confirm');
         expect(container.querySelector<HTMLElement>('[data-part="cancel"]')!.hasAttribute('value')).toBe(false);
+    });
+});
+
+describe('Dialog dismissal guards (#260)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    const box = () => ({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
+
+    function mountGuarded(state: { open: boolean }, opts: { dismissible?: boolean; nested?: boolean } = {}) {
+        const log: DialogCloseDetail[] = [];
+        render(
+            <Dialog.Root
+                model={[state, 'open']}
+                dismissible={opts.dismissible}
+                onClose={(detail: DialogCloseDetail) => log.push(detail)}
+            >
+                <Dialog.Popup>
+                    <Dialog.Title>Title</Dialog.Title>
+                    <Dialog.Description>Selectable text</Dialog.Description>
+                    {opts.nested ? <dialog data-testid="inner"><button>Inner</button></dialog> : null}
+                    <Dialog.Close>Close</Dialog.Close>
+                </Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+        const popup = container.querySelector<HTMLDialogElement>('dialog')!;
+        popup.getBoundingClientRect = box;
+        return { popup, log };
+    }
+
+    // The event stops at this test's container: an open non-modal dialog an
+    // earlier test left mounted keeps a document-level dismiss layer, and
+    // that layer would prevent the Escape itself. Only the popup's own guard
+    // is under test here.
+    const escape = (target: HTMLElement) => {
+        const e = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+        const stop = (ev: Event) => ev.stopPropagation();
+        container.addEventListener('keydown', stop);
+        target.dispatchEvent(e);
+        container.removeEventListener('keydown', stop);
+        return e;
+    };
+
+    it('a press that starts on text inside and ends over the backdrop does not dismiss', () => {
+        const state = signal({ open: true });
+        const { popup, log } = mountGuarded(state);
+        const text = container.querySelector<HTMLElement>('[data-part="description"]')!;
+        // The click targets the common ancestor — the <dialog> — at the
+        // release point, outside the box: only the press start tells.
+        pressDialog(popup, { x: 50, y: 50, target: text }, { x: 300, y: 50 });
+        expect(state.open).toBe(true);
+        expect(log).toEqual([]);
+    });
+
+    it('a press on the padding released over the backdrop, or the reverse, does not dismiss', () => {
+        const state = signal({ open: true });
+        const { popup } = mountGuarded(state);
+        pressDialog(popup, { x: 50, y: 50 }, { x: 300, y: 50 });
+        expect(state.open).toBe(true);
+        pressDialog(popup, { x: 300, y: 50 }, { x: 50, y: 50 });
+        expect(state.open).toBe(true);
+    });
+
+    it('the press bookkeeping resets after each click and on pointercancel', () => {
+        const state = signal({ open: true });
+        const { popup, log } = mountGuarded(state);
+        // A backdrop press, then a click with no press of its own: the
+        // first click consumed the flag.
+        pressDialog(popup, { x: 300, y: 50 }, { x: 50, y: 50 });
+        popup.dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        expect(state.open).toBe(true);
+        // A cancelled backdrop press does not arm the next click.
+        popup.dispatchEvent(new PointerEvent('pointerdown', { clientX: 300, clientY: 50, bubbles: true }));
+        popup.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true }));
+        popup.dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        expect(state.open).toBe(true);
+        // A press that starts and ends on the backdrop still dismisses.
+        pressDialog(popup, { x: 300, y: 50 });
+        expect(state.open).toBe(false);
+        expect(log).toEqual([{ reason: 'backdrop' }]);
+    });
+
+    it('Escape on a non-dismissible modal is prevented before it becomes a close request', () => {
+        const { popup } = mountGuarded(signal({ open: true }), { dismissible: false });
+        const title = container.querySelector<HTMLElement>('[data-part="title"]')!;
+        expect(escape(title).defaultPrevented).toBe(true);
+        expect(escape(popup).defaultPrevented).toBe(true);
+    });
+
+    it('Escape on a dismissible modal is left to the native cancel', () => {
+        const { popup } = mountGuarded(signal({ open: true }));
+        expect(escape(popup).defaultPrevented).toBe(false);
+    });
+
+    it('Escape is left alone while a close watcher nested inside owns it', () => {
+        // A nested dialog here; Menu, Select and Popover's light-dismiss
+        // popovers take the same branch (`:popover-open`, which a simulated
+        // DOM cannot match — the e2e spec covers it in real engines).
+        const { popup } = mountGuarded(signal({ open: true }), { dismissible: false, nested: true });
+        const inner = container.querySelector<HTMLDialogElement>('[data-testid="inner"]')!;
+        inner.show();
+        expect(escape(inner.querySelector('button')!).defaultPrevented).toBe(false);
+        inner.close();
+        expect(escape(popup).defaultPrevented).toBe(true);
+    });
+
+    it('a forced close request (non-cancelable cancel) reopens a non-dismissible modal', () => {
+        const state = signal({ open: true });
+        const { popup, log } = mountGuarded(state, { dismissible: false });
+        // Chromium without fresh user activation: `cancel` fires, but
+        // cannot be prevented, and the element closes regardless.
+        popup.dispatchEvent(new Event('cancel', { cancelable: false }));
+        popup.close();
+        expect(popup.open).toBe(true);
+        expect(state.open).toBe(true);
+        expect(log).toEqual([]);
+    });
+
+    it('a forced close request on a dismissible modal still closes, as `escape`', () => {
+        const state = signal({ open: true });
+        const { popup, log } = mountGuarded(state);
+        popup.dispatchEvent(new Event('cancel', { cancelable: false }));
+        if (popup.open) popup.close();
+        expect(popup.open).toBe(false);
+        expect(state.open).toBe(false);
+        expect(log).toEqual([{ reason: 'escape' }]);
+    });
+
+    it('a native close() with no close request stays `programmatic`, even when non-dismissible', () => {
+        const state = signal({ open: true });
+        const { popup, log } = mountGuarded(state, { dismissible: false });
+        popup.close();
+        expect(state.open).toBe(false);
+        expect(log).toEqual([{ reason: 'programmatic' }]);
     });
 });

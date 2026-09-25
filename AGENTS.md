@@ -135,8 +135,11 @@ contract plus per-component interaction specs on chromium/firefox/webkit —
 combobox, menu-submenu, menu-keyboard (ArrowUp opens on the last item; Enter
 on an asChild link item really navigates, #175), toast, select, and since #326 the overlays and
 composites a simulated DOM cannot host: dialog (real `showModal()` top layer,
-the geometric backdrop-vs-padding click from #324, the non-modal
-dismiss-layer fallback), popover (`focusFirst` on open, light dismiss, focus
+the geometric backdrop-vs-padding click from #324, a press dragged from
+text inside out to the backdrop that must not dismiss and Escape pressed
+again and again on a non-dismissible dialog — browsers let a page cancel
+only the first close request without a fresh user activation (#260) — the
+non-modal dismiss-layer fallback), popover (`focusFirst` on open, light dismiss, focus
 restore — the restore tests open by KEYBOARD, because WebKit does not focus
 buttons on click, so a click-open leaves the restore target as body and the
 assertion would prove nothing), tooltip (hover-intent delay asserted as a
