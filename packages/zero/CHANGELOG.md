@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Fixed — tooltip opens on keyboard focus only, closes on press, ignores touch hover (#268)
+
+- **Focus opens a tooltip only when it is keyboard focus** — the trigger
+  matches `:focus-visible`. The focus a click gives a trigger used to open
+  its tooltip over whatever the click opened (a menu, a dialog).
+- **A press closes it.** `pointerdown` on the trigger closes the tooltip at
+  once (cancelling a pending hover-open), and hover cannot re-open it until
+  the pointer has left the trigger.
+- **Touch hover is ignored.** A `pointerenter` with `pointerType: 'touch'`
+  no longer schedules an open. Escape and the WCAG 1.4.13 behaviour are
+  unchanged.
+
+### Added — `Tooltip.Group`, a shared delay group (#268)
+
+- **`Tooltip.Group`** (`TooltipGroupProps`, exported) renders no element
+  and has no anatomy part. `openDelay` (default 600) and `closeDelay` become
+  the defaults of every member `Tooltip.Root` (a Root's own props win); one
+  member is open at a time — opening one closes the open sibling at once;
+  and while a member is open, or within `skipDelay` ms (default 300) of one
+  closing, hovering another opens it with no delay. The state lives in the
+  provided context, not a module global, so it is SSR-safe.
+
 ### Added — typed native constraint and keyboard-hint props on Input and Textarea (#266)
 
 - **`Input.Root`** takes `minlength`, `pattern`, `inputmode`,
