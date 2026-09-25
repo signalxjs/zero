@@ -140,9 +140,13 @@ build:
 - your package root exports `componentExportName(scope)` — the name an
   api-declaring adopter's generated `./components` module imports;
 - and a **hostile-vocabulary probe**: your pack, fitted to a design system
-  with no colour roles and no size ramp, still compiles — and still paints. A
-  scope that draws only through the colour axis renders as nothing there, and
-  you should hear that from this command rather than from an adopter. The
+  with no colour roles, no size ramp and no breakpoints, still compiles — and
+  still paints. A scope that draws only through the colour axis renders as
+  nothing there, and you should hear that from this command rather than from
+  an adopter. A breakpoint `at` key (`md`, `below-md`) is fitted away there,
+  as it is for an adopter with no ramp, so your pack may use one; a scope
+  styled *only* under breakpoints gets the "compiles to nothing" warning. Raw
+  `@` preludes and the built-in conditions are kept. The
   probe does define the recommended non-colour tokens (`--space-*`,
   `--font-*`, `--weight-*`, `--leading-*`, `--tracking-*`, `--measure-*`,
   `--shadow-*`, `--duration-*`, `--ease-*`), so your recipes may read those

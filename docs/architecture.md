@@ -1446,8 +1446,9 @@ the architecture facts, briefly:
   `FRAGMENT_VERSION`, the schema, the merge, `"files"` coverage of the
   declared path, recipes confined to declared parts and scopes, the
   `componentExportName` root export, and a hostile-vocabulary probe (fitted
-  to no colour roles and no size ramp, but the recommended non-colour
-  tokens defined, does the pack still compile — and still paint). It is why a fragment's `version` can come from zero's copy
+  to no colour roles, no size ramp and an empty breakpoint ramp, but the
+  recommended non-colour tokens defined, does the pack still compile — and
+  still paint). It is why a fragment's `version` can come from zero's copy
   of `FRAGMENT_VERSION` (`@sigx/zero/contract`, parity-tested against the
   kit's) or a hand-written literal, and why the kit is a devDependency of
   every component package.
