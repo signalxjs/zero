@@ -193,13 +193,33 @@ const SCANS: Record<string, Scan[]> = {
             },
         },
     ],
-    toast: [{
-        name: 'toast',
-        open: async (page) => {
-            await page.getByRole('button', { name: 'Success toast', exact: true }).click();
-            await expect(page.locator('[data-scope="toast"][data-part="root"]', { hasText: 'Saved' })).toBeVisible();
+    toast: [
+        {
+            name: 'toast',
+            open: async (page) => {
+                await page.getByRole('button', { name: 'Success toast', exact: true }).click();
+                await expect(page.locator('[data-scope="toast"][data-part="root"]', { hasText: 'Saved' })).toBeVisible();
+            },
         },
-    }],
+        {
+            // The assertive channel filled, the alert's root opted out of
+            // the polite region (#269).
+            name: 'alert toast',
+            open: async (page) => {
+                await page.getByRole('button', { name: 'Error alert', exact: true }).click();
+                await expect(page.locator('[data-scope="toast"][data-part="root"]', { hasText: 'Sync failed' })).toBeVisible();
+                await expect(page.locator('[aria-live="assertive"]', { hasText: 'Sync failed' })).toHaveCount(1);
+            },
+        },
+        {
+            name: 'toast over a modal dialog',
+            open: async (page) => {
+                await openDialog('Toast over a dialog')(page);
+                await page.getByRole('button', { name: 'Raise a toast', exact: true }).click();
+                await expect(page.locator('[data-scope="toast"][data-part="root"]', { hasText: 'Raised over the dialog' })).toBeVisible();
+            },
+        },
+    ],
     // accordion and collapsible need no scan list: both demos idle OPEN
     // (defaultValue / defaultOpen), so their panels are already in the tree.
 };
