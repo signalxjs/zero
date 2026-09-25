@@ -206,17 +206,31 @@ interface DesignSystemCells {
     indicator: IndicatorCell[];
 }
 
-/** The cell product for one design system, from its merged manifest — see `resolvedInputs`. */
-async function cellsFor(ds: string, dsManifest: DesignSystemManifest): Promise<DesignSystemCells> {
-    const { manifest } = await resolvedInputs(ds);
-    return {
-        components: manifest.components,
-        text: [...textCells(manifest.components), ...axisCellsFor(dsManifest.components, manifest.components)],
-        indicator: indicatorCellsFor(manifest.components, dsManifest.components),
-    };
-}
-
 const dsManifestOf = (ds: string): DesignSystemManifest => JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
+
+const cells = new Map<string, Promise<DesignSystemCells>>();
+
+/**
+ * The cell product for one design system, from its merged manifest — see
+ * `resolvedInputs`. Computed once per worker: every theme of a design system
+ * measures the same cells, so the per-theme tests share one product.
+ */
+function cellsFor(ds: string): Promise<DesignSystemCells> {
+    let pending = cells.get(ds);
+    if (!pending) {
+        pending = (async () => {
+            const { manifest } = await resolvedInputs(ds);
+            const dsManifest = dsManifestOf(ds);
+            return {
+                components: manifest.components,
+                text: [...textCells(manifest.components), ...axisCellsFor(dsManifest.components, manifest.components)],
+                indicator: indicatorCellsFor(manifest.components, dsManifest.components),
+            };
+        })();
+        cells.set(ds, pending);
+    }
+    return pending;
+}
 
 /**
  * Zero's anatomy plus every fragment scope some design system merged — what
@@ -577,7 +591,7 @@ test('allowlist coverage: every INTENDED_LOW_CONTRAST entry names a cell some ma
     const known = new Set<string>();
     for (const ds of DESIGN_SYSTEMS) {
         const manifest = dsManifestOf(ds);
-        const { text, indicator } = await cellsFor(ds, manifest);
+        const { text, indicator } = await cellsFor(ds);
         const dsCells: Cell[] = [...text, ...indicator];
         for (const theme of manifest.themes) {
             for (const cell of dsCells) known.add(cellKey(ds, theme.name, cell));
@@ -612,7 +626,7 @@ test('fragment scopes: measured exactly where merged', async ({}, testInfo) => {
     const problems: string[] = [];
     for (const [ds, manifest] of manifests) {
         const merged = new Set(Object.keys(manifest.externalScopes ?? {}));
-        const { components, text, indicator } = await cellsFor(ds, manifest);
+        const { components, text, indicator } = await cellsFor(ds);
         for (const scope of fragmentScopes) {
             const textCount = text.filter((c) => c.scope === scope).length;
             const indicatorCount = indicator.filter((c) => c.scope === scope).length;
@@ -639,7 +653,7 @@ test('fragment scopes: measured exactly where merged', async ({}, testInfo) => {
 
     // Not vacuously: zero-basic adopts `ext-stepper`, and its item is text.
     expect(fragmentScopes.has('ext-stepper'), 'no design system merges ext-stepper any more — the guard above held nothing').toBe(true);
-    const basic = await cellsFor('basic', manifests.get('basic')!);
+    const basic = await cellsFor('basic');
     expect(basic.text.some((c) => c.scope === 'ext-stepper' && c.part === 'item')).toBe(true);
 });
 
@@ -857,7 +871,8 @@ for (const ds of DESIGN_SYSTEMS) {
     const dsManifest = dsManifestOf(ds);
     const themes = dsManifest.themes;
     // The cells themselves are async (the merged manifest comes from
-    // `resolveEcosystem`), so each test computes them — see `cellsFor`.
+    // `resolveEcosystem`), so each test awaits them — memoized per worker,
+    // see `cellsFor`.
 
     /** The app baseline every real app provides, plus the compiled DS CSS. */
     const stage = async (page: Page, theme: string): Promise<void> => {
@@ -888,7 +903,7 @@ for (const ds of DESIGN_SYSTEMS) {
             test.skip(testInfo.project.name !== 'chromium', 'one engine; canvas-resolved colors are engine-independent');
 
             await stage(page, theme.name);
-            const { text: dsTextCells } = await cellsFor(ds, dsManifest);
+            const { text: dsTextCells } = await cellsFor(ds);
 
             // The chained product is the one that grows without anyone
             // noticing, so it is counted out loud on every run and capped
@@ -1117,7 +1132,7 @@ for (const ds of DESIGN_SYSTEMS) {
             test.skip(testInfo.project.name !== 'chromium', 'one engine; canvas-resolved colors are engine-independent');
 
             await stage(page, theme.name);
-            const { components, indicator: dsIndicatorCells } = await cellsFor(ds, dsManifest);
+            const { components, indicator: dsIndicatorCells } = await cellsFor(ds);
 
             const readings: IndicatorReading[] = await page.evaluate(({ cells }) => {
                 const { resolve, blend, contrast, hasInk } = window.zeroColorMath;
