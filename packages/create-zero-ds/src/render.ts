@@ -16,6 +16,8 @@ export interface RenderContext {
     targets: readonly Target[];
     /** Whether the brief supplies a Button recipe (`src/button.ts` exists). */
     hasButton: boolean;
+    /** How many recipes the baseline template's list holds (`baselineRecipeCount`). */
+    baselineRecipeCount: number;
     versions: Versions;
 }
 
@@ -153,8 +155,8 @@ export function renderRecipesTs(ctx: RenderContext): string {
             '/**',
             ' * The recipe list the design system compiles.',
             ' *',
-            " * `baseline.ts` is @sigx/zero-basic's recipes, copied whole so every one of",
-            ' * the 50 components is styled from the first build. `fitRecipesToVocabulary`',
+            " * `baseline.ts` is @sigx/zero-basic's recipes, copied whole so each of its",
+            ` * ${ctx.baselineRecipeCount} recipes styles its component from the first build. \`fitRecipesToVocabulary\``,
             " * keeps only what `tokens.ts` declares — for the recommended vocabulary it is",
             ' * the identity; for a brief that declines the colour or size axis, or fuses',
             ' * `variant`, it drops the blocks those axes would have wired and redraws every',

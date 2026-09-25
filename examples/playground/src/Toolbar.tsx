@@ -2,7 +2,7 @@
  * The switcher bar.
  *
  * Built from zero's own components, so the control restyles itself along with
- * everything it controls — which is the whole claim: one anatomy, four skins,
+ * everything it controls — which is the whole claim: one anatomy, six skins,
  * no component code touched.
  */
 import { component, signal } from 'sigx';

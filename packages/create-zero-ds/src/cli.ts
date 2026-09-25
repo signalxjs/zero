@@ -26,7 +26,7 @@ const USAGE = `Usage: create-zero-ds <name> --brief <id> [options]
   <name>               package name: zero-acme, or @acme/zero-acme
   --brief <id>         style brief to start from (required)
   --baseline basic|none
-                       basic (default): @sigx/zero-basic's 50 recipes, fitted
+                       basic (default): every @sigx/zero-basic recipe, fitted
                        to the brief's vocabulary; none: the brief's Button only
   --targets web[,lynx] emit targets (default: web)
   --dir <path>         output directory (default: ./<last segment of name>)

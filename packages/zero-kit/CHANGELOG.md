@@ -23,6 +23,11 @@
 
 ### Fixed
 
+- **The README and the design-system skill state zero-basic's real baseline
+  (#197).** Both said the scaffold lays down "50 recipes"; the baseline is
+  52. The count is now held to the tree by `scripts/__tests__/docs-counts.test.ts`,
+  and `@sigx/create-zero-ds` derives the number in the generated
+  `src/recipes.ts` from the baseline it copied.
 - **Role-pair contrast reads alpha, and colour functions parse
   case-insensitively (#185).** The `contrast-floor` rule and the report's
   per-theme table measured `role` / `role-content` on the raw strings, and

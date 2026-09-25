@@ -5,7 +5,7 @@
  *
  * Catches packaging bugs that lint/typecheck/test miss:
  *   - missing files in `files` array
- *   - broken `exports` map (zero ships 21 subpaths on @sigx/zero alone)
+ *   - broken `exports` map (@sigx/zero alone ships a subpath per component)
  *   - unresolved `workspace:^` / `catalog:` ranges
  *   - dist/ produced by stale builds
  *   - non-JS artifacts dropped from the package (manifest.json, the CSS a
@@ -270,7 +270,7 @@ function main() {
     );
 
     // Subpath exports (the tree-shaking targets) must resolve from the
-    // published shape — zero ships 21 of them, so a broken `exports` map is
+    // published shape — zero ships one per component, so a broken `exports` map is
     // the most likely packaging bug here.
     writeFileSync(
         join(appDir, 'src', 'subpath-check.ts'),

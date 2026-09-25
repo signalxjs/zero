@@ -21,7 +21,7 @@ import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
 import { runStandardBuild } from '@sigx/zero-kit/build';
 import { collectTemplates } from '../src/collect.js';
 import { designSystemName, planScaffold, writePlan } from '../src/scaffold.js';
-import { loadTemplates } from '../src/templates.js';
+import { baselineRecipeCount, loadTemplates } from '../src/templates.js';
 import type { Templates } from '../src/templates.js';
 import { LAYOUT_SCOPES } from '@sigx/zero-kit';
 
@@ -160,6 +160,23 @@ describe.each(BRIEFS)('scaffold --brief %s', (brief) => {
     }, 30_000);
 });
 
+describe('the scaffold states the baseline it copied, not a remembered count (#197)', () => {
+    it("src/recipes.ts names the baseline's real recipe count", async () => {
+        const { recipes: basic } = await import('../../zero-basic/src/recipes.js') as { recipes: readonly unknown[] };
+        const plan = planScaffold({ name: 'zero-count', brief: 'riso' }, templates);
+        const recipesTs = plan.find((f) => f.path === 'src/recipes.ts')!.content;
+        expect(recipesTs).toContain(` * ${basic.length} recipes styles its component from the first build.`);
+        // Every count in the generated header is that one — no other number
+        // survives from whenever the template was last written.
+        expect([...recipesTs.matchAll(/\b(\d+) (?:recipes|components)\b/g)].map((m) => Number(m[1])))
+            .toEqual([basic.length]);
+    });
+
+    it('baselineRecipeCount refuses a source it cannot read, instead of guessing', () => {
+        expect(() => baselineRecipeCount('export const tokens = {};')).toThrow(/export const recipes/);
+    });
+});
+
 describe("the brief's signature survives the composition", () => {
     it('riso: the overprint modifier and the fused variant reach the CSS, and no role token leaks', async () => {
         const dir = scaffoldDir();
@@ -205,7 +222,7 @@ describe('options', () => {
         // Button alone OF THE AUTHORED recipes. The layout tier rides along
         // whatever the baseline choice, because it is generated from the
         // tokens rather than copied — `--baseline none` means "none of
-        // zero-basic's fifty", not "no Stack".
+        // zero-basic's recipes", not "no Stack".
         // Derived from LAYOUT_SCOPES rather than listed, so the layout tier
         // can grow without a hand bump here.
         expect(designSystem.recipes.map((r) => r.component).sort())
