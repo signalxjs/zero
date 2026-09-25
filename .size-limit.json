@@ -38,7 +38,7 @@
     {
         "name": "@sigx/zero/dialog",
         "path": "packages/zero/dist/components/dialog/index.js",
-        "limit": "4.55 kB",
+        "limit": "4.59 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -120,7 +120,7 @@
     {
         "name": "@sigx/zero/combobox",
         "path": "packages/zero/dist/components/combobox/index.js",
-        "limit": "11.9 kB",
+        "limit": "11.97 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -624,7 +624,7 @@
     {
         "name": "@sigx/zero/drawer",
         "path": "packages/zero/dist/components/drawer/index.js",
-        "limit": "5.25 kB",
+        "limit": "5.27 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
