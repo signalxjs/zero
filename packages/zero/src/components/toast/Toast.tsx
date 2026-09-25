@@ -268,9 +268,11 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
     onMounted(() => scoped(() => {
         if (typeof document !== 'undefined') {
             document.addEventListener('visibilitychange', onVisibility);
+            if (document.visibilityState === 'hidden') hold('visibility', true);
+        }
+        if (typeof window !== 'undefined') {
             window.addEventListener('blur', onWindowBlur);
             window.addEventListener('focus', onWindowFocus);
-            if (document.visibilityState === 'hidden') hold('visibility', true);
         }
         // Removing the focused node (closing a toast from its Close button)
         // fires no focusout in Firefox/WebKit/the spec, and Chromium's goes to
@@ -353,8 +355,8 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
     }));
     onUnmounted(() => {
         if (recheck != null) clearTimeout(recheck);
-        if (typeof document !== 'undefined') {
-            document.removeEventListener('visibilitychange', onVisibility);
+        if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisibility);
+        if (typeof window !== 'undefined') {
             window.removeEventListener('blur', onWindowBlur);
             window.removeEventListener('focus', onWindowFocus);
         }
@@ -426,7 +428,8 @@ export type ToastRootProps =
      * Not `role`: a toast is a named `group` inside the viewport's live
      * region; `toast({ role: 'alert' })` routes it to the assertive channel.
      * An app `aria-labelledby`/`aria-describedby` joins the Title's and
-     * Description's.
+     * Description's. The root is focusable, so it is always named: by the
+     * Title, else (with no app name) the Description, else "Notification".
      */
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
@@ -526,6 +529,10 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
     // the shared `variantAttrs` guard rather than a hand-rolled attribute.
     return () => {
         const attrs = htmlAttrs(props);
+        // Focusable (the hotkey lands here), so always named: the Title, or
+        // — with none and no app name — the Description, or a generic label.
+        const appNamed = attrs['aria-label'] != null || attrs['aria-labelledby'] != null;
+        const labelByDescription = !present.title && !appNamed && present.description;
         return (
             <li
                 {...attrs}
@@ -547,12 +554,13 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
                 role="group"
                 aria-live={props.toast.role === 'alert' ? 'off' : undefined}
                 tabIndex={-1}
+                aria-label={attrs['aria-label'] ?? (!present.title && !appNamed && !present.description ? 'Notification' : undefined)}
                 aria-labelledby={[
-                    present.title ? ids.title : undefined,
+                    present.title ? ids.title : labelByDescription ? ids.description : undefined,
                     attrs['aria-labelledby'],
                 ].filter(Boolean).join(' ') || undefined}
                 aria-describedby={[
-                    present.description ? ids.description : undefined,
+                    present.description && !labelByDescription ? ids.description : undefined,
                     attrs['aria-describedby'],
                 ].filter(Boolean).join(' ') || undefined}
                 style={{

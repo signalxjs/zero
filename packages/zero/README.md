@@ -903,7 +903,10 @@ entered the viewport, else the viewport — never to `<body>`.
 any toast does — is the polite live region (`aria-live="polite"`,
 `aria-relevant="additions text"`, `aria-atomic="false"`), and each root is
 a named `group` inside it rather than a `status` of its own: a live region
-inserted together with its content is announced unreliably. A
+inserted together with its content is announced unreliably. The root is
+focusable, so it is always named — by its Title, else (when the app names
+it neither with `aria-label` nor `aria-labelledby`) by its Description,
+else `aria-label="Notification"`. A
 `role: 'alert'` toast opts its root out (`aria-live="off"`) and is spoken
 through a visually-hidden `aria-live="assertive"` span the viewport renders
 beside the region, filled a frame after the toast mounts (and again when an

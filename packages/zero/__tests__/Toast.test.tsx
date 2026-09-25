@@ -599,6 +599,44 @@ describe('Toast (component)', () => {
         expect(root.hasAttribute('aria-describedby')).toBe(false);
     });
 
+    it('a focusable root with no Title is labelled by its Description', async () => {
+        const t = mount();
+        t.create({ description: 'Only a description' });
+        await settle();
+        const root = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        const description = container.querySelector<HTMLElement>('[data-part="description"]')!;
+        expect(root.getAttribute('aria-labelledby')).toBe(description.id);
+        expect(root.hasAttribute('aria-describedby')).toBe(false);
+        expect(root.hasAttribute('aria-label')).toBe(false);
+    });
+
+    it('a composed root with no Title or Description falls back to a generic name; an app name wins', async () => {
+        const u = createToaster({ duration: Infinity });
+        let root: HTMLElement;
+        render(
+            <Toast.Viewport toaster={u}>
+                {(data: ToastData) => (
+                    data.data === 'named'
+                        ? <Toast.Root toast={data} key={data.id} aria-label="Upload"><Toast.Description>Done</Toast.Description></Toast.Root>
+                        : <Toast.Root toast={data} key={data.id}><Toast.Close>✕</Toast.Close></Toast.Root>
+                )}
+            </Toast.Viewport>,
+            container,
+        );
+        u.create({});
+        await settle();
+        root = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        expect(root.getAttribute('aria-label')).toBe('Notification');
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+
+        u.create({ data: 'named' });
+        await settle();
+        root = Array.from(container.querySelectorAll<HTMLElement>('[data-part="root"]')).at(-1)!;
+        expect(root.getAttribute('aria-label')).toBe('Upload');
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+        expect(root.getAttribute('aria-describedby')).toBe(container.querySelectorAll('[data-part="description"]')[0]!.id);
+    });
+
     it('the stock action runs its callback', async () => {
         const t = mount();
         const onClick = vi.fn();
