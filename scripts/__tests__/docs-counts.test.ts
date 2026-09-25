@@ -104,7 +104,11 @@ describe('the statements the docs make about the tree', () => {
     it('the ext-example adoption: devDependency discovery, in every skin that devDepends on it', () => {
         const agents = read('AGENTS.md');
         const start = agents.indexOf('- `packages/zero-ext-example`');
-        const entry = agents.slice(start, agents.indexOf('\n- `', start + 1));
+        expect(start, 'AGENTS.md has no `packages/zero-ext-example` entry').toBeGreaterThanOrEqual(0);
+        // The entry runs to the next package bullet, or to the end of the
+        // list's section when it is the last one.
+        const ends = [agents.indexOf('\n- `', start + 1), agents.indexOf('\n#', start)].filter((i) => i >= 0);
+        const entry = agents.slice(start, ends.length > 0 ? Math.min(...ends) : undefined);
         expect(entry).toContain('"sigx-zero"');
         expect(entry).not.toMatch(/spread the pack/);
         for (const ds of ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon']) {
