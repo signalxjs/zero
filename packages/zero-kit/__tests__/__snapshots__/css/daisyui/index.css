@@ -457,6 +457,10 @@
 
 @layer zero.recipes {
     [data-scope="tabs"][data-part="root"] {
+        --tabs-ring-room: 4px;
+    }
+
+    [data-scope="tabs"][data-part="root"] {
         display: flex;
         flex-direction: column;
         gap: var(--space-lg);
@@ -465,6 +469,11 @@
     [data-scope="tabs"][data-part="list"] {
         display: inline-flex;
         align-self: flex-start;
+        box-sizing: border-box;
+        max-inline-size: 100%;
+        overflow-x: auto;
+        padding: var(--tabs-ring-room);
+        scroll-padding-inline: var(--tabs-ring-room);
     }
 
     [data-scope="tabs"][data-part="tab"] {

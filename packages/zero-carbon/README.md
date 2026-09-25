@@ -117,6 +117,20 @@ Carbon ships no countdown, so the modifier has no vendor name: on
 `axes.shape` there and nowhere else. One declaration on the root, whose
 `overflow: hidden` clips the image and the initials alike. Carbon's radii are 0 and square is the default, so `rounded` is a fixed corner in proportion to the avatar.
 
+## Rows wider than their column
+
+A tabs list and a join group scroll inside their own box when they are wider
+than the column they sit in (#45), as Pagination, Stats and a horizontal
+Timeline do. Neither pads the scroll box: carbon draws every focus ring
+inset. The tabs list's baseline rule is an inset shadow rather than a border,
+so the active tab's 2px underline still covers it inside the scroll box.
+
+The tokens name `"IBM Plex Sans"` and `"IBM Plex Mono"`. The package does not
+ship them: load the faces in your app (the playground bundles them from
+`@fontsource`). Without them the text falls back to the platform face, which
+may be wider. These rows then scroll sooner, but they never push the page
+sideways.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors

@@ -216,14 +216,33 @@ const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => (
  */
 export const tabs: RecipeInput = {
     component: 'tabs',
+    tokens: {
+        // How far the focus ring reaches outside a tab (2px + 2px offset):
+        // the list's scroll box pads by it so the ring is never clipped (#45).
+        '--tabs-ring-room': '4px',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' },
         },
         list: {
+            // The row's own scroll box (#45), Pagination's and Stats' answer:
+            // a row of labels wider than its column (a phone, a wide fallback
+            // face) scrolls instead of pushing the page sideways.
+            // `max-inline-size` (border-box, so it includes the padding)
+            // gives the shrink-to-fit list a width to scroll in. The padding is room for the focus ring, which the
+            // scroll box would otherwise clip at the row's edges; the
+            // matching scroll padding keeps it clear when focus scrolls a
+            // tab into view. The box variant's own padding (space-xs, the
+            // same 4px) replaces it there.
             base: {
                 display: 'inline-flex',
                 alignSelf: 'flex-start',
+                boxSizing: 'border-box',
+                maxInlineSize: '100%',
+                overflowX: 'auto',
+                padding: 'var(--tabs-ring-room)',
+                scrollPaddingInline: 'var(--tabs-ring-room)',
             },
         },
         tab: {

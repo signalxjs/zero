@@ -256,10 +256,28 @@ export const tabs: RecipeInput = {
     tokens: {
         '--tabs-accent': 'var(--color-primary)',
         '--tabs-on-accent': 'var(--color-primary-content)',
+        // How far a tab paints outside its box: the focus ring's
+        // border-weight outline + 3px offset, which also covers the 2px hard
+        // shadow and the hover shove. The list's scroll box pads by it (#45).
+        '--tabs-ring-room': 'calc(var(--border) + 3px)',
     },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' } },
-        list: { base: { display: 'flex', gap: 'var(--space-sm)' } },
+        list: {
+            // The row's own scroll box (#45), Pagination's and Stats' answer:
+            // a row of labels wider than its column (a phone, a wide fallback
+            // face) scrolls instead of pushing the page sideways. The padding
+            // is room for what a tab paints outside itself, which the scroll
+            // box would otherwise clip; the matching scroll padding keeps it
+            // clear when focus scrolls a tab into view.
+            base: {
+                display: 'flex',
+                gap: 'var(--space-sm)',
+                overflowX: 'auto',
+                padding: 'var(--tabs-ring-room)',
+                scrollPaddingInline: 'var(--tabs-ring-room)',
+            },
+        },
         tab: {
             base: {
                 appearance: 'none',

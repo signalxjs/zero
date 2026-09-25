@@ -282,7 +282,12 @@ passes), `position: fixed` parts, and 1px visually-hidden boxes. Deliberate
 exceptions are `{ ds, scope, part, reason }` rows in
 `e2e/narrow-allowlist.json` (`ds: "*"` for all six; the final slider mark's
 label is the one today), and stale rows fail like the axe allowlist's
-(target it with `--project=narrow`): `pnpm build`,
+(target it with `--project=narrow`). Widths depend on the face, so the
+playground bundles every face a skin names (`src/fonts.ts`: IBM Plex,
+Roboto, Inter from `@fontsource`, playground devDependencies only) and
+`bootPage` waits on `document.fonts.ready`. Without that, carbon's rows
+measured in Segoe UI on Windows and the wider DejaVu Sans on the CI runner,
+and the sweep passed locally but failed in CI on the same code: `pnpm build`,
 then `pnpm --filter zero-playground e2e` (first run:
 `pnpm --filter zero-playground exec playwright install`). Filtering needs
 `exec` — `pnpm --filter zero-playground e2e -- <name>` drops the argument and

@@ -572,6 +572,7 @@
     [data-scope="tabs"][data-part="root"] {
         --tabs-accent: var(--color-primary);
         --tabs-on-accent: var(--color-primary-content);
+        --tabs-ring-room: calc(var(--border) + 3px);
     }
 
     [data-scope="tabs"][data-part="root"] {
@@ -583,6 +584,9 @@
     [data-scope="tabs"][data-part="list"] {
         display: flex;
         gap: var(--space-sm);
+        overflow-x: auto;
+        padding: var(--tabs-ring-room);
+        scroll-padding-inline: var(--tabs-ring-room);
     }
 
     [data-scope="tabs"][data-part="tab"] {
