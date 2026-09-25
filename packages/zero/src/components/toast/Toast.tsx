@@ -248,17 +248,14 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
     // releases the one that was paused.
     let heldBy: Toaster | null = null;
     let recheck: ReturnType<typeof setTimeout> | null = null;
+    // Re-run on a `toaster` swap too, so a live hold moves to the new one.
     const sync = (): void => {
-        const want = holds.size > 0;
-        if (want === (heldBy != null)) return;
-        if (want) {
-            heldBy = manager();
-            heldBy.pause();
-        } else {
-            const held = heldBy!;
-            heldBy = null;
-            held.resume();
-        }
+        const target = holds.size > 0 ? manager() : null;
+        if (target === heldBy) return;
+        const released = heldBy;
+        heldBy = target;
+        released?.resume();
+        target?.pause();
     };
     const hold = (reason: Hold, on: boolean): void => {
         if (on) holds.add(reason);
@@ -272,6 +269,7 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
 
     const scoped = mountScope();
     onMounted(() => scoped(() => {
+        watch(manager, sync);
         if (typeof document !== 'undefined') {
             document.addEventListener('visibilitychange', onVisibility);
             if (document.visibilityState === 'hidden') hold('visibility', true);

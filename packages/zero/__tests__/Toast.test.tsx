@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
+import { component, signal } from 'sigx';
 import { Toast, createToaster, toastAnatomy } from '@sigx/zero';
 import type { ToastData } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
@@ -537,6 +538,34 @@ describe('Toast (component)', () => {
             vi.advanceTimersByTime(1100);
             expect(gone()).toBe(true);
         } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it('a toaster swap mid-hold releases the old toaster and holds the new one', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+        try {
+            const a = createToaster({ duration: 1000 });
+            const b = createToaster({ duration: 1000 });
+            const state = signal({ which: 'a' as 'a' | 'b' });
+            const App = component(() => () => (
+                <Toast.Viewport toaster={state.which === 'a' ? a : b} />
+            ));
+            render(<App />, container);
+            await Promise.resolve(); // the viewport's mount hook
+            a.create({ title: 'A' });
+            b.create({ title: 'B' });
+            window.dispatchEvent(new Event('blur'));
+            state.which = 'b';
+            await Promise.resolve();
+            vi.advanceTimersByTime(1100);
+            expect(a.count()).toBe(0); // released: its timer ran out
+            expect(b.count()).toBe(1); // held now
+            window.dispatchEvent(new Event('focus'));
+            vi.advanceTimersByTime(1100);
+            expect(b.count()).toBe(0);
+        } finally {
+            window.dispatchEvent(new Event('focus'));
             vi.useRealTimers();
         }
     });
