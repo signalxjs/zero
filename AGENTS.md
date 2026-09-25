@@ -144,7 +144,9 @@ restore — the restore tests open by KEYBOARD, because WebKit does not focus
 buttons on click, so a click-open leaves the restore target as body and the
 assertion would prove nothing), tooltip (hover-intent delay asserted as a
 lower bound only, and WCAG 1.4.13: Escape dismisses a hover-opened tooltip
-while focus sits elsewhere), tabs (one roving tab stop, automatic
+while focus sits elsewhere; a click neither opens nor, until the pointer
+leaves, re-opens it; and a `Tooltip.Group` sibling opens inside the intent
+delay, #268), tabs (one roving tab stop, automatic
 activation), slider drag under implicit pointer capture (and, since
 #170, a vertical slider: bottom-to-top drags on both projections, and a
 rail every skin stands upright, measured in boxes), tree-view

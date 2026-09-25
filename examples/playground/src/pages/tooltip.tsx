@@ -15,6 +15,28 @@ const TooltipDemos = component(() => () => (
           * through a document-level listener, not a trigger-local one.
           */}
         <button type="button">Elsewhere</button>
+        {/*
+          * A delay group — a toolbar's worth of tooltips. Once one is open,
+          * moving to a neighbour opens it at once (and closes the first);
+          * within `skipDelay` of a close, likewise. The e2e spec measures
+          * that the second opens well inside the 600 ms intent delay.
+          */}
+        <div role="group" aria-label="Formatting" data-demo="tooltip-group" style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <Tooltip.Group>
+                <Tooltip.Root>
+                    <Tooltip.Trigger>Bold</Tooltip.Trigger>
+                    <Tooltip.Popup>Bold (Ctrl+B)</Tooltip.Popup>
+                </Tooltip.Root>
+                <Tooltip.Root>
+                    <Tooltip.Trigger>Italic</Tooltip.Trigger>
+                    <Tooltip.Popup>Italic (Ctrl+I)</Tooltip.Popup>
+                </Tooltip.Root>
+                <Tooltip.Root>
+                    <Tooltip.Trigger>Underline</Tooltip.Trigger>
+                    <Tooltip.Popup>Underline (Ctrl+U)</Tooltip.Popup>
+                </Tooltip.Root>
+            </Tooltip.Group>
+        </div>
     </>
 ), { name: 'TooltipDemos' });
 
