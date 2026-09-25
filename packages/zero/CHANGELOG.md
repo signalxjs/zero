@@ -76,6 +76,14 @@
 
 ### Fixed
 
+- **Escape closes the inner popup, not the dialog around it (#261).** A
+  Menu, Select or Popover open inside a non-modal Dialog or an inline
+  Drawer used to take the whole dialog down on Escape: the dialog's
+  dismiss layer ignored an Escape a widget had already handled and one
+  coming from a native popup nested in its surface. It now yields to both
+  (`defaultPrevented`, or a target inside an open `:popover-open` /
+  `dialog:modal` within the surface), so the first Escape closes the inner
+  popup and the next closes the dialog.
 - **Pagination keeps focus on the page you activated (#176).** The row was
   unkeyed, so when activating a page slid the window (page 5 of 20 from
   page 4: `1 2 3 4 5 … 20` → `1 … 4 5 6 … 20`) the diff patched the
