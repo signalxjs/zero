@@ -230,6 +230,21 @@ option in data mode, `multiple` under `multiple`). There is no separate
 native select: the hidden `<select>` is the form control, and a native
 projection would be a prop on this anatomy, never a second component.
 
+**The Combobox input shows what the form posts.** When the list closes
+(Escape, Tab, an outside press, the trigger) or focus leaves the combobox,
+the typed text is resynced with the value. In single mode, text that was
+never picked reverts to the chosen option's label, or to `''` when nothing
+is chosen, and emptied text clears the value. Under `allowCustom` the text
+is committed as the value instead, and under `multiple` the query is
+dropped (the tags are the value). The keyboard follows the APG editable
+combobox: Alt+ArrowDown opens without moving the highlight (it lands on
+the chosen option, or nowhere), Alt+ArrowUp commits the highlight and
+closes, and Escape on a closed combobox clears the text and, in single
+mode, the value. That Escape calls `preventDefault` only when it cleared
+something, so on an empty combobox it still reaches an enclosing dialog.
+`openOnClick` (default `false`) opens the list on a pointer click in the
+input as well.
+
 **Trigger mode: `@mentions` over a Textarea.** `Combobox.Root trigger="@"`
 (or a RegExp matched before the caret, whose first group is the query)
 turns the `Textarea.Textarea` composed inside it into the combobox's

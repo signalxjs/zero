@@ -71,10 +71,11 @@ const ComboboxDemos = component(() => {
                 <small>
                     <code>Combobox.Group</code> + <code>Combobox.GroupLabel</code>{' '}
                     — the optgroup equivalent; the consumer's filter renders or
-                    omits whole groups.
+                    omits whole groups. <code>openOnClick</code> opens the list
+                    on a click in the input, not only on typing or the arrows.
                 </small>
             </p>
-            <Combobox.Root name="grouped-country" placeholder="Pick a region…">
+            <Combobox.Root name="grouped-country" placeholder="Pick a region…" openOnClick>
                 <Combobox.Control>
                     <Combobox.Input />
                     <Combobox.Trigger />

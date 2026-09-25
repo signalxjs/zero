@@ -59,6 +59,52 @@ test('keyboard selects and fills the input; the form value follows', async ({ pa
     await expect(part(page, 'hidden-input')).toHaveValue('iceland');
 });
 
+test('typed text is resynced on Tab away: the input shows what the form posts (#265)', async ({ page }) => {
+    await input(page).click();
+    await input(page).pressSequentially('ice');
+    await input(page).press('ArrowDown');
+    await input(page).press('Enter');
+    await expect(input(page)).toHaveValue('Iceland');
+    // A query that never became a selection, then focus leaves.
+    await input(page).pressSequentially('Ger');
+    await expect(popup(page)).toHaveAttribute('data-state', 'open');
+    await input(page).press('Tab');
+    await expect(input(page)).not.toBeFocused();
+    await expect(popup(page)).toHaveAttribute('data-state', 'closed');
+    await expect(input(page)).toHaveValue('Iceland');
+    await expect(part(page, 'hidden-input')).toHaveValue('iceland');
+});
+
+test('a pointer pick after typing selects the option, not the resynced text (#265)', async ({ page }) => {
+    await input(page).click();
+    await input(page).pressSequentially('den');
+    // The press blurs the input towards an option that takes no focus: the
+    // blur must leave the text to the click, or the list would refilter
+    // under the pointer.
+    await part(page, 'item').filter({ hasText: 'Denmark' }).click();
+    await expect(input(page)).toHaveValue('Denmark');
+    await expect(part(page, 'hidden-input')).toHaveValue('denmark');
+    await expect(input(page)).toBeFocused();
+});
+
+test('Escape on a closed combobox clears the text and the value (#265)', async ({ page }) => {
+    await input(page).click();
+    await input(page).pressSequentially('ice');
+    await input(page).press('ArrowDown');
+    await input(page).press('Enter');
+    await expect(popup(page)).toHaveAttribute('data-state', 'closed');
+    await input(page).press('Escape');
+    await expect(input(page)).toHaveValue('');
+    await expect(part(page, 'hidden-input')).toHaveValue('');
+});
+
+test('openOnClick: a click in the input opens the list (#265)', async ({ page }) => {
+    const grouped = demoPosting(page, 'combobox', 'grouped-country');
+    await expect(grouped('popup')).toHaveAttribute('data-state', 'closed');
+    await grouped('input').click();
+    await expect(grouped('popup')).toHaveAttribute('data-state', 'open');
+});
+
 /**
  * Tags and free text (#39), on the tools Combobox — named by the field it
  * posts, like the country one above.
