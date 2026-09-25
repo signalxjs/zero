@@ -948,6 +948,37 @@ measured from the boxes, so it is right in an RTL viewport too. When the tree
 mounts before it is attached to the document, the viewport waits, frame by frame,
 until it is attached (about a second at most) before it scrolls and starts observing.
 
+**The toolbar of tooltips.** A tooltip opens on *keyboard* focus at once
+(a focus matching `:focus-visible` — the click that focuses a trigger does
+not open it) and on mouse or pen hover after `openDelay`; a touch
+`pointerenter` is ignored, since touch has no hover. Pressing the trigger
+closes it at once, and it stays closed until the pointer has left the
+trigger — so a tooltip never hangs over the menu or dialog the press
+opened. Escape closes it wherever focus is (WCAG 1.4.13). Wrap a set of
+tooltips in `Tooltip.Group` to share their timing:
+
+```tsx
+<Tooltip.Group openDelay={600} skipDelay={300}>
+    <Tooltip.Root>
+        <Tooltip.Trigger>Bold</Tooltip.Trigger>
+        <Tooltip.Popup>Bold (Ctrl+B)</Tooltip.Popup>
+    </Tooltip.Root>
+    <Tooltip.Root>
+        <Tooltip.Trigger>Italic</Tooltip.Trigger>
+        <Tooltip.Popup>Italic (Ctrl+I)</Tooltip.Popup>
+    </Tooltip.Root>
+</Tooltip.Group>
+```
+
+The group renders no element and has no anatomy part. Its `openDelay`
+(default 600) and `closeDelay` are the defaults of every member Root — a
+Root's own props win. Only one member is open at a time: opening one closes
+the open sibling at once. While a member is open, or within `skipDelay` ms
+(default 300) of one closing, hovering another opens it with no delay — the
+user has already shown they are reading labels. The shared state lives in
+the provided context, one per rendered group, so nothing leaks across SSR
+requests.
+
 ## Responsive: breakpoints and `useMediaQuery`
 
 The design system owns the breakpoint ramp. JS reads it through the theme

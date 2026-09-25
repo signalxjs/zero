@@ -9,6 +9,11 @@
  * It also proves SC 1.4.13 "hoverable" (#167): a real pointer crosses the
  * real offset gap between trigger and popup, which happy-dom has no layout
  * for.
+ *
+ * Opening is keyboard-focus only (#268): a CLICK focuses the trigger too, so
+ * the "click does not open" check needs a real engine's `:focus-visible`
+ * heuristic, which happy-dom does not model. And the delay group's instant
+ * sibling open is timed against a real pointer crossing real boxes.
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
@@ -29,8 +34,11 @@ const popup = (page: Page) =>
     page.locator('[data-scope="tooltip"][data-part="popup"]', { hasText: 'top layer' });
 const elsewhere = (page: Page) => page.getByRole('button', { name: 'Elsewhere', exact: true });
 
-test('focus opens immediately, describes the trigger, and blur closes', async ({ page }) => {
+test('keyboard focus opens immediately, describes the trigger, and blur closes', async ({ page }) => {
     const t = trigger(page);
+    // A script focus with no pointer interaction before it matches
+    // `:focus-visible` in every engine — the keyboard path. (Not a Tab:
+    // WebKit's default Tab order skips buttons.)
     await t.focus();
     await expect(popup(page)).toHaveAttribute('data-state', 'open');
     await expect(popup(page)).toBeVisible();
@@ -104,4 +112,40 @@ test('the pointer can cross the offset gap onto the popup without it closing (WC
     // Leaving the popup still closes it.
     await page.mouse.move(0, 0);
     await expect(popup(page)).toHaveAttribute('data-state', 'closed');
+});
+
+test('a click does not open it, and closes a hover-opened one until the pointer leaves', async ({ page }) => {
+    const t = trigger(page);
+    await t.hover();
+    await expect(popup(page)).toHaveAttribute('data-state', 'open');
+    // WebKit does not focus a button on click, so focus is not asserted —
+    // what matters is that the press closes it and nothing re-opens it: not
+    // the focus a click gives (Chromium/Firefox, not :focus-visible), not
+    // the pointer still resting on the trigger.
+    await t.click();
+    await expect(popup(page)).toHaveAttribute('data-state', 'closed');
+    await page.waitForTimeout(900);
+    await expect(popup(page)).toHaveAttribute('data-state', 'closed');
+
+    // Leave and come back: hover works again.
+    await page.mouse.move(0, 0);
+    await t.hover();
+    await expect(popup(page)).toHaveAttribute('data-state', 'open');
+});
+
+test('in a Tooltip.Group, moving to a sibling opens it well inside the intent delay and closes the first', async ({ page }) => {
+    const group = page.locator('[data-demo="tooltip-group"]');
+    const bold = group.getByRole('button', { name: 'Bold', exact: true });
+    const italic = group.getByRole('button', { name: 'Italic', exact: true });
+    const boldPopup = page.locator('[data-scope="tooltip"][data-part="popup"]', { hasText: 'Bold (Ctrl+B)' });
+    const italicPopup = page.locator('[data-scope="tooltip"][data-part="popup"]', { hasText: 'Italic (Ctrl+I)' });
+
+    await bold.hover();
+    await expect(boldPopup).toHaveAttribute('data-state', 'open');
+    await italic.hover();
+    // Lower-bound style: the group default openDelay is 600 ms; a 200 ms
+    // budget can only pass if the delay was skipped.
+    await expect(italicPopup).toHaveAttribute('data-state', 'open', { timeout: 200 });
+    await expect(italicPopup).toBeVisible();
+    await expect(boldPopup).toHaveAttribute('data-state', 'closed');
 });

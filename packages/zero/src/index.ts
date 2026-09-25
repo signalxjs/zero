@@ -46,7 +46,7 @@ export type {
 } from './components/popover/index.js';
 
 export { Tooltip, tooltipAnatomy, useTooltipContext } from './components/tooltip/index.js';
-export type { TooltipRootProps, TooltipTriggerProps, TooltipPopupProps } from './components/tooltip/index.js';
+export type { TooltipRootProps, TooltipGroupProps, TooltipTriggerProps, TooltipPopupProps } from './components/tooltip/index.js';
 
 export { Menu, menuAnatomy, useMenuContext, useMenuRadioGroupContext } from './components/menu/index.js';
 export type {

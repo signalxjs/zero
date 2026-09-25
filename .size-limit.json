@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "52.9 kB",
+        "limit": "53.14 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
