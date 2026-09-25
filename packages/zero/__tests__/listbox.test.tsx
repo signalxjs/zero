@@ -149,6 +149,20 @@ describe('createListboxCore — selection', () => {
         expect(lb.selectedKeys()).toEqual([]);
     });
 
+    it('a getter emptyValue is read on every clear() — the sentinel follows a late data mode (#172)', () => {
+        const mode = signal({ data: false });
+        const { backing, m } = model<unknown>('');
+        const lb = createListboxCore({ collection: fruits(), selection: m, idBase: 'x', emptyValue: () => (mode.data ? null : '') });
+        lb.select('apple');
+        lb.clear();
+        expect(backing.v).toBe('');
+        mode.data = true;
+        lb.select('apple');
+        lb.clear();
+        expect(backing.v).toBeNull();
+        expect(lb.selectedKeys()).toEqual([]);
+    });
+
     it("'' reads as empty under ANY single-select sentinel (it is the reserved key); under multiple it is a real key", () => {
         const c = createCollection<{ value: string; label: string }, string>({
             items: () => [{ value: '', label: 'None' }, { value: 'a', label: 'A' }],

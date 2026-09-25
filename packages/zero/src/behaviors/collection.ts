@@ -24,6 +24,13 @@ import { computed, signal } from 'sigx';
 export interface CollectionOptions<T, V = T> {
     /** The data items, read reactively. Absent → JSX mode (items register). */
     items?: () => ReadonlyArray<T> | undefined;
+    /**
+     * Decides the mode reactively, overriding the default (`data` exactly when
+     * `items` is given). A root whose `items` prop can arrive AFTER the first
+     * render passes `items` unconditionally and says here when it is data (#172).
+     * In jsx mode `items()` is empty whatever the accessor returns.
+     */
+    mode?: () => 'data' | 'jsx';
     /** String identity: DOM id, typeahead, form value. */
     itemKey?: (item: T) => string;
     /** Display text and typeahead text. */
@@ -143,10 +150,15 @@ export function createCollection<T, V = T>(opts: CollectionOptions<T, V> = {}): 
     let seq = 0;
     const registry = signal({ entries: [] as { id: number; entry: CollectionEntry }[] });
 
-    const items = (): ReadonlyArray<T> => opts.items?.() ?? [];
     // The ACCESSOR decides the mode, not what it returns right now: a data
-    // list that is still loading (undefined) is still a data list.
-    const mode = (): 'data' | 'jsx' => (opts.items ? 'data' : 'jsx');
+    // list that is still loading (undefined) is still a data list — unless
+    // the owner decides it, reactively, through `mode`.
+    const modeOpt = opts.mode;
+    const mode = (): 'data' | 'jsx' => (modeOpt ? modeOpt() : opts.items ? 'data' : 'jsx');
+    // The data list only in data mode: a `mode` that says jsx hides any items
+    // the accessor still returns, so keys, lookups and the listbox's visible
+    // items never disagree with the mode.
+    const items = (): ReadonlyArray<T> => (mode() === 'data' ? opts.items?.() ?? [] : []);
     // Keyed lookup, indexed once per item list: every label, disabled and
     // value read goes through it, and a walk per read is quadratic over a
     // long (windowed) list. The first item with a key wins, as a walk would.

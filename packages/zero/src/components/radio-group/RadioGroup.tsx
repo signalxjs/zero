@@ -114,7 +114,8 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit,
     // accessors and their defaults are the collection's (Select's).
     const items = (): ReadonlyArray<unknown> | undefined => (slots.default || props.items === undefined ? undefined : props.items);
     const collection = createCollection<unknown, string>({
-        items: items() ? items : undefined,
+        items,
+        mode: () => (items() !== undefined ? 'data' : 'jsx'),
         itemKey: props.itemKey,
         itemLabel: props.itemLabel,
         itemDisabled: props.itemDisabled,

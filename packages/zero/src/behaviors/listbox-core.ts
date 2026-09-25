@@ -45,8 +45,11 @@ export interface ListboxOptions<T> {
      * read as empty under any sentinel: `''` is reserved in single mode, so
      * an item whose model value is `''` can never be selected there — the
      * roots refuse such an item at render rather than let it sit unpickable.
+     * A FUNCTION is read as a getter, on every read — a root whose data mode
+     * can arrive after the first render passes one (#172). A model value is
+     * never a function, so the sentinel itself cannot be one.
      */
-    emptyValue?: unknown;
+    emptyValue?: unknown | (() => unknown);
     /** After a selection lands (Select closes; Combobox closes and fills its input). */
     onSelect?: (key: string) => void;
 }
@@ -93,7 +96,11 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
     const { collection, selection } = opts;
     const multiple = (): boolean => opts.multiple?.() ?? false;
     // `undefined` means the default; `null` is a real sentinel, so no `??`.
-    const emptyValue = opts.emptyValue === undefined ? '' : opts.emptyValue;
+    const emptyOpt = opts.emptyValue;
+    const emptyValue = (): unknown => {
+        const v = typeof emptyOpt === 'function' ? (emptyOpt as () => unknown)() : emptyOpt;
+        return v === undefined ? '' : v;
+    };
     const highlighted = signal({ value: null as string | null });
 
     const visibleItems = (): T[] => {
@@ -131,7 +138,7 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
         // '' is reserved as the single-select empty sentinel for every model
         // shape, a string value model included (no item may carry the '' key
         // in single mode), so a `signal({ code: '' })` has nothing selected.
-        if (v === undefined || v === null || v === '' || Object.is(v, emptyValue)) return [];
+        if (v === undefined || v === null || v === '' || Object.is(v, emptyValue())) return [];
         return [collection.keyForValue(v)];
     };
 
@@ -166,7 +173,7 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
         selectedKeys,
         isSelected: (key) => selectedKeys().includes(key),
         select,
-        clear: () => { selection.value = multiple() ? [] : emptyValue; },
+        clear: () => { selection.value = multiple() ? [] : emptyValue(); },
         displayText: () => selectedKeys().map((k) => collection.label(k)).join(', '),
         move: (step) => { highlighted.value = stepKeys(enabledVisibleKeys(), highlighted.value, step); },
         highlightSelectedOrFirst: () => {

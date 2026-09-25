@@ -172,7 +172,14 @@ the primitive itself. Labels resolve from data before anything mounts. With
 `items` and no slot children the Root renders the full default composition
 through the same anatomy (the `item` slot customises an option); explicit
 children win entirely, and hand-written `Select.Item` children register
-into the same collection. Combobox filters by default — a contains-match on
+into the same collection. An `items` that is still `undefined` on the first
+render (a list still loading) may arrive later: the root turns data-driven
+the moment it does — Select, Combobox and RadioGroup alike — and "nothing
+selected" becomes `null` from then on (an uncontrolled model seeded `''`
+still reads as empty). The types follow: `items={query.data}` typed
+`T[] | undefined` picks the data overload, so the model is `T | null` (or
+`V | null` with `itemValue`) with no cast. Passing `[]` while loading keeps
+the model's shape fixed from the start. Combobox filters by default — a contains-match on
 the label — `filter` replaces the rule and `filter={false}` shows a
 server-filtered list as is; `Combobox.Empty` renders only while nothing is
 visible. Under `multiple`, Combobox renders each chosen value as a tag in
@@ -1094,7 +1101,8 @@ same behaviors, held to the same conformance assertion:
   positioning, press feedback, the form contract (`createFormControl`, `onFormReset`), and the
   listbox layer: `createCollection` (items as data — `itemKey` /
   `itemLabel` / `itemValue` / `itemDisabled` / `itemGroup`, with JSX items
-  registering into the same list), `createListbox` (visibility with a
+  registering into the same list; an optional `mode` getter decides data vs
+  JSX reactively), `createListbox` (visibility with a
   default contains-filter, single/multiple selection over the model,
   highlight stepping, typeahead over the visible labels with
   `typeaheadSearching()`, id-safe option ids),

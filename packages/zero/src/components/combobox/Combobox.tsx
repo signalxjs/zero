@@ -346,7 +346,10 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     // given — an EMPTY list counts, sigx props being plain values that a
     // later list arrives into — so the mode never flips on what the list
     // holds, and an omitted `items` is the hand-written (string-model) shape
-    // the overloads promise.
+    // the overloads promise. The decision is REACTIVE (#172): an `items` that
+    // is undefined on the first render (still loading) and arrives later
+    // turns the root data-driven then — the collection's mode and the empty
+    // sentinel follow; the '' seed reads as empty under either.
     // In trigger mode the children are the textarea, so `items` alone decides.
     const items = (): ReadonlyArray<unknown> | undefined =>
         (triggerMode ? props.items : slots.default || props.items === undefined ? undefined : props.items);
@@ -372,7 +375,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     const fc = createFormControl({ props: () => props, idBase: 'zx-combobox', controlPart: 'input' });
     const baseId = fc.baseId;
     const collection = createCollection<unknown, unknown>({
-        items: items() ? items : undefined,
+        items,
+        mode: () => (items() !== undefined ? 'data' : 'jsx'),
         itemKey: props.itemKey,
         itemLabel: props.itemLabel,
         itemValue: props.itemValue,
@@ -405,7 +409,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         idBase: baseId,
         query: () => inputValue.value,
         filter: props.filter,
-        emptyValue: emptyValue(),
+        emptyValue,
         // A single selection fills the input with the label and closes; a
         // multiple one toggles, clears the query and stays open.
         onSelect: (key) => {
@@ -980,15 +984,17 @@ export type ComboboxRoot = {
     (props: JsxProps<ComboboxRootProps<unknown, string[]>> & { items?: undefined; defaultValue?: string[]; itemValue?: undefined; multiple: true }): JSXElement;
     // An item model is `T | null`: nothing selected is `null` (the runtime
     // writes it on clear, reset and a platform write), never a fake item.
+    // `items` may be `undefined` while a list loads (`items={query.data}`,
+    // #172): a present-but-undefined prop is still this data shape.
     // `allowCustom` commits the TEXT as the value, so it types only where the
     // model is a string: hand-written items, string items, a string itemValue.
-    <T>(props: JsxProps<ComboboxRootProps<T, T | null>> & { items: ReadonlyArray<T>; defaultValue?: T | null; itemValue?: undefined; multiple?: false; allowCustom?: CustomFor<T> }): JSXElement;
-    <T>(props: JsxProps<ComboboxRootProps<T, T[]>> & { items: ReadonlyArray<T>; defaultValue?: T[]; itemValue?: undefined; multiple: true; allowCustom?: CustomFor<T> }): JSXElement;
+    <T>(props: JsxProps<ComboboxRootProps<T, T | null>> & { items: ReadonlyArray<T> | undefined; defaultValue?: T | null; itemValue?: undefined; multiple?: false; allowCustom?: CustomFor<T> }): JSXElement;
+    <T>(props: JsxProps<ComboboxRootProps<T, T[]>> & { items: ReadonlyArray<T> | undefined; defaultValue?: T[]; itemValue?: undefined; multiple: true; allowCustom?: CustomFor<T> }): JSXElement;
     // A value model is `V | null` for the same reason — V is whatever
     // `itemValue` returns (a number as readily as a string), so no member of
     // it can stand for "nothing selected".
-    <T, V>(props: JsxProps<ComboboxRootProps<T, V | null>> & { items: ReadonlyArray<T>; defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false; allowCustom?: CustomFor<V> }): JSXElement;
-    <T, V>(props: JsxProps<ComboboxRootProps<T, V[]>> & { items: ReadonlyArray<T>; defaultValue?: V[]; itemValue: (item: T) => V; multiple: true; allowCustom?: CustomFor<V> }): JSXElement;
+    <T, V>(props: JsxProps<ComboboxRootProps<T, V | null>> & { items: ReadonlyArray<T> | undefined; defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false; allowCustom?: CustomFor<V> }): JSXElement;
+    <T, V>(props: JsxProps<ComboboxRootProps<T, V[]>> & { items: ReadonlyArray<T> | undefined; defaultValue?: V[]; itemValue: (item: T) => V; multiple: true; allowCustom?: CustomFor<V> }): JSXElement;
 } & FactoryBrands;
 
 /** `allowCustom` is open only to a string model — free text can be nothing else. */

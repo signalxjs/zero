@@ -28,10 +28,10 @@ const Impl = component<RootProps<unknown, unknown>>(() => () => null as unknown 
 type GenericRoot = {
     (props: JsxProps<RootProps<unknown, string>> & { items?: undefined; defaultValue?: string; itemValue?: undefined; multiple?: false }): JSXElement;
     (props: JsxProps<RootProps<unknown, string[]>> & { items?: undefined; defaultValue?: string[]; itemValue?: undefined; multiple: true }): JSXElement;
-    <T>(props: JsxProps<RootProps<T, T | null>> & { items: ReadonlyArray<T>; defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
-    <T>(props: JsxProps<RootProps<T, T[]>> & { items: ReadonlyArray<T>; defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
-    <T, V>(props: JsxProps<RootProps<T, V | null>> & { items: ReadonlyArray<T>; defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
-    <T, V>(props: JsxProps<RootProps<T, V[]>> & { items: ReadonlyArray<T>; defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
+    <T>(props: JsxProps<RootProps<T, T | null>> & { items: ReadonlyArray<T> | undefined; defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
+    <T>(props: JsxProps<RootProps<T, T[]>> & { items: ReadonlyArray<T> | undefined; defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
+    <T, V>(props: JsxProps<RootProps<T, V | null>> & { items: ReadonlyArray<T> | undefined; defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
+    <T, V>(props: JsxProps<RootProps<T, V[]>> & { items: ReadonlyArray<T> | undefined; defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
 } & FactoryBrands;
 
 const Root = Impl as unknown as GenericRoot;
