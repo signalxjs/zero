@@ -12,7 +12,9 @@
  *   NOT close while a genuine backdrop click must;
  * - the non-modal fallback: `show()` fires no `cancel`, so Escape dismissal
  *   is zero's own document-level dismiss layer, and focus restore is zero's
- *   `createFocusRestore` rather than the platform's.
+ *   `createFocusRestore` rather than the platform's. That layer yields
+ *   Escape to a native popup nested inside it (#261): a Menu open in the
+ *   find bar closes on its own, and only the next Escape closes the bar.
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
@@ -123,6 +125,39 @@ test('non-modal: Escape closes via the dismiss-layer fallback and restores focus
     await page.keyboard.press('Escape');
     await expect(popup).toHaveAttribute('data-state', 'closed');
     // show() does not restore focus natively — this is createFocusRestore.
+    await expect(trigger).toBeFocused();
+});
+
+test('non-modal: Escape in a nested Menu closes only the menu, the next closes the dialog (#261)', async ({ page }, testInfo) => {
+    // Linux WebKit headless does not reliably synthesize keyboard input.
+    test.skip(testInfo.project.name === 'webkit' && process.platform === 'linux', 'headless WPE keyboard');
+    const trigger = findTrigger(page);
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    const popup = await controlledPopup(page, trigger, 'the find bar trigger');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+
+    // The Match menu lives inside the find bar — reached through it, and
+    // opened by keyboard so focus sits on an item inside the menu popup.
+    const menuTrigger = popup.getByRole('button', { name: 'Match options', exact: true });
+    await menuTrigger.focus();
+    await page.keyboard.press('ArrowDown');
+    const menu = await controlledPopup(page, menuTrigger, 'the Match options trigger');
+    await expect(menu).toHaveAttribute('data-state', 'open');
+    await expect(menu.getByRole('menuitem', { name: 'Match case' })).toBeFocused();
+
+    // First Escape: the menu's own native close — the dialog's dismiss
+    // layer yields to the popover nested inside its surface.
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveAttribute('data-state', 'closed');
+    await expect(menuTrigger).toBeFocused();
+    await page.waitForTimeout(300);
+    await expect(popup).toHaveAttribute('data-state', 'open');
+
+    // Second Escape: focus is back on the dialog's own content, so the
+    // dialog's layer takes it.
+    await page.keyboard.press('Escape');
+    await expect(popup).toHaveAttribute('data-state', 'closed');
     await expect(trigger).toBeFocused();
 });
 

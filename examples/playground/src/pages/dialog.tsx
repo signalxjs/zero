@@ -1,5 +1,5 @@
 import { component, signal } from 'sigx';
-import { Button, Dialog } from '@sigx/zero';
+import { Button, Dialog, Menu } from '@sigx/zero';
 import { pickRole } from '../design-systems';
 import type { DialogCloseDetail } from '@sigx/zero';
 import type { PageEntry } from './registry';
@@ -39,6 +39,9 @@ const DialogDemos = component(() => {
               * non-modal <dialog> fires no cancel event). Deliberately no
               * Title: a find bar has none, and the e2e suite asserts the
               * popup's `aria-labelledby` is absent rather than dangling.
+              * The Match menu inside it is the nested-layer case (#261):
+              * Escape on an open menu item closes only the menu, and the
+              * next Escape closes the find bar.
               */}
             <Dialog.Root model={() => state.findOpen} modal={false}>
                 <Dialog.Trigger>Open find bar</Dialog.Trigger>
@@ -47,6 +50,14 @@ const DialogDemos = component(() => {
                         Non-modal: the page behind stays live, Escape still closes.
                     </Dialog.Description>
                     <Dialog.Footer>
+                        <Menu.Root onSelect={(v) => console.log('find match:', v)}>
+                            <Menu.Trigger>Match options</Menu.Trigger>
+                            <Menu.Popup>
+                                <Menu.Item value="case">Match case</Menu.Item>
+                                <Menu.Item value="word">Whole word</Menu.Item>
+                                <Menu.Item value="regex">Regular expression</Menu.Item>
+                            </Menu.Popup>
+                        </Menu.Root>
                         <Dialog.Close>Close find bar</Dialog.Close>
                     </Dialog.Footer>
                 </Dialog.Popup>
