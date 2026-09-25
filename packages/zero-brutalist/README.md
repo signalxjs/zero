@@ -46,7 +46,8 @@ the channel, the same value `--progress-track-size` takes at every size, and
 `--slider-thumb-size` derives the handle from it. The elapsed span is a
 gradient over the runtime-published `--slider-percent`, and its direction is a
 custom property the RTL selector rebinds, so the fill grows from the inline
-start in both writing directions.
+start in both writing directions — and a vertical slider (#170) rebinds it
+to `to top`, so the fill grows from the foot.
 
 ## What the run found
 

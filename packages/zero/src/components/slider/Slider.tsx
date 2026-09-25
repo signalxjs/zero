@@ -40,6 +40,15 @@
  * `inset-inline-start` percentages, so RTL mirrors for free) and paints
  * nothing: a recipe centers the thumb on its position with a negative
  * `margin-inline-start` of half its own width, and owns every color.
+ *
+ * `orientation="vertical"` (#170) turns the rail bottom-to-top, per APG:
+ * the moving parts are positioned by physical `bottom` percentages (the
+ * range sized by `height`), the pointer maps through `clientY`, Up/Right
+ * increase and Left/Down decrease (no RTL mirroring — the axis is not the
+ * reading one), and the native control is spelled
+ * `writing-mode: vertical-lr; direction: rtl`. Every positioned part and the
+ * root carry `data-orientation`, so a recipe restyles the rail against it —
+ * a vertical thumb centers with `margin-block-end` instead.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -50,9 +59,9 @@ import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
-import { dataAttr } from '../../contract/data-attrs.js';
+import { dataAttr, type Orientation } from '../../contract/data-attrs.js';
 import { htmlAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithForm, WithHtmlAttrs, WithInvalid, WithName, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithForm, WithHtmlAttrs, WithInvalid, WithName, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { sliderAnatomy } from './anatomy.js';
 
 const SCOPE = sliderAnatomy.scope;
@@ -94,6 +103,7 @@ interface SliderContext {
     percentOf(value: number): number;
     valueTextFor(value: number, index: number): string | undefined;
     marks(): readonly SliderMark[];
+    orientation(): Orientation;
     ids: { control: string; label: string };
     /**
      * Presence of the parts the ids name (`reportPresence`), so no
@@ -109,8 +119,11 @@ interface SliderContext {
     registerThumb(entry: ThumbEntry): () => void;
     thumbIndex(entry: ThumbEntry): number;
     focusThumb(index: number): void;
-    /** Map a pointer position to a value through the track's box (RTL-aware). */
-    trackToValue(e: { clientX: number }): number;
+    /**
+     * Map a pointer position to a value through the track's box: inline
+     * start → end when horizontal (RTL-aware), bottom → top when vertical.
+     */
+    trackToValue(e: { clientX: number; clientY: number }): number;
     /** Start dragging one thumb; window listeners follow the pointer out. */
     beginDrag(index: number): void;
     setTrack(el: HTMLElement | null): void;
@@ -134,6 +147,7 @@ function makeInert(): SliderContext {
         percentOf: () => 0,
         valueTextFor: () => undefined,
         marks: () => [],
+        orientation: () => 'horizontal',
         ids: { control: 'zx-slider-inert-control', label: 'zx-slider-inert-label' },
         labelPresent: () => false,
         controlPresent: () => false,
@@ -151,6 +165,27 @@ function makeInert(): SliderContext {
 
 export const useSliderContext = defineInjectable<SliderContext>(() => makeInert());
 
+/**
+ * The track's PADDING box in viewport coordinates. The positioned parts'
+ * percentages resolve against it, so the pointer must too — a bordered
+ * channel (brutalist) would otherwise map a click a border-width off where
+ * the thumb lands. The border insets are scaled by the rendered/layout
+ * ratio so a transformed track still maps; with no layout (a zero
+ * `offsetWidth`, e.g. a simulated DOM) the border box stands in.
+ */
+function paddingBox(el: HTMLElement): { left: number; bottom: number; width: number; height: number } {
+    const rect = el.getBoundingClientRect();
+    if (!el.offsetWidth || !el.offsetHeight) {
+        return { left: rect.left, bottom: rect.bottom, width: rect.width, height: rect.height };
+    }
+    const sx = rect.width / el.offsetWidth;
+    const sy = rect.height / el.offsetHeight;
+    const left = rect.left + el.clientLeft * sx;
+    const top = rect.top + el.clientTop * sy;
+    const height = el.clientHeight * sy;
+    return { left, bottom: top + height, width: el.clientWidth * sx, height };
+}
+
 /** `:dir(rtl)` with the computed-style fallback — the shape Menu.tsx uses. */
 function isRtl(el: HTMLElement | null): boolean {
     if (!el) return false;
@@ -160,6 +195,18 @@ function isRtl(el: HTMLElement | null): boolean {
         // :dir() unsupported — fall through to computed style.
     }
     return typeof getComputedStyle === 'function' && getComputedStyle(el).direction === 'rtl';
+}
+
+/**
+ * The structural position of a point on the rail: logical inline-start when
+ * horizontal (RTL mirrors for free), physical `bottom` when vertical — a
+ * vertical slider runs bottom-to-top whatever the reading direction (APG),
+ * which is also what the pointer math measures against (`clientY`).
+ */
+function positionStyle(orientation: Orientation, percent: number): Record<string, string> {
+    return orientation === 'vertical'
+        ? { position: 'absolute', bottom: `${percent}%` }
+        : { position: 'absolute', insetInlineStart: `${percent}%` };
 }
 
 /** Digits after the decimal point — what `quantize` rounds float drift to. */
@@ -183,6 +230,12 @@ export type SliderRootProps =
     & Define.Prop<'marks', readonly SliderMark[], false>
     /** Per-thumb `aria-valuetext` — "$40", "40 percent". */
     & Define.Prop<'getValueText', (value: number, index: number) => string, false>
+    /**
+     * Layout axis, default `horizontal`. Rendered as `data-orientation` on
+     * the root and every positioned part, and as `aria-orientation` on the
+     * thumbs and the native control. Vertical runs bottom-to-top.
+     */
+    & WithOrientation
     & WithDisabled
     & WithVariantAxes<'slider'>
     & WithClass
@@ -286,6 +339,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
         percentOf,
         valueTextFor: (v, i) => props.getValueText?.(v, i),
         marks: () => props.marks ?? [],
+        orientation: () => props.orientation ?? 'horizontal',
         ids: {
             control: fc.controlId(),
             label: fc.labelId(),
@@ -305,10 +359,18 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
         thumbIndex: (entry) => Math.max(0, thumbs.indexOf(entry)),
         focusThumb: (index) => { thumbs[index]?.el()?.focus(); },
         trackToValue(e) {
-            const rect = track?.getBoundingClientRect();
-            if (!rect || rect.width <= 0) return min();
-            let ratio = (e.clientX - rect.left) / rect.width;
-            if (isRtl(track)) ratio = 1 - ratio;
+            if (!track) return min();
+            const rect = paddingBox(track);
+            let ratio: number;
+            if (ctx.orientation() === 'vertical') {
+                if (rect.height <= 0) return min();
+                // Bottom-to-top: the rail's foot is min, its head max.
+                ratio = (rect.bottom - e.clientY) / rect.height;
+            } else {
+                if (rect.width <= 0) return min();
+                ratio = (e.clientX - rect.left) / rect.width;
+                if (isRtl(track)) ratio = 1 - ratio;
+            }
             ratio = Math.min(1, Math.max(0, ratio));
             return min() + ratio * (max() - min());
         },
@@ -339,6 +401,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
+            data-orientation={ctx.orientation()}
             data-disabled={dataAttr(ctx.disabled())}
             data-invalid={dataAttr(ctx.invalid())}
             data-focus-visible={dataAttr(focusVisible.visible)}
@@ -432,9 +495,16 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
             id={slider.ids.control}
             data-scope={SCOPE}
             data-part="control"
+            data-orientation={slider.orientation()}
             data-disabled={dataAttr(slider.disabled())}
             data-invalid={dataAttr(slider.invalid())}
             data-focus-visible={dataAttr(slider.focusVisible.visible)}
+            aria-orientation={slider.orientation()}
+            // A vertical native range is spelled through writing mode (the
+            // HTML-spec way); `direction: rtl` puts min at the bottom. It is
+            // structural, like the composed parts' positioning — zero still
+            // paints nothing.
+            style={slider.orientation() === 'vertical' ? { writingMode: 'vertical-lr', direction: 'rtl' } : undefined}
             min={slider.min()}
             max={slider.max()}
             step={slider.step()}
@@ -478,6 +548,7 @@ const SliderTrack = component<SliderTrackProps>(({ props, slots }) => {
             {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="track"
+            data-orientation={slider.orientation()}
             data-disabled={dataAttr(slider.disabled())}
             style={{ position: 'relative' }}
             class={props.class}
@@ -509,9 +580,10 @@ const SliderTrack = component<SliderTrackProps>(({ props, slots }) => {
                     <span
                         data-scope={SCOPE}
                         data-part="mark"
+                        data-orientation={slider.orientation()}
                         data-disabled={dataAttr(slider.disabled())}
                         key={`m${value}`}
-                        style={{ position: 'absolute', insetInlineStart: `${slider.percentOf(value)}%` }}
+                        style={positionStyle(slider.orientation(), slider.percentOf(value))}
                     >
                         {label}
                     </span>
@@ -532,16 +604,18 @@ const SliderRange = component<SliderRangeProps>(({ props }) => {
         const lo = vals.length > 1 ? Math.min(...vals) : slider.min();
         const hi = vals.length > 0 ? Math.max(...vals) : slider.min();
         const start = slider.percentOf(lo);
+        const extent = `${slider.percentOf(hi) - start}%`;
+        const vertical = slider.orientation() === 'vertical';
         return (
             <div
                 {...htmlAttrs(props)}
                 data-scope={SCOPE}
                 data-part="range"
+                data-orientation={slider.orientation()}
                 data-disabled={dataAttr(slider.disabled())}
                 style={{
-                    position: 'absolute',
-                    insetInlineStart: `${start}%`,
-                    inlineSize: `${slider.percentOf(hi) - start}%`,
+                    ...positionStyle(slider.orientation(), start),
+                    ...(vertical ? { height: extent } : { inlineSize: extent }),
                 }}
                 class={props.class}
             />
@@ -594,11 +668,13 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
         const disabled = slider.disabled();
         const attrs = htmlAttrs(props);
         const ownName = props.label ?? (typeof attrs['aria-label'] === 'string' ? attrs['aria-label'] : undefined);
+        const orientation = slider.orientation();
         return (
             <div
                 {...attrs}
                 data-scope={SCOPE}
                 data-part="thumb"
+                data-orientation={orientation}
                 data-disabled={dataAttr(disabled)}
                 data-focus-visible={dataAttr(focus.visible)}
                 role="slider"
@@ -610,7 +686,7 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
                     ownName === undefined && slider.labelPresent() ? slider.ids.label : undefined,
                     attrs['aria-labelledby'],
                 ].filter(Boolean).join(' ') || undefined}
-                aria-orientation="horizontal"
+                aria-orientation={orientation}
                 // The ALLOWED range, not the rail's: the clamp at the
                 // neighbor is announced, per APG multi-thumb.
                 aria-valuemin={lo}
@@ -618,13 +694,16 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
                 aria-valuenow={value}
                 aria-valuetext={slider.valueTextFor(value, i)}
                 aria-disabled={disabled ? 'true' : undefined}
-                style={{ position: 'absolute', insetInlineStart: `${slider.percentOf(value)}%` }}
+                style={positionStyle(orientation, slider.percentOf(value))}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; }}
                 onKeydown={(e: KeyboardEvent) => {
                     if (disabled) return;
                     const s = slider.step();
-                    const rtl = isRtl(el);
+                    // APG: Right/Up increase, Left/Down decrease. Only a
+                    // horizontal rail mirrors Left/Right in RTL — a vertical
+                    // one's axis is not the reading one.
+                    const rtl = orientation === 'horizontal' && isRtl(el);
                     let delta: number | null = null;
                     switch (e.key) {
                         case 'ArrowRight': delta = rtl ? -s : s; break;
