@@ -19,3 +19,7 @@ Below are only the Claude-Code-specific bits.
 - **Worktrees**: Claude Code sessions are per-directory, so `pnpm wt new <name>`
   plus launching Claude Code from `<repo>/branches/<name>` gives a fully
   independent parallel session — no extra wiring needed.
+- **Backlog burn-down workflow**: `.claude/workflows/fix-issues.js` picks
+  fixable open issues (it skips RFC-scale, blocked and in-flight ones) and takes
+  each one through the flow above: worktree, fix, PR with Copilot, review, merge
+  queue. Say "run fix-issues". Optional args: `{max, issues, exclude}`.
