@@ -161,6 +161,54 @@ const FormsDemos = component(() => {
             </Field.Root>
             <p><small>Posted (FormData on submit):</small></p>
             <pre data-testid="posted">{state.posted || '—'}</pre>
+            <h2>Readonly</h2>
+            <p>
+                <small>
+                    <code>readonly</code> on a <code>Field.Root</code> reaches every
+                    control inside it, not only the text inputs (#267). Each one
+                    below stays focusable and announced, but no click, key,
+                    press or drag changes its value — the Select does not open,
+                    the radios' arrow keys move focus without choosing, and the
+                    sliders neither step nor drag.
+                </small>
+            </p>
+            <Field.Root readonly>
+                <Field.Label>Terms (readonly)</Field.Label>
+                <Checkbox.Root name="ro-terms" defaultChecked>Accepted at sign-up</Checkbox.Root>
+            </Field.Root>
+            <Field.Root readonly>
+                <Field.Label>Notifications (readonly)</Field.Label>
+                <Switch.Root name="ro-notify">Email me</Switch.Root>
+            </Field.Root>
+            <Field.Root readonly>
+                <Field.Label>Plan (readonly)</Field.Label>
+                <RadioGroup.Root
+                    name="ro-plan"
+                    defaultValue="starter"
+                    items={[{ id: 'starter', name: 'Starter' }, { id: 'team', name: 'Team' }]}
+                    itemKey={(p) => p.id}
+                    itemLabel={(p) => p.name}
+                />
+            </Field.Root>
+            <Field.Root readonly>
+                <Field.Label>Fruit (readonly)</Field.Label>
+                <Select.Root name="ro-fruit" defaultValue="banana" items={FRUITS} itemKey={(f) => f.value} itemValue={(f) => f.value} />
+            </Field.Root>
+            <Field.Root readonly>
+                <Field.Label>Volume (readonly)</Field.Label>
+                <Slider.Root name="ro-volume" defaultValue={40}>
+                    <Slider.Control />
+                </Slider.Root>
+            </Field.Root>
+            <Slider.Root name="ro-price" defaultValue={[20, 60]} readonly>
+                <Slider.Label>Price range (readonly)</Slider.Label>
+                <Slider.Track>
+                    <Slider.Range />
+                    <Slider.Thumb label="Minimum price" />
+                    <Slider.Thumb label="Maximum price" />
+                </Slider.Track>
+                <Slider.ValueText />
+            </Slider.Root>
         </>
     );
 }, { name: 'FormsDemos' });
