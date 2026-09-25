@@ -526,7 +526,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         if (!multiple()) {
             if (key === '') return;
             state.value = collection.valueForKey(key);
-            inputValue.value = collection.label(key);
+            // Remembered, like onSelect: the named option may have unmounted.
+            inputValue.value = tagLabel(key);
             setOpen(false);
             return;
         }

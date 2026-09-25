@@ -928,6 +928,33 @@ describe('Combobox text resync, APG keys and openOnClick (#265)', () => {
         expect(state.query).toBe('banana');
     });
 
+    it('allowCustom resyncs to the remembered label when the named option has unmounted', async () => {
+        const state = signal({ value: '', query: '', show: true });
+        render(
+            <>
+                <Combobox.Root allowCustom model={[state, 'value']} model:inputValue={[state, 'query']}>
+                    <Combobox.Control><Combobox.Input /></Combobox.Control>
+                    <Combobox.Popup>
+                        {() => (state.show ? <Combobox.Item value="banana">Banana Split</Combobox.Item> : null)}
+                    </Combobox.Popup>
+                </Combobox.Root>
+                <button type="button" id="out">out</button>
+            </>,
+            container,
+        );
+        const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+        type(input, 'banana split');
+        blur(input, container.querySelector('#out'));
+        expect(state.value).toBe('banana');
+        expect(state.query).toBe('Banana Split');
+        state.show = false; // the consumer's filter unmounts it
+        await tick();
+        type(input, 'BANANA SPLIT');
+        blur(input, container.querySelector('#out'));
+        expect(state.value).toBe('banana');
+        expect(state.query).toBe('Banana Split');
+    });
+
     it('multiple: a blur drops the typed query and keeps the tags', () => {
         const state = signal({ values: ['apple'] as string[], query: '' });
         render(
