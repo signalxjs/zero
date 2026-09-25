@@ -94,6 +94,8 @@ export type PaginationRootProps =
     & Define.Prop<'prevLabel', string, false>
     /** Accessible name of the next-page trigger. Default: "Next page". */
     & Define.Prop<'nextLabel', string, false>
+    /** Accessible name of page `n`'s button. Default: `(n) => \`Page ${n}\``. */
+    & Define.Prop<'pageLabel', (n: number) => string, false>
     & WithVariantAxes<'pagination'>
     & WithDisabled
     & WithClass
@@ -178,6 +180,7 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
         const disabled = (): boolean => !!props.disabled;
         return (
             <button
+                key={key}
                 type="button"
                 data-scope={SCOPE}
                 data-part="item"
@@ -185,7 +188,7 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
                 data-disabled={dataAttr(disabled())}
                 data-focus-visible={dataAttr(focus.visibleKey === key)}
                 aria-current={active() ? 'page' : undefined}
-                aria-label={`Page ${n}`}
+                aria-label={props.pageLabel ? props.pageLabel(n) : `Page ${n}`}
                 disabled={disabled()}
                 onClick={() => select(n)}
                 onFocus={() => { focus.visibleKey = isFocusVisible(els.get(key) ?? null) ? key : ''; }}
@@ -197,8 +200,8 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
         );
     };
 
-    const ellipsis = () => (
-        <span aria-hidden="true" data-scope={SCOPE} data-part="ellipsis">…</span>
+    const ellipsis = (key: 'start-ellipsis' | 'end-ellipsis') => (
+        <span key={key} aria-hidden="true" data-scope={SCOPE} data-part="ellipsis">…</span>
     );
 
     const stepper = (partName: 'prev-trigger' | 'next-trigger') => {
@@ -245,8 +248,11 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
                 class={props.class}
             >
                 {stepper('prev-trigger')}
+                {/* Keyed by row slot — page number or which ellipsis — so a
+                    sliding window moves the focused page's button rather than
+                    patching it in place to show a different page (#176). */}
                 {paginationRow(page(), count(), intAtLeast(props.siblingCount ?? 1, 0), intAtLeast(props.boundaryCount ?? 1, 0))
-                    .map((entry) => (typeof entry === 'number' ? item(entry) : ellipsis()))}
+                    .map((entry) => (typeof entry === 'number' ? item(entry) : ellipsis(entry)))}
                 {stepper('next-trigger')}
             </nav>
         );

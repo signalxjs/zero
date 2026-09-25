@@ -620,10 +620,11 @@ component renders; the root is called out separately where it carries props.
   (daisy's step-error) and everything inside it follows; an item without
   one follows the root. Key the colour values on `item` in the recipe.
 - Pagination: Root(model=page, count, siblingCount, boundaryCount, label,
-  prevLabel/nextLabel) — options-driven: the row derives from count + the
+  prevLabel/nextLabel, pageLabel(n) — default "Page n") — options-driven: the row derives from count + the
   model, so zero renders item buttons, aria-hidden ellipses and the
   prev/next triggers itself. Constant-width windowing (the sibling block
-  slides near the edges instead of shrinking). The current item carries
+  slides near the edges instead of shrinking); rows are keyed by page, so a
+  sliding window keeps focus on the activated page. The current item carries
   aria-current="page" + data-state="active". Ordinary buttons in the nav
   landmark — deliberately no roving tabindex (no APG pagination pattern;
   each page is its own meaningful tab stop). The triggers carry the ‹/›
