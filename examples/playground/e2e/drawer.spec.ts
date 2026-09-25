@@ -11,7 +11,9 @@
  *   edge sits on the viewport's reading edge, the end panel's on the far
  *   one (LTR here; the RTL sweep is rtl.spec.ts's jurisdiction);
  * - the scrim geometry (#324, inherited): a click on the panel's own
- *   padding must NOT close while a genuine scrim click must;
+ *   padding must NOT close while a genuine scrim click must — and (#260)
+ *   the press has to start on the scrim too, and Escape on a
+ *   `dismissible={false}` sheet stays refused however often it is pressed;
  * - the INLINE mode: `show()` renders in flow — no `:modal`, no dismiss
  *   trap, Escape through zero's dismiss layer, focus restore through
  *   zero's `createFocusRestore`.
@@ -97,6 +99,43 @@ test('a scrim click closes; a click on the panel\'s own padding does not', async
     const viewport = page.viewportSize()!;
     expect(box.x + box.width).toBeLessThan(viewport.width - 20); // precondition
     await page.mouse.click(viewport.width - 8, Math.floor(viewport.height / 2));
+    await expect(panel).toHaveAttribute('data-state', 'closed');
+});
+
+test('a press that starts on the title and ends over the scrim does not dismiss (#260)', async ({ page }) => {
+    const trigger = startTrigger(page);
+    await trigger.click();
+    const panel = await controlledPopup(page, trigger, 'the start drawer trigger');
+    await expect(panel).toHaveAttribute('data-state', 'open');
+    const box = await settledBox(panel, 'the start drawer panel');
+    const viewport = page.viewportSize()!;
+    expect(box.x + box.width).toBeLessThan(viewport.width - 20); // precondition
+    const title = await settledBox(panel.locator('[data-part="title"]'), 'the start drawer title');
+    const scrim = { x: viewport.width - 8, y: Math.floor(viewport.height / 2) };
+
+    await page.mouse.move(title.x + 4, title.y + title.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(scrim.x, scrim.y, { steps: 8 });
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+    await expect(panel).toHaveAttribute('data-state', 'open');
+
+    await page.mouse.click(scrim.x, scrim.y);
+    await expect(panel).toHaveAttribute('data-state', 'closed');
+});
+
+test('Escape again and again on a non-dismissible drawer keeps it open (#260)', async ({ page }) => {
+    const trigger = page.getByRole('button', { name: 'Open pinned drawer', exact: true });
+    await trigger.click();
+    const panel = await controlledPopup(page, trigger, 'the pinned drawer trigger');
+    await expect(panel).toHaveAttribute('data-state', 'open');
+    for (let i = 0; i < 3; i++) {
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(150);
+        await expect(panel).toHaveAttribute('data-state', 'open');
+        expect(await panel.evaluate((el) => el.matches(':modal'))).toBe(true);
+    }
+    await panel.getByRole('button', { name: 'Done reviewing', exact: true }).click();
     await expect(panel).toHaveAttribute('data-state', 'closed');
 });
 

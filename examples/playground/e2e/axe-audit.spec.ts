@@ -104,6 +104,7 @@ const SCANS: Record<string, Scan[]> = {
     dialog: [
         { name: 'modal dialog', open: openDialog('Open dialog') },
         { name: 'non-modal find bar', open: openDialog('Open find bar') },
+        { name: 'non-dismissible dialog', open: openDialog('Open required dialog') },
         { name: 'alertdialog', open: openDialog('Delete file…') },
         { name: 'alertdialog with dependents', open: openDialog('Delete workspace…') },
     ],
@@ -114,6 +115,9 @@ const SCANS: Record<string, Scan[]> = {
             // By name: the page also idles a responsive drawer docked open (#82).
             await expect(page.getByRole('dialog', { name: 'Navigation', exact: true })).toBeVisible();
         },
+    }, {
+        name: 'non-dismissible drawer',
+        open: openDialog('Open pinned drawer'),
     }],
     popover: [{
         name: 'popover',
