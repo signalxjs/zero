@@ -4759,8 +4759,19 @@ export const stats: RecipeInput = {
         },
     },
     variants: {
-        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--stats-accent': `var(--color-${c})`,
+        // Keyed on the ITEM, not the root (#161): the item re-carries
+        // `color`, so a stat's own value outranks the row's, and the value
+        // inside it inherits whichever won. A root colour still reaches
+        // every item through the carrier's donut.
+        //
+        // The value is TEXT on the page, so the raw role is not always a
+        // readable ink: measured by the text matrix once the item re-carried
+        // the axis (#161), light warning is 1.76:1 and dark neutral 1.26:1
+        // on base-100. `roleInk` is the shared answer for a role used as ink
+        // (a per-role share of the role over base-content, which flips with
+        // the scheme), the same one the field and button text use.
+        color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
+            '--stats-accent': roleInk(c),
         } } }])),
         size: {
             xs: { value: { base: { fontSize: 'var(--text-lg)' } } },

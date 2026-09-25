@@ -129,6 +129,12 @@ export type _kbd = MustBeTrue<CheckColorSize<PropsOf<typeof Kbd.Root>>>;
 export type _status = MustBeTrue<CheckColorSize<PropsOf<typeof Status.Root>>>;
 export type _indicator = MustBeTrue<CheckColorSize<PropsOf<typeof Indicator.Root>>>;
 export type _stats = MustBeTrue<CheckColorSize<PropsOf<typeof Stats.Root>>>;
+// A stat RE-CARRIES the colour axis (#161), the same shape as the step.
+export type _statsItem = MustBeTrue<[
+    Equal<Axis<PropsOf<typeof Stats.Item>, 'color'>, BasicColor>,
+    Equal<Axis<PropsOf<typeof Stats.Item>, 'size'>, 'absent'>,
+    Equal<Axis<PropsOf<typeof Stats.Item>, 'variant'>, 'absent'>,
+][number] extends true ? true : false>;
 export type _timeline = MustBeTrue<CheckColorSize<PropsOf<typeof Timeline.Root>>>;
 // A part that RE-CARRIES an axis (#94): the marker's own `color` narrows to
 // the same scope entry as the root's, and it carries nothing else.

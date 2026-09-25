@@ -10,8 +10,8 @@
  * program, which two register augmentations never could.
  */
 import { Button as CarbonButton } from './carbon.components.js';
-import { Button as HerouiButton, Steps as HerouiSteps, Tabs as HerouiTabs, Timeline as HerouiTimeline } from './heroui.components.js';
-import { Button as DaisyButton, Steps as DaisySteps, Timeline as DaisyTimeline } from './daisyui.components.js';
+import { Button as HerouiButton, Stats as HerouiStats, Steps as HerouiSteps, Tabs as HerouiTabs, Timeline as HerouiTimeline } from './heroui.components.js';
+import { Button as DaisyButton, Stats as DaisyStats, Steps as DaisySteps, Timeline as DaisyTimeline } from './daisyui.components.js';
 import type { Equal, MustBeTrue } from '../assert.js';
 
 type CarbonProps = Parameters<typeof CarbonButton>[0];
@@ -88,10 +88,20 @@ const daisyStepBogus: DaisyStepProps = { value: 'pay', color: 'magenta' };
 // @ts-expect-error — heroui declares no color axis, so a step has no colour prop
 const herouiStepColor: HerouiStepProps = { value: 'pay', color: 'primary' };
 const herouiStepOk: HerouiStepProps = { value: 'pay' };
+// Stats.Item re-carries colour too (#161) — same member surface.
+type DaisyStatProps = Parameters<(typeof DaisyStats)['Item']>[0];
+type HerouiStatProps = Parameters<(typeof HerouiStats)['Item']>[0];
+const daisyStat: DaisyStatProps = { color: 'warning' };
+// @ts-expect-error — narrowed to daisy's roles, not the open fallback
+const daisyStatBogus: DaisyStatProps = { color: 'magenta' };
+// @ts-expect-error — heroui declares no color axis, so a stat has no colour prop
+const herouiStatColor: HerouiStatProps = { color: 'primary' };
+const herouiStatOk: HerouiStatProps = { class: 'kpi' };
 
 export const _use = [
     daisyMarker, daisyMarkerBogus, herouiMarkerColor, herouiMarkerOk,
     daisyStep, daisyStepBogus, herouiStepColor, herouiStepOk,
+    daisyStat, daisyStatBogus, herouiStatColor, herouiStatOk,
     carbonOk, herouiOk, respelled, carbonBogus, herouiBogus,
     carbonZeroName, carbonMods, herouiForeign, herouiColor, passthrough, tabsRootOk,
     daisyOk, daisyBogus, daisyForeign, daisyMods, daisyGlass,

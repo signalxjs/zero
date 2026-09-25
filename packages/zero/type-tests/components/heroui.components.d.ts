@@ -352,7 +352,8 @@ type StatsProps = {
     size?: 'sm' | 'md' | 'lg';
 };
 type StatsAdapted = Adapted<typeof ZStats, ZeroAxisProp, StatsProps>;
-export declare const Stats: StatsAdapted & AdaptedStatics<typeof ZStats> & { Root: StatsAdapted };
+type StatsItemAdapted = Adapted<typeof ZStats.Item, 'color', Record<never, never>>;
+export declare const Stats: StatsAdapted & Omit<AdaptedStatics<typeof ZStats>, 'Item'> & { Root: StatsAdapted; Item: StatsItemAdapted };
 
 /** timeline — no vendor route; the wired surface keeps zero's names. */
 type TimelineProps = {

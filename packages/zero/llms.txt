@@ -374,7 +374,12 @@ component renders; the root is called out separately where it carries props.
   styling container for figures with labels, no state, no ids, no ARIA.
   BOTH root and item carry data-orientation (the between-item divider is
   directional CSS on the item, and a sibling selector cannot see the root —
-  the toggle-group precedent). Every band below Item is optional.
+  the toggle-group precedent). Every band below Item is optional. Item
+  RE-CARRIES the colour axis (anatomy `carries: ['color']`, #161):
+  Item(color) renders data-color on the item and outranks the root's, so
+  one figure paints its own tone and its bands follow; an item without one
+  follows the root. The bands (Title/Value/Desc/Figure) take no colour.
+  Key the colour values on `item` in the recipe.
 - Timeline: Root(orientation, default VERTICAL — a feed grows downward)/
   Item/Marker/Connector/Content(placement start|end). A real <ul>/<li> list
   so AT announces and walks it. Marker (the dot/icon on the axis — a paint

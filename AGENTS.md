@@ -538,7 +538,8 @@ reopen the PR (or push an empty commit to it) to start CI.
   fragment-rooted scopes (dialog, menu, popover, tooltip) the props live on
   the Trigger, which renders the carrier part.
 - A non-carrier part that takes an axis prop of its own declares it:
-  `carries: ['color']` on `timeline.marker` (#94) and `steps.item` (#112).
+  `carries: ['color']` on `timeline.marker` (#94), `steps.item` (#112) and
+  `stats.item` (#161).
   It renders the attribute
   itself, the compiler lets the nearest carrier win, and `expectAnatomy`
   fails a `data-color`/`data-size`/`data-variant` on any part that is

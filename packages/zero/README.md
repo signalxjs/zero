@@ -1197,7 +1197,8 @@ downstream platform's build.
   `<Timeline.Marker color="error">` paints one entry's dot while
   `<Timeline.Root color="neutral">` paints the rest; `steps.item` carries
   `color` too (#112), so `<Steps.Item color="error">` paints one step's
-  disc, bridge and title. The nearest carrier wins: a design system's
+  disc, bridge and title; and `stats.item` (#161), so `<Stats.Item
+  color="warning">` paints one figure in a row. The nearest carrier wins: a design system's
   compiled CSS lets the part's own value outrank the carrier's, and a part
   without one follows the carrier.
 - A part's `paint` says its job is PAINT rather than text (#31) — a check,

@@ -197,6 +197,24 @@ every tint in the light theme leaned red — warning's came out pink.
 
 On `./components`, `Steps.Item` takes the same `color` union as the Root.
 
+## Per-stat colour
+
+`<Stats.Item color="warning">` colours one figure's value while the Root's
+`color` paints the rest of the row (#161). The item re-carries the colour
+axis, so the recipe keys `--stats-accent` on `item`; a root colour reaches
+every item exactly as before.
+
+Measuring every role on a stat's value for the first time found the raw
+role unreadable as ink in 13 cells: the light theme's `accent`, `info`,
+`success`, `warning` and `error` (1.8–2.9:1), nord's muted roles
+(1.4–2.5:1) and the dark themes' `neutral`, which is darker than the page
+(1.1–1.3:1). The value now takes `roleInk`, the per-role share of the role
+over `base-content` that field and button text already use. Every cell
+clears 3:1 (worst 3.32:1, dim `neutral`); the value is large text, and 12
+cells sit in the 3–4.5:1 band the audit reports as an AA warning.
+
+On `./components`, `Stats.Item` takes the same `color` union as the Root.
+
 ## Deriving from this skin: the public hooks
 
 A product skin built on this one with `extendDesignSystem` (from

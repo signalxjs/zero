@@ -456,11 +456,13 @@ that borrowed `active` for "running" or `closed` for a refusal uses the
 real spelling; `mergeManifests` accepts it, and the synonym table maps
 `in-progress`, `rejected`, `canceled` and friends onto the governed one.
 
-### Per-part colour: `Timeline.Marker color`, `Steps.Item color`
+### Per-part colour: `Timeline.Marker color`, `Steps.Item color`, `Stats.Item color`
 
 `PartSpec.carries` lets a part below the carrier take an axis of its own.
 `<Timeline.Root color="neutral">` colours every dot, `<Timeline.Marker
-color="error">` colours one; the same for `Steps.Item`.
+color="error">` colours one; the same for `Steps.Item` and `Stats.Item`
+(#161). A row of stats that needed one `Stats.Root color` per figure is now
+one `Stats.Root` with a `color` on the item that differs.
 
 ---
 

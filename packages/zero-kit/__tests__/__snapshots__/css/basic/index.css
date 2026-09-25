@@ -6634,36 +6634,84 @@
         align-self: center;
     }
 
-    [data-scope="stats"][data-part="root"][data-color="primary"] {
+    [data-scope="stats"][data-part="item"][data-color="primary"] {
         --stats-accent: var(--color-primary);
     }
 
-    [data-scope="stats"][data-part="root"][data-color="secondary"] {
+    [data-scope="stats"][data-part="item"][data-color="secondary"] {
         --stats-accent: var(--color-secondary);
     }
 
-    [data-scope="stats"][data-part="root"][data-color="accent"] {
+    [data-scope="stats"][data-part="item"][data-color="accent"] {
         --stats-accent: var(--color-accent);
     }
 
-    [data-scope="stats"][data-part="root"][data-color="neutral"] {
+    [data-scope="stats"][data-part="item"][data-color="neutral"] {
         --stats-accent: var(--color-base-content);
     }
 
-    [data-scope="stats"][data-part="root"][data-color="info"] {
+    [data-scope="stats"][data-part="item"][data-color="info"] {
         --stats-accent: var(--color-info);
     }
 
-    [data-scope="stats"][data-part="root"][data-color="success"] {
+    [data-scope="stats"][data-part="item"][data-color="success"] {
         --stats-accent: var(--color-success);
     }
 
-    [data-scope="stats"][data-part="root"][data-color="warning"] {
+    [data-scope="stats"][data-part="item"][data-color="warning"] {
         --stats-accent: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
     }
 
-    [data-scope="stats"][data-part="root"][data-color="error"] {
+    [data-scope="stats"][data-part="item"][data-color="error"] {
         --stats-accent: var(--color-error);
+    }
+
+    @scope ([data-scope="stats"][data-part="root"][data-color="primary"]) to ([data-scope="stats"][data-part="root"]) {
+        [data-scope="stats"][data-part="item"] {
+            --stats-accent: var(--color-primary);
+        }
+    }
+
+    @scope ([data-scope="stats"][data-part="root"][data-color="secondary"]) to ([data-scope="stats"][data-part="root"]) {
+        [data-scope="stats"][data-part="item"] {
+            --stats-accent: var(--color-secondary);
+        }
+    }
+
+    @scope ([data-scope="stats"][data-part="root"][data-color="accent"]) to ([data-scope="stats"][data-part="root"]) {
+        [data-scope="stats"][data-part="item"] {
+            --stats-accent: var(--color-accent);
+        }
+    }
+
+    @scope ([data-scope="stats"][data-part="root"][data-color="neutral"]) to ([data-scope="stats"][data-part="root"]) {
+        [data-scope="stats"][data-part="item"] {
+            --stats-accent: var(--color-base-content);
+        }
+    }
+
+    @scope ([data-scope="stats"][data-part="root"][data-color="info"]) to ([data-scope="stats"][data-part="root"]) {
+        [data-scope="stats"][data-part="item"] {
+            --stats-accent: var(--color-info);
+        }
+    }
+
+    @scope ([data-scope="stats"][data-part="root"][data-color="success"]) to ([data-scope="stats"][data-part="root"]) {
+        [data-scope="stats"][data-part="item"] {
+            --stats-accent: var(--color-success);
+        }
+    }
+
+    @scope ([data-scope="stats"][data-part="root"][data-color="warning"]) to ([data-scope="stats"][data-part="root"]) {
+        [data-scope="stats"][data-part="item"] {
+            --stats-accent: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
+        }
+    }
+
+    @scope ([data-scope="stats"][data-part="root"][data-color="error"]) to ([data-scope="stats"][data-part="root"]) {
+        [data-scope="stats"][data-part="item"] {
+            --stats-accent: var(--color-error);
+        }
     }
 
     @scope ([data-scope="stats"][data-part="root"][data-size="xs"]) to ([data-scope="stats"][data-part="root"]) {
