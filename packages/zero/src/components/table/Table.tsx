@@ -196,18 +196,20 @@ const TableRoot = component<TableRootProps>(({ props, slots, signal, onMounted }
         }
         // The scroll box is a keyboard stop (axe scrollable-region-focusable:
         // a table wider than its container is otherwise unreachable without
-        // a pointer — focused, the arrow keys scroll it). A stop is named: by
-        // the caption while one is rendered, else by the app's own name for
-        // the table. With neither there is nothing to call the region, so it
-        // stays a plain focusable box rather than a nameless landmark.
-        // Before settling (and always on the server) the caption reference
-        // is optimistic ONLY when the app gave no name: an app-named table
-        // keeps its own name until a mounted caption is confirmed, so the
-        // server never trades a real name for a possibly dangling IDREF.
-        const appNamed = Boolean(tableAttrs['aria-labelledby'] || tableAttrs['aria-label']);
-        const captioned = present.caption > 0 || (!present.settled && !appNamed);
-        const labelledBy = captioned ? ctx.captionId : tableAttrs['aria-labelledby'];
-        const label = captioned ? undefined : tableAttrs['aria-label'];
+        // a pointer — focused, the arrow keys scroll it). A stop is named
+        // the way the table is: by the app's own `aria-label` /
+        // `aria-labelledby` when it gave one (which also overrides the
+        // caption as the table's name, so the two never diverge), else by
+        // the caption while one is rendered. With neither there is nothing
+        // to call the region, so it stays a plain focusable box rather than
+        // a nameless landmark. The caption reference is optimistic until
+        // settled (always on the server) — part-presence.ts.
+        const appLabelledBy = tableAttrs['aria-labelledby'];
+        const appLabel = tableAttrs['aria-label'];
+        const appNamed = Boolean(appLabelledBy || appLabel);
+        const captioned = !appNamed && (present.caption > 0 || !present.settled);
+        const labelledBy = captioned ? ctx.captionId : appLabelledBy;
+        const label = captioned ? undefined : appLabel;
         return (
             <div
                 role={labelledBy || label ? 'region' : undefined}

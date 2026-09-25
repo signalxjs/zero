@@ -110,7 +110,7 @@ describe('Table', () => {
     it('the region reference tracks the caption: gone with it, back with it', async () => {
         const state = signal({ caption: true });
         render(
-            <Table.Root aria-label="Fallback">
+            <Table.Root>
                 {() => (state.caption ? <Table.Caption>Revenue</Table.Caption> : null)}
                 <Table.Body><Table.Row><Table.Cell>1</Table.Cell></Table.Row></Table.Body>
             </Table.Root>,
@@ -119,18 +119,35 @@ describe('Table', () => {
         await tick();
         const root = part(container, 'root');
         expect(root.getAttribute('aria-labelledby')).toBe(part(container, 'caption').id);
-        expect(root.hasAttribute('aria-label')).toBe(false);
+        expect(root.getAttribute('role')).toBe('region');
 
         state.caption = false;
         await tick();
-        // No dangling IDREF: the app's own name takes over.
+        // No dangling IDREF, and no nameless region.
         expect(root.hasAttribute('aria-labelledby')).toBe(false);
-        expect(root.getAttribute('aria-label')).toBe('Fallback');
-        expect(root.getAttribute('role')).toBe('region');
+        expect(root.hasAttribute('role')).toBe(false);
+        expect(root.tabIndex).toBe(0);
 
         state.caption = true;
         await tick();
         expect(root.getAttribute('aria-labelledby')).toBe(part(container, 'caption').id);
+        expect(root.getAttribute('role')).toBe('region');
+    });
+
+    it("an app name wins over the caption, as it does for the table's own name", async () => {
+        render(
+            <Table.Root aria-label="Fallback">
+                <Table.Caption>Revenue</Table.Caption>
+                <Table.Body><Table.Row><Table.Cell>1</Table.Cell></Table.Row></Table.Body>
+            </Table.Root>,
+            container,
+        );
+        await tick();
+        const root = part(container, 'root');
+        expect(root.getAttribute('role')).toBe('region');
+        expect(root.getAttribute('aria-label')).toBe('Fallback');
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+        expect(part(container, 'table').getAttribute('aria-label')).toBe('Fallback');
     });
 
     it('with no caption and no app name the root is focusable but no region', async () => {

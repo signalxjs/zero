@@ -701,13 +701,12 @@ rendered.
 `tabIndex=0` (axe `scrollable-region-focusable`: a table wider than its
 container must scroll without a pointer — focused, the arrow keys scroll
 it) and carries `data-focus-visible`, which every shipped design system
-rings inside the box. While a `Table.Caption` is rendered the wrapper is a
-`role="region"` labelled by it (`aria-labelledby`, presence-tracked like
-Field's references, so it never dangles); without one, the app's
-`aria-label`/`aria-labelledby` names the region; with neither it stays a
-plain focusable box rather than a nameless landmark. Server markup assumes
-a caption only when the app gave no name — an app-named table keeps its
-own name until a mounted caption is confirmed. The caption carries
+rings inside the box. The wrapper is a `role="region"` named the way the
+table is: by the app's `aria-label`/`aria-labelledby` when given (which
+also overrides the caption as the table's own name, so the two never
+diverge), else by a rendered `Table.Caption` (`aria-labelledby`,
+presence-tracked like Field's references, so it never dangles); with
+neither it stays a plain focusable box rather than a nameless landmark. The caption carries
 that id, so `Table.Caption` takes no `id` of its own
 (`TableCaptionProps`).
 
