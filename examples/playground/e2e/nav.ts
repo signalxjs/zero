@@ -21,7 +21,7 @@ export const ALL = 'all';
 /**
  * Boot the playground on one page with one design system pinned.
  *
- * Done means three things, each waited on rather than assumed (#134):
+ * Done means four things, each waited on rather than assumed (#134):
  *
  * - the pinned link is the COMMITTED one. `data-zero-ds` is stamped the
  *   moment the link is created, parked behind `media="not all"`; the
@@ -34,6 +34,9 @@ export const ALL = 'all';
  *   `hashchange` re-renders, and the previous page is still the one showing.
  *   The sidebar's `aria-current` link is written from the router's state, so
  *   it names the page actually rendered — `all` included.
+ * - the fonts are in. The skins' named faces are bundled web fonts, so
+ *   until `document.fonts.ready` settles a box can still be measured in the
+ *   fallback face (#45).
  */
 export async function bootPage(page: Page, pageId: string, ds: string): Promise<void> {
     await page.addInitScript((id) => {
@@ -56,4 +59,10 @@ export async function gotoPage(page: Page, pageId: string, ds: string): Promise<
         page.locator(`nav[aria-label="Pages"] a[href="#/${pageId}"][aria-current="page"]`),
         `the router rendered "${pageId}"`,
     ).toHaveCount(1);
+    // The page's web fonts (src/fonts.ts). A face loads lazily, on first use,
+    // and until it lands the text is laid out in the fallback — so a spec
+    // that measures a box (the narrow sweep, the contrast audit's glyph
+    // runs) would read the fallback's metrics on a cold cache and the real
+    // face's on a warm one.
+    await page.evaluate(async () => { await document.fonts.ready; });
 }
