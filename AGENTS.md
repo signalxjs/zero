@@ -134,7 +134,9 @@ Real-browser interaction tests (Playwright over the playground; press-feedback
 contract plus per-component interaction specs on chromium/firefox/webkit —
 combobox, menu-submenu, menu-keyboard (ArrowUp opens on the last item; Enter
 on an asChild link item really navigates, #175; Tab and Shift+Tab close the
-whole chain while focus moves on to the neighbouring tab stop, #263), toast, select,
+whole chain while focus moves on to the neighbouring tab stop, #263), toast
+(presence, and since #269 the focus hand-off when a focused toast leaves,
+F8/Escape, and the re-stack above a modal dialog measured in pixels), select,
 form-readonly (#267: readonly checkbox, switch, radio group, select and
 slider refuse every click, key, press and drag — a cancelled radio
 activation re-checks the previous radio, which happy-dom does not run,
