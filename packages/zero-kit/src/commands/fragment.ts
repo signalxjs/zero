@@ -103,9 +103,9 @@ function fragmentValidator(): ValidateFunction {
 
 /**
  * The vocabulary a pack must survive: base surfaces, no colour roles, no size
- * ramp, no breakpoints. What an adopting skin like zero-heroui actually
- * offers — and the shape a pack written to the recommended grammar has to be
- * *fitted* onto rather than assume.
+ * ramp, no breakpoints. Deliberately more hostile than any real adopter —
+ * the floor a pack written to the recommended grammar has to be *fitted*
+ * onto rather than assume.
  *
  * What it does NOT withhold is the standard non-colour vocabulary (#158):
  * every recommended key of `--font-*`, `--weight-*`, `--leading-*`,
