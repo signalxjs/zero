@@ -356,8 +356,8 @@ and an explicit `closeDelay` replaces both (`closeDelay={0}` restores the
 immediate pointer-leave close). A non-modal Dialog falls back to the
 dismiss layer where the platform fires no `cancel`. That layer (and an
 inline Drawer's) yields Escape to what sits inside it: an Escape a widget
-already handled (`defaultPrevented` — a Combobox clearing its list, a
-Select closing) and one from an open popup nested in the surface (a Menu,
+already handled (`defaultPrevented` — a Combobox or Select closing its
+list) and one from an open popup nested in the surface (a Menu,
 Select or Popover) close only the inner widget, and the next Escape closes
 the dialog. Close buttons whose
 content is a glyph (`Alert.Close`, `Toast.Close`) default to

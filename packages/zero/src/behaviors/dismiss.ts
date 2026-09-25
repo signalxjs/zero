@@ -9,7 +9,7 @@
  *
  * Escape yields (#261) in two cases, as every reference dismissable layer
  * does: an event an inner widget already handled (`defaultPrevented` — a
- * combobox clearing its input, a select closing its list), and an event from
+ * combobox or a select closing its list), and an event from
  * inside an open native top-layer surface nested within this layer's own
  * surface (a Menu, Select or Popover popup inside a non-modal Dialog or an
  * inline Drawer). The browser closes that inner `popover="auto"` itself;
