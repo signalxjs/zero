@@ -42,6 +42,7 @@ import { createControllableState, createInertState, type ControllableState } fro
 import { createId } from '../../behaviors/create-id.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { createFocusRestore } from '../../behaviors/focus.js';
+import { createModalDismiss } from '../../behaviors/modal-dismiss.js';
 import { breakpointQuery, useMediaQuery } from '../../behaviors/media-query.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
@@ -365,6 +366,16 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
     // Outside Chromium the native close waits for the exit to play (#17).
     const exit = createTopLayerExit();
 
+    // The scrim press and the Escape close request — Dialog's guards (#260).
+    const guard = createModalDismiss({
+        getElement: () => el,
+        isModalOpen: () => drawer.modal() && !drawer.docked() && drawer.state.value,
+        backdropDismisses: () => drawer.dismissible(),
+        escapeDismisses: () => drawer.dismissible(),
+        shouldStayOpen: () => drawer.modal() && !drawer.docked() && drawer.state.value,
+        dismissBackdrop: () => drawer.requestClose('backdrop'),
+    });
+
     const scoped = mountScope();
     onMounted(() => scoped(() => {
         // Up through showModal() — the one open state a regime switch has to
@@ -471,6 +482,9 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                     // reopen outran it) is stale, and closing now would take
                     // down the wrong opening.
                     if (el?.open) return;
+                    // A close request the platform would not let zero cancel
+                    // (see `modal-dismiss`) reopens while the model says open.
+                    if (guard.reopenIfForced()) return;
                     // Still open in the model means zero did not start this
                     // close: a native close() or a <form method="dialog">.
                     drawer.requestClose('programmatic', el?.returnValue || undefined);
@@ -493,24 +507,23 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                     // Native Escape: let the model decide. Prevent the default
                     // close and route through state so non-dismissible drawers
                     // stay open and controlled parents stay authoritative.
+                    guard.noteCancel(e);
                     e.preventDefault();
                     if (drawer.dismissible()) drawer.requestClose('escape');
                 }}
-                onClick={(e: MouseEvent) => {
-                    // A ::backdrop click targets the <dialog> element itself —
-                    // but so does a click on the panel's own padding. Geometry
-                    // decides: only a pointer position outside the panel's box
-                    // can be the scrim. Modal only — an inline drawer has no
-                    // backdrop at all.
-                    if (!drawer.modal() || !drawer.dismissible()) return;
-                    if (!el || e.target !== el) return;
-                    // A keyboard-synthesized click carries no geometry.
-                    if (e.detail === 0) return;
-                    const rect = el.getBoundingClientRect();
-                    const inside = e.clientX >= rect.left && e.clientX <= rect.right
-                        && e.clientY >= rect.top && e.clientY <= rect.bottom;
-                    if (!inside) drawer.requestClose('backdrop');
-                }}
+                // Escape on a non-dismissible sheet never becomes a close
+                // request: Chromium stops letting `cancel` be prevented after
+                // the first one without a fresh user activation.
+                onKeydown={guard.onKeydown}
+                // A ::backdrop click targets the <dialog> element itself — but
+                // so does a click on the panel's own padding, and one pressed
+                // on text inside and released over the scrim. Geometry
+                // decides, at both ends of the press: only a press that starts
+                // AND ends outside the panel's box is the scrim. Modal only —
+                // an inline drawer has no backdrop at all.
+                onPointerdown={guard.onPointerdown}
+                onPointercancel={guard.onPointercancel}
+                onClick={guard.onClick}
             >
                 {slots.default?.()}
             </dialog>
