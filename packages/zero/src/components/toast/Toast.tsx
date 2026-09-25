@@ -55,8 +55,11 @@ interface ToastViewportContext {
     placement(): ToastPlacement;
     /** Before a root leaves: move focus out of it, if it holds focus. */
     handOffFocus(root: HTMLElement): void;
-    /** Speak through the viewport's assertive live channel. */
-    announce(text: string): void;
+    /**
+     * Speak through the viewport's assertive live channel. The text is read
+     * a frame later, once the re-render it follows has reached the DOM.
+     */
+    announce(read: () => string): void;
 }
 
 function makeInertViewport(): ToastViewportContext {
@@ -221,12 +224,15 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
         }
     };
 
-    const announce = (text: string): void => {
-        if (!text) return;
+    const announce = (read: () => string): void => {
         // Cleared first and filled a frame later, so the same message twice
-        // in a row is still a change the live region reports.
+        // in a row is still a change the live region reports. The one frame
+        // also lets a text change reach the DOM before it is read.
         live.text = '';
-        nextFrame(() => { live.text = text; });
+        nextFrame(() => {
+            const text = read();
+            if (text) live.text = text;
+        });
     };
 
     const ctx: ToastViewportContext = { toaster: manager, placement, handOffFocus, announce };
@@ -504,9 +510,7 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
             void t.title;
             void t.description;
             void t.data;
-            nextFrame(() => {
-                if (!exiting) viewport.announce(alertText());
-            });
+            viewport.announce(() => (exiting ? '' : alertText()));
         });
     }));
     onUnmounted(() => {
