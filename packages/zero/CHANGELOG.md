@@ -108,6 +108,31 @@
   keydown itself, except while a nested dialog or a Menu, Select or Popover
   open inside owns Escape. A close request that still gets through (the
   Android back gesture) reopens the modal while the model says open.
+
+- **Popup positioning: main-axis flip, RTL alignment, autoupdate (#264).**
+  Menu, popover, select, combobox and tooltip share one positioner, and it
+  had three bugs. First, flip checked all four viewport edges. A
+  `bottom-start` menu in the bottom-right corner overflowed the inline axis
+  on both sides, so it never flipped and was clamped over its own trigger.
+  Now only the main axis decides the flip: that menu flips to `top-start`
+  and shifts left. The cross axis is always clamped, and the main axis only
+  when neither side fits. Second, `-start`/`-end` were physical. Above or
+  below the anchor they now follow the reading direction, so under RTL
+  `bottom-start` aligns the right edges. Bare `start`/`end` go on the
+  inline-start/-end side instead of always to the right, and they flip to
+  each other; before, a flip built the placement `undefined`.
+  `data-placement` still carries the logical placement. Under RTL every
+  popup had also been pinned to the viewport's right edge, because the UA
+  popover's `inset: 0` beat the written `left`. The strategy now sets
+  `right`/`bottom` to `auto`. Third, a popup whose content or anchor
+  resized without a scroll or window resize stayed where it was. A
+  `ResizeObserver` on the popup and an element anchor now schedules one
+  update per frame. The direction is read from the anchor element. A
+  virtual anchor can name a `contextElement` to read it from, and
+  `caretAnchor` names its text control. Without one, the popup's own
+  direction is used. Combobox no longer mirrors its placement itself, so
+  under RTL its mention list reports `bottom-start`, not `bottom-end`.
+
 - **Pagination keeps focus on the page you activated (#176).** The row was
   unkeyed, so when activating a page slid the window (page 5 of 20 from
   page 4: `1 2 3 4 5 … 20` → `1 … 4 5 6 … 20`) the diff patched the
