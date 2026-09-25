@@ -222,7 +222,7 @@ describe('options', () => {
         // Button alone OF THE AUTHORED recipes. The layout tier rides along
         // whatever the baseline choice, because it is generated from the
         // tokens rather than copied — `--baseline none` means "none of
-        // zero-basic's fifty", not "no Stack".
+        // zero-basic's recipes", not "no Stack".
         // Derived from LAYOUT_SCOPES rather than listed, so the layout tier
         // can grow without a hand bump here.
         expect(designSystem.recipes.map((r) => r.component).sort())

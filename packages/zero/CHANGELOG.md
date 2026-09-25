@@ -29,15 +29,6 @@
   during setup, run a mount hook's reactive work through the function it
   returns, and every effect or watch created there stops with the component.
 - `syncPopover` returns a stopper (it returned `void`).
-- **Collapsible and Accordion follow the native `<details>` toggle (#166).**
-  Both rendered `open` from the model only, so when the browser opened a
-  closed section by itself (find-in-page, fragment navigation) the parts
-  kept `data-state="closed"` and `aria-expanded="false"` over an open panel,
-  and the next click only resynced the model: closing took two presses. The
-  `toggle` event now writes the model (Accordion goes through the same
-  `toggle` as a click, so single mode closes the others). When the model
-  refuses the change (a disabled root or item), the element is
-  reverted to match the model.
 - `idToken(value: string)` (from `@sigx/zero/behaviors` and the root):
   encodes a string into an id-safe token, injective over strings, for
   building DOM ids from user-supplied values. ASCII letters, digits and `-` pass through; every
@@ -93,6 +84,15 @@
   by its slot. The page buttons' `aria-label` also localizes through a new
   `pageLabel?: (n: number) => string` prop (default `` `Page ${n}` ``),
   alongside `label`, `prevLabel` and `nextLabel`.
+- **Collapsible and Accordion follow the native `<details>` toggle (#166).**
+  Both rendered `open` from the model only, so when the browser opened a
+  closed section by itself (find-in-page, fragment navigation) the parts
+  kept `data-state="closed"` and `aria-expanded="false"` over an open panel,
+  and the next click only resynced the model: closing took two presses. The
+  `toggle` event now writes the model (Accordion goes through the same
+  `toggle` as a click, so single mode closes the others). When the model
+  refuses the change (a disabled root or item), the element is
+  reverted to match the model.
 - **Pagination no longer overflows a narrow container (#44).** The row is
   windowed at constant width, so its width follows `count` and the
   windowing props rather than the container. At phone width a wide window

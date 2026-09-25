@@ -53,8 +53,9 @@ export function ownVersion(): string {
  * How many recipes the baseline source's `export const recipes = [...]` list
  * holds — so the scaffold states the count of what it actually copied rather
  * than a number remembered from when the template was written (#197). The
- * list is identifiers only (zero-basic's convention, which the collect test
- * pins), so counting its comma-separated entries is exact. Throws rather
+ * list is identifiers only (zero-basic's convention), so counting its
+ * comma-separated entries is exact; a miscount fails the scaffold test that
+ * compares the stated count with the length of zero-basic's `recipes`. Throws rather
  * than guess when the list is not there.
  */
 export function baselineRecipeCount(source: string): number {
@@ -65,7 +66,7 @@ export function baselineRecipeCount(source: string): number {
     return match[1]!.split(',').map((entry) => entry.trim()).filter((entry) => entry.length > 0).length;
 }
 
-const BRIEF_FILE =/^brief\.([a-z0-9-]+)\.ts\.txt$/;
+const BRIEF_FILE = /^brief\.([a-z0-9-]+)\.ts\.txt$/;
 
 export function loadTemplates(dir: string = defaultTemplatesDir()): Templates {
     const read = (name: string): string => readFileSync(join(dir, name), 'utf8');
