@@ -227,7 +227,10 @@ export const fixedPositionStrategy: PositionStrategy = {
         if (typeof ResizeObserver !== 'undefined') {
             observer = new ResizeObserver(schedule);
             observer.observe(floating);
-            if (isElement(anchor)) observer.observe(anchor);
+            // A virtual anchor has no box of its own, but the element it
+            // derives from (a caret anchor's input) can still reflow.
+            const anchorEl = isElement(anchor) ? anchor : anchor.contextElement;
+            if (anchorEl) observer.observe(anchorEl);
         }
         window.addEventListener('scroll', update, { capture: true, passive: true });
         window.addEventListener('resize', update, { passive: true });

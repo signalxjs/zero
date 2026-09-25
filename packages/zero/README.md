@@ -1131,9 +1131,9 @@ same behaviors, held to the same conformance assertion:
   shifts left — aligns `-start`/`-end` above or below to the reading
   direction and puts bare `start`/`end` on the inline-start/-end side,
   publishes the logical placement as `data-placement`, and re-measures on
-  scroll, resize and a `ResizeObserver` over the popup and an element
-  anchor; a virtual anchor may name a `contextElement` to read the direction
-  from), press feedback, the form contract (`createFormControl`, `onFormReset`), and the
+  scroll, resize and a `ResizeObserver` over the popup and the anchor
+  element; a virtual anchor may name a `contextElement`, which is observed
+  and read the direction from), press feedback, the form contract (`createFormControl`, `onFormReset`), and the
   listbox layer: `createCollection` (items as data — `itemKey` /
   `itemLabel` / `itemValue` / `itemDisabled` / `itemGroup`, with JSX items
   registering into the same list; an optional `mode` getter decides data vs

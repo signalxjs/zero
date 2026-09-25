@@ -217,6 +217,17 @@ describe('fixedPositionStrategy: ResizeObserver repositioning', () => {
         cleanup();
     });
 
+    it("observes a virtual anchor's contextElement, which can reflow under it", () => {
+        FakeResizeObserver.instances = [];
+        vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+        const floating = fakeFloating(80, 40);
+        const input = document.createElement('textarea');
+        const anchor = { ...pointAnchor(10, 10), contextElement: input };
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom', offset: 0, flip: true });
+        expect(FakeResizeObserver.instances[0]!.observed).toEqual([floating, input]);
+        cleanup();
+    });
+
     it('works without ResizeObserver', () => {
         vi.stubGlobal('ResizeObserver', undefined);
         const floating = fakeFloating(80, 40);
