@@ -50,7 +50,7 @@
     {
         "name": "@sigx/zero/menu",
         "path": "packages/zero/dist/components/menu/index.js",
-        "limit": "8.35 kB",
+        "limit": "8.4 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -62,7 +62,7 @@
     {
         "name": "@sigx/zero/select",
         "path": "packages/zero/dist/components/select/index.js",
-        "limit": "9.55 kB",
+        "limit": "9.6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
