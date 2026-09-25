@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Changed — the text matrix measures stats' re-carried colour (zero#161)
+
+- `stats.item` is the third re-carrier, and the first with no text of its
+  own: `axisCellsFor` adds one cell per wired colour for its title, value
+  and desc, with the attribute on the item. Stats wires no variant, so its
+  colour had never been measured, not even on the root. basic and material
+  cleared the floors as shipped; daisyUI failed 13 value cells and brutalist
+  2, both fixed in their recipes (see their READMEs).
+- The README and the design-system skill name `stats.item` beside
+  `timeline.marker` and `steps.item`.
+
 ### Changed
 
 - **`RESERVED_PROPS_BY_SCOPE.pagination` gains `pageLabel` (zero#176).**

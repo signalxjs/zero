@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added — per-item colour: `Stats.Item color` (#161)
+
+- **`stats.item` re-carries the colour axis** (`carries: ['color']`, as
+  `timeline.marker` and `steps.item` do). `Stats.Item` takes `color`
+  (`StatsItemProps` = `StatsPartProps & WithColor<'stats'>`, new and
+  exported: narrowed by a `/register` module, `never` where the design
+  system declares no colour axis) and renders `data-color` on the item.
+  `<Stats.Item color="warning">` paints one figure while `<Stats.Root
+  color>` paints the rest: the nearest carrier wins, and an item without a
+  colour follows the root. The bands (title, value, desc, figure) take no
+  colour and render no attribute. Anatomy change: `stats.item` gains
+  `carries`, so `expectAnatomy` accepts `data-color` there.
+
 ### Added
 
 - **A declared `paint` hint on `PartSpec` (#31).** A part whose job is paint
