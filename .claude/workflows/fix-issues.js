@@ -73,6 +73,7 @@ const LAND_SCHEMA = {
 // ── Select ────────────────────────────────────────────────────────────────
 phase('Select')
 let picked
+let skipped = []
 if (opts.issues && opts.issues.length) {
   picked = opts.issues.map(n => ({ number: n, title: '', why: 'passed in args.issues' }))
   log(`Using ${picked.length} issue(s) from args: ${opts.issues.map(n => '#' + n).join(' ')}`)
@@ -96,11 +97,12 @@ Pick up to ${MAX} open issues that one agent can fix end to end in a single PR. 
    features with a settled design. Skip anything vague or cross-cutting ("too big: ..."). Keep the top ${MAX}.`,
     { label: 'select', phase: 'Select', schema: SELECT_SCHEMA, effort: 'medium' },
   )
-  if (!sel) return { error: 'selection agent failed' }
+  if (!sel) return { rows: [], skipped, error: 'selection agent failed' }
+  skipped = sel.skipped
   picked = sel.picked.slice(0, MAX)
   log(`Picked: ${picked.map(p => `#${p.number}`).join(' ') || '(none)'}`)
   for (const s of sel.skipped) log(`skip #${s.number}: ${s.reason}`)
-  if (!picked.length) return { picked: [], skipped: sel.skipped, results: [] }
+  if (!picked.length) return { rows: [], skipped }
 }
 
 // ── Assess → Implement → Land, per issue, no barriers ──────────────────────
@@ -190,4 +192,4 @@ const rows = picked.map((issue, i) => {
   return row
 })
 
-return { rows }
+return { rows, skipped }
