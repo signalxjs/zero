@@ -93,6 +93,15 @@
   `toggle` as a click, so single mode closes the others). When the model
   refuses the change (a disabled root or item), the element is
   reverted to match the model.
+- **Menu: ArrowUp opens on the last item, and link items navigate by
+  keyboard (#175).** ArrowUp on a closed `Menu.Trigger` did nothing; it now
+  opens the menu with the last enabled item focused (ArrowDown still opens
+  on the first). Enter on an enabled `asChild` item rendered as an
+  `<a href>` was always `preventDefault`ed, so the menu selected and closed
+  but the link never navigated by keyboard. Enter now keeps its default
+  there: the browser turns it into the link's own click, which navigates
+  and selects once through the click handler. Space and a disabled link
+  item are unchanged.
 - **Pagination no longer overflows a narrow container (#44).** The row is
   windowed at constant width, so its width follows `count` and the
   windowing props rather than the container. At phone width a wide window

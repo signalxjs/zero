@@ -147,7 +147,10 @@ sets `closeOnSelect`), and its submenus predict the pointer: a mouse
 heading diagonally for an open submenu does not hand hover to the sibling
 items it crosses while it stays inside the safe triangle between where it
 left the sub-trigger and the submenu's near edge — `closeDelay` still closes
-the submenu if the pointer stops short; Dialog has an alert-dialog preset
+the submenu if the pointer stops short. On the keyboard, ArrowDown on a
+closed `Menu.Trigger` opens on the first enabled item and ArrowUp on the
+last, and Enter on an `asChild` `<a href>` item keeps its default, so the
+link navigates as well as selecting; Dialog has an alert-dialog preset
 (`role="alertdialog"`: no backdrop dismiss, initial focus on the
 least-destructive `Dialog.Cancel`), and every Dialog/Drawer close reports
 why on a `close` event that follows `openChange(false)` — `{ reason, value }`

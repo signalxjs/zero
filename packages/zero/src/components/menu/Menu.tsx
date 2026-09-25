@@ -13,9 +13,11 @@
  * </Menu.Root>
  * ```
  *
- * Keyboard: ArrowDown/Up move focus through enabled items, Home/End jump,
- * typeahead matches item text, Enter/Space activate, Escape closes (native
- * popover) and focus returns to the trigger.
+ * Keyboard: ArrowDown/ArrowUp on the closed trigger open on the first/last
+ * enabled item; inside, ArrowDown/Up move focus through enabled items,
+ * Home/End jump, typeahead matches item text, Enter/Space activate (Enter on
+ * an asChild `<a href>` item keeps its default, so the link navigates),
+ * Escape closes (native popover) and focus returns to the trigger.
  *
  * Stateful items follow the APG menu-button pattern's checkbox/radio roles:
  * ```tsx
@@ -95,6 +97,12 @@ interface MenuContext {
     /** A typeahead search is running in this list — Space continues it instead of activating. */
     searching(): boolean;
     /**
+     * Which end of the list the NEXT open focuses — `'last'` only after an
+     * ArrowUp open from the trigger (APG). One-shot: the popup consumes it.
+     */
+    takeOpenFocus(): 'first' | 'last';
+    setOpenFocus(end: 'first' | 'last'): void;
+    /**
      * Emit `select` and close per the root's `closeOnSelect` — unless the
      * activating item overrides the close decision (`closeOverride`): a
      * checkbox/radio item stays open by default so the user can set several
@@ -147,6 +155,8 @@ function makeInert(): MenuContext {
         setTriggerPresent: () => {},
         keydown: () => {},
         searching: () => false,
+        takeOpenFocus: () => 'first',
+        setOpenFocus: () => {},
         select: () => {},
         setAnchor: () => {},
         openAt: () => {},
@@ -183,6 +193,7 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
     const present = signal({ trigger: false });
     let anchor: PositionAnchor | null = null;
     let popup: HTMLElement | null = null;
+    let openFocus: 'first' | 'last' = 'first';
 
     const roving = createRovingKeydown({
         list,
@@ -214,6 +225,12 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
             if (!e.defaultPrevented) typeahead(e, value);
         },
         searching: () => typeahead.searching(),
+        takeOpenFocus() {
+            const end = openFocus;
+            openFocus = 'first';
+            return end;
+        },
+        setOpenFocus: (end) => { openFocus = end; },
         select(value, closeOverride) {
             emit('select', value);
             if (closeOverride ?? (props.closeOnSelect ?? true)) state.value = false;
@@ -282,10 +299,12 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onUnmou
         },
         onKeydown: (e: KeyboardEvent) => {
             press.onKeydown(e);
-            // ArrowDown on a closed trigger opens the menu (APG).
-            if (e.key === 'ArrowDown' && !menu.state.value && !props.disabled) {
+            // ArrowDown on a closed trigger opens the menu on its first
+            // item, ArrowUp on its last (APG menu button).
+            if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !menu.state.value && !props.disabled) {
                 e.preventDefault();
                 menu.setAnchor(el);
+                menu.setOpenFocus(e.key === 'ArrowUp' ? 'last' : 'first');
                 menu.state.value = true;
             }
         },
@@ -433,6 +452,7 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
     let el: HTMLElement | null = null;
     // Outside Chromium the native close waits for the exit to play (#17).
     const exit = createTopLayerExit();
+    let wasOpen = false;
 
     const scoped = mountScope();
     onMounted(() => scoped(() => {
@@ -442,10 +462,19 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
             if (!node || typeof node.showPopover !== 'function') return;
             if (open) exit.cancel();
             const showing = node.matches(':popover-open');
-            if (open && !showing) {
-                node.showPopover();
-                // Focus lands on the first enabled item (APG menu button).
-                menu.list.enabledItems()[0]?.el()?.focus();
+            const opening = open && !wasOpen;
+            wasOpen = open;
+            if (open && !showing) node.showPopover();
+            if (opening) {
+                // Focus lands on the first enabled item — the last after an
+                // ArrowUp open (APG menu button). Keyed to the closed → open
+                // transition, not to showing the popover: outside Chromium a
+                // reopen mid-exit finds it still :popover-open, and it must
+                // both move focus and spend the one-shot hint, or a stale
+                // 'last' would leak into the next, unrelated open.
+                const end = menu.takeOpenFocus();
+                const items = menu.list.enabledItems();
+                items[end === 'last' ? items.length - 1 : 0]?.el()?.focus();
             } else if (!open && showing) {
                 exit.close(node, () => {
                     if (!menu.state.value && node.matches(':popover-open')) node.hidePopover!();
@@ -541,6 +570,11 @@ function useMenuItemCore({ signal, onUnmounted }: ItemHooks, opts: ItemCoreOpts)
             const searchSpace = e.key === ' ' && menu.searching();
             if (!searchSpace) press.onKeydown(e);
             if (e.key === 'Enter' || (e.key === ' ' && !searchSpace)) {
+                // An enabled link item (asChild `<a href>`) keeps Enter's
+                // default: the browser turns it into the link's own click,
+                // which navigates AND activates through onClick — preventing
+                // it would select without navigating (#175).
+                if (e.key === 'Enter' && !opts.disabled() && el?.matches('a[href], area[href]')) return;
                 e.preventDefault();
                 activate();
                 return;
@@ -917,6 +951,9 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
             if (!e.defaultPrevented) typeahead(e, value);
         },
         searching: () => typeahead.searching(),
+        // A submenu opens from its sub-trigger, never by ArrowUp: always first.
+        takeOpenFocus: () => 'first',
+        setOpenFocus: () => {},
         select(value, closeOverride) {
             parent.select(value, closeOverride);
         },
