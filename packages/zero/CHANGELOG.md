@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+### Fixed — pagination, carousel and table: bound triggers keep focus, DOM-ordered slides, live region, keyboard-reachable table scroll (#270)
+
+- **Bound triggers stay focusable.** Pagination's and Carousel's prev/next
+  triggers at their bound are now `aria-disabled="true"` + `data-disabled`
+  instead of natively `disabled`, which dropped keyboard focus to `<body>`
+  on the press that reached the first/last page or slide. A press there is
+  a no-op; press feedback stays off. `Pagination.Root disabled` still
+  disables every button natively.
+- **Pagination's root declares `disabled`.** The root already rendered
+  `data-disabled`; the anatomy now declares it (`flags: ['disabled']`), so
+  `expectAnatomy` accepts a disabled pagination.
+- **Carousel slides are counted in document order.** A slide rendered
+  conditionally ahead of the others registered last and was labelled and
+  indexed last; the "n of m" labels, the active state, the scroll target
+  and the observer's index now follow the DOM (`sortByDomOrder`, which now
+  accepts any registration with an `el()` accessor).
+- **The carousel viewport is a live region** (`aria-live="polite"`,
+  `aria-atomic="false"`), overridable by the app (`off` for auto-rotation).
+- **Anatomy: `carousel.indicator` no longer declares `disabled`** — no dot
+  ever rendered it. A recipe that styled it will now fail validation.
+- **`Table.Root`'s scroll box is keyboard-reachable.** It has `tabIndex=0`,
+  a declared `focus-visible` flag (rendered as `data-focus-visible`, ringed
+  inside the box by all six design systems), and is a `role="region"`
+  named the way the table is: by the app's `aria-label`/`aria-labelledby`,
+  else by the rendered `Table.Caption` (presence-tracked, never a dangling
+  IDREF), else no role. `Table.Caption` now carries the generated id and takes no `id`
+  prop (`TableCaptionProps`, exported).
+
 ### Fixed — Tab and Shift+Tab close the menu chain (#263)
 
 - **Tab or Shift+Tab on a menu item or sub-trigger closes the whole menu**
