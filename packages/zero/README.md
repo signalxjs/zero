@@ -255,8 +255,9 @@ mirror of the textarea: the same font, padding, width and wrapping. It
 re-measures only when the text or width changes, and follows the page's and
 the textarea's scroll. It is passed in, so a composer that docks to the box
 never ships it (about 0.6 kB brotli). Under `rtl` a placement above or
-below mirrors its alignment, so the default `bottom-start` puts the list's
-right edge at the `@` and it opens leftwards. A vertical `writing-mode`
+below aligns to the reading direction, as every positioned popup's does, so
+the default `bottom-start` puts the list's right edge at the `@` and it
+opens leftwards (`data-placement` still reads `bottom-start`). A vertical `writing-mode`
 falls back to the box.
 Any `(control, index) => PositionAnchor | null` works as an `anchor`; the
 index is the token's first character.
@@ -1124,7 +1125,15 @@ same behaviors, held to the same conformance assertion:
   multi-character search refines the current match instead of stepping past
   it, and its `searching()` tells a caller that routes Space to activation to
   hand Space to a running search, so "Save As" is reachable), anchor
-  positioning, press feedback, the form contract (`createFormControl`, `onFormReset`), and the
+  positioning (`createAnchorPosition` over a pluggable `PositionStrategy`;
+  the built-in `fixedPositionStrategy` flips on the main axis only — a
+  `bottom-start` menu in the bottom-right corner flips to `top-start` and
+  shifts left — aligns `-start`/`-end` above or below to the reading
+  direction and puts bare `start`/`end` on the inline-start/-end side,
+  publishes the logical placement as `data-placement`, and re-measures on
+  scroll, resize and a `ResizeObserver` over the popup and an element
+  anchor; a virtual anchor may name a `contextElement` to read the direction
+  from), press feedback, the form contract (`createFormControl`, `onFormReset`), and the
   listbox layer: `createCollection` (items as data — `itemKey` /
   `itemLabel` / `itemValue` / `itemDisabled` / `itemGroup`, with JSX items
   registering into the same list; an optional `mode` getter decides data vs

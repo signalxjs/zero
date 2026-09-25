@@ -117,7 +117,10 @@ the press point published as `--press-x`/`--press-y`/`--press-r`.
 `data-placement` (twelve side/alignment values), and a part that can carry
 the attribute declares which subset in its anatomy (`PartSpec.placements`) —
 the anchored-position behavior stamps open floats with where they *actually*
-are after flipping, and Toast stamps its viewport and roots. This replaced an
+are after flipping — the LOGICAL placement (`bottom-start` stays
+`bottom-start` under RTL, where it aligns the right edges; bare `start`/`end`
+stay themselves, whichever physical side they resolved to) — and Toast
+stamps its viewport and roots. This replaced an
 earlier blanket exemption: `expectAnatomy` now fails an undeclared
 `data-placement` exactly as it fails an undeclared state.
 

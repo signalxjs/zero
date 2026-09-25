@@ -205,8 +205,10 @@ at the reading edge and stays inside its own control, a toast viewport sits on
 the side its `data-placement` names, a collapsed branch indicator and a submenu
 chevron point at the reading end, the indeterminate progress sweep travels
 the reading way (seeked through `getAnimations()`, since the loop makes
-wall-clock sampling straddle a wrap), and a sliding skin's modal drawer
-sheet enters from its reading edge, measured early in the entry (#83). It
+wall-clock sampling straddle a wrap), a sliding skin's modal drawer
+sheet enters from its reading edge, measured early in the entry (#83), and a
+`bottom-start` menu popup's inline-start (right) edge meets its trigger's
+while `data-placement` stays the logical `bottom-start` (#264). It
 exists because a `transform` has no logical spelling, so the kit's
 physical-direction lint cannot see it — the two checks are complementary, not
 redundant;
