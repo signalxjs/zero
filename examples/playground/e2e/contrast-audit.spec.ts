@@ -484,12 +484,13 @@ test('indicator coverage: every paint-only part has an ancestor chain', async ({
 
     // The kit's own guard, as a function — the same declarations the static
     // matrix measures, over every scope some design system compiled.
+    const components = await everyComponent();
     expect(
-        uncoveredPaintParts(await everyComponent()),
+        uncoveredPaintParts(components),
         'paint-only parts that do not declare `paint` in their anatomy — the matrix would skip them',
     ).toEqual([]);
     // And not vacuously: the anatomy must name the marks the six skins draw.
-    expect(paintSpecs(await everyComponent()).length).toBeGreaterThanOrEqual(20);
+    expect(paintSpecs(components).length).toBeGreaterThanOrEqual(20);
 });
 
 /**
