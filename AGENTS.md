@@ -157,7 +157,10 @@ wheel scroll up, a prepend leaves the row being read in place, and no
 "ResizeObserver loop" error in any engine) — plus
 reduced-motion and forced-colors projects, and
 the state-matrix contrast audit — two matrices over every state combination ×
-design system × theme, hard-fail below 3:1, chromium-only: **text legibility**
+design system × theme, hard-fail below 3:1, chromium-only, each design system
+measured from its merged manifest (`resolveEcosystem`, the build's own
+derivation — so an adopted fragment scope like `ext-stepper` is measured in
+exactly the skins that merged it, #245): **text legibility**
 for every text-bearing part, and **indicator paint** for every part whose job
 is paint rather than text, measured inside its real ancestor chain — the tick,
 the dot, the thumb, the range, the chevrons, the star — and, since #403, a
