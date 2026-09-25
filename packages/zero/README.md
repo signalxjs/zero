@@ -582,7 +582,8 @@ its native `form`/`name`/`value`, `Table.Cell`/`Table.HeaderCell` take
   none: the Trigger and the popup each carry their own.
 - **Split, where the part wraps the element assistive tech reads**:
   `Table.Root` puts `aria-*` and `role` on the `<table>` and the rest on its
-  scroll wrapper; `Checkbox.Root`, `Switch.Root` and `RadioGroup.Item` put
+  scroll wrapper (with no `Table.Caption`, an app `aria-label` or
+  `aria-labelledby` also names the wrapper's scroll region); `Checkbox.Root`, `Switch.Root` and `RadioGroup.Item` put
   `aria-*` on their input and `id`/`title`/`data-*` on the row.
 - **Nowhere**, for parts zero renders on its own — hidden inputs,
   Pagination's page buttons, a switch thumb, a dialog backdrop, an item
@@ -682,6 +683,31 @@ holds for Checkbox.
 
 <Switch.Root hideLabel>Airplane mode</Switch.Root>
 ```
+
+**Bound triggers stay focusable.** Pagination's and Carousel's prev/next
+triggers are `aria-disabled="true"` plus `data-disabled` at their bound
+(page 1, the last page, the first or last slide), never natively
+`disabled`: a native `disabled` dropped keyboard focus to `<body>` on the
+very press that reached the bound. They stay in the tab order and a press
+there is a no-op. `Pagination.Root disabled` still disables every button
+natively and puts the declared `data-disabled` flag on the root. Carousel
+slides are counted in document order, so a slide rendered conditionally
+ahead of the others is "1 of n", and the viewport is a polite, non-atomic
+live region (`aria-live` is overridable — set `off` for auto-rotation).
+Carousel's `indicator` no longer declares a `disabled` flag it never
+rendered.
+
+**Scrollable tables are keyboard stops.** `Table.Root`'s scroll wrapper has
+`tabIndex=0` (axe `scrollable-region-focusable`: a table wider than its
+container must scroll without a pointer — focused, the arrow keys scroll
+it) and carries `data-focus-visible`, which every shipped design system
+rings inside the box. While a `Table.Caption` is rendered the wrapper is a
+`role="region"` labelled by it (`aria-labelledby`, presence-tracked like
+Field's references, so it never dangles); without one, the app's
+`aria-label`/`aria-labelledby` names the region; with neither it stays a
+plain focusable box rather than a nameless landmark. The caption carries
+that id, so `Table.Caption` takes no `id` of its own
+(`TableCaptionProps`).
 
 **Table columns.** `Table.Root` takes a column spec (`columns`: per column
 an optional `label`, `width`, `align` and `key`). `<Table.Head />` with no

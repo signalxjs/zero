@@ -148,3 +148,53 @@ for (const ds of DESIGN_SYSTEMS) {
         expect((await settledBox(headers.nth(0), 'the Service header')).width).toBeGreaterThanOrEqual(10 * rem - 1);
     });
 }
+
+/**
+ * The scroll root is keyboard-reachable (#270): a table wider than its
+ * container is otherwise scrollable by pointer only (axe
+ * scrollable-region-focusable). Tab lands on the root — a region named by
+ * its caption — it shows the skin's ring INSIDE its own box (the root is as
+ * wide as its column, so an outward ring would be clipped by whatever
+ * scrolls around it), and the arrow keys scroll it.
+ */
+for (const ds of DESIGN_SYSTEMS) {
+    test(`${ds}: the table's scroll box is a named keyboard stop with an inset ring`, async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium', 'focus and cascade facts — one engine is enough');
+        await bootPage(page, 'table', ds);
+        const root = rootLabelled(page, 'table', 'Regions (hover, constrained width)');
+        await expect(root).toHaveCount(1);
+        await expect(root).toHaveAttribute('role', 'region');
+        await expect(root).toHaveAccessibleName('Regions (hover, constrained width)');
+        // The demo's column is a comfortable 24rem, which some skins' compact
+        // cells fit — narrow it so every skin genuinely overflows.
+        const fit = await root.evaluate((el) => {
+            el.parentElement!.style.maxWidth = '12rem';
+            return { scrollWidth: el.scrollWidth, clientWidth: el.clientWidth };
+        });
+        expect(fit.scrollWidth, `${ds}: the demo overflows (else scrolling proves nothing)`).toBeGreaterThan(fit.clientWidth);
+
+        // Reached by keyboard: Tab from a probe button placed just before it.
+        await root.evaluate((el) => {
+            const before = document.createElement('button');
+            before.textContent = 'before';
+            before.setAttribute('data-e2e-probe', '');
+            el.parentElement!.before(before);
+        });
+        await page.locator('[data-e2e-probe]').focus();
+        await page.keyboard.press('Tab');
+        await expect(root).toBeFocused();
+        await expect(root).toHaveAttribute('data-focus-visible', '');
+
+        const ring = await root.evaluate((el) => {
+            const cs = getComputedStyle(el);
+            return { style: cs.outlineStyle, width: parseFloat(cs.outlineWidth), offset: parseFloat(cs.outlineOffset) };
+        });
+        expect(ring.style, `${ds}: a ring is painted`).not.toBe('none');
+        expect(ring.width, `${ds}: a ring is painted`).toBeGreaterThan(0);
+        expect(ring.width + ring.offset, `${ds}: the ring stays inside the root's box`).toBeLessThanOrEqual(0);
+
+        await page.keyboard.press('ArrowRight');
+        await expect.poll(() => root.evaluate((el) => el.scrollLeft), { message: `${ds}: ArrowRight scrolls` })
+            .toBeGreaterThan(0);
+    });
+}
