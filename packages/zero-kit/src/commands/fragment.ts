@@ -103,9 +103,9 @@ function fragmentValidator(): ValidateFunction {
 
 /**
  * The vocabulary a pack must survive: base surfaces, no colour roles, no size
- * ramp. What an adopting skin like zero-heroui actually offers — and the
- * shape a pack written to the recommended grammar has to be *fitted* onto
- * rather than assume.
+ * ramp, no breakpoints. What an adopting skin like zero-heroui actually
+ * offers — and the shape a pack written to the recommended grammar has to be
+ * *fitted* onto rather than assume.
  *
  * What it does NOT withhold is the standard non-colour vocabulary (#158):
  * every recommended key of `--font-*`, `--weight-*`, `--leading-*`,
@@ -119,10 +119,18 @@ function fragmentValidator(): ValidateFunction {
  * recommended ramp (`--tracking-wider`) is collapsed by the fit to its
  * category's resting step, which is always one of these, so it resolves too.
  * Values are pinned to base.css in `fragment-command.test.ts`.
+ *
+ * It declares an empty breakpoint ramp too (#225), not an absent one. Absent,
+ * the fit keeps every `at` condition rather than guess, and the compile then
+ * dies on the first `below-md` with nothing to resolve it against. Declared
+ * empty, the fit drops every breakpoint key, bare and `below-`, exactly as it
+ * would for an adopter with no ramp, and keeps raw `@` preludes and the
+ * built-in conditions, which need no ramp.
  */
 export const HOSTILE_TOKENS: TokensInput = {
     roles: {},
     sizes: [],
+    breakpoints: {},
     system: {
         typography: {
             fonts: {
@@ -418,7 +426,7 @@ export function checkFragment(input: FragmentCheckInput): FragmentCheckResult {
                 // to read either way.
                 for (const scope of new Set(recipes.map((r) => r.component))) {
                     if (!paints(compiled.componentCss[scope])) {
-                        warn(`"${scope}" compiles to nothing under a vocabulary with no colour roles or size ramp`);
+                        warn(`"${scope}" compiles to nothing under a vocabulary with no colour roles, size ramp or breakpoints`);
                     }
                 }
             } catch (err) {

@@ -23,6 +23,14 @@
 
 ### Fixed
 
+- **`zero:fragment`'s probe fits a breakpoint `at` key away instead of
+  failing on it (#225).** `HOSTILE_TOKENS` declared no `breakpoints`, so the
+  fit kept every condition and the probe compile died on the first
+  `below-md` or `md` with "uses unknown condition". It now declares an empty
+  ramp: the fit drops breakpoint keys, bare and `below-`, the way it does for
+  an adopter with no ramp, and keeps raw `@` preludes and the built-in
+  conditions. A scope styled only under breakpoints gets the "compiles to
+  nothing" warning, which now names breakpoints too.
 - **The README and the design-system skill state zero-basic's real baseline
   (#197).** Both said the scaffold lays down "50 recipes"; the baseline is
   52. The count is now held to the tree by `scripts/__tests__/docs-counts.test.ts`,

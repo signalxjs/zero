@@ -315,6 +315,76 @@ describe('checkFragment', () => {
         const result = checkFragment(input({ module: { fragment: fragment(), recipes: [extra] } }));
         expect(errors(result)).toEqual([]);
     });
+
+    it('fits a breakpoint at key away rather than failing the probe on it (#225)', () => {
+        // An adopter that declares `md` compiles this whole; one with no ramp
+        // gets the condition dropped by the fit. The probe declares an empty
+        // ramp, so it must take the second path, not throw "unknown condition".
+        const responsive: RecipeInput = {
+            component: 'acme-stepper',
+            parts: {
+                root: {
+                    base: { display: 'flex' },
+                    at: {
+                        'below-md': { base: { display: 'none' } },
+                        md: { base: { display: 'grid' } },
+                    },
+                },
+                item: { base: { color: 'var(--color-base-content)' }, states: { active: {}, inactive: {} } },
+            },
+        };
+        const result = checkFragment(input({ module: { fragment: fragment(), recipes: [responsive] } }));
+        expect(errors(result)).toEqual([]);
+        expect(warnings(result).join('\n')).not.toMatch(/compiles to nothing/);
+    });
+
+    it('fits a breakpoint at key inside composes away too (#225)', () => {
+        const composing: RecipeInput = {
+            component: 'acme-stepper',
+            parts: {
+                root: { base: { display: 'flex' } },
+                item: { base: { color: 'var(--color-base-content)' }, states: { active: {}, inactive: {} } },
+            },
+            composes: {
+                button: {
+                    within: 'root',
+                    parts: { root: { base: { flex: '1' }, at: { 'below-md': { base: { flex: 'none' } } } } },
+                },
+            },
+        };
+        const result = checkFragment(input({ module: { fragment: fragment(), recipes: [composing] } }));
+        expect(errors(result)).toEqual([]);
+    });
+
+    it('keeps a raw @media prelude through the probe fit (#225)', () => {
+        // The prelude hard-codes its width, so it needs no ramp and survives —
+        // a recipe whose only styles sit under it still paints.
+        const raw: RecipeInput = {
+            component: 'acme-stepper',
+            parts: {
+                root: { at: { '@media (width < 48rem)': { base: { display: 'none' } } } },
+                item: { states: { active: {}, inactive: {} } },
+            },
+        };
+        const result = checkFragment(input({ module: { fragment: fragment(), recipes: [raw] } }));
+        expect(errors(result)).toEqual([]);
+        expect(warnings(result).join('\n')).not.toMatch(/compiles to nothing/);
+    });
+
+    it('warns, not errors, when a scope styles only under a breakpoint (#225)', () => {
+        // Under no ramp the phone regime is all there is to drop, so the scope
+        // renders as nothing — which is what an adopter with no ramp gets.
+        const phoneOnly: RecipeInput = {
+            component: 'acme-stepper',
+            parts: {
+                root: { at: { 'below-md': { base: { display: 'none' } } } },
+                item: { states: { active: {}, inactive: {} } },
+            },
+        };
+        const result = checkFragment(input({ module: { fragment: fragment(), recipes: [phoneOnly] } }));
+        expect(errors(result)).toEqual([]);
+        expect(warnings(result).join('\n')).toMatch(/compiles to nothing/);
+    });
 });
 
 /**

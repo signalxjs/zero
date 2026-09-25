@@ -278,6 +278,33 @@ describe('each rule in isolation', () => {
         expect(report.identity).toBe(false);
     });
 
+    it('drops every breakpoint condition under an explicitly empty ramp, keeping preludes and built-ins (#225)', () => {
+        // `breakpoints: {}` is a declaration — "this system has no ramp" — not
+        // the absent field, which keeps every condition rather than guessing.
+        // The fragment probe relies on the difference.
+        const tokens = { breakpoints: {}, themes: { light }, defaultLight: 'light' } as unknown as TokensInput;
+        const conditioned: RecipeInput = {
+            component: 'table',
+            parts: {
+                row: {
+                    base: { padding: '0' },
+                    at: {
+                        md: { base: { padding: '1px' } },
+                        'below-md': { base: { padding: '2px' } },
+                        'reduced-motion': { base: { transition: 'none' } },
+                        '@media (width < 48rem)': { base: { padding: '3px' } },
+                    },
+                },
+            },
+        };
+        const { recipes: [out], report } = fitRecipes([conditioned], tokens);
+        expect(Object.keys(out!.parts.row!.at!)).toEqual(['reduced-motion', '@media (width < 48rem)']);
+        expect(report.droppedConditions).toBe(2);
+        // Absent, the same recipe keeps all four.
+        const open = { themes: { light }, defaultLight: 'light' } as unknown as TokensInput;
+        expect(Object.keys(fitRecipes([conditioned], open).recipes[0]!.parts.row!.at!)).toHaveLength(4);
+    });
+
     it('treats a role opting out of -content / -soft as not declaring those tokens', () => {
         const tokens = {
             roles: { primary: { content: false }, secondary: { soft: false } },

@@ -833,7 +833,9 @@ table's visually hidden head), not the skin's spacing.
 
 A **recipe pack** may read the standard ramps bare — `var(--space-md)`,
 `var(--font-mono)`, `var(--duration-fast)`. `sigx zero:fragment`'s
-hostile-vocabulary probe withholds the colour roles and the size ramp, but it
+hostile-vocabulary probe withholds the colour roles, the size ramp and the
+breakpoints (#225: a pack's `at: { 'below-md': … }` is fitted away, not a
+compile error), but it
 defines every recommended key of `--space-*`, `--font-*`, `--weight-*`,
 `--leading-*`, `--tracking-*`, `--measure-*`, `--shadow-*`, `--duration-*`
 and `--ease-*` at `@sigx/zero/css`'s fallback values, since every real design
@@ -874,8 +876,9 @@ merge against the installed `@sigx/zero`, that the declared path is inside
 `dist/**`; a glob it cannot model is assumed to ship), that recipes style only
 parts and scopes the fragment declares,
 that the root exports `componentExportName(scope)`, and that the pack still
-compiles *and paints* when fitted to a vocabulary with no colour roles and no
-size ramp. An unprefixed scope and a pack that is not lynx-clean are warnings,
+compiles *and paints* when fitted to a vocabulary with no colour roles, no
+size ramp and no breakpoints (breakpoint `at` keys are dropped, as for an
+adopter with no ramp). An unprefixed scope and a pack that is not lynx-clean are warnings,
 not failures. No bare alias — `fragment` is a word other plugins may want.
 
 The package points at that data entry with a `"sigx-zero"` field, shaped like
