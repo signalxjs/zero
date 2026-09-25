@@ -182,7 +182,7 @@
   `control`, radio-group `root` + `item` + `item-control`, select `root` +
   `trigger`, and slider `root` + `control` + `track` + `thumb`.
 - **RadioGroup restates `invalid` on each item (#267).** `item` and
-  `item-control` carry `data-invalid` (Checkbox and Switch parity, #269),
+  `item-control` carry `data-invalid` (Checkbox and Switch parity),
   so a recipe paints the mark without a descendant selector from the root;
   all six design systems moved their tint there. The radiogroup also
   writes `aria-orientation`.
