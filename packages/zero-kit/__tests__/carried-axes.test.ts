@@ -6,7 +6,8 @@
  * the merge, the validator, the compiler, the components artifact, the
  * axis-coverage rule and the contrast matrix. Steps' item (#112) is the
  * second: a re-carrier with TEXT on and inside it, which the text matrix
- * measures per wired colour.
+ * measures per wired colour. Stats' item (#161) is the third: a re-carrier
+ * with no text of its own and text bands inside it.
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -362,6 +363,33 @@ describe('the text matrix measures a step\'s own colour on the step (#112)', () 
     it('every shipped basic cell clears the floor', () => {
         const result = auditDesignSystem(basicDS as DesignSystemInput, manifest, { rules: ['contrast/text'] });
         const carried = result.contrast.themes.flatMap((t) => t.cells).filter((c) => c.scope === 'steps' && c.key.includes('color='));
+        expect(carried.length).toBeGreaterThan(0);
+        expect(carried.filter((c) => c.verdict === 'fail')).toEqual([]);
+    });
+});
+
+describe('the text matrix measures a stat\'s own colour on the stat (#161)', () => {
+    const compiled = compileDesignSystem(basicDS as DesignSystemInput, manifest);
+    const stats = manifest.components.find((c) => c.scope === 'stats')!;
+
+    it('stats\' item declares it re-carries colour', () => {
+        expect(stats.parts.find((p) => p.name === 'item')!.carries).toEqual(['color']);
+    });
+
+    it('adds one cell per wired colour for every text band inside the re-carrier, with the attribute on it', () => {
+        const cells = axisCellsFor(compiled.components, manifest.components).filter((c) => c.scope === 'stats');
+        // The item itself holds no text token; its text bands do.
+        expect(new Set(cells.map((c) => c.part))).toEqual(new Set(['title', 'value', 'desc']));
+        for (const part of ['title', 'value', 'desc']) {
+            expect(new Set(cells.filter((c) => c.part === part).map((c) => c.axes!.color)))
+                .toEqual(new Set(compiled.components.stats!.color));
+        }
+        for (const cell of cells) expect(cell.chain![axisHost(cell.chain!, 'color')]!.part).toBe('item');
+    });
+
+    it('every shipped basic cell clears the floor', () => {
+        const result = auditDesignSystem(basicDS as DesignSystemInput, manifest, { rules: ['contrast/text'] });
+        const carried = result.contrast.themes.flatMap((t) => t.cells).filter((c) => c.scope === 'stats' && c.key.includes('color='));
         expect(carried.length).toBeGreaterThan(0);
         expect(carried.filter((c) => c.verdict === 'fail')).toEqual([]);
     });

@@ -3977,7 +3977,11 @@ export const stats: RecipeInput = {
         },
     },
     variants: {
-        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+        // Keyed on the ITEM, not the root (#161): the item re-carries
+        // `color`, so a stat's own value outranks the row's, and the value
+        // inside it inherits whichever won. A root colour still reaches
+        // every item through the carrier's donut.
+        color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
             '--stats-accent': `var(--color-${c})`,
         } } }])),
         size: {

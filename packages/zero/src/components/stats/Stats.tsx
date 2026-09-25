@@ -16,12 +16,16 @@
  * orientation: the root provides it and every item mirrors it, because the
  * between-item divider is directional CSS on the item and a sibling selector
  * cannot see the root.
+ *
+ * `color` on the Root colours every item; `color` on one Item colours that
+ * stat alone (#161) — the anatomy declares the item re-carries the axis, and
+ * the design system's compiled CSS lets the nearest carrier win.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import type { Orientation } from '../../contract/data-attrs.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithColor, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { statsAnatomy } from './anatomy.js';
 
 const SCOPE = statsAnatomy.scope;
@@ -60,7 +64,15 @@ const StatsRoot = component<StatsRootProps>(({ props, slots }) => {
 
 export type StatsPartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
-const StatsItem = component<StatsPartProps>(({ props, slots }) => {
+/**
+ * The item takes the scope's colour vocabulary for itself (#161) — typed per
+ * scope like the Root's, so it narrows under a `/register` module and is
+ * `never` where the design system declares no colour axis. The bands keep
+ * `StatsPartProps`: they follow the item through the cascade.
+ */
+export type StatsItemProps = StatsPartProps & WithColor<'stats'>;
+
+const StatsItem = component<StatsItemProps>(({ props, slots }) => {
     const stats = useStatsContext();
     return () => (
         <div
@@ -68,6 +80,7 @@ const StatsItem = component<StatsPartProps>(({ props, slots }) => {
             data-scope={SCOPE}
             data-part="item"
             data-orientation={stats.orientation()}
+            data-color={props.color}
             class={props.class}
         >
             {slots.default?.()}

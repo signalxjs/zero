@@ -114,6 +114,50 @@ test.describe('a step re-carries the colour axis (#112)', () => {
     }
 });
 
+/** Each stat's value ink — the one band every skin paints with `--stats-accent`. */
+const statInks = (root: Locator): Promise<string[]> =>
+    root.locator('[data-scope="stats"][data-part="value"]').evaluateAll((values) =>
+        values.map((v) => getComputedStyle(v).color));
+
+test.describe('a stat re-carries the colour axis (#161)', () => {
+    test.beforeEach(({}, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium', 'cascade resolution is not engine-specific — one engine is enough');
+    });
+
+    // The four skins with a colour axis, as for the step above.
+    for (const ds of ['basic', 'daisyui', 'material', 'brutalist']) {
+        test(`${ds}: a stat's own colour outranks the row's, and a bare stat follows the row`, async ({ page }) => {
+            await bootPage(page, 'stats', ds);
+            const row = rootLabelled(page, 'stats', 'Estimated share');
+            await expect(row).toHaveCount(1);
+            await expect(row).toHaveAttribute('data-color', 'secondary');
+            const items = row.locator('[data-scope="stats"][data-part="item"]');
+            await expect(items.nth(1)).toHaveAttribute('data-color', 'warning');
+            for (const bare of [0, 3]) await expect(items.nth(bare)).not.toHaveAttribute('data-color', /.*/);
+            const inks = await statInks(row);
+
+            // The control: a copy of the same row with every item's own
+            // colour removed — what the root alone paints, stat for stat.
+            const control = await row.evaluate((root) => {
+                const probe = root.cloneNode(true) as HTMLElement;
+                probe.querySelectorAll('[data-part="item"]').forEach((i) => i.removeAttribute('data-color'));
+                root.after(probe);
+                const out = [...probe.querySelectorAll('[data-part="value"]')].map((v) => getComputedStyle(v).color);
+                probe.remove();
+                return out;
+            });
+            // The first demo's row sets no colour: the row's colour must
+            // genuinely reach a bare stat, or the equalities above prove nothing.
+            const plain = await statInks(rootLabelled(page, 'stats', 'Uptime'));
+            expect(inks[0], 'a bare stat paints the row\'s colour').toBe(control[0]);
+            expect(inks[3], 'a bare stat paints the row\'s colour').toBe(control[3]);
+            expect(control[0], 'the row\'s colour reaches a bare stat at all').not.toBe(plain[0]);
+            expect(inks[1], 'the stat\'s own colour, not the row\'s').not.toBe(control[1]);
+            expect(inks[2], 'the stat\'s own colour, not the row\'s').not.toBe(control[2]);
+        });
+    }
+});
+
 test.describe('small axis gaps (#57)', () => {
     test.beforeEach(({}, testInfo) => {
         test.skip(

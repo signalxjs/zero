@@ -214,6 +214,37 @@ describe('Stats', () => {
         expect(container.querySelector('[data-part="title"]')).toBeNull();
         expect(container.querySelector('[data-part="figure"]')).toBeNull();
     });
+
+    it('an item re-carries the colour axis: its own data-color, beside the root\'s (#161)', () => {
+        render(
+            <Stats.Root color="primary">
+                <Stats.Item color="warning">
+                    <Stats.Figure>!</Stats.Figure>
+                    <Stats.Title>Estimated share</Stats.Title>
+                    <Stats.Value>62%</Stats.Value>
+                    <Stats.Desc>estimate in progress</Stats.Desc>
+                </Stats.Item>
+                <Stats.Item>
+                    <Stats.Value>1,204</Stats.Value>
+                </Stats.Item>
+            </Stats.Root>,
+            container,
+        );
+        // The anatomy declares it, so expectAnatomy lets the attribute through.
+        expect(statsAnatomy.parts.item.carries).toEqual(['color']);
+        expectAnatomy(container, statsAnatomy);
+        const [coloured, bare] = container.querySelectorAll(selector('stats', 'item'));
+        expect(coloured!.getAttribute('data-color')).toBe('warning');
+        // No colour of its own → no attribute: the item follows the root.
+        expect(bare!.hasAttribute('data-color')).toBe(false);
+        // Only the item carries it — the bands reach it through the cascade.
+        for (const name of ['title', 'value', 'desc', 'figure']) {
+            for (const band of container.querySelectorAll(selector('stats', name))) {
+                expect(band.hasAttribute('data-color'), `stats/${name}`).toBe(false);
+            }
+        }
+        expect(part(container, 'stats', 'root').getAttribute('data-color')).toBe('primary');
+    });
 });
 
 describe('Timeline', () => {

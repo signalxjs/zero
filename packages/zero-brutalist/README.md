@@ -89,6 +89,17 @@ A tabs list scrolls inside its own box when it is wider than its column
 also covers the hard shadow and the hover shove), with matching scroll
 padding, so a focused tab's ring is never clipped at the row's edge.
 
+## Per-stat colour
+
+`<Stats.Item color="warning">` colours one figure's value while the Root's
+`color` paints the rest of the row (#161); the recipe keys `--stats-accent`
+on the item, which re-carries the colour axis. Measuring every role on the
+value for the first time found the yellow `accent` and `warning` at 1.71:1
+on light paper. The value now mixes each role 70/30 toward the page ink, as
+the rating's fill does: `--color-base-content` flips with the scheme, so
+one declaration deepens a role on paper and lightens it on ink. The yellow
+roles now measure 4.25:1, above the 3:1 floor for the value's large text.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors

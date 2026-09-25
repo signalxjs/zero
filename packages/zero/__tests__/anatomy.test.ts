@@ -232,6 +232,7 @@ describe('anatomy registry', () => {
         }
         expect(carrying).toContain('timeline.marker');
         expect(carrying).toContain('steps.item');
+        expect(carrying).toContain('stats.item');
     });
 
     it('a paint declaration is consistent with its own part', () => {

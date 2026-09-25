@@ -11,6 +11,13 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * `data-orientation`: the between-item divider is directional CSS on the
  * ITEM (`item + item`), and a sibling selector cannot reach up to the root
  * — the same reason toggle-group stamps its items.
+ *
+ * The item RE-CARRIES the colour axis (`PartSpec.carries`, #161, the
+ * mechanism #94 introduced for timeline's marker and #112 used for steps'
+ * item): a `color` on `Stats.Item` renders `data-color` on that item and
+ * outranks the root's — the nearest carrier wins — so one figure can say
+ * "warning" while the rest of the row stays plain. The bands inside the item
+ * follow the item's value; an item without one follows the root.
  */
 export const statsAnatomy = defineAnatomy('stats', {
     root: {
@@ -20,6 +27,9 @@ export const statsAnatomy = defineAnatomy('stats', {
     item: {
         element: 'div',
         parent: 'root',
+        // Per-item colour (#161): the item re-carries `color`, so one stat's
+        // value can paint a tone of its own.
+        carries: ['color'],
         tokens: ['color'],
     },
     title: {

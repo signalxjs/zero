@@ -3488,8 +3488,18 @@ export const stats: RecipeInput = {
         },
     },
     variants: {
-        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--stats-accent': `var(--color-${c})`,
+        // Keyed on the ITEM, not the root (#161): the item re-carries
+        // `color`, so a stat's own value outranks the row's, and the value
+        // inside it inherits whichever won. A root colour still reaches
+        // every item through the carrier's donut.
+        //
+        // The value is TEXT on the page, so the raw role is not always a
+        // readable ink: the yellow `accent`/`warning` measure 1.71:1 on light
+        // paper (found by the text matrix once the item re-carried the axis,
+        // #161). The rating's answer: 70/30 toward the PAGE ink, which flips
+        // with the scheme, deepens a role on paper and lightens it on ink.
+        color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
+            '--stats-accent': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-base-content))`,
         } } }])),
         size: {
             xs: { value: { base: { fontSize: 'var(--text-lg)' } } },
