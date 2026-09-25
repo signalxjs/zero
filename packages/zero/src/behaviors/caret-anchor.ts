@@ -129,6 +129,9 @@ export function caretAnchor(el: HTMLTextAreaElement | HTMLInputElement, index: n
     let point: CaretPoint = { x: 0, y: 0, height: 0 };
     const clamp = (n: number, min: number, max: number): number => Math.min(Math.max(n, min), Math.max(min, max));
     return {
+        // The control's reading direction is the anchor's: a `bottom-start`
+        // list opens from the token towards the reading end.
+        contextElement: el,
         getBoundingClientRect() {
             if (el.value !== value || el.clientWidth !== width) {
                 point = measureCaret(el, index);
