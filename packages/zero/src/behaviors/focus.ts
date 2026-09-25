@@ -87,22 +87,31 @@ export function isFocusable(el: Element | null | undefined): el is HTMLElement {
 /**
  * The elements inside `container` that Tab stops on, in DOM order: focusable
  * (see {@link isFocusable}) and not opted out with a negative `tabindex`. A
- * radio group is one stop — its checked radio, or its first when none is.
+ * radio group is one stop — its checked radio, or its first when none is. A
+ * group is its `name` within one form owner (or, form-less, one tree), as the
+ * browser scopes it: same-named radios in two forms are two stops.
  */
 export function getTabbables(container: HTMLElement): HTMLElement[] {
     const candidates = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
         .filter((el) => (tabindexAttr(el) ?? 0) >= 0 && isFocusable(el));
 
-    // Collapse each named radio group to the one radio Tab reaches.
-    const stopFor = new Map<string, HTMLInputElement>();
+    // Collapse each radio group to the one radio Tab reaches.
+    const groups = new Map<Node, Map<string, HTMLInputElement>>();
+    const groupOf = (el: HTMLInputElement): Map<string, HTMLInputElement> => {
+        const owner: Node = el.form ?? el.getRootNode();
+        let byName = groups.get(owner);
+        if (!byName) groups.set(owner, (byName = new Map()));
+        return byName;
+    };
+    const isGroupedRadio = (el: HTMLElement): el is HTMLInputElement =>
+        el instanceof HTMLInputElement && el.type === 'radio' && !!el.name;
     for (const el of candidates) {
-        if (!(el instanceof HTMLInputElement) || el.type !== 'radio' || !el.name) continue;
-        const current = stopFor.get(el.name);
-        if (!current || (el.checked && !current.checked)) stopFor.set(el.name, el);
+        if (!isGroupedRadio(el)) continue;
+        const byName = groupOf(el);
+        const current = byName.get(el.name);
+        if (!current || (el.checked && !current.checked)) byName.set(el.name, el);
     }
-    return candidates.filter((el) =>
-        !(el instanceof HTMLInputElement) || el.type !== 'radio' || !el.name || stopFor.get(el.name) === el,
-    );
+    return candidates.filter((el) => !isGroupedRadio(el) || groupOf(el).get(el.name) === el);
 }
 
 /**

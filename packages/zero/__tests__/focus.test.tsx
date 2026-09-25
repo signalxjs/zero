@@ -121,6 +121,23 @@ describe('getTabbables', () => {
         `);
         expect(ids(getTabbables(container))).toEqual(['s2', 't1', 'lone', 'b']);
     });
+
+    it('scopes a radio group by its form owner as well as its name', () => {
+        fixture(`
+            <form id="f1">
+                <input type="radio" name="pick" id="a1">
+                <input type="radio" name="pick" id="a2" checked>
+            </form>
+            <form id="f2">
+                <input type="radio" name="pick" id="b1">
+                <input type="radio" name="pick" id="b2">
+            </form>
+            <input type="radio" name="pick" id="c1" form="f2">
+            <input type="radio" name="pick" id="loose1">
+            <input type="radio" name="pick" id="loose2">
+        `);
+        expect(ids(getTabbables(container))).toEqual(['a2', 'b1', 'loose1']);
+    });
 });
 
 describe('isFocusable', () => {
