@@ -51,6 +51,13 @@
  *   see `borderInk`: since #232, marks are drawn geometry, and for two of the
  *   six the stroke is the whole shape rather than a ring around a fill.
  *
+ * The anatomy is the design system's MERGED manifest (#245), not zero's own:
+ * each skin's inputs are resolved through `resolveEcosystem` — the same
+ * derivation `runStandardBuild` compiles from — so a scope that reaches a
+ * design system through an ecosystem manifest fragment (`ext-stepper`, from
+ * `@sigx/zero-ext-example`) is measured in exactly the skins that merged it,
+ * and contributes no cells anywhere else. See `resolvedInputs`.
+ *
  * Chromium-only: the math is engine-independent (computed colors resolved
  * through a canvas pixel, so oklch()/oklab()/color-mix() outputs all work),
  * so one engine is enough and the forced-colors/reduced-motion projects
@@ -86,6 +93,7 @@ import {
     textCells,
     uncoveredPaintParts,
 } from '@sigx/zero-kit';
+import { resolveEcosystem } from '@sigx/zero-kit/build';
 import type {
     AuditRuleId,
     Cell,
@@ -119,22 +127,125 @@ const read = (p: string): string => readFileSync(join(root, p), 'utf8');
 type ManifestPart = KitManifestPart;
 type ManifestComponent = KitManifestComponent;
 
+/**
+ * Zero's own anatomy — the base every design system's manifest is merged
+ * onto. The matrices do NOT measure from it directly (see `resolvedInputs`);
+ * it is what `resolveEcosystem` starts from.
+ */
 const anatomy: { components: ManifestComponent[] } = JSON.parse(read('packages/zero/dist/manifest.json'));
 const baseCss = read('packages/zero/css/base.css');
 
-/** A design system's compiled input, loaded from its built `dist/` — see `staticMatrix`. */
+/** A design system's compiled input, loaded from its built `dist/` — see `resolvedInputs`. */
 type DesignSystemModule = { designSystem: DesignSystemInput };
 
+/** What one design system actually compiled: its merged manifest and its pack-composed input. */
+interface ResolvedInputs {
+    manifest: { components: ManifestComponent[] };
+    designSystem: DesignSystemInput;
+}
+
+const silent = { log: () => {}, warn: () => {}, error: () => {} };
+const resolved = new Map<string, Promise<ResolvedInputs>>();
+
 /**
- * The text cells every design system measures — every text-bearing part of
- * every component, in every renderable combination, chained below its
- * scope's carrier where the part tree says so (`textCells` in the kit; the
- * probe used to render every text part alone on the app surface, and the
- * static reader showed why that was a blind spot — a recipe's component
- * tokens are declared on the CARRIER, so a lone `trigger` reads them as
- * nothing and inherits a pass).
+ * A design system's inputs as its build saw them (#245) — computed once per
+ * worker.
+ *
+ * `dist/design-system.js` is what the package AUTHORED; the ecosystem packs
+ * it depends on are adopted at build time, by `runStandardBuild`, through
+ * `resolveEcosystem`: discovery from the package's own dependencies, the
+ * fragment merged onto zero's anatomy, the pack's recipes fitted to the
+ * skin's vocabulary. This runs that same call, so the audit's scope set is
+ * the one the compiled CSS was built from — zero-basic and zero-heroui gain
+ * `ext-stepper`, and a skin that never depended on the pack gains nothing.
+ * Reading zero's manifest alone is how the adopted scope went unmeasured.
+ *
+ * By path, not through the package entry, which registers themes with
+ * `@sigx/zero` and has no business running under Node.
  */
-const cells: Cell[] = textCells(anatomy.components);
+function resolvedInputs(ds: string): Promise<ResolvedInputs> {
+    let pending = resolved.get(ds);
+    if (!pending) {
+        pending = (async () => {
+            const url = pathToFileURL(join(root, `packages/zero-${ds}/dist/design-system.js`)).href;
+            const { designSystem } = (await import(url)) as DesignSystemModule;
+            const out = await resolveEcosystem({
+                manifest: anatomy,
+                designSystem,
+                ecosystem: true,
+                defaultCwd: join(root, `packages/zero-${ds}`),
+                logger: silent,
+            });
+            return { manifest: out.manifest, designSystem: out.designSystem };
+        })();
+        resolved.set(ds, pending);
+    }
+    return pending;
+}
+
+/** One design system's cell product, both matrices. */
+interface DesignSystemCells {
+    components: ManifestComponent[];
+    /**
+     * Every text-bearing part of every component the design system compiled,
+     * in every renderable combination, chained below its scope's carrier
+     * where the part tree says so (`textCells` in the kit; the probe used to
+     * render every text part alone on the app surface, and the static reader
+     * showed why that was a blind spot — a recipe's component tokens are
+     * declared on the CARRIER, so a lone `trigger` reads them as nothing and
+     * inherits a pass) — plus the skin's own axis surface
+     * (`axisCellsFor`: "carbon wires `danger-ghost` and heroui does not" is
+     * not something a shared list can express).
+     */
+    text: Cell[];
+    /**
+     * Per design system, because a mark on a part that RE-CARRIES a colour
+     * axis (#94 — timeline's marker takes `color`) is also measured once per
+     * value the design system wires, with the attribute on the part itself.
+     */
+    indicator: IndicatorCell[];
+}
+
+const dsManifestOf = (ds: string): DesignSystemManifest => JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
+
+const cells = new Map<string, Promise<DesignSystemCells>>();
+
+/**
+ * The cell product for one design system, from its merged manifest — see
+ * `resolvedInputs`. Computed once per worker: every theme of a design system
+ * measures the same cells, so the per-theme tests share one product.
+ */
+function cellsFor(ds: string): Promise<DesignSystemCells> {
+    let pending = cells.get(ds);
+    if (!pending) {
+        pending = (async () => {
+            const { manifest } = await resolvedInputs(ds);
+            const dsManifest = dsManifestOf(ds);
+            return {
+                components: manifest.components,
+                text: [...textCells(manifest.components), ...axisCellsFor(dsManifest.components, manifest.components)],
+                indicator: indicatorCellsFor(manifest.components, dsManifest.components),
+            };
+        })();
+        cells.set(ds, pending);
+    }
+    return pending;
+}
+
+/**
+ * Zero's anatomy plus every fragment scope some design system merged — what
+ * the anatomy-level guards below (`indicator coverage`, `axis chains`) hold,
+ * so an ecosystem scope answers to them the moment any skin adopts it.
+ */
+async function everyComponent(): Promise<ManifestComponent[]> {
+    const byScope = new Map(anatomy.components.map((c) => [c.scope, c]));
+    for (const ds of DESIGN_SYSTEMS) {
+        for (const c of (await resolvedInputs(ds)).manifest.components) {
+            if (!byScope.has(c.scope)) byScope.set(c.scope, c);
+        }
+    }
+    return [...byScope.values()];
+}
 
 /**
  * Combinations this audit does not currently assert. Keep this list SHORT and
@@ -336,12 +447,7 @@ function installColorMath(): void {
 // this file used to carry were pinned equal to the derived ones, row for row,
 // in the kit's `contrast-static.test.ts` before they were retired here; menu's
 // mark reaches the host ROW the tree does not know through `paint.host`.
-//
-// Per design system, because a mark on a part that RE-CARRIES a colour axis
-// (#94 — timeline's marker takes `color`) is also measured once per value the
-// design system wires, with the attribute on the part itself.
-const indicatorCellsOf = (wired: DesignSystemManifest['components']): IndicatorCell[] =>
-    indicatorCellsFor(anatomy.components, wired);
+// The cells themselves are per design system — see `cellsFor`.
 
 interface Reading {
     key: string;
@@ -373,17 +479,18 @@ interface IndicatorReading {
     unpainted: boolean;
 }
 
-test('indicator coverage: every paint-only part has an ancestor chain', ({}, testInfo) => {
+test('indicator coverage: every paint-only part has an ancestor chain', async ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
 
     // The kit's own guard, as a function — the same declarations the static
-    // matrix measures.
+    // matrix measures, over every scope some design system compiled.
+    const components = await everyComponent();
     expect(
-        uncoveredPaintParts(anatomy.components),
+        uncoveredPaintParts(components),
         'paint-only parts that do not declare `paint` in their anatomy — the matrix would skip them',
     ).toEqual([]);
     // And not vacuously: the anatomy must name the marks the six skins draw.
-    expect(paintSpecs(anatomy.components).length).toBeGreaterThanOrEqual(20);
+    expect(paintSpecs(components).length).toBeGreaterThanOrEqual(20);
 });
 
 /**
@@ -403,16 +510,19 @@ test('indicator coverage: every paint-only part has an ancestor chain', ({}, tes
  * anchors the selector. A chain rooted anywhere else would build a DOM the
  * emitted CSS never matches, and report the unvaried colour as a pass.
  */
-test('axis coverage: every text-bearing part of a variant-wiring scope is reachable', ({}, testInfo) => {
+test('axis coverage: every text-bearing part of a variant-wiring scope is reachable', async ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
 
     const unreachable: string[] = [];
     for (const ds of DESIGN_SYSTEMS) {
-        const manifest: DesignSystemManifest = JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
+        const manifest = dsManifestOf(ds);
+        // The MERGED manifest (#245): a fragment scope that wired `variant`
+        // is a component this design system has, not a missing one.
+        const { components } = (await resolvedInputs(ds)).manifest;
         for (const [scope, wired] of Object.entries(manifest.components)) {
             const fused = Object.keys(colourBearingAxes(wired));
             if (fused.length === 0) continue;
-            const component = anatomy.components.find((c) => c.scope === scope);
+            const component = components.find((c) => c.scope === scope);
             if (!component) {
                 unreachable.push(`${ds}/${scope} — the anatomy declares no such component`);
                 continue;
@@ -444,11 +554,11 @@ test('axis coverage: every text-bearing part of a variant-wiring scope is reacha
  * go on `nodes[0]` and a chain rooted anywhere else would measure the
  * unvaried colour and call it a pass.
  */
-test('axis chains: every derived chain resolves against the anatomy, rooted at the carrier', ({}, testInfo) => {
+test('axis chains: every derived chain resolves against the anatomy, rooted at the carrier', async ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
 
     let derived = 0;
-    for (const component of anatomy.components) {
+    for (const component of await everyComponent()) {
         const carrier = carrierPart(component);
         for (const part of component.parts) {
             if (part.name === carrier || !part.tokens?.includes('text')) continue;
@@ -476,13 +586,14 @@ test('axis chains: every derived chain resolves against the anatomy, rooted at t
  * Whether the cell it names still needs suppressing is checked inside each
  * matrix, against real readings.
  */
-test('allowlist coverage: every INTENDED_LOW_CONTRAST entry names a cell some matrix renders', ({}, testInfo) => {
+test('allowlist coverage: every INTENDED_LOW_CONTRAST entry names a cell some matrix renders', async ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
 
     const known = new Set<string>();
     for (const ds of DESIGN_SYSTEMS) {
-        const manifest: DesignSystemManifest = JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
-        const dsCells: Cell[] = [...cells, ...axisCellsFor(manifest.components, anatomy.components), ...indicatorCellsOf(manifest.components)];
+        const manifest = dsManifestOf(ds);
+        const { text, indicator } = await cellsFor(ds);
+        const dsCells: Cell[] = [...text, ...indicator];
         for (const theme of manifest.themes) {
             for (const cell of dsCells) known.add(cellKey(ds, theme.name, cell));
         }
@@ -492,6 +603,59 @@ test('allowlist coverage: every INTENDED_LOW_CONTRAST entry names a cell some ma
         [...INTENDED_LOW_CONTRAST].filter((key) => !known.has(key)),
         'INTENDED_LOW_CONTRAST entries matching no cell in either matrix — a mistyped or outdated key, which silences nothing',
     ).toEqual([]);
+});
+
+/**
+ * Fragment scopes are measured exactly where they were merged (#245), and
+ * nowhere else.
+ *
+ * A design system's `externalScopes` (its compiled `dist/manifest.json`)
+ * names every scope an ecosystem package contributed. Each one whose
+ * component has a text-bearing part must produce text cells in that design
+ * system, and each one with a paint part must produce indicator cells —
+ * otherwise the matrices are back to reading zero's anatomy alone, which is
+ * how `ext-stepper` compiled into zero-basic unmeasured. And a design system
+ * that did NOT merge a fragment scope must produce no cells for it at all: its
+ * CSS has no rule for the scope, so a cell there would measure the unstyled
+ * part and report the page's own colours as a pass.
+ */
+test('fragment scopes: measured exactly where merged', async ({}, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
+
+    const manifests = new Map(DESIGN_SYSTEMS.map((ds) => [ds, dsManifestOf(ds)] as const));
+    const fragmentScopes = new Set([...manifests.values()].flatMap((m) => Object.keys(m.externalScopes ?? {})));
+    const problems: string[] = [];
+    for (const [ds, manifest] of manifests) {
+        const merged = new Set(Object.keys(manifest.externalScopes ?? {}));
+        const { components, text, indicator } = await cellsFor(ds);
+        for (const scope of fragmentScopes) {
+            const textCount = text.filter((c) => c.scope === scope).length;
+            const indicatorCount = indicator.filter((c) => c.scope === scope).length;
+            if (!merged.has(scope)) {
+                if (textCount + indicatorCount > 0) {
+                    problems.push(`${ds}/${scope} — not merged by ${ds}, yet ${textCount} text and ${indicatorCount} indicator cells`);
+                }
+                continue;
+            }
+            const component = components.find((c) => c.scope === scope);
+            if (!component) {
+                problems.push(`${ds}/${scope} — in externalScopes, but the resolved manifest has no such component`);
+                continue;
+            }
+            if (component.parts.some((p) => p.tokens?.includes('text')) && textCount === 0) {
+                problems.push(`${ds}/${scope} — merged, has a text-bearing part, and produces no text cells`);
+            }
+            if (component.parts.some((p) => p.paint !== undefined) && indicatorCount === 0) {
+                problems.push(`${ds}/${scope} — merged, has a paint part, and produces no indicator cells`);
+            }
+        }
+    }
+    expect(problems, 'fragment scopes measured where they were not merged, or not measured where they were').toEqual([]);
+
+    // Not vacuously: zero-basic adopts `ext-stepper`, and its item is text.
+    expect(fragmentScopes.has('ext-stepper'), 'no design system merges ext-stepper any more — the guard above held nothing').toBe(true);
+    const basic = await cellsFor('basic');
+    expect(basic.text.some((c) => c.scope === 'ext-stepper' && c.part === 'item')).toBe(true);
 });
 
 // ── Parity with the static matrix (#403, slice D) ───────────────────────────
@@ -577,12 +741,11 @@ function staticMatrix(ds: string): Promise<Map<string, ContrastCell[]>> {
     let pending = staticMatrices.get(ds);
     if (!pending) {
         pending = (async () => {
-            // The skin's compiled input from its built `dist/` — by path, not
-            // through the package entry, which registers themes with
-            // `@sigx/zero` and has no business running under Node.
-            const url = pathToFileURL(join(root, `packages/zero-${ds}/dist/design-system.js`)).href;
-            const { designSystem } = (await import(url)) as DesignSystemModule;
-            const result = auditDesignSystem(designSystem, anatomy, { rules: CONTRAST_RULES });
+            // The skin's inputs as its build resolved them — the merged
+            // manifest and the pack-composed recipes — so the static side
+            // lists the same fragment cells the browser measures (#245).
+            const { manifest, designSystem } = await resolvedInputs(ds);
+            const result = auditDesignSystem(designSystem, manifest, { rules: CONTRAST_RULES });
             return new Map(result.contrast.themes.map((t) => [t.name, t.cells]));
         })();
         staticMatrices.set(ds, pending);
@@ -706,12 +869,11 @@ test('reference media: the chromium project renders the page the static matrix a
 
 for (const ds of DESIGN_SYSTEMS) {
     const dsCss = read(`packages/zero-${ds}/dist/css/index.css`);
-    const dsManifest: DesignSystemManifest = JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
+    const dsManifest = dsManifestOf(ds);
     const themes = dsManifest.themes;
-    // The axis surface is per design system — a shared list cannot express
-    // "carbon wires `danger-ghost` and heroui does not".
-    const dsTextCells: Cell[] = [...cells, ...axisCellsFor(dsManifest.components, anatomy.components)];
-    const dsIndicatorCells: IndicatorCell[] = indicatorCellsOf(dsManifest.components);
+    // The cells themselves are async (the merged manifest comes from
+    // `resolveEcosystem`), so each test awaits them — memoized per worker,
+    // see `cellsFor`.
 
     /** The app baseline every real app provides, plus the compiled DS CSS. */
     const stage = async (page: Page, theme: string): Promise<void> => {
@@ -742,6 +904,7 @@ for (const ds of DESIGN_SYSTEMS) {
             test.skip(testInfo.project.name !== 'chromium', 'one engine; canvas-resolved colors are engine-independent');
 
             await stage(page, theme.name);
+            const { text: dsTextCells } = await cellsFor(ds);
 
             // The chained product is the one that grows without anyone
             // noticing, so it is counted out loud on every run and capped
@@ -970,6 +1133,7 @@ for (const ds of DESIGN_SYSTEMS) {
             test.skip(testInfo.project.name !== 'chromium', 'one engine; canvas-resolved colors are engine-independent');
 
             await stage(page, theme.name);
+            const { components, indicator: dsIndicatorCells } = await cellsFor(ds);
 
             const readings: IndicatorReading[] = await page.evaluate(({ cells }) => {
                 const { resolve, blend, contrast, hasInk } = window.zeroColorMath;
@@ -1316,7 +1480,7 @@ for (const ds of DESIGN_SYSTEMS) {
             // never asserted here.
             const painted = readings.filter((r) => !r.unpainted);
             const paintedParts = new Set(painted.map((r) => `${r.scope}/${r.part}`));
-            for (const spec of paintSpecs(anatomy.components)) {
+            for (const spec of paintSpecs(components)) {
                 if (paintedParts.has(`${spec.scope}/${spec.part}`)) continue;
                 testInfo.annotations.push({
                     type: 'indicator-never-painted',

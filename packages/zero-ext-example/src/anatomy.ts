@@ -11,6 +11,11 @@ export const stepperAnatomy = defineAnatomy('ext-stepper', {
     'root': { element: 'div' },
     'item': {
         element: 'button',
+        // Inside the root (#245): the part tree is what the contrast audit
+        // derives its ancestor chain from, and the root is the carrier the
+        // compiler anchors the axis rules to — so an item measured alone
+        // would never meet a `data-color` rule.
+        parent: 'root',
         // `complete` is position-derived (before the current step), which is
         // exactly the kind of state a design system wants to paint: the walk
         // of a wizard is told by ink, not by position alone.
