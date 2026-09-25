@@ -222,6 +222,14 @@
   key did anything, and at 0 the tab stop could not be checked from the
   keyboard at all. The keys always commit the whole index and never
   deselect: a half value takes the pointer or the arrows.
+- **The theme controller's `resolvedScheme()` follows an OS scheme change
+  (#178).** When following the system, it read `matchMedia` untracked, so a
+  render or effect that showed it (a sun/moon toggle icon) kept the scheme
+  it first saw after the OS switched. A shared, lazily created
+  `(prefers-color-scheme: dark)` signal with a `change` listener now backs
+  it, in the browser only. `toggle()` was already correct, since it reads the
+  scheme when called. The page colours were never affected: they follow
+  `light-dark()` in CSS.
 
 ## [0.5.0] - 2026-09-23
 

@@ -983,6 +983,25 @@ const Transcript = component(({ props }) => {
   wants `aria-setsize={v.count()}` and `aria-posinset={row.index + 1}` on
   each row, because only a window is in the accessibility tree.
 
+## Theme controller
+
+`themeController()` (the browser singleton) and `useTheme()` (the nearest
+`ThemeProvider`'s instance) hold the explicit theme choice: `theme()` is a
+name, or `null` to follow the system. `resolvedScheme()` returns the
+effective scheme, `'light' | 'dark'`. It is reactive in both modes. With an
+explicit theme it follows `theme()`. When following the system it follows
+the OS: a `(prefers-color-scheme: dark)` change re-runs any render or effect
+that read it, so a sun/moon icon stays correct (#178). The media listener is
+created on the first follow-system read, in the browser only, and every
+controller on the page shares it. On the server, and where `matchMedia` does
+not exist, the system scheme is `'light'`. The page colours never depend on
+this value: the compiled CSS follows the OS through `light-dark()`.
+
+```tsx
+const ctl = themeController();
+return () => <button onClick={() => ctl.toggle()}>{ctl.resolvedScheme() === 'dark' ? 'Moon' : 'Sun'}</button>;
+```
+
 ## Typed vocabulary (opt-in)
 
 The variant-axis props (`color`, `size`, `variant`, `axes`, `mods`) are open unions
