@@ -1194,7 +1194,13 @@ same behaviors, held to the same conformance assertion:
   would split the IDREFS that point at it, so build both the `id` and every
   `aria-*` reference with it), roving tabindex,
   dismissal, focus management (`createFocusRestore`, `focusFirst`,
-  `getTabbables`), list/tree registration with listbox-highlight stepping
+  `getTabbables`, `isFocusable`: tabbable detection skips anything
+  disabled — a disabled `<fieldset>` included, bar its first legend —
+  inert, hidden or unrendered, and a radio group is one stop;
+  `createFocusRestore(isOpen, { getSurface, fallback })` hands focus back
+  on close only while it is still on the surface or on nothing, and falls
+  back — to the trigger, in Popover, Menu, Dialog and Drawer — when the
+  element focused before opening can no longer take it), list/tree registration with listbox-highlight stepping
   (`moveHighlight`, `optionText`), typeahead (`createTypeahead`: a
   multi-character search refines the current match instead of stepping past
   it, and its `searching()` tells a caller that routes Space to activation to

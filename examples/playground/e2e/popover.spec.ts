@@ -5,11 +5,12 @@
  * platform and the focus behaviors own: the top layer actually showing, the
  * dialog-role focus move on open (#324's `focusFirst` — an unshown popover
  * cannot take focus, so the move is deferred past `showPopover()`), native
- * light dismiss and Escape, and focus restore to the trigger on close.
+ * light dismiss and Escape, and focus restore to the trigger on close —
+ * only while focus is still the popup's to hand back (#262).
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { controlledPopup } from './demo';
+import { controlledPopup, demoPosting } from './demo';
 
 test.beforeEach(async ({ page }) => {
     await bootPage(page, 'popover', 'basic');
@@ -59,6 +60,28 @@ test('a genuinely outside click light-dismisses', async ({ page }) => {
     // popover="auto": light dismiss is the platform's, not a zero handler.
     await page.locator('h1').click();
     await expect(popup).toHaveAttribute('data-state', 'closed');
+});
+
+test('an outside click into a text field light-dismisses and leaves focus in the field (#262)', async ({ page }) => {
+    const t = trigger(page);
+    // Keyboard open, so the trigger genuinely holds focus before the popup
+    // takes it: a restore that ignored where focus went would pull it back
+    // to a real target, not a no-op body (see the Escape test).
+    await t.focus();
+    await page.keyboard.press('Enter');
+    const popup = await controlledPopup(page, t, 'the Filters trigger');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await expect(popup.locator('[data-scope="switch"][data-part="hidden-input"]')).toBeFocused();
+
+    const field = demoPosting(page, 'input', 'popover-search')('input');
+    await field.click();
+    await expect(popup).toHaveAttribute('data-state', 'closed');
+    await expect(popup).not.toBeVisible();
+    await expect(field).toBeFocused();
+    // Not a momentary win: typing still lands in the field.
+    await page.keyboard.type('abc');
+    await expect(field).toHaveValue('abc');
+    await expect(field).toBeFocused();
 });
 
 test('the Close button closes and restores focus to the trigger', async ({ page }) => {
