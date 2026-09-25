@@ -4,14 +4,14 @@ export const checkboxAnatomy = defineAnatomy('checkbox', {
     root: {
         element: 'label',
         states: ['checked', 'unchecked', 'indeterminate'],
-        flags: ['disabled', 'focus-visible', 'invalid', 'required'],
+        flags: ['disabled', 'focus-visible', 'invalid', 'required', 'readonly'],
         tokens: ['color'],
     },
     control: {
         element: 'span',
         parent: 'root',
         states: ['checked', 'unchecked', 'indeterminate'],
-        flags: ['disabled', 'focus-visible', 'invalid', 'pressed', 'press-animating'],
+        flags: ['disabled', 'focus-visible', 'invalid', 'readonly', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     indicator: {

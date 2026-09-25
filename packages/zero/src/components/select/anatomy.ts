@@ -4,14 +4,14 @@ import { PLACEMENT_VOCABULARY } from '../../contract/data-attrs.js';
 export const selectAnatomy = defineAnatomy('select', {
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'required'],
+        flags: ['disabled', 'invalid', 'required', 'readonly'],
         tokens: ['color'],
     },
     trigger: {
         element: 'button',
         parent: 'root',
         states: ['open', 'closed'],
-        flags: ['disabled', 'invalid', 'focus-visible', 'placeholder', 'pressed', 'press-animating'],
+        flags: ['disabled', 'invalid', 'readonly', 'focus-visible', 'placeholder', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },

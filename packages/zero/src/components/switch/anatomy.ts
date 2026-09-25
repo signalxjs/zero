@@ -4,7 +4,7 @@ export const switchAnatomy = defineAnatomy('switch', {
     root: {
         element: 'label',
         states: ['checked', 'unchecked'],
-        flags: ['disabled', 'focus-visible', 'invalid', 'required'],
+        flags: ['disabled', 'focus-visible', 'invalid', 'required', 'readonly'],
         tokens: ['color'],
     },
     control: {
@@ -15,7 +15,7 @@ export const switchAnatomy = defineAnatomy('switch', {
         // track is what a design system paints, and reaching it from the root
         // costs every recipe a descendant selector for a fact the control
         // knows about itself (#269).
-        flags: ['disabled', 'focus-visible', 'invalid', 'pressed', 'press-animating'],
+        flags: ['disabled', 'focus-visible', 'invalid', 'readonly', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     thumb: {

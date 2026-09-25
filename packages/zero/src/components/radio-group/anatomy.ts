@@ -3,7 +3,7 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const radioGroupAnatomy = defineAnatomy('radio-group', {
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'required'],
+        flags: ['disabled', 'invalid', 'required', 'readonly'],
         tokens: ['color'],
     },
     label: {
@@ -16,14 +16,18 @@ export const radioGroupAnatomy = defineAnatomy('radio-group', {
         element: 'label',
         parent: 'root',
         states: ['checked', 'unchecked'],
-        flags: ['disabled', 'focus-visible'],
+        // `invalid` and `readonly` are facts about the group, restated on
+        // each item and its control — the surfaces a design system paints —
+        // so a recipe never reaches them through a descendant selector
+        // (checkbox/switch parity, #269/#267).
+        flags: ['disabled', 'focus-visible', 'invalid', 'readonly'],
         tokens: ['color'],
     },
     'item-control': {
         element: 'span',
         parent: 'item',
         states: ['checked', 'unchecked'],
-        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        flags: ['disabled', 'focus-visible', 'invalid', 'readonly', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     'item-indicator': {

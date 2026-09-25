@@ -49,6 +49,11 @@
  * `writing-mode: vertical-lr; direction: rtl`. Every positioned part and the
  * root carry `data-orientation`, so a recipe restyles the rail against it —
  * a vertical thumb centers with `margin-block-end` instead.
+ *
+ * `readonly` (the prop or the Field's) keeps every control focusable and
+ * announced (`aria-readonly`) but refuses every user write: no key steps a
+ * thumb, no press moves or drags one, and the native range's own input is
+ * put back — it has no `readonly` of its own.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -61,7 +66,7 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, type Orientation } from '../../contract/data-attrs.js';
 import { htmlAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithForm, WithHtmlAttrs, WithInvalid, WithName, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithForm, WithHtmlAttrs, WithInvalid, WithName, WithOrientation, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { sliderAnatomy } from './anatomy.js';
 
 const SCOPE = sliderAnatomy.scope;
@@ -88,6 +93,7 @@ interface SliderContext {
      * Write one value: quantized to `step`, clamped to `[min, max]` AND at
      * the neighboring thumbs (thumbs cannot cross). Emission preserves the
      * model's shape — scalar in, scalar out.
+     * A no-op while readonly — every user write comes through here.
      */
     setValueAt(index: number, value: number): void;
     min(): number;
@@ -97,6 +103,7 @@ interface SliderContext {
     invalid(): boolean;
     /** The enclosing Field's description/error ids, when there is one. */
     describedBy(): string | undefined;
+    readonly(): boolean;
     name(): string | undefined;
     form(): string | undefined;
     /** The scalar projection's default; null under a range model. */
@@ -143,6 +150,7 @@ function makeInert(): SliderContext {
         disabled: () => false,
         invalid: () => false,
         describedBy: () => undefined,
+        readonly: () => false,
         name: () => undefined,
         form: () => undefined,
         defaultScalar: () => null,
@@ -212,6 +220,9 @@ function positionStyle(orientation: Orientation, percent: number): Record<string
         : { position: 'absolute', insetInlineStart: `${percent}%` };
 }
 
+/** The keys a native range steps its value on — cancelled while readonly. */
+const VALUE_KEYS = new Set(['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);
+
 /** Digits after the decimal point — what `quantize` rounds float drift to. */
 function decimalsOf(n: number): number {
     const s = String(n);
@@ -240,6 +251,8 @@ export type SliderRootProps =
      */
     & WithOrientation
     & WithDisabled
+    /** Focusable, but no key, press or drag changes the value. The prop OR the Field's. */
+    & WithReadonly
     & WithVariantAxes<'slider'>
     & WithClass
     & WithHtmlAttrs
@@ -295,6 +308,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
     };
 
     const setValueAt = (index: number, raw: number): void => {
+        if (fc.readonly()) return;
         const vals = values();
         if (index < 0 || index >= vals.length) return;
         let v = quantize(raw);
@@ -335,6 +349,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
         disabled: fc.disabled,
         invalid: fc.invalid,
         describedBy: fc.describedBy,
+        readonly: fc.readonly,
         name: fc.name,
         form: fc.form,
         defaultScalar: () => (Array.isArray(props.defaultValue) ? null : props.defaultValue ?? min()),
@@ -379,7 +394,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             return min() + ratio * (max() - min());
         },
         beginDrag(index) {
-            if (ctx.disabled()) return;
+            if (ctx.disabled() || ctx.readonly()) return;
             detachDrag?.();
             dragIndex = index;
             const onMove = (e: PointerEvent): void => {
@@ -408,6 +423,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             data-orientation={ctx.orientation()}
             data-disabled={dataAttr(ctx.disabled())}
             data-invalid={dataAttr(ctx.invalid())}
+            data-readonly={dataAttr(ctx.readonly())}
             data-focus-visible={dataAttr(focusVisible.visible)}
             style={{ '--slider-percent': `${ctx.percent()}%` }}
             {...fc.axisAttrs()}
@@ -488,7 +504,7 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
     // one-shot: a drag has no ripple.
     const press = createPressFeedback({
         getElement: () => el,
-        isDisabled: () => slider.disabled(),
+        isDisabled: () => slider.disabled() || slider.readonly(),
         oneShot: false,
     });
 
@@ -504,8 +520,10 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
                 data-orientation={slider.orientation()}
                 data-disabled={dataAttr(slider.disabled())}
                 data-invalid={dataAttr(slider.invalid())}
+                data-readonly={dataAttr(slider.readonly())}
                 data-focus-visible={dataAttr(slider.focusVisible.visible)}
                 aria-orientation={slider.orientation()}
+                aria-readonly={slider.readonly() ? 'true' : undefined}
                 // A vertical native range is spelled through writing mode (the
                 // HTML-spec way); `direction: rtl` puts min at the bottom. It is
                 // structural, like the composed parts' positioning — zero still
@@ -533,6 +551,16 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
                 onPointerdown={press.onPointerdown}
                 onPointerup={press.onPointerup}
                 onPointercancel={press.onPointercancel}
+                // A native range has no `readonly`: the value keys are cancelled
+                // (so a readonly range does not step), and whatever still moves
+                // it — a press or a drag — is put back on its `input`. The model
+                // never sees it, since `setValueAt` refuses the write.
+                onKeydown={(e: KeyboardEvent) => {
+                    if (slider.readonly() && VALUE_KEYS.has(e.key)) e.preventDefault();
+                }}
+                onInput={() => {
+                    if (slider.readonly() && el) el.value = String(slider.values()[0]);
+                }}
                 onFocus={() => { slider.focusVisible.visible = isFocusVisible(el); }}
                 onBlur={(e: FocusEvent) => {
                     press.onBlur(e);
@@ -563,11 +591,12 @@ const SliderTrack = component<SliderTrackProps>(({ props, slots }) => {
             data-part="track"
             data-orientation={slider.orientation()}
             data-disabled={dataAttr(slider.disabled())}
+            data-readonly={dataAttr(slider.readonly())}
             style={{ position: 'relative' }}
             class={props.class}
             ref={(node: HTMLElement | null) => { slider.setTrack(node); }}
             onPointerdown={(e: PointerEvent) => {
-                if (slider.disabled() || e.button !== 0) return;
+                if (slider.disabled() || slider.readonly() || e.button !== 0) return;
                 // The value under the pointer decides which thumb answers.
                 e.preventDefault();
                 const v = slider.trackToValue(e);
@@ -660,7 +689,7 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
     // one-shot, the behavior's window release ends it wherever it ends.
     const press = createPressFeedback({
         getElement: () => el,
-        isDisabled: () => slider.disabled(),
+        isDisabled: () => slider.disabled() || slider.readonly(),
         oneShot: false,
     });
 
@@ -679,6 +708,7 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
         const value = slider.values()[i] ?? slider.min();
         const { lo, hi } = bounds();
         const disabled = slider.disabled();
+        const readonly = slider.readonly();
         const attrs = htmlAttrs(props);
         const ownName = props.label ?? (typeof attrs['aria-label'] === 'string' ? attrs['aria-label'] : undefined);
         const orientation = slider.orientation();
@@ -689,6 +719,7 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
                 data-part="thumb"
                 data-orientation={orientation}
                 data-disabled={dataAttr(disabled)}
+                data-readonly={dataAttr(readonly)}
                 data-focus-visible={dataAttr(focus.visible)}
                 role="slider"
                 tabIndex={disabled ? undefined : 0}
@@ -708,11 +739,13 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
                 aria-valuetext={slider.valueTextFor(value, i) ?? attrs['aria-valuetext']}
                 aria-describedby={[slider.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
                 aria-disabled={disabled ? 'true' : undefined}
+                aria-readonly={readonly ? 'true' : undefined}
                 style={positionStyle(orientation, slider.percentOf(value))}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; }}
                 onKeydown={(e: KeyboardEvent) => {
-                    if (disabled) return;
+                    // Readonly swallows nothing: the keys are the page's.
+                    if (disabled || readonly) return;
                     const s = slider.step();
                     // APG: Right/Up increase, Left/Down decrease. Only a
                     // horizontal rail mirrors Left/Right in RTL — a vertical
@@ -740,7 +773,9 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
                     slider.setValueAt(i, value + delta);
                 }}
                 onPointerdown={(e: PointerEvent) => {
-                    if (disabled || e.button !== 0) return;
+                    // Readonly: the press focuses the thumb natively (it is a
+                    // tab stop) and the track refuses it too — no drag.
+                    if (disabled || readonly || e.button !== 0) return;
                     // The track's nearest-thumb pick must not run — a press ON
                     // a thumb drags THAT thumb, even with both stacked.
                     e.stopPropagation();

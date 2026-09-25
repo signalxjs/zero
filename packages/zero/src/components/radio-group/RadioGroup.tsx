@@ -34,7 +34,7 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
 import { htmlAttrs } from '../../contract/props.js';
-import type { HtmlAttrValue, WithClass, WithDisabled, WithFormControl, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import type { HtmlAttrValue, WithClass, WithDisabled, WithFormControl, WithHtmlAttrs, WithOrientation, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { radioGroupAnatomy } from './anatomy.js';
 
 const SCOPE = radioGroupAnatomy.scope;
@@ -47,6 +47,7 @@ interface RadioGroupContext {
     disabled(): boolean;
     invalid(): boolean;
     required(): boolean;
+    readonly(): boolean;
     /** The Label's own id — referenced by the root only while it is mounted. */
     labelId: string;
     setLabelPresent(present: boolean): void;
@@ -61,6 +62,7 @@ function makeInert(): RadioGroupContext {
         disabled: () => false,
         invalid: () => false,
         required: () => false,
+        readonly: () => false,
         labelId: 'zx-radio-inert-label',
         setLabelPresent: () => {},
     };
@@ -86,6 +88,12 @@ export type RadioGroupRootProps<T = unknown> =
     /** A custom label for a generated item. */
     & Define.Slot<'item', { item: T }>
     & WithFormControl
+    /**
+     * Read-only: the radios stay focusable and arrow keys still move focus
+     * between them, but no click, Space or arrow changes the value (the
+     * platform's activation is cancelled). The prop OR the Field's.
+     */
+    & WithReadonly
     & WithOrientation
     & WithVariantAxes<'radio-group'>
     & WithClass
@@ -133,6 +141,7 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit,
         disabled: fc.disabled,
         invalid: fc.invalid,
         required: fc.required,
+        readonly: fc.readonly,
         labelId,
         setLabelPresent: (p) => { present.label = countPresence(present.label, p); },
     };
@@ -164,6 +173,9 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit,
                 data-disabled={dataAttr(ctx.disabled())}
                 data-invalid={dataAttr(ctx.invalid())}
                 data-required={dataAttr(ctx.required())}
+                data-readonly={dataAttr(ctx.readonly())}
+                aria-orientation={orientation()}
+                aria-readonly={ctx.readonly() ? 'true' : undefined}
                 aria-labelledby={[
                     fc.field.inert ? undefined : fc.labelId(),
                     !present.settled || present.label > 0 ? labelId : undefined,
@@ -225,7 +237,7 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal, o
     // feedback on the visible item-control.
     const press = createPressFeedback({
         getElement: () => controlEl,
-        isDisabled: () => disabled(),
+        isDisabled: () => disabled() || group.readonly(),
     });
 
     return () => {
@@ -242,6 +254,8 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal, o
                 data-state={checkedState()}
                 data-disabled={dataAttr(disabled())}
                 data-focus-visible={dataAttr(focus.visible)}
+                data-invalid={dataAttr(group.invalid())}
+                data-readonly={dataAttr(group.readonly())}
                 class={props.class}
                 onPointerdown={press.onPointerdown}
                 onPointerup={press.onPointerup}
@@ -259,7 +273,9 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal, o
                     value={props.value}
                     model={group.state}
                     disabled={disabled()}
-                    required={group.required()}
+                    // Readonly never blocks a submit — the native rule for
+                    // readonly controls.
+                    required={group.required() && !group.readonly()}
                     aria-invalid={group.invalid() ? 'true' : undefined}
                     ref={(node: HTMLInputElement | null) => { inputEl = node; }}
                     onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
@@ -267,6 +283,13 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal, o
                         press.onBlur(e);
                         focus.visible = false;
                     }}
+                    // Every way a radio gets checked — a click, a label press,
+                    // Space, and the platform's arrow-key roving (which moves
+                    // focus AND dispatches a click on the radio it lands on) —
+                    // is an activation, so cancelling it is the whole of
+                    // readonly: the platform restores the previous radio and
+                    // fires no change, while focus still moves.
+                    onClick={(e: MouseEvent) => { if (group.readonly()) e.preventDefault(); }}
                     onKeydown={press.onKeydown}
                     onKeyup={press.onKeyup}
                 />
@@ -276,6 +299,8 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal, o
                     data-state={checkedState()}
                     data-disabled={dataAttr(disabled())}
                     data-focus-visible={dataAttr(focus.visible)}
+                    data-invalid={dataAttr(group.invalid())}
+                    data-readonly={dataAttr(group.readonly())}
                     ref={(node: HTMLElement | null) => { controlEl = node; }}
                 >
                     <span
