@@ -154,12 +154,9 @@ function makeInert(): MenuContext {
         triggerPresent: () => false,
         setTriggerPresent: () => {},
         keydown: () => {},
-<<<<<<< HEAD
         searching: () => false,
-=======
         takeOpenFocus: () => 'first',
         setOpenFocus: () => {},
->>>>>>> 6ed266b (fix(menu): ArrowUp opens on the last item; Enter on a link item navigates)
         select: () => {},
         setAnchor: () => {},
         openAt: () => {},
@@ -227,16 +224,13 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
             roving(e, value);
             if (!e.defaultPrevented) typeahead(e, value);
         },
-<<<<<<< HEAD
         searching: () => typeahead.searching(),
-=======
         takeOpenFocus() {
             const end = openFocus;
             openFocus = 'first';
             return end;
         },
         setOpenFocus: (end) => { openFocus = end; },
->>>>>>> 6ed266b (fix(menu): ArrowUp opens on the last item; Enter on a link item navigates)
         select(value, closeOverride) {
             emit('select', value);
             if (closeOverride ?? (props.closeOnSelect ?? true)) state.value = false;
@@ -572,20 +566,15 @@ function useMenuItemCore({ signal, onUnmounted }: ItemHooks, opts: ItemCoreOpts)
         'aria-disabled': opts.disabled() ? 'true' : undefined,
         onClick: () => activate(),
         onKeydown: (e: KeyboardEvent) => {
-<<<<<<< HEAD
             // A Space that continues a search is search text, not a press.
             const searchSpace = e.key === ' ' && menu.searching();
             if (!searchSpace) press.onKeydown(e);
             if (e.key === 'Enter' || (e.key === ' ' && !searchSpace)) {
-=======
-            press.onKeydown(e);
-            if (e.key === 'Enter' || e.key === ' ') {
                 // An enabled link item (asChild `<a href>`) keeps Enter's
                 // default: the browser turns it into the link's own click,
                 // which navigates AND activates through onClick — preventing
                 // it would select without navigating (#175).
                 if (e.key === 'Enter' && !opts.disabled() && el?.matches('a[href], area[href]')) return;
->>>>>>> 6ed266b (fix(menu): ArrowUp opens on the last item; Enter on a link item navigates)
                 e.preventDefault();
                 activate();
                 return;
@@ -961,13 +950,10 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
             roving(e, value);
             if (!e.defaultPrevented) typeahead(e, value);
         },
-<<<<<<< HEAD
         searching: () => typeahead.searching(),
-=======
         // A submenu opens from its sub-trigger, never by ArrowUp: always first.
         takeOpenFocus: () => 'first',
         setOpenFocus: () => {},
->>>>>>> 6ed266b (fix(menu): ArrowUp opens on the last item; Enter on a link item navigates)
         select(value, closeOverride) {
             parent.select(value, closeOverride);
         },
