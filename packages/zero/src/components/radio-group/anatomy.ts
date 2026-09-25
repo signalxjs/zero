@@ -19,7 +19,7 @@ export const radioGroupAnatomy = defineAnatomy('radio-group', {
         // `invalid` and `readonly` are facts about the group, restated on
         // each item and its control — the surfaces a design system paints —
         // so a recipe never reaches them through a descendant selector
-        // (checkbox/switch parity, #269/#267).
+        // (checkbox/switch parity, #267).
         flags: ['disabled', 'focus-visible', 'invalid', 'readonly'],
         tokens: ['color'],
     },

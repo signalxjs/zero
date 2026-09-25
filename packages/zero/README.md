@@ -154,7 +154,7 @@ the `switch` role does not support it, so a readonly Switch says so through
 `data-readonly` alone. As on a native readonly control, a readonly
 `required` control never blocks the submit — its value is not the user's
 to fix. RadioGroup also restates `invalid` on each `item` and
-`item-control` (Checkbox and Switch parity, #269), and writes
+`item-control` (Checkbox and Switch parity), and writes
 `aria-orientation` on the radiogroup.
 
 **A sized Field sizes its control.** A control with no `size` of its own

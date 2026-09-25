@@ -46,7 +46,7 @@ describe.each([
     ['checkbox', Checkbox, checkboxAnatomy],
     ['switch', Switch, switchAnatomy],
 ] as const)('%s readonly', (scope, Component, anatomy) => {
-    it('renders the flag on root and control; a click, a label press and Space never toggle it', () => {
+    it('renders the flag on root and control; neither a click nor a label press toggles it (Space, which happy-dom does not turn into a click, is form-readonly.spec.ts)', () => {
         const state = signal({ on: false });
         render(<Component.Root model={[state, 'on']} readonly>Terms</Component.Root>, container);
         expectAnatomy(container, anatomy);
