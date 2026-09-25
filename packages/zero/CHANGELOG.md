@@ -102,6 +102,16 @@
   there: the browser turns it into the link's own click, which navigates
   and selects once through the click handler. Space and a disabled link
   item are unchanged.
+- **A disabled TreeView node no longer swallows the arrow keys (#177).**
+  A disabled item or branch keeps `tabindex="-1"`, so a pointer click
+  still focuses it, and its keydown returned before roving: Up/Down,
+  Home/End and typeahead did nothing there until Tab left the tree. Keys
+  pressed on a disabled node now navigate — Up/Down move to the enabled
+  node on either side of it (not the first or last), typeahead searches
+  from after it, and ArrowRight enters an already-open subtree while
+  ArrowLeft climbs to the parent (an open disabled branch, which cannot
+  collapse, climbs too). Selection (Enter/Space) and expansion
+  (ArrowRight/ArrowLeft toggling) stay blocked.
 - **Pagination no longer overflows a narrow container (#44).** The row is
   windowed at constant width, so its width follows `count` and the
   windowing props rather than the container. At phone width a wide window

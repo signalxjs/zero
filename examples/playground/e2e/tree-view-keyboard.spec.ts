@@ -5,8 +5,9 @@
  * this spec proves the composite through a real focus pipeline: ArrowUp/Down
  * walk visible nodes only, ArrowRight expands-then-descends, ArrowLeft
  * collapses-then-climbs, Enter/Space select without toggling expansion,
- * disabled nodes are skipped by navigation AND typeahead, and typeahead
- * moves focus by first characters.
+ * disabled nodes are skipped by navigation AND typeahead, typeahead
+ * moves focus by first characters, and a disabled node that a pointer focused
+ * still navigates without selecting (#177).
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { bootPage } from './nav';
@@ -119,4 +120,27 @@ test('typeahead jumps by first characters and skips disabled nodes', async ({ pa
     await page.waitForTimeout(1100); // let the 1 s typeahead buffer reset
     await page.keyboard.press('s');
     await expect(src).toBeFocused();
+});
+
+test('a pointer-focused disabled node still roves, but never selects (#177)', async ({ page }) => {
+    const secrets = item(page, 'secrets.env');
+    // tabindex=-1 takes a click's focus in every engine — that is how a
+    // disabled node ends up focused at all; keyboard roving skips it.
+    // `force`: Playwright refuses to click an aria-disabled element, but a
+    // user's mouse does not.
+    await secrets.click({ force: true });
+    await expect(secrets).toBeFocused();
+
+    await page.keyboard.press('Enter');
+    await page.keyboard.press(' ');
+    await expect(secrets).not.toHaveAttribute('data-selected', '');
+
+    // The step lands on its enabled neighbour, not the first node.
+    await page.keyboard.press('ArrowUp');
+    await expect(item(page, 'package.json')).toBeFocused();
+
+    await secrets.click({ force: true });
+    await expect(secrets).toBeFocused();
+    await page.keyboard.press('Home');
+    await expect(branch(page, 'src', 1)).toBeFocused();
 });
