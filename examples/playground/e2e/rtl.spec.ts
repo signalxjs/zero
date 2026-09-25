@@ -45,7 +45,7 @@
  * sets.
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
-import { demoLabelled, rootLabelled, settledBox, DESIGN_SYSTEMS } from './demo';
+import { controlledPopup, demoLabelled, rootLabelled, settledBox, DESIGN_SYSTEMS } from './demo';
 
 /** The skins whose modal drawer sheet slides (#83); basic and brutalist keep the fade. */
 const SLIDES: ReadonlySet<string> = new Set(['daisyui', 'material', 'heroui', 'carbon']);
@@ -274,6 +274,30 @@ for (const ds of DESIGN_SYSTEMS) {
                 }
             });
         }
+
+        /**
+         * A `bottom-start` menu aligns its inline-start edge with its
+         * trigger's (#264) — the RIGHT edges under RTL, so the popup opens
+         * leftwards, towards the reading end. The positioner writes physical
+         * `top`/`left`, so no declaration can say this; only boxes can. And
+         * `data-placement` still reads the LOGICAL `bottom-start`.
+         */
+        test('a bottom-start menu popup aligns with its trigger\'s reading start', async ({ page }) => {
+            const trigger = page.getByRole('button', { name: 'Actions', exact: true });
+            await trigger.scrollIntoViewIfNeeded();
+            await trigger.click();
+            const popup = await controlledPopup(page, trigger, `${ds}: the Actions menu trigger`);
+            await expect(popup).toHaveAttribute('data-state', 'open');
+            await expect(popup).toHaveAttribute('data-placement', /^(bottom|top)-start$/);
+            const t = await settledBox(trigger, `${ds}: the Actions trigger`);
+            const p = await settledBox(popup, `${ds}: the Actions menu popup`);
+            expect(
+                Math.abs((p.x + p.width) - (t.x + t.width)),
+                `${ds}: the popup's inline start (its right edge under RTL) must meet the trigger's`,
+            ).toBeLessThan(1.5);
+            expect(p.width, `${ds}: a popup no wider than its trigger proves nothing about alignment`)
+                .toBeGreaterThan(t.width);
+        });
 
         /**
          * The submenu chevron. Material declines to draw one at all — its

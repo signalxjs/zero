@@ -263,8 +263,8 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
      * in, so only a composer that anchors at the caret ships the
      * measurement. Given the control and the index of the token's first
      * character; `null` falls back to the box. Under `rtl` a placement above
-     * or below mirrors its alignment (`bottom-start` opens leftwards from the
-     * token).
+     * or below aligns to the reading direction (`bottom-start` opens leftwards
+     * from the token), as every positioned popup does.
      */
     & Define.Prop<'anchor', TextAnchor, false>
     /**
@@ -807,29 +807,20 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     defineProvide(useComboboxContext, () => ctx);
 
     // Trigger mode anchors at the token (#105): the character after any
-    // whitespace a RegExp trigger's prefix matched — the `@` itself. Under
-    // `rtl` the list opens towards the reading direction, so the
-    // placement's alignment mirrors (the positioning is physical).
-    let mirrored = false;
+    // whitespace a RegExp trigger's prefix matched — the `@` itself. The
+    // caret anchor carries the control as its context element, so under
+    // `rtl` the strategy aligns a `-start` placement to the token's reading
+    // start (the list opens leftwards from it).
     const caretAt = (): PositionAnchor | null => {
         const token = trig.token;
         if (!triggerMode || !textEl || !token || !props.anchor) return null;
-        const anchor = props.anchor(textEl, tokenStart(token));
-        mirrored = !!anchor && getComputedStyle(textEl).direction === 'rtl';
-        return anchor;
+        return props.anchor(textEl, tokenStart(token));
     };
     const position = createAnchorPosition({
-        getAnchor: () => { mirrored = false; return caretAt() ?? control ?? input ?? textEl; },
+        getAnchor: () => caretAt() ?? control ?? input ?? textEl,
         getFloating: () => popup,
         isOpen: () => openState.value,
-        placement: () => {
-            const placement = props.placement ?? 'bottom-start';
-            // Only above or below is the alignment inline: beside, `start`
-            // and `end` align the block axis, which rtl does not turn.
-            if (!mirrored || !/^(top|bottom)-/.test(placement)) return placement;
-            return placement.endsWith('-start') ? placement.replace('-start', '-end') as Placement
-                : placement.replace('-end', '-start') as Placement;
-        },
+        placement: () => props.placement ?? 'bottom-start',
         offset: () => 4,
         strategy: props.positionStrategy,
     });

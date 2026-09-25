@@ -165,7 +165,7 @@ test('under rtl the list opens from the @ towards the reading direction (#105)',
     await textarea.click();
     await page.keyboard.type('@a');
     await expect(popup).toHaveAttribute('data-state', 'open');
-    await expect(popup).toHaveAttribute('data-placement', 'bottom-end');
+    await expect(popup).toHaveAttribute('data-placement', 'bottom-start');
     const list = await settledBox(popup, 'the mention list');
     // The list's right edge — its inline start — sits at the `@`'s.
     expect(Math.abs(list.x + list.width - await inlineStartAfter(textarea, ''))).toBeLessThan(3);

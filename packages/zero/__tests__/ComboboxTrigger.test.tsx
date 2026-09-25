@@ -358,13 +358,13 @@ describe('Combobox trigger mode (#58)', () => {
             expect(h.popup.style.top).toBe('324px');
         });
 
-        it('under rtl the alignment mirrors, so the list opens towards the reading direction', async () => {
+        it('under rtl bottom-start aligns to the token\'s reading start, so the list opens towards the reading direction', async () => {
             stub();
             const h = harness({ anchor: caretAnchor });
             h.el.style.direction = 'rtl';
             typeInto(h.el, 'hi @a');
             await tick();
-            expect(h.popup.getAttribute('data-placement')).toBe('bottom-end');
+            expect(h.popup.getAttribute('data-placement')).toBe('bottom-start');
             // The `@`'s right edge (its inline start) — the list's own right edge sits there.
             expect(h.popup.style.left).toBe('151px');
         });
