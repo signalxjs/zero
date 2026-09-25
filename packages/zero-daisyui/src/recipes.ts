@@ -6052,6 +6052,11 @@ export const table: RecipeInput = {
                 borderRadius: 'var(--radius-box)',
                 background: 'var(--color-base-100)',
             },
+            // The scroll box is a keyboard stop (#270): daisy's ink ring,
+            // drawn inside the box (negative offset) — the root is as wide
+            // as its column, so an outward ring would be clipped by
+            // whatever scrolls around it.
+            states: { 'focus-visible': { outline: '2px solid var(--color-base-content)', outlineOffset: '-2px' } },
         // Stacked (Table.Root stack, #55): zero lays each row out as a block
         // below the table's breakpoint; the card it becomes is drawn here.
             at: tableStackAt(tokens, 'root', { border: '0', borderRadius: '0', background: 'transparent' }),

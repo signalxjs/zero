@@ -4651,6 +4651,11 @@ export const table: RecipeInput = {
                 background: 'var(--color-base-100)',
                 boxShadow: 'var(--shadow-sm)',
             },
+            // The scroll box is a keyboard stop (#270): the primary ring,
+            // drawn inside the slab, just clear of its double border
+            // (offset -3 borders) — the root is as wide as its column, so
+            // an outward ring would be clipped by whatever scrolls around it.
+            states: { 'focus-visible': { outline: 'var(--border) solid var(--color-primary)', outlineOffset: 'calc(var(--border) * -3)' } },
         // Stacked (Table.Root stack, #55): zero lays each row out as a block
         // below the table's breakpoint; the card it becomes is drawn here.
             // Every card is its own slab, so the slab around them goes.
