@@ -29,6 +29,32 @@
   `aria-describedby`), and the native control renders `aria-valuetext`
   from `getValueText`, as the thumbs already did.
 
+### Fixed — the Combobox input shows what the form posts (#265)
+
+- **Typed text is resynced on close and blur.** Typing "Ger" over a chosen
+  "France" and leaving used to keep "Ger" in the input while the hidden
+  select posted France. Now any close (Escape, Tab, an outside press, the
+  trigger, a consumer's `model:open`) and a blur that leaves the combobox
+  resync the text. In single mode, unpicked text reverts to the chosen
+  label (`''` when there is none), and emptied text clears the value
+  (`null` / `''`, with `valueChange`). `allowCustom` commits the text as
+  the value. Under `multiple` the query is dropped. A blur that stays
+  inside the combobox (the trigger, a tag's remove button) does not
+  resync, and neither does a press on an option, which still selects it.
+  A chosen label is remembered, so a consumer-filtered item that has
+  unmounted resyncs to its label, not its key.
+
+### Added — Combobox APG keys and `openOnClick` (#265)
+
+- **Alt+ArrowDown** opens the list without moving the highlight: it lands
+  on the chosen option if that option is listed, and otherwise nowhere.
+  **Alt+ArrowUp** commits the highlighted option and closes.
+- **Escape on a closed combobox clears it**: the text and, in single mode,
+  the value. It calls `preventDefault` only when it cleared something, so
+  on an empty combobox Escape still reaches an enclosing dialog.
+- **`openOnClick`** on `Combobox.Root` (default `false`): a pointer click
+  in the input opens the list.
+
 ### Added — per-item colour: `Stats.Item color` (#161)
 
 - **`stats.item` re-carries the colour axis** (`carries: ['color']`, as
