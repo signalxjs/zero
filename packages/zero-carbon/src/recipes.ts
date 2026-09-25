@@ -354,7 +354,23 @@ export const tabs: RecipeInput = {
         list: {
             base: {
                 display: 'flex',
-                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+                // The row's own scroll box (#45), Pagination's and Stats'
+                // answer: a row of labels wider than its column scrolls
+                // instead of pushing the page sideways. No ring room — the
+                // tab's focus ring is drawn inset. The rule under the row is
+                // an inset shadow rather than a border: a scroll box clips at
+                // its padding box, so a tab pulled down over a border would
+                // lose the bottom of its underline. Painted inside, the tab's
+                // 2px underline covers it exactly as it covered the border.
+                overflowX: 'auto',
+                boxShadow: 'inset 0 calc(-1 * var(--border)) 0 var(--carbon-line)',
+            },
+            at: {
+                // Forced colours drop every box-shadow, which would take the
+                // rule with it. There it is a real border again, recoloured to
+                // the system's; the tab no longer overlaps it, so the scroll
+                // box clips nothing.
+                'forced-colors': { base: { borderBlockEnd: 'var(--border) solid CanvasText' } },
             },
         },
         tab: {
@@ -367,7 +383,6 @@ export const tabs: RecipeInput = {
                 // Carbon's line tab: the 2px underline is always drawn, only
                 // its colour changes — selection never shifts the label.
                 borderBlockEnd: '2px solid transparent',
-                marginBlockEnd: 'calc(-1 * var(--border))',
                 minHeight: '2.5rem',
                 padding: '0 var(--space-md)',
                 fontFamily: 'var(--font-sans)',
@@ -3235,6 +3250,9 @@ export const textarea: RecipeInput = {
                 ...field01,
                 display: 'block',
                 width: '100%',
+                // border-box, or `width: 100%` plus the padding and border is
+                // wider than the column it fills — 26–34px at phone width (#45).
+                boxSizing: 'border-box',
                 minWidth: '0',
                 minHeight: '5rem',
                 appearance: 'none',
@@ -3931,7 +3949,11 @@ export const timeline: RecipeInput = {
                 padding: '0',
             },
             selectors: {
-                '&[data-orientation="horizontal"]': { flexDirection: 'row' },
+                // A horizontal timeline is a row of steps whose width follows
+                // the step count, not the container: at phone width it scrolls
+                // inside its own box, the answer Table and Pagination give
+                // (#45), rather than widening the page.
+                '&[data-orientation="horizontal"]': { flexDirection: 'row', overflowX: 'auto' },
             },
         },
         /**
@@ -4263,9 +4285,17 @@ export const join: RecipeInput = {
     component: 'join',
     parts: {
         root: {
+            // The group's own scroll box (#45): fused segments cannot wrap
+            // without breaking the fusion, so a group wider than its column
+            // scrolls — Pagination's answer. `max-inline-size` is what gives
+            // an inline-level box a width to scroll in; without it the box
+            // shrinks-to-fit its unbreakable content and overflows anyway.
+            // No ring room: every control carbon joins draws its ring inset.
             base: {
                 display: 'inline-flex',
                 alignItems: 'stretch',
+                overflowX: 'auto',
+                maxInlineSize: '100%',
             },
             selectors: {
                 '&[data-orientation="vertical"]': { flexDirection: 'column' },

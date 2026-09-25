@@ -1,6 +1,9 @@
 import { render } from 'sigx';
 import '@sigx/zero/css';
 
+// The faces the skins name (IBM Plex, Roboto, Inter) — see fonts.ts.
+import './fonts';
+
 // A kit-compiled theme declaring a novel `brand` role — the
 // extensible-vocabulary demo. Imported before the DS so the DS's later
 // :root block overrides the shared base tokens; the brand-only tokens

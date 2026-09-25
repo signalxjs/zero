@@ -89,8 +89,10 @@ const LayoutDemos = component(() => () => (
         {/* Deliberately NOT inside a DemoRow: that is itself a flex row, so
             the toolbar would be sized by its own content and a flexible
             Spacer would have no leftover room to take. At block level a Row
-            is full width, which is the shape a real toolbar has. */}
-        <Row gap="sm" align="center" padY="sm">
+            is full width, which is the shape a real toolbar has. It wraps
+            (#45): on a phone, or in a wide fallback face, the actions drop
+            to a second line instead of running past the column. */}
+        <Row gap="sm" align="center" padY="sm" wrap="wrap">
             <strong>Document</strong>
             <Spacer />
             <Button.Root variant={pickScopeVariant('button', 'outline', 'ghost', 'tertiary')} size="sm">Cancel</Button.Root>

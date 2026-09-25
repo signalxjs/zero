@@ -5187,6 +5187,7 @@
     [data-scope="textarea"][data-part="textarea"] {
         display: block;
         width: 100%;
+        box-sizing: border-box;
         min-width: 0;
         appearance: none;
         background: var(--color-base-100);
@@ -6707,6 +6708,7 @@
 
     [data-scope="timeline"][data-part="root"][data-orientation="horizontal"] {
         flex-direction: row;
+        overflow-x: auto;
     }
 
     [data-scope="timeline"][data-part="item"] {

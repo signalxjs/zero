@@ -17,8 +17,8 @@
  *    recipe that scrolls without leaving room for the ring (padding, plus
  *    scroll padding for when focus scrolls it into view) cuts it in half.
  *
- * Chromium only, one page load per design system: a claim about our own
- * cascade, not about engine behaviour.
+ * Runs in the `narrow` project only (Chromium), one page load per design
+ * system: a claim about our own cascade, not about engine behaviour.
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { bootPage } from './nav';
@@ -56,11 +56,7 @@ async function expectRingInside(root: Locator, control: Locator, what: string): 
 }
 
 for (const ds of DESIGN_SYSTEMS) {
-    test(`${ds}: a wide pagination row scrolls inside its column at ${PHONE.width}px`, async ({ page }, testInfo) => {
-        test.skip(
-            testInfo.project.name !== 'chromium',
-            'claims about our own cascade, not about engine behaviour — one engine is the coverage',
-        );
+    test(`${ds}: a wide pagination row scrolls inside its column at ${PHONE.width}px`, async ({ page }) => {
         await page.setViewportSize(PHONE);
         await bootPage(page, 'pagination', ds);
         const root = widerRow(page);

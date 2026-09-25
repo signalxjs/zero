@@ -212,8 +212,9 @@ responsive Drawer + NavList + Container composition, three engines: the
 same NavList is the docked sidebar beside `<main>` at `md` and a sheet
 below it, the trigger in the bar hides when docked, and the shell keeps one
 header and one navigation landmark either way;
-the **narrow-dialog spec** (`e2e/narrow-dialog.spec.ts`, #101) — chromium
-only, one page load per design system at a 400px viewport, it opens the
+the **narrow-dialog spec** (`e2e/narrow-dialog.spec.ts`, #101) — in the
+`narrow` project (below), one page load per design system at a 400px
+viewport, it opens the
 modal dialog and asserts the popup's *border box* sits inside the viewport
 on both axes. Geometric on purpose: a `<dialog>` keeps the UA's
 `content-box` and zero ships no reset, so a recipe's `calc(100% - 2rem)`
@@ -228,11 +229,13 @@ control is reachable scrolled to the end, and a keyboard-focused trigger at
 either end keeps its whole focus ring inside the scrollport — a scroll box
 clips at its padding box, so the recipes pad the root by the ring's reach;
 the **narrow-stats spec** (`e2e/narrow-stats.spec.ts`, #43) — the same
-shape for Stats, at the case that found it (brutalist at 1100px, where
-shout-scale values pushed the document sideways) and at 400px in every
-skin: a value never wraps, so the root is the row's scroll box — it stays
-inside its column, every value stays inside its own item, and the last one
-is reachable scrolled to the end;
+shape for Stats: a value never wraps, so the root is the row's scroll box.
+At the case that found it (brutalist at 1100px, where shout-scale values
+pushed the document sideways) the document stays put and the root stays
+inside its column while genuinely overflowing; there and at the project's
+phone width in every skin, every value stays inside its own item and the
+last one is reachable scrolled to the end (the sweep below already holds
+the phone-width containment, so the spec does not repeat it);
 the **switch forced-colors spec** (`e2e/switch-forced-colors.spec.ts`, #189)
 — forced-colors project only, all six design systems, measured in decoded
 pixels: the control differs strongly from the same box with it hidden, and
@@ -263,7 +266,28 @@ and the **scope-coverage spec** (`e2e/scope-coverage.spec.ts`, #194) —
 chromium, one load of `#/all`: every scope zero-basic's manifest declares
 (ecosystem `ext-stepper` included, rendered from `@sigx/zero-ext-example` on
 its own page) must render somewhere, plus the standalone `VisuallyHidden`,
-since an unrendered scope is invisible to every sweeping spec at once): `pnpm build`,
+since an unrendered scope is invisible to every sweeping spec at once); and
+the **narrow-viewport sweep** (`e2e/narrow-viewport.spec.ts`, #45) — the
+`narrow` project (Desktop Chrome at 420px) owns every `narrow-*.spec.ts`,
+this sweep and the dialog, pagination and stats specs above; every other
+project `testIgnore`s them and `narrow` runs nothing else. The sweep is one
+test per design system walking every registry page:
+the document must not scroll sideways, and no visible
+`[data-scope][data-part]` may escape the content column — measured against
+`main.shell-main`'s content box, never the viewport, whose shell offsets
+would bury the signal. Out of scope by construction: parts inside an
+ancestor whose `overflow-x` is not `visible` (the scroller itself is still
+measured — that is how a scrolling pagination or horizontal timeline
+passes), `position: fixed` parts, and 1px visually-hidden boxes. Deliberate
+exceptions are `{ ds, scope, part, reason }` rows in
+`e2e/narrow-allowlist.json` (`ds: "*"` for all six; the final slider mark's
+label is the one today), and stale rows fail like the axe allowlist's
+(target it with `--project=narrow`). Widths depend on the face, so the
+playground bundles every face a skin names (`src/fonts.ts`: IBM Plex,
+Roboto, Inter from `@fontsource`, playground devDependencies only) and
+`bootPage` waits on `document.fonts.ready`. Without that, carbon's rows
+measured in Segoe UI on Windows and the wider DejaVu Sans on the CI runner,
+and the sweep passed locally but failed in CI on the same code: `pnpm build`,
 then `pnpm --filter zero-playground e2e` (first run:
 `pnpm --filter zero-playground exec playwright install`). Filtering needs
 `exec` — `pnpm --filter zero-playground e2e -- <name>` drops the argument and

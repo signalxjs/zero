@@ -1,0 +1,8 @@
+[
+    {
+        "ds": "*",
+        "scope": "slider",
+        "part": "mark",
+        "reason": "A mark's label starts at its tick and reads toward the inline end, so the label on the final tick (value = max) hangs past the track end by its own width. That is where the label belongs: the track spans the column, and pulling the last label inside would put it under a different value."
+    }
+]

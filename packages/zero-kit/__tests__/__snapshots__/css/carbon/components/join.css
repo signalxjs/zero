@@ -2,6 +2,8 @@
     [data-scope="join"][data-part="root"] {
         display: inline-flex;
         align-items: stretch;
+        overflow-x: auto;
+        max-inline-size: 100%;
     }
 
     [data-scope="join"][data-part="root"][data-orientation="vertical"] {

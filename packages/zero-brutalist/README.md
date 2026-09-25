@@ -81,6 +81,14 @@ the axis instead of past an empty half of each item.
 `axes.shape` there and nowhere else. One declaration on the root, whose
 `overflow: hidden` clips the image and the initials alike. Every radius token here is 0, so `rounded` is a fixed corner in proportion to the avatar — otherwise it would read as `square`, which is the un-attributed default.
 
+## Rows wider than their column
+
+A tabs list scrolls inside its own box when it is wider than its column
+(#45), as Pagination, Stats and a horizontal Timeline do. It is padded by
+`--tabs-ring-room` (the border-weight outline plus its 3px offset, which
+also covers the hard shadow and the hover shove), with matching scroll
+padding, so a focused tab's ring is never clipped at the row's edge.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors

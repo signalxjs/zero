@@ -114,6 +114,12 @@ orthogonal: it inks the active tab — `border`'s underline follows via
 `currentColor` — while `box` fills the active pill with the role and flips
 its label to the `-content` pair, as daisy's own box examples do.
 
+The tabs list scrolls inside its own box when it is wider than its column
+(#45), as Pagination and Stats do. It is padded by `--tabs-ring-room` (4px,
+the focus ring's 2px plus its 2px offset), with matching scroll padding, so
+the ring is never clipped. The `box` flavor's own `space-xs` padding is the
+same 4px.
+
 The package declares an **api** (the `defineApi` layer, see
 `docs/architecture.md` §3.6), so beside `/register` it ships a generated
 `./components` module — the daisy-native, single-import, fully-typed surface:

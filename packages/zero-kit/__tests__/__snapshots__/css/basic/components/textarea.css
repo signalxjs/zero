@@ -25,6 +25,7 @@
     [data-scope="textarea"][data-part="textarea"] {
         display: block;
         width: 100%;
+        box-sizing: border-box;
         min-width: 0;
         appearance: none;
         background: var(--color-base-100);
