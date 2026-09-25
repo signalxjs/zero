@@ -252,7 +252,11 @@ const DrawerRoot = component<DrawerRootProps>(({ props, slots, emit, signal }) =
     // `showModal()` restores focus natively on close; `show()` does not —
     // cover the inline path so Escape/Close never strand focus.
     // Docked is neither: nothing opened it, so there is nothing to restore.
-    createFocusRestore(() => state.value && !ctx.modal() && !docked());
+    // Only while focus is still the panel's to hand back (#262).
+    createFocusRestore(() => state.value && !ctx.modal() && !docked(), {
+        getSurface: () => document.getElementById(ctx.ids.panel),
+        fallback: () => ctx.trigger.el,
+    });
 
     return () => <>{slots.default?.()}</>;
 }, { name: 'Drawer.Root' });

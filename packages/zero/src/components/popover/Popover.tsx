@@ -106,7 +106,12 @@ const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal })
         offset: () => props.offset ?? 6,
         strategy: props.positionStrategy,
     });
-    createFocusRestore(() => state.value);
+    // Focus goes back only while it is still the popup's: an outside
+    // pointerdown on an input, or a Tab out, keeps it where it went (#262).
+    createFocusRestore(() => state.value, {
+        getSurface: () => popup,
+        fallback: () => anchor,
+    });
 
     return () => <>{slots.default?.()}</>;
 }, { name: 'Popover.Root' });

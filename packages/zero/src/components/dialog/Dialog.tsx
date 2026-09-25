@@ -72,6 +72,8 @@ interface DialogContext {
     /** `alertdialog` tightens the pattern: no backdrop dismiss, Cancel takes initial focus. */
     role(): 'dialog' | 'alertdialog';
     ids: { popup: string; title: string; description: string };
+    /** The rendered Trigger — where a non-modal close restores focus when the element focused before opening cannot take it. */
+    trigger: { el: HTMLElement | null };
     /** Title/Description report their presence so the popup's ARIA refs never dangle. */
     titlePresent(): boolean;
     descriptionPresent(): boolean;
@@ -88,6 +90,7 @@ function makeInert(): DialogContext {
         dismissible: () => true,
         role: () => 'dialog',
         ids: { popup: 'zx-dialog-inert', title: 'zx-dialog-inert-title', description: 'zx-dialog-inert-desc' },
+        trigger: { el: null },
         titlePresent: () => false,
         descriptionPresent: () => false,
         setTitlePresent: () => {},
@@ -171,6 +174,7 @@ const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) =
             title: `${baseId}-title`,
             description: `${baseId}-desc`,
         },
+        trigger: { el: null },
         titlePresent: () => present.title,
         descriptionPresent: () => present.description,
         setTitlePresent: (p) => { present.title = p; },
@@ -179,8 +183,12 @@ const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) =
     defineProvide(useDialogContext, () => ctx);
 
     // `showModal()` restores focus natively on close; `show()` does not —
-    // cover the non-modal path so Escape/Close never strand focus.
-    createFocusRestore(() => state.value && !(props.modal ?? true));
+    // cover the non-modal path so Escape/Close never strand focus. Only
+    // while focus is still the popup's to hand back (#262).
+    createFocusRestore(() => state.value && !(props.modal ?? true), {
+        getSurface: () => document.getElementById(ctx.ids.popup),
+        fallback: () => ctx.trigger.el,
+    });
 
     return () => <>{slots.default?.()}</>;
 }, { name: 'Dialog.Root' });
@@ -229,7 +237,7 @@ const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal }) =
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
         onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; },
+        ref: (node: HTMLElement | null) => { el = node; dialog.trigger.el = node; },
     });
 
     return () => {

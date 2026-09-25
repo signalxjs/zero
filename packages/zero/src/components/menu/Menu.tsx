@@ -246,7 +246,12 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
     };
     defineProvide(useMenuContext, () => ctx);
 
-    createFocusRestore(() => state.value);
+    // Focus goes back only while it is still the popup's: an outside
+    // pointerdown on an input, or a Tab out, keeps it where it went (#262).
+    createFocusRestore(() => state.value, {
+        getSurface: () => popup,
+        fallback: () => (anchor instanceof HTMLElement ? anchor : null),
+    });
 
     return () => <>{slots.default?.()}</>;
 }, { name: 'Menu.Root' });

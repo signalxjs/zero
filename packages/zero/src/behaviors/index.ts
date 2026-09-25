@@ -27,7 +27,8 @@ export type { SpinPressOptions, SpinPressHandlers } from './spin.js';
 export { createTreeController } from './tree.js';
 export type { TreeItem, TreeController } from './tree.js';
 
-export { createFocusRestore, focusFirst, getTabbables } from './focus.js';
+export { createFocusRestore, focusFirst, getTabbables, isFocusable } from './focus.js';
+export type { FocusRestoreOptions } from './focus.js';
 
 export { createTypeahead } from './typeahead.js';
 export type { Typeahead, TypeaheadOptions } from './typeahead.js';
