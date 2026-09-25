@@ -17,6 +17,7 @@ import {
     renderRecipesTs,
 } from './render.js';
 import type { RenderContext, Target } from './render.js';
+import { baselineRecipeCount } from './templates.js';
 import type { Templates } from './templates.js';
 
 export interface ScaffoldOptions {
@@ -91,6 +92,7 @@ export function planScaffold(options: ScaffoldOptions, templates: Templates): Pl
         baseline,
         targets,
         hasButton: split.button !== undefined,
+        baselineRecipeCount: baselineRecipeCount(templates.baselineRecipes),
         versions: templates.versions,
     };
 

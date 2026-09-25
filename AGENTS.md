@@ -119,7 +119,7 @@ pnpm test -- -t "name of test"        # single test by name (vitest -t)
 pnpm test:watch
 pnpm test:coverage
 pnpm typecheck     # tsgo --noEmit against package sources (path-aliased)
-pnpm test:types    # compile-time type tests (zero's ZeroVocabulary seam), six isolated tsconfig projects under packages/zero/type-tests/
+pnpm test:types    # compile-time type tests (zero's ZeroVocabulary seam), 7 isolated tsconfig projects under packages/zero/type-tests/
 pnpm lint          # oxlint packages
 pnpm lint:fix
 pnpm verify:catalog  # catalog: usage check for @sigx core deps
@@ -364,7 +364,7 @@ slides, is fine).
   (`danger-soft` is one member), a declared three-step size ramp, and
   HeroUI's `isIconOnly`/`isPending` as `data-mod-*` modifiers. Where
   zero-material proves vocabularies can be *extended*, this proves they can be
-  a different *shape*. Full component coverage (40 recipes), with `variant`
+  a different *shape*. Full component coverage (52 recipes, plus the kit's layout tier), with `variant`
   wired on button only (the repo-wide decision, #175) — it exercises the axis
   surface, not a product. Private.
 - `packages/zero-carbon` → `@sigx/zero-carbon` — Carbon-flavoured skin, and
@@ -381,17 +381,20 @@ slides, is fine).
   behaviors, contract helpers; `expectAnatomy` from `@sigx/zero/testing` in
   its tests) and published to design systems from a data-only `./fragment`
   entry — the manifest fragment (`{ package, components }`) plus a recipe
-  pack written against the recommended token grammar. zero-basic adopts both
-  in `build.mjs` (spread the pack, pass the fragment to `runStandardBuild` —
-  build-only, so the private package stays out of the published module
-  graph), which makes
-  its emitted `register.d.ts` the Exclude-form compile proof
-  (`packages/zero/type-tests/ecosystem/`). Private — it proves the loop the
-  way zero-heroui proves axis shapes.
+  pack written against the recommended token grammar, pointed at by its
+  package.json `"sigx-zero"` field. Adoption is discovery, not a hand-edit:
+  `packages/zero-basic` and `packages/zero-heroui` list it as a
+  devDependency, and `runStandardBuild` finds the field, fits the pack's
+  recipes to the skin's vocabulary and merges the fragment (build-only, so
+  the private package stays out of the published module graph). That makes
+  zero-basic's emitted `register.d.ts` the Exclude-form compile proof
+  (`packages/zero/type-tests/ecosystem/`), and zero-heroui the one real
+  build composing api mode with an adopted pack. Private — it proves the loop the
+  way the heroui skin proves axis shapes.
 - `packages/create-zero-ds` → `@sigx/create-zero-ds` — the scaffold behind
   `pnpm create @sigx/zero-ds <name> --brief <id>` (#401): a Node-only bin with
   zero runtime deps that lays down a design-system package from nothing —
-  the brief's tokens + Button, `@sigx/zero-basic`'s 50 recipes as
+  the brief's tokens + Button, `@sigx/zero-basic`'s 52 recipes as
   `src/baseline.ts`, and a `src/recipes.ts` composing them through the kit's
   `fitRecipesToVocabulary` (on `/define`) so any axis shape compiles on the
   first build. Templates are embedded at build time
@@ -420,12 +423,11 @@ slides, is fine).
   on invalid axis values and unwired axes, (b) heroui's no-register
   `./components` surface, (c) carbon's renamed `kind` prop with the
   `danger--tertiary` respelling. `pnpm --filter zero-typed-app typecheck`
-  runs all three; CI runs it in the e2e job after Build. `skipLibCheck`
-  stays `true` for now — every program transitively reaches
-  `@sigx/runtime-core`, whose shipped d.ts fails a full lib check (see
-  `tsconfig.base.json` there); flip it to `false` when core ships clean
-  declarations. Private, excluded from the root typecheck like the
-  playground.
+  runs all three; CI runs it in the e2e job after Build.
+  `skipLibCheck` is `false` (#145): since core's declarations became
+  lib-checkable, every program checks its dependencies' `.d.ts` too, as a
+  strict consumer would.
+  Private, excluded from the root typecheck like the playground.
 
 **Lockstep versioning**: every publishable package shares one version. Never
 bump a single package's version — use `pnpm version:patch|minor|major`.

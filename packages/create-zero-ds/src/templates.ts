@@ -49,7 +49,23 @@ export function ownVersion(): string {
     return pkg.version;
 }
 
-const BRIEF_FILE = /^brief\.([a-z0-9-]+)\.ts\.txt$/;
+/**
+ * How many recipes the baseline source's `export const recipes = [...]` list
+ * holds — so the scaffold states the count of what it actually copied rather
+ * than a number remembered from when the template was written (#197). The
+ * list is identifiers only (zero-basic's convention, which the collect test
+ * pins), so counting its comma-separated entries is exact. Throws rather
+ * than guess when the list is not there.
+ */
+export function baselineRecipeCount(source: string): number {
+    const match = /^export const recipes\b[^=]*=\s*\[([\s\S]*?)\];/m.exec(source);
+    if (!match) {
+        throw new Error('[create-zero-ds] the baseline template has no `export const recipes = [...]` list to count');
+    }
+    return match[1]!.split(',').map((entry) => entry.trim()).filter((entry) => entry.length > 0).length;
+}
+
+const BRIEF_FILE =/^brief\.([a-z0-9-]+)\.ts\.txt$/;
 
 export function loadTemplates(dir: string = defaultTemplatesDir()): Templates {
     const read = (name: string): string => readFileSync(join(dir, name), 'utf8');
