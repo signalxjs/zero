@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE` gains the native text props (zero#266)
+
+- `input` reserves `autocapitalize`, `autocorrect`, `autofocus`,
+  `enterkeyhint`, `inputmode`, `minlength`, `pattern` and `spellcheck`;
+  `textarea` reserves `autocapitalize`, `autofocus`, `enterkeyhint`,
+  `minlength`, `spellcheck` and `wrap`. A vendor-named api cannot claim
+  them as axis props.
+
 ### Changed — the text matrix measures stats' re-carried colour (zero#161)
 
 - `stats.item` is the third re-carrier, and the first with no text of its
