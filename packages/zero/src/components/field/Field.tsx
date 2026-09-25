@@ -18,6 +18,7 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { createId } from '../../behaviors/create-id.js';
+import { countPresence, reportPresence, settleAfterMount } from '../../behaviors/part-presence.js';
 import { provideFieldContext, useFieldContext, type FieldContext } from '../../behaviors/field.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
@@ -36,22 +37,37 @@ export type FieldRootProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const FieldRoot = component<FieldRootProps>(({ props, slots }) => {
+const FieldRoot = component<FieldRootProps>(({ props, slots, signal, onMounted }) => {
     const baseId = createId('zx-field');
+    // Reported by Field.Description and Field.Error (`reportPresence`), so a
+    // control's `aria-describedby` names only what is rendered and never
+    // dangles — optimistic until settled after mount, so server markup (and
+    // the hydrating first render) keeps both ids.
+    const present = signal({ description: 0, error: 0, settled: false });
+    settleAfterMount(onMounted, () => { present.settled = true; });
+    const ids = {
+        control: `${baseId}-control`,
+        label: `${baseId}-label`,
+        description: `${baseId}-desc`,
+        error: `${baseId}-error`,
+    };
     const ctx: FieldContext = {
         inert: false,
-        ids: {
-            control: `${baseId}-control`,
-            label: `${baseId}-label`,
-            description: `${baseId}-desc`,
-            error: `${baseId}-error`,
-        },
+        ids,
         disabled: () => !!props.disabled,
         invalid: () => !!props.invalid,
         required: () => !!props.required,
         readonly: () => !!props.readonly,
         size: () => props.size,
-        describedBy: () => `${baseId}-desc ${baseId}-error`,
+        describedBy: () => {
+            if (!present.settled) return `${ids.description} ${ids.error}`;
+            return [
+                present.description > 0 ? ids.description : undefined,
+                present.error > 0 ? ids.error : undefined,
+            ].filter(Boolean).join(' ') || undefined;
+        },
+        setDescriptionPresent: (p) => { present.description = countPresence(present.description, p); },
+        setErrorPresent: (p) => { present.error = countPresence(present.error, p); },
     };
     provideFieldContext(ctx);
 
@@ -102,8 +118,9 @@ const FieldLabel = component<FieldLabelProps>(({ props, slots }) => {
 /** Not `id`: the control's `aria-describedby` points at the Description's own. */
 export type FieldDescriptionProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
-const FieldDescription = component<FieldDescriptionProps>(({ props, slots }) => {
+const FieldDescription = component<FieldDescriptionProps>(({ props, slots, onUnmounted }) => {
     const field = useFieldContext();
+    reportPresence((p) => field.setDescriptionPresent?.(p), onUnmounted);
     return () => (
         <p {...htmlAttrs(props)} id={field.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
             {slots.default?.()}
@@ -114,8 +131,9 @@ const FieldDescription = component<FieldDescriptionProps>(({ props, slots }) => 
 /** Not `id` (the control's `aria-describedby` points at it) nor `role` (an `alert`). */
 export type FieldErrorProps = WithClass & Omit<WithHtmlAttrs, 'id' | 'role'> & Define.Slot<'default'>;
 
-const FieldError = component<FieldErrorProps>(({ props, slots }) => {
+const FieldError = component<FieldErrorProps>(({ props, slots, onUnmounted }) => {
     const field = useFieldContext();
+    reportPresence((p) => field.setErrorPresent?.(p), onUnmounted);
     return () => (
         <p
             {...htmlAttrs(props)}

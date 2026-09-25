@@ -95,6 +95,8 @@ interface SliderContext {
     step(): number;
     disabled(): boolean;
     invalid(): boolean;
+    /** The enclosing Field's description/error ids, when there is one. */
+    describedBy(): string | undefined;
     name(): string | undefined;
     form(): string | undefined;
     /** The scalar projection's default; null under a range model. */
@@ -140,6 +142,7 @@ function makeInert(): SliderContext {
         step: () => 1,
         disabled: () => false,
         invalid: () => false,
+        describedBy: () => undefined,
         name: () => undefined,
         form: () => undefined,
         defaultScalar: () => null,
@@ -331,6 +334,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
         step,
         disabled: fc.disabled,
         invalid: fc.invalid,
+        describedBy: fc.describedBy,
         name: fc.name,
         form: fc.form,
         defaultScalar: () => (Array.isArray(props.defaultValue) ? null : props.defaultValue ?? min()),
@@ -488,46 +492,55 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
         oneShot: false,
     });
 
-    return () => (
-        <input
-            {...htmlAttrs(props)}
-            type="range"
-            id={slider.ids.control}
-            data-scope={SCOPE}
-            data-part="control"
-            data-orientation={slider.orientation()}
-            data-disabled={dataAttr(slider.disabled())}
-            data-invalid={dataAttr(slider.invalid())}
-            data-focus-visible={dataAttr(slider.focusVisible.visible)}
-            aria-orientation={slider.orientation()}
-            // A vertical native range is spelled through writing mode (the
-            // HTML-spec way); `direction: rtl` puts min at the bottom. It is
-            // structural, like the composed parts' positioning — zero still
-            // paints nothing.
-            style={slider.orientation() === 'vertical' ? { writingMode: 'vertical-lr', direction: 'rtl' } : undefined}
-            min={slider.min()}
-            max={slider.max()}
-            step={slider.step()}
-            model={slider.scalar}
-            // The range reports a string; the number transform hands the
-            // scalar model a number (the processor owns `value` itself).
-            modelModifiers={{ number: true }}
-            disabled={slider.disabled()}
-            name={slider.name()}
-            form={slider.form()}
-            aria-invalid={slider.invalid() ? 'true' : undefined}
-            class={props.class}
-            ref={(node: HTMLInputElement | null) => { el = node; }}
-            onPointerdown={press.onPointerdown}
-            onPointerup={press.onPointerup}
-            onPointercancel={press.onPointercancel}
-            onFocus={() => { slider.focusVisible.visible = isFocusVisible(el); }}
-            onBlur={(e: FocusEvent) => {
-                press.onBlur(e);
-                slider.focusVisible.visible = false;
-            }}
-        />
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <input
+                {...attrs}
+                type="range"
+                id={slider.ids.control}
+                data-scope={SCOPE}
+                data-part="control"
+                data-orientation={slider.orientation()}
+                data-disabled={dataAttr(slider.disabled())}
+                data-invalid={dataAttr(slider.invalid())}
+                data-focus-visible={dataAttr(slider.focusVisible.visible)}
+                aria-orientation={slider.orientation()}
+                // A vertical native range is spelled through writing mode (the
+                // HTML-spec way); `direction: rtl` puts min at the bottom. It is
+                // structural, like the composed parts' positioning — zero still
+                // paints nothing.
+                style={slider.orientation() === 'vertical' ? { writingMode: 'vertical-lr', direction: 'rtl' } : undefined}
+                min={slider.min()}
+                max={slider.max()}
+                step={slider.step()}
+                model={slider.scalar}
+                // The range reports a string; the number transform hands the
+                // scalar model a number (the processor owns `value` itself).
+                modelModifiers={{ number: true }}
+                disabled={slider.disabled()}
+                name={slider.name()}
+                form={slider.form()}
+                aria-invalid={slider.invalid() ? 'true' : undefined}
+                // A Field's description and error join an app's, as on
+                // every other control.
+                aria-describedby={[slider.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
+                // `getValueText` speaks for the native range as it does for
+                // a thumb; without one, an app's own value text stands.
+                aria-valuetext={slider.valueTextFor(slider.values()[0] ?? slider.min(), 0) ?? attrs['aria-valuetext']}
+                class={props.class}
+                ref={(node: HTMLInputElement | null) => { el = node; }}
+                onPointerdown={press.onPointerdown}
+                onPointerup={press.onPointerup}
+                onPointercancel={press.onPointercancel}
+                onFocus={() => { slider.focusVisible.visible = isFocusVisible(el); }}
+                onBlur={(e: FocusEvent) => {
+                    press.onBlur(e);
+                    slider.focusVisible.visible = false;
+                }}
+            />
+        );
+    };
 }, { name: 'Slider.Control' });
 
 // ── Track / Range / Thumb / marks — the composed projection ──
@@ -692,7 +705,8 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
                 aria-valuemin={lo}
                 aria-valuemax={hi}
                 aria-valuenow={value}
-                aria-valuetext={slider.valueTextFor(value, i)}
+                aria-valuetext={slider.valueTextFor(value, i) ?? attrs['aria-valuetext']}
+                aria-describedby={[slider.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
                 aria-disabled={disabled ? 'true' : undefined}
                 style={positionStyle(orientation, slider.percentOf(value))}
                 class={props.class}

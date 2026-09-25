@@ -21,8 +21,20 @@ export interface FieldContext {
     readonly(): boolean;
     /** The Field's `size` — a control without its own renders this one. */
     size(): string | undefined;
-    /** Space-separated description/error ids for `aria-describedby`. */
+    /**
+     * Space-separated ids of the Description and Error that are rendered,
+     * for `aria-describedby` — `undefined` when neither is, so no IDREF
+     * dangles. Both until the Field has mounted (the server's markup).
+     */
     describedBy(): string | undefined;
+    /**
+     * Field.Description's presence report (`reportPresence`). Optional so a
+     * hand-provided context keeps compiling; without it the provider's own
+     * `describedBy` is all there is.
+     */
+    setDescriptionPresent?(present: boolean): void;
+    /** Field.Error's presence report — optional, as above. */
+    setErrorPresent?(present: boolean): void;
 }
 
 const INERT_FIELD: FieldContext = {
