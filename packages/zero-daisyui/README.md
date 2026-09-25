@@ -124,6 +124,11 @@ import { Button } from '@sigx/zero-daisyui/components';
 <Button wide loading variant="dash" color="primary">Save</Button>
 ```
 
+It is the one published `./components` module, so `pnpm verify:pack` proves
+it from the packed tarball: a scratch app typechecks daisy-native props
+against the emitted d.ts (with a `@ts-expect-error` probe on a colour daisy
+does not have), and Node loads the module through its `import` export.
+
 Migrating from the old `@sigx/daisyui` package, prop by prop:
 
 | old `@sigx/daisyui` Button | `@sigx/zero-daisyui/components` Button |

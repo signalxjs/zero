@@ -13,7 +13,11 @@
     "paths": {
       "@sigx/zero": ["./packages/zero/src/index.ts"],
       "@sigx/zero/testing": ["./packages/zero/src/testing/index.ts"],
-      "@sigx/zero/*": ["./packages/zero/src/*"],
+      "@sigx/zero/*": [
+        "./packages/zero/src/components/*/index.ts",
+        "./packages/zero/src/*/index.ts",
+        "./packages/zero/src/*"
+      ],
       "@sigx/zero-kit": ["./packages/zero-kit/src/index.ts"],
       "@sigx/zero-kit/build": ["./packages/zero-kit/src/build.ts"],
       "@sigx/zero-kit/define": ["./packages/zero-kit/src/define.ts"],

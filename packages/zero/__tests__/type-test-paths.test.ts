@@ -29,13 +29,24 @@ const exportsMap = (
     }
 ).exports;
 
-const baseConfig = readJsonc(join(pkgRoot, 'type-tests/tsconfig.base.json')) as {
-    compilerOptions: { paths: Record<string, string[]> };
-};
-const paths = baseConfig.compilerOptions.paths;
-// Candidates are declared relative to the file that declares them
-// (type-tests/tsconfig.base.json has no baseUrl).
-const candidateRoot = join(pkgRoot, 'type-tests');
+/**
+ * Every tsconfig whose `paths` map resolves `@sigx/zero/*`: the type-test
+ * base, and the root one `pnpm typecheck` uses. The root one matters as much
+ * — vitest aliases every export to source (scripts/lib/source-aliases.mjs),
+ * so a subpath the root map misses typechecks against `dist/` (or fails with
+ * TS2307 in CI, where typecheck runs before the build) while its test passes.
+ * Candidates are declared relative to the file that declares them (neither
+ * sets a baseUrl).
+ */
+const pathMaps = [
+    { name: 'type-tests/tsconfig.base.json', dir: join(pkgRoot, 'type-tests') },
+    { name: 'tsconfig.json (root)', dir: resolve(pkgRoot, '../..'), file: 'tsconfig.json' },
+].map(({ name, dir, file }) => {
+    const config = readJsonc(join(dir, file ?? 'tsconfig.base.json')) as {
+        compilerOptions: { paths: Record<string, string[]> };
+    };
+    return { name, paths: config.compilerOptions.paths, candidateRoot: dir };
+});
 
 /**
  * TS subpath exports: everything whose `types` target is an emitted
@@ -49,7 +60,7 @@ const typedSubpaths = Object.entries(exportsMap)
     .map(([key, value]) => ({ key, types: value.types }))
     .filter(({ key, types }) => key !== '.' && types.startsWith('./dist/'));
 
-describe('type-tests paths map covers the export surface', () => {
+describe.each(pathMaps)('$name paths map covers the export surface', ({ paths, candidateRoot }) => {
     it('maps the package root to source', () => {
         const root = paths['@sigx/zero'];
         expect(root, 'the paths map must pin the bare specifier').toBeDefined();
