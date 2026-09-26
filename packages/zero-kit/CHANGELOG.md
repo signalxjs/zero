@@ -44,6 +44,11 @@
   (`defaultFollowing`, `id`, `label`, `threshold`, `title`), so a
   vendor-named api cannot claim them as axis props.
 
+### Added — the `avatar-group` scope (zero#297)
+
+- **`RESERVED_PROPS_BY_SCOPE`** reserves `avatar-group`'s root props
+  (`id`, `label`, `title`).
+
 ### Added — the `menubar` scope (zero#289)
 
 - **`RESERVED_PROPS_BY_SCOPE`** reserves `menubar`'s root props

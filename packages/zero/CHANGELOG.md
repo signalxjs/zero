@@ -229,6 +229,23 @@
 - `.size-limit.json`: the barrel goes 70.56 → 71.51 kB, `@sigx/zero/steps`
   4.23 → 5.45 kB and the anatomy tooling entry 4.22 → 4.27 kB.
 
+### Added — `AvatarGroup`: a labelled stack of avatars with an overflow count (#297)
+
+- **`AvatarGroup.Root`** renders the new `avatar-group` scope's `root`: a
+  `div` with `role="group"`, named by the `label` prop (`aria-label`), and
+  the `color`/`size` carrier. A design system sizes the `Avatar.Root`s
+  inside from the group's `size`; an avatar's own `size` still wins.
+- **`AvatarGroup.Overflow`** with a `count` prop renders the `overflow`
+  part (`span`, parent `root`): "+N" for sight (`aria-hidden`) and a visually hidden
+  "N more" for assistive technology. `label` replaces those words. A count
+  of zero or less (or not a number) renders nothing, and a fractional one
+  is floored. There is no registration: slice your list and pass the rest.
+- Display-only: no model and no state values. `STATE_VOCABULARY` is
+  unchanged. `Avatar.Fallback delay` already shipped in #274, so this
+  release does not change it.
+- All six design systems style it. basic, daisyUI, Material, brutalist and
+  HeroUI overlap the faces, and Carbon sets its square tiles side by side.
+
 ### Added — `Menubar`, the APG menubar over Menu; `Menu.Shortcut` and `keyshortcuts` (#289)
 
 - **`Menubar.Root`** (`@sigx/zero/menubar` and the barrel): a new `menubar`
