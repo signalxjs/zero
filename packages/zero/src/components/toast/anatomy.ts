@@ -7,8 +7,12 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 const TOAST_PLACEMENTS = ['top-start', 'top', 'top-end', 'bottom-start', 'bottom', 'bottom-end'] as const;
 
 export const toastAnatomy = defineAnatomy('toast', {
+    // `open` while the stack is expanded — hovered or holding focus, or
+    // always with `expand="always"`; `closed` while it rests. Styling only:
+    // the viewport is shown whenever there are toasts, in either state.
     viewport: {
         element: 'ol',
+        states: ['open', 'closed'],
         placements: TOAST_PLACEMENTS,
     },
     root: {
@@ -17,6 +21,15 @@ export const toastAnatomy = defineAnatomy('toast', {
         states: ['open', 'closed'],
         placements: TOAST_PLACEMENTS,
         tokens: ['color', 'radius-box', 'text'],
+    },
+    // The work status of a promise toast (`ToastData.status`); rendered only
+    // while the toast has one. Decorative (`aria-hidden`) — the title says it.
+    indicator: {
+        element: 'span',
+        parent: 'root',
+        states: ['loading', 'complete', 'error'],
+        paint: true,
+        tokens: ['color'],
     },
     title: {
         element: 'div',
