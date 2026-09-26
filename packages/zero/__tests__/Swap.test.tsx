@@ -18,7 +18,7 @@
  *   Toggle's exact contract, restated here because a swap's faces are its
  *   content, not a restyled Toggle.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { Swap, swapAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
@@ -94,12 +94,61 @@ describe('Swap', () => {
         expect(changes).toEqual([true]);
         expect(root.getAttribute('aria-pressed')).toBe('true');
         expect(root.getAttribute('data-state')).toBe('on');
-        expect(part(container, 'on').hasAttribute('aria-hidden')).toBe(false);
+        // A fixed name carries no face (#274): aria-pressed is the state.
+        expect(part(container, 'on').getAttribute('aria-hidden')).toBe('true');
         expect(part(container, 'off').getAttribute('aria-hidden')).toBe('true');
 
         root.click();
         expect(changes).toEqual([true, false]);
         expect(root.getAttribute('data-state')).toBe('off');
+    });
+
+    it('an unlabelled interactive swap names itself by its face and drops aria-pressed — and warns', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        render(
+            <Swap.Root interactive>
+                <Swap.On>Dark mode</Swap.On>
+                <Swap.Off>Light mode</Swap.Off>
+            </Swap.Root>,
+            container,
+        );
+        const root = part(container, 'root') as unknown as HTMLButtonElement;
+        // The face IS the name, so the state is announced once — by it.
+        expect(root.hasAttribute('aria-pressed')).toBe(false);
+        expect(part(container, 'off').hasAttribute('aria-hidden')).toBe(false);
+        expect(part(container, 'on').getAttribute('aria-hidden')).toBe('true');
+        root.click();
+        expect(root.hasAttribute('aria-pressed')).toBe(false);
+        expect(part(container, 'on').hasAttribute('aria-hidden')).toBe(false);
+        expect(part(container, 'off').getAttribute('aria-hidden')).toBe('true');
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(String(warn.mock.calls[0]![0])).toContain('Swap.Root interactive has no label');
+        warn.mockRestore();
+    });
+
+    it('an app aria-label or aria-labelledby counts as the fixed name', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        render(
+            <div>
+                <Swap.Root interactive aria-label="Theme"><Swap.On>a</Swap.On><Swap.Off>b</Swap.Off></Swap.Root>
+                <Swap.Root interactive aria-labelledby="x"><Swap.On>a</Swap.On><Swap.Off>b</Swap.Off></Swap.Root>
+            </div>,
+            container,
+        );
+        for (const root of container.querySelectorAll('[data-part="root"]')) {
+            expect(root.getAttribute('aria-pressed')).toBe('false');
+        }
+        expect(warn).not.toHaveBeenCalled();
+        warn.mockRestore();
+    });
+
+    it('a display swap claims no name or pressed state and never warns', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        render(<Swap.Root><Swap.On>a</Swap.On><Swap.Off>b</Swap.Off></Swap.Root>, container);
+        expect(part(container, 'root').hasAttribute('aria-pressed')).toBe(false);
+        expect(part(container, 'off').hasAttribute('aria-hidden')).toBe(false);
+        expect(warn).not.toHaveBeenCalled();
+        warn.mockRestore();
     });
 
     it('a non-interactive swap ignores clicks — display only', () => {

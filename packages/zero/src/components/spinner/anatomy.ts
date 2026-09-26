@@ -7,10 +7,15 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * considered and cut — an idle spinner is one nobody should be looking at,
  * and giving it a state would invite a design system to paint one.
  *
- * `role="status"` with a name, because a spinner with no accessible name is a
- * decoration that happens to move. The runtime supplies "Loading" and the
- * `label` prop overrides it. The mark itself is drawn by the recipe, so the
- * part hints `color` and carries no text.
+ * `role="status"` with words, because a spinner that says nothing is a
+ * decoration that happens to move. The words are the `label` part's TEXT —
+ * always visually hidden, since a live region announces content and screen
+ * readers skip a name that only sits in an `aria-label` (#274). The runtime
+ * supplies "Loading" and the `label` prop overrides it; a `decorative`
+ * spinner renders no label at all. The mark itself is drawn by the recipe on
+ * the root, so the root hints `color` and carries no text, and the label
+ * hints nothing: the structure layer clips it, and there is nothing for a
+ * design system to style.
  */
 export const spinnerAnatomy = defineAnatomy('spinner', {
     root: {
@@ -21,5 +26,10 @@ export const spinnerAnatomy = defineAnatomy('spinner', {
         // 3:1 would read as a filled block someone meant.
         paint: true,
         tokens: ['color', 'size'],
+    },
+    label: {
+        element: 'span',
+        parent: 'root',
+        visuallyHidden: true,
     },
 });

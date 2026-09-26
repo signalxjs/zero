@@ -646,6 +646,7 @@ describe('the pass-through reaches every part', () => {
      */
     const RENDERED_BY_ZERO: Record<string, readonly string[]> = {
         button: ['spinner'],
+        spinner: ['label'],
         checkbox: ['control', 'indicator', 'label', 'hidden-input'],
         combobox: ['item-indicator', 'hidden-input', 'spacer', 'group-heading'],
         dialog: ['backdrop'],
@@ -735,7 +736,10 @@ describe('the per-part rules', () => {
             </div>,
             container,
         );
-        expect(q('spinner', 'root').getAttribute('aria-label')).toBe('Saving');
+        // A spinner's name is its hidden label's TEXT (#274): the app's
+        // aria-label moves there rather than sitting on the live region.
+        expect(q('spinner', 'label').textContent).toBe('Saving');
+        expect(q('spinner', 'root').hasAttribute('aria-label')).toBe(false);
         expect(q('breadcrumbs', 'root').getAttribute('aria-label')).toBe('You are here');
         expect(q('alert', 'close').getAttribute('aria-label')).toBe('Dismiss');
         // A name is what turns these two on: the timer role, and the dot
@@ -746,7 +750,7 @@ describe('the per-part rules', () => {
 
         container.innerHTML = '';
         render(<Spinner label="Uploading" aria-label="Saving" />, container);
-        expect(q('spinner', 'root').getAttribute('aria-label')).toBe('Uploading');
+        expect(q('spinner', 'label').textContent).toBe('Uploading');
     });
 
     it("an app aria-labelledby joins the progressbar's own", async () => {

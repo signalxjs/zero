@@ -82,6 +82,8 @@ export type {
     ProgressTrackProps,
     ProgressRangeProps,
     ProgressValueTextProps,
+    ProgressGetValueText,
+    ProgressValueTextDetails,
 } from './components/progress/index.js';
 
 export { Slider, sliderAnatomy, useSliderContext } from './components/slider/index.js';

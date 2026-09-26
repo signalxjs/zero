@@ -7,3 +7,4 @@ export type {
     ProgressValueTextProps,
 } from './Progress.js';
 export { progressAnatomy } from './anatomy.js';
+export type { ProgressGetValueText, ProgressValueTextDetails } from './value-text.js';

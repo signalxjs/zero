@@ -96,7 +96,7 @@
     {
         "name": "@sigx/zero/avatar",
         "path": "packages/zero/dist/components/avatar/index.js",
-        "limit": "1.95 kB",
+        "limit": "2.16 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -240,7 +240,7 @@
     {
         "name": "@sigx/zero/alert",
         "path": "packages/zero/dist/components/alert/index.js",
-        "limit": "3 kB",
+        "limit": "3.91 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -456,7 +456,7 @@
     {
         "name": "@sigx/zero/radial-progress",
         "path": "packages/zero/dist/components/radial-progress/index.js",
-        "limit": "2.2 kB",
+        "limit": "2.23 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

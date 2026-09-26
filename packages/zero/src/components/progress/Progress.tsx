@@ -11,11 +11,15 @@
  *
  * Display-only (no model): the `value` prop drives `role="progressbar"`
  * aria values and the range width custom property `--progress-percent`.
+ * `aria-valuetext` and the default `ValueText` share one formatted string
+ * (`getValueText` / `locale` / `formatOptions` — see `value-text.ts`), so
+ * what is announced is what is shown.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { countPresence, reportPresence, settleAfterMount } from '../../behaviors/part-presence.js';
 import { createId } from '../../behaviors/create-id.js';
+import { progressValueText, type WithProgressValueText } from './value-text.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { progressAnatomy } from './anatomy.js';
@@ -27,6 +31,8 @@ interface ProgressContext {
     min(): number;
     max(): number;
     percent(): number | null;
+    /** The announced and shown value text; `undefined` while indeterminate (#274). */
+    valueText(): string | undefined;
     state(): 'loading' | 'complete' | 'indeterminate';
     ids: { label: string };
     /** Label reports its presence so the root's reference never dangles (#169). */
@@ -39,6 +45,7 @@ function makeInert(): ProgressContext {
         min: () => 0,
         max: () => 100,
         percent: () => null,
+        valueText: () => undefined,
         state: () => 'indeterminate',
         ids: { label: 'zx-progress-inert' },
         setLabelPresent: () => {},
@@ -51,6 +58,7 @@ export type ProgressRootProps =
     & Define.Prop<'value', number | null, false>
     & Define.Prop<'min', number, false>
     & Define.Prop<'max', number, false>
+    & WithProgressValueText
     & WithVariantAxes<'progress'>
     & WithClass
     /**
@@ -91,6 +99,7 @@ const ProgressRoot = component<ProgressRootProps>(({ props, slots, signal, onMou
         min,
         max,
         percent,
+        valueText: () => progressValueText(props, valueNow(), percent(), min(), max()),
         state: () => {
             const p = percent();
             if (p == null) return 'indeterminate';
@@ -113,6 +122,7 @@ const ProgressRoot = component<ProgressRootProps>(({ props, slots, signal, onMou
                 aria-valuemin={min()}
                 aria-valuemax={max()}
                 aria-valuenow={valueNow()}
+                aria-valuetext={ctx.valueText()}
                 aria-labelledby={[
                     !present.settled || present.label > 0 ? ctx.ids.label : undefined,
                     attrs['aria-labelledby'],
@@ -172,7 +182,7 @@ const ProgressValueText = component<ProgressValueTextProps>(({ props, slots }) =
     const progress = useProgressContext();
     return () => (
         <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="value-text" class={props.class}>
-            {slots.default?.() ?? (progress.value() != null ? `${Math.round(progress.percent()!)}%` : null)}
+            {slots.default?.() ?? progress.valueText() ?? null}
         </div>
     );
 }, { name: 'Progress.ValueText' });
