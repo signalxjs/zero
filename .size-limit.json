@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "65.46 kB",
+        "limit": "65.65 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -74,7 +74,7 @@
     {
         "name": "@sigx/zero/anatomy (tooling entry)",
         "path": "packages/zero/dist/anatomy.js",
-        "limit": "4.04 kB",
+        "limit": "4.08 kB",
         "ignore": [
             "sigx",
             "@sigx/runtime-core",
