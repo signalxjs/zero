@@ -199,8 +199,13 @@ items it crosses while it stays inside the safe triangle between where it
 left the sub-trigger and the submenu's near edge — `closeDelay` still closes
 the submenu if the pointer stops short. On the keyboard, ArrowDown on a
 closed `Menu.Trigger` opens on the first enabled item and ArrowUp on the
-last, and Enter on an `asChild` `<a href>` item keeps its default, so the
-link navigates as well as selecting; Dialog has an alert-dialog preset
+last, Enter on an `asChild` `<a href>` item keeps its default, so the
+link navigates as well as selecting, and Tab or Shift+Tab from any item
+closes the whole chain (root and every open submenu) while the browser
+moves focus on to the next or previous tab stop — it is not pulled back to
+the trigger; focus leaving the menu any other way (a pointer, assistive
+technology) closes it too. `loop` on `Menu.Root` (default `true`) decides
+whether ArrowDown/ArrowUp wrap at the ends, at every level; Dialog has an alert-dialog preset
 (`role="alertdialog"`: no backdrop dismiss, initial focus on the
 least-destructive `Dialog.Cancel`), and every Dialog/Drawer close reports
 why on a `close` event that follows `openChange(false)` — `{ reason, value }`
@@ -1220,9 +1225,10 @@ same behaviors, held to the same conformance assertion:
   `getTabbables`, `isFocusable`: tabbable detection skips anything
   disabled — a disabled `<fieldset>` included, bar its first legend —
   inert, hidden or unrendered, and a radio group is one stop;
-  `createFocusRestore(isOpen, { getSurface, fallback })` hands focus back
-  on close only while it is still on the surface or on nothing, and falls
-  back — to the trigger, in Popover, Menu, Dialog and Drawer — when the
+  `createFocusRestore(isOpen, { getSurface, fallback, skip })` hands focus back
+  on close only while it is still on the surface or on nothing (and never
+  when `skip()` answers true — a close that sent focus on on purpose, like
+  Menu's Tab), and falls back — to the trigger, in Popover, Menu, Dialog and Drawer — when the
   element focused before opening can no longer take it), list/tree registration with listbox-highlight stepping
   (`moveHighlight`, `optionText`), typeahead (`createTypeahead`: a
   multi-character search refines the current match instead of stepping past

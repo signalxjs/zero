@@ -278,7 +278,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     input: ['autocapitalize', 'autocomplete', 'autocorrect', 'autofocus', 'defaultValue', 'enterkeyhint', 'form', 'id', 'inputmode', 'invalid', 'maxlength', 'minlength', 'name', 'pattern', 'readonly', 'required', 'role', 'spellcheck', 'title', 'type', 'value'],
     join: ['id', 'role', 'title'],
     kbd: ['id', 'role', 'title'],
-    menu: ['closeOnSelect', 'defaultOpen', 'offset', 'placement', 'positionStrategy', 'value'],
+    menu: ['closeOnSelect', 'defaultOpen', 'loop', 'offset', 'placement', 'positionStrategy', 'value'],
     'nav-list': ['id', 'label', 'title'],
     navbar: ['id', 'role', 'title'],
     'number-input': ['allowWheel', 'clampOnBlur', 'defaultValue', 'form', 'format', 'id', 'invalid', 'max', 'min', 'name', 'parse', 'readonly', 'required', 'role', 'step', 'title', 'value'],

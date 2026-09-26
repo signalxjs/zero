@@ -143,6 +143,12 @@ export interface FocusRestoreOptions {
      * take it (removed, disabled, hidden) — typically the trigger.
      */
     fallback?(): HTMLElement | null;
+    /**
+     * Consulted as the surface closes: true leaves focus where it is. For a
+     * close that already sent focus somewhere on purpose — a menu closed by
+     * Tab, whose focus the browser moves onward itself.
+     */
+    skip?(): boolean;
 }
 
 /**
@@ -165,6 +171,7 @@ export function createFocusRestore(isOpen: () => boolean, options: FocusRestoreO
             if (!wasOpen) return;
             const remembered = previous;
             previous = null;
+            if (options.skip?.()) return;
             if (!focusIsOurs(options.getSurface)) return;
             const target = isFocusable(remembered) ? remembered : options.fallback?.() ?? null;
             if (isFocusable(target)) target.focus();
