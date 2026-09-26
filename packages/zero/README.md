@@ -1189,6 +1189,37 @@ model alone.
     getPageHref={(n) => `/posts?page=${n}`} />
 ```
 
+**Steps as a wizard** (#296). `Steps.Content value="…"` is one panel per
+step, a child of the root: a `role="region"` labelled by its step's
+`Steps.Title` (by the item when the step has no title), `data-state`
+`active|inactive` and `hidden` unless its step is active; the item's
+`aria-controls` names it (only while it is rendered — presence-tracked like
+Field's references). `lazyMount` on the root renders a panel's content
+only once its step has been active, then keeps it. `Steps.PrevTrigger` /
+`Steps.NextTrigger` move to the nearest enabled step before/after the
+active one in DOM order; at a bound they stay focusable with
+`aria-disabled` + `data-disabled`, and `label` names an icon-only one.
+`linear` on the root gates the walk: every item past the next reachable
+step renders `data-disabled` and `aria-disabled` and ignores click, Enter
+and Next — but stays focusable and roved, so its title is still read;
+going back is never gated. `invalid` on an item puts `data-invalid` on the
+item, its indicator and its separator, and appends a visually-hidden
+`invalidLabel` (default `", has errors"`) to the item's name, since
+`aria-invalid` is not allowed on a button (an `asChild` item renders that
+text itself). The item and title now carry generated ids, so neither takes
+an `id` prop.
+
+```tsx
+<Steps.Root defaultStep="cart" linear label="Checkout">
+    <Steps.Item value="cart"><Steps.Indicator>1</Steps.Indicator><Steps.Title>Cart</Steps.Title><Steps.Separator /></Steps.Item>
+    <Steps.Item value="pay" invalid={!paymentValid}><Steps.Indicator>2</Steps.Indicator><Steps.Title>Pay</Steps.Title></Steps.Item>
+    <Steps.Content value="cart">…</Steps.Content>
+    <Steps.Content value="pay">…</Steps.Content>
+    <Steps.PrevTrigger>Back</Steps.PrevTrigger>
+    <Steps.NextTrigger>Next</Steps.NextTrigger>
+</Steps.Root>
+```
+
 **Scrollable tables are keyboard stops.** `Table.Root`'s scroll wrapper has
 `tabIndex=0` (axe `scrollable-region-focusable`: a table wider than its
 container must scroll without a pointer — focused, the arrow keys scroll

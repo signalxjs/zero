@@ -299,7 +299,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     stack: ['align', 'gap', 'gapX', 'gapY', 'id', 'justify', 'pad', 'padX', 'padY', 'role', 'title', 'wrap'],
     stats: ['id', 'role', 'title'],
     status: ['id', 'label', 'title'],
-    steps: ['defaultStep', 'id', 'label', 'loop', 'title', 'value'],
+    steps: ['defaultStep', 'id', 'invalidLabel', 'label', 'lazyMount', 'linear', 'loop', 'title', 'value'],
     swap: ['defaultActive', 'id', 'interactive', 'label', 'role', 'title', 'value'],
     switch: ['defaultChecked', 'form', 'hideLabel', 'id', 'invalid', 'name', 'readonly', 'required', 'title', 'value'],
     table: ['columns', 'defaultSort', 'id', 'role', 'sortCycle', 'stack', 'title'],

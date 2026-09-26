@@ -5211,6 +5211,20 @@ export const pagination: RecipeInput = {
     },
 };
 
+/** A Steps root holding wizard parts (#296) — the panel or the triggers. */
+const STEPS_WIZARD = '&:has(> [data-scope="steps"]:is([data-part="content"], [data-part="prev-trigger"], [data-part="next-trigger"]))';
+
+/** Steps' Back/Next (#296): the ghost trigger, climbing the layer ramp. */
+const stepsTrigger: PartStyles = {
+    base: { ...ghostTrigger.base, flex: '0 0 auto', alignSelf: 'flex-start' },
+    states: {
+        hover: { background: 'var(--color-base-200)' },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: ghostTrigger.selectors,
+};
+
 /**
  * Steps — Carbon's ProgressIndicator: the discs are the one circle Carbon
  * allows itself (its step markers are SVG rings) — a border ring at rest,
@@ -5232,6 +5246,10 @@ export const steps: RecipeInput = {
             },
             selectors: {
                 '&[data-orientation="vertical"]': { flexDirection: 'column' },
+                // A wizard (#296): the rail keeps its own line and the panel
+                // and triggers wrap below it. Only then — a bare rail never
+                // wraps, so its steps stay one row at any width.
+                [STEPS_WIZARD]: { flexWrap: 'wrap', rowGap: 'var(--space-lg)' },
             },
         },
         /**
@@ -5270,6 +5288,9 @@ export const steps: RecipeInput = {
                 active: { color: 'var(--color-base-content)', fontWeight: 'var(--weight-semibold)' },
                 complete: { color: 'var(--color-base-content)' },
                 inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                // Carbon's invalid step, whatever its phase: after the
+                // phases, so it wins at equal weight.
+                invalid: { color: 'var(--carbon-danger)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
@@ -5295,6 +5316,7 @@ export const steps: RecipeInput = {
                 active: { background: 'var(--color-base-content)', color: 'var(--color-base-100)', boxShadow: '0 0 0 2px var(--color-base-100), 0 0 0 3px var(--color-base-content)' },
                 complete: { background: 'var(--color-base-content)', color: 'var(--color-base-100)' },
                 inactive: { background: 'transparent', color: 'var(--color-base-content)' },
+                invalid: { background: 'var(--carbon-danger)', color: 'var(--carbon-danger-ink)', borderColor: 'var(--carbon-danger)' },
             },
         },
         /**
@@ -5326,6 +5348,7 @@ export const steps: RecipeInput = {
             states: {
                 complete: { background: 'var(--color-base-content)' },
                 inactive: { background: 'var(--color-base-300)' },
+                invalid: { background: 'var(--carbon-danger)' },
             },
         },
         title: {
@@ -5339,6 +5362,25 @@ export const steps: RecipeInput = {
                 color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
                 fontWeight: 'var(--weight-normal)',
             },
+        },
+        /**
+         * The active step's panel: a full-width line under the rail (the
+         * wizard wrap above). Inactive panels are `hidden`, so they need no
+         * rule.
+         */
+        content: {
+            base: {
+                flex: '1 0 100%',
+                fontSize: 'var(--text-md)',
+                color: 'var(--color-base-content)',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        // Back/Next are the ghost trigger; Next takes the far end of their line.
+        'prev-trigger': stepsTrigger,
+        'next-trigger': {
+            ...stepsTrigger,
+            base: { ...stepsTrigger.base, marginInlineStart: 'auto' },
         },
     },
     variants: {

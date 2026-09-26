@@ -183,7 +183,10 @@ close PLAYS — sampled per frame, the panel shrinks inside a still-open
 rail every skin stands upright, measured in boxes), tree-view
 keyboard (expand/descend/collapse/climb, typeahead against the accessible
 text, and since #287 `multiple`: the APG multi-select keys and the
-modifier clicks, whose Shift+click must select rows rather than text), carousel (real scroll-snap: buttons and dots move the scroll, and a
+modifier clicks, whose Shift+click must select rows rather than text), the steps wizard (#296: arrows rove onto
+`linear`-locked steps that never activate, Next keeps focus at the last
+step, and in every skin the panel and triggers wrap below the rail,
+measured in boxes), carousel (real scroll-snap: buttons and dots move the scroll, and a
 REAL scroll drives the model back through the IntersectionObserver),
 diff (the divider handle's captured drag moves the painted reveal, APG
 keyboard steps, and an RTL check measured in boxes — the reveal is a

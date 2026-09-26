@@ -32,7 +32,7 @@
   switch/checkbox control and radio-group item-control (press anywhere in
   the label row lands on the control; Space via the hidden input);
   slider control (`data-pressed` only — a drag has no one-shot);
-  pagination item and prev/next triggers; steps item.
+  pagination item and prev/next triggers; steps item and prev/next triggers.
 - Variant axes pass through as data-color / data-size / data-variant
   (values: color = any DS-declared role — recommended vocabulary
   primary|secondary|accent|neutral|info|success|warning|error,
@@ -711,8 +711,10 @@ component renders; the root is called out separately where it carries props.
   outgrown sheet keeps focus in place; focus in a docked panel that stops
   showing moves to the trigger. A closed panel is display:none structurally (base.css), like
   Dialog's popup.
-- Steps: Root(model=step value, defaultStep, loop, label, orientation)/
-  Item(value,color,asChild)/Indicator/Separator/Title/Description — the wizard
+- Steps: Root(model=step value, defaultStep, loop, label, orientation,
+  linear, lazyMount, invalidLabel)/Item(value,color,invalid,asChild)/
+  Indicator/Separator/Title/Description/Content(value)/PrevTrigger/
+  NextTrigger(label) — the wizard
   step rail, promoted from the ecosystem ext-stepper pattern (the
   zero-ext-example package REMAINS as the ecosystem acceptance test).
   role="group" + aria-label; arrow keys rove focus without changing the
@@ -729,6 +731,20 @@ component renders; the root is called out separately where it carries props.
   on the item and outranks the root's, so one step paints its own tone
   (daisy's step-error) and everything inside it follows; an item without
   one follows the root. Key the colour values on `item` in the recipe.
+  Wizard parts (#296): Content is one panel per step (value = an item's),
+  a role="region" labelled by its step's title (else the item), states
+  active|inactive, `hidden` unless active (hiddenIn: ['inactive']); the
+  item's aria-controls names it. It is a child of the ROOT, so a recipe
+  lays the rail out on one line and wraps panel + triggers below it.
+  PrevTrigger/NextTrigger (buttons, children of the root) move to the
+  nearest enabled item before/after the active one in DOM order; at a
+  bound they stay focusable with aria-disabled + data-disabled (a disabled
+  root disables them natively). Root `linear`: every item past the next
+  reachable step renders data-disabled + aria-disabled and never
+  activates, but stays focusable and roved. Item `invalid`: data-invalid
+  on item, indicator and separator, plus a visually-hidden invalidLabel
+  (", has errors") in the item's name — aria-invalid is not valid on a
+  button. Paint `invalid` after the phases so it wins at equal weight.
 - Pagination: Root(model=page, count, siblingCount, boundaryCount, label,
   prevLabel/nextLabel, pageLabel(n) — default "Page n") — options-driven: the row derives from count + the
   model, so zero renders item buttons, aria-hidden ellipses and the

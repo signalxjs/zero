@@ -495,6 +495,9 @@ describe('the pass-through reaches every part', () => {
                     <Steps.Description {...p('description')}>D</Steps.Description>
                     <Steps.Separator {...p('separator')} />
                 </Steps.Item>
+                <Steps.Content {...p('content')} value="a">Body</Steps.Content>
+                <Steps.PrevTrigger {...p('prev-trigger')}>Back</Steps.PrevTrigger>
+                <Steps.NextTrigger {...p('next-trigger')}>Next</Steps.NextTrigger>
             </Steps.Root>
         ),
         swap: () => (

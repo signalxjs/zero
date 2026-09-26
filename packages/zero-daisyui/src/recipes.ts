@@ -6473,6 +6473,22 @@ const stepInk = (accent: string, role: string): string =>
     `color-mix(in oklab, ${accent} `
     + `${Math.min(ROLE_INK_KEEP[role as keyof typeof roles] ?? 55, 70)}%, var(--color-base-content))`;
 
+/** A Steps root holding wizard parts (#296) — the panel or the triggers. */
+const STEPS_WIZARD = '&:has(> [data-scope="steps"]:is([data-part="content"], [data-part="prev-trigger"], [data-part="next-trigger"]))';
+
+/** Steps' Back/Next (#296): the neutral daisy btn, with its 1px sink. */
+const stepsTrigger: PartStyles = {
+    base: { ...btn, flex: '0 0 auto', alignSelf: 'flex-start' },
+    states: {
+        hover: { background: 'var(--color-base-300)' },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' },
+    },
+};
+
 /**
  * Steps — daisy's steps translated to the richer rail: bold numbered discs
  * on base-200, the walked disc and line refilled with the accent pair
@@ -6499,6 +6515,10 @@ export const steps: RecipeInput = {
             },
             selectors: {
                 '&[data-orientation="vertical"]': { flexDirection: 'column' },
+                // A wizard (#296): the rail keeps its own line and the panel
+                // and triggers wrap below it. Only then — a bare rail never
+                // wraps, so its steps stay one row at any width.
+                [STEPS_WIZARD]: { flexWrap: 'wrap', rowGap: 'var(--space-md)' },
             },
         },
         /**
@@ -6537,6 +6557,10 @@ export const steps: RecipeInput = {
                 active: { color: 'var(--steps-accent-ink)', fontWeight: 'var(--weight-semibold)' },
                 complete: { color: 'var(--color-base-content)' },
                 inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                // daisy's `step-error`, whatever the phase: after the phases,
+                // so it wins at equal weight. `stepInk`, not `roleInk`: the
+                // 85% error ink measured 3.79:1 on light's page as text.
+                invalid: { color: stepInk('var(--color-error)', 'error') },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
@@ -6568,6 +6592,7 @@ export const steps: RecipeInput = {
                 // the disc (#112).
                 complete: { background: 'color-mix(in oklab, var(--steps-accent) 20%, var(--color-base-100))', color: 'var(--steps-complete-ink)' },
                 inactive: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
+                invalid: { background: 'var(--color-error)', color: 'var(--color-error-content)' },
             },
         },
         /**
@@ -6599,6 +6624,7 @@ export const steps: RecipeInput = {
             states: {
                 complete: { background: 'var(--steps-accent)' },
                 inactive: { background: 'var(--color-base-300)' },
+                invalid: { background: 'var(--color-error)' },
             },
         },
         title: {
@@ -6612,6 +6638,25 @@ export const steps: RecipeInput = {
                 color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
                 fontWeight: 'var(--weight-normal)',
             },
+        },
+        /**
+         * The active step's panel: a full-width line under the rail (the
+         * wizard wrap above). Inactive panels are `hidden`, so they need no
+         * rule.
+         */
+        content: {
+            base: {
+                flex: '1 0 100%',
+                fontSize: 'var(--text-md)',
+                color: 'var(--color-base-content)',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        // Back/Next are daisy btns; Next takes the far end of their line.
+        'prev-trigger': stepsTrigger,
+        'next-trigger': {
+            ...stepsTrigger,
+            base: { ...stepsTrigger.base, marginInlineStart: 'auto' },
         },
     },
     variants: {

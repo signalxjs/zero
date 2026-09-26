@@ -5,6 +5,7 @@ import type { PageEntry } from './registry';
 
 const StepsDemos = component(() => {
     const checkout = signal({ step: 'details' });
+    const signup = signal({ step: 'account' });
     return () => (
         <>
             <p>
@@ -78,6 +79,54 @@ const StepsDemos = component(() => {
                     <Steps.Indicator>4</Steps.Indicator>
                     <Steps.Title>Verify</Steps.Title>
                 </Steps.Item>
+            </Steps.Root>
+            {/*
+              * #296: Steps as a wizard. The panels and the Back/Next
+              * triggers are children of the root; `linear` gates every step
+              * past the next one (still focusable, still read), and an
+              * `invalid` step flags its item, disc and bridge and says
+              * ", has errors" in its name.
+              */}
+            <p>
+                A linear wizard — content panels, Back/Next, and a step with
+                errors. Steps past the next one are locked until you reach
+                them; the arrow keys still visit them.
+            </p>
+            <Steps.Root model={[signup, 'step']} linear label="Sign-up">
+                <Steps.Item value="account">
+                    <Steps.Indicator>1</Steps.Indicator>
+                    <Steps.Title>Account</Steps.Title>
+                    <Steps.Separator />
+                </Steps.Item>
+                <Steps.Item value="profile" invalid>
+                    <Steps.Indicator>2</Steps.Indicator>
+                    <Steps.Title>Profile</Steps.Title>
+                    <Steps.Description>Missing a field</Steps.Description>
+                    <Steps.Separator />
+                </Steps.Item>
+                <Steps.Item value="plan">
+                    <Steps.Indicator>3</Steps.Indicator>
+                    <Steps.Title>Plan</Steps.Title>
+                    <Steps.Separator />
+                </Steps.Item>
+                <Steps.Item value="confirm">
+                    <Steps.Indicator>4</Steps.Indicator>
+                    <Steps.Title>Confirm</Steps.Title>
+                </Steps.Item>
+                <Steps.Content value="account">
+                    <p>Choose an email address and a password.</p>
+                </Steps.Content>
+                <Steps.Content value="profile">
+                    <p>Tell us your name — this step still has errors.</p>
+                </Steps.Content>
+                <Steps.Content value="plan">
+                    <p>Pick the plan that fits.</p>
+                </Steps.Content>
+                <Steps.Content value="confirm">
+                    <p>Check everything, then create the account.</p>
+                </Steps.Content>
+                <Steps.PrevTrigger>Back</Steps.PrevTrigger>
+                <Steps.NextTrigger>Next</Steps.NextTrigger>
             </Steps.Root>
         </>
     );

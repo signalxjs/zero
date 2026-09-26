@@ -5336,6 +5336,15 @@ export const pagination: RecipeInput = {
     },
 };
 
+/** A Steps root holding wizard parts (#296) — the panel or the triggers. */
+const STEPS_WIZARD = '&:has(> [data-scope="steps"]:is([data-part="content"], [data-part="prev-trigger"], [data-part="next-trigger"]))';
+
+/** Steps' Back/Next (#296): the outlined pill, in the primary ink. */
+const stepsTrigger: PartStyles = withPresence(pressable('steps'), {
+    base: { ...outlinedTrigger, color: 'var(--color-primary)', flex: '0 0 auto', alignSelf: 'flex-start' },
+    states: { disabled: disabledFade, ...focusRing },
+});
+
 /**
  * Steps — M3's process rail: tonal discs (surface-container at rest, the
  * primary pair when current, a primary-tinted tonal disc once walked), the
@@ -5344,6 +5353,7 @@ export const pagination: RecipeInput = {
  */
 export const steps: RecipeInput = {
     component: 'steps',
+    keyframes: rippleKeyframes('steps'),
     tokens: {
         '--steps-accent': 'var(--color-primary)',
         '--steps-accent-content': 'var(--color-primary-content)',
@@ -5358,6 +5368,10 @@ export const steps: RecipeInput = {
             },
             selectors: {
                 '&[data-orientation="vertical"]': { flexDirection: 'column' },
+                // A wizard (#296): the rail keeps its own line and the panel
+                // and triggers wrap below it. Only then — a bare rail never
+                // wraps, so its steps stay one row at any width.
+                [STEPS_WIZARD]: { flexWrap: 'wrap', rowGap: 'var(--space-lg)' },
             },
         },
         /**
@@ -5398,6 +5412,9 @@ export const steps: RecipeInput = {
                 active: { color: 'var(--steps-accent)', fontWeight: 'var(--weight-semibold)' },
                 complete: { color: 'var(--color-base-content)' },
                 inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                // MD3's error step, whatever the phase: after the phases, so
+                // it wins at equal weight. Material's roles are inks.
+                invalid: { color: 'var(--color-error)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
@@ -5422,6 +5439,7 @@ export const steps: RecipeInput = {
                 active: { background: 'var(--steps-accent)', color: 'var(--steps-accent-content)' },
                 complete: { background: 'color-mix(in oklch, var(--steps-accent) 18%, var(--color-base-100))', color: 'var(--steps-accent)' },
                 inactive: { background: 'var(--color-surface-container)', color: 'var(--color-surface-container-content)' },
+                invalid: { background: 'var(--color-error)', color: 'var(--color-error-content)' },
             },
         },
         /**
@@ -5453,6 +5471,7 @@ export const steps: RecipeInput = {
             states: {
                 complete: { background: 'var(--steps-accent)' },
                 inactive: { background: 'var(--color-base-300)' },
+                invalid: { background: 'var(--color-error)' },
             },
         },
         title: {
@@ -5467,6 +5486,23 @@ export const steps: RecipeInput = {
                 fontWeight: 'var(--weight-normal)',
             },
         },
+        /**
+         * The active step's panel: a full-width line under the rail (the
+         * wizard wrap above), MD3 body text. Inactive panels are `hidden`,
+         * so they need no rule.
+         */
+        content: {
+            base: {
+                flex: '1 0 100%',
+                fontSize: 'var(--text-md)',
+                color: 'var(--color-base-content)',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        // Back/Next wear the outlined pill every overlay opens from, with
+        // its state layer and ripple; Next takes the far end of their line.
+        'prev-trigger': stepsTrigger,
+        'next-trigger': withPresence(stepsTrigger, { base: { marginInlineStart: 'auto' } }),
     },
     variants: {
         // Keyed on the ITEM, not the root (#112): the item re-carries

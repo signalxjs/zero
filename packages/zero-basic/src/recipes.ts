@@ -6173,6 +6173,20 @@ export const pagination: RecipeInput = {
     },
 };
 
+/** A Steps root holding wizard parts (#296) — the panel or the triggers. */
+const STEPS_WIZARD = '&:has(> [data-scope="steps"]:is([data-part="content"], [data-part="prev-trigger"], [data-part="next-trigger"]))';
+
+/** Steps' Back/Next (#296): `quietTrigger`, with the house's press and ring. */
+const stepsTrigger: PartStyles = {
+    base: { ...quietTrigger, flex: '0 0 auto', alignSelf: 'flex-start', padding: 'var(--space-sm) var(--space-lg)' },
+    states: {
+        hover: { background: inkWash },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: { ...pressedInk },
+};
+
 /**
  * Steps — the wizard rail in hairline grammar: quiet numbered discs on the
  * axis, the walked line in the accent, the current disc inverted into the
@@ -6196,6 +6210,10 @@ export const steps: RecipeInput = {
             },
             selectors: {
                 '&[data-orientation="vertical"]': { flexDirection: 'column' },
+                // A wizard (#296): the rail keeps its own line and the panel
+                // and triggers wrap below it. Only then — a bare rail never
+                // wraps, so its steps stay one row at any width.
+                [STEPS_WIZARD]: { flexWrap: 'wrap', rowGap: 'var(--space-md)' },
             },
         },
         /**
@@ -6234,6 +6252,9 @@ export const steps: RecipeInput = {
                 active: { color: 'var(--steps-accent-ink)', fontWeight: 'var(--weight-semibold)' },
                 complete: { color: 'var(--color-base-content)' },
                 inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                // A step with errors writes in the error ink whatever its
+                // phase — after the phases, so it wins at equal weight.
+                invalid: { color: softInk('error') },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
@@ -6259,6 +6280,7 @@ export const steps: RecipeInput = {
                 active: { background: 'var(--steps-accent)', color: 'var(--steps-accent-content)', borderColor: 'transparent' },
                 complete: { background: 'color-mix(in oklch, var(--steps-accent) 15%, var(--color-base-100))', color: 'var(--steps-accent-ink)' },
                 inactive: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
+                invalid: { background: 'var(--color-error)', color: 'var(--color-error-content)', borderColor: 'transparent' },
             },
         },
         /**
@@ -6290,6 +6312,7 @@ export const steps: RecipeInput = {
             states: {
                 complete: { background: 'var(--steps-accent)' },
                 inactive: { background: 'var(--color-base-300)' },
+                invalid: { background: 'var(--color-error)' },
             },
         },
         title: {
@@ -6303,6 +6326,26 @@ export const steps: RecipeInput = {
                 color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
                 fontWeight: 'var(--weight-normal)',
             },
+        },
+        /**
+         * The active step's panel: a full-width line under the rail (the
+         * wizard wrap above), plain reading text on the page. Inactive
+         * panels are `hidden`, so they need no rule.
+         */
+        content: {
+            base: {
+                flex: '1 0 100%',
+                fontSize: 'var(--text-md)',
+                color: 'var(--color-base-content)',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        // Back/Next are the quiet trigger every overlay opens from; Next
+        // takes the far end of the triggers' line.
+        'prev-trigger': stepsTrigger,
+        'next-trigger': {
+            ...stepsTrigger,
+            base: { ...stepsTrigger.base, marginInlineStart: 'auto' },
         },
     },
     variants: {
