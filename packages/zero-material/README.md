@@ -47,6 +47,11 @@ components, and required no change to `@sigx/zero-kit`.
   leading dot drawn as `root::before` — the snackbar's leading-icon slot,
   free because `root` is not pressable — alongside the action label that
   already wore it.
+- **A promise toast's indicator takes the marker's slot.** While
+  `Toast.Indicator` is rendered, the `::before` dot steps aside and the
+  indicator fills that leading column: M3's circular progress (the accent
+  arc on its outline track) while loading, then a tick or a cross. The
+  snackbars stay a plain column; this skin does not deal a stack as cards.
 
 ```ts
 import '@sigx/zero-material/css';

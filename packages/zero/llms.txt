@@ -771,15 +771,23 @@ component renders; the root is called out separately where it carries props.
   status resolves on mount; with no Image rendered it settles to error
   (#274). Fallback `delay` ms keeps it out of the DOM until the delay passes
   (client timer; SSR renders none). `statusChange` event.
-- Toast: Viewport(placement, toaster, label, hotkey)/Root(toast)/Title/
-  Description/Action/Close, over an imperative queue:
-  `toast({ title, color, duration, role })` (browser-only), `createToaster()`
-  for apps/tests, `useToaster` injectable. Viewport is a popover="manual" top
+- Toast: Viewport(placement, toaster, label, hotkey, expand)/Root(toast)/
+  Indicator/Title/Description/Action/Close, over an imperative queue:
+  `toast({ title, color, duration, role, status })` (browser-only),
+  `createToaster()` for apps/tests, `useToaster` injectable.
+  `toaster.promise(p, { loading, success, error })` keeps one sticky
+  `status: 'loading'` toast while `p` runs, then updates it in place
+  (`complete`/`error`, default duration restored); Indicator is an
+  aria-hidden span whose data-state is the status (loading|complete|error),
+  absent without one. Viewport is a popover="manual" top
   layer, `role=region`, and the one polite live region (`aria-live=polite`);
   `role: 'alert'` toasts speak through a sibling visually-hidden assertive
   span instead (their root is `aria-live=off`). Each root is a focusable
   (`tabindex=-1`) named `role=group`, carries `data-color` +
-  `data-placement`, and publishes `--toast-index`/`--toast-count`. F8
+  `data-placement`, and publishes `--toast-index`/`--toast-count` plus its
+  measured `--toast-height` and `--toast-offset` (heights of the newer toasts
+  in front). The viewport's data-state is `open` while the stack is
+  expanded (hovered/focus inside, or `expand="always"`), else `closed`. F8
   (`hotkey`, `false` to disable; the label template's `{hotkey}` names it)
   focuses the first toast, Escape dismisses the focused one, and closing a
   focused toast hands focus to the next/previous toast or back to where it

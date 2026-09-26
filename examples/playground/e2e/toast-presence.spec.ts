@@ -173,3 +173,67 @@ test('a toast raised under a modal dialog paints above its backdrop (#269)', asy
     const alone = await interior();
     expect(over.equals(alone), 'the raised toast was painted under the modal backdrop').toBe(true);
 });
+
+test('a promise toast: loading, then updated in place with its outcome and indicator (#292)', async ({ page }) => {
+    await page.getByRole('button', { name: 'Promise → resolves', exact: true }).click();
+    const loading = rootLabelled(page, 'toast', 'Uploading report…');
+    await expect(loading).toHaveAttribute('data-state', 'open');
+    const parts = demoLabelled(page, 'toast', 'Uploading report…');
+    await expect(parts('indicator')).toHaveAttribute('data-state', 'loading');
+    await expect(parts('indicator')).toHaveAttribute('aria-hidden', 'true');
+    // The same toast, by its title's id — its text is about to change.
+    const titleId = await parts('title').getAttribute('id');
+    expect(titleId).toBeTruthy();
+    const same = page.locator('[data-scope="toast"][data-part="root"]').filter({ has: page.locator(`[id="${titleId}"]`) });
+    await expect(same.locator('[data-part="title"]')).toHaveText('Report uploaded');
+    await expect(same.locator('[data-part="indicator"]')).toHaveAttribute('data-state', 'complete');
+    await expect(same).toHaveCount(1);
+
+    await page.getByRole('button', { name: 'Promise → rejects', exact: true }).click();
+    const syncing = demoLabelled(page, 'toast', 'Syncing…');
+    await expect(syncing('indicator')).toHaveAttribute('data-state', 'loading');
+    await expect(demoLabelled(page, 'toast', 'Sync stopped')('indicator')).toHaveAttribute('data-state', 'error');
+});
+
+test('the stack rests closed and fans out while hovered, its offsets monotonic (#292)', async ({ page }) => {
+    await page.getByRole('button', { name: 'Stack three', exact: true }).click();
+    const viewport = page.locator('[data-scope="toast"][data-part="viewport"]');
+    const cards = ['First of three', 'Second of three', 'Third of three'].map((t) => rootLabelled(page, 'toast', t));
+    for (const card of cards) await expect(card).toHaveAttribute('data-state', 'open');
+    await expect(viewport).toHaveAttribute('data-state', 'closed');
+
+    // The runtime's numbers: each card's offset is the height of the newer
+    // cards in front of it, so it falls from the oldest to the newest.
+    const measured = async () => Promise.all(cards.map((card) => card.evaluate((el) => ({
+        height: parseFloat(el.style.getPropertyValue('--toast-height')),
+        offset: parseFloat(el.style.getPropertyValue('--toast-offset')),
+    }))));
+    const vars = await measured();
+    for (const v of vars) expect(v.height).toBeGreaterThan(0);
+    expect(vars[2]!.offset).toBe(0);
+    expect(vars[1]!.offset).toBeCloseTo(vars[2]!.height, 0);
+    expect(vars[0]!.offset).toBeCloseTo(vars[1]!.height + vars[2]!.height, 0);
+
+    // Resting, basic deals them as a deck: the older cards sit behind the
+    // front one rather than in a column.
+    const front = await settledBox(cards[2]!, 'the front card');
+    const oldest = await settledBox(cards[0]!, 'the oldest card');
+    expect(oldest.y + oldest.height).toBeGreaterThan(front.y);
+
+    await cards[2]!.hover();
+    await expect(viewport).toHaveAttribute('data-state', 'open');
+    // Fanned: a column, newest nearest the bottom edge, no card over another.
+    const boxes = [];
+    for (const [i, card] of cards.entries()) boxes.push(await settledBox(card, `card ${i}`));
+    expect(boxes[0]!.y + boxes[0]!.height).toBeLessThanOrEqual(boxes[1]!.y + 1);
+    expect(boxes[1]!.y + boxes[1]!.height).toBeLessThanOrEqual(boxes[2]!.y + 1);
+
+    // Crossing the gap between two fanned cards keeps the stack open.
+    const gapY = (boxes[1]!.y + boxes[1]!.height + boxes[2]!.y) / 2;
+    await page.mouse.move(boxes[2]!.x + boxes[2]!.width / 2, gapY);
+    await expect(viewport).toHaveAttribute('data-state', 'open');
+
+    // And leaving folds it back.
+    await page.mouse.move(5, 5);
+    await expect(viewport).toHaveAttribute('data-state', 'closed');
+});

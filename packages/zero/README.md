@@ -1406,6 +1406,32 @@ through a visually-hidden `aria-live="assertive"` span the viewport renders
 beside the region, filled a frame after the toast mounts (and again when an
 alert's text changes), so nothing is announced twice.
 
+**Promise toasts.** `toaster().promise(p, { loading, success, error })`
+shows one toast for the life of a promise and returns its id: the
+`loading` stage is sticky (`duration: Infinity`) with `status: 'loading'`,
+and when `p` settles the same toast is updated in place with `success`
+(`status: 'complete'`) or `error` (`status: 'error'`) and the toaster's
+default duration re-armed, unless that stage sets its own. Each stage is a
+title string or the options of an ordinary toast; `success` and `error` may
+also be functions of the value or the reason. The rejection is handled
+there, and a toast dismissed before the promise settles stays gone. Any
+toast can carry a `status` (`create`/`update`). `Toast.Indicator` renders
+it — a decorative (`aria-hidden`) `span` with `data-state="loading" |
+"complete" | "error"`, and nothing at all while the toast has no status; the
+stock composition includes one, the recipe draws the mark, and the title
+says the outcome in words.
+
+**Toast stack.** The viewport carries `data-state`: `open` while the stack
+is expanded — the pointer over it or focus inside it (the same holds that
+pause the timers), or always with `expand="always"` — and `closed` at rest
+(`expand` defaults to `'hover'`). Each root publishes where it stands:
+`--toast-index` (oldest first) of `--toast-count`, and, measured with a
+`ResizeObserver`, its own `--toast-height` and `--toast-offset` — the summed
+heights of the newer toasts in front of it, in px. That is enough for a
+recipe to lay a resting stack out as a deck of cards and fan it into a
+column when it opens (zero-basic and zero-heroui do; the other skins keep a
+plain column). All four are web runtime properties (`RUNTIME_PROPERTIES`).
+
 **Toasts over a modal dialog.** A toast raised while the viewport is
 already showing re-shows it (`hidePopover()` + `showPopover()`), the only
 way to the top of the top layer, so a toast raised during a modal dialog

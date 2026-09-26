@@ -81,6 +81,18 @@ the ring still draws the whole dot.
 `axes.shape` there and nowhere else. One declaration on the root, whose
 `overflow: hidden` clips the image and the initials alike. `rounded` is the selector radius, which is also the un-attributed default here.
 
+## Toast stack and promise toasts
+
+At rest the toasts lie as a deck on the viewport's edge — the newest in
+front, each older one a step behind and smaller, its content faded — and
+they fan into a column while the viewport is `open` (hovered or holding
+focus), using the runtime's measured `--toast-offset`. A bridge on each
+fanned card's far side keeps the pointer in the stack across the gaps.
+The deck is web-only (`targets.web`); on lynx the toasts stay a column.
+`Toast.Indicator` sits in a leading column the grid grows only while it is
+rendered: a pen ring while loading (still under reduced motion), then the
+checkbox's tick in success ink or a cross in error ink.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors
