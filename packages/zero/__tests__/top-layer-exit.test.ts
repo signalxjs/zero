@@ -7,7 +7,7 @@
  * actually playing in Firefox/WebKit) is `e2e/top-layer-exit.spec.ts`.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTopLayerExit } from '../src/behaviors/top-layer-exit.js';
+import { createAnimatedExit, createTopLayerExit } from '../src/behaviors/top-layer-exit.js';
 
 interface FakeAnimation {
     effect: { getComputedTiming(): { endTime: number } };
@@ -136,6 +136,27 @@ describe('createTopLayerExit', () => {
         vi.advanceTimersByTime(16);
         anim.end();
         await flush();
+        expect(hide).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('createAnimatedExit (#276)', () => {
+    it('waits for the exit even where CSS overlay is supported — no top-layer short-circuit', async () => {
+        supportsOverlay = true;
+        const anim = fakeAnimation(150);
+        const hide = vi.fn();
+        createAnimatedExit().close(element([anim]), hide);
+        vi.advanceTimersByTime(16);
+        await flush();
+        expect(hide).not.toHaveBeenCalled();
+        anim.end();
+        await flush();
+        expect(hide).toHaveBeenCalledTimes(1);
+    });
+
+    it('immediate() skips the wait', () => {
+        const hide = vi.fn();
+        createAnimatedExit({ immediate: () => true }).close(element([fakeAnimation(150)]), hide);
         expect(hide).toHaveBeenCalledTimes(1);
     });
 });

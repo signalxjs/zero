@@ -13,12 +13,20 @@
  * charge by intercepting the summary click and rendering `open` from state.
  * When the browser opens the element itself (find-in-page, fragment
  * navigation), the native `toggle` event syncs back into the model.
+ *
+ * The panel publishes its measured size as `--collapsible-panel-height` /
+ * `--collapsible-panel-width`, and a close keeps the element `open` until the
+ * panel's exit animation has played (`data-state` flips at once) — the only
+ * way a `<details>` close can animate (#276). The panel is labelled by the
+ * trigger.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
+import { createDisclosurePresence, type DisclosurePresence } from '../../behaviors/disclosure-presence.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
@@ -30,14 +38,16 @@ const SCOPE = collapsibleAnatomy.scope;
 interface CollapsibleContext {
     state: ControllableState<boolean>;
     disabled(): boolean;
-    ids: { panel: string };
+    ids: { trigger: string; panel: string };
+    presence: DisclosurePresence;
 }
 
 function makeInert(): CollapsibleContext {
     return {
         state: createInertState<boolean>(false),
         disabled: () => false,
-        ids: { panel: 'zx-collapsible-inert-panel' },
+        ids: { trigger: 'zx-collapsible-inert-trigger', panel: 'zx-collapsible-inert-panel' },
+        presence: createDisclosurePresence({ isOpen: () => false, prefix: '--collapsible-panel' }),
     };
 }
 
@@ -55,19 +65,26 @@ export type CollapsibleRootProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit }) => {
+const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit, onMounted, onUnmounted }) => {
     const state = createControllableState<boolean>(
         () => props.model,
         props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
     const baseId = createId('zx-collapsible');
+    const presence = createDisclosurePresence({ isOpen: () => state.value, prefix: '--collapsible-panel' });
     const ctx: CollapsibleContext = {
         state,
         disabled: () => !!props.disabled,
-        ids: { panel: `${baseId}-panel` },
+        ids: { trigger: `${baseId}-trigger`, panel: `${baseId}-panel` },
+        presence,
     };
     defineProvide(useCollapsibleContext, () => ctx);
+
+    let el: HTMLDetailsElement | null = null;
+    const scoped = mountScope();
+    onMounted(() => scoped(() => presence.mount(el)));
+    onUnmounted(() => presence.unmount());
 
     return () => (
         <details
@@ -77,8 +94,10 @@ const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit })
             data-state={stateAttr(state.value, 'open', 'closed')}
             data-disabled={dataAttr(props.disabled)}
             {...variantAttrs(props)}
-            open={state.value}
+            // Open, or still playing the panel's exit (#276).
+            open={presence.shown()}
             class={props.class}
+            ref={(node: HTMLDetailsElement | null) => { el = node; }}
             onToggle={(e: Event) => {
                 // The platform opens a closed <details> by itself for
                 // find-in-page and fragment navigation (#166). Adopt that
@@ -99,7 +118,8 @@ const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit })
 
 // ── Trigger ──
 
-export type CollapsibleTriggerProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
+/** Not `id`: the Panel's `aria-labelledby` points at the Trigger's own. */
+export type CollapsibleTriggerProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
 const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, signal }) => {
     const ctx = useCollapsibleContext();
@@ -113,6 +133,7 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
     return () => (
         <summary
             {...htmlAttrs(props)}
+            id={ctx.ids.trigger}
             data-scope={SCOPE}
             data-part="trigger"
             data-state={stateAttr(ctx.state.value, 'open', 'closed')}
@@ -151,23 +172,34 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
 
 // ── Panel ──
 
-/** Not `id`: the Trigger's `aria-controls` points at the Panel's own. */
+/**
+ * Not `id`: the Trigger's `aria-controls` points at the Panel's own. An app
+ * `aria-labelledby` joins the Trigger's.
+ */
 export type CollapsiblePanelProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
-const CollapsiblePanel = component<CollapsiblePanelProps>(({ props, slots }) => {
+const CollapsiblePanel = component<CollapsiblePanelProps>(({ props, slots, onUnmounted }) => {
     const ctx = useCollapsibleContext();
-    return () => (
-        <div
-            {...htmlAttrs(props)}
-            id={ctx.ids.panel}
-            data-scope={SCOPE}
-            data-part="panel"
-            data-state={stateAttr(ctx.state.value, 'open', 'closed')}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    onUnmounted(() => ctx.presence.setPanel(null));
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                id={ctx.ids.panel}
+                data-scope={SCOPE}
+                data-part="panel"
+                data-state={stateAttr(ctx.state.value, 'open', 'closed')}
+                // No role: a disclosure's content is not a landmark (APG), but
+                // the label keeps "whose content is this" inspectable.
+                aria-labelledby={[ctx.ids.trigger, attrs['aria-labelledby']].filter(Boolean).join(' ')}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { if (node) ctx.presence.setPanel(node); }}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Collapsible.Panel' });
 
 export const Collapsible = compound(CollapsibleRoot, {

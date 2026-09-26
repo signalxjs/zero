@@ -23,6 +23,12 @@
  * performs on its own — `popover="auto"` light dismiss, a
  * `<form method="dialog">` submit — has already happened by the time zero
  * hears of it, and stays instant outside Chromium.
+ *
+ * The waiting itself is not top-layer specific: `createAnimatedExit` is the
+ * same machinery without the `overlay` short-circuit, and the disclosures
+ * (Collapsible, Accordion) use it to keep a `<details>` open while its
+ * panel's exit plays (#276) — there is no CSS way to animate a `<details>`
+ * close in any engine, since removing `open` hides the content at once.
  */
 
 export interface TopLayerExit {
@@ -49,7 +55,30 @@ function overlaySupported(): boolean {
     return typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('overlay', 'auto');
 }
 
+/** `prefers-reduced-motion: reduce` — false where it cannot be asked (SSR). */
+export function prefersReducedMotion(): boolean {
+    return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/**
+ * The top-layer exit: immediate where CSS `overlay` keeps the element in the
+ * top layer for the fade by itself (Chromium).
+ */
 export function createTopLayerExit(): TopLayerExit {
+    return createAnimatedExit({ immediate: overlaySupported });
+}
+
+export interface AnimatedExitOptions {
+    /** Skip the wait and run `hide` at once when this says so. */
+    immediate?: () => boolean;
+}
+
+/**
+ * Hold `hide` back until the node's own finite animations have played — on
+ * every engine, unless `immediate()` says otherwise. Without Web Animations
+ * (a simulated DOM, SSR) the close is immediate.
+ */
+export function createAnimatedExit(opts: AnimatedExitOptions = {}): TopLayerExit {
     let pending: (() => void) | null = null;
 
     const cancel = (): void => {
@@ -61,7 +90,7 @@ export function createTopLayerExit(): TopLayerExit {
     const close = (node: Element, hide: () => void): void => {
         if (pending) return;
         if (
-            overlaySupported()
+            opts.immediate?.()
             || typeof node.getAnimations !== 'function'
             || typeof requestAnimationFrame !== 'function'
         ) {

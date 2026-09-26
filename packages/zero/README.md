@@ -219,6 +219,32 @@ section), the native `toggle` event writes the model — an Accordion in single
 mode then closes the others, as a click would — and a change the model
 refuses (a disabled root or item) is put back on the element.
 
+**Accordion keyboard and regions** (#276). Accordion follows the APG
+accordion pattern: ArrowDown/ArrowUp move focus between the enabled triggers
+(ArrowRight/ArrowLeft under `orientation="horizontal"`, flipped in RTL),
+wrapping unless `loop={false}`, and Home/End jump to the first/last. Arrival
+opens nothing, and there is no roving tabindex — every trigger stays in the
+Tab sequence. `data-orientation` rides the root and every trigger. Each
+panel is `role="region"` labelled by its trigger (`aria-labelledby`); pass
+`regions={false}` when many panels can be open at once — APG warns that more
+than about six region landmarks become noise. A Collapsible panel is
+labelled by its trigger too, with no role. Both triggers therefore own their
+`id` (it is not a prop).
+
+**Disclosure closes can animate** (#276). Removing `open` hides a
+`<details>` at once in every engine, so no stylesheet can animate the close.
+Collapsible and Accordion panels publish their measured content size as
+`--collapsible-panel-height`/`--collapsible-panel-width` and
+`--accordion-panel-height`/`--accordion-panel-width` (px, from
+`scrollHeight`/`scrollWidth`, kept fresh while open and re-measured as a
+close starts). On close, `data-state` flips to `closed` immediately while
+the element stays `open` until the panel's own animations have finished,
+and only then does it shut — so a recipe animates the panel's `closed`
+state from `var(--accordion-panel-height)` to `0`. No animation (none
+declared, `prefers-reduced-motion: reduce`) closes at once; reopening
+mid-exit cancels it; find-in-page and fragment navigation still sync the
+model as above. Five of the six bundled skins animate it; brutalist cuts.
+
 **Popup exits play in every engine** (#17). A design system animates a
 popup's exit in CSS off `data-state="closed"`, and on Chromium CSS `overlay`
 keeps the element in the top layer while it plays. Firefox and WebKit have
