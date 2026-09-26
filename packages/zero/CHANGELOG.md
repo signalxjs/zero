@@ -2,6 +2,48 @@
 
 ## [Unreleased]
 
+### Fixed — FileUpload: required redirect, focus after remove, drag flicker, FileList sync (#273)
+
+- **A required upload left empty no longer bubbles from a 1px input.** The
+  hidden file input's `invalid` event is cancelled, focus lands on the
+  trigger, and the field reads invalid (`data-invalid`, the trigger's
+  `aria-invalid`) until the files change.
+- **Removing a file keeps focus.** `ItemRemove` hands focus to the next
+  file's remove button, else the previous one, else the trigger — it used
+  to fall to `<body>` with the removed button.
+- **The dropzone highlight no longer flickers over its own content.** A
+  `dragleave` into a descendant (`relatedTarget`) is ignored; where the
+  browser gives no `relatedTarget`, enters and leaves are counted.
+- **The input's FileList really follows the model.** The re-sync after a
+  drop or a removal silently failed in real browsers (the model's files
+  came back wrapped by the reactive store, which `DataTransfer` refused),
+  so a form posted the picker's last raw selection. They are unwrapped
+  first.
+
+### Added — FileUpload constraints, `filesReject`, `ClearTrigger` and `Item invalid` (#273)
+
+- **`FileUpload.Root` takes `maxFiles`, `minFileSize`, `maxFileSize`
+  (bytes) and `validate(file) => code | code[] | null`.** Picker and drop
+  candidates are checked alike: `'invalid-type'` (`accept`), `'too-large'`,
+  `'too-small'`, any string `validate` returns, and `'too-many'` for an
+  otherwise-valid file past `maxFiles` (single mode has room for one).
+  Accepted files join the model; refused ones are emitted once per
+  selection through the **`filesReject` event** as `{ file, errors }[]`
+  (not a model) and are written out of the input's FileList, so they never
+  post. `fileErrors` and the `FileRejection`, `FileRejectionCode` and
+  `FileConstraints` types are exported.
+- **`directory`** (`webkitdirectory`) and **`capture`**
+  (`'user' | 'environment'`) reach the input.
+- **New part `clear-trigger` (`FileUpload.ClearTrigger`)** — a `<button>`
+  under the root that empties the model and focuses the trigger. It renders
+  nothing while the model is empty; its name defaults to "Clear files"
+  (`label` or an app `aria-label` replaces it). Flags: `disabled`,
+  `focus-visible`, `pressed`, `press-animating`. All six design systems
+  style it in their remove-button idiom.
+- **`item` declares the `invalid` flag**, and `FileUpload.Item` takes
+  `invalid` to stamp it — for an app rendering refused files through Item.
+  All six design systems tint it.
+
 ### Added — Toast keyboard access: F8 and Escape (#269)
 
 - **`Toast.Viewport` takes `hotkey`** (`readonly string[] | false`,
