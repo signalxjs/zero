@@ -63,7 +63,8 @@ export interface ToastPromiseOptions<T> {
     loading: ToastInput;
     /**
      * Replaces the loading content when the promise resolves (`status: 'complete'`).
-     * A mapper that throws settles the error stage with what it threw instead.
+     * A mapper that throws settles the error stage instead: what it threw is
+     * the reason passed to `error` (when `error` is a function).
      */
     success: ToastInput | ((value: T) => ToastInput);
     /**
@@ -268,7 +269,8 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
         };
         // The stage mappers are user code: one that throws must not turn the
         // handled rejection back into an unhandled one. A throwing `success`
-        // mapper settles the error stage with what it threw; a throwing
+        // mapper settles the error stage, handing what it threw to `error` as
+        // the reason; a throwing
         // `error` mapper still settles the error stage, keeping the loading
         // copy, since there is nothing left to map.
         const fail = (reason: unknown): void => {
