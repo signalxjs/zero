@@ -44,6 +44,33 @@ const BreadcrumbsDemos = component(() => () => (
                 </Breadcrumbs.Item>
             </Breadcrumbs.List>
         </Breadcrumbs.Root>
+        <p>
+            A long trail collapses: with <code>maxItems</code> exceeded, the
+            middle crumbs hide behind an ellipsis the trail places after its
+            leading items. Its trigger (named "Show 3 more breadcrumbs")
+            expands the trail and moves focus to the first revealed link.
+        </p>
+        <Breadcrumbs.Root maxItems={3} label="Collapsed breadcrumb">
+            <Breadcrumbs.List>
+                <Breadcrumbs.Item>
+                    <Breadcrumbs.Link href="#/breadcrumbs">Home</Breadcrumbs.Link>
+                    <Breadcrumbs.Separator />
+                </Breadcrumbs.Item>
+                <Breadcrumbs.Ellipsis>
+                    <Breadcrumbs.EllipsisTrigger />
+                    <Breadcrumbs.Separator />
+                </Breadcrumbs.Ellipsis>
+                {['Catalog', 'Accessories', 'Keyboards'].map((name) => (
+                    <Breadcrumbs.Item>
+                        <Breadcrumbs.Link href="#/breadcrumbs">{name}</Breadcrumbs.Link>
+                        <Breadcrumbs.Separator />
+                    </Breadcrumbs.Item>
+                ))}
+                <Breadcrumbs.Item>
+                    <Breadcrumbs.Link href="#/breadcrumbs" current>Mechanical</Breadcrumbs.Link>
+                </Breadcrumbs.Item>
+            </Breadcrumbs.List>
+        </Breadcrumbs.Root>
         <p>Small, for dense chrome:</p>
         <Breadcrumbs.Root size="sm" label="Secondary breadcrumb">
             <Breadcrumbs.List>

@@ -664,7 +664,8 @@ component renders; the root is called out separately where it carries props.
   aria-hidden; Meta is the trailing slot (a Badge count, a Kbd hint) skins
   push to the far edge. No behaviour: the router passes `current` in.
   Renders inside a responsive Drawer.Panel as it renders anywhere.
-- Breadcrumbs: Root(label)/List/Item/Link(current,asChild)/Separator — the
+- Breadcrumbs: Root(label)/List/Item/Link(current,asChild)/Separator/
+  Ellipsis/EllipsisTrigger — the
   APG breadcrumb pattern: <nav aria-label="Breadcrumb"> around an <ol>
   (order IS the meaning). The current page's link carries
   aria-current="page" and data-state="active" (the activation pair —
@@ -672,6 +673,15 @@ component renders; the root is called out separately where it carries props.
   current → active); every other link is "inactive". The separator is
   aria-hidden punctuation inside the item (default glyph /, replaceable
   slot) so the <ol> keeps only <li> children.
+  Collapse (#295): Root(maxItems, itemsBeforeCollapse=1,
+  itemsAfterCollapse=1, model:expanded) hides the middle items (`hidden`,
+  data-state="closed"; items are "open" otherwise) behind an
+  Ellipsis (<li>, placed by you after the leading items, "open" only while
+  collapsed, hidden otherwise) holding an EllipsisTrigger (button,
+  aria-expanded="false", "Show N more breadcrumbs", label(n), asChild) and
+  its own Separator (the separator's parent is the list). Activation
+  expands and focuses the first revealed link. useBreadcrumbsContext()
+  exposes hiddenIndices()/hiddenCount() for a menu of the hidden crumbs.
 - Drawer: Root(model=open, modal: boolean | { below: bp }, dismissible,
   placement start|end, label — renders no element) then Trigger/Panel/Title/Close on native <dialog>
   + top layer, Dialog's machinery inherited (backdrop = ::backdrop pseudo

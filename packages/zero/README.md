@@ -1189,6 +1189,43 @@ model alone.
     getPageHref={(n) => `/posts?page=${n}`} />
 ```
 
+**Breadcrumbs collapse.** `maxItems` on `Breadcrumbs.Root` collapses a
+long trail: while it has more items than that, the items between the
+leading `itemsBeforeCollapse` (default 1) and the trailing
+`itemsAfterCollapse` (default 1) render `hidden` with
+`data-state="closed"` (every item is `open` otherwise). Their separators
+sit inside them and hide with them. You place a `Breadcrumbs.Ellipsis`
+(part `ellipsis`, an `<li>`) after the leading items; it is `open` only
+while a collapse is active and `hidden` otherwise, and a console warning
+names one that is missing or misplaced. It holds a
+`Breadcrumbs.EllipsisTrigger` (part `ellipsis-trigger`, a button with
+`aria-expanded="false"`, named "Show N more breadcrumbs" or by
+`label={(n) => …}`, content `…` by default) and its own
+`Breadcrumbs.Separator` — the separator's declared parent is now the
+list, so it fits in both places. Activating the trigger sets
+`model:expanded` (`defaultExpanded` / `expandedChange`) and moves focus
+to the first revealed link. The collapse applies once the Root mounts,
+so a server render ships the whole trail. For a menu of the hidden
+crumbs instead, compose the trigger with a `Menu.Trigger` through
+`asChild` and render the items from `useBreadcrumbsContext()`'s
+`hiddenIndices()` / `hiddenCount()`.
+
+```tsx
+<Breadcrumbs.Root maxItems={3}>
+    <Breadcrumbs.List>
+        <Breadcrumbs.Item>
+            <Breadcrumbs.Link href="/">Home</Breadcrumbs.Link>
+            <Breadcrumbs.Separator />
+        </Breadcrumbs.Item>
+        <Breadcrumbs.Ellipsis>
+            <Breadcrumbs.EllipsisTrigger />
+            <Breadcrumbs.Separator />
+        </Breadcrumbs.Ellipsis>
+        {/* …the rest of the trail */}
+    </Breadcrumbs.List>
+</Breadcrumbs.Root>
+```
+
 **Scrollable tables are keyboard stops.** `Table.Root`'s scroll wrapper has
 `tabIndex=0` (axe `scrollable-region-focusable`: a table wider than its
 container must scroll without a pointer — focused, the arrow keys scroll

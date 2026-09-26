@@ -191,6 +191,9 @@ logical inline-size, which the physical-direction lint cannot see),
 pagination link mode (#294: every control an `<a href>`, a real click and
 Enter move the model while only the demo's stand-in router prevents the
 navigation, and a bound that lost its `href` stays a tab stop),
+breadcrumbs collapse (#295: Tab steps from the leading link straight to
+the ellipsis trigger past the hidden crumbs, and a real Enter or Space
+expands the trail and lands focus on the first revealed link),
 file-upload (#273: an empty `required` upload's real submit lands focus
 on the trigger and reads invalid until a file arrives, a refused picker
 selection never stays in the input's own FileList, a removal hands focus
