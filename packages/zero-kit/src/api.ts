@@ -300,7 +300,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     steps: ['defaultStep', 'id', 'label', 'loop', 'title', 'value'],
     swap: ['defaultActive', 'id', 'interactive', 'label', 'role', 'title', 'value'],
     switch: ['defaultChecked', 'form', 'hideLabel', 'id', 'invalid', 'name', 'readonly', 'required', 'title', 'value'],
-    table: ['columns', 'id', 'role', 'stack', 'title'],
+    table: ['columns', 'defaultSort', 'id', 'role', 'sortCycle', 'stack', 'title'],
     tabs: ['activationMode', 'defaultValue', 'id', 'lazyMount', 'loop', 'role', 'title', 'unmountOnExit', 'value'],
     textarea: ['autocapitalize', 'autocomplete', 'autofocus', 'defaultValue', 'enterkeyhint', 'form', 'id', 'invalid', 'maxlength', 'maxRows', 'minlength', 'minRows', 'name', 'readonly', 'required', 'role', 'rows', 'spellcheck', 'title', 'value', 'wrap'],
     timeline: ['id', 'role', 'title'],

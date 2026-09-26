@@ -76,7 +76,9 @@ function rootPropsOf(scope: string): string[] {
         const refused = new Set([...omitted.matchAll(/'([^']+)'/g)].map((m) => m[1]!));
         for (const n of names) if (!refused.has(n)) props.add(n);
     }
-    if (block.includes('Define.Model')) props.add('value');
+    // Only the UNNAMED model binds `value`; `Define.Model<'sort', …>` alone
+    // (Table, #286) reserves nothing — see the header.
+    if (/Define\.Model<(?!')/.test(block)) props.add('value');
     return [...props].sort();
 }
 

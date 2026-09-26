@@ -20,9 +20,9 @@
  * </Table.Root>
  * ```
  *
- * Pure semantics plus styling hooks — no state, no ARIA beyond what the
- * elements carry natively (see `anatomy.ts` for the root-as-scroll-
- * container and no-sorting decisions); a table that stacks restates those
+ * Semantics plus styling hooks — no ARIA beyond what the elements carry
+ * natively and the sort contract below (see `anatomy.ts` for the
+ * root-as-scroll-container decision); a table that stacks restates those
  * native roles explicitly (see `stackRole`). `Table.Caption` is the table's
  * accessible name; write one. The one id is the caption's: the root is the
  * scroll box, a keyboard stop (`tabIndex=0`, so a table wider than its
@@ -44,12 +44,32 @@
  *     </Table.Body>
  * </Table.Root>
  * ```
+ *
+ * Sorting (#286): a `sortable` header cell renders its content inside a
+ * real `<button>` (the `sort-trigger` part) and carries `aria-sort`; the
+ * root's `model:sort` holds which column the table is sorted by and which
+ * way. The runtime never sorts rows — the app owns the data and re-orders
+ * it from the model:
+ *
+ * ```tsx
+ * <Table.Root model:sort={() => state.sort}>
+ *     <Table.Head>
+ *         <Table.Row>
+ *             <Table.HeaderCell sortable column="name">Name</Table.HeaderCell>
+ *             <Table.HeaderCell sortable column="size">Size</Table.HeaderCell>
+ *         </Table.Row>
+ *     </Table.Head>
+ *     <Table.Body>{sorted(rows, state.sort).map(…)}</Table.Body>
+ * </Table.Root>
+ * ```
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
+import { createControllableState, namedModel } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { countPresence, reportPresence, settleAfterMount } from '../../behaviors/part-presence.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { BASE_BREAKPOINT_KEY, isBreakpointName } from '../../contract/breakpoint-name.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
@@ -80,6 +100,34 @@ export interface TableColumn {
      * the design system's cell recipes read.
      */
     align?: 'start' | 'center' | 'end';
+    /**
+     * `<Table.Head />` renders this column's header cell `sortable`, sorting
+     * under the column's `key` — which a sortable column therefore needs.
+     */
+    sortable?: boolean;
+}
+
+/** Which way a sorted column runs — `aria-sort`'s own spellings. */
+export type TableSortDirection = 'ascending' | 'descending';
+
+/**
+ * The table's sort: the column it is sorted by (a sortable header cell's
+ * `column` name) and the direction. `null` is unsorted.
+ */
+export interface TableSort {
+    column: string;
+    direction: TableSortDirection;
+}
+
+/**
+ * What one activation of a sort trigger does: an unsorted column starts
+ * `ascending`, and a sorted one flips — or, on the `three` cycle, goes
+ * `descending` → unsorted (`null`).
+ */
+export function nextTableSort(current: TableSort | null, column: string, cycle: 'two' | 'three' = 'two'): TableSort | null {
+    if (current?.column !== column) return { column, direction: 'ascending' };
+    if (current.direction === 'ascending') return { column, direction: 'descending' };
+    return cycle === 'three' ? null : { column, direction: 'ascending' };
 }
 
 interface TableContext {
@@ -90,6 +138,10 @@ interface TableContext {
     captionId: string;
     /** Reported by `Table.Caption` (`reportPresence`). */
     setCaptionPresent(present: boolean): void;
+    /** The current `model:sort`. */
+    sort(): TableSort | null;
+    /** One sort-trigger activation on `column` (`nextTableSort`). */
+    toggleSort(column: string): void;
 }
 
 export const useTableContext = defineInjectable<TableContext>(() => ({
@@ -97,6 +149,8 @@ export const useTableContext = defineInjectable<TableContext>(() => ({
     stack: () => undefined,
     captionId: '',
     setCaptionPresent: () => {},
+    sort: () => null,
+    toggleSort: () => {},
 }));
 
 /**
@@ -158,6 +212,20 @@ export type TableRootProps =
      * removed, so assistive tech keeps the header association.
      */
     & Define.Prop<'stack', LayoutProp<'stack'>, false>
+    /**
+     * The column the table is sorted by and its direction, or `null` —
+     * written by the `sortable` header cells' triggers. The runtime never
+     * re-orders rows: the app sorts its data from this.
+     */
+    & Define.Model<'sort', TableSort | null>
+    & Define.Prop<'defaultSort', TableSort | null, false>
+    & Define.Event<'sortChange', TableSort | null>
+    /**
+     * What a sorted column's trigger does next: `two` (the default) flips
+     * `ascending` ⇄ `descending`; `three` adds a third press back to
+     * unsorted.
+     */
+    & Define.Prop<'sortCycle', 'two' | 'three', false>
     & WithClass
     /**
      * Forwarded attributes split across the two elements Root renders:
@@ -171,17 +239,24 @@ export type TableRootProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const TableRoot = component<TableRootProps>(({ props, slots, signal, onMounted }) => {
+const TableRoot = component<TableRootProps>(({ props, slots, signal, emit, onMounted }) => {
     // Reported by the Caption: the region references it only while it is
     // rendered — optimistic until settled after mount, so server markup
     // keeps the reference a captioned table needs (part-presence.ts).
     const present = signal({ caption: 0, settled: false, focusVisible: false });
     settleAfterMount(onMounted, () => { present.settled = true; });
+    const sort = createControllableState<TableSort | null>(
+        () => namedModel<TableSort | null>(props.sort),
+        props.defaultSort ?? null,
+        (v) => emit('sortChange', v),
+    );
     const ctx: TableContext = {
         columns: () => props.columns ?? [],
         stack: () => props.stack,
         captionId: `${createId('zx-table')}-caption`,
         setCaptionPresent: (p) => { present.caption = countPresence(present.caption, p); },
+        sort: () => sort.value ?? null,
+        toggleSort: (column) => { sort.value = nextTableSort(sort.value ?? null, column, props.sortCycle); },
     };
     defineProvide(useTableContext, () => ctx);
     let el: HTMLElement | null = null;
@@ -306,7 +381,7 @@ const TableHead = component<TablePartProps>(({ props, slots }) => {
                 <thead role={stackRole(ctx, 'rowgroup')} {...htmlAttrs(props)} data-scope={SCOPE} data-part="head" class={props.class}>
                     {children ?? (columns.length > 0 ? (
                         <TableRow>
-                            {columns.map((column, index) => <TableHeaderCell key={column.key ?? index} column={index} />)}
+                            {columns.map((column, index) => <TableHeaderCell key={column.key ?? index} column={index} sortable={column.sortable} />)}
                         </TableRow>
                     ) : null)}
                 </thead>
@@ -356,31 +431,97 @@ export type TableCellColumnProps = Define.Prop<'column', number | string, false>
 export type TableHeaderCellProps =
     /** Which axis this header labels — the native `<th scope>`; default `col`. */
     & Define.Prop<'scope', 'col' | 'row', false>
+    /**
+     * The column can sort the table: the content renders inside the
+     * `sort-trigger` button, and the cell carries `aria-sort` and the sort
+     * `data-state`. Sorts under the cell's `column` — a string name, or the
+     * `key` of the spec column an index names.
+     */
+    & Define.Prop<'sortable', boolean, false>
+    /** Disables a sortable cell's trigger — the sort it shows stays. */
+    & Define.Prop<'disabled', boolean, false>
     & TableCellSpanProps
     & TableCellColumnProps
     & WithClass
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-/** The `<th>` — carries no sorting today; `aria-sort` is the planned home. */
-const TableHeaderCell = component<TableHeaderCellProps>(({ props, slots }) => {
+/**
+ * The name a sortable header cell sorts under: its `column` when that is a
+ * string, else the `key` of the spec column its index names.
+ */
+function sortColumnOf(ref: number | string | undefined, column: TableColumn | undefined): string {
+    const name = typeof ref === 'string' ? ref : column?.key;
+    if (name === undefined) {
+        throw new Error(`[zero] Table: a sortable header cell needs a column name — a string \`column\`, or a spec column with a \`key\` (got ${JSON.stringify(ref)})`);
+    }
+    return name;
+}
+
+/**
+ * The `<th>`. A `sortable` one carries `aria-sort` and wraps its content in
+ * the `sort-trigger` button, with the `sort-indicator` mark after it.
+ */
+const TableHeaderCell = component<TableHeaderCellProps>(({ props, slots, signal }) => {
     const ctx = useTableContext();
+    let triggerEl: HTMLElement | null = null;
+    const focus = signal({ visible: false });
+    const press = createPressFeedback({ getElement: () => triggerEl, isDisabled: () => props.disabled === true });
     return () => {
-        const column = columnOf(ctx, props.column);
+        // A sortable cell may name a column no spec declares — the name is
+        // then only the sort key. With a spec, a name it lacks is a typo.
+        const specless = props.sortable && typeof props.column === 'string' && ctx.columns().length === 0;
+        const column = specless ? undefined : columnOf(ctx, props.column);
         const scope = props.scope ?? 'col';
+        const content = slots.default?.() ?? column?.label;
+        let state: 'ascending' | 'descending' | 'none' | undefined;
+        let name = '';
+        if (props.sortable) {
+            name = sortColumnOf(props.column, column);
+            const sort = ctx.sort();
+            state = sort?.column === name ? sort.direction : 'none';
+        }
         return (
             <th
                 role={stackRole(ctx, scope === 'row' ? 'rowheader' : 'columnheader')}
                 {...htmlAttrs(props)}
                 data-scope={SCOPE}
                 data-part="header-cell"
+                data-state={state}
+                aria-sort={state}
                 scope={scope}
                 colSpan={props.colSpan}
                 rowSpan={props.rowSpan}
                 style={alignStyle(column)}
                 class={props.class}
             >
-                {slots.default?.() ?? column?.label}
+                {state ? (
+                    <button
+                        type="button"
+                        data-scope={SCOPE}
+                        data-part="sort-trigger"
+                        data-state={state}
+                        data-disabled={dataAttr(props.disabled)}
+                        data-focus-visible={dataAttr(focus.visible)}
+                        disabled={props.disabled}
+                        ref={(node: HTMLElement | null) => { triggerEl = node; }}
+                        onClick={() => { ctx.toggleSort(name); }}
+                        onKeydown={press.onKeydown}
+                        onKeyup={press.onKeyup}
+                        onPointerdown={press.onPointerdown}
+                        onPointerup={press.onPointerup}
+                        onPointercancel={press.onPointercancel}
+                        onPointerleave={press.onPointerleave}
+                        onFocus={() => { focus.visible = isFocusVisible(triggerEl); }}
+                        onBlur={(e: FocusEvent) => {
+                            press.onBlur(e);
+                            focus.visible = false;
+                        }}
+                    >
+                        {content}
+                        <span aria-hidden="true" data-scope={SCOPE} data-part="sort-indicator" data-state={state}>▲</span>
+                    </button>
+                ) : content}
             </th>
         );
     };

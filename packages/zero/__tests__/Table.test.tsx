@@ -14,13 +14,15 @@
  * - Zebra striping and hover-highlight are design-system MODS
  *   (`data-mod-*`), not anatomy: they are per-instance styling choices from
  *   a skin's own vocabulary, with no machine lifecycle behind them.
- * - Sorting is OUT (follow-up): `header-cell` renders the `<th>` that would
- *   carry `aria-sort`, so the anatomy is ready without shipping dead parts.
+ * - Sorting (#286) is the one state: a `sortable` header cell carries the
+ *   sort family as `aria-sort` + `data-state`, wraps its content in a real
+ *   `sort-trigger` button that cycles the root's `model:sort`, and the
+ *   runtime never re-orders a row — the app owns the data.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
-import { Table, tableAnatomy } from '@sigx/zero';
+import { Table, tableAnatomy, nextTableSort } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 const selector = (scope: string, name: string) => `[data-scope="${scope}"][data-part="${name}"]`;
@@ -205,9 +207,14 @@ describe('Table', () => {
         }
     });
 
-    it('declares no states — a table has no machine lifecycle', () => {
+    it('declares the sort family on the sort parts only — the table itself has no lifecycle', () => {
+        const sortParts = ['header-cell', 'sort-trigger', 'sort-indicator'];
         for (const name of tableAnatomy.partNames()) {
-            expect(tableAnatomy.parts[name].states, `${name} must declare no states`).toBeUndefined();
+            if (sortParts.includes(name)) {
+                expect(tableAnatomy.parts[name].states, name).toEqual(['ascending', 'descending', 'none']);
+            } else {
+                expect(tableAnatomy.parts[name].states, `${name} must declare no states`).toBeUndefined();
+            }
         }
     });
 
@@ -221,12 +228,12 @@ describe('Table', () => {
         expect(rows[1]!.getAttribute('aria-selected')).toBeNull();
     });
 
-    it('header-cell is aria-sort-ready but ships no sorting', () => {
-        // Sorting is a follow-up: the th exists so `aria-sort` has a home,
-        // and nothing writes it today.
+    it('a header cell that does not sort carries no aria-sort, no state and no trigger', () => {
         render(sample(), container);
-        expect(part(container, 'header-cell').hasAttribute('aria-sort')).toBe(false);
-        expect(tableAnatomy.parts['header-cell'].element).toBe('th');
+        const th = part(container, 'header-cell');
+        expect(th.hasAttribute('aria-sort')).toBe(false);
+        expect(th.hasAttribute('data-state')).toBe(false);
+        expect(container.querySelector(selector('table', 'sort-trigger'))).toBeNull();
     });
 
     it('zebra and hover-highlight ride the mods bag, not the anatomy', () => {
@@ -428,5 +435,210 @@ describe('Table stacked mode (#55)', () => {
     it('refuses a value that cannot be a breakpoint name', () => {
         expect(() => render(stacked('Md'), document.createElement('div'))).toThrow(/"Md" is not a value of "stack"/);
         expect(() => render(stacked('base'), document.createElement('div'))).toThrow(/breakpoint name other than "base"/);
+    });
+});
+
+describe('Table sorting (#286)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    const cellNamed = (text: string) =>
+        [...container.querySelectorAll<HTMLElement>(selector('table', 'header-cell'))].find((th) => th.textContent!.includes(text))!;
+    const triggerOf = (text: string) => cellNamed(text).querySelector<HTMLButtonElement>(selector('table', 'sort-trigger'))!;
+    const indicatorOf = (text: string) => cellNamed(text).querySelector<HTMLElement>(selector('table', 'sort-indicator'))!;
+
+    function sortable(extra: Record<string, unknown> = {}) {
+        return (
+            <Table.Root {...extra}>
+                <Table.Caption>Files</Table.Caption>
+                <Table.Head>
+                    <Table.Row>
+                        <Table.HeaderCell sortable column="name">Name</Table.HeaderCell>
+                        <Table.HeaderCell sortable column="size">Size</Table.HeaderCell>
+                        <Table.HeaderCell>Owner</Table.HeaderCell>
+                    </Table.Row>
+                </Table.Head>
+                <Table.Body>
+                    <Table.Row><Table.Cell>a.txt</Table.Cell><Table.Cell>1</Table.Cell><Table.Cell>me</Table.Cell></Table.Row>
+                </Table.Body>
+            </Table.Root>
+        );
+    }
+
+    it('a sortable header cell wraps its content in a real button, with the aria-hidden indicator after it', () => {
+        render(sortable(), container);
+        expectAnatomy(container, tableAnatomy);
+        const th = cellNamed('Name');
+        const trigger = triggerOf('Name');
+        expect(trigger.tagName).toBe('BUTTON');
+        expect(trigger.type).toBe('button');
+        expect(trigger.parentElement).toBe(th);
+        expect(trigger.textContent).toBe('Name▲');
+        const indicator = indicatorOf('Name');
+        expect(indicator.parentElement).toBe(trigger);
+        expect(indicator.getAttribute('aria-hidden')).toBe('true');
+        expect(tableAnatomy.parts['sort-indicator'].paint).toEqual({ glyph: '▲' });
+    });
+
+    it('unsorted: every sortable column says none, in aria-sort and data-state alike', () => {
+        render(sortable(), container);
+        for (const name of ['Name', 'Size']) {
+            expect(cellNamed(name).getAttribute('aria-sort')).toBe('none');
+            expect(cellNamed(name).getAttribute('data-state')).toBe('none');
+            expect(triggerOf(name).getAttribute('data-state')).toBe('none');
+            expect(indicatorOf(name).getAttribute('data-state')).toBe('none');
+        }
+        expect(cellNamed('Owner').hasAttribute('aria-sort')).toBe(false);
+    });
+
+    it('a click cycles none → ascending → descending → ascending, and emits sortChange', async () => {
+        const seen: unknown[] = [];
+        render(sortable({ onSortChange: (v: unknown) => seen.push(v) }), container);
+        triggerOf('Name').click();
+        await tick();
+        expect(cellNamed('Name').getAttribute('aria-sort')).toBe('ascending');
+        expect(indicatorOf('Name').getAttribute('data-state')).toBe('ascending');
+        expect(cellNamed('Size').getAttribute('aria-sort')).toBe('none');
+        triggerOf('Name').click();
+        await tick();
+        expect(cellNamed('Name').getAttribute('aria-sort')).toBe('descending');
+        triggerOf('Name').click();
+        await tick();
+        expect(cellNamed('Name').getAttribute('aria-sort')).toBe('ascending');
+        // Another column starts ascending, and the first goes back to none.
+        triggerOf('Size').click();
+        await tick();
+        expect(cellNamed('Size').getAttribute('aria-sort')).toBe('ascending');
+        expect(cellNamed('Name').getAttribute('aria-sort')).toBe('none');
+        expect(seen).toEqual([
+            { column: 'name', direction: 'ascending' },
+            { column: 'name', direction: 'descending' },
+            { column: 'name', direction: 'ascending' },
+            { column: 'size', direction: 'ascending' },
+        ]);
+    });
+
+    it('sortCycle="three" adds a press back to unsorted', async () => {
+        const seen: unknown[] = [];
+        render(sortable({ sortCycle: 'three', onSortChange: (v: unknown) => seen.push(v) }), container);
+        for (let i = 0; i < 3; i++) {
+            triggerOf('Name').click();
+            await tick();
+        }
+        expect(cellNamed('Name').getAttribute('aria-sort')).toBe('none');
+        expect(seen.at(-1)).toBeNull();
+    });
+
+    it('defaultSort seeds it; a controlled model:sort drives it both ways', async () => {
+        render(sortable({ defaultSort: { column: 'size', direction: 'descending' } }), container);
+        expect(cellNamed('Size').getAttribute('aria-sort')).toBe('descending');
+
+        const c2 = document.createElement('div');
+        document.body.appendChild(c2);
+        const state = signal({ sort: null as { column: string; direction: 'ascending' | 'descending' } | null });
+        render(
+            <Table.Root model:sort={[state, 'sort']}>
+                <Table.Head>
+                    <Table.Row>
+                        <Table.HeaderCell sortable column="name">Name</Table.HeaderCell>
+                    </Table.Row>
+                </Table.Head>
+            </Table.Root>,
+            c2,
+        );
+        const th = c2.querySelector<HTMLElement>(selector('table', 'header-cell'))!;
+        expect(th.getAttribute('aria-sort')).toBe('none');
+        state.sort = { column: 'name', direction: 'descending' };
+        await tick();
+        expect(th.getAttribute('aria-sort')).toBe('descending');
+        c2.querySelector<HTMLButtonElement>(selector('table', 'sort-trigger'))!.click();
+        await tick();
+        expect(state.sort).toEqual({ column: 'name', direction: 'ascending' });
+    });
+
+    it('never re-orders the rows — the app owns the data', async () => {
+        render(sortable(), container);
+        const before = container.querySelector(selector('table', 'body'))!.innerHTML;
+        triggerOf('Name').click();
+        await tick();
+        expect(container.querySelector(selector('table', 'body'))!.innerHTML).toBe(before);
+    });
+
+    it('disabled: the trigger is a disabled button and keeps showing the sort', async () => {
+        render(
+            <Table.Root defaultSort={{ column: 'name', direction: 'ascending' }}>
+                <Table.Head>
+                    <Table.Row>
+                        <Table.HeaderCell sortable disabled column="name">Name</Table.HeaderCell>
+                    </Table.Row>
+                </Table.Head>
+            </Table.Root>,
+            container,
+        );
+        const trigger = triggerOf('Name');
+        expect(trigger.disabled).toBe(true);
+        expect(trigger.getAttribute('data-disabled')).toBe('');
+        trigger.click();
+        await tick();
+        expect(cellNamed('Name').getAttribute('aria-sort')).toBe('ascending');
+        expectAnatomy(container, tableAnatomy);
+    });
+
+    it('the column spec: `sortable` columns sort under their key; an index resolves to it', async () => {
+        const seen: unknown[] = [];
+        render(
+            <Table.Root
+                columns={[{ key: 'when', label: 'When', sortable: true }, { label: 'What' }]}
+                onSortChange={(v: unknown) => seen.push(v)}
+            >
+                <Table.Head />
+            </Table.Root>,
+            container,
+        );
+        expect(cellNamed('When').getAttribute('aria-sort')).toBe('none');
+        expect(cellNamed('What').hasAttribute('aria-sort')).toBe(false);
+        triggerOf('When').click();
+        await tick();
+        expect(seen).toEqual([{ column: 'when', direction: 'ascending' }]);
+        expectAnatomy(container, tableAnatomy);
+    });
+
+    it('refuses a sortable header cell with no column name to sort under', () => {
+        expect(() => render(
+            <Table.Root columns={[{ label: 'When', sortable: true }]}><Table.Head /></Table.Root>,
+            document.createElement('div'),
+        )).toThrow(/sortable header cell needs a column name/);
+        expect(() => render(
+            <Table.Root><Table.Head><Table.Row><Table.HeaderCell sortable>X</Table.HeaderCell></Table.Row></Table.Head></Table.Root>,
+            document.createElement('div'),
+        )).toThrow(/sortable header cell needs a column name/);
+    });
+
+    it('renders data-focus-visible on the trigger for keyboard focus', () => {
+        render(sortable(), container);
+        const trigger = triggerOf('Name');
+        const restore = Element.prototype.matches;
+        Element.prototype.matches = function (this: Element, sel: string) {
+            return sel === ':focus-visible' ? this === document.activeElement : restore.call(this, sel);
+        } as Element['matches'];
+        try {
+            trigger.focus();
+            expect(trigger.getAttribute('data-focus-visible')).toBe('');
+            trigger.blur();
+            expect(trigger.hasAttribute('data-focus-visible')).toBe(false);
+        } finally {
+            Element.prototype.matches = restore;
+        }
+    });
+
+    it('nextTableSort is the cycle, as a pure function', () => {
+        expect(nextTableSort(null, 'a')).toEqual({ column: 'a', direction: 'ascending' });
+        expect(nextTableSort({ column: 'b', direction: 'descending' }, 'a')).toEqual({ column: 'a', direction: 'ascending' });
+        expect(nextTableSort({ column: 'a', direction: 'ascending' }, 'a')).toEqual({ column: 'a', direction: 'descending' });
+        expect(nextTableSort({ column: 'a', direction: 'descending' }, 'a')).toEqual({ column: 'a', direction: 'ascending' });
+        expect(nextTableSort({ column: 'a', direction: 'descending' }, 'a', 'three')).toBeNull();
     });
 });

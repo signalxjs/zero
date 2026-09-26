@@ -127,17 +127,19 @@ describe('state legibility', () => {
 
     it('assertion C is pointed at the parts it claims to be pointed at', () => {
         // An assertion nobody can see the scope of is an assertion nobody can
-        // trust. Name the four components it judges and the reason the rest
+        // trust. Name the five components it judges and the reason the rest
         // are out, so a part rename or a new component shows up here as a
         // change in scope rather than as silence. Input's is the password
         // `visibility-trigger` (#281): not a disclosure, but a stateful
         // trigger with no indicator part, so its own on/off must differ —
-        // which is the right demand of a toggle, too.
+        // which is the right demand of a toggle, too. Table's is the
+        // `sort-trigger` (#286), which hands its direction to
+        // `sort-indicator` the way tree-view's trigger does.
         const inFlow = manifest.components
             .filter((c) => !isOverlayComponent(c))
             .filter((c) => c.parts.some((p) => isTriggerPart(p.name) && p.states?.length))
             .map((c) => c.scope);
-        expect(inFlow.sort()).toEqual(['accordion', 'collapsible', 'input', 'tree-view']);
+        expect(inFlow.sort()).toEqual(['accordion', 'collapsible', 'input', 'table', 'tree-view']);
         // …and the escape hatch is load-bearing for exactly one of them: every
         // design system differentiates tree-view on `branch-indicator` and none
         // on `branch-trigger`, while collapsible and accordion have no

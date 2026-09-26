@@ -1148,6 +1148,40 @@ column's label. Naming a column the spec doesn't have throws.
 </Table.Root>
 ```
 
+**Sortable tables.** A `Table.HeaderCell` with `sortable` wraps its content
+in a real `<button>` (the `sort-trigger` part) followed by the
+`sort-indicator` mark (an `aria-hidden` span with zero's `▲`, which recipes
+turn for descending and hide on an unsorted column until the trigger is
+hovered or keyboard-focused). The `<th>` carries `aria-sort`, and the cell,
+trigger and indicator all carry the same `data-state`: `ascending`,
+`descending` or `none` (a sortable column the table is not sorted by; a
+cell that cannot sort has no state). The sort lives on the root as the named
+model `model:sort` — `{ column, direction } | null`, seeded by
+`defaultSort`, reported by `sortChange`. A press on an unsorted column sorts
+it `ascending`, and on the sorted one flips it; `sortCycle="three"` adds a
+third press back to unsorted (`null`). The same cycle is exported as
+`nextTableSort(current, column, cycle?)`. A cell sorts under its `column`:
+a string name, or the `key` of the spec column an index names, and a column
+spec entry with `sortable: true` makes `<Table.Head />` render it sortable
+(it then needs a `key`). With no column spec, a sortable cell's string
+`column` is just the sort name. `disabled` disables the trigger and keeps
+the sort it shows. **The runtime never re-orders rows**: the app owns the
+data and sorts it from the model.
+
+```tsx
+const state = signal({ sort: null as TableSort | null });
+<Table.Root model:sort={() => state.sort}>
+    <Table.Head>
+        <Table.Row>
+            <Table.HeaderCell sortable column="name">Name</Table.HeaderCell>
+            <Table.HeaderCell sortable column="size">Size</Table.HeaderCell>
+            <Table.HeaderCell>Owner</Table.HeaderCell>
+        </Table.Row>
+    </Table.Head>
+    <Table.Body>{sortFiles(files, state.sort).map((f) => <Table.Row>…</Table.Row>)}</Table.Body>
+</Table.Root>
+```
+
 **Stacked tables.** `Table.Root stack="md"` names a design-system
 breakpoint. Below it, every row becomes one block, and a cell that names a
 labelled column opens with that label: the `cell-label` part, an
@@ -1740,7 +1774,9 @@ same behaviors, held to the same conformance assertion:
   scope cannot invent synonyms either. Work in flight (a job, tool call or
   deploy) has its own family, lifecycle: `running|paused|denied|cancelled`,
   alongside `loading` for the wait before it starts and `complete|error`
-  for the outcome. `FRAGMENT_VERSION` is the version a
+  for the outcome. A sortable table column has the sort family,
+  `ascending|descending|none` — `aria-sort`'s own spellings (`asc`, `desc`
+  and `unsorted` are the rejected synonyms). `FRAGMENT_VERSION` is the version a
   fragment declares — here so a package's `./fragment` entry can read it at
   runtime without the kit, which is only its devDependency.
 - `@sigx/zero/behaviors` — controllable state, SSR-safe ids (`createId`, plus

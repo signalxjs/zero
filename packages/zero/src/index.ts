@@ -360,8 +360,8 @@ export type {
     DrawerCloseDetail,
     DrawerModalRange,
 } from './components/drawer/index.js';
-export { Table, tableAnatomy, useTableContext } from './components/table/index.js';
-export type { TableRootProps, TablePartProps, TableCaptionProps, TableRowProps, TableHeaderCellProps, TableCellProps, TableCellSpanProps, TableCellColumnProps, TableColumn } from './components/table/index.js';
+export { Table, tableAnatomy, useTableContext, nextTableSort } from './components/table/index.js';
+export type { TableRootProps, TablePartProps, TableCaptionProps, TableRowProps, TableHeaderCellProps, TableCellProps, TableCellSpanProps, TableCellColumnProps, TableColumn, TableSort, TableSortDirection } from './components/table/index.js';
 
 export { FileUpload, fileUploadAnatomy, acceptsFile, fileErrors, formatBytes, useFileUploadContext } from './components/file-upload/index.js';
 export type {

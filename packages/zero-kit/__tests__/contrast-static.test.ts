@@ -132,6 +132,7 @@ describe('the cell product is the browser spec\'s', () => {
             'pagination/prev-trigger': ['root'],
             'pagination/next-trigger': ['root'],
             'tabs/indicator': ['root', 'list'],
+            'table/sort-indicator': ['root', 'table', 'row', 'header-cell', 'sort-trigger'],
         };
         const derived = Object.fromEntries(indicatorChains(manifest.components).map(({ spec, ancestors }) => [`${spec.scope}/${spec.part}`, ancestors]));
         expect(derived).toEqual(hand);
@@ -151,6 +152,7 @@ describe('the cell product is the browser spec\'s', () => {
             'rating-group/item': { glyph: '★' },
             'pagination/prev-trigger': { glyph: '‹' },
             'pagination/next-trigger': { glyph: '›' },
+            'table/sort-indicator': { glyph: '▲' },
         });
     });
 
