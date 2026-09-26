@@ -37,8 +37,8 @@ for (const ds of DESIGN_SYSTEMS) {
 
         // The words assistive technology reads, and the glyph it does not.
         const chip = partsOf(members, 'avatar-group')('overflow');
-        await expect(chip).toHaveText('+33 more');
-        await expect(chip.locator('[aria-hidden="true"]')).toHaveText('+3');
+        await expect(chip.locator(':scope > :not([aria-hidden="true"])')).toHaveText('3 more');
+        await expect(chip.locator(':scope > [aria-hidden="true"]')).toHaveText('+3');
 
         for (const [root, what] of [[members, 'members'], [reviewers, 'reviewers']] as const) {
             const boxes = await faces(root, `${ds} ${what}`);
