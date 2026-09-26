@@ -9422,6 +9422,11 @@
         outline-offset: 3px;
     }
 
+    [data-scope="diff"][data-part="handle"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
     [data-scope="diff"][data-part="handle"][data-pressed] {
         --diff-accent: var(--color-primary);
     }

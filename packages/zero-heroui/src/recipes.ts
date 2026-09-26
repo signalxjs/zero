@@ -5059,6 +5059,9 @@ export const diff: RecipeInput = {
                 background: 'var(--color-base-100)',
                 borderRadius: 'var(--radius-box)',
             },
+            // The root holds the images, which are content: disabled is the
+            // handle's to show (#272).
+            states: { disabled: {} },
         },
         before: {
             base: { gridArea: '1 / 1', minWidth: '0' },
@@ -5090,6 +5093,9 @@ export const diff: RecipeInput = {
             },
             states: {
                 ...focusRing,
+                // HeroUI's `opacity-disabled cursor-not-allowed` (#272); the
+                // images are content and stay unfaded.
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 // `in oklab` (#123): dark base-content is `oklch(98% 0 0)`, and
                 // `in oklch` pulled the pressed accent's hue off the primary.
                 pressed: { '--diff-accent': 'color-mix(in oklab, var(--hero-primary) 85%, var(--color-base-content))' },

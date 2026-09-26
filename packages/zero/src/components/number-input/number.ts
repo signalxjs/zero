@@ -38,3 +38,21 @@ export function snapToStep(v: number, step: number, min?: number): number {
     const steps = Math.round(Number(((v - base) / step).toFixed(10)));
     return Number((steps * step + base).toFixed(precision));
 }
+
+/**
+ * Step `v` by `amount` (default one `step`) in `direction`, on the grid
+ * `snapToStep` uses. An on-grid value moves by the amount; an OFF-grid one
+ * (a typed 5 on step 2) first lands on the neighbouring grid value in the
+ * direction of travel — ArrowUp is the next value above (6), ArrowDown the
+ * next below (4), never a round-to-nearest that skips one (5 + 2 → 8) —
+ * and that landing counts as the first step of the amount.
+ */
+export function stepToward(v: number, direction: 1 | -1, step: number, min?: number, amount: number = step): number {
+    const base = min ?? 0;
+    const precision = Math.max(precisionOf(step), precisionOf(base));
+    // Same quotient-noise guard as snapToStep: 0.3/0.1 is 2.9999999999999996.
+    const q = Number(((v - base) / step).toFixed(10));
+    if (Number.isInteger(q)) return snapToStep(v + direction * amount, step, min);
+    const landed = Number(((direction > 0 ? Math.ceil(q) : Math.floor(q)) * step + base).toFixed(precision));
+    return snapToStep(landed + direction * Math.max(0, amount - step), step, min);
+}

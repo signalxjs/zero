@@ -17,7 +17,9 @@
  * (parse → clamp → snap), so half-typed entries like `-` or `1e` never
  * reach the model and unparseable text reverts to the last committed value.
  * Stepping (arrows, PageUp/Down, Home/End, the spin triggers, opt-in wheel)
- * commits immediately.
+ * commits immediately. PageUp/PageDown and Shift+Arrow move by `largeStep`
+ * (default ten steps). An off-grid value steps to the neighbouring grid value
+ * in the direction of travel (`stepToward`), never past it.
  *
  * The visible input is `type="text" inputmode="decimal"` — `type="number"`
  * would fight the draft model with its own parsing, spinner chrome and
@@ -38,7 +40,7 @@ import { dataAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithFormControl, WithHtmlAttrs, WithReadonly, WithVariantAxes } from '../../contract/props.js';
-import { clamp, snapToStep } from './number.js';
+import { clamp, snapToStep, stepToward } from './number.js';
 import { numberInputAnatomy } from './anatomy.js';
 
 const SCOPE = numberInputAnatomy.scope;
@@ -67,7 +69,8 @@ interface NumberInputContext {
     labelId(): string | undefined;
     focusVisible: { value: boolean };
     canStep(direction: 1 | -1): boolean;
-    stepBy(multiplier: number): void;
+    /** One step (or `largeStep` when `large`) in `direction`. */
+    stepBy(direction: 1 | -1, large?: boolean): void;
     stepTo(edge: 'min' | 'max'): boolean;
     commit(): void;
     inputKeydown(e: KeyboardEvent): void;
@@ -114,6 +117,8 @@ export type NumberInputRootProps =
     & Define.Prop<'min', number, false>
     & Define.Prop<'max', number, false>
     & Define.Prop<'step', number, false>
+    /** PageUp/PageDown and Shift+Arrow delta (default `10 * step`). */
+    & Define.Prop<'largeStep', number, false>
     /** Wheel over the FOCUSED input steps the value (default false). */
     & Define.Prop<'allowWheel', boolean, false>
     /** Clamp an out-of-range commit into [min, max] (default true). */
@@ -199,13 +204,20 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
             : !(props.min !== undefined && v <= props.min);
     };
 
-    const stepBy = (multiplier: number): void => {
+    const largeStep = (): number => {
+        const l = props.largeStep;
+        return typeof l === 'number' && Number.isFinite(l) && l > 0 ? l : step() * 10;
+    };
+
+    const stepBy = (direction: 1 | -1, large = false): void => {
         if (disabled() || readonly()) return;
         commit();
         const current = state.value;
         // From empty, the first step lands on the floor of the range (or 0),
         // not one step past it — matching native spinbuttons.
-        state.value = current == null ? settle(props.min ?? 0) : settle(current + step() * multiplier);
+        state.value = current == null
+            ? settle(props.min ?? 0)
+            : settle(stepToward(current, direction, step(), props.min, large ? largeStep() : step()));
     };
 
     const stepTo = (edge: 'min' | 'max'): boolean => {
@@ -254,19 +266,19 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
             switch (e.key) {
                 case 'ArrowUp':
                     e.preventDefault();
-                    stepBy(1);
+                    stepBy(1, e.shiftKey);
                     break;
                 case 'ArrowDown':
                     e.preventDefault();
-                    stepBy(-1);
+                    stepBy(-1, e.shiftKey);
                     break;
                 case 'PageUp':
                     e.preventDefault();
-                    stepBy(10);
+                    stepBy(1, true);
                     break;
                 case 'PageDown':
                     e.preventDefault();
-                    stepBy(-10);
+                    stepBy(-1, true);
                     break;
                 case 'Home':
                     // Only intercept when there is an edge to jump to; a

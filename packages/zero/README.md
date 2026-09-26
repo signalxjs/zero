@@ -240,6 +240,24 @@ bottom-to-top (`data-orientation` on the root and every positioned part,
 spelled `writing-mode: vertical-lr; direction: rtl`); Select and Combobox group options
 (`Group`/`GroupLabel`, the optgroup equivalent).
 
+**Range stepping shares one vocabulary** (#272). Slider, NumberInput and
+Diff's handle all move by `step` on the arrows and by `largeStep` on
+PageUp/PageDown and Shift+Arrow (default ten steps; Diff's `step` 1 and
+`largeStep` 10, in percent) — a native `Slider.Control` included, whose own
+PageUp is engine-defined. Slider's `minStepsBetweenThumbs` (default 0) keeps
+neighbouring thumbs that many steps apart, and each thumb announces the gap
+in its `aria-valuemin`/`aria-valuemax`. Slider's `valueCommit` fires with
+the model's shape once a drag is released, after each keyboard step, and on
+the native control's `change` — each only when the value moved. It is an
+event, not a model: there is no `valueChange` pair to bind, and `valueChange`
+keeps firing on every intermediate value. A NumberInput value that sits off
+the step grid (an off-grid `max`, a value written from outside) steps to the
+neighbouring grid value in the direction of travel — 5 on `step={2}` goes
+Up to 6 and Down to 4, where rounding to the nearest used to skip to 8.
+Diff's handle speaks `getValueText(value)` as `aria-valuetext` (default
+`"50%"`), and `disabled` on `Diff.Root` freezes it: `data-disabled` on the
+root and handle, `aria-disabled`, out of the tab order, no keys, no drag.
+
 **Select and Combobox are typed generic over their items.** `items` is
 the data; `T` infers from it, and the model holds the item unless
 `itemValue` says what it holds (`itemValue={(c) => c.code}` makes a

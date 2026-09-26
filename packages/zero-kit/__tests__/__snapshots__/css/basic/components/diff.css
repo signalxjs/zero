@@ -42,6 +42,11 @@
         outline-offset: 2px;
     }
 
+    [data-scope="diff"][data-part="handle"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
     [data-scope="diff"][data-part="handle"][data-pressed] {
         --diff-accent: color-mix(in oklch, var(--color-primary) 85%, var(--color-base-content));
     }

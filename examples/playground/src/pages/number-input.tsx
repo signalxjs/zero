@@ -32,6 +32,21 @@ const NumberInputDemos = component(() => {
                         <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
                     </NumberInput.Control>
                 </NumberInput.Root>
+                {/*
+                  * Step 2 with a large step of 10 (PageUp/PageDown and
+                  * Shift+Arrow). A value off the grid — the odd max End
+                  * lands on, or a 5 written from outside — steps to the grid
+                  * value in the direction of travel: 5 → ArrowUp 6,
+                  * ArrowDown 4.
+                  */}
+                <NumberInput.Root defaultValue={4} min={0} max={99} step={2} largeStep={10}>
+                    <NumberInput.Label>Even (step 2, large step 10)</NumberInput.Label>
+                    <NumberInput.Control>
+                        <NumberInput.DecrementTrigger>−</NumberInput.DecrementTrigger>
+                        <NumberInput.Input />
+                        <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
+                    </NumberInput.Control>
+                </NumberInput.Root>
                 <NumberInput.Root defaultValue={5} disabled>
                     <NumberInput.Label>Disabled</NumberInput.Label>
                     <NumberInput.Control>

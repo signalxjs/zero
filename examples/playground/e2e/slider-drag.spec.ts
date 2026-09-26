@@ -83,3 +83,48 @@ test('keyboard steps the value through the same model', async ({ page }) => {
     expect(await controlValue(page)).toBe(0);
     await expect(demo(page)('value-text')).toHaveText('0');
 });
+
+test('PageUp/PageDown on the native control move by largeStep in every engine (#272)', async ({ page }) => {
+    const control = demo(page)('control');
+    await control.focus();
+    expect(await controlValue(page)).toBe(40);
+    // The native range's own PageUp is engine-defined; largeStep (default
+    // ten steps) is not.
+    await page.keyboard.press('PageUp');
+    expect(await controlValue(page)).toBe(50);
+    await page.keyboard.press('Shift+ArrowDown');
+    expect(await controlValue(page)).toBe(40);
+    await expect(demo(page)('value-text')).toHaveText('40');
+});
+
+/** The gap-keeping range demo: [20, 60], step 5, largeStep 25, two steps apart. */
+const windowDemo = (page: Page) => demoLabelled(page, 'slider', 'Time window');
+const committed = (page: Page) => page.locator('[data-demo="slider-committed"]');
+
+test('valueCommit fires on release, not during the drag (#272)', async ({ page }) => {
+    const end = windowDemo(page)('thumb').nth(1);
+    await end.scrollIntoViewIfNeeded();
+    const track = await settledBox(windowDemo(page)('track'), 'the Time window track');
+    const thumb = await settledBox(end, 'the Window end thumb');
+    const cy = thumb.y + thumb.height / 2;
+    await page.mouse.move(thumb.x + thumb.width / 2, cy);
+    await page.mouse.down();
+    await page.mouse.move(track.x + track.width * 0.9, cy, { steps: 6 });
+    await expect(end).not.toHaveAttribute('aria-valuenow', '60');
+    await expect(committed(page)).toHaveText('—');
+    await page.mouse.up();
+    const now = await end.getAttribute('aria-valuenow');
+    await expect(committed(page)).toHaveText(`20 – ${now}`);
+});
+
+test('minStepsBetweenThumbs holds the gap under Shift+Arrow large steps (#272)', async ({ page }) => {
+    const start = windowDemo(page)('thumb').nth(0);
+    await start.focus();
+    await expect(start).toHaveAttribute('aria-valuemax', '50');
+    await page.keyboard.press('Shift+ArrowRight');
+    await expect(start).toHaveAttribute('aria-valuenow', '45');
+    await page.keyboard.press('Shift+ArrowRight');
+    // Clamped two steps (10) short of the end thumb at 60.
+    await expect(start).toHaveAttribute('aria-valuenow', '50');
+    await expect(committed(page)).toHaveText('50 – 60');
+});

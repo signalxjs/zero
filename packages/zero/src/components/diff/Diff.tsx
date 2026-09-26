@@ -15,6 +15,11 @@
  * and every colour. Size pane content to the ROOT (`inline-size: 100%`
  * of the root's width), because the `after` pane clips by width and
  * content sized to the clipped box would squish instead of revealing.
+ *
+ * The handle speaks its value as `getValueText(value)` (default `"50%"`),
+ * steps by `step` on the arrows and `largeStep` on PageUp/PageDown and
+ * Shift+Arrow. `disabled` on the root freezes it: `aria-disabled`, out of
+ * the tab order, no drag, no keys.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -23,7 +28,7 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { diffAnatomy } from './anatomy.js';
 
 const SCOPE = diffAnatomy.scope;
@@ -32,6 +37,7 @@ interface DiffContext {
     state: ControllableState<number>;
     value(): number;
     set(value: number): void;
+    disabled(): boolean;
     /** Map a pointer position to a percent through the root's box (RTL-aware). */
     rootToValue(e: { clientX: number }): number;
     /** Start dragging; window listeners follow the pointer out of the box. */
@@ -45,6 +51,7 @@ function makeInert(): DiffContext {
         state: createInertState<number>(50),
         value: () => 50,
         set: () => {},
+        disabled: () => false,
         rootToValue: () => 0,
         beginDrag: () => {},
         setRoot: () => {},
@@ -65,12 +72,18 @@ function isRtl(el: HTMLElement | null): boolean {
     return typeof getComputedStyle === 'function' && getComputedStyle(el).direction === 'rtl';
 }
 
-const clamp = (v: number): number => Math.min(100, Math.max(0, Math.round(v)));
+/**
+ * Into 0–100, with a fractional `step`'s float drift (`50.1 + 0.2`) rounded
+ * away. The pointer path rounds to whole percents itself.
+ */
+const clamp = (v: number): number => Math.min(100, Math.max(0, Number(v.toFixed(6))));
 
 export type DiffRootProps =
     & Define.Model<number>
     & Define.Prop<'defaultValue', number, false>
     & Define.Event<'valueChange', number>
+    /** Freeze the handle: `aria-disabled`, no tab stop, no drag, no keys. */
+    & WithDisabled
     & WithVariantAxes<'diff'>
     & WithClass
     & WithHtmlAttrs
@@ -93,15 +106,17 @@ const DiffRoot = component<DiffRootProps>(({ props, slots, emit, onUnmounted }) 
             const next = clamp(v);
             if (next !== state.value) state.value = next;
         },
+        disabled: () => props.disabled ?? false,
         rootToValue(e) {
             const rect = root?.getBoundingClientRect();
             if (!rect || rect.width <= 0) return ctx.value();
             let ratio = (e.clientX - rect.left) / rect.width;
             if (isRtl(root)) ratio = 1 - ratio;
-            return clamp(ratio * 100);
+            return clamp(Math.round(ratio * 100));
         },
         beginDrag() {
             detachDrag?.();
+            if (ctx.disabled()) return;
             const onMove = (e: PointerEvent): void => { ctx.set(ctx.rootToValue(e)); };
             const onEnd = (): void => { detachDrag?.(); };
             window.addEventListener('pointermove', onMove);
@@ -124,6 +139,7 @@ const DiffRoot = component<DiffRootProps>(({ props, slots, emit, onUnmounted }) 
             {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
+            data-disabled={dataAttr(ctx.disabled())}
             style={{ position: 'relative', '--diff-percent': `${ctx.value()}%` }}
             {...variantAttrs(props)}
             class={props.class}
@@ -157,6 +173,12 @@ const DiffAfter = component<DiffPaneProps>(({ props, slots }) => {
 export type DiffHandleProps =
     /** Accessible name — the handle is a glyph; "Comparison" by default. */
     & Define.Prop<'label', string, false>
+    /** `aria-valuetext` for a value (default `` `${value}%` ``). */
+    & Define.Prop<'getValueText', (value: number) => string, false>
+    /** Arrow-key delta in percent (default 1). */
+    & Define.Prop<'step', number, false>
+    /** PageUp/PageDown and Shift+Arrow delta in percent (default 10). */
+    & Define.Prop<'largeStep', number, false>
     & WithClass
     /** Not `role`: the handle is the `slider`. */
     & Omit<WithHtmlAttrs, 'role'>
@@ -170,39 +192,48 @@ const DiffHandle = component<DiffHandleProps>(({ props, slots, signal }) => {
     // one-shot, the window release ends it wherever it ends.
     const press = createPressFeedback({
         getElement: () => el,
-        isDisabled: () => false,
+        isDisabled: () => diff.disabled(),
         oneShot: false,
     });
+    const positive = (v: number | undefined, fallback: number): number =>
+        (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : fallback);
 
     return () => {
         const value = diff.value();
         const attrs = htmlAttrs(props);
+        const disabled = diff.disabled();
         return (
             <div
                 {...attrs}
                 data-scope={SCOPE}
                 data-part="handle"
+                data-disabled={dataAttr(disabled)}
                 data-focus-visible={dataAttr(focus.visible)}
                 role="slider"
-                tabIndex={0}
+                tabIndex={disabled ? undefined : 0}
                 aria-label={props.label ?? attrs['aria-label'] ?? 'Comparison'}
                 aria-orientation="horizontal"
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={value}
+                aria-valuetext={props.getValueText ? props.getValueText(value) : `${value}%`}
+                aria-disabled={disabled ? 'true' : undefined}
                 style={{ position: 'absolute', insetInlineStart: `${value}%` }}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; }}
                 onKeydown={(e: KeyboardEvent) => {
+                    if (disabled) return;
                     const rtl = isRtl(el);
+                    const large = positive(props.largeStep, 10);
+                    const s = e.shiftKey ? large : positive(props.step, 1);
                     let delta: number | null = null;
                     switch (e.key) {
-                        case 'ArrowRight': delta = rtl ? -1 : 1; break;
-                        case 'ArrowLeft': delta = rtl ? 1 : -1; break;
-                        case 'ArrowUp': delta = 1; break;
-                        case 'ArrowDown': delta = -1; break;
-                        case 'PageUp': delta = 10; break;
-                        case 'PageDown': delta = -10; break;
+                        case 'ArrowRight': delta = rtl ? -s : s; break;
+                        case 'ArrowLeft': delta = rtl ? s : -s; break;
+                        case 'ArrowUp': delta = s; break;
+                        case 'ArrowDown': delta = -s; break;
+                        case 'PageUp': delta = large; break;
+                        case 'PageDown': delta = -large; break;
                         case 'Home':
                             e.preventDefault();
                             diff.set(0);
@@ -217,7 +248,7 @@ const DiffHandle = component<DiffHandleProps>(({ props, slots, signal }) => {
                     diff.set(value + delta);
                 }}
                 onPointerdown={(e: PointerEvent) => {
-                    if (e.button !== 0) return;
+                    if (disabled || e.button !== 0) return;
                     e.preventDefault();
                     press.onPointerdown(e);
                     el?.focus();

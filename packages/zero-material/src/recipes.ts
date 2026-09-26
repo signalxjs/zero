@@ -5759,6 +5759,9 @@ export const diff: RecipeInput = {
                 background: 'var(--color-base-100)',
                 borderRadius: 'var(--radius-box)',
             },
+            // The root holds the images, which are content: disabled is the
+            // handle's to show (#272).
+            states: { disabled: {} },
         },
         before: {
             base: { gridArea: '1 / 1', minWidth: '0' },
@@ -5790,6 +5793,9 @@ export const diff: RecipeInput = {
             },
             states: {
                 ...focusRing,
+                // MD3 disabled (#272): the handle drops to on-surface ink at the
+                // disabled opacity; the images are content and stay unfaded.
+                disabled: { '--diff-accent': 'var(--color-base-content)', opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 pressed: { '--diff-accent': 'color-mix(in oklch, var(--color-primary) 85%, var(--color-base-content))' },
             },
             selectors: {

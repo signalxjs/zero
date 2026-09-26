@@ -286,17 +286,19 @@ component renders; the root is called out separately where it carries props.
   orientation. `items` renders one radio per item (explicit children win
   entirely); the model stays the STRING a native radio group posts, so
   itemKey IS the posted value (defaults: value / id / the primitive).
-- Slider: Root(model=number|number[], min, max, step, name, invalid, marks,
-  getValueText)/Label/Control/Track/Range/Thumb/Mark/ValueText/HiddenInput.
+- Slider: Root(model=number|number[], min, max, step, largeStep,
+  minStepsBetweenThumbs, name, invalid, marks, getValueText, onValueCommit)/Label/Control/Track/Range/Thumb/Mark/ValueText/HiddenInput.
   Two projections over one anatomy. Scalar model: render Slider.Control — a
   native <input type=range> bound with model= to the first value (a derived
   Model whose write quantizes and clamps), single thumb, platform
   keyboard/forms/a11y.
   Range model (number[]): compose the real parts — Slider.Track wrapping
   Slider.Range and one Slider.Thumb(label, index?) per value, in order.
-  Each thumb is an APG role=slider tab stop: arrows/PageUp/PageDown step
-  (RTL-aware), Home/End go to its ALLOWED bounds — thumbs cannot cross, so
-  each clamps at its neighbor and announces the clamp as aria-valuemin/max;
+  Each thumb is an APG role=slider tab stop: arrows step (RTL-aware),
+  PageUp/PageDown and Shift+Arrow move by largeStep (default 10*step; the
+  native control takes these large steps too), Home/End go to its ALLOWED
+  bounds — thumbs cannot cross, so each clamps at its neighbor plus
+  minStepsBetweenThumbs*step and announces the clamp as aria-valuemin/max;
   aria-valuetext comes from getValueText(value, index). Track presses move
   the nearest thumb and start a drag; range spans lowest→highest (min→value
   when single); `marks` renders positioned `mark` tick parts (with label
@@ -305,7 +307,9 @@ component renders; the root is called out separately where it carries props.
   inset-inline-start percents — RTL mirrors for free) and paints nothing:
   recipes center the thumb with a negative margin-inline-start of half its
   width and own every color. --slider-percent still tracks the (highest)
-  value's fraction.
+  value's fraction. valueCommit (an event, NOT a model — no <n>Change pair)
+  fires with the model's shape once per drag end, per keyboard step and on
+  the native control's change, each only when the value moved.
 - Progress: Root/Label/Track/Range/ValueText; `value: number | null`
   (null = indeterminate).
 - RadialProgress: Root/Label/ValueText — circular progress as its OWN scope
@@ -479,18 +483,22 @@ component renders; the root is called out separately where it carries props.
   roving tabindex), the active one carrying aria-current. item and
   indicator ride data-state active|inactive; the indicator is a paint part
   graded by the contrast audit's indicator matrix. Horizontal only.
-- Diff: Root(model=percent 0-100, default 50)/Before/After/Handle — a
+- Diff: Root(model=percent 0-100, default 50, disabled)/Before/After/
+  Handle(label, getValueText, step=1, largeStep=10) — a
   before/after reveal whose divider HANDLE IS AN APG SLIDER: role=slider,
-  aria-valuenow 0-100, arrows/PageUp/PageDown/Home/End (RTL-aware — Arrow
-  Right increases in LTR, decreases in RTL, so the handle always moves the
-  way the key points), pointer drag with window listeners that survive
+  aria-valuenow 0-100, aria-valuetext getValueText(v) (default "50%"),
+  arrows ±step, PageUp/PageDown and Shift+Arrow ±largeStep, Home/End
+  (RTL-aware — ArrowRight increases in LTR, decreases in RTL, so the handle
+  always moves the way the key points), pointer drag with window listeners that survive
   leaving the box. The panes are CONTENT and stay inert. The runtime
   publishes --diff-percent on the root and positions the handle at the
   logical inset-inline-start; recipes clip the after pane with a LOGICAL
   inline-size (never a physical clip-path), so RTL mirrors free — the
   physical result is measured in e2e/diff.spec.ts. Size pane content to
   the ROOT, not the pane: the after pane clips by width. The handle is a
-  paint part graded by the contrast audit's indicator matrix.
+  paint part graded by the contrast audit's indicator matrix. Root disabled
+  → data-disabled on root and handle, aria-disabled, no tab stop, no keys,
+  no drag; recipes treat the handle, never the content panes.
 - FileUpload: Root(model=File[], defaultFiles)/Label/Trigger/Input/Dropzone/ItemGroup/
   Item(file)/ItemName/ItemSize/ItemRemove. The INPUT IS THE CONTROL — a
   real <input type=file> holding name/accept/multiple/required and posting
@@ -739,14 +747,16 @@ component renders; the root is called out separately where it carries props.
   (bottom-start → bottom-end: the list's right edge at the @). A vertical
   writing-mode falls back to the box. Any `(control, index) => PositionAnchor | null`
   works.
-- NumberInput: Root(model=number|null, defaultValue: number|null, min, max, step, allowWheel,
+- NumberInput: Root(model=number|null, defaultValue: number|null, min, max, step, largeStep, allowWheel,
   clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
   DecrementTrigger/HiddenInput. APG spinbutton on a real text input
   (inputmode=decimal): the input binds the DRAFT with model= (a derived
   Model: reads the display text, writes the draft); typing is an
   UNCOMMITTED draft, committed on
   blur/Enter (parse → clamp → step-snap anchored at min); stepping commits
-  immediately (arrows ±step, PageUp/Down ±10 steps, Home/End → min/max,
+  immediately (arrows ±step, PageUp/Down and Shift+Arrow ±largeStep —
+  default 10 steps; an OFF-grid value steps to the neighbouring grid value
+  in the direction of travel: 5 on step 2 → Up 6, Down 4; Home/End → min/max,
   triggers hold-to-repeat, wheel only when allowWheel AND focused).
   Control is the field chrome (ring/invalid draw there; input delegates
   focus-visible). hidden-input posts canonical String(value) — the visible
