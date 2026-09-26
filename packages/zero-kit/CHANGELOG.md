@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE['tree-view']` reserves `multiple` (zero#287)
+
+- TreeView's new root prop is reserved, so a vendor-named api cannot claim
+  it as an axis prop.
+
 ## [0.6.0] - 2026-09-26
 
 ### Added — The tabs indicator's box is a runtime-published property (zero#283)

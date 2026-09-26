@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### Added — TreeView multiple selection (#287)
+
+- **`TreeView.Root multiple`**: the model becomes a `string[]`
+  (`defaultValue` / `valueChange` follow; single mode keeps its `string`),
+  and the tree renders `aria-multiselectable="true"`. Selected nodes carry
+  the existing `data-selected` flag — no new part or state.
+- APG's recommended multi-select keys: Space toggles the focused node,
+  Shift+ArrowDown/Up move focus and select from the anchor, Shift+Space
+  selects the anchor→focused range, Ctrl/Cmd+Shift+Home/End extend to the
+  first/last visible node, Ctrl/Cmd+A adds every visible enabled node
+  (handled before typeahead). Enter still selects the focused node alone.
+- Pointer: a plain click replaces the selection, Ctrl/Cmd+click toggles,
+  Shift+click selects the range (without extending the page's text
+  selection); a modified click on a branch row selects without folding it.
+  Ranges run over the visible nodes in DOM order and replace the selection;
+  no gesture adds a disabled node (a model that names one still renders it
+  selected). The tab stop is the first selected visible node.
+- `createTreeController` gains `range(from, to)`: the visible nodes between
+  two values, inclusive, in DOM order.
+- The anatomy's `value` model is declared `multiple: true`.
+- An item or branch valued `''` now throws in single mode, where `''` is
+  "nothing selected" (ToggleGroup's rule); under `multiple` it is allowed.
+
 ## [0.6.0] - 2026-09-26
 
 ### Added — Tabs indicator and lazy panels (#283)
