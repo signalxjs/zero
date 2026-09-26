@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Added — `POSITION_PROPERTIES`, and the position geometry as runtime properties (zero#278)
+
+- **`POSITION_PROPERTIES`** (`--anchor-width`, `--anchor-height`,
+  `--available-width`, `--available-height`, `--transform-origin`) mirrors
+  zero's new contract list (parity-tested), and **`RUNTIME_PROPERTIES`
+  includes it**: a recipe may read the geometry zero's position strategy
+  publishes on every popup without declaring it, and the lynx target
+  rejects it outside `targets.web`, exactly like `--press-*`.
+- **`RESERVED_PROPS_BY_SCOPE`** reserves `collisionPadding` and
+  `alignOffset` on `select`, `combobox`, `menu`, `popover` and `tooltip`,
+  so a vendor-named api cannot claim them as axis props.
+- The design-system skill tells an author to size listbox popups from the
+  published geometry rather than a fixed width.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE` reserves the listbox parts' root props (zero#280)
 
 - `select` reserves `clearable`; `combobox` reserves `clearable`, `loading`
