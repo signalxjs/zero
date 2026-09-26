@@ -54,6 +54,32 @@
   cancels it; find-in-page and fragment navigation still sync the model
   (#166).
 
+### Added — Input: `Adornment`, `ClearTrigger`, `VisibilityTrigger` and `model:visible` (#281)
+
+- **`Input.Adornment`** (part `adornment`, parent `control`, placements
+  `start`/`end`): consumer content at a logical edge of the control, from a
+  required `placement` prop rendered as `data-placement`. A press on it
+  that lands on nothing interactive focuses the input and keeps its caret.
+- **`Input.ClearTrigger`** (part `clear-trigger`, a `<button>`): empties
+  the value the way typing would (model write, `valueChange`, an `input`
+  event) and focuses the input. `tabindex="-1"`, `aria-controls` the
+  input, name "Clear" (`label` or an app `aria-label` replaces it). It
+  renders nothing while the value is empty and is disabled while the field
+  is disabled or readonly.
+- **Escape clears a `type="search"` input** while it holds a value, and is
+  cancelled so an enclosing dismiss layer stays open. An empty field lets
+  Escape through.
+- **`Input.VisibilityTrigger`** (part `visibility-trigger`, states
+  `on|off`): a toggle button (`aria-pressed`, constant name "Show
+  password", `aria-controls` the input) over the Root's new named model
+  `model:visible` / `defaultVisible` / `visibleChange`. While visible, a
+  `type="password"` input renders `type="text"`. Its slot receives
+  `{ visible }`.
+- Exports `InputAdornmentProps`, `InputClearTriggerProps` and
+  `InputVisibilityTriggerProps`.
+- All six skins style the three parts inside the control's row, ordered
+  with `order` and logical padding so they follow the reading direction.
+
 ### Fixed — FileUpload: required redirect, focus after remove, drag flicker, FileList sync (#273)
 
 - **A required upload left empty no longer bubbles from a 1px input.** The
