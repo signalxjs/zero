@@ -121,10 +121,12 @@ replaces the selection, Ctrl/Cmd+click toggles, Shift+click selects the range;
 a modified click on a branch row never folds it. The anchor is the node last
 selected alone or toggled, ranges run over the VISIBLE nodes in DOM order and
 replace the selection, and a range whose anchor has since been collapsed away
-selects its far end alone. Disabled nodes never enter the selection. The tab
-stop is the first selected visible node. Because `''` is single mode's
-"nothing selected", an item or branch valued `''` throws there (as a
-ToggleGroup item does); under `multiple` it is an ordinary value.
+selects its far end alone. No gesture puts a disabled node in the
+selection, though a model that names one still renders it selected: disabled
+blocks interaction, not state, as in single mode. The tab stop is the first
+selected visible node. Because `''` is single mode's "nothing selected", an
+item or branch valued `''` throws there (as a ToggleGroup item does); under
+`multiple` it is an ordinary value.
 
 **The form contract.** Every posting control takes the same five props
 (`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus

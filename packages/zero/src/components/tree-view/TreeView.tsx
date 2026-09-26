@@ -32,7 +32,8 @@
  * selects the focused node alone, as in single mode. A plain click replaces
  * the selection, Ctrl/Cmd+click toggles, Shift+click selects the range —
  * ranges run over the VISIBLE nodes in DOM order and replace the selection.
- * Disabled nodes never enter it.
+ * No gesture puts a disabled node in it; a model that names one still
+ * renders it selected (disabled blocks interaction, not state).
  *
  * The keyboard walks VISIBLE nodes — the tree controller implements the
  * flat list interface over them, so roving and typeahead are the same
