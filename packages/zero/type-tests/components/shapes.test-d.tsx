@@ -1,7 +1,8 @@
 /**
- * The value shapes of #455, pinned against the REAL roots: ToggleGroup's
- * and TreeView's (#287) model follows `multiple` (`string`, or `string[]`), and RadioGroup's
- * `items` infer `T` while the model stays the posted string.
+ * The value shapes of #455, pinned against the REAL roots: the models of
+ * ToggleGroup and TreeView (#287) follow `multiple` (`string` or
+ * `string[]`), and RadioGroup's `items` infer `T` while the model stays the
+ * posted string.
  */
 import { signal } from 'sigx';
 import { Combobox, RadioGroup, Select, ToggleGroup, TreeView } from '@sigx/zero';
