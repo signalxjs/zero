@@ -50,6 +50,31 @@
   the last item to the first and back, in the root popup and every submenu.
   `loop={false}` stops at the ends.
 
+### Fixed — TreeView pointer selects a branch; a disabled Steps item no longer strands the arrows (#271)
+
+- **A click on a TreeView branch row selects the branch**, as Enter does —
+  it used to only toggle it, so a row the keyboard could select was one a
+  pointer could not. Toggling on click is kept (see `expandOnClick` below).
+- **A disabled `asChild` Steps item roves.** A pointer can focus it
+  (`tabindex="-1"`), and its keydown used to return before roving — a
+  keyboard dead end. Its arrows now move to the enabled step beside it and
+  Home/End to the edges; press, click and Enter/Space activation stay
+  gated (TreeView's #177 precedent).
+
+### Added — TreeView `expandOnClick`, `*` and loading branches (#271)
+
+- **`expandOnClick`** on `TreeView.Root` (default `true`): a branch-row
+  click selects and toggles. `false`: the row only selects, and a click on
+  `TreeView.BranchIndicator` only toggles (it stops the row's click).
+- **`*`** expands every enabled sibling branch of the focused node, merged
+  into the expanded model in one `expandedValuesChange`; it is not a
+  typeahead character.
+- **`loading`** on `TreeView.Branch`: the treeitem is `aria-busy="true"`,
+  `branch-indicator` reads `data-state="loading"`, and `branch-content`
+  reads it while open (closed content stays `closed` and `hidden`). The
+  anatomy adds `loading` to both parts' `states`; all six skins rest the
+  indicator's chevron half-turned (static, no loop).
+
 ### Fixed — tooltip opens on keyboard focus only, closes on press, ignores touch hover (#268)
 
 - **Focus opens a tooltip only when it is keyboard focus** — the trigger
