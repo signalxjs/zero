@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Added — `popupArrow`, and the arrow offsets as runtime properties (zero#279)
+
+- **`popupArrow(scope, { size, paint })`** and **`popupArrowHost(scope)`**
+  (`/define` and the barrel): the recipe half of zero's new popup arrow.
+  The first is the `arrow` part's styles for every placement — a `size`
+  square of the popup's `paint`, rotated 45°, clipped to the half that
+  sticks out, centred on the edge facing the anchor at
+  `--arrow-x`/`--arrow-y`, with the inline tips turned under RTL, and
+  `display: none` anywhere but under a root popup with a placement. The
+  second is the popup's `overflow: visible` while it holds an arrow.
+- **`ARROW_PROPERTIES`** (`--arrow-x`, `--arrow-y`) mirrors zero's contract
+  list (parity-tested) and joins `RUNTIME_PROPERTIES`: readable without a
+  declaration, web-only on the lynx target.
+- The physical-direction lint exempts `var(--arrow-x)` like `--press-x`: it
+  is a measured offset from the popup's left edge.
+- **`RESERVED_PROPS_BY_SCOPE`** reserves `arrowPadding` on `menu`,
+  `popover` and `tooltip`.
+- The design-system skill tells an author to paint the arrow with
+  `popupArrow`.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE['tree-view']` reserves `multiple` (zero#287)
 
 - TreeView's new root prop is reserved, so a vendor-named api cannot claim
