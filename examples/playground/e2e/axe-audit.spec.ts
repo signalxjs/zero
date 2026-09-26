@@ -134,6 +134,14 @@ const SCANS: Record<string, Scan[]> = {
             await expect(page.locator('[data-scope="tooltip"][data-part="popup"][data-state="open"]')).toBeVisible();
         },
     }],
+    'hover-card': [{
+        name: 'hover card with interactive content',
+        open: async (page) => {
+            // Keyboard focus opens at once — no intent delay to wait out.
+            await page.getByRole('link', { name: '@ada', exact: true }).focus();
+            await expect(page.locator('[data-scope="hover-card"][data-part="popup"][data-state="open"]')).toBeVisible();
+        },
+    }],
     menu: [
         { name: 'Actions menu', open: (page) => openMenu(page, 'Actions') },
         {

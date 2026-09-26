@@ -30,6 +30,7 @@ import { dialogPage } from './dialog';
 import { drawerPage } from './drawer';
 import { popoverPage } from './popover';
 import { tooltipPage } from './tooltip';
+import { hoverCardPage } from './hover-card';
 import { menuPage } from './menu';
 import { toastPage } from './toast';
 import { tabsPage } from './tabs';
@@ -121,6 +122,7 @@ export const pages: PageEntry[] = [
     drawerPage,
     popoverPage,
     tooltipPage,
+    hoverCardPage,
     menuPage,
     toastPage,
     tabsPage,
