@@ -67,6 +67,10 @@
   `<button>`, `<input>`, `<summary>` or link gets none of that — the
   platform already synthesizes the click. Server rendering cannot see the
   tag, so the contract arrives on mount.
+- A disabled asChild `<button>` or `<input>` never got the native
+  `disabled`, so it stayed in the tab order and could still submit its form
+  implicitly (Enter in a field). It now gets it, as the built-in button
+  does — unless `focusableWhenDisabled` trades it for `aria-disabled`.
 - A disabled asChild `<a>` only cancelled `click`, so middle-click and
   "open in new tab" still navigated. It now renders without its `href`
   (the bag's `href: undefined` wins when spread after the caller's own
