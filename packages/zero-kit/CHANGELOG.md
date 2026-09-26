@@ -51,6 +51,13 @@
 - `select` reserves `clearable`; `combobox` reserves `clearable`, `loading`
   and `loadingText`, so a vendor-named api cannot claim them as axis props.
 
+### Changed — `RESERVED_PROPS_BY_SCOPE` gains `checkbox-group`, and `checkbox` gains `parent` (zero#282)
+
+- The new scope's root props (`allValues`, `defaultValue`, `form`, `id`,
+  `invalid`, `name`, `readonly`, `required`, `title`, `value`) and
+  Checkbox's new `parent` are reserved, so a vendor-named api cannot claim
+  them as axis props. Every skin's goldens gain the scope.
+
 ### Added — Disclosure panel sizes are runtime-published properties (zero#276)
 
 - `RUNTIME_PROPERTIES` gains `--accordion-panel-height`,

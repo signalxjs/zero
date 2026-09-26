@@ -109,6 +109,37 @@
   `Empty`: a `status` or `aria-live` region inside a listbox is invalid
   ARIA.
 
+### Added — CheckboxGroup, and a derived tri-state parent checkbox (#282)
+
+- **New component `CheckboxGroup`** (`@sigx/zero/checkbox-group` and the
+  barrel): `Root` / `Label`. The root is a `role="group"` labelled by its
+  `Label` (referenced only while rendered) and carries one `string[]` model
+  (`model` / `defaultValue` / `valueChange`), plus `name`, `form`,
+  `disabled`, `invalid`, `readonly`, `required`, `orientation`
+  (`data-orientation`) and `allValues`. The anatomy declares `root`
+  (`disabled`/`invalid`/`required`/`readonly` flags) and `label`.
+- **A `Checkbox.Root` inside a group belongs to it.** Given a `value`, it is
+  checked while the group's model includes it and toggling it writes the
+  group model; it posts under the group's `name`/`form`, takes the group's
+  flags ORed with its own, and its `size` when it sets none. `required` on
+  the group means at least one: the boxes are natively `required` only
+  while none of the rendered boxes is checked (a model value no box renders
+  does not count). A child box without a `value` logs a console warning —
+  it is the membership key and the posted value. In a `Field.Root` the group root is what the Field
+  labels and describes; the boxes keep ids of their own.
+- **`Checkbox.Root parent`** — the "select all" box. Its state derives from
+  the group's `allValues` (default: every child's value): `checked` when
+  all are selected, `unchecked` when none, `indeterminate` when some.
+  Toggling it selects all or none of them, its input names the child inputs
+  in `aria-controls`, and it posts nothing unless given a `name`.
+
+### Fixed — An indeterminate Checkbox stays indeterminate after a click (#282)
+
+- The platform clears a checkbox's `indeterminate` property on activation,
+  so a click left the native input determinate while `data-state` (and the
+  `indeterminate` prop) still said otherwise. The box now writes the
+  property back after every change and on every state change.
+
 ### Added — Accordion keyboard, labelled panels, animatable disclosure close (#276)
 
 - **Accordion follows the APG accordion keyboard.** ArrowDown/ArrowUp move
