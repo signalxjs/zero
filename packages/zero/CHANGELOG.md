@@ -2,6 +2,42 @@
 
 ## [Unreleased]
 
+### Added — Steps as a wizard: content panels, prev/next triggers, `linear` and `invalid` (#296)
+
+- **`Steps.Content`** (new part `content`, `div`, `parent: 'root'`, states
+  `active|inactive`, `hiddenIn: ['inactive']`): one panel per step
+  (`value` = an item's), a `role="region"` labelled by its step's
+  `Steps.Title` — by the item when the step has no title — and `hidden`
+  unless its step is active. Items now carry a generated `id` and
+  `aria-controls` to their panel, presence-tracked so neither reference
+  dangles. `Steps.Root lazyMount` renders a panel's content only once its
+  step has been active, then keeps it.
+- **`Steps.PrevTrigger` / `Steps.NextTrigger`** (new parts
+  `prev-trigger`/`next-trigger`, `button`, `parent: 'root'`, flags
+  `disabled`/`focus-visible`/`pressed`/`press-animating`): move to the
+  nearest enabled step before/after the active one, in DOM order. At a
+  bound they stay focusable with `aria-disabled` + `data-disabled`; a
+  disabled root disables them natively. `label` names an icon-only one.
+- **`Steps.Root linear`**: every item past the next reachable step renders
+  `data-disabled` and `aria-disabled` and ignores click, Enter and Next,
+  but stays focusable and roved, so its title is still read. Going back is
+  never gated.
+- **`Steps.Item invalid`**: `data-invalid` on the item, its indicator and
+  its separator (the anatomy declares the flag on all three), and a
+  visually-hidden `invalidLabel` (root prop, default `", has errors"`)
+  appended to the item's name — `aria-invalid` is not allowed on a button.
+  An `asChild` item renders that text itself.
+- `Steps.Item` and `Steps.Title` no longer take an `id` (they carry the
+  generated ones the panel wiring needs); new `StepsTitleProps`,
+  `StepsContentProps` and `StepsTriggerProps` types.
+- **All six design systems** style the panel, the triggers (each skin's
+  quiet/secondary trigger idiom; Next takes the far end of its line) and
+  the invalid paint (the error ink on the item, an error-filled disc and
+  bridge). A root holding wizard parts wraps them below the rail; a bare
+  rail never wraps.
+- `.size-limit.json`: the barrel goes 66.78 → 67.65 kB, `@sigx/zero/steps`
+  4.23 → 5.45 kB and the anatomy tooling entry 4.13 → 4.15 kB.
+
 ### Added — `HoverCard`: a hover-intent preview card with interactive content (#290)
 
 - **`HoverCard`** (`@sigx/zero/hover-card` and the barrel), scope
