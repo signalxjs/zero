@@ -64,8 +64,9 @@
   the value the way typing would (model write, `valueChange`, an `input`
   event) and focuses the input. `tabindex="-1"`, `aria-controls` the
   input, name "Clear" (`label` or an app `aria-label` replaces it). It
-  renders nothing while the value is empty and is disabled while the field
-  is disabled or readonly.
+  renders nothing while the field is empty (what it shows, so text a
+  `lazy`/`debounce` model has not taken yet counts) and is disabled while
+  the field is disabled or readonly.
 - **Escape clears a `type="search"` input** while it holds a value, and is
   cancelled so an enclosing dismiss layer stays open. An empty field lets
   Escape through.
