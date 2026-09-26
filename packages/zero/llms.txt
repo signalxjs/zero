@@ -340,14 +340,26 @@ component renders; the root is called out separately where it carries props.
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/
   required down to the control it wraps, and its `size` when the control
   sets none (#57): a sized Field is a sized control.
-- Input: Root(model=string)/Label/Control/Input, a single-line text field.
+- Input: Root(model=string, model:visible)/Label/Control/Input/Adornment/ClearTrigger/
+  VisibilityTrigger, a single-line text field.
   `type` is text|email|password|search|tel|url only (number is NumberInput;
   the selection and date/time types are not text fields). The model writes
   through on every keystroke — no draft/commit split; `modelModifiers`
   (`lazy`, `debounce`, `trim`) defer or shape it exactly as on a bare
   <input>. `control` is the field chrome (border/ring/invalid tint), the
   <input> inside it is transparent. NO hidden input: the visible <input> IS
-  the form control and carries `name`.
+  the form control and carries `name`. AFFORDANCES live in the control:
+  Adornment(placement: start|end → data-placement; consumer content, a
+  press on non-interactive content focuses the input), ClearTrigger(label,
+  default "Clear"; tabindex=-1, aria-controls the input, rendered only while
+  the value is non-empty, disabled while disabled or readonly; empties the
+  value like typing — model write, valueChange, an input event — and
+  focuses the input) and VisibilityTrigger(label, default "Show password";
+  states on|off, aria-pressed; toggles Root's model:visible /
+  defaultVisible / visibleChange, and while visible a type=password input
+  renders type=text; slot gets { visible }). In a type=search field Escape
+  clears a non-empty value and is preventDefault-ed so dismiss layers
+  yield; an empty field lets it through.
 - Card: Root/Header/Title/Description/Body/Footer. No state, no context, no
   ids — a styling container. Title renders <h3> so a page of cards is
   navigable from a heading list. Every part below Root is optional.
