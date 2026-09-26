@@ -2591,7 +2591,9 @@ export const treeView: RecipeInput = {
         },
         'branch-indicator': {
             base: { display: 'inline-block', flex: 'none', color: 'var(--hero-muted)', transition: motion('rotate') },
-            states: { open: { rotate: '90deg' }, closed: {} },
+            // Loading: the chevron pauses half-turned — static (no loop),
+            // same muted ink, so contrast is untouched.
+            states: { open: { rotate: '90deg' }, closed: {}, loading: { rotate: '45deg' } },
             // The glyph is element text the runtime renders (`TreeView.tsx`), not
             // `content:`, so the `:dir(rtl)` swap the submenu chevron uses is not
             // available here — a mirror is its equivalent. `scale` composes
@@ -2612,6 +2614,9 @@ export const treeView: RecipeInput = {
             states: { open: {}, closed: {} },
         },
     },
+    // Open-and-loading content lays out exactly as open content does — the
+    // indicator and the treeitem's aria-busy carry the state.
+    sameAs: { 'branch-content': { loading: 'open' } },
     variants: {
         size: {
             sm: { root: { base: { '--tree-text': 'var(--text-xs)' } } },

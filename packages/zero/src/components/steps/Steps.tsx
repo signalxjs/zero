@@ -105,14 +105,51 @@ const StepsRoot = component<StepsRootProps>(({ props, slots, emit, onMounted }) 
     let rootEl: HTMLElement | null = null;
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
 
+    const rtl = (): boolean => isRtl(rootEl);
     const roving = createRovingKeydown({
         list,
         orientation,
         loop: () => props.loop ?? false,
-        rtl: () => isRtl(rootEl),
+        rtl,
         // Focus moves, the step doesn't: selection is click/Space/Enter only.
         onMove: () => {},
     });
+
+    /**
+     * Roving indexes the ENABLED items, where a disabled one is absent — an
+     * arrow from it would jump to the first or last step. A disabled asChild
+     * item still takes a pointer's focus (tabindex=-1), so its arrows move
+     * to the nearest enabled step in the key's direction; past the end they
+     * wrap when `loop` is on, else settle on the nearest enabled step
+     * behind — never staying on the disabled one. Home/End ignore where
+     * they start.
+     */
+    const keydown = (e: KeyboardEvent, value: string): void => {
+        const item = list.items().find((i) => i.value === value);
+        if (!item?.disabled()) {
+            roving(e, value);
+            return;
+        }
+        const horizontal = orientation() === 'horizontal';
+        const [back, forth] = horizontal
+            ? (rtl() ? ['ArrowRight', 'ArrowLeft'] : ['ArrowLeft', 'ArrowRight'])
+            : ['ArrowUp', 'ArrowDown'];
+        if (e.key !== back && e.key !== forth) {
+            roving(e, value);
+            return;
+        }
+        const enabled = list.enabledItems();
+        if (enabled.length === 0) return;
+        e.preventDefault();
+        const all = list.items();
+        const at = all.indexOf(item);
+        const ahead = e.key === forth ? all.slice(at + 1) : all.slice(0, at).reverse();
+        const behind = e.key === forth ? all.slice(0, at).reverse() : all.slice(at + 1);
+        const wrap = e.key === forth ? enabled[0] : enabled[enabled.length - 1];
+        const target = ahead.find((i) => !i.disabled())
+            ?? (props.loop ? wrap : behind.find((i) => !i.disabled()));
+        target?.el()?.focus();
+    };
 
     const ctx: StepsContext = {
         state,
@@ -121,7 +158,7 @@ const StepsRoot = component<StepsRootProps>(({ props, slots, emit, onMounted }) 
         orientation,
         disabled: () => !!props.disabled,
         select: (value) => { state.value = value; },
-        keydown: roving,
+        keydown,
     };
     defineProvide(useStepsContext, () => ctx);
 
@@ -244,9 +281,12 @@ const StepsItem = component<StepsItemProps>(({ props, slots, onMounted, onUnmoun
             steps.select(props.value);
         },
         onKeydown: (e: KeyboardEvent) => {
-            if (disabled()) return;
+            // A disabled asChild item still takes a pointer's focus, so its
+            // arrows must still rove — only activation is gated (press
+            // feedback is gated by isDisabled).
             press.onKeydown(e);
             steps.keydown(e, props.value);
+            if (disabled()) return;
             // Keyboard activation for asChild elements where the platform
             // won't synthesize a click from this key; where it will, ours
             // stays out of the way (double activation is the failure mode

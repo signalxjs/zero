@@ -71,7 +71,7 @@ import { fileURLToPath } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
 import { DS_MANIFEST_VERSION } from '@sigx/zero-kit';
 import type { DesignSystemManifest } from '@sigx/zero-kit';
-import { DESIGN_SYSTEM_LIST } from './demo';
+import { DESIGN_SYSTEM_LIST, rootLabelled } from './demo';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
@@ -439,8 +439,11 @@ for (const ds of DESIGN_SYSTEMS) {
         });
 
         test('collapsing a TreeView branch removes its subtree from layout', async ({ page }) => {
-            const tree = page.locator('[data-scope="tree-view"][data-part="tree"]');
-            // The outermost branch is `src`; the playground expands it by default.
+            // Named root: the page renders more than one tree (#271).
+            const tree = rootLabelled(page, 'tree-view', 'Project files')
+                .locator('[data-scope="tree-view"][data-part="tree"]');
+            // The outermost branch is `src`; the playground expands it by
+            // default — the tree's first top-level node, by identity.
             const src = tree.locator('> [data-scope="tree-view"][data-part="branch"]').first();
             const trigger = src.locator('> [data-part="branch-trigger"]');
             const content = src.locator('> [data-part="branch-content"]');

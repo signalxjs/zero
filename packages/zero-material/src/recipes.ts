@@ -3099,7 +3099,9 @@ export const treeView: RecipeInput = {
                 display: 'inline-flex',
                 transition: motion('transform'),
             },
-            states: { open: { transform: 'rotate(90deg)' }, closed: {} },
+            // Loading: the chevron rests mid-rotation, a static stand-in for
+            // the progress affordance — no loop to stop, ink unchanged.
+            states: { open: { transform: 'rotate(90deg)' }, closed: {}, loading: { transform: 'rotate(45deg)' } },
             // The glyph is element text the runtime renders (`TreeView.tsx`), not
             // `content:`, so the `:dir(rtl)` swap the submenu chevron uses is not
             // available here — a mirror is its equivalent. `scale` composes
@@ -3117,6 +3119,9 @@ export const treeView: RecipeInput = {
         },
     },
     keyframes: rippleKeyframes('tree-view'),
+    // Open-and-loading content lays out exactly as open content does — the
+    // indicator and the treeitem's aria-busy carry the state.
+    sameAs: { 'branch-content': { loading: 'open' } },
     variants: {
         // A tree colours one thing: the selected row. Everything else is
         // structure, and tinting it would fight the content.
