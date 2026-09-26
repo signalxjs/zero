@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
-import { signal } from 'sigx';
+import { component, signal } from 'sigx';
 import { TreeView, treeViewAnatomy, createTreeController } from '@sigx/zero';
 import type { TreeItem } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
@@ -196,6 +196,126 @@ describe('TreeView', () => {
         expect(state.file).toBe('README.md');
         expect(readme.getAttribute('data-selected')).toBe('');
         expect(readme.getAttribute('aria-selected')).toBe('true');
+    });
+
+    it('trigger click selects the branch too, as Enter does', () => {
+        const state = signal({ file: '' });
+        mountTree(container, { model: [state, 'file'] });
+        container.querySelector<HTMLElement>('[data-part="branch-trigger"]')!.click();
+        expect(state.file).toBe('src');
+        const branch = byValue(container, 'src');
+        expect(branch.getAttribute('aria-selected')).toBe('true');
+        expect(branch.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('expandOnClick=false: the row only selects; the indicator only toggles', () => {
+        const state = signal({ file: '' });
+        const onExpandedValuesChange = vi.fn();
+        render(
+            <TreeView.Root model={[state, 'file'] as never} expandOnClick={false} onExpandedValuesChange={onExpandedValuesChange}>
+                <TreeView.Tree>
+                    <TreeView.Branch value="src">
+                        <TreeView.BranchTrigger>
+                            <TreeView.BranchIndicator />
+                            src
+                        </TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Item value="src/index.ts">index.ts</TreeView.Item>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                </TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+        const branch = byValue(container, 'src');
+        container.querySelector<HTMLElement>('[data-part="branch-trigger"]')!.click();
+        expect(state.file).toBe('src');
+        expect(branch.getAttribute('aria-expanded')).toBe('false');
+        expect(onExpandedValuesChange).not.toHaveBeenCalled();
+
+        state.file = '';
+        container.querySelector<HTMLElement>('[data-part="branch-indicator"]')!.click();
+        expect(branch.getAttribute('aria-expanded')).toBe('true');
+        expect(onExpandedValuesChange).toHaveBeenCalledWith(['src']);
+        // The indicator toggles alone: the row's click never saw it.
+        expect(state.file).toBe('');
+        expect(document.activeElement).toBe(branch);
+    });
+
+    it("'*' expands every enabled sibling branch and emits once", () => {
+        const onExpandedValuesChange = vi.fn();
+        render(
+            <TreeView.Root defaultExpandedValues={['b']} onExpandedValuesChange={onExpandedValuesChange}>
+                <TreeView.Tree>
+                    <TreeView.Item value="leaf">leaf</TreeView.Item>
+                    {['a', 'b', 'c'].map((v) => (
+                        <TreeView.Branch value={v} disabled={v === 'c'}>
+                            <TreeView.BranchTrigger>{v}</TreeView.BranchTrigger>
+                            <TreeView.BranchContent>
+                                <TreeView.Branch value={`${v}/n`}>
+                                    <TreeView.BranchTrigger>{`${v}-nested`}</TreeView.BranchTrigger>
+                                    <TreeView.BranchContent>
+                                        <TreeView.Item value={`${v}/n/x`}>x</TreeView.Item>
+                                    </TreeView.BranchContent>
+                                </TreeView.Branch>
+                            </TreeView.BranchContent>
+                        </TreeView.Branch>
+                    ))}
+                </TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+        const leaf = byValue(container, 'leaf');
+        leaf.focus();
+        const e = key('*');
+        leaf.dispatchEvent(e);
+        // preventDefault: typeahead never searches for the `*`.
+        expect(e.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(leaf);
+        // Siblings only — never the nested level, never the disabled `c`.
+        expect(onExpandedValuesChange).toHaveBeenCalledTimes(1);
+        expect(onExpandedValuesChange).toHaveBeenCalledWith(['b', 'a']);
+        // Nothing left to expand: no second emission.
+        leaf.dispatchEvent(key('*'));
+        expect(onExpandedValuesChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('a loading branch is aria-busy; its indicator and open content read loading', () => {
+        const loading = signal({ v: true });
+        const App = component(() => () => (
+            <TreeView.Root>
+                <TreeView.Tree>
+                    <TreeView.Branch value="remote" loading={loading.v}>
+                        <TreeView.BranchTrigger>
+                            <TreeView.BranchIndicator />
+                            remote
+                        </TreeView.BranchTrigger>
+                        <TreeView.BranchContent />
+                    </TreeView.Branch>
+                </TreeView.Tree>
+            </TreeView.Root>
+        ));
+        render(<App />, container);
+        const branch = container.querySelector<HTMLElement>('[data-part="branch"]')!;
+        const indicator = container.querySelector<HTMLElement>('[data-part="branch-indicator"]')!;
+        const content = container.querySelector<HTMLElement>('[data-part="branch-content"]')!;
+        expect(branch.getAttribute('aria-busy')).toBe('true');
+        expect(indicator.getAttribute('data-state')).toBe('loading');
+        // Closed content is hidden: it stays `closed`, loading or not.
+        expect(content.getAttribute('data-state')).toBe('closed');
+        expect(content.hidden).toBe(true);
+        expectAnatomy(container, treeViewAnatomy);
+
+        branch.focus();
+        branch.dispatchEvent(key('ArrowRight'));
+        expect(content.getAttribute('data-state')).toBe('loading');
+        expect(content.hidden).toBe(false);
+        expectAnatomy(container, treeViewAnatomy);
+
+        loading.v = false;
+        expect(branch.hasAttribute('aria-busy')).toBe(false);
+        expect(indicator.getAttribute('data-state')).toBe('open');
+        expect(content.getAttribute('data-state')).toBe('open');
     });
 
     it('item click selects; disabled items do not', () => {
@@ -421,7 +541,8 @@ describe('TreeView', () => {
         mountTree(container, { model: [state, 'file'], defaultExpandedValues: ['src'] });
         byValue(container, 'index.ts').click();
         expect(state.file).toBe('src/index.ts');
-        container.querySelector<HTMLElement>('[data-part="branch-trigger"]')!.click();
+        // The keyboard collapse — a click on the row would select the branch.
+        byValue(container, 'src').dispatchEvent(key('ArrowLeft'));
         expect(state.file).toBe('src/index.ts');
         expect(byValue(container, 'src').getAttribute('data-state')).toBe('closed');
     });

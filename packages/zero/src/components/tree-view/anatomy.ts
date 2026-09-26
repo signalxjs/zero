@@ -10,6 +10,10 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * around the whole subtree. `branch-content` is the role=group container
  * holding the subtree; the runtime hides it (the `hidden` attribute) while
  * `closed`, so recipes style its layout and leave its states alone.
+ *
+ * `loading` (a Branch whose children are being fetched): the indicator
+ * reads it whatever the expansion, the content only while open — closed
+ * content is hidden, so it stays `closed`.
  */
 export const treeViewAnatomy = defineAnatomy('tree-view', {
     root: {
@@ -52,12 +56,13 @@ export const treeViewAnatomy = defineAnatomy('tree-view', {
         element: 'span',
         paint: { glyph: '›' },
         parent: 'branch-trigger',
-        states: ['open', 'closed'],
+        states: ['open', 'closed', 'loading'],
     },
     'branch-content': {
         element: 'div',
         parent: 'branch',
-        states: ['open', 'closed'],
+        states: ['open', 'closed', 'loading'],
+        // `loading` is only ever rendered while open, so it is visible.
         // A collapsed subtree is `hidden`, not merely collapsed — its nodes
         // keep their registration but leave the render entirely, so
         // `[data-state="closed"]` on branch-content can never paint.

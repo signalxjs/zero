@@ -93,7 +93,18 @@ in DOM order.
 node, and from there the arrow keys, Home/End and typeahead move to its
 enabled neighbours (ArrowLeft on an open disabled branch climbs to the
 parent), while selecting (Enter/Space) and expanding or collapsing it stay
-blocked.
+blocked. The same holds for a disabled `asChild` Steps item: its arrows and
+Home/End rove to the enabled steps beside it, and it never activates.
+
+**TreeView: pointer, `*` and loading branches.** A click on a branch row
+selects the branch, as Enter does, and — while `TreeView.Root`'s
+`expandOnClick` is on (the default) — toggles it too. With
+`expandOnClick={false}` the row only selects, and a click on the
+`BranchIndicator` only toggles. `*` expands every enabled sibling branch of
+the focused node (one `expandedValuesChange`). A `TreeView.Branch` marked
+`loading` (its children are being fetched) is `aria-busy="true"`; its
+`branch-indicator` reads `data-state="loading"`, and so does its
+`branch-content` while open — closed content stays `closed` and `hidden`.
 
 **The form contract.** Every posting control takes the same five props
 (`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus

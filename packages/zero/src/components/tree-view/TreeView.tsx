@@ -28,9 +28,18 @@
  * behaviors every list component uses, unchanged. ArrowRight expands a
  * closed branch, then steps to the first child; ArrowLeft collapses an
  * open branch, else climbs to the parent; Enter/Space select (selection
- * and expansion are separate acts). Collapsed content stays mounted and
- * `hidden` — nodes keep their registration, they just stop being visible
- * to navigation.
+ * and expansion are separate acts on the keyboard); `*` expands every
+ * enabled sibling branch of the focused node. Collapsed content stays
+ * mounted and `hidden` — nodes keep their registration, they just stop
+ * being visible to navigation.
+ *
+ * A pointer agrees with the keyboard about what a branch row IS: clicking
+ * it selects the branch, and — while the Root's `expandOnClick` is on (the
+ * default) — toggles it too. With `expandOnClick={false}` the row only
+ * selects, and the BranchIndicator becomes the toggle's hit area.
+ *
+ * A Branch marked `loading` (its children are being fetched) is
+ * `aria-busy`, and its indicator and open content read `data-state="loading"`.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define, Model } from 'sigx';
@@ -82,6 +91,8 @@ interface TreeViewContext {
     labelId(): string;
     disabled(): boolean;
     isExpanded(value: string): boolean;
+    /** Does a click on a branch row toggle it as well as select it? */
+    expandOnClick(): boolean;
     toggleBranch(value: string): void;
     select(value: string): void;
     isTabbable(value: string): boolean;
@@ -107,6 +118,8 @@ interface TreeBranchContext {
      * `data-scope`/`data-part`, which a part-name query cannot find (#157).
      */
     setTrigger(el: HTMLElement | null): void;
+    /** The branch's children are being fetched (`loading` on the Branch). */
+    loading(): boolean;
 }
 
 function makeInert(): TreeViewContext {
@@ -116,6 +129,7 @@ function makeInert(): TreeViewContext {
         labelId: () => 'zx-tree-inert',
         disabled: () => false,
         isExpanded: () => false,
+        expandOnClick: () => true,
         toggleBranch: () => {},
         select: () => {},
         isTabbable: () => false,
@@ -128,7 +142,7 @@ function makeInert(): TreeViewContext {
 
 export const useTreeViewContext = defineInjectable<TreeViewContext>(() => makeInert());
 export const useTreeBranchContext = defineInjectable<TreeBranchContext>(
-    () => ({ value: null, focus: { visible: false }, setTrigger: () => {} }),
+    () => ({ value: null, focus: { visible: false }, setTrigger: () => {}, loading: () => false }),
 );
 
 // ── Root ──
@@ -140,6 +154,12 @@ export type TreeViewRootProps =
     & Define.Model<'expandedValues', string[]>
     & Define.Prop<'defaultExpandedValues', string[], false>
     & Define.Event<'expandedValuesChange', string[]>
+    /**
+     * A click on a branch row toggles it as well as selecting it (default
+     * `true`). `false`: the row only selects, and the BranchIndicator is the
+     * toggle's hit area.
+     */
+    & Define.Prop<'expandOnClick', boolean, false>
     & WithDisabled
     & WithVariantAxes<'tree-view'>
     & WithClass
@@ -211,6 +231,7 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
         labelId: () => `${baseId}-label`,
         disabled: () => !!props.disabled,
         isExpanded,
+        expandOnClick: () => props.expandOnClick ?? true,
         toggleBranch,
         select(value) {
             if (props.disabled) return;
@@ -272,6 +293,18 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
                 } else if (node.parentValue !== null) {
                     tree.findNode(node.parentValue)?.el()?.focus();
                 }
+                return;
+            }
+            // `*` expands every enabled branch among the focused node's
+            // siblings (APG) — the focused node's own disabledness is beside
+            // the point, it expands nothing of its own. Handled before
+            // typeahead, which would otherwise search for a `*`.
+            if (e.key === '*') {
+                e.preventDefault();
+                const closed = tree.childrenOf(node.parentValue)
+                    .filter((n) => n.isBranch() && !n.disabled() && !isExpanded(n.value))
+                    .map((n) => n.value);
+                if (closed.length > 0) expanded.value = [...expanded.value, ...closed];
                 return;
             }
             // Space continues a running typeahead search ("Save As").
@@ -453,6 +486,12 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, on
 
 export type TreeViewBranchProps =
     & Define.Prop<'value', string, true>
+    /**
+     * The branch's children are being fetched: the treeitem is `aria-busy`,
+     * the indicator reads `data-state="loading"`, and so does the content
+     * while the branch is open.
+     */
+    & Define.Prop<'loading', boolean, false>
     & WithDisabled
     & WithClass
     /** Not `role`: a branch is a `treeitem`. */
@@ -498,6 +537,7 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onMounted
         value: props.value,
         focus,
         setTrigger: (n) => { triggerEl = n; },
+        loading: () => !!props.loading,
     }));
 
     const isOpen = (): boolean => ctx.isExpanded(props.value);
@@ -517,6 +557,7 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onMounted
             aria-selected={isSelected() ? 'true' : 'false'}
             aria-level={ctx.tree.level(props.value)}
             aria-disabled={disabled() ? 'true' : undefined}
+            aria-busy={props.loading ? 'true' : undefined}
             class={props.class}
             ref={(n: HTMLElement | null) => { el = n; }}
             onKeydown={(e: KeyboardEvent) => {
@@ -575,9 +616,12 @@ const TreeViewBranchTrigger = component<TreeViewBranchTriggerProps>(({ props, sl
         },
         onClick: () => {
             if (disabled()) return;
-            ctx.toggleBranch(value());
-            // Toggling from the pointer parks focus on the branch (the
-            // treeitem), so keyboard continues from where the user is.
+            // A pointer selects a branch the way Enter does — a row the
+            // keyboard can select must not be one a click only folds.
+            ctx.select(value());
+            if (ctx.expandOnClick()) ctx.toggleBranch(value());
+            // Parks focus on the branch (the treeitem), so keyboard
+            // continues from where the user is.
             ctx.tree.findNode(value())?.el()?.focus();
         },
         onKeydown: press.onKeydown,
@@ -609,14 +653,25 @@ export type TreeViewBranchIndicatorProps = WithClass & WithHtmlAttrs & Define.Sl
 const TreeViewBranchIndicator = component<TreeViewBranchIndicatorProps>(({ props, slots }) => {
     const ctx = useTreeViewContext();
     const branch = useTreeBranchContext();
+    const value = (): string => branch.value ?? '';
     return () => (
         <span
             {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="branch-indicator"
-            data-state={stateAttr(ctx.isExpanded(branch.value ?? ''), 'open', 'closed')}
+            data-state={branch.loading() ? 'loading' : stateAttr(ctx.isExpanded(value()), 'open', 'closed')}
             aria-hidden="true"
             class={props.class}
+            onClick={(e: MouseEvent) => {
+                // With `expandOnClick` on, the row's own click toggles — let
+                // it bubble. Off, the indicator is the toggle's hit area:
+                // it toggles alone and keeps the row from selecting.
+                if (ctx.expandOnClick()) return;
+                e.stopPropagation();
+                if (ctx.disabled() || ctx.tree.findNode(value())?.disabled()) return;
+                ctx.toggleBranch(value());
+                ctx.tree.findNode(value())?.el()?.focus();
+            }}
         >
             {slots.default ? slots.default() : '›'}
         </span>
@@ -632,13 +687,16 @@ const TreeViewBranchContent = component<TreeViewBranchContentProps>(({ props, sl
     const ctx = useTreeViewContext();
     const branch = useTreeBranchContext();
     const isOpen = (): boolean => ctx.isExpanded(branch.value ?? '');
+    // `loading` only while open: closed content is `hidden` either way.
+    const state = (): 'open' | 'closed' | 'loading' =>
+        !isOpen() ? 'closed' : branch.loading() ? 'loading' : 'open';
     return () => (
         <div
             {...htmlAttrs(props)}
             role="group"
             data-scope={SCOPE}
             data-part="branch-content"
-            data-state={stateAttr(isOpen(), 'open', 'closed')}
+            data-state={state()}
             hidden={!isOpen()}
             class={props.class}
         >

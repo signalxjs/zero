@@ -137,6 +137,43 @@ describe('Steps', () => {
         expectAnatomy(container, stepsAnatomy);
     });
 
+    it('a pointer-focused disabled asChild item still roves its arrows, but never activates', () => {
+        render(
+            <Steps.Root defaultStep="a" label="Steps">
+                {['a', 'b', 'c', 'd'].map((v) => (
+                    <Steps.Item value={v} disabled={v === 'b'} asChild>
+                        {(p: PartProps) => <div {...p}>{v.toUpperCase()}</div>}
+                    </Steps.Item>
+                ))}
+            </Steps.Root>,
+            container,
+        );
+        const [a, b, c, d] = items(container);
+        const press = (el: HTMLElement, k: string) => {
+            const e = new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+            el.dispatchEvent(e);
+            return e;
+        };
+        // tabindex=-1 still takes a pointer's focus: the disabled step is
+        // focused, and its keys used to return before roving — a dead end.
+        expect(b!.tabIndex).toBe(-1);
+        b!.focus();
+        expect(press(b!, 'ArrowRight').defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(c);
+        b!.focus();
+        press(b!, 'ArrowLeft');
+        expect(document.activeElement).toBe(a);
+        b!.focus();
+        press(b!, 'End');
+        expect(document.activeElement).toBe(d);
+        // Activation stays gated.
+        b!.focus();
+        press(b!, 'Enter');
+        press(b!, ' ');
+        expect(b!.getAttribute('data-state')).not.toBe('active');
+        expect(a!.getAttribute('data-state')).toBe('active');
+    });
+
     it('passes the variant axes through on the root', () => {
         render(
             <Steps.Root defaultStep="a" color="primary" size="lg" label="Steps">

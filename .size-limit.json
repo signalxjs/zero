@@ -192,7 +192,7 @@
     {
         "name": "@sigx/zero/tree-view",
         "path": "packages/zero/dist/components/tree-view/index.js",
-        "limit": "5.2 kB",
+        "limit": "5.28 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -612,7 +612,7 @@
     {
         "name": "@sigx/zero/steps",
         "path": "packages/zero/dist/components/steps/index.js",
-        "limit": "4.1 kB",
+        "limit": "4.17 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
