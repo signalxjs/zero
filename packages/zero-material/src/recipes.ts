@@ -5468,6 +5468,9 @@ export const drawer: RecipeInput = {
  */
 export const table: RecipeInput = {
     component: 'table',
+    // A sortable header cell carries the sort state for `aria-sort`'s sake;
+    // its trigger and indicator paint it.
+    skipStates: { 'header-cell': ['ascending', 'descending', 'none'] },
     // Public to a design system derived from this one (#73).
     hooks: {
         properties: {
@@ -5555,6 +5558,56 @@ export const table: RecipeInput = {
                 color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
             },
             at: tableStackAt(tokens, 'header-cell', { paddingInline: '0' }),
+        },
+        // Sorting (#286): M3's data-table header — the sorted column's label
+        // goes to on-surface, the trigger wears the state layer on hover and
+        // press, and the arrow turns with the direction.
+        'sort-trigger': {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                margin: '0',
+                border: '0',
+                font: 'inherit',
+                letterSpacing: 'inherit',
+                textTransform: 'inherit',
+                textAlign: 'inherit',
+                cursor: 'pointer',
+                gap: 'var(--space-2xs)',
+                padding: '0',
+                borderRadius: 'var(--radius-field)',
+                background: 'transparent',
+                color: 'inherit',
+                transition: motion('color, background-color'),
+            },
+            states: {
+                ascending: { color: 'var(--color-base-content)' },
+                descending: { color: 'var(--color-base-content)' },
+                none: {},
+                hover: { color: 'var(--color-base-content)', background: stateLayer },
+                disabled: { cursor: 'not-allowed', opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+            selectors: { '&[data-pressed]:not([data-disabled])': { background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)' } },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
+        },
+        // The arrow: zero's ▲ turned for descending. Unsorted, M3 shows it
+        // only on hover (and here on keyboard focus too).
+        'sort-indicator': {
+            base: {
+                display: 'inline-block',
+                fontSize: '0.75em',
+                lineHeight: '1',
+                transition: motion('transform, opacity'),
+            },
+            states: {
+                ascending: {},
+                descending: { transform: 'rotate(180deg)' },
+                none: { opacity: '0' },
+            },
+            selectors: { '[data-scope="table"][data-part="sort-trigger"]:is(:hover, [data-focus-visible]) > &[data-state="none"]': { opacity: '0.6' } },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
         cell: {
             base: {

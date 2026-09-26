@@ -6640,6 +6640,9 @@ export const drawer: RecipeInput = {
  */
 export const table: RecipeInput = {
     component: 'table',
+    // A sortable header cell carries the sort state for `aria-sort`'s sake;
+    // its trigger and indicator paint it.
+    skipStates: { 'header-cell': ['ascending', 'descending', 'none'] },
     // Public to a design system derived from this one (#73).
     hooks: {
         properties: {
@@ -6724,6 +6727,55 @@ export const table: RecipeInput = {
                 color: 'color-mix(in oklab, var(--table-accent) 60%, transparent)',
             },
             at: tableStackAt(tokens, 'header-cell', { paddingInline: '0' }),
+        },
+        // Sorting (#286): daisy's header label made a button — the sorted
+        // column's label takes the full accent ink, and the mark beside it
+        // turns with the direction.
+        'sort-trigger': {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                margin: '0',
+                border: '0',
+                font: 'inherit',
+                letterSpacing: 'inherit',
+                textTransform: 'inherit',
+                textAlign: 'inherit',
+                cursor: 'pointer',
+                gap: 'var(--space-2xs)',
+                padding: '0',
+                borderRadius: 'var(--radius-selector)',
+                background: 'transparent',
+                color: 'inherit',
+                transition: 'color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                ascending: { color: 'var(--table-accent)' },
+                descending: { color: 'var(--table-accent)' },
+                none: {},
+                hover: { color: 'var(--table-accent)' },
+                disabled: { cursor: 'not-allowed', opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
+        },
+        // zero's ▲, turned for descending; an unsorted column shows it only
+        // under a hovered or keyboard-focused trigger.
+        'sort-indicator': {
+            base: {
+                display: 'inline-block',
+                fontSize: '0.75em',
+                lineHeight: '1',
+                transition: 'transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                ascending: {},
+                descending: { transform: 'rotate(180deg)' },
+                none: { opacity: '0' },
+            },
+            selectors: { '[data-scope="table"][data-part="sort-trigger"]:is(:hover, [data-focus-visible]) > &[data-state="none"]': { opacity: '0.6' } },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
         cell: {
             base: {

@@ -66,6 +66,66 @@
         font-size: var(--text-xs);
     }
 
+    [data-scope="table"][data-part="sort-trigger"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        margin: 0;
+        border: 0;
+        font: inherit;
+        letter-spacing: inherit;
+        text-transform: inherit;
+        text-align: inherit;
+        cursor: pointer;
+        gap: var(--space-2xs);
+        padding: 0 var(--space-2xs);
+        border-radius: 0;
+        background: transparent;
+        color: inherit;
+    }
+
+    [data-scope="table"][data-part="sort-trigger"][data-state="ascending"] {
+        background: var(--table-accent);
+        color: var(--table-accent-ink);
+    }
+
+    [data-scope="table"][data-part="sort-trigger"][data-state="descending"] {
+        background: var(--table-accent);
+        color: var(--table-accent-ink);
+    }
+
+    [data-scope="table"][data-part="sort-trigger"]:hover:not([data-disabled]) {
+        text-decoration-line: underline;
+        text-decoration-thickness: var(--border);
+    }
+
+    [data-scope="table"][data-part="sort-trigger"][data-disabled] {
+        cursor: not-allowed;
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="table"][data-part="sort-trigger"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    [data-scope="table"][data-part="sort-indicator"] {
+        display: inline-block;
+        line-height: 1;
+    }
+
+    [data-scope="table"][data-part="sort-indicator"][data-state="descending"] {
+        transform: scaleY(-1);
+    }
+
+    [data-scope="table"][data-part="sort-indicator"][data-state="none"] {
+        opacity: 0;
+    }
+
+    [data-scope="table"][data-part="sort-trigger"]:is(:hover, [data-focus-visible]) > [data-scope="table"][data-part="sort-indicator"][data-state="none"] {
+        opacity: 1;
+    }
+
     [data-scope="table"][data-part="cell"] {
         padding: var(--table-pad-block) var(--table-pad-inline);
         text-align: var(--table-cell-align);

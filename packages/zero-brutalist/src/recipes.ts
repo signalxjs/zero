@@ -4885,6 +4885,9 @@ export const drawer: RecipeInput = {
  */
 export const table: RecipeInput = {
     component: 'table',
+    // A sortable header cell carries the sort state for `aria-sort`'s sake;
+    // its trigger and indicator paint it.
+    skipStates: { 'header-cell': ['ascending', 'descending', 'none'] },
     // Public to a design system derived from this one (#73).
     hooks: {
         properties: {
@@ -4976,6 +4979,47 @@ export const table: RecipeInput = {
                 fontSize: 'var(--text-xs)',
             },
             at: tableStackAt(tokens, 'header-cell', { paddingInline: '0' }),
+        },
+        // Sorting (#286): the mono label made a button. Sorting inverts it —
+        // the sorted column's label is a slab of accent with its ink — and the
+        // mark flips with no easing, the way everything here moves.
+        'sort-trigger': {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                margin: '0',
+                border: '0',
+                font: 'inherit',
+                letterSpacing: 'inherit',
+                textTransform: 'inherit',
+                textAlign: 'inherit',
+                cursor: 'pointer',
+                gap: 'var(--space-2xs)',
+                padding: '0 var(--space-2xs)',
+                borderRadius: '0',
+                background: 'transparent',
+                color: 'inherit',
+            },
+            states: {
+                ascending: { background: 'var(--table-accent)', color: 'var(--table-accent-ink)' },
+                descending: { background: 'var(--table-accent)', color: 'var(--table-accent-ink)' },
+                none: {},
+                hover: { textDecorationLine: 'underline', textDecorationThickness: 'var(--border)' },
+                disabled: { cursor: 'not-allowed', opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+        },
+        // zero's ▲, flipped for descending; an unsorted column's is gone until
+        // the trigger is hovered or keyboard-focused.
+        'sort-indicator': {
+            base: { display: 'inline-block', lineHeight: '1' },
+            states: {
+                ascending: {},
+                descending: { transform: 'scaleY(-1)' },
+                none: { opacity: '0' },
+            },
+            selectors: { '[data-scope="table"][data-part="sort-trigger"]:is(:hover, [data-focus-visible]) > &[data-state="none"]': { opacity: '1' } },
         },
         cell: {
             base: {

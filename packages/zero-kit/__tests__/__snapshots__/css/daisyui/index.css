@@ -9561,6 +9561,66 @@
         color: color-mix(in oklab, var(--table-accent) 60%, transparent);
     }
 
+    [data-scope="table"][data-part="sort-trigger"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        margin: 0;
+        border: 0;
+        font: inherit;
+        letter-spacing: inherit;
+        text-transform: inherit;
+        text-align: inherit;
+        cursor: pointer;
+        gap: var(--space-2xs);
+        padding: 0;
+        border-radius: var(--radius-selector);
+        background: transparent;
+        color: inherit;
+        transition: color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="table"][data-part="sort-trigger"][data-state="ascending"] {
+        color: var(--table-accent);
+    }
+
+    [data-scope="table"][data-part="sort-trigger"][data-state="descending"] {
+        color: var(--table-accent);
+    }
+
+    [data-scope="table"][data-part="sort-trigger"]:hover:not([data-disabled]) {
+        color: var(--table-accent);
+    }
+
+    [data-scope="table"][data-part="sort-trigger"][data-disabled] {
+        cursor: not-allowed;
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="table"][data-part="sort-trigger"][data-focus-visible] {
+        outline: 2px solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
+    [data-scope="table"][data-part="sort-indicator"] {
+        display: inline-block;
+        font-size: 0.75em;
+        line-height: 1;
+        transition: transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="table"][data-part="sort-indicator"][data-state="descending"] {
+        transform: rotate(180deg);
+    }
+
+    [data-scope="table"][data-part="sort-indicator"][data-state="none"] {
+        opacity: 0;
+    }
+
+    [data-scope="table"][data-part="sort-trigger"]:is(:hover, [data-focus-visible]) > [data-scope="table"][data-part="sort-indicator"][data-state="none"] {
+        opacity: 0.6;
+    }
+
     [data-scope="table"][data-part="cell"] {
         padding: var(--table-pad-block) var(--table-pad-inline);
         text-align: var(--table-cell-align);
@@ -9748,6 +9808,16 @@
         :where([data-scope="table"][data-part="root"][data-l-stack="sm"] > [data-scope="table"][data-part="table"] > [data-scope="table"] > [data-scope="table"][data-part="row"]) > [data-scope="table"][data-part="cell"] {
             padding-inline: 0;
             padding-block: var(--space-xs);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="table"][data-part="sort-trigger"] {
+            transition: none;
+        }
+
+        [data-scope="table"][data-part="sort-indicator"] {
+            transition: none;
         }
     }
 }
