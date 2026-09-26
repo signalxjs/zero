@@ -66,7 +66,8 @@
 - **`expandOnClick`** on `TreeView.Root` (default `true`): a branch-row
   click selects and toggles. `false`: the row only selects, and a click on
   `TreeView.BranchIndicator` only toggles (it stops the row's click).
-- **`*`** expands every enabled sibling branch of the focused node, merged
+- **`*`** expands every enabled branch at the focused node's level (the
+  focused node included, as APG's reference tree does), merged
   into the expanded model in one `expandedValuesChange`; it is not a
   typeahead character.
 - **`loading`** on `TreeView.Branch`: the treeitem is `aria-busy="true"`,
