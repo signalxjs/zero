@@ -8,8 +8,9 @@ const SwapDemos = component(({ signal }) => {
     return () => (
         <>
             <p>
-                Two faces over one boolean. Interactive swaps are real{' '}
-                <code>aria-pressed</code> buttons; display swaps are spans that
+                Two faces over one boolean. Labelled interactive swaps are real{' '}
+                <code>aria-pressed</code> buttons whose faces stay out of the
+                name; display swaps are spans that
                 follow external state. Both faces stay rendered — the
                 transition between them is each design system's own gesture —
                 and the inactive one is <code>aria-hidden</code>.
@@ -23,6 +24,16 @@ const SwapDemos = component(({ signal }) => {
                 <Swap.Root interactive label="Toggle sound" model={() => state.muted} size="lg" color={pickRole('primary')}>
                     <Swap.On>🔇</Swap.On>
                     <Swap.Off>🔊</Swap.Off>
+                </Swap.Root>
+            </p>
+            <p>
+                Without a <code>label</code> the active face is the name, so the
+                button drops <code>aria-pressed</code> rather than announcing
+                the state twice (and the console asks for a label). Text faces
+                make that honest:{' '}
+                <Swap.Root interactive model={() => state.dark}>
+                    <Swap.On>Dark mode</Swap.On>
+                    <Swap.Off>Light mode</Swap.Off>
                 </Swap.Root>
             </p>
             <p>

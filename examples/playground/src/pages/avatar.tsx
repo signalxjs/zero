@@ -15,7 +15,11 @@ const AvatarDemos = component(() => {
                 as <code>data-state</code>, a broken or missing <code>src</code>
                 shows the fallback, and the design system decides shape and fill.
                 Swapping the src resets to <code>loading</code> until the new
-                image reports in.
+                image reports in. A root with no <code>Avatar.Image</code>{' '}
+                settles to <code>error</code> — its fallback is the avatar —
+                and <code>Avatar.Fallback delay</code> keeps the fallback out
+                of the DOM for that many milliseconds, so a fast image never
+                flashes initials first (the swappable one waits 300ms).
             </p>
             <DemoRow gap="0.75rem">
                 <Avatar.Root>
@@ -32,7 +36,11 @@ const AvatarDemos = component(() => {
                 </Avatar.Root>
                 <Avatar.Root>
                     <Avatar.Image src={state.avatarSrc} alt="A swappable avatar" />
-                    <Avatar.Fallback>…</Avatar.Fallback>
+                    <Avatar.Fallback delay={300}>…</Avatar.Fallback>
+                </Avatar.Root>
+                {/* No Image at all: the root settles to `error` on mount (#274). */}
+                <Avatar.Root>
+                    <Avatar.Fallback>NI</Avatar.Fallback>
                 </Avatar.Root>
                 {/*
                   * Picked, never named — the same rule the Button page's rows

@@ -33,10 +33,10 @@ import { bootPage } from './nav';
 /**
  * The looping parts, each located by NAME rather than by document order — the
  * convention in `e2e/demo.ts`, and it matters here because both pages render
- * more than one instance. Skeleton's root carries its own text, so
- * `rootLabelled` finds it; a spinner renders none, so its accessible name is
- * the only thing that identifies one, which is why the demo gives each a
- * distinct label.
+ * more than one instance. Both roots carry their own text, so `rootLabelled`
+ * finds them: a skeleton's is its placeholder content, a spinner's its
+ * visually hidden label (#274) — which is why the demo gives each spinner a
+ * distinct one.
  */
 interface LoopingPart {
     page: string;
@@ -54,7 +54,7 @@ const LOOPING: LoopingPart[] = [
     {
         page: 'spinner',
         scope: 'spinner',
-        locate: (page) => page.getByRole('status', { name: 'Loading results' }),
+        locate: (page) => rootLabelled(page, 'spinner', 'Loading results'),
     },
 ];
 

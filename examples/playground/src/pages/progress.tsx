@@ -27,6 +27,16 @@ const ProgressDemos = component(() => () => (
             <Progress.Track><Progress.Range /></Progress.Track>
             <Progress.ValueText />
         </Progress.Root>
+        {/*
+          * What is announced is what is shown (#274): the root's
+          * aria-valuetext and the default ValueText are one string —
+          * `getValueText` here, `Intl.NumberFormat` (percent) otherwise.
+          */}
+        <Progress.Root value={3} max={8} getValueText={(v, { max }) => `${v} of ${max} files`}>
+            <Progress.Label>Uploading files</Progress.Label>
+            <Progress.Track><Progress.Range /></Progress.Track>
+            <Progress.ValueText />
+        </Progress.Root>
     </>
 ), { name: 'ProgressDemos' });
 

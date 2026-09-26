@@ -65,6 +65,7 @@ export const cardPage: PageEntry = {
 
 const AlertDemos = component(() => {
     const state = signal({ quota: true });
+    let bringBack: HTMLElement | null = null;
 
     return () => (
         <>
@@ -79,7 +80,11 @@ const AlertDemos = component(() => {
                 <code>hiddenIn: ['closed']</code> declares.
             </p>
             <DemoRow gap="1rem" align="stretch">
-                <Alert.Root model={() => state.quota} color={pickRole('warning')}>
+                <Alert.Root
+                    model={() => state.quota}
+                    color={pickRole('warning')}
+                    finalFocus={() => bringBack}
+                >
                     <Alert.Icon>⚠</Alert.Icon>
                     <Alert.Title>Approaching your quota</Alert.Title>
                     <Alert.Description>
@@ -91,7 +96,7 @@ const AlertDemos = component(() => {
             <p>
                 <small>
                     Quota alert open: <code>{String(state.quota)}</code>{' '}
-                    <button type="button" onClick={() => { state.quota = true; }}>
+                    <button type="button" ref={(el: HTMLElement | null) => { bringBack = el; }} onClick={() => { state.quota = true; }}>
                         Bring it back
                     </button>
                 </small>
@@ -102,13 +107,24 @@ const AlertDemos = component(() => {
                     <Alert.Title>Payment failed</Alert.Title>
                     <Alert.Description>The card was declined.</Alert.Description>
                 </Alert.Root>
-                <Alert.Root color={pickRole('success')}>
+                {/*
+                  * A confirmation waits its turn: `live="polite"` renders
+                  * role="status" rather than interrupting (#274).
+                  */}
+                <Alert.Root color={pickRole('success')} live="polite">
                     <Alert.Icon>✓</Alert.Icon>
                     <Alert.Title>Deploy complete</Alert.Title>
                     <Alert.Description>Live in every region.</Alert.Description>
                     <Alert.Close>×</Alert.Close>
                 </Alert.Root>
             </DemoRow>
+            <p>
+                The root is named by its Title and described by its
+                Description. Closing an alert that holds focus hands focus to{' '}
+                <code>finalFocus()</code> — the quota alert's is its "Bring it
+                back" button — else to the nearest focusable element before
+                it, instead of dropping it on the page.
+            </p>
         </>
     );
 }, { name: 'AlertDemos' });
