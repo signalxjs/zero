@@ -148,3 +148,49 @@ test('tags: a remove button deselects its value and hands focus back to the inpu
     await expect(t('input')).toBeFocused();
     expect(await posted(page)).toEqual(['shell']);
 });
+
+test('the clear-trigger empties the input and the value, and typing resumes in the input (#280)', async ({ page }) => {
+    const clearable = demoPosting(page, 'combobox', 'clearable-country');
+    await expect(clearable('input')).toHaveValue('Sweden');
+    await expect(clearable('hidden-input')).toHaveValue('sweden');
+    await clearable('clear-trigger').click();
+    await expect(clearable('input')).toHaveValue('');
+    await expect(clearable('hidden-input')).toHaveValue('');
+    await expect(clearable('input')).toBeFocused();
+    // Nothing left to clear: the button leaves with the value.
+    await expect(clearable('clear-trigger')).toHaveCount(0);
+    // Typed text alone brings it back — and it clears that too.
+    await page.keyboard.type('Nor');
+    await expect(clearable('clear-trigger')).toBeVisible();
+    await clearable('clear-trigger').click();
+    await expect(clearable('input')).toHaveValue('');
+    await expect(clearable('input')).toBeFocused();
+});
+
+test('a separator is skipped by the arrows (#280)', async ({ page }) => {
+    const clearable = demoPosting(page, 'combobox', 'clearable-country');
+    await clearable('clear-trigger').click();
+    const items = clearable('item');
+    const at = async (i: number) => (await items.nth(i).getAttribute('id'))!;
+    await clearable('input').press('ArrowDown'); // opens on the first option
+    await expect(clearable('popup')).toHaveAttribute('data-state', 'open');
+    await expect(clearable('input')).toHaveAttribute('aria-activedescendant', await at(0));
+    await clearable('input').press('ArrowDown');
+    await expect(clearable('input')).toHaveAttribute('aria-activedescendant', await at(1));
+    await clearable('input').press('ArrowDown'); // Sweden → Australia, never the rule
+    await expect(clearable('input')).toHaveAttribute('aria-activedescendant', await at(2));
+});
+
+test('loading: the listbox is busy and says so until the list arrives (#280)', async ({ page }) => {
+    const city = demoPosting(page, 'combobox', 'city');
+    await city('trigger').click();
+    await expect(city('popup')).toHaveAttribute('aria-busy', 'true');
+    await expect(city('loading')).toHaveText('Loading cities…');
+    await expect(city('empty')).toHaveCount(0);
+    await page.getByLabel('Cities still loading').uncheck();
+    await expect(city('popup')).not.toHaveAttribute('aria-busy', 'true');
+    await expect(city('loading')).toHaveCount(0);
+    await city('trigger').click();
+    await expect(city('popup')).toHaveAttribute('data-state', 'open');
+    await expect(city('item')).toHaveCount(8);
+});

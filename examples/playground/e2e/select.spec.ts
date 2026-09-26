@@ -105,3 +105,30 @@ test('the listbox is labelled by the trigger', async ({ page }) => {
     expect(triggerId).toBeTruthy();
     await expect(parts('popup')).toHaveAttribute('aria-labelledby', triggerId!);
 });
+
+test('the clear-trigger is a tab stop after the trigger: Enter clears and focus returns (#280)', async ({ page }, testInfo) => {
+    const clearable = demoPosting(page, 'select', 'clearable-fruit');
+    await expect(clearable('value')).toHaveText('Lime');
+    await clearable('trigger').focus();
+    // WebKit's Tab skips buttons unless the user opts in (Safari's "Press
+    // Tab to highlight each item"), so there it is focused directly.
+    if (testInfo.project.name === 'webkit') await clearable('clear-trigger').focus();
+    else await page.keyboard.press('Tab');
+    await expect(clearable('clear-trigger')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(clearable('hidden-input')).toHaveValue('');
+    await expect(clearable('value')).toHaveText('Pick a fruit…');
+    await expect(clearable('trigger')).toBeFocused();
+    await expect(clearable('clear-trigger')).toHaveCount(0);
+});
+
+test('a separator is skipped by the arrows (#280)', async ({ page }) => {
+    const clearable = demoPosting(page, 'select', 'clearable-fruit');
+    await clearable('trigger').focus();
+    await page.keyboard.press('ArrowDown'); // opens on the selected Lime
+    await expect(clearable('popup')).toBeVisible();
+    await page.keyboard.press('ArrowDown'); // Lime → Peach, past the rule
+    const peach = clearable('item').nth(2);
+    await expect(clearable('trigger')).toHaveAttribute('aria-activedescendant', (await peach.getAttribute('id'))!);
+    await expect(clearable('separator')).toBeVisible();
+});

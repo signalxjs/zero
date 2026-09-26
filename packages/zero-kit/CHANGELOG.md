@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE` reserves the listbox parts' root props (zero#280)
+
+- `select` reserves `clearable`; `combobox` reserves `clearable`, `loading`
+  and `loadingText`, so a vendor-named api cannot claim them as axis props.
+
 ### Added — Disclosure panel sizes are runtime-published properties (zero#276)
 
 - `RUNTIME_PROPERTIES` gains `--accordion-panel-height`,

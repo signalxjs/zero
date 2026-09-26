@@ -5,9 +5,11 @@ export type {
     SelectTriggerProps,
     SelectValueProps,
     SelectIndicatorProps,
+    SelectClearTriggerProps,
     SelectPopupProps,
     SelectGroupProps,
     SelectGroupLabelProps,
     SelectItemProps,
+    SelectSeparatorProps,
 } from './Select.js';
 export { selectAnatomy } from './anatomy.js';

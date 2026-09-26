@@ -56,6 +56,15 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         tokens: ['color'],
         asChild: true,
     },
+    // Clears the value AND the text (#280): a pointer affordance beside the
+    // input, like the trigger (`tabIndex=-1` — Escape is the keyboard's
+    // clear). Rendered only while there is something to clear, so it has
+    // no state of its own.
+    'clear-trigger': {
+        element: 'button',
+        parent: 'control',
+        tokens: ['color'],
+    },
     popup: {
         element: 'div',
         parent: 'root',
@@ -99,6 +108,13 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         flags: ['selected'],
         tokens: ['color'],
     },
+    // A visual rule between runs of options (#280) — see select's anatomy
+    // note: aria-hidden, never an option.
+    separator: {
+        element: 'div',
+        parent: 'popup',
+        tokens: ['color'],
+    },
     // Windowing (#96): under `virtual` the options near the scroll position
     // render, and an aria-hidden spacer stands in for each run that does not
     // (above, below, and either side of a highlighted option pinned apart).
@@ -110,6 +126,16 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
     // Rendered by the CONSUMER when their filtered list is empty — zero only
     // styles it, it owns no emptiness logic.
     empty: {
+        element: 'div',
+        parent: 'popup',
+        tokens: ['color', 'text'],
+    },
+    // Rendered by the CONSUMER, like `empty`, and shown only while the root
+    // is `loading` (#280) — which also marks the listbox `aria-busy` and
+    // holds `empty` back: an unfinished list is not an empty one. It is
+    // `presentation` like `empty` — a listbox may own only options and
+    // groups, so no `role="status"` or `aria-live` region can live here.
+    loading: {
         element: 'div',
         parent: 'popup',
         tokens: ['color', 'text'],

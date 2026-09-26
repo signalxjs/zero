@@ -2,6 +2,7 @@
     [data-scope="select"][data-part="root"] {
         display: inline-flex;
         flex-direction: column;
+        position: relative;
     }
 
     [data-scope="select"][data-part="trigger"] {
@@ -64,6 +65,42 @@
 
     [data-scope="select"][data-part="indicator"][data-state="open"] {
         transform: rotate(180deg);
+    }
+
+    [data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) [data-scope="select"][data-part="indicator"] {
+        margin-inline-start: calc(var(--space-2xl) + var(--space-sm));
+    }
+
+    [data-scope="select"][data-part="clear-trigger"] {
+        appearance: none;
+        position: absolute;
+        inset-block: 0;
+        margin-block: auto;
+        block-size: min(1.5rem, 100%);
+        min-inline-size: 1.5rem;
+        inset-inline-end: calc(var(--space-md) + 1em + var(--space-xs));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 var(--space-xs);
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: var(--color-base-content);
+        font: inherit;
+        font-size: var(--text-sm);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="select"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="select"][data-part="clear-trigger"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
     }
 
     [data-scope="select"][data-part="popup"] {
@@ -138,6 +175,12 @@
 
     [data-scope="select"][data-part="item-indicator"] {
         font-size: var(--text-xs);
+    }
+
+    [data-scope="select"][data-part="separator"] {
+        height: var(--border);
+        margin: var(--space-xs) 0;
+        background: var(--carbon-line);
     }
 
     @scope ([data-scope="select"][data-part="root"][data-size="sm"]) to ([data-scope="select"][data-part="root"]) {

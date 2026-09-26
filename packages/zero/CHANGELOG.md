@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### Added — Select and Combobox: clear-trigger, separator, combobox loading (#280)
+
+- **`Select.ClearTrigger`** (part `clear-trigger`): a real button in the tab
+  order, a sibling of `Select.Trigger` inside the root, `aria-label`
+  "Clear selection" (`label` overrides). Rendered only while something is
+  selected and the select is editable; a click writes the empty value
+  (`null` / `''` / `[]`) and focuses the trigger.
+- **`Combobox.ClearTrigger`** (part `clear-trigger`, inside `control`):
+  `tabIndex=-1`, `aria-label` "Clear". Rendered while there is a value or
+  typed text; a click empties both and focuses the input.
+- **`clearable`** on `Select.Root` / `Combobox.Root` adds a clear-trigger to
+  the default composition.
+- **`Select.Separator` / `Combobox.Separator`** (part `separator`, inside
+  `popup`): `role="separator"`, `aria-hidden` — a listbox owns only options
+  and groups — and never an option, so arrows, typeahead and the option
+  count skip it.
+- **`Combobox.Root loading`** + **`Combobox.Loading`** (part `loading`,
+  inside `popup`): while `loading`, the listbox is `aria-busy="true"`,
+  `Loading` renders its content and `Empty` holds back. `loadingText`
+  renders it in the data expansion. `Loading` is `presentation` like
+  `Empty`: a `status` or `aria-live` region inside a listbox is invalid
+  ARIA.
+
 ### Added — Accordion keyboard, labelled panels, animatable disclosure close (#276)
 
 - **Accordion follows the APG accordion keyboard.** ArrowDown/ArrowUp move

@@ -135,6 +135,12 @@ interface ComboboxContext {
     tagLabel(key: string): string;
     /** Deselect one chosen value (a tag's remove). */
     remove(key: string): void;
+    /** Something to clear: a chosen value or typed text (the clear-trigger renders while true). */
+    clearable(): boolean;
+    /** Clear the value and the text, and focus the input (the clear-trigger's click). */
+    clear(): void;
+    /** The root's `loading` — the listbox is `aria-busy`, `empty` holds back. */
+    loading(): boolean;
     /** Refuses the empty key in single mode — it is the placeholder's. */
     guardKey(key: string): void;
     disabled(): boolean;
@@ -180,6 +186,9 @@ function makeInert(): ComboboxContext {
         multiple: () => false,
         tagLabel: (key) => key,
         remove: () => {},
+        clearable: () => false,
+        clear: () => {},
+        loading: () => false,
         guardKey: () => {},
         disabled: () => false,
         invalid: () => false,
@@ -233,6 +242,16 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     & Define.Prop<'filter', false | ((item: T, query: string) => boolean), false>
     /** Rendered as `Combobox.Empty` by the data expansion while nothing is visible. */
     & Define.Prop<'emptyText', string, false>
+    /**
+     * The list is still arriving (#280): the listbox is `aria-busy`,
+     * `Combobox.Loading` renders and `Combobox.Empty` holds back — an
+     * unfinished list is not an empty one. Opens nothing by itself.
+     */
+    & Define.Prop<'loading', boolean, false>
+    /** Rendered as `Combobox.Loading` by the data expansion while `loading`. */
+    & Define.Prop<'loadingText', string, false>
+    /** The data expansion renders a `Combobox.ClearTrigger` between the input and the trigger. */
+    & Define.Prop<'clearable', boolean, false>
     & Define.Prop<'multiple', boolean, false>
     /**
      * Enter commits the typed text while no option is highlighted: the
@@ -705,7 +724,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         // (or `emptyText`) is there to show.
         effect(() => {
             setOpen(!!trig.token && !trig.dismissed && !fc.disabled() && !fc.readonly()
-                && (!listbox.isEmpty() || props.emptyText !== undefined));
+                && (!listbox.isEmpty() || props.emptyText !== undefined
+                    || (!!props.loading && props.loadingText !== undefined)));
         });
         // The first option is highlighted on open and whenever the query
         // moves, so Enter commits the best match at once.
@@ -778,6 +798,17 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         multiple,
         tagLabel,
         remove,
+        clearable: () => !triggerMode && (inputValue.value !== '' || listbox.selectedKeys().length > 0),
+        clear: () => {
+            if (fc.disabled() || fc.readonly()) return;
+            if (listbox.selectedKeys().length > 0) {
+                if (multiple()) state.value = [];
+                else listbox.clear();
+            }
+            if (inputValue.value !== '') inputValue.value = '';
+            ctx.focusInput();
+        },
+        loading: () => !!props.loading,
         guardKey: (key) => { guardKeys([key]); },
         disabled: fc.disabled,
         invalid: fc.invalid,
@@ -977,6 +1008,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
                     ? (slots.tag ? <ComboboxTags slots={{ default: (p: ComboboxTagSlotProps) => slots.tag!(p) }} /> : <ComboboxTags />)
                     : null}
                 <ComboboxInput />
+                {props.clearable ? <ComboboxClearTrigger /> : null}
                 <ComboboxTrigger />
             </ComboboxControl>
             {dataPopup()}
@@ -985,6 +1017,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     };
     const dataPopup = (): JSXElement => (
             <ComboboxPopup>
+                {props.loading && props.loadingText !== undefined
+                    ? <ComboboxLoading>{props.loadingText}</ComboboxLoading>
+                    : null}
                 {listbox.visibleItems().length === 0 && props.emptyText !== undefined
                     ? <ComboboxEmpty>{props.emptyText}</ComboboxEmpty>
                     : null}
@@ -1367,6 +1402,45 @@ const ComboboxTrigger = component<ComboboxTriggerProps>(({ props, slots, signal 
     };
 }, { name: 'Combobox.Trigger' });
 
+// ── ClearTrigger ──
+
+export type ComboboxClearTriggerProps =
+    /** Accessible name (default "Clear"). */
+    & Define.Prop<'label', string, false>
+    & WithClass
+    & WithHtmlAttrs
+    /** The mark (default `×`, aria-hidden). */
+    & Define.Slot<'default'>;
+
+/**
+ * Clears the value (`null`, `''` for hand-written items, `[]` under
+ * `multiple`) and the text, and puts focus back in the input. A pointer
+ * affordance like the trigger (`tabIndex=-1`; Escape is the keyboard's
+ * clear), rendered only while there is something to clear and the
+ * combobox is editable.
+ */
+const ComboboxClearTrigger = component<ComboboxClearTriggerProps>(({ props, slots }) => {
+    const combobox = useComboboxContext();
+    return () => {
+        if (!combobox.clearable() || combobox.disabled() || combobox.readonly()) return null;
+        const attrs = htmlAttrs(props);
+        return (
+            <button
+                {...attrs}
+                type="button"
+                data-scope={SCOPE}
+                data-part="clear-trigger"
+                tabIndex={-1}
+                aria-label={props.label ?? attrs['aria-label'] ?? 'Clear'}
+                class={props.class}
+                onClick={() => { combobox.clear(); }}
+            >
+                {slots.default ? slots.default() : <span aria-hidden="true">×</span>}
+            </button>
+        );
+    };
+}, { name: 'Combobox.ClearTrigger' });
+
 // ── Popup ──
 
 export type ComboboxPopupProps =
@@ -1394,6 +1468,7 @@ const ComboboxPopup = component<ComboboxPopupProps>(({ props, slots, onMounted }
                 popover="manual"
                 role="listbox"
                 aria-multiselectable={combobox.multiple() ? 'true' : undefined}
+                aria-busy={combobox.loading() ? 'true' : undefined}
                 aria-labelledby={[combobox.labelledBy(), attrs['aria-labelledby']].filter(Boolean).join(' ') || undefined}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; combobox.setPopup(node); }}
@@ -1499,10 +1574,10 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
 /** Not `role`: the empty state is `presentation` inside the listbox. */
 export type ComboboxEmptyProps = WithClass & Omit<WithHtmlAttrs, 'role'> & Define.Slot<'default'>;
 
-/** Renders its content only while the visible list is empty. */
+/** Renders its content only while the visible list is empty — and not still loading. */
 const ComboboxEmpty = component<ComboboxEmptyProps>(({ props, slots }) => {
     const combobox = useComboboxContext();
-    return () => (combobox.listbox.isEmpty()
+    return () => (combobox.listbox.isEmpty() && !combobox.loading()
         ? (
             <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="empty" role="presentation" class={props.class}>
                 {slots.default?.()}
@@ -1510,6 +1585,42 @@ const ComboboxEmpty = component<ComboboxEmptyProps>(({ props, slots }) => {
         )
         : null);
 }, { name: 'Combobox.Empty' });
+
+// ── Loading ──
+
+/** Not `role`: like the empty state, the part is `presentation` inside the listbox. */
+export type ComboboxLoadingProps = WithClass & Omit<WithHtmlAttrs, 'role'> & Define.Slot<'default'>;
+
+/**
+ * Renders its content only while the root is `loading`. `presentation`,
+ * like `Combobox.Empty`: ARIA's listbox owns only options and groups, so
+ * neither `role="status"` nor a role-less `aria-live` region may sit in it
+ * (axe: aria-required-children). What AT hears is the listbox's own
+ * `aria-busy`; the row is what a sighted user sees.
+ */
+const ComboboxLoading = component<ComboboxLoadingProps>(({ props, slots }) => {
+    const combobox = useComboboxContext();
+    return () => (combobox.loading()
+        ? (
+            <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="loading" role="presentation" class={props.class}>
+                {slots.default?.()}
+            </div>
+        )
+        : null);
+}, { name: 'Combobox.Loading' });
+
+// ── Separator ──
+
+/** Not `role`: the part is a `separator`, hidden from the accessibility tree. */
+export type ComboboxSeparatorProps = WithClass & Omit<WithHtmlAttrs, 'role'>;
+
+/**
+ * A rule between runs of options — aria-hidden (a listbox owns options and
+ * groups only) and never an option: navigation and set positions skip it.
+ */
+const ComboboxSeparator = component<ComboboxSeparatorProps>(({ props }) => () => (
+    <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="separator" role="separator" aria-hidden="true" class={props.class} />
+), { name: 'Combobox.Separator' });
 
 // ── Group / GroupLabel ──
 
@@ -1576,9 +1687,12 @@ export const Combobox = compound(ComboboxRoot, {
     TagRemove: ComboboxTagRemove,
     Input: ComboboxInput,
     Trigger: ComboboxTrigger,
+    ClearTrigger: ComboboxClearTrigger,
     Popup: ComboboxPopup,
     Group: ComboboxGroup,
     GroupLabel: ComboboxGroupLabel,
     Item: ComboboxItem,
     Empty: ComboboxEmpty,
+    Loading: ComboboxLoading,
+    Separator: ComboboxSeparator,
 });

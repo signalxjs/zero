@@ -140,7 +140,10 @@ F8/Escape, and the re-stack above a modal dialog measured in pixels), select,
 form-readonly (#267: readonly checkbox, switch, radio group, select and
 slider refuse every click, key, press and drag — a cancelled radio
 activation re-checks the previous radio, which happy-dom does not run,
-and arrow-key roving still moves focus), and since #326 the overlays and
+and arrow-key roving still moves focus), select-clear (#280: chromium,
+all six skins — the clear-trigger each lays over its select trigger,
+measured in boxes: inside the field, between the value and the chevron,
+a 24px target), and since #326 the overlays and
 composites a simulated DOM cannot host: dialog (real `showModal()` top layer,
 the geometric backdrop-vs-padding click from #324, a press dragged from
 text inside out to the backdrop that must not dismiss and Escape pressed

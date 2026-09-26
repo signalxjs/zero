@@ -134,6 +134,23 @@
         cursor: not-allowed;
     }
 
+    [data-scope="combobox"][data-part="clear-trigger"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        opacity: 0.6;
+        padding: 0 var(--space-xs);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="combobox"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        opacity: 1;
+    }
+
     [data-scope="combobox"][data-part="popup"] {
         opacity: 0;
         transform: translateY(-4px);
@@ -201,6 +218,19 @@
         font-size: var(--text-sm);
         text-align: center;
         opacity: 0.6;
+    }
+
+    [data-scope="combobox"][data-part="loading"] {
+        padding: var(--space-lg);
+        font-size: var(--text-sm);
+        text-align: center;
+        opacity: 0.6;
+    }
+
+    [data-scope="combobox"][data-part="separator"] {
+        height: var(--border);
+        margin: var(--space-sm) var(--space-md);
+        background: var(--color-base-300);
     }
 
     [data-scope="combobox"][data-part="root"][data-color="primary"] {

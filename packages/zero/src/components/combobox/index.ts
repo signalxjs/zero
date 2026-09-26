@@ -12,10 +12,13 @@ export type {
     ComboboxItemInsertContext,
     ComboboxInputProps,
     ComboboxTriggerProps,
+    ComboboxClearTriggerProps,
     ComboboxPopupProps,
     ComboboxGroupProps,
     ComboboxGroupLabelProps,
     ComboboxItemProps,
     ComboboxEmptyProps,
+    ComboboxLoadingProps,
+    ComboboxSeparatorProps,
 } from './Combobox.js';
 export { comboboxAnatomy } from './anatomy.js';

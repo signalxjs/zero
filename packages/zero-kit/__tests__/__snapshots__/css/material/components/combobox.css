@@ -181,6 +181,23 @@
         animation: combobox-ripple var(--duration-slow) var(--ease-standard);
     }
 
+    [data-scope="combobox"][data-part="clear-trigger"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--color-surface-container-content);
+        font: inherit;
+        opacity: 0.7;
+        padding: 0 var(--space-xs);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="combobox"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        opacity: 1;
+    }
+
     [data-scope="combobox"][data-part="popup"] {
         opacity: 0;
         transform: scale(0.9);
@@ -288,6 +305,20 @@
         font-size: var(--text-sm);
         text-align: center;
         color: var(--color-outline);
+    }
+
+    [data-scope="combobox"][data-part="loading"] {
+        padding: var(--space-md);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        text-align: center;
+        color: var(--color-outline);
+    }
+
+    [data-scope="combobox"][data-part="separator"] {
+        height: var(--border);
+        margin: var(--space-2xs) 0;
+        background: var(--color-outline);
     }
 
     [data-scope="combobox"][data-part="root"][data-color="primary"] {

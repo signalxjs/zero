@@ -2434,14 +2434,21 @@ const fieldControl: NonNullable<PartStyles['base']> = {
     boxShadow: 'var(--shadow-xs)',
 };
 
+/**
+ * A select whose clear-trigger is rendered (#280) — anchored on the root, so
+ * a part inside the trigger can make room for the button laid over it.
+ */
+const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
+
 export const select: RecipeInput = {
     component: 'select',
     // Accent as text/border ink only — daisy's highlighted item is a neutral
     // base-200 wash, so no `-on-accent` content colour is consumed here.
     tokens: { '--select-accent': 'var(--color-primary)' },
     parts: {
+        // Positioned: the clear-trigger sits over the trigger's inline end.
         root: {
-            base: { display: 'inline-flex', flexDirection: 'column' },
+            base: { display: 'inline-flex', flexDirection: 'column', position: 'relative' },
         },
         trigger: {
             base: {
@@ -2492,6 +2499,41 @@ export const select: RecipeInput = {
         indicator: {
             base: { opacity: '0.6', transition: 'transform var(--duration-normal) var(--ease-standard)' },
             states: { open: { transform: 'rotate(180deg)' }, closed: {} },
+            // Room for the clear-trigger laid over the field (#280).
+            selectors: { [SELECT_CLEARABLE]: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' } },
+        },
+        // Clears the selection (#280): daisy's ghost-btn over the field's
+        // inline end, just before the chevron — muted like it, the base-200
+        // wash on hover, the base-content ring on focus.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlock: '0',
+                // Centred in the field at WCAG 2.5.8's 24px target, shrinking
+                // only with a field too short to hold it.
+                marginBlock: 'auto',
+                blockSize: 'min(1.5rem, 100%)',
+                minInlineSize: '1.5rem',
+                insetInlineEnd: 'calc(var(--size-field) * 4 + 1em + var(--space-xs))',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 var(--space-xs)',
+                border: 'none',
+                background: 'transparent',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                borderRadius: 'var(--radius-field)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
+                ...focusRing,
+            },
         },
         popup: withPresence(popupPresence('translateY(-4px)'), {
             base: { ...floatingPanel, padding: 'var(--space-md)', minWidth: '13rem' },
@@ -2540,6 +2582,14 @@ export const select: RecipeInput = {
             base: { fontSize: 'var(--text-xs)', color: 'var(--select-accent)' },
             states: { selected: {} },
         },
+        // The menu's rule between runs of options (#280).
+        separator: {
+            base: {
+                height: 'var(--border)',
+                margin: 'var(--space-sm) var(--space-md)',
+                background: 'var(--color-base-300)',
+            },
+        },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
@@ -2563,7 +2613,10 @@ export const select: RecipeInput = {
     // counterpart does as well.
     targets: {
         lynx: {
-            parts: { trigger: { base: lynxBtnPad(4) } },
+            parts: {
+                trigger: { base: lynxBtnPad(4) },
+                'clear-trigger': { base: { top: 'var(--space-xs)', bottom: 'var(--space-xs)', right: 'calc(var(--size-field) * 4 + 1em + var(--space-xs))', minWidth: '1.5rem' } },
+            },
             variants: {
                 size: { ...lynxBtnSizes('trigger'), md: { trigger: { base: lynxBtnPad(4) } } },
             },
@@ -3195,6 +3248,23 @@ export const combobox: RecipeInput = {
                 disabled: { cursor: 'not-allowed' },
             },
         },
+        // Clears the value and the text (#280): the chevron's ghost, one
+        // step before it — muted, full ink on hover.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                opacity: '0.6',
+                padding: '0 var(--space-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: { hover: { opacity: '1' } },
+        },
         popup: withPresence(popupPresence('translateY(-4px)'), {
             base: { ...floatingPanel, padding: 'var(--space-md)', minWidth: '13rem' },
             states: { open: {}, closed: {} },
@@ -3248,6 +3318,23 @@ export const combobox: RecipeInput = {
                 fontSize: 'var(--text-sm)',
                 textAlign: 'center',
                 opacity: '0.6',
+            },
+        },
+        // The list still arriving (#280): the empty row's muted grammar.
+        loading: {
+            base: {
+                padding: 'var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                textAlign: 'center',
+                opacity: '0.6',
+            },
+        },
+        // The menu's rule between runs of options (#280).
+        separator: {
+            base: {
+                height: 'var(--border)',
+                margin: 'var(--space-sm) var(--space-md)',
+                background: 'var(--color-base-300)',
             },
         },
     },

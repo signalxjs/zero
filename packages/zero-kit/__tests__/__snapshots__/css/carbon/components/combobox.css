@@ -131,6 +131,22 @@
         background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
     }
 
+    [data-scope="combobox"][data-part="clear-trigger"] {
+        appearance: none;
+        align-self: stretch;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        padding: 0 var(--space-xs);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="combobox"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
     [data-scope="combobox"][data-part="popup"] {
         min-width: 12rem;
         padding: 0;
@@ -208,6 +224,18 @@
         padding: var(--space-md);
         font-size: var(--text-sm);
         color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+    }
+
+    [data-scope="combobox"][data-part="loading"] {
+        padding: var(--space-md);
+        font-size: var(--text-sm);
+        color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+    }
+
+    [data-scope="combobox"][data-part="separator"] {
+        height: var(--border);
+        margin: var(--space-xs) 0;
+        background: var(--carbon-line);
     }
 
     @scope ([data-scope="combobox"][data-part="root"][data-size="sm"]) to ([data-scope="combobox"][data-part="root"]) {

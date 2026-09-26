@@ -107,10 +107,12 @@ export type {
     SelectTriggerProps,
     SelectValueProps,
     SelectIndicatorProps,
+    SelectClearTriggerProps,
     SelectPopupProps,
     SelectGroupProps,
     SelectGroupLabelProps,
     SelectItemProps,
+    SelectSeparatorProps,
 } from './components/select/index.js';
 
 
@@ -186,11 +188,14 @@ export type {
     ComboboxItemInsertContext,
     ComboboxInputProps,
     ComboboxTriggerProps,
+    ComboboxClearTriggerProps,
     ComboboxPopupProps,
     ComboboxGroupProps,
     ComboboxGroupLabelProps,
     ComboboxItemProps,
     ComboboxEmptyProps,
+    ComboboxLoadingProps,
+    ComboboxSeparatorProps,
 } from './components/combobox/index.js';
 
 // Windowing for Select/Combobox (`virtual`, #96) — its own entry too
