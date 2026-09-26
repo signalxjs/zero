@@ -1146,6 +1146,23 @@ const floatingPanel: NonNullable<PartStyles['base']> = {
     boxShadow: 'var(--shadow-lg)',
 };
 
+/**
+ * daisy's dropdown menu for a listbox, sized by the geometry the
+ * anchored-position strategy publishes (#278): at least the width of the
+ * control that opened it (`--anchor-width`, daisy's 13rem floor otherwise)
+ * and never taller than the room on the side it opened to
+ * (`--available-height`), scrolling past a 20rem cap. Border-box, so both
+ * bounds measure the box the strategy positions. Runtime-published
+ * properties are web-only, so this is each listbox recipe's `targets.web`;
+ * lynx keeps the shared 13rem.
+ */
+const anchoredListbox: CssProps = {
+    boxSizing: 'border-box',
+    minWidth: 'var(--anchor-width, 13rem)',
+    maxHeight: 'min(20rem, var(--available-height, 20rem))',
+    overflowY: 'auto',
+};
+
 export const popover: RecipeInput = {
     component: 'popover',
     parts: {
@@ -2612,6 +2629,7 @@ export const select: RecipeInput = {
     // The trigger ramp restates `md` too (unlike `btnSizes`), so its lynx
     // counterpart does as well.
     targets: {
+        web: { parts: { popup: { base: anchoredListbox } } },
         lynx: {
             parts: {
                 trigger: { base: lynxBtnPad(4) },
@@ -3358,6 +3376,9 @@ export const combobox: RecipeInput = {
     skipStates: {
         input: ['focus-visible'],
         trigger: ['focus-visible'],
+    },
+    targets: {
+        web: { parts: { popup: { base: anchoredListbox } } },
     },
 };
 

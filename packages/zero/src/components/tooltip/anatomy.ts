@@ -8,6 +8,9 @@ export const tooltipAnatomy = defineAnatomy('tooltip', {
         flags: ['disabled'],
         asChild: true,
     },
+    // Anchor-positioned: carries `data-placement` plus the published
+    // POSITION_PROPERTIES — `--anchor-width`/`--anchor-height`,
+    // `--available-width`/`--available-height`, `--transform-origin`.
     popup: {
         element: 'div',
         states: ['open', 'closed'],

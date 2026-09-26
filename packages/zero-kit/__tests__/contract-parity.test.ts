@@ -59,6 +59,10 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // The closed data-placement vocabulary — zero's position strategy writes
     // these, the kit's mergeManifests holds fragment `placements` to them.
     PLACEMENT_VOCABULARY: [zero.PLACEMENT_VOCABULARY, kit.PLACEMENT_VOCABULARY],
+    // The anchored-position strategy's published geometry — zero's strategy
+    // writes exactly these names, the kit admits them as runtime properties
+    // (web-only) a recipe may read.
+    POSITION_PROPERTIES: [zero.POSITION_PROPERTIES, kit.POSITION_PROPERTIES],
     // The named-prop axes and the attributes they render. Zero's copy guards
     // the runtime `axes` bag; the kit's drives selector emission.
     VARIANT_AXES: [zero.VARIANT_AXES, kit.VARIANT_AXES],

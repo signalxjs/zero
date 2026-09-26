@@ -76,6 +76,7 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-level2);
         padding: var(--space-xs);
+        transform-origin: var(--transform-origin, center);
         min-width: 12rem;
     }
 
@@ -365,6 +366,7 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-level2);
         padding: var(--space-xs);
+        transform-origin: var(--transform-origin, center);
         min-width: 12rem;
     }
 

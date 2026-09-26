@@ -136,8 +136,10 @@ combobox, menu-submenu, menu-keyboard (ArrowUp opens on the last item; Enter
 on an asChild link item really navigates, #175; Tab and Shift+Tab close the
 whole chain while focus moves on to the neighbouring tab stop, #263), toast
 (presence, and since #269 the focus hand-off when a focused toast leaves,
-F8/Escape, and the re-stack above a modal dialog measured in pixels), select,
-form-readonly (#267: readonly checkbox, switch, radio group, select and
+F8/Escape, and the re-stack above a modal dialog measured in pixels), select
+(and since #278, per design system on chromium, the popup geometry: a listbox
+at least as wide as its trigger, and in a viewport too short for it capped
+inside the collision padding and scrolling), form-readonly (#267: readonly checkbox, switch, radio group, select and
 slider refuse every click, key, press and drag — a cancelled radio
 activation re-checks the previous radio, which happy-dom does not run,
 and arrow-key roving still moves focus), select-clear (#280: chromium,

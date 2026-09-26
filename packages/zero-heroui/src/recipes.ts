@@ -1573,6 +1573,21 @@ export const accordion: RecipeInput = {
  */
 const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
 
+/**
+ * HeroUI's listbox popover, sized by the geometry the anchored-position
+ * strategy publishes (#278): the trigger's width (`--anchor-width`, 12rem
+ * otherwise) — HeroUI's popover matches its trigger — and never taller than
+ * the room on the side it opened to (`--available-height`), scrolling past
+ * HeroUI's 16rem `maxListboxHeight`. Border-box, so both bounds measure the
+ * box the strategy positions.
+ */
+const anchoredListbox: CssProps = {
+    boxSizing: 'border-box',
+    minWidth: 'var(--anchor-width, 12rem)',
+    maxHeight: 'min(16rem, var(--available-height, 16rem))',
+    overflowY: 'auto',
+};
+
 export const select: RecipeInput = {
     component: 'select',
     tokens: { '--select-text': 'var(--text-sm)' },
@@ -1667,7 +1682,7 @@ export const select: RecipeInput = {
                 borderRadius: 'var(--radius-box)',
                 background: 'var(--color-base-100)',
                 boxShadow: 'var(--shadow-lg)',
-                minWidth: '12rem',
+                ...anchoredListbox,
             },
         }),
         // The optgroup equivalent (#325) — the menu's group grammar.
@@ -2212,7 +2227,7 @@ export const combobox: RecipeInput = {
                 borderRadius: 'var(--radius-box)',
                 background: 'var(--color-base-100)',
                 boxShadow: 'var(--shadow-lg)',
-                minWidth: '12rem',
+                ...anchoredListbox,
             },
         }),
         // The optgroup equivalent (#325) — the menu's group grammar.

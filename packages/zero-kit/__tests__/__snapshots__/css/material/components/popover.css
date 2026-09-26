@@ -76,6 +76,7 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-level2);
         padding: var(--space-md);
+        transform-origin: var(--transform-origin, center);
         max-width: 20rem;
     }
 

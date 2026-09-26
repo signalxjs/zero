@@ -9,6 +9,9 @@ export const menuAnatomy = defineAnatomy('menu', {
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },
+    // Anchor-positioned: carries `data-placement` plus the published
+    // POSITION_PROPERTIES — `--anchor-width`/`--anchor-height`,
+    // `--available-width`/`--available-height`, `--transform-origin`.
     popup: {
         element: 'div',
         states: ['open', 'closed'],
@@ -70,7 +73,8 @@ export const menuAnatomy = defineAnatomy('menu', {
         asChild: true,
     },
     // Distinct from `popup` so a side-attached submenu can animate on its own
-    // axis (translateX) without descendant selectors.
+    // axis (translateX) without descendant selectors. Positioned like the
+    // popup, so it carries the same POSITION_PROPERTIES.
     'sub-popup': {
         element: 'div',
         parent: 'popup',

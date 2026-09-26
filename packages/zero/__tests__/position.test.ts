@@ -53,8 +53,9 @@ describe('fixedPositionStrategy: main-axis flip', () => {
         // both sides — that overflow is the shift's to fix.
         expect(r.placement).toBe('top-start');
         expect(r.top).toBe(H - 30 - 100 - 4);
-        // Shifted on the cross axis only: flush with the viewport's right edge.
-        expect(r.left).toBe(W - 200);
+        // Shifted on the cross axis only: the default 8px collision padding
+        // off the viewport's right edge.
+        expect(r.left).toBe(W - 8 - 200);
     });
 
     it('does not flip when only the cross axis overflows', () => {
@@ -64,7 +65,7 @@ describe('fixedPositionStrategy: main-axis flip', () => {
         const r = place(anchor, floating, 'bottom-start');
         expect(r.placement).toBe('bottom-start');
         expect(r.top).toBe(124);
-        expect(r.left).toBe(W - 200);
+        expect(r.left).toBe(W - 8 - 200);
     });
 
     it('clamps the main axis only as a last resort, when neither side fits', () => {
@@ -73,7 +74,8 @@ describe('fixedPositionStrategy: main-axis flip', () => {
         const floating = fakeFloating(200, H); // taller than either side's room
         const r = place(anchor, floating, 'bottom-start');
         expect(r.placement).toBe('bottom-start');
-        expect(r.top).toBe(0);
+        // The start edge wins inside the padding when the popup cannot fit.
+        expect(r.top).toBe(8);
     });
 
     it('flips a right-side popup at the right edge to the left side', () => {
@@ -233,6 +235,159 @@ describe('fixedPositionStrategy: ResizeObserver repositioning', () => {
         const floating = fakeFloating(80, 40);
         const cleanup = fixedPositionStrategy.apply(pointAnchor(10, 10), floating, { placement: 'bottom-start', offset: 0, flip: true });
         expect(floating.style.left).toBe('10px');
+        cleanup();
+    });
+});
+
+describe('fixedPositionStrategy: collisionPadding', () => {
+    it('keeps a shifted popup 8px off the edge by default', () => {
+        const W = window.innerWidth;
+        const { anchor } = fakeAnchor(W - 20, 100, 10, 20);
+        const floating = fakeFloating(200, 50);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom-start', offset: 4, flip: true });
+        expect(parseFloat(floating.style.left) + 200).toBe(W - 8);
+        cleanup();
+    });
+
+    it('treats the padding as the edge when deciding a flip', () => {
+        const H = window.innerHeight;
+        // 50 tall + 4 offset from a bottom edge at H - 60 ends at H - 6:
+        // inside the viewport, but inside the 8px padding too.
+        const { anchor } = fakeAnchor(100, H - 80, 30, 20);
+        const floating = fakeFloating(100, 50);
+        expect(place(anchor, floating, 'bottom-start').placement).toBe('top-start');
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom-start', offset: 4, flip: true, collisionPadding: 0 });
+        expect(floating.getAttribute('data-placement')).toBe('bottom-start');
+        cleanup();
+    });
+
+    it('takes a custom padding for the shift', () => {
+        const { anchor } = fakeAnchor(0, 100, 10, 20);
+        const floating = fakeFloating(200, 50);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom-end', offset: 4, flip: true, collisionPadding: 16 });
+        expect(floating.style.left).toBe('16px');
+        cleanup();
+    });
+
+    it('treats a negative padding as 0 and a non-finite one as the default', () => {
+        const { anchor } = fakeAnchor(0, 100, 10, 20);
+        const left = (collisionPadding: number) => {
+            const floating = fakeFloating(200, 50);
+            const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom-end', offset: 4, flip: true, collisionPadding });
+            const out = floating.style.left;
+            cleanup();
+            return out;
+        };
+        expect(left(-20)).toBe('0px');
+        expect(left(Number.NaN)).toBe('8px');
+        expect(left(Number.POSITIVE_INFINITY)).toBe('8px');
+    });
+});
+
+describe('fixedPositionStrategy: alignOffset', () => {
+    const apply = (anchor: HTMLElement, floating: HTMLElement, placement: Placement, alignOffset: number) => {
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement, offset: 4, flip: true, alignOffset });
+        const out = { left: parseFloat(floating.style.left), top: parseFloat(floating.style.top) };
+        cleanup();
+        return out;
+    };
+
+    it('moves a -start popup away from the aligned edge, in the reading direction', () => {
+        const ltr = fakeAnchor(300, 100, 120, 30, 'ltr');
+        expect(apply(ltr.anchor, fakeFloating(200, 50), 'bottom-start', 10).left).toBe(310);
+        const rtl = fakeAnchor(300, 100, 120, 30, 'rtl');
+        // Aligned right edges, moved leftward (forward in RTL).
+        expect(apply(rtl.anchor, fakeFloating(200, 50), 'bottom-start', 10).left).toBe(420 - 200 - 10);
+    });
+
+    it('moves a -end popup back from its edge, and leaves a centred one alone', () => {
+        const { anchor } = fakeAnchor(300, 100, 120, 30);
+        expect(apply(anchor, fakeFloating(200, 50), 'bottom-end', 10).left).toBe(420 - 200 - 10);
+        expect(apply(anchor, fakeFloating(200, 50), 'bottom', 10).left).toBe(360 - 100);
+    });
+
+    it('offsets an inline side along the block axis', () => {
+        const { anchor } = fakeAnchor(300, 100, 120, 30);
+        expect(apply(anchor, fakeFloating(100, 50), 'right-start', 6).top).toBe(106);
+        expect(apply(anchor, fakeFloating(100, 20), 'right-end', 6).top).toBe(130 - 20 - 6);
+    });
+
+    it('ignores a non-finite offset', () => {
+        const { anchor } = fakeAnchor(300, 100, 120, 30);
+        expect(apply(anchor, fakeFloating(200, 50), 'bottom-start', Number.NaN).left).toBe(300);
+        expect(apply(anchor, fakeFloating(200, 50), 'bottom-start', Number.POSITIVE_INFINITY).left).toBe(300);
+    });
+});
+
+describe('fixedPositionStrategy: published geometry', () => {
+    const vars = (el: HTMLElement) => Object.fromEntries(
+        ['--anchor-width', '--anchor-height', '--available-width', '--available-height', '--transform-origin']
+            .map((name) => [name, el.style.getPropertyValue(name)]),
+    );
+
+    it('publishes the anchor size, the room below, and a top-left origin for bottom-start', () => {
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        const { anchor } = fakeAnchor(100, 100, 120.5, 30);
+        const floating = fakeFloating(200, 50);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom-start', offset: 4, flip: true });
+        expect(vars(floating)).toEqual({
+            '--anchor-width': '120.5px',
+            '--anchor-height': '30px',
+            '--available-width': `${W - 16}px`,
+            '--available-height': `${H - 8 - 134}px`,
+            '--transform-origin': 'top left',
+        });
+        cleanup();
+        // Kept after cleanup (a close): an exit transition still paints with them.
+        expect(floating.style.getPropertyValue('--anchor-width')).toBe('120.5px');
+    });
+
+    it('resolves the origin through the reading direction', () => {
+        const { anchor } = fakeAnchor(300, 100, 120, 30, 'rtl');
+        const floating = fakeFloating(200, 50);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom-start', offset: 4, flip: true });
+        expect(floating.style.getPropertyValue('--transform-origin')).toBe('top right');
+        cleanup();
+    });
+
+    it('names the inline side facing the anchor for a side placement', () => {
+        const { anchor } = fakeAnchor(300, 100, 120, 30);
+        const floating = fakeFloating(100, 50);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'right', offset: 4, flip: true });
+        expect(floating.style.getPropertyValue('--transform-origin')).toBe('center left');
+        expect(floating.style.getPropertyValue('--available-width')).toBe(`${window.innerWidth - 8 - 424}px`);
+        expect(floating.style.getPropertyValue('--available-height')).toBe(`${window.innerHeight - 16}px`);
+        cleanup();
+    });
+
+    it('rewrites the room and the origin after a flip', () => {
+        const H = window.innerHeight;
+        const frames: FrameRequestCallback[] = [];
+        vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frames.push(cb));
+        vi.stubGlobal('cancelAnimationFrame', () => {});
+        let rect = rectAt(100, 100, 120, 30);
+        const { anchor } = fakeAnchor(0, 0, 0, 0);
+        anchor.getBoundingClientRect = () => rect;
+        const floating = fakeFloating(200, 100);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom-start', offset: 4, flip: true, collisionPadding: 10 });
+        expect(floating.getAttribute('data-placement')).toBe('bottom-start');
+        expect(floating.style.getPropertyValue('--available-height')).toBe(`${H - 10 - 134}px`);
+
+        // The anchor scrolls to the bottom edge: no room below, so it flips.
+        rect = rectAt(100, H - 40, 120, 30);
+        window.dispatchEvent(new Event('resize'));
+        expect(floating.getAttribute('data-placement')).toBe('top-start');
+        expect(floating.style.getPropertyValue('--available-height')).toBe(`${H - 40 - 4 - 10}px`);
+        expect(floating.style.getPropertyValue('--transform-origin')).toBe('bottom left');
+        cleanup();
+    });
+
+    it('never publishes a negative room', () => {
+        const { anchor } = fakeAnchor(100, 2, 30, 2);
+        const floating = fakeFloating(20, 20);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'top', offset: 4, flip: false });
+        expect(floating.style.getPropertyValue('--available-height')).toBe('0px');
         cleanup();
     });
 });

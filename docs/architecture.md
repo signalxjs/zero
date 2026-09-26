@@ -140,6 +140,26 @@ stamps its viewport and roots. This replaced an
 earlier blanket exemption: `expectAnatomy` now fails an undeclared
 `data-placement` exactly as it fails an undeclared state.
 
+**Popup geometry is published, not guessed.** Beside `data-placement` the
+built-in `fixedPositionStrategy` writes the five `POSITION_PROPERTIES` on
+every floating part it positions (#278): `--anchor-width`/`--anchor-height`
+(the anchor's client rect), `--available-width`/`--available-height` (the
+room between the anchor and the viewport edge on the side it resolved to,
+less the offset and `collisionPadding`, default 8; the cross axis is the
+viewport less the padding at both ends) and `--transform-origin` (the
+anchor-facing edge and the aligned point, as physical keywords). The same
+padding is the edge the flip tests against and the band the shift clamps
+into. They are listed once in the contract — zero's copy in
+`contract/position-properties.ts`, the kit's in `contract.ts`, parity-tested — and the
+kit's `RUNTIME_PROPERTIES` includes them, so a recipe may reference them
+and the lynx target rejects them outside `targets.web` like `--press-*`.
+Every skin sizes its Select and Combobox popup from them (`min-width:
+var(--anchor-width, …)`, `max-height: min(<cap>, var(--available-height,
+<cap>))`), and material, the one skin whose popups scale in, grows them
+from `--transform-origin`. Physical by design: they measure the glass, like
+the coordinates. They survive the close, so an exit transition keeps its
+box and origin; the next open rewrites them before it paints.
+
 **Layout attributes are a namespaced family.** `LAYOUT_VOCABULARY` closes a
 seventeen-attribute set (`gap`, `pad`, `align`, `justify`, `cols`, `span`, …)
 rendered under a `data-l-` prefix, and a part that can carry one declares

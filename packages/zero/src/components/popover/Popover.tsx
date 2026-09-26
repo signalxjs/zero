@@ -70,6 +70,10 @@ export type PopoverRootProps =
     & Define.Event<'openChange', boolean>
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'offset', number, false>
+    /** Margin, px, the popup keeps from the viewport edges when flipping and shifting (default 8). */
+    & Define.Prop<'collisionPadding', number, false>
+    /** Cross-axis offset, px, from a `-start`/`-end` alignment (default 0). */
+    & Define.Prop<'alignOffset', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & Define.Slot<'default'>;
 
@@ -104,6 +108,8 @@ const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal })
         isOpen: () => state.value,
         placement: () => props.placement ?? 'bottom',
         offset: () => props.offset ?? 6,
+        collisionPadding: () => props.collisionPadding,
+        alignOffset: () => props.alignOffset,
         strategy: props.positionStrategy,
     });
     // Focus goes back only while it is still the popup's: an outside

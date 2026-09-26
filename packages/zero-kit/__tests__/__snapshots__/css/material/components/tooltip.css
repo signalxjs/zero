@@ -37,6 +37,7 @@
         padding: var(--space-2xs) var(--space-xs);
         font-size: var(--text-xs);
         box-shadow: var(--shadow-level1);
+        transform-origin: var(--transform-origin, center);
     }
 
     [data-scope="tooltip"][data-part="popup"][data-state="open"] {

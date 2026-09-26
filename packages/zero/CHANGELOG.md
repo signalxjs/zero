@@ -2,6 +2,43 @@
 
 ## [Unreleased]
 
+### Added — Popup geometry as custom properties; `collisionPadding` and `alignOffset` (#278)
+
+- **Every popup the built-in position strategy places publishes its
+  geometry** beside `data-placement`, re-measured on every update:
+  `--anchor-width`/`--anchor-height` (the anchor's size),
+  `--available-width`/`--available-height` (the room between the anchor
+  and the viewport edge on the side the popup resolved to, after a flip,
+  less the offset and the collision padding; the cross axis is the
+  viewport less the padding at both ends) and `--transform-origin` (the
+  anchor-facing edge and the aligned point as physical keywords — `top
+  left` for `bottom-start`, `top right` for it under `rtl`). That covers
+  Select, Combobox, Menu and its submenus, Popover and Tooltip. The names
+  are listed once, as `POSITION_PROPERTIES` in `@sigx/zero/contract`, and
+  documented on each popup part's anatomy. They stay set after close, so
+  an exit transition keeps its size and origin.
+- **`collisionPadding`** (px, default 8) on `Select.Root`,
+  `Combobox.Root`, `Menu.Root`, `Menu.Sub`, `Popover.Root` and
+  `Tooltip.Root`, and on `PositionOptions`: the margin a popup keeps from
+  the viewport edges. The flip treats it as the edge, the shift clamps
+  inside it, and the available sizes subtract it. **Behavior change:** a
+  popup shifted or clamped against the viewport used to sit flush with the
+  edge; it now sits 8px in. Pass `collisionPadding={0}` for the old
+  placement.
+- **`alignOffset`** (px, default 0) on the same roots and on
+  `PositionOptions`: moves a `-start`/`-end` popup along the cross axis,
+  away from the edge it aligns to (in the reading direction for an
+  alignment above or below). A centred placement ignores it.
+- **All six design systems size their Select and Combobox popups from
+  it**: at least as wide as the trigger or field
+  (`min-width: var(--anchor-width, <old floor>)`, replacing the fixed
+  12rem/13rem), and capped by the room on the side they opened to
+  (`max-height: min(<cap>, var(--available-height, <cap>))`, scrolling —
+  20rem in basic, daisyUI and material, 24rem in brutalist, 16rem in
+  HeroUI, 18.75rem in Carbon). Material, whose popups scale in, grows its
+  menu, submenu, popover, tooltip, select and combobox popups from
+  `--transform-origin`.
+
 ### Added — Select and Combobox: clear-trigger, separator, combobox loading (#280)
 
 - **`Select.ClearTrigger`** (part `clear-trigger`): a real button in the tab

@@ -551,6 +551,37 @@ row and surface it on the visible control. That is what makes a
 pointer-anchored effect like Material's ink ripple — or its selection-control
 halo and slider-thumb halo — expressible as pure CSS.
 
+Popup geometry is published the same way (#278). Every popup the built-in
+position strategy places — Select, Combobox, Menu and its submenus, Popover,
+Tooltip — carries, beside `data-placement`, the custom properties
+`POSITION_PROPERTIES` names (`@sigx/zero/contract`), re-measured on every
+update:
+
+| Property | Value |
+|---|---|
+| `--anchor-width` / `--anchor-height` | the anchor's size, px |
+| `--available-width` / `--available-height` | the room between the anchor and the viewport edge on the side the popup resolved to (after a flip), less the offset and the collision padding; the cross axis is the viewport less the padding at both ends |
+| `--transform-origin` | the anchor-facing edge and the aligned point, physical keywords: `top left` for `bottom-start` (`top right` under `rtl`) |
+
+So a listbox as wide as its trigger that never runs off screen is
+`box-sizing: border-box; min-width: var(--anchor-width, 12rem);
+max-height: min(20rem, var(--available-height, 20rem)); overflow-y: auto`
+— what all six design systems now do for Select and Combobox; `border-box`
+keeps the padding and border inside the available room — and a popup that
+scales in grows out of its anchor with
+`transform-origin: var(--transform-origin, center)`. Read
+them with a fallback: a substituted `positionStrategy` may not publish
+them. They are left in place when the popup closes, so an exit transition
+keeps its size and origin.
+
+Those five roots also take `collisionPadding` (px, default 8): the margin a
+popup keeps from the viewport edges. The flip treats it as the edge, the
+shift clamps inside it, and the available sizes subtract it. And
+`alignOffset` (px, default 0) moves a `-start`/`-end` popup along the cross
+axis, away from the edge it aligns to — in the reading direction for an
+alignment above or below. A centred placement ignores it. `Menu.Sub` takes
+both too.
+
 ARIA wiring is presence-aware: an overlay references its `Title` /
 `Description` ids only while those parts are actually rendered, so omitting a
 title never leaves a dangling `aria-labelledby` (which would suppress the
@@ -1542,7 +1573,10 @@ same behaviors, held to the same conformance assertion:
   `bottom-start` menu in the bottom-right corner flips to `top-start` and
   shifts left — aligns `-start`/`-end` above or below to the reading
   direction and puts bare `start`/`end` on the inline-start/-end side,
-  publishes the logical placement as `data-placement`, and re-measures on
+  keeps `collisionPadding` (default 8) off the viewport edges, offsets an
+  aligned popup by `alignOffset`, publishes the logical placement as
+  `data-placement` and the `POSITION_PROPERTIES` geometry
+  (`--anchor-*`, `--available-*`, `--transform-origin`), and re-measures on
   scroll, resize and a `ResizeObserver` over the popup and the anchor
   element; a virtual anchor may name a `contextElement`, which is observed
   and read the direction from), press feedback, the form contract (`createFormControl`, `onFormReset`), and the

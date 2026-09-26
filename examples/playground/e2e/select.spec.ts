@@ -9,126 +9,169 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { demoPosting } from './demo';
+import { demoPosting, settledBox, DESIGN_SYSTEMS } from './demo';
 
-test.beforeEach(async ({ page }) => {
-    await bootPage(page, 'select', 'basic');
+test.describe('basic', () => {
+    test.beforeEach(async ({ page }) => {
+        await bootPage(page, 'select', 'basic');
+    });
+
+    /**
+     * The fruit Select, named by the field it posts — the select page renders an
+     * invalid sample and a variants row beside it, all the same anatomy. See
+     * `demo.ts` for why `.first()` is never the answer.
+     */
+    const demo = (page: Page) => demoPosting(page, 'select', 'fruit');
+
+    test('click opens the listbox, an option click selects and posts', async ({ page }) => {
+        const parts = demo(page);
+        await parts('trigger').click();
+        await expect(parts('popup')).toHaveAttribute('data-state', 'open');
+        await expect(parts('popup')).toBeVisible();
+
+        await parts('item').nth(1).click(); // Banana — index within this one demo's ordered set
+        await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
+        await expect(parts('value')).toHaveText('Banana');
+        await expect(parts('hidden-input')).toHaveValue('banana');
+    });
+
+    test('full keyboard flow: open, highlight via activedescendant, select, close', async ({ page }) => {
+        const parts = demo(page);
+        const trigger = parts('trigger');
+        await trigger.focus();
+        await trigger.press('ArrowDown'); // opens, highlights the first option
+        await expect(parts('popup')).toHaveAttribute('data-state', 'open');
+        await expect(parts('item').nth(0)).toHaveAttribute('data-highlighted', '');
+
+        await trigger.press('ArrowDown');
+        await expect(parts('item').nth(1)).toHaveAttribute('data-highlighted', '');
+        // Focus never moved: the highlight is conveyed by reference.
+        await expect(trigger).toBeFocused();
+        const activeId = await trigger.getAttribute('aria-activedescendant');
+        await expect(parts('item').nth(1)).toHaveAttribute('id', activeId!);
+
+        await trigger.press('Enter');
+        await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
+        await expect(parts('value')).toHaveText('Banana');
+        await expect(parts('hidden-input')).toHaveValue('banana');
+        await expect(trigger).toBeFocused();
+    });
+
+    test('Escape closes without selecting; outside click light-dismisses', async ({ page }) => {
+        const parts = demo(page);
+        await parts('trigger').click();
+        await expect(parts('popup')).toHaveAttribute('data-state', 'open');
+        await parts('trigger').press('Escape');
+        await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
+        await expect(parts('hidden-input')).toHaveValue('');
+
+        await parts('trigger').click();
+        await expect(parts('popup')).toHaveAttribute('data-state', 'open');
+        // popover="auto": a genuinely outside click is the platform's dismissal.
+        await page.locator('h1').click();
+        await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
+    });
+
+    test('the variants row is manifest-driven: each wired select variant renders once', async ({ page }) => {
+        // zero-basic wires outline | soft | ghost on the select scope (its
+        // manifest's per-scope list — the page maps it rather than a literal).
+        // A page-wide count is right here: the subject IS the page composition.
+        for (const v of ['outline', 'soft', 'ghost']) {
+            await expect(page.locator(`[data-scope="select"][data-part="root"][data-variant="${v}"]`)).toHaveCount(1);
+        }
+    });
+
+    test('the options-driven instance renders groups and selects exactly like hand-written items', async ({ page }) => {
+        // The sugar tier (#333): `options` on Select.Root, named by the field it
+        // posts like every other instance on the page.
+        const parts = demoPosting(page, 'select', 'sugar-fruit');
+        await parts('trigger').click();
+        await expect(parts('popup')).toHaveAttribute('data-state', 'open');
+        // Two distinct `group` values → two Group parts, first-appearance order.
+        await expect(parts('group')).toHaveCount(2);
+        await expect(parts('group-label').nth(0)).toHaveText('Citrus');
+        await expect(parts('group-label').nth(1)).toHaveText('Stone fruit');
+        // A disabled entry flows onto the generated item.
+        await expect(parts('item').nth(4)).toHaveAttribute('data-disabled', '');
+
+        await parts('item').nth(2).click(); // Peach — index within this demo's own set
+        await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
+        await expect(parts('value')).toHaveText('Peach');
+        await expect(parts('hidden-input')).toHaveValue('peach');
+    });
+
+    test('the listbox is labelled by the trigger', async ({ page }) => {
+        const parts = demo(page);
+        const triggerId = await parts('trigger').getAttribute('id');
+        expect(triggerId).toBeTruthy();
+        await expect(parts('popup')).toHaveAttribute('aria-labelledby', triggerId!);
+    });
+
+    test('the clear-trigger is a tab stop after the trigger: Enter clears and focus returns (#280)', async ({ page }, testInfo) => {
+        const clearable = demoPosting(page, 'select', 'clearable-fruit');
+        await expect(clearable('value')).toHaveText('Lime');
+        await clearable('trigger').focus();
+        // WebKit's Tab skips buttons unless the user opts in (Safari's "Press
+        // Tab to highlight each item"), so there it is focused directly.
+        if (testInfo.project.name === 'webkit') await clearable('clear-trigger').focus();
+        else await page.keyboard.press('Tab');
+        await expect(clearable('clear-trigger')).toBeFocused();
+        await page.keyboard.press('Enter');
+        await expect(clearable('hidden-input')).toHaveValue('');
+        await expect(clearable('value')).toHaveText('Pick a fruit…');
+        await expect(clearable('trigger')).toBeFocused();
+        await expect(clearable('clear-trigger')).toHaveCount(0);
+    });
+
+    test('a separator is skipped by the arrows (#280)', async ({ page }) => {
+        const clearable = demoPosting(page, 'select', 'clearable-fruit');
+        await clearable('trigger').focus();
+        await page.keyboard.press('ArrowDown'); // opens on the selected Lime
+        await expect(clearable('popup')).toBeVisible();
+        await page.keyboard.press('ArrowDown'); // Lime → Peach, past the rule
+        const peach = clearable('item').nth(2);
+        await expect(clearable('trigger')).toHaveAttribute('aria-activedescendant', (await peach.getAttribute('id'))!);
+        await expect(clearable('separator')).toBeVisible();
+    });
 });
 
 /**
- * The fruit Select, named by the field it posts — the select page renders an
- * invalid sample and a variants row beside it, all the same anatomy. See
- * `demo.ts` for why `.first()` is never the answer.
+ * The published popup geometry (#278), per design system: every skin sizes
+ * its listbox from `--anchor-width` / `--available-height`, so the popup is
+ * never narrower than the trigger that opened it, and — in a viewport too
+ * short for the list — stays on screen, `collisionPadding` (16 on this demo)
+ * off the edge, scrolling instead. Boxes, not declarations: the golden CSS
+ * already pins what each recipe says. One engine is the coverage — these are
+ * claims about our cascade and our arithmetic, not about the engine.
  */
-const demo = (page: Page) => demoPosting(page, 'select', 'fruit');
+for (const ds of DESIGN_SYSTEMS) {
+    test.describe(`${ds}: popup geometry`, () => {
+        test.beforeEach(async ({ page }, testInfo) => {
+            test.skip(testInfo.project.name !== 'chromium', 'our cascade and arithmetic, not engine behaviour');
+            await page.setViewportSize({ width: 1024, height: 480 });
+            await bootPage(page, 'select', ds);
+        });
 
-test('click opens the listbox, an option click selects and posts', async ({ page }) => {
-    const parts = demo(page);
-    await parts('trigger').click();
-    await expect(parts('popup')).toHaveAttribute('data-state', 'open');
-    await expect(parts('popup')).toBeVisible();
+        test('the popup is at least as wide as its trigger, and stays inside the padded viewport', async ({ page }) => {
+            const parts = demoPosting(page, 'select', 'wide-station');
+            await parts('trigger').scrollIntoViewIfNeeded();
+            await parts('trigger').click();
+            await expect(parts('popup')).toHaveAttribute('data-state', 'open');
 
-    await parts('item').nth(1).click(); // Banana — index within this one demo's ordered set
-    await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
-    await expect(parts('value')).toHaveText('Banana');
-    await expect(parts('hidden-input')).toHaveValue('banana');
-});
+            const trigger = await settledBox(parts('trigger'), 'trigger');
+            const popup = await settledBox(parts('popup'), 'popup');
+            // Precondition: the trigger is wider than every skin's static
+            // floor (13rem at most), so only `--anchor-width` can pass this.
+            expect(trigger.width, 'the demo trigger is wide').toBeGreaterThan(13 * 16);
+            // Half a pixel of slack for subpixel layout; nothing more.
+            expect(popup.width, 'popup narrower than its trigger').toBeGreaterThanOrEqual(trigger.width - 0.5);
 
-test('full keyboard flow: open, highlight via activedescendant, select, close', async ({ page }) => {
-    const parts = demo(page);
-    const trigger = parts('trigger');
-    await trigger.focus();
-    await trigger.press('ArrowDown'); // opens, highlights the first option
-    await expect(parts('popup')).toHaveAttribute('data-state', 'open');
-    await expect(parts('item').nth(0)).toHaveAttribute('data-highlighted', '');
-
-    await trigger.press('ArrowDown');
-    await expect(parts('item').nth(1)).toHaveAttribute('data-highlighted', '');
-    // Focus never moved: the highlight is conveyed by reference.
-    await expect(trigger).toBeFocused();
-    const activeId = await trigger.getAttribute('aria-activedescendant');
-    await expect(parts('item').nth(1)).toHaveAttribute('id', activeId!);
-
-    await trigger.press('Enter');
-    await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
-    await expect(parts('value')).toHaveText('Banana');
-    await expect(parts('hidden-input')).toHaveValue('banana');
-    await expect(trigger).toBeFocused();
-});
-
-test('Escape closes without selecting; outside click light-dismisses', async ({ page }) => {
-    const parts = demo(page);
-    await parts('trigger').click();
-    await expect(parts('popup')).toHaveAttribute('data-state', 'open');
-    await parts('trigger').press('Escape');
-    await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
-    await expect(parts('hidden-input')).toHaveValue('');
-
-    await parts('trigger').click();
-    await expect(parts('popup')).toHaveAttribute('data-state', 'open');
-    // popover="auto": a genuinely outside click is the platform's dismissal.
-    await page.locator('h1').click();
-    await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
-});
-
-test('the variants row is manifest-driven: each wired select variant renders once', async ({ page }) => {
-    // zero-basic wires outline | soft | ghost on the select scope (its
-    // manifest's per-scope list — the page maps it rather than a literal).
-    // A page-wide count is right here: the subject IS the page composition.
-    for (const v of ['outline', 'soft', 'ghost']) {
-        await expect(page.locator(`[data-scope="select"][data-part="root"][data-variant="${v}"]`)).toHaveCount(1);
-    }
-});
-
-test('the options-driven instance renders groups and selects exactly like hand-written items', async ({ page }) => {
-    // The sugar tier (#333): `options` on Select.Root, named by the field it
-    // posts like every other instance on the page.
-    const parts = demoPosting(page, 'select', 'sugar-fruit');
-    await parts('trigger').click();
-    await expect(parts('popup')).toHaveAttribute('data-state', 'open');
-    // Two distinct `group` values → two Group parts, first-appearance order.
-    await expect(parts('group')).toHaveCount(2);
-    await expect(parts('group-label').nth(0)).toHaveText('Citrus');
-    await expect(parts('group-label').nth(1)).toHaveText('Stone fruit');
-    // A disabled entry flows onto the generated item.
-    await expect(parts('item').nth(4)).toHaveAttribute('data-disabled', '');
-
-    await parts('item').nth(2).click(); // Peach — index within this demo's own set
-    await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
-    await expect(parts('value')).toHaveText('Peach');
-    await expect(parts('hidden-input')).toHaveValue('peach');
-});
-
-test('the listbox is labelled by the trigger', async ({ page }) => {
-    const parts = demo(page);
-    const triggerId = await parts('trigger').getAttribute('id');
-    expect(triggerId).toBeTruthy();
-    await expect(parts('popup')).toHaveAttribute('aria-labelledby', triggerId!);
-});
-
-test('the clear-trigger is a tab stop after the trigger: Enter clears and focus returns (#280)', async ({ page }, testInfo) => {
-    const clearable = demoPosting(page, 'select', 'clearable-fruit');
-    await expect(clearable('value')).toHaveText('Lime');
-    await clearable('trigger').focus();
-    // WebKit's Tab skips buttons unless the user opts in (Safari's "Press
-    // Tab to highlight each item"), so there it is focused directly.
-    if (testInfo.project.name === 'webkit') await clearable('clear-trigger').focus();
-    else await page.keyboard.press('Tab');
-    await expect(clearable('clear-trigger')).toBeFocused();
-    await page.keyboard.press('Enter');
-    await expect(clearable('hidden-input')).toHaveValue('');
-    await expect(clearable('value')).toHaveText('Pick a fruit…');
-    await expect(clearable('trigger')).toBeFocused();
-    await expect(clearable('clear-trigger')).toHaveCount(0);
-});
-
-test('a separator is skipped by the arrows (#280)', async ({ page }) => {
-    const clearable = demoPosting(page, 'select', 'clearable-fruit');
-    await clearable('trigger').focus();
-    await page.keyboard.press('ArrowDown'); // opens on the selected Lime
-    await expect(clearable('popup')).toBeVisible();
-    await page.keyboard.press('ArrowDown'); // Lime → Peach, past the rule
-    const peach = clearable('item').nth(2);
-    await expect(clearable('trigger')).toHaveAttribute('aria-activedescendant', (await peach.getAttribute('id'))!);
-    await expect(clearable('separator')).toBeVisible();
-});
+            const vh = page.viewportSize()!.height;
+            expect(popup.y, 'popup inside the top collision padding').toBeGreaterThanOrEqual(16 - 0.5);
+            expect(popup.y + popup.height, 'popup inside the bottom collision padding').toBeLessThanOrEqual(vh - 16 + 0.5);
+            // Sixty options do not fit in 480px: the popup was capped, and scrolls.
+            const scrolls = await parts('popup').evaluate((el) => el.scrollHeight > el.clientHeight);
+            expect(scrolls, 'a capped popup scrolls its options').toBe(true);
+        });
+    });
+}

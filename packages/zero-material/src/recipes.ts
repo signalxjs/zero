@@ -887,7 +887,29 @@ export const dialog: RecipeInput = {
 };
 
 // ── Floating surfaces ─────────────────────────────────────────────────────
-const floating: CssProps = { ...raised('level2'), padding: 'var(--space-xs)' };
+/**
+ * Every Material floating surface scales in, and a scale grows from its
+ * origin: `--transform-origin` is the anchor-facing edge the
+ * anchored-position strategy publishes (#278), so a menu below its trigger
+ * unfolds from the trigger, and from above once flipped.
+ */
+const growFromAnchor: CssProps = { transformOrigin: 'var(--transform-origin, center)' };
+
+const floating: CssProps = { ...raised('level2'), padding: 'var(--space-xs)', ...growFromAnchor };
+
+/**
+ * A listbox menu sized by the same published geometry: at least the width of
+ * the field that opened it (`--anchor-width`, Material's 12rem menu floor
+ * otherwise) and never taller than the room on the side it opened to
+ * (`--available-height`), scrolling past a 20rem cap. Border-box, so both
+ * bounds measure the box the strategy positions.
+ */
+const anchoredListbox: CssProps = {
+    boxSizing: 'border-box',
+    minWidth: 'var(--anchor-width, 12rem)',
+    maxHeight: 'min(20rem, var(--available-height, 20rem))',
+    overflowY: 'auto',
+};
 
 export const popover: RecipeInput = {
     component: 'popover',
@@ -948,6 +970,7 @@ export const tooltip: RecipeInput = {
                 padding: 'var(--space-2xs) var(--space-xs)',
                 fontSize: 'var(--text-xs)',
                 boxShadow: 'var(--shadow-level1)',
+                ...growFromAnchor,
             },
             states: { open: {}, closed: {} },
         }),
@@ -1171,7 +1194,7 @@ export const select: RecipeInput = {
                 ...focusRing,
             },
         },
-        popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, ...anchoredListbox }, states: { open: {}, closed: {} } }),
         // The optgroup equivalent (#325) — the menu's group grammar.
         group: { base: { padding: 'var(--space-2xs) 0' } },
         'group-label': {
@@ -2617,7 +2640,7 @@ export const combobox: RecipeInput = {
             },
             states: { hover: { opacity: '1' } },
         },
-        popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, ...anchoredListbox }, states: { open: {}, closed: {} } }),
         // The optgroup equivalent (#325) — the menu's group grammar.
         group: { base: { padding: 'var(--space-2xs) 0' } },
         'group-label': {

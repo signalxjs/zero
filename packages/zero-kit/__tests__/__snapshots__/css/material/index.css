@@ -1782,6 +1782,7 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-level2);
         padding: var(--space-md);
+        transform-origin: var(--transform-origin, center);
         max-width: 20rem;
     }
 
@@ -2001,6 +2002,7 @@
         padding: var(--space-2xs) var(--space-xs);
         font-size: var(--text-xs);
         box-shadow: var(--shadow-level1);
+        transform-origin: var(--transform-origin, center);
     }
 
     [data-scope="tooltip"][data-part="popup"][data-state="open"] {
@@ -2160,6 +2162,7 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-level2);
         padding: var(--space-xs);
+        transform-origin: var(--transform-origin, center);
         min-width: 12rem;
     }
 
@@ -2449,6 +2452,7 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-level2);
         padding: var(--space-xs);
+        transform-origin: var(--transform-origin, center);
         min-width: 12rem;
     }
 
@@ -2777,7 +2781,11 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-level2);
         padding: var(--space-xs);
-        min-width: 12rem;
+        transform-origin: var(--transform-origin, center);
+        box-sizing: border-box;
+        min-width: var(--anchor-width, 12rem);
+        max-height: min(20rem, var(--available-height, 20rem));
+        overflow-y: auto;
     }
 
     [data-scope="select"][data-part="popup"][data-state="open"] {
@@ -5113,7 +5121,11 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-level2);
         padding: var(--space-xs);
-        min-width: 12rem;
+        transform-origin: var(--transform-origin, center);
+        box-sizing: border-box;
+        min-width: var(--anchor-width, 12rem);
+        max-height: min(20rem, var(--available-height, 20rem));
+        overflow-y: auto;
     }
 
     [data-scope="combobox"][data-part="popup"][data-state="open"] {

@@ -1829,6 +1829,21 @@ export const accordion: RecipeInput = {
  */
 const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
 
+/**
+ * Carbon's list-box menu, sized by the geometry the anchored-position
+ * strategy publishes (#278): exactly as wide as its field at the least
+ * (`--anchor-width`, 12rem otherwise) — a Carbon list box menu is the
+ * field's width — and never taller than the room on the side it opened to
+ * (`--available-height`), scrolling past Carbon's 18.75rem menu cap.
+ * Border-box, so both bounds measure the box the strategy positions.
+ */
+const anchoredListbox: CssProps = {
+    boxSizing: 'border-box',
+    minWidth: 'var(--anchor-width, 12rem)',
+    maxHeight: 'min(18.75rem, var(--available-height, 18.75rem))',
+    overflowY: 'auto',
+};
+
 export const select: RecipeInput = {
     component: 'select',
     parts: {
@@ -1939,7 +1954,7 @@ export const select: RecipeInput = {
                 opacity: '0',
                 transform: 'translateY(-0.25rem)',
                 padding: '0',
-                minWidth: '12rem',
+                ...anchoredListbox,
                 background: 'var(--color-base-200)',
                 color: 'var(--color-base-content)',
                 fontFamily: 'var(--font-sans)',
@@ -2650,7 +2665,7 @@ export const combobox: RecipeInput = {
         },
         popup: {
             base: {
-                minWidth: '12rem',
+                ...anchoredListbox,
                 padding: '0',
                 background: 'var(--color-base-200)',
                 color: 'var(--color-base-content)',

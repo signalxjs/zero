@@ -577,6 +577,19 @@ component's anatomy). No component code is ever written or changed.
        runtime-published `--slider-percent` as a gradient stop, and revert
        to `appearance: 'auto'` under `forced-colors` (native rendering
        knows forced colors better than a custom skin).
+   - **Popup geometry is published too — size floating parts from it.** The
+     position strategy writes `--anchor-width`/`--anchor-height` (the
+     anchor's size), `--available-width`/`--available-height` (the room on
+     the side the popup opened to, less `collisionPadding`) and
+     `--transform-origin` (the anchor-facing edge, e.g. `top left`) on every
+     select, combobox, menu, popover and tooltip popup. A listbox popup
+     should be `boxSizing: 'border-box', minWidth: 'var(--anchor-width,
+     12rem)', maxHeight: 'min(20rem, var(--available-height, 20rem))',
+     overflowY: 'auto'` rather than a fixed width that ignores its trigger;
+     a popup that scales in sets `transformOrigin: 'var(--transform-origin,
+     center)'`. Always read them with a fallback. They are runtime
+     properties, so web-only: in a design system that also builds lynx, put
+     them in the recipe's `targets.web` section.
    - `RecipeInput.css` takes raw CSS for anything the typed surface can't say.
    - **Style Button first, and make its axes compose.** It is the component a
      design system is judged on, and the only one where all three axes matter
