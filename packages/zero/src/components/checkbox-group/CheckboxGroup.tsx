@@ -105,6 +105,7 @@ const CheckboxGroupRoot = component<CheckboxGroupRootProps>(({ props, slots, emi
             const all = allValues();
             return registry.entries().filter((e) => all.includes(e.value())).map((e) => e.id);
         },
+        members: () => registry.entries().map((e) => e.value()),
         register: registry.register,
         labelId,
         setLabelPresent: (p) => { present.label = countPresence(present.label, p); },

@@ -4,7 +4,7 @@
  * bundled with it — a click on an indeterminate box used to clear the
  * native property while `data-state` still said `indeterminate`.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
 import { Checkbox, CheckboxGroup, Field, checkboxAnatomy, checkboxGroupAnatomy } from '@sigx/zero';
@@ -157,6 +157,43 @@ describe('CheckboxGroup', () => {
         click(inputs(form)[1]!);
         expect(inputs(form).map((i) => i.required)).toEqual([false, false]);
         expect(form.checkValidity()).toBe(true);
+    });
+
+    it('required counts only rendered boxes: a model value no box renders leaves the group empty', async () => {
+        const form = document.createElement('form');
+        container.appendChild(form);
+        render(
+            <CheckboxGroup.Root name="letters" required defaultValue={['zzz']}>
+                <Checkbox.Root value="a">A</Checkbox.Root>
+                <Checkbox.Root value="b">B</Checkbox.Root>
+            </CheckboxGroup.Root>,
+            form,
+        );
+        await tick();
+        expect(inputs(form).map((i) => i.required)).toEqual([true, true]);
+        expect(form.checkValidity()).toBe(false);
+        click(inputs(form)[0]!);
+        expect(inputs(form).map((i) => i.required)).toEqual([false, false]);
+        expect(form.checkValidity()).toBe(true);
+    });
+
+    it('warns when a child box has no value (every such box would share "on")', async () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        try {
+            render(
+                <CheckboxGroup.Root>
+                    <Checkbox.Root value="a">A</Checkbox.Root>
+                    <Checkbox.Root>No value</Checkbox.Root>
+                    <Checkbox.Root parent>All</Checkbox.Root>
+                </CheckboxGroup.Root>,
+                container,
+            );
+            await tick();
+            const calls = warn.mock.calls.filter((c) => String(c[0]).includes('CheckboxGroup has no `value`'));
+            expect(calls).toHaveLength(1);
+        } finally {
+            warn.mockRestore();
+        }
     });
 
     it('Field: its label and description name the ROOT; its disabled reaches the boxes; the boxes keep ids of their own', async () => {

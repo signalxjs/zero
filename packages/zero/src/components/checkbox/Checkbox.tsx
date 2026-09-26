@@ -104,6 +104,14 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
     // context is the group's inert one, so the id is the box's own.)
     if (inGroup && !props.parent) {
         onUnmounted(group.register({ value: itemValue, id: fc.controlId() }));
+        onMounted(() => {
+            if (props.value === undefined) {
+                console.warn(
+                    '[zero] Checkbox.Root inside a CheckboxGroup has no `value`: it is the membership key and the '
+                    + 'posted value, so every such box would share "on". Pass a distinct `value` to each box.',
+                );
+            }
+        });
     }
 
     /** A parent box's view of the group: how many of `allValues` are selected. */
@@ -172,13 +180,18 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
      * The native `required`. A readonly box's state is not the user's to
      * fix, so it never blocks the submit (the native rule for readonly
      * controls). A group's `required` means "at least one": its boxes are
-     * natively required only while none is checked, so the platform blocks
-     * the submit and reports on the first box until one is.
+     * natively required only while none of its rendered boxes is checked,
+     * so the platform blocks the submit and reports on the first box until
+     * one is. A model value no box renders does not count; before the boxes
+     * have registered (the first pass, SSR) the model stands in.
      */
     const nativeRequired = (): boolean => {
         if (readonly() || isParent()) return false;
         if (fc.required()) return true;
-        return group.required() && group.state.value.length === 0;
+        if (!group.required()) return false;
+        const selected = group.state.value;
+        const members = group.members();
+        return members.length > 0 ? !members.some((v) => selected.includes(v)) : selected.length === 0;
     };
 
     /** A parent box toggles all or none of the group's `allValues`. */

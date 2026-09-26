@@ -34,6 +34,11 @@ export interface CheckboxGroupContext {
     /** The input ids of the registered children a parent box controls. */
     controls(): string[];
     /**
+     * The values of the registered (non-parent) children — the boxes
+     * actually rendered, which is what `required`'s "at least one" counts.
+     */
+    members(): string[];
+    /**
      * A child box registers on setup and withdraws on unmount — both
      * deferred a microtask (a write made during a render pass is invisible
      * to the pass rendering the parent box). Returns the withdrawal.
@@ -81,6 +86,7 @@ function makeInert(): CheckboxGroupContext {
         readonly: () => false,
         allValues: () => [],
         controls: () => [],
+        members: () => [],
         register: () => () => {},
         labelId: 'zx-checkbox-group-inert-label',
         setLabelPresent: () => {},
