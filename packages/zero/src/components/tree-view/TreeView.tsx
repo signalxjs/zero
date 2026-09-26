@@ -574,8 +574,20 @@ export type TreeViewItemProps =
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
+/**
+ * `''` is the single-mode model's "nothing selected": a node carrying it
+ * would read as selected while nothing is. Only `multiple` (a `string[]`,
+ * no sentinel) may use it.
+ */
+const refuseEmptySentinel = (ctx: { multiple(): boolean }, value: string, part: string): void => {
+    if (value === '' && !ctx.multiple()) {
+        throw new Error(`[zero] TreeView: a ${part} valued "" is reserved for "nothing selected" in single mode — give it a non-empty value`);
+    }
+};
+
 const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, onUnmounted, signal }) => {
     const ctx = useTreeViewContext();
+    refuseEmptySentinel(ctx, props.value, 'item');
     const branch = useTreeBranchContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
@@ -681,6 +693,7 @@ export type TreeViewBranchProps =
 
 const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onMounted, onUnmounted, signal }) => {
     const ctx = useTreeViewContext();
+    refuseEmptySentinel(ctx, props.value, 'branch');
     const parent = useTreeBranchContext();
     let el: HTMLElement | null = null;
     let triggerEl: HTMLElement | null = null;

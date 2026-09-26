@@ -612,6 +612,26 @@ describe('TreeView', () => {
         expect(state.file).toBe('src/index.ts');
         expect(byValue(container, 'src').getAttribute('data-state')).toBe('closed');
     });
+    it('refuses a node valued "" in single mode — it is the empty sentinel', () => {
+        for (const node of [
+            <TreeView.Item value="">none</TreeView.Item>,
+            <TreeView.Branch value=""><TreeView.BranchTrigger>none</TreeView.BranchTrigger></TreeView.Branch>,
+        ]) {
+            expect(() => render(
+                <TreeView.Root><TreeView.Tree>{node}</TreeView.Tree></TreeView.Root>,
+                container,
+            )).toThrow(/reserved/);
+        }
+    });
+
+    it('accepts a node valued "" under multiple, where the model has no sentinel', () => {
+        render(
+            <TreeView.Root multiple><TreeView.Tree><TreeView.Item value="">none</TreeView.Item></TreeView.Tree></TreeView.Root>,
+            container,
+        );
+        expect(container.querySelector('[role="treeitem"]')!.hasAttribute('data-selected')).toBe(false);
+    });
+
 });
 
 // ── Multiple selection (#287) ──
