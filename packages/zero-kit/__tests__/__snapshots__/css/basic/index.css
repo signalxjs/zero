@@ -5193,6 +5193,7 @@
     [data-scope="input"][data-part="control"] {
         display: inline-flex;
         align-items: stretch;
+        gap: var(--space-2xs);
         background: var(--color-base-100);
         border: var(--border) solid var(--color-base-300);
         border-radius: var(--radius-field);
@@ -5245,6 +5246,106 @@
         color: color-mix(in oklch, var(--color-base-content) 55%, transparent);
     }
 
+    [data-scope="input"][data-part="adornment"] {
+        display: inline-flex;
+        align-items: center;
+        flex: none;
+        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+        font-size: var(--text-sm);
+        line-height: var(--leading-none);
+    }
+
+    [data-scope="input"][data-part="adornment"][data-placement="start"] {
+        order: -1;
+        padding-inline-start: var(--space-lg);
+    }
+
+    [data-scope="input"][data-part="adornment"][data-placement="end"] {
+        order: 1;
+        padding-inline-end: var(--space-lg);
+    }
+
+    [data-scope="input"][data-part="clear-trigger"] {
+        appearance: none;
+        padding: var(--space-2xs) var(--space-xs);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        font-variant-numeric: tabular-nums;
+        line-height: var(--leading-none);
+        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+        background: transparent;
+        border: none;
+        border-radius: var(--radius-field);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+        align-self: center;
+        flex: none;
+        order: 1;
+        margin-inline-end: var(--space-xs);
+    }
+
+    [data-scope="input"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        color: var(--color-base-content);
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="input"][data-part="clear-trigger"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="input"][data-part="clear-trigger"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="input"][data-part="clear-trigger"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"] {
+        appearance: none;
+        padding: var(--space-2xs) var(--space-xs);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        font-variant-numeric: tabular-nums;
+        line-height: var(--leading-none);
+        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+        background: transparent;
+        border: none;
+        border-radius: var(--radius-field);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+        align-self: center;
+        flex: none;
+        order: 1;
+        margin-inline-end: var(--space-xs);
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-state="on"] {
+        color: var(--color-base-content);
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"]:hover:not([data-disabled]) {
+        color: var(--color-base-content);
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
+    }
+
     [data-scope="input"][data-part="root"][data-color="primary"] {
         --input-accent: var(--color-primary);
     }
@@ -5282,12 +5383,36 @@
             font-size: var(--text-xs);
             padding: var(--space-xs) var(--space-sm);
         }
+
+        [data-scope="input"][data-part="adornment"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="input"][data-part="clear-trigger"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="input"][data-part="visibility-trigger"] {
+            font-size: var(--text-xs);
+        }
     }
 
     @scope ([data-scope="input"][data-part="root"][data-size="sm"]) to ([data-scope="input"][data-part="root"]) {
         [data-scope="input"][data-part="input"] {
             font-size: var(--text-xs);
             padding: var(--space-sm) var(--space-md);
+        }
+
+        [data-scope="input"][data-part="adornment"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="input"][data-part="clear-trigger"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="input"][data-part="visibility-trigger"] {
+            font-size: var(--text-xs);
         }
     }
 
@@ -5296,12 +5421,36 @@
             font-size: var(--text-md);
             padding: var(--space-lg) var(--space-xl);
         }
+
+        [data-scope="input"][data-part="adornment"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="input"][data-part="clear-trigger"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="input"][data-part="visibility-trigger"] {
+            font-size: var(--text-md);
+        }
     }
 
     @scope ([data-scope="input"][data-part="root"][data-size="xl"]) to ([data-scope="input"][data-part="root"]) {
         [data-scope="input"][data-part="input"] {
             font-size: var(--text-lg);
             padding: var(--space-xl) var(--space-2xl);
+        }
+
+        [data-scope="input"][data-part="adornment"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="input"][data-part="clear-trigger"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="input"][data-part="visibility-trigger"] {
+            font-size: var(--text-lg);
         }
     }
 }

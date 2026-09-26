@@ -173,7 +173,13 @@ file-upload (#273: an empty `required` upload's real submit lands focus
 on the trigger and reads invalid until a file arrives, a refused picker
 selection never stays in the input's own FileList, a removal hands focus
 to the next remove button and a clear to the trigger, and a `dragleave`
-into a real child keeps the dropzone lit), and
+into a real child keeps the dropzone lit), input-affordances (#281: a
+press on an adornment focuses the input, the clear trigger empties the
+field without ever blurring it, Escape clears a search field, keyboard Tab
+skips the untabbable clear trigger for the visibility toggle; and, per
+skin in both directions, every affordance sits inside the control at the
+reading edge it names — the recipes order with `order`, which the
+physical-direction lint cannot check), and
 the `createVirtualList` behavior (#56: measured rows tile with no gap
 under real layout, stick-to-bottom follows the tail and lets go on a
 wheel scroll up, a prepend leaves the row being read in place, and no

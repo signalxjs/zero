@@ -2885,6 +2885,21 @@ function withPresence(presence: PartStyles, styles: PartStyles): PartStyles {
 
 // ── Text fields ───────────────────────────────────────────────────────────
 /**
+ * The field buttons inside a text field (#281): `iconClose`'s quiet chrome,
+ * centred in the row, kept after the text, at the field's text size.
+ */
+const fieldButton: NonNullable<PartStyles['base']> = {
+    ...iconClose.base,
+    alignSelf: 'center',
+    flex: 'none',
+    order: '1',
+    marginInlineEnd: 'var(--space-xs)',
+    padding: 'var(--space-2xs) var(--space-xs)',
+    fontSize: 'var(--input-text)',
+    lineHeight: 'var(--leading-none)',
+};
+
+/**
  * HeroUI's bordered input. Same chrome as the number input's control, and the
  * same three-step ramp — no `color` axis, because this design system declares
  * none (`roles: {}`); the ring is always `--hero-focus` and the invalid border
@@ -2911,6 +2926,7 @@ export const input: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignItems: 'stretch',
+                gap: 'var(--space-2xs)',
                 border: 'var(--border) solid var(--hero-line)',
                 borderRadius: 'var(--radius-field)',
                 background: 'var(--color-base-100)',
@@ -2943,6 +2959,40 @@ export const input: RecipeInput = {
             },
             selectors: {
                 '&::placeholder': { color: 'var(--hero-muted)' },
+            },
+        },
+        // HeroUI's `startContent` / `endContent`: muted, at the field's own
+        // text size (`--input-text` already follows the size step), ordered
+        // to its edge logically.
+        adornment: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                flex: 'none',
+                color: 'var(--hero-muted)',
+                fontSize: 'var(--input-text)',
+                lineHeight: 'var(--leading-none)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
+                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+            },
+        },
+        // `isClearable`'s button: the quiet ✕ chrome, inside the field.
+        'clear-trigger': {
+            ...iconClose,
+            base: fieldButton,
+        },
+        // The password toggle from HeroUI's docs, as a pressed-state button:
+        // shown lifts the muted glyph to full ink on the hover fill.
+        'visibility-trigger': {
+            ...iconClose,
+            base: fieldButton,
+            states: {
+                ...iconClose.states,
+                on: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
+                off: {},
             },
         },
     },

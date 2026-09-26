@@ -430,9 +430,14 @@ describe('the pass-through reaches every part', () => {
             </FileUpload.Root>
         ),
         input: () => (
-            <Input.Root {...p('root')}>
+            <Input.Root {...p('root')} type="password" defaultValue="x">
                 <Input.Label {...p('label')}>Name</Input.Label>
-                <Input.Control {...p('control')}><Input.Input {...p('input')} /></Input.Control>
+                <Input.Control {...p('control')}>
+                    <Input.Adornment {...p('adornment')} placement="start">@</Input.Adornment>
+                    <Input.Input {...p('input')} />
+                    <Input.ClearTrigger {...p('clear-trigger')} />
+                    <Input.VisibilityTrigger {...p('visibility-trigger')} />
+                </Input.Control>
             </Input.Root>
         ),
         'number-input': () => (

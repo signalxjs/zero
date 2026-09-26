@@ -3912,6 +3912,90 @@
         color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
     }
 
+    [data-scope="input"][data-part="adornment"] {
+        display: inline-flex;
+        align-items: center;
+        flex: none;
+        color: color-mix(in oklab, var(--color-base-content) 75%, transparent);
+        font-size: var(--text-sm);
+        line-height: var(--leading-none);
+    }
+
+    [data-scope="input"][data-part="adornment"][data-placement="start"] {
+        order: -1;
+        padding-inline-start: var(--space-md);
+    }
+
+    [data-scope="input"][data-part="adornment"][data-placement="end"] {
+        order: 1;
+        padding-inline-end: var(--space-md);
+    }
+
+    [data-scope="input"][data-part="clear-trigger"] {
+        appearance: none;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: color-mix(in oklab, var(--color-base-content) 75%, transparent);
+        flex: none;
+        order: 1;
+        min-width: 2.5rem;
+        padding: 0 var(--space-sm);
+        font-size: var(--text-sm);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="input"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="input"][data-part="clear-trigger"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="input"][data-part="clear-trigger"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"] {
+        appearance: none;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: color-mix(in oklab, var(--color-base-content) 75%, transparent);
+        flex: none;
+        order: 1;
+        min-width: 2.5rem;
+        padding: 0 var(--space-sm);
+        font-size: var(--text-sm);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-state="on"] {
+        color: var(--color-base-content);
+        background: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
     @scope ([data-scope="input"][data-part="root"][data-size="sm"]) to ([data-scope="input"][data-part="root"]) {
         [data-scope="input"][data-part="control"] {
             min-height: 2rem;

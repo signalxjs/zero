@@ -20,6 +20,11 @@
 - Accordion's new root props are reserved, so a vendor-named api cannot
   claim them as axis props.
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.input` gains `defaultVisible` (zero#281)
+
+- Input's new root prop, which seeds the password visibility model, is
+  reserved, so a vendor-named api cannot claim it as an axis prop.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE['file-upload']` gains the constraint props (zero#273)
 
 - FileUpload's new root props — `capture`, `directory`, `maxFileSize`,

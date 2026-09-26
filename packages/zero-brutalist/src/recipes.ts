@@ -2798,6 +2798,35 @@ export const treeView: RecipeInput = {
 
 // ── Text fields ───────────────────────────────────────────────────────────
 /**
+ * The affordances inside a text field (#281). The slab clips its content
+ * (`overflow: hidden`), so the focus ring draws inside the cell rather than
+ * outside it; the size step follows the input's.
+ */
+const fieldButton: NonNullable<PartStyles['base']> = {
+    appearance: 'none',
+    border: 'none',
+    borderInlineStart: 'var(--border) solid var(--color-base-content)',
+    borderRadius: '0',
+    background: 'var(--color-base-100)',
+    color: 'var(--color-base-content)',
+    flex: 'none',
+    order: '1',
+    padding: '0 var(--space-sm)',
+    ...label,
+    fontSize: 'var(--text-xs)',
+    lineHeight: 'var(--leading-none)',
+    cursor: 'pointer',
+};
+const insetRing: Record<string, CssProps> = {
+    'focus-visible': { outline: 'var(--border) solid var(--color-primary)', outlineOffset: '-4px' },
+};
+const affixSize = (fontSize: string) => ({
+    adornment: { base: { fontSize } },
+    'clear-trigger': { base: { fontSize } },
+    'visibility-trigger': { base: { fontSize } },
+});
+
+/**
  * A slab you type into. Same inked frame and hard shadow as the number
  * input's, and the same mono uppercase label above it — but the typed value
  * itself stays in the reading face. Uppercasing what the user wrote would be
@@ -2860,6 +2889,50 @@ export const input: RecipeInput = {
                 '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)', textTransform: 'uppercase' },
             },
         },
+        // A stamped cell of the slab: mono caps in full ink, cut off from the
+        // text by an inked rule on its inner edge. `order` and logical
+        // borders, so the cell and its rule flip with the reading direction.
+        adornment: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                flex: 'none',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-200)',
+                padding: '0 var(--space-sm)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&[data-placement="start"]': { order: '-1', borderInlineEnd: 'var(--border) solid var(--color-base-content)' },
+                '&[data-placement="end"]': { order: '1', borderInlineStart: 'var(--border) solid var(--color-base-content)' },
+            },
+        },
+        // The field buttons are cells too: full height, ruled off, square.
+        'clear-trigger': {
+            base: fieldButton,
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { cursor: 'not-allowed' },
+                ...insetRing,
+            },
+        },
+        // Shown inverts the cell — ink ground, paper glyph. A mode, stamped.
+        'visibility-trigger': {
+            base: fieldButton,
+            states: {
+                on: { background: 'var(--color-base-content)', color: 'var(--color-base-100)' },
+                off: {},
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { cursor: 'not-allowed' },
+                ...insetRing,
+            },
+            selectors: {
+                '&[data-state="on"]:hover': { background: 'var(--color-base-content)' },
+            },
+        },
     },
     // The visible ring lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
@@ -2870,13 +2943,13 @@ export const input: RecipeInput = {
             '--input-accent': `var(--color-${c})`,
         } } }])),
         size: {
-            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
-            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } }, ...affixSize('var(--text-xs)') },
+            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } }, ...affixSize('var(--text-xs)') },
             // `md` is the un-attributed render: the base already IS the
             // middle step.
             md: {},
-            lg: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-md) var(--space-lg)' } } },
-            xl: { input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-lg) var(--space-xl)' } } },
+            lg: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-md) var(--space-lg)' } }, ...affixSize('var(--text-sm)') },
+            xl: { input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-lg) var(--space-xl)' } }, ...affixSize('var(--text-md)') },
         },
     },
 };

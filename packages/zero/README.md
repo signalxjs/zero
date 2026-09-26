@@ -175,6 +175,43 @@ system's size axis (`data-size`), so width belongs to the recipe.
 </Input.Root>
 ```
 
+**Input's control holds three affordances (#281).** `Input.Adornment`
+(part `adornment`, `placement="start" | "end"` → `data-placement`) puts
+consumer content — an icon, a unit, a prefix — at a logical edge of the
+control; a press on it that lands on nothing interactive focuses the input
+and keeps its caret. `aria-hidden` is not forced: whether it speaks is the
+app's call. `Input.ClearTrigger` (part `clear-trigger`) empties the value
+the way typing would — the model writes, `valueChange` fires, and an
+`input` event reaches the app's own listeners — then focuses the input. It
+is out of the tab order (`tabindex="-1"`), points at the input through
+`aria-controls`, renders nothing while the field is empty — what the
+field shows, so text a `lazy` or `debounce` model has not taken yet
+counts — is disabled with the field and while it is readonly, and its
+name defaults to "Clear".
+In a `type="search"` field Escape does the same while there is something
+to clear, and cancels the key so an enclosing dialog or popover stays
+open; an empty field lets Escape through. `Input.VisibilityTrigger` (part
+`visibility-trigger`, states `on|off`) toggles `model:visible` on the Root
+(`defaultVisible`, `visibleChange`); while it is on, a `type="password"`
+input renders `type="text"`. It is a toggle button: `aria-pressed`, one
+constant name ("Show password"), `aria-controls` the input. Both triggers
+take `label`, and render a default glyph when given no children; the
+visibility trigger's slot receives `{ visible }` to swap an icon. Every
+skin lays them out in the control's row with `order` and logical padding,
+so they flip with the reading direction.
+
+```tsx
+<Input.Root type="password" model={() => state.password} model:visible={() => state.shown}>
+    <Input.Label>Password</Input.Label>
+    <Input.Control>
+        <Input.Adornment placement="start"><LockIcon /></Input.Adornment>
+        <Input.Input />
+        <Input.ClearTrigger />
+        <Input.VisibilityTrigger />
+    </Input.Control>
+</Input.Root>
+```
+
 **Readonly reaches every value control, not only text (#267).** Input,
 Textarea, NumberInput, Combobox, RatingGroup — and Checkbox, Switch,
 RadioGroup, Select and Slider — take `readonly` (`WithReadonly`), the prop OR
@@ -761,7 +798,8 @@ The part's own attributes win where both set one, with three refinements:
   the live region), Breadcrumbs' "Breadcrumb", Pagination's
   "Pagination" and every icon trigger's default (`Alert.Close`, the
   Carousel triggers and dots, `Diff.Handle`, the NumberInput steppers,
-  `FileUpload.ItemRemove`/`ClearTrigger`, a Carousel slide's "n of m", `Toast.Close`,
+  `FileUpload.ItemRemove`/`ClearTrigger`, `Input.ClearTrigger`/`VisibilityTrigger`,
+  a Carousel slide's "n of m", `Toast.Close`,
   the toast viewport's "Notifications (F8)", `Combobox.Trigger`/`TagRemove`,
   `Select.Trigger`) — the `label` prop
   still beats both — and names `Status` (a named dot is an `img`) and
