@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-26
+
 ### Added — Table sorting: `model:sort`, `sort-trigger` / `sort-indicator` and `aria-sort` (#286)
 
 - **A governed sort state family**: `STATE_VOCABULARY.sort` is

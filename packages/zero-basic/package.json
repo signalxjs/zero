@@ -1,6 +1,6 @@
 {
     "name": "@sigx/zero-basic",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "description": "Neutral starter design system for SignalX Zero — readable defaults so zero-primitives apps look sane on day one, and the reference input/output pair for the design-system generation skill.",
     "type": "module",
     "main": "./dist/index.js",
