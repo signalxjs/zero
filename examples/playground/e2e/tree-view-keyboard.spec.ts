@@ -7,7 +7,9 @@
  * collapses-then-climbs, Enter/Space select without toggling expansion,
  * disabled nodes are skipped by navigation AND typeahead, typeahead
  * moves focus by first characters, and a disabled node that a pointer focused
- * still navigates without selecting (#177).
+ * still navigates without selecting (#177). Since #271 it also holds the
+ * pointer to the keyboard's reading of a branch row (a click selects it),
+ * `*` expanding siblings, and the `expandOnClick={false}` + `loading` demo.
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { bootPage } from './nav';
@@ -143,4 +145,47 @@ test('a pointer-focused disabled node still roves, but never selects (#177)', as
     await expect(secrets).toBeFocused();
     await page.keyboard.press('Home');
     await expect(branch(page, 'src', 1)).toBeFocused();
+});
+
+test('a click on a branch row selects it, as Enter does, and toggles it (#271)', async ({ page }) => {
+    const components = branch(page, 'components', 2);
+    await expect(components).toHaveAttribute('aria-selected', 'false');
+    await components.locator('> [data-part="branch-trigger"]').click();
+    await expect(components).toHaveAttribute('aria-selected', 'true');
+    await expect(components).toHaveAttribute('aria-expanded', 'true');
+    await expect(components).toBeFocused();
+    await expect(page.locator('code', { hasText: 'src/components' })).toBeVisible();
+});
+
+test("'*' expands every sibling branch of the focused node (#271)", async ({ page }) => {
+    const components = branch(page, 'components', 2);
+    await expect(components).toHaveAttribute('aria-expanded', 'false');
+    await item(page, 'index.ts').focus();
+    await page.keyboard.press('*');
+    await expect(components).toHaveAttribute('aria-expanded', 'true');
+    // Not a typeahead character: focus stays put.
+    await expect(item(page, 'index.ts')).toBeFocused();
+});
+
+test('expandOnClick=false: the row selects, the indicator toggles; a loading branch is busy (#271)', async ({ page }) => {
+    const remoteDemo = demoLabelled(page, 'tree-view', 'Remote files');
+    const remote = remoteDemo('branch')
+        .filter({ has: page.locator('[data-scope="tree-view"][data-part="branch-trigger"]', { hasText: 'remote' }) });
+    const trigger = remote.locator('> [data-part="branch-trigger"]');
+    const indicator = trigger.locator('[data-part="branch-indicator"]');
+
+    await trigger.click();
+    await expect(remote).toHaveAttribute('aria-selected', 'true');
+    await expect(remote).toHaveAttribute('aria-expanded', 'false');
+
+    await indicator.click();
+    await expect(remote).toHaveAttribute('aria-expanded', 'true');
+    await expect(remote).toHaveAttribute('aria-busy', 'true');
+    await expect(indicator).toHaveAttribute('data-state', 'loading');
+    await expect(remote.locator('> [data-part="branch-content"]')).toHaveAttribute('data-state', 'loading');
+
+    // The "fetch" lands: the children render and the busy state clears.
+    await expect(remoteDemo('item').filter({ hasText: 'server.ts' })).toBeVisible();
+    await expect(remote).not.toHaveAttribute('aria-busy', 'true');
+    await expect(indicator).toHaveAttribute('data-state', 'open');
 });
