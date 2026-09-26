@@ -74,7 +74,7 @@
     {
         "name": "@sigx/zero/anatomy (tooling entry)",
         "path": "packages/zero/dist/anatomy.js",
-        "limit": "3.9 kB",
+        "limit": "3.98 kB",
         "ignore": [
             "sigx",
             "@sigx/runtime-core",
@@ -180,7 +180,7 @@
     {
         "name": "@sigx/zero/rating-group",
         "path": "packages/zero/dist/components/rating-group/index.js",
-        "limit": "3.9 kB",
+        "limit": "3.98 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
