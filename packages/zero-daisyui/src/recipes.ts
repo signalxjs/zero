@@ -2711,9 +2711,9 @@ const btnHeight = (step: keyof typeof BTN_STEPS): string =>
  * fades the whole button (`opacity: var(--disabled-opacity)`, 0.3 on the
  * dark themes), which on device left a solid button's label barely legible.
  * daisy's own `.btn:disabled` paints instead: a base-content wash (not on
- * ghost/link), no border, no shadow, and a muted base-content label. daisy
- * mutes that label to 20%; this keeps it at 50%, still plainly inert but
- * readable on a phone at arm's length.
+ * ghost/link), a transparent border, no shadow, and a muted base-content
+ * label. daisy mutes that label to 20%; this keeps it at 50%, still plainly
+ * inert but readable on a phone at arm's length.
  */
 const lynxBtnDisabled: CssProps = {
     opacity: '1',
