@@ -234,7 +234,10 @@ describe('TreeView', () => {
         expect(onExpandedValuesChange).not.toHaveBeenCalled();
 
         state.file = '';
-        container.querySelector<HTMLElement>('[data-part="branch-indicator"]')!.click();
+        const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+        container.querySelector<HTMLElement>('[data-part="branch-indicator"]')!.dispatchEvent(click);
+        // No default activation either: an asChild link trigger stays put.
+        expect(click.defaultPrevented).toBe(true);
         expect(branch.getAttribute('aria-expanded')).toBe('true');
         expect(onExpandedValuesChange).toHaveBeenCalledWith(['src']);
         // The indicator toggles alone: the row's click never saw it.

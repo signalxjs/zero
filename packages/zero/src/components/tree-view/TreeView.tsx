@@ -666,9 +666,12 @@ const TreeViewBranchIndicator = component<TreeViewBranchIndicatorProps>(({ props
             onClick={(e: MouseEvent) => {
                 // With `expandOnClick` on, the row's own click toggles — let
                 // it bubble. Off, the indicator is the toggle's hit area:
-                // it toggles alone and keeps the row from selecting.
+                // it toggles alone and keeps the row from selecting — and,
+                // under an asChild link or button trigger, from navigating
+                // or submitting.
                 if (ctx.expandOnClick()) return;
                 e.stopPropagation();
+                e.preventDefault();
                 // Outside a registered Branch there is nothing to toggle.
                 const node = ctx.tree.findNode(value());
                 if (!node || ctx.disabled() || node.disabled()) return;
