@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added — The sort state family (zero#286)
+
+- `STATE_VOCABULARY` gains `sort: ['ascending', 'descending', 'none']` and
+  `STATE_SYNONYMS` maps `asc`, `desc` and `unsorted` to them, mirroring
+  `@sigx/zero/contract`, so `mergeManifests` accepts the family in an
+  ecosystem fragment and names the member for a rejected spelling.
+
+### Changed — `RESERVED_PROPS_BY_SCOPE.table` gains `defaultSort` and `sortCycle` (zero#286)
+
+- Table's new root props are reserved, so a vendor-named api cannot claim
+  them as axis props. The named `model:sort` reserves nothing, since no
+  `as` can spell a `model:<name>` key.
+
 ### Added — `popupArrow`, and the arrow offsets as runtime properties (zero#279)
 
 - **`popupArrow(scope, { size, paint })`** and **`popupArrowHost(scope)`**
