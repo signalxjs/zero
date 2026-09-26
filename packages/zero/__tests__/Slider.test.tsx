@@ -487,6 +487,19 @@ describe('Slider valueCommit (#272)', () => {
         control.dispatchEvent(new Event('change', { bubbles: true }));
         expect(onValueCommit).not.toHaveBeenCalled();
     });
+
+    it('a disabled native control commits nothing', () => {
+        const onValueCommit = vi.fn();
+        render(
+            <Slider.Root disabled defaultValue={40} onValueCommit={onValueCommit}>
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        const control = container.querySelector<HTMLInputElement>('[data-part="control"]')!;
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(onValueCommit).not.toHaveBeenCalled();
+    });
 });
 
 describe('Slider largeStep (#272)', () => {

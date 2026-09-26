@@ -683,9 +683,11 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
                     if (slider.readonly() && el) el.value = String(slider.values()[0]);
                 }}
                 // A native range fires `change` when a drag is released and
-                // after each keyboard step — the platform's own commit.
+                // after each keyboard step — the platform's own commit. A
+                // disabled or readonly control commits nothing, whatever
+                // dispatches a `change` at it.
                 onChange={() => {
-                    if (!slider.readonly()) slider.commit();
+                    if (!slider.disabled() && !slider.readonly()) slider.commit();
                 }}
                 onFocus={() => { slider.focusVisible.visible = isFocusVisible(el); }}
                 onBlur={(e: FocusEvent) => {
