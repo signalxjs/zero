@@ -2864,12 +2864,28 @@ const treeRow: PartStyles = {
     },
 };
 
+/**
+ * `glyphFallback`'s move for the node check box, whose tick is its `::after`:
+ * the carve drops and the same pseudo carries the glyph, in the medium's own
+ * ink (#233).
+ */
+const nodeTickFallback = (ink: string): PartStyles => ({
+    selectors: {
+        '&::after': { clipPath: 'none', background: 'none', rotate: '0deg', translate: '0', inset: '0', display: 'grid', placeItems: 'center', color: ink, fontWeight: 'var(--weight-bold)', fontSize: '0.9em', lineHeight: 'var(--leading-none)' },
+        '&[data-state="checked"]::after': { content: '"✓"', clipPath: 'none', rotate: '0deg' },
+        '&[data-state="indeterminate"]::after': { content: '"−"', clipPath: 'none', rotate: '0deg', translate: '0' },
+    },
+});
+
 export const treeView: RecipeInput = {
     component: 'tree-view',
     tokens: {
         '--tree-accent': 'var(--color-base-content)',
         '--tree-text': 'var(--text-xs)',
         '--tree-on-accent': 'var(--color-base-100)',
+        // The node check box: the checkbox's accent slab and its ink.
+        '--tree-check': 'var(--color-primary)',
+        '--tree-on-check': 'var(--color-primary-content)',
     },
     parts: {
         root: {
@@ -2911,6 +2927,49 @@ export const treeView: RecipeInput = {
             // already rotated to point down, is unaffected by a horizontal flip.
             selectors: { [`&${rtl}`]: { scale: '-1 1' } },
         },
+        // The checkbox's inked box at row scale — full frame, paper fill, the
+        // accent slab on check — with the same carved tick on its `::after`
+        // (the part is one span), drawn in the same three hard frames. The
+        // frame is the whole unchecked mark, and it is page ink, so it
+        // survives a stamped (selected) row by its own paper fill. Unlike
+        // checkbox's, indeterminate follows the tree's accent: a branch's
+        // "some" is the same fact as its "all", only partial.
+        'node-checkbox': {
+            base: {
+                ...tickBox('1.25em'),
+                display: 'inline-block',
+                position: 'relative',
+                flexShrink: '0',
+                boxSizing: 'border-box',
+                cursor: 'pointer',
+            },
+            states: {
+                checked: { background: 'var(--tree-check)' },
+                indeterminate: { background: 'var(--tree-check)' },
+                unchecked: {},
+                disabled: { cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '20%',
+                    background: 'var(--tree-on-check)',
+                    clipPath: TICK_COLLAPSED,
+                    rotate: '45deg',
+                    opacity: '0',
+                    transition: 'clip-path var(--duration-slow) var(--ease-emphasized), '
+                        + motion('opacity, rotate, translate'),
+                },
+                '&[data-state="checked"]::after': { clipPath: TICK, opacity: '1' },
+                '&[data-state="indeterminate"]::after': { clipPath: BAR, rotate: '0deg', translate: '0 -35%', opacity: '1' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, selectors: { '&::after': { transition: 'none' } } },
+                'forced-colors': nodeTickFallback('CanvasText'),
+                print: nodeTickFallback('var(--print-ink)'),
+            },
+        },
         'branch-content': {
             base: {
                 display: 'flex',
@@ -2926,11 +2985,14 @@ export const treeView: RecipeInput = {
     // indicator and the treeitem's aria-busy carry the state.
     sameAs: { 'branch-content': { loading: 'open' } },
     variants: {
-        // A tree colours one thing: the selected row. Everything else is
-        // structure, and tinting it would fight the content.
+        // A tree colours two things: the selected row and the node check
+        // box. Everything else is structure, and tinting it would fight the
+        // content.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--tree-accent': `var(--color-${c})`,
             '--tree-on-accent': `var(--color-${c}-content)`,
+            '--tree-check': `var(--color-${c})`,
+            '--tree-on-check': `var(--color-${c}-content)`,
         } } }])),
         size: {
             xs: { root: { base: { '--tree-text': 'var(--text-xs)' } } },

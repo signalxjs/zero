@@ -3364,12 +3364,38 @@ const treeRow: PartStyles = {
     },
 };
 
+/**
+ * The node check box's mark: Material's check as one mitred, square-cut
+ * polyline, and its bar, sharing a point count and topology so `clip-path`
+ * morphs between them; `HOME` is the check collapsed onto its elbow.
+ */
+const NODE_CHECK = 'polygon(14% 44%, 0% 58%, 36% 94%, 100% 30%, 86% 16%, 36% 66%)';
+const NODE_CHECK_HOME = 'polygon(36% 66%, 36% 94%, 36% 94%, 36% 94%, 36% 66%, 36% 66%)';
+const NODE_DASH = 'polygon(6% 42%, 6% 58%, 36% 58%, 94% 58%, 94% 42%, 36% 42%)';
+
+/**
+ * `markGlyphFallback` for the node check box: its mark is one `::after`, so
+ * the geometry drops there and the same pseudo carries the glyph, in the
+ * medium's own ink.
+ */
+const nodeMarkFallback = (ink: string): PartStyles => ({
+    selectors: {
+        '&::after': { clipPath: 'none', background: 'transparent', inset: '0', display: 'grid', placeItems: 'center', color: ink, fontSize: '0.85em', lineHeight: 'var(--leading-none)' },
+        '&[data-state="checked"]::after': { content: '"\\2713"', clipPath: 'none' },
+        '&[data-state="indeterminate"]::after': { content: '"\\2212"', clipPath: 'none' },
+    },
+});
+
 export const treeView: RecipeInput = {
     component: 'tree-view',
     tokens: {
         '--tree-accent': 'var(--color-secondary-soft)',
         '--tree-text': 'var(--text-sm)',
         '--tree-on-accent': 'var(--color-base-content)',
+        // The node check box: the checkbox's primary container and its
+        // on-primary mark, retinted by a colour variant.
+        '--tree-check': 'var(--color-primary)',
+        '--tree-on-check': 'var(--color-primary-content)',
     },
     parts: {
         root: {
@@ -3412,6 +3438,50 @@ export const treeView: RecipeInput = {
             // makes the intent explicit rather than relying on 0.01ms.
             at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
+        // The MD3 checkbox container at row scale — `tickBox`'s 2dp outline,
+        // filled on check — with the check as a square-cut stroke on the
+        // box's `::after` (the part is one span, so the two-arm draw the
+        // checkbox indicator uses has no second element to live on). On a
+        // selected row the pair swaps with the row's own, so a checked box
+        // never sinks into a same-role fill.
+        'node-checkbox': {
+            base: {
+                ...tickBox('var(--tree-check)', '1.125em').base,
+                display: 'inline-block',
+                position: 'relative',
+                flexShrink: '0',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+            },
+            states: {
+                checked: { background: 'var(--tree-check)', borderColor: 'var(--tree-check)' },
+                indeterminate: { background: 'var(--tree-check)', borderColor: 'var(--tree-check)' },
+                unchecked: {},
+                disabled: { cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '18%',
+                    background: 'var(--tree-on-check)',
+                    clipPath: NODE_CHECK_HOME,
+                    opacity: '0',
+                    transition: motion('clip-path, opacity'),
+                },
+                '&[data-state="checked"]::after': { clipPath: NODE_CHECK, opacity: '1' },
+                '&[data-state="indeterminate"]::after': { clipPath: NODE_DASH, opacity: '1' },
+                '[data-scope="tree-view"][data-selected] &': {
+                    '--tree-check': 'var(--tree-on-accent)',
+                    '--tree-on-check': 'var(--tree-accent)',
+                },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, selectors: { '&::after': { transition: 'none' } } },
+                'forced-colors': nodeMarkFallback('CanvasText'),
+                print: nodeMarkFallback('var(--print-ink)'),
+            },
+        },
         'branch-content': {
             base: { display: 'flex', flexDirection: 'column', paddingInlineStart: 'var(--space-lg)' },
             states: { open: {}, closed: {} },
@@ -3422,11 +3492,14 @@ export const treeView: RecipeInput = {
     // indicator and the treeitem's aria-busy carry the state.
     sameAs: { 'branch-content': { loading: 'open' } },
     variants: {
-        // A tree colours one thing: the selected row. Everything else is
-        // structure, and tinting it would fight the content.
+        // A tree colours two things: the selected row and the node check
+        // box. Everything else is structure, and tinting it would fight the
+        // content.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--tree-accent': `var(--color-${c})`,
             '--tree-on-accent': `var(--color-${c}-content)`,
+            '--tree-check': `var(--color-${c})`,
+            '--tree-on-check': `var(--color-${c}-content)`,
         } } }])),
         size: {
             xs: { root: { base: { '--tree-text': 'var(--text-xs)' } } },

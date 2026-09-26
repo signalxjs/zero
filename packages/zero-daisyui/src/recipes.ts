@@ -4325,12 +4325,29 @@ const treeRowSelectors: NonNullable<PartStyles['selectors']> = {
     },
 };
 
+/**
+ * `tickGlyphFallback` for the node check box, whose tick is its `::after`:
+ * the geometry drops and the same pseudo carries the glyph, in the medium's
+ * own ink (the #233 divergence, restated).
+ */
+const nodeTickFallback = (ink: string): PartStyles => ({
+    selectors: {
+        '&::after': { clipPath: 'none', backgroundColor: '#0000', rotate: '0deg', inset: '0', display: 'grid', placeItems: 'center', color: ink, fontSize: '0.85em', lineHeight: '1' },
+        '&[data-state="checked"]::after': { content: '"✔︎"', clipPath: 'none', rotate: '0deg' },
+        '&[data-state="indeterminate"]::after': { content: '"−"', clipPath: 'none', rotate: '0deg', translate: 'none' },
+    },
+});
+
 export const treeView: RecipeInput = {
     component: 'tree-view',
     tokens: {
         '--tree-accent': 'var(--color-primary)',
         '--tree-text': 'var(--text-sm)',
         '--tree-on-accent': 'var(--color-primary-content)',
+        // The node check box's pair — the tree's own accent, so a colour
+        // variant retints the box with the row.
+        '--tree-check': 'var(--tree-accent)',
+        '--tree-on-check': 'var(--tree-on-accent)',
     },
     parts: {
         root: {
@@ -4377,6 +4394,58 @@ export const treeView: RecipeInput = {
             selectors: { [`&${rtl}`]: { scale: '-1 1' } },
             at: {
                 'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        // daisy's `.checkbox` at row scale: the accent outline, the recessed
+        // depth shade, the fill on check — and daisy's own tick, the six
+        // clip-path points rotated 45°, drawn on the box's `::after` since
+        // the part is one span. On a selected row (the accent fill) the pair
+        // swaps, so the box never vanishes into the row it sits on.
+        'node-checkbox': {
+            base: {
+                display: 'inline-block',
+                position: 'relative',
+                flexShrink: '0',
+                boxSizing: 'border-box',
+                width: '1.25em',
+                height: '1.25em',
+                border: 'var(--border) solid var(--tree-check)',
+                borderRadius: 'var(--radius-selector)',
+                boxShadow: '0 1px var(--depth-shade) inset',
+                cursor: 'pointer',
+                transition: 'background-color var(--duration-normal) var(--ease-standard)',
+            },
+            states: {
+                checked: { backgroundColor: 'var(--tree-check)' },
+                indeterminate: { backgroundColor: 'var(--tree-check)' },
+                unchecked: {},
+                disabled: { cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '15%',
+                    opacity: '0',
+                    rotate: '45deg',
+                    backgroundColor: 'var(--tree-on-check)',
+                    clipPath: TICK_COLLAPSED,
+                    transition: 'clip-path var(--duration-slow) var(--ease-standard) var(--duration-instant), '
+                        + 'opacity var(--duration-instant) var(--ease-standard) var(--duration-instant), '
+                        + 'rotate var(--duration-slow) var(--ease-standard) var(--duration-instant), '
+                        + 'translate var(--duration-slow) var(--ease-standard) var(--duration-instant)',
+                },
+                '&[data-state="checked"]::after': { clipPath: TICK_DRAWN, opacity: '1' },
+                '&[data-state="indeterminate"]::after': { clipPath: DASH_DRAWN, opacity: '1', translate: '0 -35%', rotate: '0deg' },
+                '[data-scope="tree-view"][data-selected] &': {
+                    '--tree-check': 'var(--tree-on-accent)',
+                    '--tree-on-check': 'var(--tree-accent)',
+                },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, selectors: { '&::after': { transition: 'none' } } },
+                'forced-colors': nodeTickFallback('CanvasText'),
+                print: nodeTickFallback('var(--print-ink)'),
             },
         },
         // Indentation comes from this inline padding — depth is the DOM

@@ -3858,6 +3858,28 @@ export const ratingGroup: RecipeInput = {
     },
 };
 
+/**
+ * The node check box's fallback — `markFallback`'s move on a pseudo: forced
+ * colours rewrites the well's fill to Canvas and print drops it, so the
+ * polygon becomes a glyph in the system ink.
+ */
+const nodeMarkFallback = (ink: string): PartStyles => ({
+    selectors: {
+        '&::after': {
+            clipPath: 'none',
+            background: 'transparent',
+            inset: '0',
+            display: 'grid',
+            placeItems: 'center',
+            color: ink,
+            fontSize: '0.8em',
+            lineHeight: 'var(--leading-none)',
+        },
+        '&[data-state="checked"]::after': { content: '"\\2714"' },
+        '&[data-state="indeterminate"]::after': { content: '"\\2212"' },
+    },
+});
+
 export const treeView: RecipeInput = {
     component: 'tree-view',
     // A tree IS the docs sidebar the margin marker was designed for, so the
@@ -3867,6 +3889,11 @@ export const treeView: RecipeInput = {
         '--tree-accent': 'var(--color-primary)',
         '--tree-text': 'var(--text-sm)',
         '--tree-soft': 'var(--color-primary-soft)',
+        // The node check box: the checkbox's accent pair, and the mark's
+        // resting geometry — the collapsed stroke both marks grow out of.
+        '--tree-check': 'var(--color-primary)',
+        '--tree-on-check': 'var(--color-primary-content)',
+        '--tree-mark': CHECK_MARK_HOME,
     },
     parts: {
         root: {
@@ -3980,6 +4007,53 @@ export const treeView: RecipeInput = {
                 'reduced-motion': { base: { transition: 'none' } },
             },
         },
+        // The checkbox's well at row scale — paper fill, hairline ring,
+        // inked with the accent once anything under it is checked. One span
+        // (the part is a paint hook, not a control), so the mark rides its
+        // `::after`, drawn with the checkbox's pen-stroke polygons; the
+        // geometry is a custom property the states rebind, so the fallbacks
+        // below can drop the clip at the pseudo's own specificity.
+        'node-checkbox': {
+            base: {
+                display: 'inline-block',
+                position: 'relative',
+                flexShrink: '0',
+                width: '1em',
+                height: '1em',
+                // Not the checkbox's hairline: here the ring is the whole
+                // empty mark (the box is the paint hook), so it takes the
+                // 3:1 a mark owes the row it sits on — page ink, mixed down.
+                border: 'var(--border) solid color-mix(in oklab, var(--color-base-content) 60%, var(--color-base-100))',
+                borderRadius: 'var(--radius-selector)',
+                background: 'var(--color-base-100)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                checked: { background: 'var(--tree-check)', borderColor: 'var(--tree-check)', '--tree-mark': CHECK_MARK },
+                indeterminate: { background: 'var(--tree-check)', borderColor: 'var(--tree-check)', '--tree-mark': DASH_MARK },
+                unchecked: {},
+                disabled: { cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '17%',
+                    background: 'var(--tree-on-check)',
+                    clipPath: 'var(--tree-mark)',
+                    opacity: '0',
+                    transition: 'clip-path var(--duration-fast) var(--ease-exit), opacity var(--duration-fast) var(--ease-exit)',
+                },
+                '&[data-state="checked"]::after': { opacity: '1' },
+                '&[data-state="indeterminate"]::after': { opacity: '1' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, selectors: { '&::after': { transition: 'none' } } },
+                'forced-colors': nodeMarkFallback('CanvasText'),
+                print: nodeMarkFallback('var(--print-ink)'),
+            },
+        },
         // Each level hangs off a hairline indent guide — the tree draws its
         // structure the way the rest of Monograph does, with a rule.
         'branch-content': {
@@ -3997,11 +4071,14 @@ export const treeView: RecipeInput = {
     // indicator and the treeitem's aria-busy carry the state.
     sameAs: { 'branch-content': { loading: 'open' } },
     variants: {
-        // A tree colours one thing: the selection marker. Everything else is
-        // structure, and tinting it would fight the content.
+        // A tree colours two things: the selection marker and the node
+        // check box's ink. Everything else is structure, and tinting it
+        // would fight the content.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--tree-accent': `var(--color-${c})`,
             '--tree-soft': `var(--color-${c}-soft)`,
+            '--tree-check': `var(--color-${c})`,
+            '--tree-on-check': `var(--color-${c}-content)`,
         } } }])),
         size: {
             xs: { root: { base: { '--tree-text': 'var(--text-xs)' } } },

@@ -87,7 +87,7 @@ describe("zero-basic's recipes fit riso's tokens (roles: {}, sizes: [], fused va
         expect(report.identity).toBe(false);
         expect(report).toMatchInlineSnapshot(`
           {
-            "collapsedCategoryRefs": 11,
+            "collapsedCategoryRefs": 13,
             "droppedAxisValues": 0,
             "droppedColorValues": 440,
             "droppedCompounds": 0,

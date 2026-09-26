@@ -3,6 +3,8 @@
         --tree-accent: var(--color-base-content);
         --tree-text: var(--text-xs);
         --tree-on-accent: var(--color-base-100);
+        --tree-check: var(--color-primary);
+        --tree-on-check: var(--color-primary-content);
     }
 
     [data-scope="tree-view"][data-part="root"] {
@@ -140,6 +142,59 @@
         scale: -1 1;
     }
 
+    [data-scope="tree-view"][data-part="node-checkbox"] {
+        display: inline-block;
+        align-items: center;
+        justify-content: center;
+        width: 1.25em;
+        height: 1.25em;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-xs);
+        transition: background var(--duration-fast) var(--ease-standard);
+        position: relative;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        cursor: pointer;
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"] {
+        background: var(--tree-check);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"] {
+        background: var(--tree-check);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"]::after {
+        content: "";
+        position: absolute;
+        inset: 20%;
+        background: var(--tree-on-check);
+        clip-path: polygon(10% 100%, 10% 70%, 45% 70%, 45% 70%, 75% 70%, 75% 100%);
+        rotate: 45deg;
+        opacity: 0;
+        transition: clip-path var(--duration-slow) var(--ease-emphasized), opacity var(--duration-fast) var(--ease-standard), rotate var(--duration-fast) var(--ease-standard), translate var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"]::after {
+        clip-path: polygon(10% 100%, 10% 70%, 45% 70%, 45% 0%, 75% 0%, 75% 100%);
+        opacity: 1;
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"]::after {
+        clip-path: polygon(0% 100%, 0% 70%, 50% 70%, 50% 70%, 100% 70%, 100% 100%);
+        rotate: 0deg;
+        translate: 0 -35%;
+        opacity: 1;
+    }
+
     [data-scope="tree-view"][data-part="branch-content"] {
         display: flex;
         flex-direction: column;
@@ -151,41 +206,57 @@
     [data-scope="tree-view"][data-part="root"][data-color="primary"] {
         --tree-accent: var(--color-primary);
         --tree-on-accent: var(--color-primary-content);
+        --tree-check: var(--color-primary);
+        --tree-on-check: var(--color-primary-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="secondary"] {
         --tree-accent: var(--color-secondary);
         --tree-on-accent: var(--color-secondary-content);
+        --tree-check: var(--color-secondary);
+        --tree-on-check: var(--color-secondary-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="accent"] {
         --tree-accent: var(--color-accent);
         --tree-on-accent: var(--color-accent-content);
+        --tree-check: var(--color-accent);
+        --tree-on-check: var(--color-accent-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="neutral"] {
         --tree-accent: var(--color-neutral);
         --tree-on-accent: var(--color-neutral-content);
+        --tree-check: var(--color-neutral);
+        --tree-on-check: var(--color-neutral-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="info"] {
         --tree-accent: var(--color-info);
         --tree-on-accent: var(--color-info-content);
+        --tree-check: var(--color-info);
+        --tree-on-check: var(--color-info-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="success"] {
         --tree-accent: var(--color-success);
         --tree-on-accent: var(--color-success-content);
+        --tree-check: var(--color-success);
+        --tree-on-check: var(--color-success-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="warning"] {
         --tree-accent: var(--color-warning);
         --tree-on-accent: var(--color-warning-content);
+        --tree-check: var(--color-warning);
+        --tree-on-check: var(--color-warning-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="error"] {
         --tree-accent: var(--color-error);
         --tree-on-accent: var(--color-error-content);
+        --tree-check: var(--color-error);
+        --tree-on-check: var(--color-error-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-size="xs"] {
@@ -202,5 +273,73 @@
 
     [data-scope="tree-view"][data-part="root"][data-size="xl"] {
         --tree-text: var(--text-lg);
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="tree-view"][data-part="node-checkbox"]::after {
+            clip-path: none;
+            background: none;
+            rotate: 0deg;
+            translate: 0;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: CanvasText;
+            font-weight: var(--weight-bold);
+            font-size: 0.9em;
+            line-height: var(--leading-none);
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"]::after {
+            content: "✓";
+            clip-path: none;
+            rotate: 0deg;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"]::after {
+            content: "−";
+            clip-path: none;
+            rotate: 0deg;
+            translate: 0;
+        }
+    }
+
+    @media print {
+        [data-scope="tree-view"][data-part="node-checkbox"]::after {
+            clip-path: none;
+            background: none;
+            rotate: 0deg;
+            translate: 0;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: var(--print-ink);
+            font-weight: var(--weight-bold);
+            font-size: 0.9em;
+            line-height: var(--leading-none);
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"]::after {
+            content: "✓";
+            clip-path: none;
+            rotate: 0deg;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"]::after {
+            content: "−";
+            clip-path: none;
+            rotate: 0deg;
+            translate: 0;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="tree-view"][data-part="node-checkbox"] {
+            transition: none;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"]::after {
+            transition: none;
+        }
     }
 }

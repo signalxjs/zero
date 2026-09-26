@@ -3330,6 +3330,34 @@ export const ratingGroup: RecipeInput = {
 };
 
 // ── Tree view ─────────────────────────────────────────────────────────────
+/**
+ * `markGlyphFallback` for the node check box, whose mark is its `::after`:
+ * the geometry is neutralised per state (the state rules carry the stroke
+ * lengths) and the same pseudo carries the glyph, in the medium's own ink.
+ */
+const nodeMarkFallback = (ink: string): PartStyles => {
+    const glyph = {
+        inset: '0',
+        width: 'auto',
+        height: 'auto',
+        border: '0',
+        rotate: 'none',
+        opacity: '1',
+        display: 'grid',
+        placeItems: 'center',
+        color: ink,
+        fontSize: '0.75rem',
+        lineHeight: 'var(--leading-none)',
+    };
+    return {
+        selectors: {
+            '&::after': { transition: 'none' },
+            '&[data-state="checked"]::after': { ...glyph, content: '"\\2713"' },
+            '&[data-state="indeterminate"]::after': { ...glyph, content: '"\\2212"' },
+        },
+    };
+};
+
 export const treeView: RecipeInput = {
     component: 'tree-view',
     tokens: { '--tree-text': 'var(--text-sm)' },
@@ -3427,6 +3455,70 @@ export const treeView: RecipeInput = {
             // closed glyph flips to point at the reading end while the open one,
             // already rotated to point down, is unaffected by a horizontal flip.
             selectors: { [`&${rtl}`]: { scale: '-1 1' } },
+        },
+        // Carbon's 16px checkbox, as it sits in its tree view: the
+        // base-content frame, the base-content fill on check, and the mark
+        // `checkbox.indicator` draws — an L of two 2px borders rotated −45°
+        // that unfolds into the bar — on the box's `::after`, since the part
+        // is one span. A selected row is a base-300 wash, which the frame
+        // clears as it clears the page.
+        'node-checkbox': {
+            base: {
+                display: 'inline-block',
+                position: 'relative',
+                flexShrink: '0',
+                boxSizing: 'border-box',
+                width: '1rem',
+                height: '1rem',
+                border: 'var(--border) solid var(--color-base-content)',
+                borderRadius: 'var(--radius-selector)',
+                background: 'transparent',
+                cursor: 'pointer',
+                transition: motion('background, border-color'),
+            },
+            states: {
+                checked: { background: 'var(--color-base-content)' },
+                indeterminate: { background: 'var(--color-base-content)' },
+                unchecked: {},
+                disabled: { cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    boxSizing: 'border-box',
+                    left: '38%',
+                    bottom: '27%',
+                    width: '0',
+                    height: '0',
+                    opacity: '0',
+                    borderLeft: '2px solid var(--color-base-100)',
+                    borderBottom: '2px solid var(--color-base-100)',
+                    rotate: '-45deg',
+                    transformOrigin: 'bottom left',
+                    transition: 'height var(--duration-fast) var(--ease-decelerate), '
+                        + 'width var(--duration-normal) var(--ease-decelerate) var(--duration-fast), '
+                        + 'opacity var(--duration-fast) var(--ease-standard), '
+                        + 'rotate var(--duration-normal) var(--ease-standard), '
+                        + 'inset var(--duration-normal) var(--ease-standard), '
+                        + 'border-left-width var(--duration-fast) var(--ease-standard)',
+                },
+                '&[data-state="checked"]::after': { width: '65%', height: '31%', opacity: '1' },
+                '&[data-state="indeterminate"]::after': {
+                    left: '25%',
+                    bottom: 'calc(50% - 1px)',
+                    width: '50%',
+                    height: '0',
+                    opacity: '1',
+                    borderLeftWidth: '0',
+                    rotate: '0deg',
+                },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, selectors: { '&::after': { transition: 'none' } } },
+                'forced-colors': nodeMarkFallback('CanvasText'),
+                print: nodeMarkFallback('var(--print-ink)'),
+            },
         },
         'branch-content': {
             base: { display: 'flex', flexDirection: 'column', paddingInlineStart: 'var(--space-md)' },
