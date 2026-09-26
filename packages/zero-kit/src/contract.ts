@@ -331,7 +331,10 @@ export function contrastPairs(roles: Record<string, RoleDecl>): readonly (readon
  * and farthest-corner radius, in px, on any part whose anatomy declares the
  * `pressed` flag); the percent trio is written by Progress, Slider and
  * Diff, and `--countdown-value` by Countdown (the raw number, for recipes
- * that want the property rather than the rendered digits).
+ * that want the property rather than the rendered digits). The panel-size
+ * quartet is written on Accordion's and Collapsible's panel (measured
+ * `scrollHeight`/`scrollWidth`, px) so a recipe can animate a `<details>`
+ * close from `var(--accordion-panel-height)` to `0` (#276).
  *
  * WEB-ONLY: these exist because the DOM runtime can write custom properties
  * that stylesheet rules then read. A target whose engine cannot resolve
@@ -347,6 +350,10 @@ export const RUNTIME_PROPERTIES = [
     '--slider-percent',
     '--diff-percent',
     '--countdown-value',
+    '--accordion-panel-height',
+    '--accordion-panel-width',
+    '--collapsible-panel-height',
+    '--collapsible-panel-width',
 ] as const;
 
 /**
