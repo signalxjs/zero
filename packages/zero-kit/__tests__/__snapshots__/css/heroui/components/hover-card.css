@@ -1,0 +1,134 @@
+@layer zero.recipes {
+    [data-scope="hover-card"][data-part="trigger"] {
+        color: var(--hero-primary);
+        text-decoration: none;
+        text-underline-offset: 0.2em;
+        border-radius: var(--radius-selector);
+        cursor: pointer;
+    }
+
+    [data-scope="hover-card"][data-part="trigger"]:hover:not([data-disabled]) {
+        text-decoration: underline;
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-state="open"] {
+        text-decoration: underline;
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
+    [data-scope="hover-card"][data-part="popup"] {
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), display var(--duration-fast) allow-discrete, overlay var(--duration-fast) allow-discrete;
+        margin: 0;
+        padding: var(--space-lg);
+        max-width: min(20rem, calc(100vw - var(--space-2xl)));
+        border: var(--border) solid var(--hero-line);
+        border-radius: var(--radius-box);
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-lg);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-state="open"] {
+        opacity: 1;
+        transform: none;
+    }
+
+    [data-scope="hover-card"][data-part="popup"]:has(> [data-scope="hover-card"][data-part="arrow"]) {
+        overflow: visible;
+    }
+
+    [data-scope="hover-card"][data-part="arrow"] {
+        display: none;
+        position: absolute;
+        box-sizing: border-box;
+        width: 0.625rem;
+        height: 0.625rem;
+        rotate: 45deg;
+        pointer-events: none;
+        background: var(--color-base-100);
+        border: var(--border) solid var(--hero-line);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="top"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        top: calc(100% - 0.625rem / 2);
+        left: var(--arrow-x, calc(50% - 0.625rem / 2));
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="bottom"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        top: calc(0.625rem / -2);
+        left: var(--arrow-x, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="left"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        left: calc(100% - 0.625rem / 2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="right"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        left: calc(0.625rem / -2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="start"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(100% - 0.625rem / 2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="end"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(0.625rem / -2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="start"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="hover-card"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="end"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="hover-card"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-size="sm"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-size="lg"] {
+        font-size: var(--text-md);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="hover-card"][data-part="popup"] {
+            transition: none;
+        }
+
+        [data-scope="hover-card"][data-part="popup"][data-state="open"] {
+            transform: none;
+        }
+    }
+
+    @starting-style {
+        [data-scope="hover-card"][data-part="popup"][data-state="open"] {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+    }
+}

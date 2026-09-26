@@ -18,6 +18,7 @@ import type { Switch as ZSwitch } from '@sigx/zero/switch';
 import type { Dialog as ZDialog } from '@sigx/zero/dialog';
 import type { Popover as ZPopover } from '@sigx/zero/popover';
 import type { Tooltip as ZTooltip } from '@sigx/zero/tooltip';
+import type { HoverCard as ZHoverCard } from '@sigx/zero/hover-card';
 import type { Menu as ZMenu } from '@sigx/zero/menu';
 import type { Field as ZField } from '@sigx/zero/field';
 import type { Fieldset as ZFieldset } from '@sigx/zero/fieldset';
@@ -140,6 +141,13 @@ type TooltipProps = {
 };
 type TooltipAdapted = Adapted<typeof ZTooltip, ZeroAxisProp, TooltipProps>;
 export declare const Tooltip: TooltipAdapted & AdaptedStatics<typeof ZTooltip> & { Root: TooltipAdapted };
+
+/** hover-card — no vendor route; the wired surface keeps zero's names. */
+type HoverCardProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type HoverCardAdapted = Adapted<typeof ZHoverCard, ZeroAxisProp, HoverCardProps>;
+export declare const HoverCard: HoverCardAdapted & AdaptedStatics<typeof ZHoverCard> & { Root: HoverCardAdapted };
 
 /** menu — no vendor route; the wired surface keeps zero's names. */
 type MenuProps = {

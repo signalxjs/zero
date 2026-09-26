@@ -950,6 +950,60 @@ export const tooltip: RecipeInput = {
 };
 
 /**
+ * Hover card — the preview behind a link. The trigger is not furniture but
+ * running text: a link in the role's readable ink (`softInk`, primary by
+ * default) with an underline that thickens under the pointer and holds while
+ * the card is up. The card is the same paper panel every transient surface
+ * prints on, a step wider than the tooltip's footnote strip because it holds
+ * a paragraph and may hold links.
+ */
+export const hoverCard: RecipeInput = {
+    component: 'hover-card',
+    parts: {
+        trigger: {
+            base: {
+                color: softInk('primary'),
+                textDecorationLine: 'underline',
+                textDecorationThickness: '1px',
+                textUnderlineOffset: '0.2em',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                transition: 'text-decoration-thickness var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { textDecorationThickness: '2px' },
+                open: { textDecorationThickness: '2px' },
+                closed: {},
+                ...focusRing,
+            },
+        },
+        popup: withPresence(popupPresence('translateY(4px)'), {
+            base: {
+                ...overlayPanel,
+                padding: 'var(--space-lg) var(--space-xl)',
+                maxWidth: '20rem',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                fontVariantNumeric: 'tabular-nums',
+            },
+            states: { open: {}, closed: {} },
+        }),
+    },
+    // Trigger-carried axes: colour is the link's ink, size its type.
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { trigger: { base: { color: softInk(c) } } }])),
+        size: {
+            xs: { trigger: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { trigger: { base: { fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { trigger: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { trigger: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+    targets: overlayArrow('hover-card'),
+};
+
+/**
  * The checkbox mark, drawn rather than typeset.
  *
  * A glyph is at the mercy of the reader's font: `✓` is a different weight in
@@ -7183,7 +7237,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,

@@ -934,6 +934,70 @@ export const tooltip: RecipeInput = {
     variants: { size: overlayTriggerSizes },
 };
 
+// ── HoverCard ─────────────────────────────────────────────────────────────
+/**
+ * Carbon's inline `Link` opening its popover. The trigger is running text in
+ * `$link-primary` (`--carbon-interactive`), underlined as Carbon's inline
+ * link is, with the focus outline drawn outside rather than inset (a link
+ * has no box to inset into). The card is the popover's surface — hairline
+ * and shadow, the caret — verbatim. Size moves the link's type (Carbon's
+ * sm/md/lg link sizes), wired on every step of the declared ramp; there is
+ * no colour axis here.
+ */
+export const hoverCard: RecipeInput = {
+    component: 'hover-card',
+    parts: {
+        trigger: {
+            base: {
+                color: 'var(--carbon-interactive)',
+                textDecoration: 'underline',
+                textUnderlineOffset: '0.15em',
+                cursor: 'pointer',
+                transition: 'color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { textDecorationThickness: '2px' },
+                open: { textDecorationThickness: '2px' },
+                closed: {},
+                'focus-visible': {
+                    outline: '2px solid var(--carbon-focus)',
+                    outlineOffset: '1px',
+                },
+            },
+        },
+        popup: withPresence(popupPresence('translateY(-4px)'), {
+            base: {
+                padding: 'var(--space-md)',
+                maxWidth: '20rem',
+                border: 'var(--border) solid var(--carbon-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                boxShadow: 'var(--shadow-lg)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-normal)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: popupArrowHost('hover-card'),
+        }),
+        arrow: caret('hover-card', {
+            background: 'var(--color-base-100)',
+            border: 'var(--border) solid var(--carbon-line)',
+        }),
+    },
+    variants: {
+        size: {
+            sm: { trigger: { base: { fontSize: 'var(--text-xs)' } } },
+            md: { trigger: { base: { fontSize: 'var(--text-sm)' } } },
+            lg: {},
+            xl: { trigger: { base: { fontSize: 'var(--text-md)' } } },
+            '2xl': { trigger: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 // ── Menu ──────────────────────────────────────────────────────────────────
 export const menu: RecipeInput = {
     component: 'menu',
@@ -6142,7 +6206,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,

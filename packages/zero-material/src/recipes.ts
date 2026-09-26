@@ -1047,6 +1047,59 @@ export const tooltip: RecipeInput = {
     variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
+/**
+ * Hover card — Material's rich tooltip behind an inline text link. The
+ * trigger is body text: a primary-ink link, underlined as M3 underlines a
+ * link set in running copy, and hover lays the 8% state layer of its own
+ * ink under it (Material marks interaction by tone). The card is the rich
+ * tooltip's surface — `surface-container-high` at level 2, grown from the
+ * anchor — at the popover's width.
+ */
+export const hoverCard: RecipeInput = {
+    component: 'hover-card',
+    parts: {
+        trigger: {
+            base: {
+                color: 'var(--color-primary)',
+                textDecorationLine: 'underline',
+                textUnderlineOffset: '0.15em',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, currentColor 8%, transparent)' },
+                open: { background: 'color-mix(in oklch, currentColor 8%, transparent)' },
+                closed: {},
+                ...focusRing,
+            },
+        },
+        popup: withPresence(popupPresence('scale(0.9)'), {
+            base: {
+                ...floating,
+                padding: 'var(--space-md)',
+                maxWidth: '20rem',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: popupArrowHost('hover-card'),
+        }),
+        arrow: surfaceArrow('hover-card', 'var(--color-surface-container-high)'),
+    },
+    // Trigger-carried axes: colour is the link's ink, size its type.
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { trigger: { base: { color: `var(--color-${c})` } } }])),
+        size: {
+            xs: { trigger: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { trigger: { base: { fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { trigger: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { trigger: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const menu: RecipeInput = {
     component: 'menu',
     tokens: overlayTriggerTokens,
@@ -6347,7 +6400,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
+    button, tabs, collapsible, accordion, dialog, popover, tooltip, hoverCard, menu, select,
     switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
