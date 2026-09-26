@@ -34,7 +34,7 @@
  * </Input.Root>
  * ```
  */
-import { component, compound, defineInjectable, defineProvide } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, watch } from 'sigx';
 import type { Define, ModelModifiers } from 'sigx';
 import { createControllableState, createInertState, namedModel, type ControllableState } from '../../behaviors/controllable.js';
 import { createFormControl } from '../../behaviors/form-control.js';
@@ -91,6 +91,11 @@ interface InputContext {
     required(): boolean;
     readonly(): boolean;
     focusVisible: { value: boolean };
+    /**
+     * What the element shows — the model, or a keystroke the model has not
+     * taken yet under `lazy`/`debounce`. What the clear trigger renders from.
+     */
+    text: { value: string };
     /** `model:visible` — whether a password field shows its characters. */
     visible: ControllableState<boolean>;
     /** The rendered `<input>`, once mounted — what the affordances focus. */
@@ -119,6 +124,7 @@ function makeInert(): InputContext {
         required: () => false,
         readonly: () => false,
         focusVisible: { value: false },
+        text: { value: '' },
         visible: createInertState<boolean>(false),
         inputEl: () => null,
         setInputEl: () => {},
@@ -177,6 +183,11 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-input', controlPart: 'input' });
     const focusVisible = signal({ value: false });
+    // The model follows the element on every keystroke only without a timing
+    // modifier; the element's own input events keep this current either way,
+    // and a model write (the app's, or a commit) lands here too.
+    const text = signal({ value: state.value ?? '' });
+    watch(() => state.value, (v) => { text.value = v ?? ''; });
     const visible = createControllableState<boolean>(
         () => namedModel<boolean>(props.visible),
         props.defaultVisible ?? false,
@@ -219,6 +230,7 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
         required: fc.required,
         readonly: fc.readonly,
         focusVisible,
+        text,
         visible,
         inputEl: () => inputEl,
         setInputEl: (el) => { inputEl = el; },
@@ -336,6 +348,7 @@ const InputInput = component<InputInputProps>(({ props, expose, onMounted, onUnm
     // under a timing modifier: `lazy` and `debounce` exist precisely to NOT
     // write on each input.
     const onInput = (e: Event): void => {
+        if (el) ctx.text.value = el.value;
         if (el && !ctx.modifiers() && ctx.state.value !== el.value) ctx.state.value = el.value;
         claim?.sync(true);
         props.onInput?.(e);
@@ -352,6 +365,7 @@ const InputInput = component<InputInputProps>(({ props, expose, onMounted, onUnm
         detachReset = onFormReset(() => el, () => {
             ctx.state.value = ctx.defaultValue();
             if (el) el.value = ctx.state.value;
+            ctx.text.value = ctx.state.value ?? '';
         });
     });
     onUnmounted(() => {
@@ -488,7 +502,7 @@ export type InputClearTriggerProps =
     & Define.Slot<'default'>;
 
 /**
- * Empties the value and focuses the input. Renders nothing while the value
+ * Empties the value and focuses the input. Renders nothing while the field
  * is empty, and stays out of the tab order: it is a pointer shortcut, the
  * keyboard already has select-all + delete (and Escape in a search field).
  * Disabled with the field, and while it is readonly — clearing is an edit.
@@ -501,7 +515,9 @@ const InputClearTrigger = component<InputClearTriggerProps>(({ props, slots, sig
     const press = createPressFeedback({ getElement: () => el, isDisabled: inert });
 
     return () => {
-        if (ctx.state.value === '' || ctx.state.value == null) return null;
+        // The element's text, not the model: under `lazy`/`debounce` the
+        // model lags what the field shows.
+        if (ctx.text.value === '') return null;
         const attrs = htmlAttrs(props);
         return (
             <button

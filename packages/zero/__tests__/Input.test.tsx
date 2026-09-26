@@ -360,6 +360,36 @@ describe('Input affordances (#281)', () => {
         expect(part(container, 'clear-trigger')).toBeNull();
     });
 
+    it('clear-trigger follows what the field shows under a lazy model, not the lagging model', () => {
+        const state = signal({ q: '' });
+        render(
+            <Input.Root model={() => state.q} modelModifiers={{ lazy: true }}>
+                <Input.Control>
+                    <Input.Input />
+                    <Input.ClearTrigger />
+                </Input.Control>
+            </Input.Root>,
+            container,
+        );
+        type(field(container), 'abc');
+        // Not committed yet, but there is something to clear.
+        expect(state.q).toBe('');
+        expect(part(container, 'clear-trigger')).toBeTruthy();
+        part(container, 'clear-trigger').click();
+        expect(field(container).value).toBe('');
+        expect(state.q).toBe('');
+        expect(part(container, 'clear-trigger')).toBeNull();
+        // Committed, then emptied by keystroke before the next commit.
+        type(field(container), 'xy');
+        field(container).dispatchEvent(new Event('change', { bubbles: true }));
+        expect(state.q).toBe('xy');
+        type(field(container), '');
+        expect(part(container, 'clear-trigger')).toBeNull();
+        // An app write reaches it too.
+        state.q = 'set';
+        expect(part(container, 'clear-trigger')).toBeTruthy();
+    });
+
     it('clear-trigger answers to disabled and readonly — clearing is an edit', () => {
         mountAll({ defaultValue: 'x', readonly: true });
         const clear = part(container, 'clear-trigger') as HTMLButtonElement;

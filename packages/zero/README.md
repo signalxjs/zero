@@ -184,8 +184,10 @@ app's call. `Input.ClearTrigger` (part `clear-trigger`) empties the value
 the way typing would — the model writes, `valueChange` fires, and an
 `input` event reaches the app's own listeners — then focuses the input. It
 is out of the tab order (`tabindex="-1"`), points at the input through
-`aria-controls`, renders nothing while the value is empty, is disabled
-with the field and while it is readonly, and its name defaults to "Clear".
+`aria-controls`, renders nothing while the field is empty — what the
+field shows, so text a `lazy` or `debounce` model has not taken yet
+counts — is disabled with the field and while it is readonly, and its
+name defaults to "Clear".
 In a `type="search"` field Escape does the same while there is something
 to clear, and cancels the key so an enclosing dialog or popover stays
 open; an empty field lets Escape through. `Input.VisibilityTrigger` (part
