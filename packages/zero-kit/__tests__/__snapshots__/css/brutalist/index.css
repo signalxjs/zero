@@ -8317,6 +8317,11 @@
         box-shadow: var(--shadow-sm);
     }
 
+    [data-scope="table"][data-part="root"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: calc(var(--border) * -3);
+    }
+
     [data-scope="table"][data-part="table"] {
         border-collapse: collapse;
         inline-size: 100%;

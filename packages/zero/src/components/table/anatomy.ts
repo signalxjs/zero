@@ -9,6 +9,11 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * scroll), so the anatomy ships the wrapper — `root` is the `div` recipes
  * give `overflow-x: auto`, and `table` is the real `<table>` inside it.
  * The variant axes ride the root, where the compiler anchors axis rules.
+ * Being the scroll box, the root is also a keyboard stop (`tabIndex=0` —
+ * a table wider than its container must scroll without a pointer), so it
+ * carries `data-focus-visible` for the design system's ring, and is a
+ * `region` named by the caption (or the app's label) whenever it has a
+ * name to carry.
  *
  * Everything below renders the real table elements — the elements ARE the
  * semantics: AT row/column navigation and header association only exist on
@@ -49,6 +54,8 @@ export const tableAnatomy = defineAnatomy('table', {
     root: {
         element: 'div',
         layout: ['stack'],
+        // The scroll box is a keyboard stop, and recipes ring it.
+        flags: ['focus-visible'],
         tokens: ['color', 'radius-box', 'size'],
     },
     table: {

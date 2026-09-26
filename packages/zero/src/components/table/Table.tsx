@@ -20,11 +20,15 @@
  * </Table.Root>
  * ```
  *
- * Pure semantics plus styling hooks — no state, no ids, no ARIA beyond what
- * the elements carry natively (see `anatomy.ts` for the root-as-scroll-
+ * Pure semantics plus styling hooks — no state, no ARIA beyond what the
+ * elements carry natively (see `anatomy.ts` for the root-as-scroll-
  * container and no-sorting decisions); a table that stacks restates those
  * native roles explicitly (see `stackRole`). `Table.Caption` is the table's
- * accessible name; write one.
+ * accessible name; write one. The one id is the caption's: the root is the
+ * scroll box, a keyboard stop (`tabIndex=0`, so a table wider than its
+ * container can be scrolled without a pointer), and a stop needs a name —
+ * the root becomes a `region` labelled by the caption while one is
+ * rendered, or by the app's `aria-label`/`aria-labelledby` otherwise.
  *
  * `stack="md"` is the responsive stacked mode — below the design system's
  * `md` every row is one block, each cell captioned by its column's label:
@@ -43,6 +47,9 @@
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
+import { createId } from '../../behaviors/create-id.js';
+import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { countPresence, reportPresence, settleAfterMount } from '../../behaviors/part-presence.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { BASE_BREAKPOINT_KEY, isBreakpointName } from '../../contract/breakpoint-name.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
@@ -79,9 +86,18 @@ interface TableContext {
     columns(): readonly TableColumn[];
     /** The breakpoint the table stacks below (`Table.Root stack`), if any. */
     stack(): string | undefined;
+    /** The caption's id — the root region's `aria-labelledby` target. */
+    captionId: string;
+    /** Reported by `Table.Caption` (`reportPresence`). */
+    setCaptionPresent(present: boolean): void;
 }
 
-export const useTableContext = defineInjectable<TableContext>(() => ({ columns: () => [], stack: () => undefined }));
+export const useTableContext = defineInjectable<TableContext>(() => ({
+    columns: () => [],
+    stack: () => undefined,
+    captionId: '',
+    setCaptionPresent: () => {},
+}));
 
 /**
  * The explicit table role a part carries on a table that stacks.
@@ -146,18 +162,29 @@ export type TableRootProps =
     /**
      * Forwarded attributes split across the two elements Root renders:
      * `aria-*` and `role` go to the `<table>` — the element that IS the
-     * table to assistive tech, where `aria-label` on the scroll wrapper would
-     * name nothing, and where a `role="grid"` means something; kept together
-     * so a role and the name that goes with it describe one element — and
-     * `id`, `title` and `data-*` land on the root `div`, the part an app
-     * addresses.
+     * table to assistive tech, and where a `role="grid"` means something;
+     * kept together so a role and the name that goes with it describe one
+     * element — and `id`, `title` and `data-*` land on the root `div`, the
+     * part an app addresses. With no `Table.Caption`, the app's
+     * `aria-label`/`aria-labelledby` also names the root's scroll region.
      */
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const TableRoot = component<TableRootProps>(({ props, slots }) => {
-    const ctx: TableContext = { columns: () => props.columns ?? [], stack: () => props.stack };
+const TableRoot = component<TableRootProps>(({ props, slots, signal, onMounted }) => {
+    // Reported by the Caption: the region references it only while it is
+    // rendered — optimistic until settled after mount, so server markup
+    // keeps the reference a captioned table needs (part-presence.ts).
+    const present = signal({ caption: 0, settled: false, focusVisible: false });
+    settleAfterMount(onMounted, () => { present.settled = true; });
+    const ctx: TableContext = {
+        columns: () => props.columns ?? [],
+        stack: () => props.stack,
+        captionId: `${createId('zx-table')}-caption`,
+        setCaptionPresent: (p) => { present.caption = countPresence(present.caption, p); },
+    };
     defineProvide(useTableContext, () => ctx);
+    let el: HTMLElement | null = null;
 
     return () => {
         const rootAttrs: Record<string, HtmlAttrValue> = {};
@@ -167,14 +194,43 @@ const TableRoot = component<TableRootProps>(({ props, slots }) => {
         for (const [key, value] of Object.entries(htmlAttrs(props))) {
             (key === 'role' || key.startsWith('aria-') ? tableAttrs : rootAttrs)[key] = value;
         }
+        // The scroll box is a keyboard stop (axe scrollable-region-focusable:
+        // a table wider than its container is otherwise unreachable without
+        // a pointer — focused, the arrow keys scroll it). A stop is named
+        // the way the table is: by the app's own `aria-label` /
+        // `aria-labelledby` when it gave one (which also overrides the
+        // caption as the table's name, so the two never diverge), else by
+        // the caption while one is rendered. With neither there is nothing
+        // to call the region, so it stays a plain focusable box rather than
+        // a nameless landmark. The caption reference is optimistic until
+        // settled (always on the server) — part-presence.ts.
+        const appLabelledBy = tableAttrs['aria-labelledby'];
+        const appLabel = tableAttrs['aria-label'];
+        const appNamed = Boolean(appLabelledBy || appLabel);
+        const captioned = !appNamed && (present.caption > 0 || !present.settled);
+        const labelledBy = captioned ? ctx.captionId : appLabelledBy;
+        const label = captioned ? undefined : appLabel;
         return (
             <div
+                role={labelledBy || label ? 'region' : undefined}
+                aria-labelledby={labelledBy || undefined}
+                aria-label={label || undefined}
                 {...rootAttrs}
                 data-scope={SCOPE}
                 data-part="root"
+                tabIndex={0}
+                data-focus-visible={dataAttr(present.focusVisible)}
                 {...variantAttrs(props)}
                 data-l-stack={stackAttr(props.stack)}
                 class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; }}
+                onFocus={(e: FocusEvent) => {
+                    // The root's OWN focus only — a focusable inside a cell
+                    // (a link, a checkbox) bubbles here too and is not the
+                    // scroll box's ring.
+                    present.focusVisible = e.target === el && isFocusVisible(el);
+                }}
+                onBlur={() => { present.focusVisible = false; }}
             >
                 <table {...tableAttrs} data-scope={SCOPE} data-part="table">
                     {slots.default?.()}
@@ -186,13 +242,13 @@ const TableRoot = component<TableRootProps>(({ props, slots }) => {
 
 export type TablePartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
-const section = (partName: 'caption' | 'head' | 'body' | 'foot', tag: 'caption' | 'thead' | 'tbody' | 'tfoot', name: string) =>
+const section = (partName: 'body' | 'foot', tag: 'tbody' | 'tfoot', name: string) =>
     component<TablePartProps>(({ props, slots }) => {
         const ctx = useTableContext();
         const Tag = tag;
         return () => (
             <Tag
-                role={partName === 'caption' ? undefined : stackRole(ctx, 'rowgroup')}
+                role={stackRole(ctx, 'rowgroup')}
                 {...htmlAttrs(props)}
                 data-scope={SCOPE}
                 data-part={partName}
@@ -203,7 +259,24 @@ const section = (partName: 'caption' | 'head' | 'body' | 'foot', tag: 'caption' 
         );
     }, { name });
 
-const TableCaption = section('caption', 'caption', 'Table.Caption');
+/** Not `id`: the caption carries the id the root region is labelled by. */
+export type TableCaptionProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
+
+const TableCaption = component<TableCaptionProps>(({ props, slots, onUnmounted }) => {
+    const ctx = useTableContext();
+    reportPresence(ctx.setCaptionPresent, onUnmounted);
+    return () => (
+        <caption
+            {...htmlAttrs(props)}
+            id={ctx.captionId || undefined}
+            data-scope={SCOPE}
+            data-part="caption"
+            class={props.class}
+        >
+            {slots.default?.()}
+        </caption>
+    );
+}, { name: 'Table.Caption' });
 
 /**
  * `<thead>`, preceded by the column spec's `<colgroup>` when Root has one —

@@ -5025,6 +5025,9 @@ export const table: RecipeInput = {
                 overflowX: 'auto',
                 background: 'var(--color-base-100)',
             },
+            // The scroll box is a keyboard stop (#270): Carbon's own inset
+            // focus ring, which already stays inside the box it marks.
+            states: { ...focusRing },
         // Stacked (Table.Root stack, #55): zero lays each row out as a block
         // below the table's breakpoint; the card it becomes is drawn here.
             at: tableStackAt(tokens, 'root', { background: 'transparent' }),

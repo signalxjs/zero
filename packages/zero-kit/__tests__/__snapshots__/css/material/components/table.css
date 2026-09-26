@@ -15,6 +15,11 @@
         color: var(--color-surface-container-content);
     }
 
+    [data-scope="table"][data-part="root"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: -3px;
+    }
+
     [data-scope="table"][data-part="table"] {
         border-collapse: collapse;
         inline-size: 100%;

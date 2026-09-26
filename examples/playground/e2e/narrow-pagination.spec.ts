@@ -97,5 +97,15 @@ for (const ds of DESIGN_SYSTEMS) {
         await root.getByRole('button', { name: 'Page 1', exact: true }).focus();
         await page.keyboard.press('Shift+Tab');
         await expectRingInside(root, part('prev-trigger'), `${ds}: the focused prev trigger`);
+
+        // 4. The press that reaches the last page keeps focus on next (#270):
+        //    the bound is aria-disabled, never natively disabled — which
+        //    would drop focus to <body> on exactly this press.
+        await root.getByRole('button', { name: 'Page 19', exact: true }).click();
+        await next.focus();
+        await page.keyboard.press('Enter');
+        await expect(root.getByRole('button', { name: 'Page 20', exact: true })).toHaveAttribute('aria-current', 'page');
+        await expect(next, `${ds}: next at the last page`).toHaveAttribute('aria-disabled', 'true');
+        await expect(next, `${ds}: next keeps focus at the bound`).toBeFocused();
     });
 }

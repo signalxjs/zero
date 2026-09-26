@@ -148,7 +148,7 @@ describe('forwarding parts', () => {
         expect(() => render(<Button.Root {...attrs}>x</Button.Root>, container)).toThrow(/anatomy contract/);
     });
 
-    it('Table: rows and cells forward, cells span, aria names the <table>', () => {
+    it('Table: rows and cells forward, cells span, aria names the <table>', async () => {
         render(
             <Table.Root aria-label="History" role="grid" data-testid="history" id="t">
                 <Table.Head>
@@ -162,13 +162,16 @@ describe('forwarding parts', () => {
             </Table.Root>,
             container,
         );
+        // Settle the caption-presence reference (optimistic until mounted).
+        await new Promise((r) => setTimeout(r, 0));
         const root = q('table', 'root');
         expect(root.id).toBe('t');
         expect(root.getAttribute('data-testid')).toBe('history');
-        // aria-label on the scroll wrapper would name a generic div; the
-        // table is what AT reads.
-        expect(root.hasAttribute('aria-label')).toBe(false);
-        expect(root.hasAttribute('role')).toBe(false);
+        // The app's role and name describe the <table> — what AT reads as
+        // the table. With no caption, the name also labels the root's
+        // keyboard-reachable scroll region (#270); the role never moves.
+        expect(root.getAttribute('role')).toBe('region');
+        expect(root.getAttribute('aria-label')).toBe('History');
         expect(q('table', 'table').getAttribute('aria-label')).toBe('History');
         expect(q('table', 'table').getAttribute('role')).toBe('grid');
         expect(q('table', 'body').getAttribute('data-section')).toBe('days');

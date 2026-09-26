@@ -19,12 +19,14 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
+import { signal } from 'sigx';
 import { Table, tableAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 const selector = (scope: string, name: string) => `[data-scope="${scope}"][data-part="${name}"]`;
 const part = (c: HTMLElement, name: string) =>
     c.querySelector<HTMLElement>(selector('table', name))!;
+const tick = () => new Promise((r) => setTimeout(r, 0));
 
 function sample(selected = false) {
     return (
@@ -87,6 +89,120 @@ describe('Table', () => {
         expect(root).not.toBe(table);
         expect(root.getAttribute('data-color')).toBe('neutral');
         expect(root.getAttribute('data-size')).toBe('sm');
+    });
+
+    it('the scroll root is a keyboard stop, a region labelled by the caption (#270)', async () => {
+        render(sample(), container);
+        await tick();
+        const root = part(container, 'root');
+        // A table wider than its container must be scrollable without a
+        // pointer (axe scrollable-region-focusable).
+        expect(root.tabIndex).toBe(0);
+        expect(root.getAttribute('role')).toBe('region');
+        const caption = part(container, 'caption');
+        expect(caption.id).not.toBe('');
+        expect(root.getAttribute('aria-labelledby')).toBe(caption.id);
+        expect(root.hasAttribute('aria-label')).toBe(false);
+        expect(tableAnatomy.parts.root.flags).toEqual(['focus-visible']);
+        expectAnatomy(container, tableAnatomy);
+    });
+
+    it('the region reference tracks the caption: gone with it, back with it', async () => {
+        const state = signal({ caption: true });
+        render(
+            <Table.Root>
+                {() => (state.caption ? <Table.Caption>Revenue</Table.Caption> : null)}
+                <Table.Body><Table.Row><Table.Cell>1</Table.Cell></Table.Row></Table.Body>
+            </Table.Root>,
+            container,
+        );
+        await tick();
+        const root = part(container, 'root');
+        expect(root.getAttribute('aria-labelledby')).toBe(part(container, 'caption').id);
+        expect(root.getAttribute('role')).toBe('region');
+
+        state.caption = false;
+        await tick();
+        // No dangling IDREF, and no nameless region.
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+        expect(root.hasAttribute('role')).toBe(false);
+        expect(root.tabIndex).toBe(0);
+
+        state.caption = true;
+        await tick();
+        expect(root.getAttribute('aria-labelledby')).toBe(part(container, 'caption').id);
+        expect(root.getAttribute('role')).toBe('region');
+    });
+
+    it("an app name wins over the caption, as it does for the table's own name", async () => {
+        render(
+            <Table.Root aria-label="Fallback">
+                <Table.Caption>Revenue</Table.Caption>
+                <Table.Body><Table.Row><Table.Cell>1</Table.Cell></Table.Row></Table.Body>
+            </Table.Root>,
+            container,
+        );
+        await tick();
+        const root = part(container, 'root');
+        expect(root.getAttribute('role')).toBe('region');
+        expect(root.getAttribute('aria-label')).toBe('Fallback');
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+        expect(part(container, 'table').getAttribute('aria-label')).toBe('Fallback');
+    });
+
+    it('with no caption and no app name the root is focusable but no region', async () => {
+        render(
+            <Table.Root>
+                <Table.Body><Table.Row><Table.Cell>1</Table.Cell></Table.Row></Table.Body>
+            </Table.Root>,
+            container,
+        );
+        await tick();
+        const root = part(container, 'root');
+        expect(root.tabIndex).toBe(0);
+        // A nameless region is an axe violation — no role rather than that.
+        expect(root.hasAttribute('role')).toBe(false);
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+        expect(root.hasAttribute('aria-label')).toBe(false);
+    });
+
+    it('an app aria-labelledby names the region when there is no caption', async () => {
+        render(
+            <Table.Root aria-labelledby="heading">
+                <Table.Body><Table.Row><Table.Cell>1</Table.Cell></Table.Row></Table.Body>
+            </Table.Root>,
+            container,
+        );
+        await tick();
+        const root = part(container, 'root');
+        expect(root.getAttribute('role')).toBe('region');
+        expect(root.getAttribute('aria-labelledby')).toBe('heading');
+        expect(part(container, 'table').getAttribute('aria-labelledby')).toBe('heading');
+    });
+
+    it('renders data-focus-visible for its own keyboard focus only', () => {
+        render(
+            <Table.Root>
+                <Table.Body><Table.Row><Table.Cell><button type="button">Edit</button></Table.Cell></Table.Row></Table.Body>
+            </Table.Root>,
+            container,
+        );
+        const root = part(container, 'root');
+        const restore = Element.prototype.matches;
+        // happy-dom has no :focus-visible — report it for the focused element.
+        Element.prototype.matches = function (this: Element, sel: string) {
+            return sel === ':focus-visible' ? this === document.activeElement : restore.call(this, sel);
+        } as Element['matches'];
+        try {
+            root.focus();
+            expect(root.getAttribute('data-focus-visible')).toBe('');
+            root.blur();
+            expect(root.hasAttribute('data-focus-visible')).toBe(false);
+            container.querySelector('button')!.focus();
+            expect(root.hasAttribute('data-focus-visible')).toBe(false);
+        } finally {
+            Element.prototype.matches = restore;
+        }
     });
 
     it('declares no states — a table has no machine lifecycle', () => {

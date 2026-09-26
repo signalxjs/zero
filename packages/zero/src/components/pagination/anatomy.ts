@@ -34,10 +34,17 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *
  * The current page is the activation state (`active|inactive`) — the same
  * governed spelling as breadcrumbs' current link and tabs' selected tab.
+ *
+ * `disabled` on the root disables the whole control: the root carries
+ * `data-disabled` and every button is natively disabled. A trigger at its
+ * bound (prev on page 1, next on the last page) is different — it is
+ * `aria-disabled` + `data-disabled` but stays focusable, so the press that
+ * reaches the last page does not drop keyboard focus to the body.
  */
 export const paginationAnatomy = defineAnatomy('pagination', {
     root: {
         element: 'nav',
+        flags: ['disabled'],
         tokens: ['color', 'size'],
     },
     item: {

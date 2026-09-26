@@ -417,24 +417,54 @@ describe('Pagination', () => {
         expect(state.page).toBe(3);
     });
 
-    it('disables prev at the first page and next at the last', () => {
+    it('a bound trigger is aria-disabled but stays focusable, and a press is a no-op (#270)', () => {
         const state = signal({ page: 1 });
         render(<Pagination.Root count={3} model={[state, 'page']} />, container);
         const prev = part(container, 'pagination', 'prev-trigger') as HTMLButtonElement;
         const next = part(container, 'pagination', 'next-trigger') as HTMLButtonElement;
-        expect(prev.disabled).toBe(true);
+        // Not natively disabled: `disabled` would drop focus to <body> on
+        // the very press that reaches the bound.
+        expect(prev.disabled).toBe(false);
+        expect(prev.getAttribute('aria-disabled')).toBe('true');
         expect(prev.getAttribute('data-disabled')).toBe('');
-        expect(next.disabled).toBe(false);
+        expect(next.hasAttribute('aria-disabled')).toBe(false);
+        expect(next.hasAttribute('data-disabled')).toBe(false);
         prev.click();
         expect(state.page).toBe(1);
 
-        state.page = 3;
-        expect(next.disabled).toBe(true);
+        // Walk to the last page with focus on next: it stays there.
+        next.focus();
+        next.click();
+        next.click();
+        expect(state.page).toBe(3);
+        expect(document.activeElement).toBe(next);
+        expect(next.disabled).toBe(false);
+        expect(next.getAttribute('aria-disabled')).toBe('true');
         expect(next.getAttribute('data-disabled')).toBe('');
-        expect(prev.disabled).toBe(false);
+        expect(prev.hasAttribute('aria-disabled')).toBe(false);
         next.click();
         expect(state.page).toBe(3);
         expectAnatomy(container, paginationAnatomy);
+    });
+
+    it('a disabled Root declares its flag and disables every button natively (#270)', () => {
+        const state = signal({ page: 2 });
+        render(<Pagination.Root count={3} disabled model={[state, 'page']} />, container);
+        // `disabled` is a declared root flag — the anatomy check fails an
+        // undeclared one.
+        expect(paginationAnatomy.parts.root.flags).toContain('disabled');
+        expectAnatomy(container, paginationAnatomy);
+        const root = part(container, 'pagination', 'root');
+        expect(root.getAttribute('data-disabled')).toBe('');
+        const buttons = [...root.querySelectorAll<HTMLButtonElement>('button')];
+        expect(buttons.length).toBeGreaterThan(2);
+        for (const b of buttons) {
+            expect(b.disabled).toBe(true);
+            // Native `disabled` already says it — no aria-disabled on top.
+            expect(b.hasAttribute('aria-disabled')).toBe(false);
+        }
+        part(container, 'pagination', 'next-trigger').click();
+        expect(state.page).toBe(2);
     });
 
     it('clamps consumer numbers to whole pages in range', () => {

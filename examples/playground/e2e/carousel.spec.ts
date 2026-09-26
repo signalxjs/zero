@@ -36,7 +36,7 @@ test('next scrolls to the next slide and the model follows; prev clamps at 0', a
 
     // At rest: slide 1 active, nowhere for prev to go.
     await expect(items.nth(0)).toHaveAttribute('data-state', 'active');
-    await expect(prev).toBeDisabled();
+    await expect(prev).toHaveAttribute('aria-disabled', 'true');
     expect(await scrollLeft(page)).toBe(0);
 
     await next.click();
@@ -44,11 +44,29 @@ test('next scrolls to the next slide and the model follows; prev clamps at 0', a
     // The press moved real scroll, not just the attribute — poll it past the
     // smooth animation.
     await expect.poll(() => scrollLeft(page)).toBeGreaterThan(0);
-    await expect(prev).toBeEnabled();
+    await expect(prev).not.toHaveAttribute('aria-disabled');
 
     await next.click();
     await expect(items.nth(2)).toHaveAttribute('data-state', 'active');
-    await expect(next).toBeDisabled();
+    await expect(next).toHaveAttribute('aria-disabled', 'true');
+});
+
+test('the press that reaches the last slide keeps keyboard focus on next (#270)', async ({ page }) => {
+    const items = demo(page)('item');
+    const next = demo(page)('next-trigger');
+    await next.focus();
+    await page.keyboard.press('Enter');
+    await expect(items.nth(1)).toHaveAttribute('data-state', 'active');
+    await page.keyboard.press('Enter');
+    await expect(items.nth(2)).toHaveAttribute('data-state', 'active');
+    // aria-disabled at the bound, never natively disabled — a native
+    // `disabled` would have dropped focus to <body> right here.
+    await expect(next).toHaveAttribute('aria-disabled', 'true');
+    await expect(next).toBeFocused();
+    // A further press is a no-op.
+    await page.keyboard.press('Enter');
+    await expect(items.nth(2)).toHaveAttribute('data-state', 'active');
+    await expect(next).toBeFocused();
 });
 
 test('a dot jumps straight to its slide and takes aria-current with it', async ({ page }) => {

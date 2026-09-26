@@ -5167,6 +5167,11 @@ export const table: RecipeInput = {
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
             },
+            // The scroll box is a keyboard stop (#270): the secondary-role ring,
+            // drawn inside the box (negative offset) — the root is as wide
+            // as its column, so an outward ring would be clipped by
+            // whatever scrolls around it.
+            states: { 'focus-visible': { outline: '3px solid var(--color-secondary)', outlineOffset: '-3px' } },
         // Stacked (Table.Root stack, #55): zero lays each row out as a block
         // below the table's breakpoint; the card it becomes is drawn here.
             // Each card takes the container's surface; the box around them goes.

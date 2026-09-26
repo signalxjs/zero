@@ -149,7 +149,11 @@ const TableDemos = component(() => () => (
                 </Table.Row>
             </Table.Body>
         </Table.Root>
-        <p>Hover-highlight, where the design system offers it — and enough columns to prove the root scrolls:</p>
+        <p>
+            Hover-highlight, where the design system offers it — and enough
+            columns to prove the root scrolls. The root is a keyboard stop
+            named by the caption: Tab to it and the arrow keys scroll it.
+        </p>
         <div style="max-width: 24rem">
             <Table.Root mods={mod('hover')}>
                 <Table.Caption>Regions (hover, constrained width)</Table.Caption>

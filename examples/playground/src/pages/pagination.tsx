@@ -13,7 +13,9 @@ const PaginationDemos = component(() => {
                 constant width (the sibling block slides near the edges
                 instead of shrinking). The current page carries{' '}
                 <code>aria-current="page"</code>; the <code>‹</code>/
-                <code>›</code> triggers disable at the bounds. Because the
+                <code>›</code> triggers are <code>aria-disabled</code> at the
+                bounds but stay focusable, so the press that reaches the last
+                page keeps keyboard focus. Because the
                 width follows the window rather than the container, the root
                 is the row's scroll box: on a narrow screen it scrolls
                 instead of clipping.
@@ -24,6 +26,11 @@ const PaginationDemos = component(() => {
             <Pagination.Root count={20} defaultPage={9} siblingCount={2} boundaryCount={2} />
             <p>Coloured and small, where the vocabulary has roles:</p>
             <Pagination.Root count={8} defaultPage={2} color={pickRole('primary')} size="sm" label="Result pages" />
+            <p>
+                Disabled as a whole: the root carries <code>data-disabled</code>
+                and every button is natively disabled.
+            </p>
+            <Pagination.Root count={5} defaultPage={3} disabled label="Archived pages" />
         </>
     );
 }, { name: 'PaginationDemos' });

@@ -243,7 +243,9 @@ inside its column while genuinely overflowing (the row is constant-width,
 so every skin makes the root its scroll box, Table's answer), the last
 control is reachable scrolled to the end, and a keyboard-focused trigger at
 either end keeps its whole focus ring inside the scrollport — a scroll box
-clips at its padding box, so the recipes pad the root by the ring's reach;
+clips at its padding box, so the recipes pad the root by the ring's reach —
+and the Enter that reaches the last page leaves focus on the (now
+`aria-disabled`) next trigger (#270);
 the **narrow-stats spec** (`e2e/narrow-stats.spec.ts`, #43) — the same
 shape for Stats: a value never wraps, so the root is the row's scroll box.
 At the case that found it (brutalist at 1100px, where shout-scale values
