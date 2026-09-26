@@ -589,6 +589,22 @@ export const dialog: RecipeInput = {
 
 const slab: CssProps = { ...inked, boxShadow: 'var(--shadow-md)', padding: 'var(--space-md)' };
 
+/**
+ * A listbox slab sized by the geometry the anchored-position strategy
+ * publishes (#278): never narrower than the field that opened it
+ * (`--anchor-width`, 12rem otherwise), never taller than the room on the
+ * side it opened to (`--available-height`) — a long list scrolls inside a
+ * 24rem slab instead of running off the page. Border-box, so both bounds
+ * measure the box the strategy positions. The slab slides rather than
+ * scales, so it needs no `--transform-origin`.
+ */
+const anchoredListbox: CssProps = {
+    boxSizing: 'border-box',
+    minWidth: 'var(--anchor-width, 12rem)',
+    maxHeight: 'min(24rem, var(--available-height, 24rem))',
+    overflowY: 'auto',
+};
+
 export const popover: RecipeInput = {
     component: 'popover',
     parts: {
@@ -833,7 +849,7 @@ export const select: RecipeInput = {
                 ...focusRing,
             },
         },
-        popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', ...anchoredListbox }, states: { open: {}, closed: {} } }),
         // The optgroup equivalent (#325) — the menu's group grammar.
         group: { base: { padding: 'var(--space-2xs) 0' } },
         'group-label': {
@@ -2111,7 +2127,7 @@ export const combobox: RecipeInput = {
             },
             states: { hover: { background: 'var(--color-base-200)' } },
         },
-        popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', ...anchoredListbox }, states: { open: {}, closed: {} } }),
         // The optgroup equivalent (#325) — the menu's group grammar.
         group: { base: { padding: 'var(--space-2xs) 0' } },
         'group-label': {

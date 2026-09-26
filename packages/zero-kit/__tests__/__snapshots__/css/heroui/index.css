@@ -2231,7 +2231,10 @@
         border-radius: var(--radius-box);
         background: var(--color-base-100);
         box-shadow: var(--shadow-lg);
-        min-width: 12rem;
+        box-sizing: border-box;
+        min-width: var(--anchor-width, 12rem);
+        max-height: min(16rem, var(--available-height, 16rem));
+        overflow-y: auto;
     }
 
     [data-scope="select"][data-part="popup"][data-state="open"] {
@@ -2886,7 +2889,10 @@
         border-radius: var(--radius-box);
         background: var(--color-base-100);
         box-shadow: var(--shadow-lg);
-        min-width: 12rem;
+        box-sizing: border-box;
+        min-width: var(--anchor-width, 12rem);
+        max-height: min(16rem, var(--available-height, 16rem));
+        overflow-y: auto;
     }
 
     [data-scope="combobox"][data-part="popup"][data-state="open"] {

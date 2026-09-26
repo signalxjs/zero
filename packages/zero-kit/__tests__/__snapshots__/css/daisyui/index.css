@@ -3572,7 +3572,10 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-lg);
         padding: var(--space-md);
-        min-width: 13rem;
+        min-width: var(--anchor-width, 13rem);
+        box-sizing: border-box;
+        max-height: min(20rem, var(--available-height, 20rem));
+        overflow-y: auto;
     }
 
     [data-scope="select"][data-part="popup"][data-state="open"] {
@@ -4498,7 +4501,10 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-lg);
         padding: var(--space-md);
-        min-width: 13rem;
+        min-width: var(--anchor-width, 13rem);
+        box-sizing: border-box;
+        max-height: min(20rem, var(--available-height, 20rem));
+        overflow-y: auto;
     }
 
     [data-scope="combobox"][data-part="popup"][data-state="open"] {

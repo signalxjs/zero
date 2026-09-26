@@ -208,7 +208,11 @@
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-level2);
         padding: var(--space-xs);
-        min-width: 12rem;
+        transform-origin: var(--transform-origin, center);
+        box-sizing: border-box;
+        min-width: var(--anchor-width, 12rem);
+        max-height: min(20rem, var(--available-height, 20rem));
+        overflow-y: auto;
     }
 
     [data-scope="combobox"][data-part="popup"][data-state="open"] {

@@ -113,6 +113,22 @@ const overlayPanel: NonNullable<PartStyles['base']> = {
 };
 
 /**
+ * A listbox popup sized by the geometry the anchored-position strategy
+ * publishes (#278): at least as wide as the control that opened it
+ * (`--anchor-width`), and never taller than the room on the side it opened
+ * to (`--available-height`), scrolling past the 20rem cap. Border-box, so
+ * both bounds measure the box the strategy positions. Those properties are
+ * runtime-published, which is web-only — this is each listbox recipe's
+ * `targets.web` section; the shared `minWidth` is what lynx keeps.
+ */
+const anchoredListbox: CssProps = {
+    boxSizing: 'border-box',
+    minWidth: 'var(--anchor-width, 12rem)',
+    maxHeight: 'min(20rem, var(--available-height, 20rem))',
+    overflowY: 'auto',
+};
+
+/**
  * The quiet trigger an overlay opens from: transparent over the page inside a
  * hairline frame — furniture until touched. Hover is one film of ink, `open`
  * holds it while the surface is up, pressed (via `pressedInk`) is two.
@@ -2273,6 +2289,7 @@ export const select: RecipeInput = {
     // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
     // lynx target's norm — no RTL flow there to flip with.
     targets: {
+        web: { parts: { popup: { base: anchoredListbox } } },
         lynx: {
             parts: {
                 item: { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
@@ -3033,6 +3050,7 @@ export const combobox: RecipeInput = {
     // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
     // lynx target's norm — no RTL flow there to flip with.
     targets: {
+        web: { parts: { popup: { base: anchoredListbox } } },
         lynx: {
             parts: {
                 item: { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },

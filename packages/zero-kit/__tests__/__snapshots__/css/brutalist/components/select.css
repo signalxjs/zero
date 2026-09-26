@@ -115,7 +115,10 @@
         color: var(--color-base-content);
         box-shadow: var(--shadow-md);
         padding: var(--space-xs);
-        min-width: 12rem;
+        box-sizing: border-box;
+        min-width: var(--anchor-width, 12rem);
+        max-height: min(24rem, var(--available-height, 24rem));
+        overflow-y: auto;
     }
 
     [data-scope="select"][data-part="popup"][data-state="open"] {
