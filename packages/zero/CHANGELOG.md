@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+### Added — Breadcrumbs maxItems collapse with an ellipsis part (#295)
+
+- **`maxItems`** on `Breadcrumbs.Root` collapses a longer trail: the items
+  between the leading `itemsBeforeCollapse` (default 1) and the trailing
+  `itemsAfterCollapse` (default 1) render `hidden` with
+  `data-state="closed"`, their separators with them. The `item` part
+  gains the states `open|closed` with `hiddenIn: ['closed']`. The collapse
+  applies once the Root mounts; a server render ships the whole trail.
+- **`model:expanded`** (`defaultExpanded` / `expandedChange`) shows every
+  item while true.
+- **`Breadcrumbs.Ellipsis`** (new part `ellipsis`, an `<li>` with
+  `parent: 'list'`, `open|closed`, `hiddenIn: ['closed']`) is placed by
+  the consumer after the leading items and is open only while a collapse
+  is active. A console warning names a missing or misplaced one.
+- **`Breadcrumbs.EllipsisTrigger`** (new part `ellipsis-trigger`, a button
+  with `asChild`, flags `focus-visible`/`pressed`/`press-animating`)
+  carries `aria-expanded="false"` and is named "Show N more breadcrumbs"
+  (`label={(n) => …}` renames it). Activating it expands the trail and
+  moves focus to the first revealed link.
+- **`useBreadcrumbsContext()`** exposes `hiddenIndices()` and
+  `hiddenCount()`, so an app can compose the trigger with a
+  `Menu.Trigger` and list the hidden crumbs instead.
+- The `separator` part's declared parent is now `list` (was `item`), so
+  the ellipsis can hold its own separator.
+- A non-finite or negative `maxItems` reads as absent (a fractional one
+  floors), and non-finite kept-end counts take their defaults. An app
+  `aria-labelledby` on the Root or the trigger replaces the default
+  `aria-label` instead of sitting beside it.
+
 ### Added — `HoverCard`: a hover-intent preview card with interactive content (#290)
 
 - **`HoverCard`** (`@sigx/zero/hover-card` and the barrel), scope

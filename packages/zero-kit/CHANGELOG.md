@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.breadcrumbs` reserves `defaultExpanded`, `itemsAfterCollapse`, `itemsBeforeCollapse` and `maxItems` (zero#295)
+
+- Breadcrumbs' new root props are reserved, so a vendor-named api cannot
+  claim them as axis props.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE['hover-card']` (zero#290)
 
 - The new `hover-card` scope's root props are reserved (`openDelay`,

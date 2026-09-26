@@ -5,11 +5,12 @@
  * `Drawer.test.tsx`); what is asserted here is anatomy, semantics and the
  * one value model (Pagination's page number).
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { PartProps } from '@sigx/zero';
-import { Badge, Breadcrumbs, breadcrumbsAnatomy, Navbar, navbarAnatomy, NavList, navListAnatomy, Pagination, paginationAnatomy } from '@sigx/zero';
-import { signal } from 'sigx';
+import { Badge, Breadcrumbs, breadcrumbsAnatomy, Menu, Navbar, navbarAnatomy, NavList, navListAnatomy, Pagination, paginationAnatomy, useBreadcrumbsContext } from '@sigx/zero';
+import { component, signal } from 'sigx';
+import type { JSXElement } from 'sigx';
 import { expectAnatomy } from './helpers';
 
 const selector = (scope: string, name: string) => `[data-scope="${scope}"][data-part="${name}"]`;
@@ -346,6 +347,270 @@ describe('Breadcrumbs', () => {
         const root = part(container, 'breadcrumbs', 'root');
         expect(root.getAttribute('data-color')).toBe('primary');
         expect(root.getAttribute('data-size')).toBe('sm');
+    });
+});
+
+describe('Breadcrumbs collapse (#295)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    const NAMES = ['Home', 'Docs', 'Components', 'Navigation', 'Breadcrumbs'];
+
+    /** Five crumbs with the ellipsis after `ellipsisAfter` leading items. */
+    const trail = (root: Record<string, unknown> = {}, ellipsisAfter = 1, trigger?: () => JSXElement) => {
+        const crumbs = NAMES.map((name, i) => (
+            <Breadcrumbs.Item>
+                <Breadcrumbs.Link href={`/${i}`} current={i === NAMES.length - 1}>{name}</Breadcrumbs.Link>
+                {i < NAMES.length - 1 ? <Breadcrumbs.Separator /> : null}
+            </Breadcrumbs.Item>
+        ));
+        const ellipsis = (
+            <Breadcrumbs.Ellipsis>
+                {trigger ? trigger() : <Breadcrumbs.EllipsisTrigger />}
+                <Breadcrumbs.Separator />
+            </Breadcrumbs.Ellipsis>
+        );
+        return (
+            <Breadcrumbs.Root {...root}>
+                <Breadcrumbs.List>
+                    {[...crumbs.slice(0, ellipsisAfter), ellipsis, ...crumbs.slice(ellipsisAfter)]}
+                </Breadcrumbs.List>
+            </Breadcrumbs.Root>
+        );
+    };
+
+    const items = (c: HTMLElement) => [...c.querySelectorAll<HTMLElement>(selector('breadcrumbs', 'item'))];
+    /** The crumbs a sighted user sees, '…' for an open ellipsis. */
+    const visible = (c: HTMLElement): string[] =>
+        [...c.querySelectorAll<HTMLElement>(`${selector('breadcrumbs', 'item')}, ${selector('breadcrumbs', 'ellipsis')}`)]
+            .filter((el) => !el.hidden)
+            .map((el) => (el.getAttribute('data-part') === 'ellipsis' ? '…' : el.querySelector('a')!.textContent!));
+    const flush = () => new Promise<void>((r) => setTimeout(r, 0));
+
+    it('without maxItems nothing collapses: every item open, the ellipsis hidden', () => {
+        render(trail(), container);
+        expect(visible(container)).toEqual(NAMES);
+        for (const item of items(container)) {
+            expect(item.getAttribute('data-state')).toBe('open');
+            expect(item.hasAttribute('hidden')).toBe(false);
+        }
+        const ellipsis = part(container, 'breadcrumbs', 'ellipsis');
+        expect(ellipsis.tagName).toBe('LI');
+        expect(ellipsis.getAttribute('data-state')).toBe('closed');
+        expect(ellipsis.hidden).toBe(true);
+        expectAnatomy(container, breadcrumbsAnatomy);
+    });
+
+    it('maxItems hides the middle items behind an open ellipsis', () => {
+        render(trail({ maxItems: 3 }), container);
+        expect(visible(container)).toEqual(['Home', '…', 'Breadcrumbs']);
+        const all = items(container);
+        for (const hidden of all.slice(1, 4)) {
+            expect(hidden.hidden).toBe(true);
+            expect(hidden.getAttribute('data-state')).toBe('closed');
+            // The item's own separator sits inside it and hides with it.
+            expect(hidden.querySelector(selector('breadcrumbs', 'separator'))).not.toBeNull();
+        }
+        const ellipsis = part(container, 'breadcrumbs', 'ellipsis');
+        expect(ellipsis.getAttribute('data-state')).toBe('open');
+        expect(ellipsis.hidden).toBe(false);
+        const trigger = part(container, 'breadcrumbs', 'ellipsis-trigger');
+        expect(trigger.tagName).toBe('BUTTON');
+        expect(trigger.getAttribute('type')).toBe('button');
+        expect(trigger.getAttribute('aria-label')).toBe('Show 3 more breadcrumbs');
+        expect(trigger.getAttribute('aria-expanded')).toBe('false');
+        expect(trigger.textContent).toBe('…');
+        expectAnatomy(container, breadcrumbsAnatomy);
+    });
+
+    it('does not collapse at or under maxItems', () => {
+        render(trail({ maxItems: 5 }), container);
+        expect(visible(container)).toEqual(NAMES);
+        expect(part(container, 'breadcrumbs', 'ellipsis').hidden).toBe(true);
+    });
+
+    it('itemsBeforeCollapse / itemsAfterCollapse choose the kept ends', () => {
+        render(trail({ maxItems: 4, itemsBeforeCollapse: 2, itemsAfterCollapse: 2 }, 2), container);
+        expect(visible(container)).toEqual(['Home', 'Docs', '…', 'Navigation', 'Breadcrumbs']);
+        expect(part(container, 'breadcrumbs', 'ellipsis-trigger').getAttribute('aria-label')).toBe('Show 1 more breadcrumbs');
+    });
+
+    it('invalid counts fall back instead of throwing or over-collapsing', () => {
+        // NaN kept ends take their defaults (1 and 1) rather than reaching
+        // Array.from as an invalid length.
+        render(trail({ maxItems: 3, itemsBeforeCollapse: Number.NaN, itemsAfterCollapse: Number.NaN }), container);
+        expect(visible(container)).toEqual(['Home', '…', 'Breadcrumbs']);
+        // A NaN maxItems reads as absent: nothing collapses.
+        const other = document.createElement('div');
+        document.body.appendChild(other);
+        render(trail({ maxItems: Number.NaN }), other);
+        expect(visible(other)).toEqual(NAMES);
+        // So does a negative one; a fractional one floors.
+        const negative = document.createElement('div');
+        document.body.appendChild(negative);
+        render(trail({ maxItems: -1 }), negative);
+        expect(visible(negative)).toEqual(NAMES);
+        const fractional = document.createElement('div');
+        document.body.appendChild(fractional);
+        render(trail({ maxItems: 4.9 }), fractional);
+        expect(visible(fractional)).toEqual(['Home', '…', 'Breadcrumbs']);
+    });
+
+    it('shows the whole trail when the kept ends leave nothing to hide', () => {
+        render(trail({ maxItems: 2, itemsBeforeCollapse: 3, itemsAfterCollapse: 2 }, 3), container);
+        expect(visible(container)).toEqual(NAMES);
+    });
+
+    it('activating the trigger expands the trail and focuses the first revealed link', async () => {
+        const expanded: boolean[] = [];
+        render(trail({ maxItems: 3, onExpandedChange: (v: boolean) => expanded.push(v) }), container);
+        const trigger = part(container, 'breadcrumbs', 'ellipsis-trigger');
+        trigger.focus();
+        trigger.click();
+        await flush();
+        expect(expanded).toEqual([true]);
+        expect(visible(container)).toEqual(NAMES);
+        expect(part(container, 'breadcrumbs', 'ellipsis').hidden).toBe(true);
+        expect(document.activeElement?.textContent).toBe('Docs');
+        expectAnatomy(container, breadcrumbsAnatomy);
+    });
+
+    it('model:expanded is controllable both ways; defaultExpanded seeds it', async () => {
+        const state = signal({ expanded: true });
+        render(trail({ maxItems: 3, 'model:expanded': [state, 'expanded'] }), container);
+        expect(visible(container)).toEqual(NAMES);
+        state.expanded = false;
+        await flush();
+        expect(visible(container)).toEqual(['Home', '…', 'Breadcrumbs']);
+        part(container, 'breadcrumbs', 'ellipsis-trigger').click();
+        expect(state.expanded).toBe(true);
+
+        const seeded = document.createElement('div');
+        document.body.appendChild(seeded);
+        render(trail({ maxItems: 3, defaultExpanded: true }), seeded);
+        expect(visible(seeded)).toEqual(NAMES);
+    });
+
+    it('the label prop names the trigger from the hidden count', () => {
+        render(trail({ maxItems: 3 }, 1, () => (
+            <Breadcrumbs.EllipsisTrigger label={(n: number) => `Visa ${n} till`} />
+        )), container);
+        expect(part(container, 'breadcrumbs', 'ellipsis-trigger').getAttribute('aria-label')).toBe('Visa 3 till');
+    });
+
+    it('exposes hiddenCount / hiddenIndices on the context, and asChild composes with Menu.Trigger', () => {
+        const seen: Array<[number, number[]]> = [];
+        const Probe = component(() => {
+            const ctx = useBreadcrumbsContext();
+            return () => {
+                seen.push([ctx.hiddenCount(), ctx.hiddenIndices()]);
+                return null;
+            };
+        });
+        render(trail({ maxItems: 3 }, 1, () => (
+            <>
+                <Menu.Root>
+                    <Menu.Trigger asChild>
+                        {(menu: PartProps) => (
+                            <Breadcrumbs.EllipsisTrigger asChild>
+                                {(own: PartProps) => <button type="button" {...own} {...menu}>…</button>}
+                            </Breadcrumbs.EllipsisTrigger>
+                        )}
+                    </Menu.Trigger>
+                </Menu.Root>
+                <Probe />
+            </>
+        )), container);
+        expect(seen.at(-1)).toEqual([3, [1, 2, 3]]);
+        // The menu's bag wins the element (its scope, part and handlers);
+        // the breadcrumb's name survives, since a menu trigger sets none.
+        const trigger = part(container, 'menu', 'trigger');
+        expect(trigger.getAttribute('aria-label')).toBe('Show 3 more breadcrumbs');
+        expect(trigger.getAttribute('aria-haspopup')).toBe('menu');
+        trigger.click();
+        expect(trigger.getAttribute('aria-expanded')).toBe('true');
+        expect(visible(container)).toEqual(['Home', '…', 'Breadcrumbs']);
+    });
+
+    it('re-derives when an item is added', async () => {
+        const state = signal({ n: 3 });
+        const Dynamic = component(() => () => (
+            <Breadcrumbs.Root maxItems={3}>
+                <Breadcrumbs.List>
+                    <Breadcrumbs.Item><Breadcrumbs.Link href="/">Home</Breadcrumbs.Link></Breadcrumbs.Item>
+                    <Breadcrumbs.Ellipsis><Breadcrumbs.EllipsisTrigger /></Breadcrumbs.Ellipsis>
+                    {Array.from({ length: state.n - 1 }, (_, i) => (
+                        <Breadcrumbs.Item key={i}><Breadcrumbs.Link href={`/${i}`}>{`L${i}`}</Breadcrumbs.Link></Breadcrumbs.Item>
+                    ))}
+                </Breadcrumbs.List>
+            </Breadcrumbs.Root>
+        ));
+        render(<Dynamic />, container);
+        expect(visible(container)).toEqual(['Home', 'L0', 'L1']);
+        state.n = 4;
+        await flush();
+        expect(visible(container)).toEqual(['Home', '…', 'L2']);
+    });
+
+    it('warns when the ellipsis is misplaced or missing', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        render(trail({ maxItems: 3 }, 2), container);
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('Breadcrumbs.Ellipsis is misplaced'));
+        warn.mockClear();
+
+        const other = document.createElement('div');
+        document.body.appendChild(other);
+        render(trail({ maxItems: 3 }, 1), other);
+        expect(warn).not.toHaveBeenCalled();
+
+        const missing = document.createElement('div');
+        document.body.appendChild(missing);
+        render(
+            <Breadcrumbs.Root maxItems={1}>
+                <Breadcrumbs.List>
+                    <Breadcrumbs.Item><Breadcrumbs.Link href="/">A</Breadcrumbs.Link></Breadcrumbs.Item>
+                    <Breadcrumbs.Item><Breadcrumbs.Link href="/b">B</Breadcrumbs.Link></Breadcrumbs.Item>
+                    <Breadcrumbs.Item><Breadcrumbs.Link href="/c">C</Breadcrumbs.Link></Breadcrumbs.Item>
+                </Breadcrumbs.List>
+            </Breadcrumbs.Root>,
+            missing,
+        );
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('renders no Breadcrumbs.Ellipsis'));
+        warn.mockRestore();
+    });
+
+    it('an app aria-labelledby replaces the default labels', () => {
+        render(
+            <Breadcrumbs.Root maxItems={1} aria-labelledby="crumbs-heading">
+                <Breadcrumbs.List>
+                    <Breadcrumbs.Item><Breadcrumbs.Link href="/">A</Breadcrumbs.Link></Breadcrumbs.Item>
+                    <Breadcrumbs.Ellipsis><Breadcrumbs.EllipsisTrigger aria-labelledby="more-label" /></Breadcrumbs.Ellipsis>
+                    <Breadcrumbs.Item><Breadcrumbs.Link href="/b">B</Breadcrumbs.Link></Breadcrumbs.Item>
+                    <Breadcrumbs.Item><Breadcrumbs.Link href="/c">C</Breadcrumbs.Link></Breadcrumbs.Item>
+                </Breadcrumbs.List>
+            </Breadcrumbs.Root>,
+            container,
+        );
+        const root = part(container, 'breadcrumbs', 'root');
+        expect(root.getAttribute('aria-labelledby')).toBe('crumbs-heading');
+        expect(root.hasAttribute('aria-label')).toBe(false);
+        const trigger = part(container, 'breadcrumbs', 'ellipsis-trigger');
+        expect(trigger.getAttribute('aria-labelledby')).toBe('more-label');
+        expect(trigger.hasAttribute('aria-label')).toBe(false);
+    });
+
+    it('judges placement in tree order inside a detached subtree', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        // Never attached: items and ellipsis still share one tree, so a
+        // correct placement stays quiet and a wrong one is still caught.
+        render(trail({ maxItems: 3 }, 1), document.createElement('div'));
+        expect(warn).not.toHaveBeenCalled();
+        render(trail({ maxItems: 3 }, 2), document.createElement('div'));
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('Breadcrumbs.Ellipsis is misplaced'));
+        warn.mockRestore();
     });
 });
 

@@ -19,7 +19,19 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * structure already separates the items for the ear), rendered INSIDE the
  * item after its link so the `<ol>` keeps only `<li>` children. It carries
  * a replaceable glyph (default `/`); a design system that wants its own
- * mark hides the glyph and paints.
+ * mark hides the glyph and paints. Its declared parent is the LIST, not the
+ * item, because the ellipsis carries one too (below).
+ *
+ * Collapse (#295) is presence, not a new vocabulary: with `maxItems`
+ * exceeded, the middle items render `hidden` with `data-state="closed"`
+ * (every item is `open` otherwise), and the `ellipsis` — an `<li>` the
+ * consumer places after the leading items — is `open` only while a
+ * collapse is active, `hidden` and `closed` the rest of the time. A hidden
+ * item's separator sits inside it and hides with it. The `ellipsis-trigger`
+ * is the disclosure (`aria-expanded="false"`, named "Show N more
+ * breadcrumbs"): activating it sets `model:expanded` and moves focus to the
+ * first revealed link. A recipe styles the trigger; it never needs a
+ * `closed` rule for a part the runtime hides.
  */
 export const breadcrumbsAnatomy = defineAnatomy('breadcrumbs', {
     root: {
@@ -33,6 +45,8 @@ export const breadcrumbsAnatomy = defineAnatomy('breadcrumbs', {
     item: {
         element: 'li',
         parent: 'list',
+        states: ['open', 'closed'],
+        hiddenIn: ['closed'],
     },
     link: {
         element: 'a',
@@ -43,7 +57,24 @@ export const breadcrumbsAnatomy = defineAnatomy('breadcrumbs', {
     },
     separator: {
         element: 'span',
-        parent: 'item',
+        parent: 'list',
         tokens: ['color'],
     },
+    ellipsis: {
+        element: 'li',
+        parent: 'list',
+        states: ['open', 'closed'],
+        hiddenIn: ['closed'],
+    },
+    'ellipsis-trigger': {
+        element: 'button',
+        parent: 'ellipsis',
+        flags: ['focus-visible', 'pressed', 'press-animating'],
+        tokens: ['color', 'radius-field'],
+        asChild: true,
+    },
+}, {
+    models: [
+        { name: 'expanded', concept: 'expanded', type: 'boolean' },
+    ],
 });

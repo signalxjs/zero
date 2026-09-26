@@ -4618,6 +4618,8 @@ export const breadcrumbs: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
             },
+            // `closed` is presence: the runtime hides the part (#295).
+            states: { open: {}, closed: {} },
         },
         link: {
             base: {
@@ -4645,6 +4647,41 @@ export const breadcrumbs: RecipeInput = {
             base: {
                 color: 'var(--color-base-content)',
                 userSelect: 'none',
+            },
+        },
+        ellipsis: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+            },
+            // `closed` is presence: the runtime hides the part (#295).
+            states: { open: {}, closed: {} },
+        },
+        'ellipsis-trigger': {
+            base: {
+                appearance: 'none',
+                background: 'transparent',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                borderRadius: '0',
+                padding: '0 var(--space-2xs)',
+                margin: '0',
+                font: 'inherit',
+                lineHeight: 'inherit',
+                letterSpacing: 'inherit',
+                color: 'var(--color-base-content)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                pressed: {
+                    background: 'var(--color-base-content)',
+                    color: 'var(--color-base-100)',
+                },
+                'focus-visible': {
+                    outline: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                    outlineOffset: '2px',
+                },
             },
         },
     },

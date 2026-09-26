@@ -5711,6 +5711,35 @@
         user-select: none;
     }
 
+    [data-scope="breadcrumbs"][data-part="ellipsis"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+
+    [data-scope="breadcrumbs"][data-part="ellipsis-trigger"] {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        padding: 0 var(--space-2xs);
+        margin: 0;
+        font: inherit;
+        line-height: inherit;
+        color: var(--hero-muted);
+        border-radius: var(--radius-selector);
+        cursor: pointer;
+        transition: color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="breadcrumbs"][data-part="ellipsis-trigger"]:hover:not([data-disabled]) {
+        color: var(--color-base-content);
+    }
+
+    [data-scope="breadcrumbs"][data-part="ellipsis-trigger"][data-focus-visible] {
+        outline: 2px solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
     [data-scope="breadcrumbs"][data-part="root"][data-size="sm"] {
         font-size: var(--text-xs);
     }
