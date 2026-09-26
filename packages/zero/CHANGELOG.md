@@ -15,7 +15,8 @@
   that many steps apart; each thumb announces the gap in its
   `aria-valuemin`/`aria-valuemax`. A gap the neighbours leave no room for
   degrades to plain no-crossing, so the bounds never invert or leave
-  `[min, max]`.
+  `[min, max]`, and they always hold the thumb's own value (out-of-order or
+  gap-breaking values can only move back toward order).
 - **Diff.Handle** takes `getValueText` (`aria-valuetext`, default `"50%"`),
   `step` (default 1) and `largeStep` (default 10, also on Shift+Arrow).
 - **`disabled` on `Diff.Root`** freezes the divider: `data-disabled` on the
