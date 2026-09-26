@@ -6308,6 +6308,8 @@ export const breadcrumbs: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-xs)',
             },
+            // `closed` is presence: the runtime hides the part (#295).
+            states: { open: {}, closed: {} },
         },
         link: {
             base: {
@@ -6332,6 +6334,35 @@ export const breadcrumbs: RecipeInput = {
                 color: 'color-mix(in oklch, var(--color-base-content) 45%, transparent)',
                 userSelect: 'none',
             },
+        },
+        ellipsis: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+            },
+            // `closed` is presence: the runtime hides the part (#295).
+            states: { open: {}, closed: {} },
+        },
+        'ellipsis-trigger': {
+            base: {
+                appearance: 'none',
+                background: 'transparent',
+                border: '0',
+                padding: '0 var(--space-2xs)',
+                margin: '0',
+                font: 'inherit',
+                lineHeight: 'inherit',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                transition: 'color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { color: 'var(--color-base-content)', background: inkWash },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
         },
     },
     variants: {

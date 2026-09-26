@@ -588,7 +588,7 @@
     {
         "name": "@sigx/zero/breadcrumbs",
         "path": "packages/zero/dist/components/breadcrumbs/index.js",
-        "limit": "1.8 kB",
+        "limit": "4.03 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
