@@ -56,29 +56,52 @@ const CardRoot = component<CardRootProps>(({ props, slots }) => () => {
 export type CardPartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 /**
- * The four plain bands and the description are the same component with a
- * different part name and element — writing five near-identical factories out
- * longhand would be five places for one convention to drift.
+ * The three plain bands are the same component with a different part name —
+ * writing them out longhand would be three places for one convention to
+ * drift.
  */
-function makePart(part: string, element: 'div' | 'h3' | 'p', name: string) {
-    return component<CardPartProps>(({ props, slots }) => () => {
-        const bag = { ...htmlAttrs(props), 'data-scope': SCOPE, 'data-part': part, class: props.class };
-        const children = slots.default?.();
-        if (element === 'h3') return <h3 {...bag}>{children}</h3>;
-        if (element === 'p') return <p {...bag}>{children}</p>;
-        return <div {...bag}>{children}</div>;
+function makeBand(part: 'header' | 'body' | 'footer', name: string) {
+    return component<CardPartProps>(({ props, slots }) => () => (
+        <div {...htmlAttrs(props)} data-scope={SCOPE} data-part={part} class={props.class}>
+            {slots.default?.()}
+        </div>
+    ), { name });
+}
+
+export type CardTextProps =
+    & WithClass
+    & WithHtmlAttrs
+    /**
+     * Render your own element — the heading level the page's outline wants
+     * (`<h2>` under a page `<h1>`), or a `<div>` for a description that is
+     * more than one paragraph. The slot receives the bag; spread it.
+     */
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
+
+/**
+ * `title` and `description`: text parts with a default element and an
+ * asChild escape (EmptyState.Title's shape).
+ */
+function makeText(part: 'title' | 'description', element: 'h3' | 'p', name: string) {
+    return component<CardTextProps>(({ props, slots }) => () => {
+        const bag: PartProps = { ...htmlAttrs(props), 'data-scope': SCOPE, 'data-part': part };
+        if (props.asChild) return renderAsChild(slots.default, bag);
+        const children = slots.default?.(bag);
+        if (element === 'h3') return <h3 {...bag} class={props.class}>{children}</h3>;
+        return <p {...bag} class={props.class}>{children}</p>;
     }, { name });
 }
 
-const CardHeader = makePart('header', 'div', 'Card.Header');
-// `h3` rather than a `div`: a card title is a heading in the document outline,
-// and the level is the one that sits under a page (h1) and a section (h2)
-// without the consumer having to think. Pass `asChild`-style overrides by
-// rendering your own heading inside `Card.Header` when the outline differs.
-const CardTitle = makePart('title', 'h3', 'Card.Title');
-const CardDescription = makePart('description', 'p', 'Card.Description');
-const CardBody = makePart('body', 'div', 'Card.Body');
-const CardFooter = makePart('footer', 'div', 'Card.Footer');
+const CardHeader = makeBand('header', 'Card.Header');
+// `h3` by default: a card title is a heading in the document outline, and the
+// level is the one that sits under a page (h1) and a section (h2) without the
+// consumer having to think. When the outline differs, `asChild` renders the
+// heading it needs.
+const CardTitle = makeText('title', 'h3', 'Card.Title');
+const CardDescription = makeText('description', 'p', 'Card.Description');
+const CardBody = makeBand('body', 'Card.Body');
+const CardFooter = makeBand('footer', 'Card.Footer');
 
 export const Card = compound(CardRoot, {
     Root: CardRoot,

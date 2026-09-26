@@ -16,10 +16,15 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *
  * It carries no `color`: a container is a constraint, not a surface. Wrap it
  * around a Box, or put one inside it.
+ *
+ * `root` supports `asChild` (#275): the bounded element is usually the
+ * page's `<main>` (or a `<header>`/`<footer>` band), and the landmark should
+ * be the element that carries the measure, not a `div` inside it.
  */
 export const containerAnatomy = defineAnatomy('container', {
     root: {
         element: 'div',
         layout: ['measure', 'pad', 'pad-x', 'pad-y'],
+        asChild: true,
     },
 });

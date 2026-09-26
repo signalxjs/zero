@@ -4,7 +4,8 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * Stats — a row (or column) of figures with their labels: revenue, signups,
  * uptime. Card's cousin: purely a styling container with a conventional
  * interior, no state, no ids, no ARIA — a stat that needs to be a landmark
- * is a `<section>` the consumer writes.
+ * is a `<section>` the consumer writes — through `asChild` on `root` (#275),
+ * which is also how a row of figures becomes a `<dl>` or a `<ul>`.
  *
  * `item` is one stat; `title`/`value`/`desc` are its text bands and `figure`
  * the icon/avatar slot, all optional. Both `root` and `item` carry
@@ -23,6 +24,7 @@ export const statsAnatomy = defineAnatomy('stats', {
     root: {
         element: 'div',
         tokens: ['color', 'radius-box', 'size'],
+        asChild: true,
     },
     item: {
         element: 'div',

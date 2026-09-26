@@ -19,8 +19,9 @@
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
+import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { chatAnatomy } from './anatomy.js';
 
 const SCOPE = chatAnatomy.scope;
@@ -33,21 +34,25 @@ export type ChatRootProps =
     & WithVariantAxes<'chat'>
     & WithClass
     & WithHtmlAttrs
-    & Define.Slot<'default'>;
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
 
 const ChatRoot = component<ChatRootProps>(({ props, slots }) => {
-    return () => (
-        <div
-            {...htmlAttrs(props)}
-            data-scope={SCOPE}
-            data-part="root"
-            data-placement={props.placement ?? 'start'}
-            {...variantAttrs(props)}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const bag: PartProps = {
+            ...htmlAttrs(props),
+            'data-scope': SCOPE,
+            'data-part': 'root',
+            'data-placement': props.placement ?? 'start',
+            ...variantAttrs(props),
+        };
+        if (props.asChild) return renderAsChild(slots.default, bag);
+        return (
+            <div class={props.class} {...bag}>
+                {slots.default?.(bag)}
+            </div>
+        );
+    };
 }, { name: 'Chat.Root' });
 
 export type ChatPartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;

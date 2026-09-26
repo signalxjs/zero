@@ -16,12 +16,15 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * supports `asChild` so the child can carry the part.
  *
  * No `role`: a CSS grid is visual arrangement. A consumer who means a table
- * writes the table roles, and zero ships a Table for that.
+ * writes the table roles, and zero ships a Table for that. A grid of cards
+ * that IS a list is a `<ul>` through `asChild` on `root` (#275), with each
+ * cell an `<li>` through `asChild` on `cell`.
  */
 export const gridAnatomy = defineAnatomy('grid', {
     root: {
         element: 'div',
         layout: ['cols', 'track', 'gap', 'gap-x', 'gap-y', 'pad', 'pad-x', 'pad-y', 'align', 'justify'],
+        asChild: true,
     },
     cell: {
         element: 'div',

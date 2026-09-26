@@ -50,7 +50,8 @@ export type StackRootProps =
     & Define.Prop<'align', LayoutProp<'align'>, false>
     & Define.Prop<'justify', LayoutProp<'justify'>, false>
     & Define.Prop<'wrap', LayoutProp<'wrap'>, false>
-    & Define.Slot<'default'>;
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
 
 /**
  * One root factory, three exported spellings.
@@ -63,13 +64,13 @@ export type StackRootProps =
 function makeStackRoot(fallbackOrientation: Orientation, name: string) {
     return component<StackRootProps>(({ props, slots }) => {
         const orientation = (): Orientation => props.orientation ?? fallbackOrientation;
-        return () => (
-            <div
-                {...htmlAttrs(props)}
-                data-scope={SCOPE}
-                data-part="root"
-                data-orientation={orientation()}
-                {...layoutAttrs({
+        return () => {
+            const bag: PartProps = {
+                ...htmlAttrs(props),
+                'data-scope': SCOPE,
+                'data-part': 'root',
+                'data-orientation': orientation(),
+                ...layoutAttrs({
                     'gap': props.gap,
                     'gap-x': props.gapX,
                     'gap-y': props.gapY,
@@ -79,12 +80,15 @@ function makeStackRoot(fallbackOrientation: Orientation, name: string) {
                     'align': props.align,
                     'justify': props.justify,
                     'wrap': props.wrap,
-                }, stackAnatomy.parts.root.layout)}
-                class={props.class}
-            >
-                {slots.default?.()}
-            </div>
-        );
+                }, stackAnatomy.parts.root.layout),
+            };
+            if (props.asChild) return renderAsChild(slots.default, bag);
+            return (
+                <div class={props.class} {...bag}>
+                    {slots.default?.(bag)}
+                </div>
+            );
+        };
     }, { name });
 }
 

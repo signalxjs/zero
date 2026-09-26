@@ -14,7 +14,10 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *
  * `header`/`body`/`footer` are the layout bands, `title`/`description` the
  * text inside the header. All five are optional — a card is often just `root`
- * and `body`.
+ * and `body`. `title` defaults to an `h3` and `description` to a `p`; both
+ * take `asChild`, because the heading level is the page outline's call (an
+ * `h2` under the page's `h1`, a `div` in a card that is not a section at
+ * all) and a description may need to be more than one paragraph.
  */
 export const cardAnatomy = defineAnatomy('card', {
     root: {
@@ -31,11 +34,13 @@ export const cardAnatomy = defineAnatomy('card', {
         element: 'h3',
         parent: 'header',
         tokens: ['color', 'text'],
+        asChild: true,
     },
     description: {
         element: 'p',
         parent: 'header',
         tokens: ['color', 'text'],
+        asChild: true,
     },
     body: {
         element: 'div',
