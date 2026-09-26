@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.pagination` reserves `firstLabel`, `getPageHref`, `lastLabel` and `withEdges` (zero#294)
+
+- Pagination's new root props are reserved, so a vendor-named api cannot
+  claim them as axis props.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE['tree-view']` reserves `checkable` and `defaultCheckedValues` (zero#288)
 
 - TreeView's new root props are reserved, so a vendor-named api cannot
