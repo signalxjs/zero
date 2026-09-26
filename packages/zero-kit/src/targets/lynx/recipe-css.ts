@@ -21,9 +21,14 @@
  *   rendered view), so they style as their own part class — `partProjection`
  *   has no lynx counterpart by design.
  * - Conditions (`at:`) and `selectors:` keys the grammar cannot express are
- *   dropped with report entries; two attribute patterns the contract owns
- *   (`&[data-orientation="…"]`, `&[data-placement="…"]`) translate to their
- *   grammar classes instead.
+ *   dropped with report entries. A key that is a compound of attribute tests
+ *   on `&` translates instead, checked against the anatomy (zero#326):
+ *   `&[data-pressed]` → `.zx-f-pressed` when the part declares the flag,
+ *   `&[data-state="open"]` → `.zx-s-open` when it declares the state,
+ *   orientation/placement/layout attributes → their grammar classes. A
+ *   `:not([data-x])` test survives only where the lynx runtime makes it
+ *   redundant (`pressed` is never stamped while `disabled`); every other
+ *   negation drops the key.
  * - Declarations are capability-checked one by one: `var(--press-*)` rejects
  *   (web-runtime mechanism), color functions bake to literals, and the
  *   `flex: <n>` shorthand expands to long-form (lynx expands it RN-style,
@@ -113,6 +118,85 @@ const CONTRACT_ATTR_PATTERN = /^&\[data-(orientation|placement)="([a-z-]+)"\]$/;
  * about why.
  */
 const LAYOUT_ATTR_SELECTOR = /^&\[(data-l-[a-z0-9][a-z0-9-]*)="([a-z0-9-]+)"\]$/;
+
+/**
+ * One attribute test of a `selectors:` compound on `&` — `[data-x]`,
+ * `[data-x="v"]` or `:not([data-x])`. A key is translatable only when it is
+ * `&` followed by nothing but these (zero#326).
+ */
+const ATTR_TEST = /\[data-([a-z0-9][a-z0-9-]*)(?:="([a-z0-9-]+)")?\]|:not\(\[data-([a-z0-9][a-z0-9-]*)\]\)/y;
+
+/**
+ * A negation the lynx runtime makes redundant, keyed by the positive flag it
+ * accompanies. `createPressFeedback` on lynx never stamps `pressed` while the
+ * part is disabled (its `isDisabled` guard), so the web's
+ * `[data-pressed]:not([data-disabled])` press rule is exactly
+ * `.zx-f-pressed` here. Every other negation is dropped — lynx's `:not()` is
+ * unmeasured, and the class grammar has no absence form.
+ */
+const RUNTIME_EXCLUSIVE: Readonly<Record<string, readonly string[]>> = {
+    pressed: ['disabled'],
+};
+
+/**
+ * Translate a `selectors:` key that is a compound of attribute tests on `&`
+ * into grammar classes, checked against the part's anatomy: a flag the part
+ * declares → `.zx-f-<flag>`, a machine state it declares → `.zx-s-<state>`,
+ * orientation/placement → `.zx-o-`/`.zx-p-`, a base-breakpoint layout
+ * attribute → `.zx-l-`. Returns `undefined` when the key is not such a
+ * compound at all (the caller's generic drop), or a drop reason when it is
+ * one the grammar still cannot carry.
+ */
+function translateAttrCompound(
+    nested: string,
+    part: ManifestPart,
+): { classes: string } | { drop: string } | undefined {
+    if (!nested.startsWith('&') || nested.length === 1) return undefined;
+    const positives: string[] = [];
+    const flags = new Set<string>();
+    const negated: string[] = [];
+    ATTR_TEST.lastIndex = 1;
+    while (ATTR_TEST.lastIndex < nested.length) {
+        const m = ATTR_TEST.exec(nested);
+        if (!m) return undefined;
+        if (m[3] !== undefined) {
+            negated.push(m[3]);
+            continue;
+        }
+        const name = m[1]!;
+        const value = m[2];
+        if (value === undefined) {
+            if (!part.flags?.includes(name)) {
+                return { drop: `the "${part.name}" part declares no "${name}" flag, so the runtime never stamps it — dropped` };
+            }
+            flags.add(name);
+            positives.push(`.${flagClass(name)}`);
+        } else if (name === 'state') {
+            if (!part.states?.includes(value)) {
+                return { drop: `the "${part.name}" part has no machine state "${value}" — dropped` };
+            }
+            positives.push(`.${stateClass(value)}`);
+        } else if (name === 'orientation') {
+            positives.push(`.${orientationClass(value)}`);
+        } else if (name === 'placement') {
+            positives.push(`.${placementClass(value)}`);
+        } else {
+            const parsed = parseLayoutAttr(`data-${name}`);
+            if (!parsed || parsed.breakpoint !== undefined) {
+                return { drop: `data-${name}="${value}" has no class form — dropped` };
+            }
+            positives.push(`.${layoutClass(parsed.attr, value)}`);
+        }
+    }
+    for (const n of negated) {
+        const redundant = [...flags].some((f) => RUNTIME_EXCLUSIVE[f]?.includes(n));
+        if (!redundant) {
+            return { drop: `:not([data-${n}]) has no class-grammar form (no absence classes, lynx :not() unmeasured) — dropped; supply a lynx replacement in the recipe target section` };
+        }
+    }
+    if (positives.length === 0) return { drop: 'a compound of negations only has no class-grammar form — dropped' };
+    return { classes: positives.join('') };
+}
 
 /** `flex: <number>` — the shorthand lynx expands RN-style (grow N shrink 1 basis auto). */
 const FLEX_NUMBER = /^\s*(\d+(?:\.\d+)?)\s*$/;
@@ -437,10 +521,16 @@ function emitPartStyles(
             });
             continue;
         }
+        const compound = translateAttrCompound(nested, part);
+        if (compound && 'classes' in compound) {
+            rule(`${base}${compound.classes}`, props);
+            continue;
+        }
         report.dropped.push({
             where,
             what: `selectors["${nested}"]`,
-            detail: 'not expressible in the class grammar — dropped; supply a lynx replacement in the recipe target section',
+            detail: compound?.drop
+                ?? 'not expressible in the class grammar — dropped; supply a lynx replacement in the recipe target section',
         });
     }
     for (const [key] of Object.entries(styles.at ?? {})) {

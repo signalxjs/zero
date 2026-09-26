@@ -71,7 +71,11 @@
  * Three verdicts:
  *
  * - **translate** — silently, because the result is semantically equivalent:
- *   interaction states onto the runtime-stamped flag classes, anatomy pseudo
+ *   interaction states onto the runtime-stamped flag classes, `selectors:`
+ *   keys that are attribute compounds on `&` (`[data-pressed]`,
+ *   `[data-state="open"]`, …) onto the flag/state classes the anatomy
+ *   declares — with `:not([data-disabled])` elided beside `pressed`, which
+ *   the lynx runtime never stamps on a disabled part (zero#326) — anatomy pseudo
  *   parts onto real part classes, color functions onto culori-baked literals,
  *   `@layer` onto source order, `--text-fixed-*` onto materialized literals.
  * - **drop, with a report entry** — the declaration cannot exist on lynx and
