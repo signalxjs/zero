@@ -1446,6 +1446,61 @@ export const field: RecipeInput = {
     skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
 };
 
+/**
+ * Fieldset (#285) — the one skin that keeps the frame, because an inked box
+ * IS brutalism's grouping: the UA's grooved border becomes the skin's
+ * border ink, and the legend is stamped onto it as a content-on-paper chip
+ * (the inverse pair is guaranteed legible; a role ink on paper is not).
+ * Colour re-stamps the chip in the role; invalid stamps it — and inks the
+ * frame — in error, whatever the colour. `min-inline-size: 0` undoes the
+ * UA's `min-content`.
+ */
+export const fieldset: RecipeInput = {
+    component: 'fieldset',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-sm)',
+                minInlineSize: '0',
+                margin: '0',
+                padding: 'var(--space-md)',
+                border: 'var(--border) solid var(--color-base-content)',
+                borderRadius: '0',
+            },
+            states: { invalid: { borderColor: 'var(--color-error)' } },
+        },
+        legend: {
+            base: {
+                ...label,
+                fontSize: 'var(--text-xs)',
+                padding: '0 var(--space-xs)',
+                background: 'var(--color-base-content)',
+                color: 'var(--color-base-100)',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { background: 'var(--color-error)', color: 'var(--color-error-content)' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { legend: { base: {
+            background: `var(--color-${c})`,
+            color: `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-sm)', gap: 'var(--space-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-sm)', gap: 'var(--space-xs)' } } },
+            // `md` is the un-attributed render.
+            md: {},
+            lg: { legend: { base: { fontSize: 'var(--text-sm)' } } },
+            xl: { root: { base: { padding: 'var(--space-lg)' } }, legend: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const slider: RecipeInput = {
     component: 'slider',
     // The accent default lives in `tokens:` so the un-attributed render IS the
@@ -5635,7 +5690,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
-    switchRecipe, checkbox, checkboxGroup, radioGroup, field, slider, progress, avatar, toast, combobox,
+    switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,

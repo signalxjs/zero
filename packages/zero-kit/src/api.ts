@@ -273,6 +273,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     'empty-state': ['id', 'role', 'title'],
     drawer: ['defaultOpen', 'dismissible', 'label', 'modal', 'placement', 'value'],
     field: ['id', 'invalid', 'readonly', 'required', 'role', 'title', 'validate', 'validateOn'],
+    fieldset: ['id', 'invalid', 'readonly', 'role', 'title'],
     grid: ['align', 'cols', 'gap', 'gapX', 'gapY', 'id', 'justify', 'pad', 'padX', 'padY', 'role', 'title', 'track'],
     'file-upload': ['accept', 'capture', 'defaultFiles', 'directory', 'form', 'id', 'invalid', 'maxFileSize', 'maxFiles', 'minFileSize', 'multiple', 'name', 'required', 'role', 'title', 'validate', 'value'],
     indicator: ['id', 'role', 'title'],

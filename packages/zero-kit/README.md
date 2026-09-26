@@ -388,7 +388,7 @@ npx sigx zero:validate --report
 
 [`@sigx/create-zero-ds`](../create-zero-ds) lays down the whole package from
 nothing: the brief's tokens and worked Button (`src/tokens.ts`,
-`src/button.ts`), `@sigx/zero-basic`'s 53 recipes as `src/baseline.ts`, and a
+`src/button.ts`), `@sigx/zero-basic`'s 54 recipes as `src/baseline.ts`, and a
 `src/recipes.ts` that composes them through `fitRecipesToVocabulary` — so the
 first build styles every component, whatever axis shape the brief declares.
 `--brief` takes `brutalist | glass | corporate | terminal | riso | seeded | basic`;

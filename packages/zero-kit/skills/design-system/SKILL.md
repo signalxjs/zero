@@ -48,7 +48,7 @@ component's anatomy). No component code is ever written or changed.
      build.mjs           # runStandardBuild — validate → compile → report → writeArtifacts
      src/tokens.ts       # the brief's TokensInput (roles, system, themes)
      src/button.ts       # the brief's worked Button recipe
-     src/baseline.ts     # @sigx/zero-basic's 53 recipes, copied whole — yours now
+     src/baseline.ts     # @sigx/zero-basic's 54 recipes, copied whole — yours now
      src/recipes.ts      # [...fitRecipesToVocabulary(baseline, tokens) minus button, button]
      src/design-system.ts, src/index.ts
    ```

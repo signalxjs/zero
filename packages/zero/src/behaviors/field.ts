@@ -8,6 +8,9 @@
  * control still works against the inert fallback. The Field's `size` rides
  * along the same way: a control with no `size` of its own renders the
  * Field's, so `<Field.Root size="xs">` is a compact field, control included.
+ *
+ * A `Fieldset.Root` (#285) provides the group-level half: its effective
+ * disabled/readonly/invalid, which a Field and a bare control both OR in.
  */
 import { defineInjectable, defineProvide } from 'sigx';
 
@@ -108,4 +111,39 @@ export const useFieldContext = defineInjectable<FieldContext>(() => INERT_FIELD)
 
 export function provideFieldContext(ctx: FieldContext): void {
     defineProvide(useFieldContext, () => ctx);
+}
+
+/**
+ * What a `Fieldset.Root` tells the controls inside it (#285): its EFFECTIVE
+ * flags — its own prop OR the nearest enclosing fieldset's, so nested
+ * fieldsets chain up. `createFormControl` and `Field.Root` OR these into
+ * their own, which is what reaches the controls zero renders as non-native
+ * elements (a Slider thumb, a RadioGroup item, a Select trigger's
+ * `aria-disabled`) — the platform's `<fieldset disabled>` only disables
+ * native form controls.
+ *
+ * `Fieldset.Legend` re-provides the OUTER fieldset's context to its
+ * children, the platform's rule: controls inside a disabled fieldset's
+ * first `<legend>` are not disabled by it (the "enable this section"
+ * checkbox pattern).
+ */
+export interface FieldsetContext {
+    /** True on the fallback — no fieldset encloses the reader. */
+    inert: boolean;
+    disabled(): boolean;
+    readonly(): boolean;
+    invalid(): boolean;
+}
+
+const INERT_FIELDSET: FieldsetContext = {
+    inert: true,
+    disabled: () => false,
+    readonly: () => false,
+    invalid: () => false,
+};
+
+export const useFieldsetContext = defineInjectable<FieldsetContext>(() => INERT_FIELDSET);
+
+export function provideFieldsetContext(ctx: FieldsetContext): void {
+    defineProvide(useFieldsetContext, () => ctx);
 }

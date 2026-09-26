@@ -205,6 +205,9 @@ const NO_VARIANT: Record<string, string> = {
     field: 'no surveyed system varies a form-field wrapper — the variant '
         + 'lives on the control inside it (Radix TextField\'s '
         + 'classic | surface | soft).',
+    fieldset: 'Mantine\'s Fieldset varies as default | filled | unstyled; '
+        + 'Base UI and Ark leave the group unvaried, and no shipped skin '
+        + 'declares a vocabulary for it yet (#285).',
     menu: 'no surveyed system varies a menu — Radix DropdownMenu and HeroUI '
         + 'Dropdown style through the item, not a style axis.',
     popover: 'no surveyed system varies a popover surface.',

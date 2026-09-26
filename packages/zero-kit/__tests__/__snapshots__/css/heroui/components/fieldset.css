@@ -1,0 +1,44 @@
+@layer zero.recipes {
+    [data-scope="fieldset"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+        min-inline-size: 0;
+        margin: 0;
+        padding: 0;
+        border: none;
+    }
+
+    [data-scope="fieldset"][data-part="legend"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
+        color: var(--color-base-content);
+        padding: 0;
+        margin-block-end: var(--space-sm);
+    }
+
+    [data-scope="fieldset"][data-part="legend"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="fieldset"][data-part="legend"][data-invalid] {
+        color: var(--hero-danger);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-size="sm"] {
+        gap: var(--space-sm);
+    }
+
+    @scope ([data-scope="fieldset"][data-part="root"][data-size="sm"]) to ([data-scope="fieldset"][data-part="root"]) {
+        [data-scope="fieldset"][data-part="legend"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="fieldset"][data-part="root"][data-size="lg"]) to ([data-scope="fieldset"][data-part="root"]) {
+        [data-scope="fieldset"][data-part="legend"] {
+            font-size: var(--text-lg);
+        }
+    }
+}

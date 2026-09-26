@@ -44,7 +44,7 @@ pnpm create @sigx/zero-ds zero-acme --brief riso
 
 | Package | What it is |
 |---|---|
-| [`@sigx/zero`](packages/zero) | The runtime foundation: anatomy contract, headless behaviors (controllable models, SSR-safe ids, roving focus, dismissal), 59 unstyled components (primitives plus the content, navigation and behavior tiers), theme engine, `manifest.json` + `llms.txt` |
+| [`@sigx/zero`](packages/zero) | The runtime foundation: anatomy contract, headless behaviors (controllable models, SSR-safe ids, roving focus, dismissal), 60 unstyled components (primitives plus the content, navigation and behavior tiers), theme engine, `manifest.json` + `llms.txt` |
 | [`@sigx/zero-kit`](packages/zero-kit) | Node-only authoring kit: `defineTokens` / `defineRecipe` / `defineDesignSystem`, the CSS compiler, the `sigx` CLI plugin (`zero:build` / `zero:validate` / `zero:audit`), and the design-system generation agent skill |
 | [`@sigx/zero-basic`](packages/zero-basic) | Neutral starter design system — readable defaults, and the reference input for the AI skill |
 | [`@sigx/zero-daisyui`](packages/zero-daisyui) | daisyUI-flavored skin — daisy's tokens and component look as pure data, no Tailwind required; ships a daisy-native typed `./components` surface (`<Button wide loading variant="dash" color="primary">`) |
@@ -52,7 +52,7 @@ pnpm create @sigx/zero-ds zero-acme --brief riso
 | [`@sigx/zero-brutalist`](packages/zero-brutalist) | Brutalist skin — generated from a one-line style brief through the design-system agent skill, as the end-to-end proof that a look is data |
 | [`@sigx/zero-heroui`](packages/zero-heroui) | HeroUI-flavoured skin — the acceptance test for non-orthogonal axis surfaces: no colour axis at all, colour fused into a seven-member `variant`, and presence-only `data-mod-*` modifiers |
 | [`@sigx/zero-carbon`](packages/zero-carbon) | Carbon-flavoured skin — the runtime acceptance test for the api `values` remap: the fused `kind` axis with Carbon's double-hyphen spellings restored at the prop boundary by the generated `./components` module |
-| [`@sigx/create-zero-ds`](packages/create-zero-ds) | `pnpm create @sigx/zero-ds <name> --brief <id>` — scaffolds a design-system package from a style brief, with zero-basic's 53 recipes as the baseline fitted to the brief's vocabulary |
+| [`@sigx/create-zero-ds`](packages/create-zero-ds) | `pnpm create @sigx/zero-ds <name> --brief <id>` — scaffolds a design-system package from a style brief, with zero-basic's 54 recipes as the baseline fitted to the brief's vocabulary |
 | [`@sigx/zero-ext-example`](packages/zero-ext-example) | Ecosystem-component acceptance test — a `Stepper` zero doesn't ship, built entirely from `@sigx/zero`'s public surface, published as a manifest fragment + recipe pack and adopted by zero-basic |
 
 `examples/playground` is the kitchen sink — `pnpm --filter zero-playground dev`.

@@ -1992,6 +1992,50 @@ export const field: RecipeInput = {
     skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
 };
 
+/**
+ * Fieldset (#285). MD3 has no framed group — a set of controls is a column
+ * under a title-small heading — so the UA frame is reset away and the
+ * legend takes the shared label type a step heavier in colour than a
+ * field's own. `min-inline-size: 0` undoes the UA's `min-content`.
+ */
+export const fieldset: RecipeInput = {
+    component: 'fieldset',
+    tokens: { '--fieldset-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-md)',
+                minInlineSize: '0',
+                margin: '0',
+                padding: '0',
+                border: 'none',
+            },
+        },
+        legend: {
+            base: { ...label, padding: '0', marginBlockEnd: 'var(--space-sm)', color: 'var(--fieldset-accent)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--fieldset-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { gap: 'var(--space-sm)' } }, legend: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { gap: 'var(--space-sm)' } }, legend: { base: { fontSize: 'var(--text-xs)' } } },
+            // `md` is the un-attributed render.
+            md: {},
+            lg: { legend: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { legend: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const slider: RecipeInput = {
     component: 'slider',
     // Accent default in `tokens:` — the un-attributed render IS the primary
@@ -6246,7 +6290,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
-    switchRecipe, checkbox, checkboxGroup, radioGroup, field, slider, progress, avatar, toast, combobox,
+    switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,

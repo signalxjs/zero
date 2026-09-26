@@ -79,6 +79,9 @@ export type {
 export { Field, fieldAnatomy } from './components/field/index.js';
 export type { FieldRootProps, FieldLabelProps, FieldDescriptionProps, FieldErrorProps, FieldErrorMatch, FieldValidate, FieldValidateOn } from './components/field/index.js';
 
+export { Fieldset, fieldsetAnatomy } from './components/fieldset/index.js';
+export type { FieldsetRootProps, FieldsetLegendProps } from './components/fieldset/index.js';
+
 export { Checkbox, checkboxAnatomy } from './components/checkbox/index.js';
 export type { CheckboxRootProps } from './components/checkbox/index.js';
 export { CheckboxGroup, checkboxGroupAnatomy, useCheckboxGroupContext } from './components/checkbox-group/index.js';

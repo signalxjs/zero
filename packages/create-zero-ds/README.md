@@ -22,7 +22,7 @@ zero-acme/
   README.md, .gitignore   (dist/, node_modules/, .zero-iterations.jsonl — the validate loop's log)
   src/tokens.ts       the brief's TokensInput (roles, system, themes), provenance-stamped
   src/button.ts       the brief's worked Button recipe
-  src/baseline.ts     @sigx/zero-basic's 53 recipes, copied whole — yours now
+  src/baseline.ts     @sigx/zero-basic's 54 recipes, copied whole — yours now
   src/recipes.ts      [...fitRecipesToVocabulary(baseline, tokens) minus button, button]
   src/design-system.ts, src/index.ts
 ```

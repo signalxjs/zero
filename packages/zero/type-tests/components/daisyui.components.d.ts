@@ -20,6 +20,7 @@ import type { Popover as ZPopover } from '@sigx/zero/popover';
 import type { Tooltip as ZTooltip } from '@sigx/zero/tooltip';
 import type { Menu as ZMenu } from '@sigx/zero/menu';
 import type { Field as ZField } from '@sigx/zero/field';
+import type { Fieldset as ZFieldset } from '@sigx/zero/fieldset';
 import type { Checkbox as ZCheckbox } from '@sigx/zero/checkbox';
 import type { CheckboxGroup as ZCheckboxGroup } from '@sigx/zero/checkbox-group';
 import type { RadioGroup as ZRadioGroup } from '@sigx/zero/radio-group';
@@ -164,6 +165,14 @@ type FieldProps = {
 };
 type FieldAdapted = Adapted<typeof ZField, ZeroAxisProp, FieldProps>;
 export declare const Field: FieldAdapted & AdaptedStatics<typeof ZField> & { Root: FieldAdapted };
+
+/** fieldset — no vendor route; the wired surface keeps zero's names. */
+type FieldsetProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type FieldsetAdapted = Adapted<typeof ZFieldset, ZeroAxisProp, FieldsetProps>;
+export declare const Fieldset: FieldsetAdapted & AdaptedStatics<typeof ZFieldset> & { Root: FieldsetAdapted };
 
 /** checkbox — no vendor route; the wired surface keeps zero's names. */
 type CheckboxProps = {

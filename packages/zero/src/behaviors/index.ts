@@ -41,8 +41,8 @@ export type {
 export { caretAnchor, measureCaret } from './caret-anchor.js';
 export type { CaretPoint, TextAnchor } from './caret-anchor.js';
 
-export { useFieldContext, provideFieldContext } from './field.js';
-export type { FieldContext, FieldValidity, FieldValidityReport, ValidatableElement, ValidityKey } from './field.js';
+export { useFieldContext, provideFieldContext, useFieldsetContext, provideFieldsetContext } from './field.js';
+export type { FieldContext, FieldsetContext, FieldValidity, FieldValidityReport, ValidatableElement, ValidityKey } from './field.js';
 
 export { createFormControl } from './form-control.js';
 export type { FormControl, FormControlOptions, FormControlProps, FormControlFlags } from './form-control.js';

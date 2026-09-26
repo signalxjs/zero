@@ -128,7 +128,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-59 components ship today. Every part each renders is listed below, in
+60 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -150,7 +150,8 @@ sized by base.css in `@layer zero.structure`.
 
 THE FORM CONTRACT (#441): every posting control takes `name`, `form`,
 `disabled`, `invalid`, `required` (and `readonly` where the platform has
-it), each the prop OR its Field's. It posts only while it has a `name`; a
+it), each the prop OR its Field's — and `disabled`/`readonly`/`invalid` OR
+any enclosing Fieldset's (#285). It posts only while it has a `name`; a
 disabled control never posts; `form="id"` associates it from outside the
 form; the form's `reset()` restores the component default into model and
 DOM. Select and Combobox post through a real visually-hidden `<select>`
@@ -365,6 +366,15 @@ component renders; the root is called out separately where it carries props.
   Error takes `match` (a ValidityState key | 'custom' | true) and, with no
   children, renders the current message. A Field rendering an Error cancels
   the `invalid` bubble and focuses the form's first invalid control.
+- Fieldset: Root/Legend (#285) — a native `<fieldset>` (+ `<legend>` as
+  its first child, which names the group; no aria-labelledby). Root takes
+  `disabled`/`readonly`/`invalid`: native `disabled` disables native
+  controls, and a context ORs all three into every zero control and Field
+  inside (a Slider thumb, a RadioGroup item, a Select trigger get
+  data-disabled/aria-disabled and refuse input). Nested fieldsets chain;
+  controls inside the Legend answer to the fieldsets OUTSIDE (the
+  platform's legend exemption). Flags: root disabled/readonly/invalid,
+  legend disabled/invalid.
 - Input: Root(model=string, model:visible)/Label/Control/Input/Adornment/ClearTrigger/
   VisibilityTrigger, a single-line text field.
   `type` is text|email|password|search|tel|url only (number is NumberInput;
@@ -914,7 +924,7 @@ value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, CheckboxGroup, Collapsible, Combobox, Dialog,
-Divider, EmptyState, Field, Indicator, Input, Join, Kbd, Menu, NumberInput,
+Divider, EmptyState, Field, Fieldset, Indicator, Input, Join, Kbd, Menu, NumberInput,
 Navbar, NavList, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
 Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,

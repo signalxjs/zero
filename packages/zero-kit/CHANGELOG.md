@@ -40,6 +40,12 @@
 - TreeView's new root prop is reserved, so a vendor-named api cannot claim
   it as an axis prop.
 
+### Changed — `RESERVED_PROPS_BY_SCOPE` gains `fieldset` (zero#285)
+
+- The new `fieldset` scope's root props (`id`, `invalid`, `readonly`,
+  `role`, `title`) are reserved, so a vendor-named api cannot claim them as
+  axis props.
+
 ## [0.6.0] - 2026-09-26
 
 ### Added — The tabs indicator's box is a runtime-published property (zero#283)
