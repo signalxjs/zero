@@ -71,6 +71,8 @@ export type { FieldRootProps, FieldLabelProps, FieldDescriptionProps, FieldError
 
 export { Checkbox, checkboxAnatomy } from './components/checkbox/index.js';
 export type { CheckboxRootProps } from './components/checkbox/index.js';
+export { CheckboxGroup, checkboxGroupAnatomy, useCheckboxGroupContext } from './components/checkbox-group/index.js';
+export type { CheckboxGroupRootProps, CheckboxGroupLabelProps, CheckboxGroupContext } from './components/checkbox-group/index.js';
 
 export { RadioGroup, radioGroupAnatomy, useRadioGroupContext } from './components/radio-group/index.js';
 export type { RadioGroupRootProps, RadioGroupItemProps, RadioGroupLabelProps } from './components/radio-group/index.js';

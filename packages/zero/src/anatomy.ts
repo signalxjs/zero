@@ -17,6 +17,7 @@ import { tooltipAnatomy } from './components/tooltip/anatomy.js';
 import { menuAnatomy } from './components/menu/anatomy.js';
 import { fieldAnatomy } from './components/field/anatomy.js';
 import { checkboxAnatomy } from './components/checkbox/anatomy.js';
+import { checkboxGroupAnatomy } from './components/checkbox-group/anatomy.js';
 import { radioGroupAnatomy } from './components/radio-group/anatomy.js';
 import { progressAnatomy } from './components/progress/anatomy.js';
 import { sliderAnatomy } from './components/slider/anatomy.js';
@@ -70,7 +71,7 @@ import { diffAnatomy } from './components/diff/anatomy.js';
 export {
     buttonAnatomy,
     tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy,
-    fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
+    fieldAnatomy, checkboxAnatomy, checkboxGroupAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
@@ -92,6 +93,7 @@ export const anatomies = {
     menu: menuAnatomy,
     field: fieldAnatomy,
     checkbox: checkboxAnatomy,
+    'checkbox-group': checkboxGroupAnatomy,
     'radio-group': radioGroupAnatomy,
     progress: progressAnatomy,
     slider: sliderAnatomy,

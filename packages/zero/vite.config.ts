@@ -26,6 +26,7 @@ export default defineLibConfig({
         'components/menu/index': 'src/components/menu/index.ts',
         'components/field/index': 'src/components/field/index.ts',
         'components/checkbox/index': 'src/components/checkbox/index.ts',
+        'components/checkbox-group/index': 'src/components/checkbox-group/index.ts',
         'components/radio-group/index': 'src/components/radio-group/index.ts',
         'components/progress/index': 'src/components/progress/index.ts',
         'components/slider/index': 'src/components/slider/index.ts',

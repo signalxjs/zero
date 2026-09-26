@@ -87,6 +87,10 @@
             "types": "./dist/components/checkbox/index.d.ts",
             "import": "./dist/components/checkbox/index.js"
         },
+        "./checkbox-group": {
+            "types": "./dist/components/checkbox-group/index.d.ts",
+            "import": "./dist/components/checkbox-group/index.js"
+        },
         "./radio-group": {
             "types": "./dist/components/radio-group/index.d.ts",
             "import": "./dist/components/radio-group/index.js"

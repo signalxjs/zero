@@ -131,6 +131,8 @@ const NO_VARIANT: Record<string, string> = {
     checkbox: 'Radix Themes Checkbox varies as classic | surface | soft.',
     switch: 'Radix Themes Switch varies as classic | surface | soft.',
     'radio-group': 'Radix Themes RadioGroup varies as classic | surface | soft.',
+    'checkbox-group': 'Radix Themes CheckboxGroup varies as classic | surface | soft '
+        + '— the checkbox\'s vocabulary, handed down to its boxes (#282).',
     slider: 'Radix Themes Slider varies as classic | surface | soft.',
     progress: 'Radix Themes Progress varies as classic | surface | soft — so '
         + 'the issue\'s guess that a varied progress bar is meaningless is wrong; '
