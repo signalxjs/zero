@@ -14,6 +14,10 @@ export interface TabsContext {
     orientation(): Orientation;
     activationMode(): TabsActivationMode;
     loop(): boolean;
+    /** Root `lazyMount`: a panel renders its slot only once it has been active. */
+    lazyMount(): boolean;
+    /** Root `unmountOnExit`: an inactive panel drops its slot. */
+    unmountOnExit(): boolean;
     tabId(value: string): string;
     panelId(value: string): string;
     keydown(e: KeyboardEvent, value: string): void;
@@ -28,6 +32,8 @@ function makeInertTabs(): TabsContext {
         orientation: () => 'horizontal',
         activationMode: () => 'automatic',
         loop: () => true,
+        lazyMount: () => false,
+        unmountOnExit: () => false,
         tabId: (v) => `zx-tabs-inert-tab-${v}`,
         panelId: (v) => `zx-tabs-inert-panel-${v}`,
         keydown: () => {},

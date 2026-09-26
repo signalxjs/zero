@@ -8,7 +8,10 @@ import type { PageEntry } from './registry';
  * Until the playground grew real pages, Tabs had no demo of its own — the
  * component WAS the navigation chrome. This is that chrome, kept as a demo:
  * three reachable panels plus a disabled tab, which is the state the old
- * shell existed to show.
+ * shell existed to show. It carries a `Tabs.Indicator` (#283): the skins
+ * that slide a mark between tabs (basic, material, carbon) draw it from the
+ * published `--tabs-indicator-*` box; the rest keep their static active
+ * style and render it `display: none`.
  */
 const TabsDemos = component(() => {
     const state = signal({ tab: 'overview' });
@@ -20,6 +23,7 @@ const TabsDemos = component(() => {
                 <Tabs.Tab value="details">Details</Tabs.Tab>
                 <Tabs.Tab value="history">History</Tabs.Tab>
                 <Tabs.Tab value="disabled" disabled>Disabled</Tabs.Tab>
+                <Tabs.Indicator />
             </Tabs.List>
             <Tabs.Panel value="overview">
                 <p>

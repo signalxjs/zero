@@ -58,6 +58,10 @@
         outline-offset: 3px;
     }
 
+    [data-scope="tabs"][data-part="indicator"] {
+        display: none;
+    }
+
     [data-scope="tabs"][data-part="panel"] {
         border: var(--border) solid var(--color-base-content);
         border-radius: 0;

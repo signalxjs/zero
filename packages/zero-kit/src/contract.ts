@@ -347,9 +347,12 @@ export const POSITION_PROPERTIES = [
  * that want the property rather than the rendered digits). The panel-size
  * quartet is written on Accordion's and Collapsible's panel (measured
  * `scrollHeight`/`scrollWidth`, px) so a recipe can animate a `<details>`
- * close from `var(--accordion-panel-height)` to `0` (#276).
- * The `POSITION_PROPERTIES` five come from the anchored-position strategy,
- * on every floating popup it positions.
+ * close from `var(--accordion-panel-height)` to `0` (#276). The
+ * `--tabs-indicator-*` quartet is written on Tabs' `indicator`: the active
+ * tab's box relative to the list's padding box (px, logical — the inline
+ * offset from the inline-start edge), so a recipe slides a mark between tabs
+ * (#283). The `POSITION_PROPERTIES` five come from the anchored-position
+ * strategy, on every floating popup it positions.
  *
  * WEB-ONLY: these exist because the DOM runtime can write custom properties
  * that stylesheet rules then read. A target whose engine cannot resolve
@@ -369,6 +372,10 @@ export const RUNTIME_PROPERTIES = [
     '--accordion-panel-width',
     '--collapsible-panel-height',
     '--collapsible-panel-width',
+    '--tabs-indicator-inset-inline-start',
+    '--tabs-indicator-inset-block-start',
+    '--tabs-indicator-inline-size',
+    '--tabs-indicator-block-size',
     ...POSITION_PROPERTIES,
 ] as const;
 

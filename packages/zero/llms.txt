@@ -169,8 +169,15 @@ component renders; the root is called out separately where it carries props.
   for: it is where a design system puts its fill styles. Publishes press
   feedback (data-pressed / data-press-animating / --press-*), as do all
   interactive parts — see the press-feedback bullet above.
-- Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
-  roving arrows, automatic|manual activation, orientation.
+- Tabs: Root(model=value, lazyMount, unmountOnExit)/List/Tab(value,asChild)/
+  Indicator/Panel(value). APG tabs, roving arrows, automatic|manual
+  activation, orientation. Indicator is an optional aria-hidden span inside
+  the list publishing the active tab's box as
+  --tabs-indicator-inset-inline-start/-inset-block-start/-inline-size/
+  -block-size (px, relative to the list's padding box, inline offset from
+  its inline-start edge; web-only); display:none until measured and while no
+  tab is active. lazyMount renders a panel's content once it has been
+  active; unmountOnExit only while active; the panel element always renders.
 - Collapsible: Root(model=open)/Trigger/Panel on native <details>. The
   panel is labelled by the trigger (no role) and publishes
   --collapsible-panel-height/--collapsible-panel-width (measured px); a

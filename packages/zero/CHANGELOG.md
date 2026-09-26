@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added — Tabs indicator and lazy panels (#283)
+
+- **`Tabs.Indicator`** (part `indicator`, inside `list`): an optional
+  `aria-hidden` span that publishes the active tab's box as
+  `--tabs-indicator-inset-inline-start`, `--tabs-indicator-inset-block-start`,
+  `--tabs-indicator-inline-size` and `--tabs-indicator-block-size` (px,
+  relative to the list's padding box in its scrolled content; the inline
+  offset is measured from the inline-start edge, so RTL needs no
+  correction). Re-measured on a value or orientation change and whenever
+  the list or a tab resizes. It is `display: none` until measured and while
+  no tab is active, so a transition on those properties never plays on
+  first paint. It carries `data-orientation` and declares `paint`.
+- **`lazyMount`** on `Tabs.Root`: a panel renders its content only once its
+  tab has been active, then keeps it. **`unmountOnExit`**: a panel renders
+  its content only while its tab is active. The panel element always
+  renders, so `aria-controls` never dangles.
+
 ### Added — Popup geometry as custom properties; `collisionPadding` and `alignOffset` (#278)
 
 - **Every popup the built-in position strategy places publishes its

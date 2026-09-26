@@ -379,6 +379,13 @@ const thumbRing = 'inset 0 0 0 2px var(--carbon-focus), inset 0 0 0 4px var(--co
 const thumbRingIdle = 'inset 0 0 0 2px transparent, inset 0 0 0 4px transparent';
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
+/**
+ * A list that holds a `Tabs.Indicator` (#283): the line tab's 2px underline
+ * slides between tabs, so the active tab hands its own to it — otherwise it
+ * would snap into place under the moving one.
+ */
+const TABS_WITH_INDICATOR = '[data-scope="tabs"][data-part="list"]:has([data-scope="tabs"][data-part="indicator"])';
+
 export const tabs: RecipeInput = {
     component: 'tabs',
     parts: {
@@ -398,6 +405,9 @@ export const tabs: RecipeInput = {
                 // 2px underline covers it exactly as it covered the border.
                 overflowX: 'auto',
                 boxShadow: 'inset 0 calc(-1 * var(--border)) 0 var(--carbon-line)',
+                // The indicator's containing block: `--tabs-indicator-*` are
+                // offsets from this padding box, in its scrolled content.
+                position: 'relative',
             },
             at: {
                 // Forced colours drop every box-shadow, which would take the
@@ -441,7 +451,36 @@ export const tabs: RecipeInput = {
             },
             selectors: {
                 '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                [`${TABS_WITH_INDICATOR} &[data-state="active"]`]: { borderBlockEndColor: 'transparent' },
             },
+        },
+        // The line tab's underline, sliding to the active tab's box. A
+        // border rather than a fill, so forced colours keep it.
+        indicator: {
+            base: {
+                position: 'absolute',
+                boxSizing: 'border-box',
+                pointerEvents: 'none',
+                insetInlineStart: 'var(--tabs-indicator-inset-inline-start)',
+                insetBlockStart: 'calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - 2px)',
+                inlineSize: 'var(--tabs-indicator-inline-size)',
+                blockSize: '2px',
+                borderBlockEnd: '2px solid var(--carbon-interactive)',
+                transition: motion('inset-inline-start, inset-block-start, inline-size, block-size'),
+            },
+            selectors: {
+                // A vertical list: the bar runs down the tab's inline-end
+                // edge instead.
+                '&[data-orientation="vertical"]': {
+                    insetInlineStart: 'calc(var(--tabs-indicator-inset-inline-start) + var(--tabs-indicator-inline-size) - 2px)',
+                    insetBlockStart: 'var(--tabs-indicator-inset-block-start)',
+                    inlineSize: '2px',
+                    blockSize: 'var(--tabs-indicator-block-size)',
+                    borderBlockEnd: 'none',
+                    borderInlineEnd: '2px solid var(--carbon-interactive)',
+                },
+            },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
         panel: {
             base: { fontSize: 'var(--text-sm)', color: 'var(--color-base-content)' },

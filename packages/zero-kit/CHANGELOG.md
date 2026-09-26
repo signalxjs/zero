@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added — The tabs indicator's box is a runtime-published property (zero#283)
+
+- `RUNTIME_PROPERTIES` gains `--tabs-indicator-inset-inline-start`,
+  `--tabs-indicator-inset-block-start`, `--tabs-indicator-inline-size` and
+  `--tabs-indicator-block-size`, which `@sigx/zero` writes on
+  `Tabs.Indicator`. A recipe may reference them without declaring them;
+  like the rest of the list they are web-only (`targets.web`).
+
+### Changed — `RESERVED_PROPS_BY_SCOPE.tabs` gains `lazyMount` and `unmountOnExit` (zero#283)
+
+- Tabs' new root props are reserved, so a vendor-named api cannot claim
+  them as axis props.
+
 ### Fixed — lynx target translates flag/state attribute compounds in `selectors:` keys (zero#326)
 
 - A `selectors:` key that is a compound of attribute tests on `&`

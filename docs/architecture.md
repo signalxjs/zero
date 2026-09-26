@@ -121,7 +121,13 @@ the DOM runtime writes a few custom properties that recipes may read —
 `--accordion-panel-height`/`--accordion-panel-width` and
 `--collapsible-panel-height`/`--collapsible-panel-width` (#276: the panel's
 measured `scrollHeight`/`scrollWidth`, the one value a `<details>` close can
-animate from, since `auto` interpolates only in Chromium). They are web-only
+animate from, since `auto` interpolates only in Chromium), and the tabs
+indicator's box `--tabs-indicator-inset-inline-start`/
+`--tabs-indicator-inset-block-start`/`--tabs-indicator-inline-size`/
+`--tabs-indicator-block-size` (#283: the active tab's box relative to the
+list's padding box, the inline offset from its inline-start edge so RTL
+needs no correction; the indicator stays `display: none` until measured, so
+no transition plays from nowhere). They are web-only
 — the lynx target rejects them outside a `targets.web` section — and the
 vocabulary check accepts them without a declaration. The disclosure sizes
 pair with a runtime deferral: a close flips `data-state` to `closed` at once

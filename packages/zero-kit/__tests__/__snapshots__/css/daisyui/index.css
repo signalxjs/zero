@@ -510,6 +510,10 @@
         outline-offset: 2px;
     }
 
+    [data-scope="tabs"][data-part="indicator"] {
+        display: none;
+    }
+
     [data-scope="tabs"][data-part="panel"] {
         font-size: var(--text-md);
     }

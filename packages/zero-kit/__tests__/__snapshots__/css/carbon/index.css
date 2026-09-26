@@ -319,6 +319,7 @@
         display: flex;
         overflow-x: auto;
         box-shadow: inset 0 calc(-1 * var(--border)) 0 var(--carbon-line);
+        position: relative;
     }
 
     [data-scope="tabs"][data-part="tab"] {
@@ -365,6 +366,31 @@
         background: var(--color-base-300);
     }
 
+    [data-scope="tabs"][data-part="list"]:has([data-scope="tabs"][data-part="indicator"]) [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        border-block-end-color: transparent;
+    }
+
+    [data-scope="tabs"][data-part="indicator"] {
+        position: absolute;
+        box-sizing: border-box;
+        pointer-events: none;
+        inset-inline-start: var(--tabs-indicator-inset-inline-start);
+        inset-block-start: calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - 2px);
+        inline-size: var(--tabs-indicator-inline-size);
+        block-size: 2px;
+        border-block-end: 2px solid var(--carbon-interactive);
+        transition: inset-inline-start var(--duration-normal) var(--ease-standard), inset-block-start var(--duration-normal) var(--ease-standard), inline-size var(--duration-normal) var(--ease-standard), block-size var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="tabs"][data-part="indicator"][data-orientation="vertical"] {
+        inset-inline-start: calc(var(--tabs-indicator-inset-inline-start) + var(--tabs-indicator-inline-size) - 2px);
+        inset-block-start: var(--tabs-indicator-inset-block-start);
+        inline-size: 2px;
+        block-size: var(--tabs-indicator-block-size);
+        border-block-end: none;
+        border-inline-end: 2px solid var(--carbon-interactive);
+    }
+
     [data-scope="tabs"][data-part="panel"] {
         font-size: var(--text-sm);
         color: var(--color-base-content);
@@ -398,6 +424,12 @@
     @media (forced-colors: active) {
         [data-scope="tabs"][data-part="list"] {
             border-block-end: var(--border) solid CanvasText;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="tabs"][data-part="indicator"] {
+            transition: none;
         }
     }
 }

@@ -159,7 +159,8 @@ lower bound only, and WCAG 1.4.13: Escape dismisses a hover-opened tooltip
 while focus sits elsewhere; a click neither opens nor, until the pointer
 leaves, re-opens it; and a `Tooltip.Group` sibling opens inside the intent
 delay, #268), tabs (one roving tab stop, automatic
-activation), accordion (#276: arrows/Home/End move focus between triggers
+activation, and the #283 indicator landing on the active tab within 1px and
+sliding there — and not under reduced motion), accordion (#276: arrows/Home/End move focus between triggers
 that all stay tabbable, panels are regions named by their triggers, and a
 close PLAYS — sampled per frame, the panel shrinks inside a still-open
 `<details>` and never snaps back before it shuts, for Collapsible too), slider drag under implicit pointer capture (and, since
@@ -245,7 +246,8 @@ the reading way (seeked through `getAnimations()`, since the loop makes
 wall-clock sampling straddle a wrap), a sliding skin's modal drawer
 sheet enters from its reading edge, measured early in the entry (#83), and a
 `bottom-start` menu popup's inline-start (right) edge meets its trigger's
-while `data-placement` stays the logical `bottom-start` (#264). It
+while `data-placement` stays the logical `bottom-start` (#264), and in the
+skins that draw it, the tabs indicator lands on the active tab (#283). It
 exists because a `transform` has no logical spelling, so the kit's
 physical-direction lint cannot see it — the two checks are complementary, not
 redundant;

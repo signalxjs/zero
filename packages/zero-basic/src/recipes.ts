@@ -329,9 +329,61 @@ const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => (
     ),
 });
 
+/**
+ * A list that holds a `Tabs.Indicator` (#283): the sliding bar takes over the
+ * active tab's own 2px bar, which would otherwise snap into place under it.
+ */
+const TABS_WITH_INDICATOR = '[data-scope="tabs"][data-part="list"]:has([data-scope="tabs"][data-part="indicator"])';
+
 export const tabs: RecipeInput = {
     component: 'tabs',
     tokens: { '--tabs-accent': 'var(--color-primary)' },
+    // The indicator reads the runtime-published `--tabs-indicator-*` box,
+    // which only the DOM runtime writes — web-only (#283).
+    targets: {
+        web: {
+            parts: {
+                list: { base: { position: 'relative' } },
+                tab: {
+                    selectors: {
+                        [`${TABS_WITH_INDICATOR} &[data-state="active"]`]: { borderBottomColor: 'transparent' },
+                    },
+                },
+                // The same 2px accent bar the active tab carries, sliding
+                // along the rule to whichever tab is active. A border rather
+                // than a fill, so forced colours keep it.
+                indicator: {
+                    base: {
+                        position: 'absolute',
+                        boxSizing: 'border-box',
+                        pointerEvents: 'none',
+                        insetInlineStart: 'var(--tabs-indicator-inset-inline-start)',
+                        insetBlockStart: 'calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - 2px)',
+                        inlineSize: 'var(--tabs-indicator-inline-size)',
+                        blockSize: '2px',
+                        borderBlockEnd: '2px solid var(--tabs-accent)',
+                        transition: 'inset-inline-start var(--duration-normal) var(--ease-standard), '
+                            + 'inset-block-start var(--duration-normal) var(--ease-standard), '
+                            + 'inline-size var(--duration-normal) var(--ease-standard), '
+                            + 'block-size var(--duration-normal) var(--ease-standard)',
+                    },
+                    selectors: {
+                        // A vertical list: the bar runs down the tab's
+                        // inline-end edge instead.
+                        '&[data-orientation="vertical"]': {
+                            insetInlineStart: 'calc(var(--tabs-indicator-inset-inline-start) + var(--tabs-indicator-inline-size) - 2px)',
+                            insetBlockStart: 'var(--tabs-indicator-inset-block-start)',
+                            inlineSize: '2px',
+                            blockSize: 'var(--tabs-indicator-block-size)',
+                            borderBlockEnd: 'none',
+                            borderInlineEnd: '2px solid var(--tabs-accent)',
+                        },
+                    },
+                    at: { 'reduced-motion': { base: { transition: 'none' } } },
+                },
+            },
+        },
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
