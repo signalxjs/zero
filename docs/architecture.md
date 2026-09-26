@@ -93,13 +93,16 @@ change there first. The vocabulary is grouped into families — presence
 (`loading|loaded|complete|error`), fill (`full|half|empty`), lifecycle
 (`running|paused|denied|cancelled`, #42 — work in flight: a job, tool call
 or deploy says `running` rather than borrowing `active`, and a refusal is
-`denied` rather than `closed`) — but the families are documentation, not a
+`denied` rather than `closed`), sort (`ascending|descending|none`, #286 —
+`aria-sort`'s own spellings, carried by a sortable table header cell and its
+trigger and indicator; `none` is a sortable column the table is not sorted
+by, where a column that cannot sort has no state at all) — but the families are documentation, not a
 per-part constraint: membership is checked against the union, so progress
 may legitimately mix `loading|complete` with `indeterminate`, and a job's
 full lifecycle is `loading` + lifecycle + `complete|error`. A companion
 `STATE_SYNONYMS` table maps the spellings the vocabulary deliberately does
 *not* contain (`expanded → open`, `mixed → indeterminate`, `busy → loading`,
-`suspended → paused`, …) to the member that means the same thing — purely
+`suspended → paused`, `asc → ascending`, …) to the member that means the same thing — purely
 diagnostic, so a governance failure is actionable rather than a scavenger
 hunt. The table is mirrored in zero-kit (parity-tested) so `mergeManifests`
 says the same thing to ecosystem fragments.
@@ -1645,8 +1648,9 @@ Honesty section. These are the edges the tree knows about today:
   carry the playground's capture/re-apply pattern.
 - **The component surface is finite.** Fifty-nine components, skewed to
   primitives plus the content, navigation, layout and behavior tiers; there
-  is no DatePicker and no data grid (Table ships the semantic anatomy, not
-  sorting or virtualization). The ecosystem path
+  is no DatePicker and no data grid (Table ships the semantic anatomy and the
+  sort contract — `model:sort`, `aria-sort`, a trigger — but never re-orders
+  rows, and has no virtualization). The ecosystem path
   ([§8](#8-ecosystem-components)) exists precisely so those need not enter
   zero's own inventory to be first-class.
 - **Multi-target shipped its second target: lynx.** The multi-target RFC's
