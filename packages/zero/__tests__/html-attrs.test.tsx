@@ -13,7 +13,7 @@ import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
 import { anatomies } from '@sigx/zero/anatomy';
 import {
-    Accordion, Alert, Avatar, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, Checkbox,
+    Accordion, Alert, Avatar, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, Checkbox, CheckboxGroup,
     Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, EmptyState, Field, FileUpload, Grid,
     Indicator, Input, Join, Kbd, Menu, Navbar, NavList, NumberInput, Pagination, Popover, Progress,
     RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spacer, Spinner, Stack, Stats,
@@ -392,6 +392,11 @@ describe('the pass-through reaches every part', () => {
             </Carousel.Root>
         ),
         checkbox: () => <Checkbox.Root {...p('root')}>Accept</Checkbox.Root>,
+        'checkbox-group': () => (
+            <CheckboxGroup.Root {...p('root')}>
+                <CheckboxGroup.Label {...p('label')}>Letters</CheckboxGroup.Label>
+            </CheckboxGroup.Root>
+        ),
         collapsible: () => (
             <Collapsible.Root {...p('root')}>
                 <Collapsible.Trigger {...p('trigger')}>More</Collapsible.Trigger>

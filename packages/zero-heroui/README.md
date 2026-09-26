@@ -46,7 +46,7 @@ Every claim above is asserted in `packages/zero-kit/__tests__/heroui-acceptance.
 
 ## Coverage
 
-Every component is styled: all 52 authored recipes (52/52), plus the kit's
+Every component is styled: all 53 authored recipes (53/53), plus the kit's
 layout tier for the six layout primitives. The package still exists to exercise
 the *axis surface*, and button carries all of it — `variant` is wired on button
 only, matching the repo-wide decision that the other carriers wire none

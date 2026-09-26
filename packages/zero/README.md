@@ -31,7 +31,7 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 ## Components
 
 Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · Menu ·
-Select · Switch · Checkbox · RadioGroup · Slider · Progress ·
+Select · Switch · Checkbox · CheckboxGroup · RadioGroup · Slider · Progress ·
 Field · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · EmptyState · Badge · Divider ·
 Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · RadialProgress · Join ·
@@ -234,6 +234,45 @@ the `switch` role does not support it, so a readonly Switch says so through
 to fix. RadioGroup also restates `invalid` on each `item` and
 `item-control` (Checkbox and Switch parity), and writes
 `aria-orientation` on the radiogroup.
+
+**CheckboxGroup: one `string[]` model for a set of boxes, and a derived
+parent box (#282).** `CheckboxGroup.Root` renders a `role="group"` named by
+its `CheckboxGroup.Label` (referenced only while it is rendered) and hands
+one model to the `Checkbox.Root`s inside it. A boxed child needs a `value`:
+it is checked while the group's model includes that value, and toggling it
+writes the group model — its own model is not needed. Every child posts
+under the group's `name`/`form`; the group's `disabled`, `invalid` and
+`readonly` (the prop OR an enclosing Field's) reach every box, ORed with the
+box's own; its `size` sizes every box that sets none. `required` means "at
+least one": the boxes carry the native `required` only while none is
+checked, so the platform blocks the submit on the first box and lets go as
+soon as one is. Inside a `Field.Root` the group ROOT is what the Field
+labels and describes (its label joins the root's `aria-labelledby`, its
+description and error the root's `aria-describedby`); the boxes keep ids of
+their own, so no two inputs claim the field's control id. `orientation`
+renders `data-orientation` (default `vertical`) for the skins' row layout.
+
+`Checkbox.Root parent` is the tri-state "select all" box. Its state derives
+from the group's `allValues` — by default, every child box's value —
+`checked` when all are selected, `unchecked` when none, `indeterminate`
+when some; toggling it selects all or none of them (values outside
+`allValues` stay where they are). Its input names the child inputs in
+`aria-controls` and posts nothing unless given a `name` of its own.
+
+```tsx
+<CheckboxGroup.Root model={() => state.toppings} name="toppings" allValues={['ham', 'olives', 'basil']}>
+    <CheckboxGroup.Label>Toppings</CheckboxGroup.Label>
+    <Checkbox.Root parent>All toppings</Checkbox.Root>
+    <Checkbox.Root value="ham">Ham</Checkbox.Root>
+    <Checkbox.Root value="olives">Olives</Checkbox.Root>
+    <Checkbox.Root value="basil">Basil</Checkbox.Root>
+</CheckboxGroup.Root>
+```
+
+An indeterminate `Checkbox.Root` now stays indeterminate after a click
+while its `indeterminate` prop is still true: the platform clears the
+native property on activation, and the box writes it back after every
+change, so `data-state` and the input assistive tech reads never disagree.
 
 **A sized Field sizes its control.** A control with no `size` of its own
 renders its Field's, the same way it adopts the Field's flags, so a compact

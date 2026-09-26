@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, Field, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Checkbox, CheckboxGroup, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, Field, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -390,6 +390,12 @@ describe('SSR', () => {
                     <RadioGroup.Label>Plan</RadioGroup.Label>
                     <RadioGroup.Item value="a">A</RadioGroup.Item>
                 </RadioGroup.Root>
+                <CheckboxGroup.Root defaultValue={['a']} allValues={['a', 'b']} name="letters">
+                    <CheckboxGroup.Label>Letters</CheckboxGroup.Label>
+                    <Checkbox.Root parent>All</Checkbox.Root>
+                    <Checkbox.Root value="a">A</Checkbox.Root>
+                    <Checkbox.Root value="b">B</Checkbox.Root>
+                </CheckboxGroup.Root>
                 <Slider.Root defaultValue={30}>
                     <Slider.Label>Volume</Slider.Label>
                     <Slider.Control />
@@ -409,6 +415,11 @@ describe('SSR', () => {
         expect(html).toMatch(new RegExp(`role="progressbar"[^>]*aria-labelledby="${idOf('progress', 'label')}"|aria-labelledby="${idOf('progress', 'label')}"[^>]*role="progressbar"`));
         expect(html).toContain(`aria-labelledby="${idOf('radial-progress', 'label')}"`);
         expect(html).toContain(`aria-labelledby="${idOf('radio-group', 'label')}"`);
+        expect(html).toContain(`aria-labelledby="${idOf('checkbox-group', 'label')}"`);
+        // The group's model reaches the server markup: the parent box
+        // derives `indeterminate` from one of two, the child is checked.
+        expect(html).toMatch(/<label[^>]*data-scope="checkbox"[^>]*data-part="root"[^>]*data-state="indeterminate"/);
+        expect(html).toMatch(/<input[^>]*name="letters"[^>]*value="a"[^>]*checked|<input[^>]*checked[^>]*name="letters"[^>]*value="a"/);
         const controlId = html.match(/<input[^>]*data-scope="slider"[^>]*data-part="control"[^>]*>/)?.[0].match(/\sid="([^"]+)"/)?.[1];
         expect(controlId).toBeTruthy();
         expect(html).toMatch(new RegExp(`<label[^>]*for="${controlId}"`));

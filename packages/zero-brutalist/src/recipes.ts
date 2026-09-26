@@ -1317,6 +1317,52 @@ export const radioGroup: RecipeInput = {
     skipStates: { item: ['focus-visible', 'checked', 'unchecked'], 'item-label': ['checked', 'unchecked'] },
 };
 
+/**
+ * CheckboxGroup (#282) — a stack of tick boxes under a shouted legend. The
+ * boxes keep the checkbox recipe; colour STAMPS the legend as a flat role
+ * chip, Field's move (light's pale roles cannot be written with on paper).
+ */
+export const checkboxGroup: RecipeInput = {
+    component: 'checkbox-group',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            // `invalid` and `readonly` paint on each box — the root only
+            // lays the boxes out.
+            states: { invalid: {}, required: {}, readonly: {} },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row', flexWrap: 'wrap', columnGap: 'var(--space-lg)' },
+            },
+        },
+        label: {
+            base: { ...label, fontSize: 'var(--text-sm)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { label: {
+            base: {
+                alignSelf: 'flex-start',
+                padding: '0 var(--space-xs)',
+                background: `var(--color-${c})`,
+                color: `var(--color-${c}-content)`,
+            },
+            selectors: { '&[data-required]::after': { color: 'inherit' } },
+        } }])),
+        size: {
+            // `text-xs` is this vocabulary's floor — the small steps tighten
+            // the stack instead of shrinking type it does not have.
+            xs: { root: { base: { gap: 'var(--space-2xs)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { gap: 'var(--space-xs)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { label: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { gap: 'var(--space-md)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+    skipStates: { label: ['invalid'] },
+};
+
 // ── Field, slider, progress ───────────────────────────────────────────────
 export const field: RecipeInput = {
     component: 'field',
@@ -5518,7 +5564,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
-    switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
+    switchRecipe, checkbox, checkboxGroup, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,

@@ -1880,6 +1880,46 @@ export const radioGroup: RecipeInput = {
     },
 };
 
+/**
+ * CheckboxGroup (#282) — Material's checkbox list: the boxes keep the
+ * checkbox recipe (their 40px state layers already space the rows), the
+ * group owns the stack and its label, which speaks Field's label — role
+ * tokens are inks by construction.
+ */
+export const checkboxGroup: RecipeInput = {
+    component: 'checkbox-group',
+    tokens: { '--checkbox-group-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            // `invalid` and `readonly` paint on each box — the root only
+            // lays the boxes out.
+            states: { invalid: {}, required: {}, readonly: {} },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row', flexWrap: 'wrap', columnGap: 'var(--space-lg)' },
+            },
+        },
+        label: {
+            base: { ...label, fontSize: 'var(--text-md)', color: 'var(--checkbox-group-accent)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--checkbox-group-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { gap: 'var(--space-2xs)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { label: { base: { fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { label: { base: { fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { gap: 'var(--space-md)' } }, label: { base: { fontSize: 'var(--text-xl)' } } },
+        },
+    },
+    skipStates: { label: ['invalid'] },
+};
+
 // ── Field, slider, progress ───────────────────────────────────────────────
 export const field: RecipeInput = {
     component: 'field',
@@ -6125,7 +6165,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
-    switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
+    switchRecipe, checkbox, checkboxGroup, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,

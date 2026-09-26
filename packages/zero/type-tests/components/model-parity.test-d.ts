@@ -10,7 +10,7 @@
  * model's value type is recovered here without naming it twice.
  */
 import type {
-    AccordionRootProps, AlertRootProps, CarouselRootProps, CheckboxRootProps, CollapsibleRootProps,
+    AccordionRootProps, AlertRootProps, CarouselRootProps, CheckboxGroupRootProps, CheckboxRootProps, CollapsibleRootProps,
     ComboboxRootProps, DialogRootProps, DiffRootProps, DrawerRootProps, FileUploadRootProps, InputRootProps,
     MenuCheckboxItemProps, MenuRadioGroupProps, MenuRootProps, MenuSubProps, NumberInputRootProps,
     PaginationRootProps, PopoverRootProps, RadioGroupRootProps, RatingGroupRootProps, SelectRootProps,
@@ -34,6 +34,7 @@ export type Pins = [
     MustBeTrue<Companions<AccordionRootProps, 'model', 'defaultValue', 'valueChange'>>,
     MustBeTrue<Companions<AlertRootProps, 'model', 'defaultOpen', 'openChange'>>,
     MustBeTrue<Companions<CarouselRootProps, 'model', 'defaultIndex', 'indexChange'>>,
+    MustBeTrue<Companions<CheckboxGroupRootProps, 'model', 'defaultValue', 'valueChange'>>,
     MustBeTrue<Companions<CollapsibleRootProps, 'model', 'defaultOpen', 'openChange'>>,
     MustBeTrue<Companions<ComboboxRootProps, 'open', 'defaultOpen', 'openChange'>>,
     MustBeTrue<Companions<ComboboxRootProps, 'inputValue', 'defaultInputValue', 'inputValueChange'>>,

@@ -1432,6 +1432,53 @@ export const radioGroup: RecipeInput = {
     skipStates: { label: ['invalid', 'required'], item: ['focus-visible'] },
 };
 
+/**
+ * CheckboxGroup (#282) — Carbon's checkbox group is a fieldset: a
+ * label-01 legend over the stacked boxes. The boxes keep the checkbox
+ * recipe; the legend speaks Field's label. No colour axis: `roles: {}`.
+ */
+export const checkboxGroup: RecipeInput = {
+    component: 'checkbox-group',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-xs)',
+                fontFamily: 'var(--font-sans)',
+            },
+            // `invalid` and `readonly` paint on each box — the root only
+            // lays the boxes out.
+            states: { invalid: {}, required: {}, readonly: {} },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row', flexWrap: 'wrap', columnGap: 'var(--space-md)' },
+            },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-required]::after': { content: '" *"', color: 'var(--carbon-danger)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { gap: 'var(--space-2xs)' } } },
+            md: {},
+            lg: { label: { base: { fontSize: 'var(--text-sm)' } } },
+            xl: { label: { base: { fontSize: 'var(--text-md)' } } },
+            '2xl': { label: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+    skipStates: { label: ['invalid'] },
+};
+
 export const progress: RecipeInput = {
     component: 'progress',
     /** Carbon's 4px bar — the size ramp only rebinds the thickness. */
@@ -5886,7 +5933,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,

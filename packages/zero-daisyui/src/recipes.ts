@@ -1856,6 +1856,48 @@ export const radioGroup: RecipeInput = {
     },
 };
 
+/**
+ * CheckboxGroup (#282) — daisy has no group component; its forms stack
+ * `.checkbox` rows under a `fieldset-legend`. The boxes keep the checkbox
+ * recipe; the group owns the stack and the legend, which speaks Field's
+ * label (colour through `roleInk`, #210).
+ */
+export const checkboxGroup: RecipeInput = {
+    component: 'checkbox-group',
+    tokens: { '--checkbox-group-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
+            // `invalid` and `readonly` paint on each box — the root only
+            // lays the boxes out.
+            states: { invalid: {}, required: {}, readonly: {} },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row', flexWrap: 'wrap', columnGap: 'var(--space-lg)' },
+            },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--checkbox-group-accent)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-required]::after': { content: '" *"', color: roleInk('error') },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--checkbox-group-accent': roleInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { gap: 'var(--space-sm)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { label: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { label: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { gap: 'var(--space-lg)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+    skipStates: { label: ['invalid'] },
+};
+
 // --------------------------------------------------------------------------
 // 4. progress — replace the whole export (only the two radius lines move)
 // --------------------------------------------------------------------------
@@ -6985,7 +7027,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,

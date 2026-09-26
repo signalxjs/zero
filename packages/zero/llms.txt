@@ -128,7 +128,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-58 components ship today. Every part each renders is listed below, in
+59 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -297,7 +297,18 @@ component renders; the root is called out separately where it carries props.
 - Checkbox: Root(model=checked | string[])/Control/Indicator/Label/HiddenInput;
   supports `indeterminate`. A `string[]` model is sigx's array mode: boxes
   sharing it toggle their own `value`'s membership; `checkedChange` reports
-  THIS box's boolean.
+  THIS box's boolean. Inside a CheckboxGroup, a box needs `value`; `parent`
+  makes it the derived tri-state "select all" box.
+- CheckboxGroup: Root(model=value: string[], allValues, name, orientation)/
+  Label (#282) — a role="group" of Checkbox.Roots sharing one string[]
+  model. A child Checkbox.Root(value) is checked while the model includes
+  its value; toggling writes the group model; every child posts under the
+  group's `name`; disabled/invalid/readonly (prop OR Field) reach every box.
+  `required` = at least one (native required only while none is checked).
+  Checkbox.Root(parent) derives checked (all of allValues — default: every
+  child's value) / unchecked (none) / indeterminate (some); toggling selects
+  all or none; aria-controls lists the child inputs. In a Field the ROOT is
+  labelled and described by it; the boxes keep ids of their own.
 - RadioGroup: Root(model=value, items, itemKey, itemLabel, itemDisabled, slot
   item)/Label/Item/ItemControl/ItemIndicator/ItemLabel/HiddenInput;
   orientation. `items` renders one radio per item (explicit children win
@@ -896,7 +907,7 @@ named model bound as `model:<stateName>` in JSX (sigx
 value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
-Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
+Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, CheckboxGroup, Collapsible, Combobox, Dialog,
 Divider, EmptyState, Field, Indicator, Input, Join, Kbd, Menu, NumberInput,
 Navbar, NavList, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,

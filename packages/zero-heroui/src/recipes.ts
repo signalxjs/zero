@@ -1177,6 +1177,43 @@ export const radioGroup: RecipeInput = {
     skipStates: { item: ['focus-visible'] },
 };
 
+/**
+ * CheckboxGroup (#282) — HeroUI's CheckboxGroup: a label over a stack (or
+ * a row) of checkboxes. The boxes keep the checkbox recipe; the label
+ * speaks Field's — danger ink when invalid, the label's own weight for
+ * required. No colour axis to wire: `roles: {}`.
+ */
+export const checkboxGroup: RecipeInput = {
+    component: 'checkbox-group',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: {}, required: {}, readonly: {},
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row', flexWrap: 'wrap', columnGap: 'var(--space-lg)' },
+            },
+        },
+        label: {
+            base: { ...label },
+            states: {
+                disabled: {},
+                invalid: { color: 'var(--hero-danger)' },
+                required: { fontWeight: 'var(--weight-semibold)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { gap: 'var(--space-sm)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { label: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 // ── Progress ──────────────────────────────────────────────────────────────
 export const progress: RecipeInput = {
     component: 'progress',
@@ -5345,7 +5382,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
