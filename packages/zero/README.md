@@ -564,10 +564,12 @@ update:
 | `--transform-origin` | the anchor-facing edge and the aligned point, physical keywords: `top left` for `bottom-start` (`top right` under `rtl`) |
 
 So a listbox as wide as its trigger that never runs off screen is
-`min-width: var(--anchor-width, 12rem); max-height: min(20rem,
-var(--available-height, 20rem)); overflow-y: auto` — what all six design
-systems now do for Select and Combobox — and a popup that scales in grows
-out of its anchor with `transform-origin: var(--transform-origin)`. Read
+`box-sizing: border-box; min-width: var(--anchor-width, 12rem);
+max-height: min(20rem, var(--available-height, 20rem)); overflow-y: auto`
+— what all six design systems now do for Select and Combobox; `border-box`
+keeps the padding and border inside the available room — and a popup that
+scales in grows out of its anchor with
+`transform-origin: var(--transform-origin, center)`. Read
 them with a fallback: a substituted `positionStrategy` may not publish
 them. They are left in place when the popup closes, so an exit transition
 keeps its size and origin.
