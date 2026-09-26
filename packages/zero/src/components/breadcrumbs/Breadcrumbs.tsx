@@ -146,12 +146,15 @@ const BreadcrumbsRoot = component<BreadcrumbsRootProps>(({ props, slots, emit, o
         void registry.version;
         return registry.settled ? list.items() : [];
     };
+    // A non-finite count (NaN from a parsed attribute) falls back to the
+    // default rather than reaching Array.from as an invalid length.
     const count = (n: number | undefined, fallback: number): number =>
-        Math.max(0, Math.floor(n ?? fallback));
+        Math.max(0, Math.floor(typeof n === 'number' && Number.isFinite(n) ? n : fallback));
 
     const hiddenIndices = (): number[] => {
         const max = props.maxItems;
-        if (max == null || expanded.value) return [];
+        // NaN reads as absent, never as "collapse everything".
+        if (max == null || Number.isNaN(max) || expanded.value) return [];
         const total = items().length;
         if (total <= max) return [];
         const before = count(props.itemsBeforeCollapse, 1);

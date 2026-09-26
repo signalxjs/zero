@@ -438,6 +438,18 @@ describe('Breadcrumbs collapse (#295)', () => {
         expect(part(container, 'breadcrumbs', 'ellipsis-trigger').getAttribute('aria-label')).toBe('Show 1 more breadcrumbs');
     });
 
+    it('non-finite counts fall back instead of throwing', () => {
+        // NaN kept ends take their defaults (1 and 1) rather than reaching
+        // Array.from as an invalid length.
+        render(trail({ maxItems: 3, itemsBeforeCollapse: Number.NaN, itemsAfterCollapse: Number.NaN }), container);
+        expect(visible(container)).toEqual(['Home', '…', 'Breadcrumbs']);
+        // A NaN maxItems reads as absent: nothing collapses.
+        const other = document.createElement('div');
+        document.body.appendChild(other);
+        render(trail({ maxItems: Number.NaN }), other);
+        expect(visible(other)).toEqual(NAMES);
+    });
+
     it('shows the whole trail when the kept ends leave nothing to hide', () => {
         render(trail({ maxItems: 2, itemsBeforeCollapse: 3, itemsAfterCollapse: 2 }, 3), container);
         expect(visible(container)).toEqual(NAMES);
