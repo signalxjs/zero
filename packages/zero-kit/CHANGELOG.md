@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Added — Toast's stack properties are runtime properties (zero#292)
+
+- `RUNTIME_PROPERTIES` gains `--toast-index`, `--toast-count`,
+  `--toast-height` and `--toast-offset`, which `@sigx/zero` writes on every
+  toast root. A recipe may reference them without declaring them. They are
+  web-only: on the lynx target they belong in `targets.web`.
+
+### Changed — The indicator matrix pins positioned presence surfaces open (zero#292)
+
+- A mark's derived ancestor chain now pins open any ancestor that declares
+  `placements` and an `open` state, as it already did for popups. Only
+  toast's `viewport` and `root` qualify today: a toast root is `closed` only
+  during its enter/exit frame, so the new `toast.indicator` is measured
+  inside `viewport=open > root=open`. A trigger's `open` is still unpinned.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE['hover-card']` (zero#290)
 
 - The new `hover-card` scope's root props are reserved (`openDelay`,

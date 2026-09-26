@@ -118,6 +118,15 @@ HeroUI ships no countdown, so the modifier has no vendor name: on
 `axes.shape` there and nowhere else. One declaration on the root, whose
 `overflow: hidden` clips the image and the initials alike. `rounded` is HeroUI's `radius="sm"`; unset, the avatar is the circle it always was.
 
+## Toast stack and promise toasts
+
+HeroUI's toasts stack: at rest a deck on the viewport's edge, newest in
+front with the older cards a step behind, smaller and faded, fanned into a
+column while the viewport is `open` (hovered or holding focus) from the
+runtime's measured `--toast-offset`. `Toast.Indicator` leads the row: v3's
+spinner ring while loading, then a tick in the primary fill or a cross in
+the danger fill.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors

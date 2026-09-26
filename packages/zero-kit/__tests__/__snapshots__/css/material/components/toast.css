@@ -2,6 +2,7 @@
     [data-scope="toast"][data-part="root"] {
         --toast-accent: var(--color-primary);
         --toast-from: 8px;
+        --toast-mark: 1rem;
     }
 
     [data-scope="toast"][data-part="viewport"] {
@@ -95,6 +96,36 @@
         height: 0.625rem;
         border-radius: 50%;
         background: var(--toast-accent);
+    }
+
+    [data-scope="toast"][data-part="root"]:has(> [data-scope="toast"][data-part="indicator"])::before {
+        display: none;
+    }
+
+    [data-scope="toast"][data-part="indicator"] {
+        grid-column: 1;
+        grid-row: 1 / -1;
+        align-self: center;
+        inline-size: var(--toast-mark);
+        block-size: var(--toast-mark);
+        box-sizing: border-box;
+    }
+
+    [data-scope="toast"][data-part="indicator"][data-state="loading"] {
+        border-radius: 50%;
+        border: calc(var(--border) * 2) solid var(--color-outline);
+        border-block-start-color: var(--toast-accent);
+        animation: zero-material-toast-spin 0.7s linear infinite;
+    }
+
+    [data-scope="toast"][data-part="indicator"][data-state="complete"] {
+        background: var(--color-success);
+        clip-path: polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%);
+    }
+
+    [data-scope="toast"][data-part="indicator"][data-state="error"] {
+        background: var(--color-error);
+        clip-path: polygon(20% 8%, 50% 38%, 80% 8%, 92% 20%, 62% 50%, 92% 80%, 80% 92%, 50% 62%, 20% 92%, 8% 80%, 38% 50%, 8% 20%);
     }
 
     [data-scope="toast"][data-part="title"] {
@@ -322,6 +353,16 @@
             background: CanvasText;
         }
 
+        [data-scope="toast"][data-part="indicator"][data-state="complete"] {
+            background: CanvasText;
+            forced-color-adjust: none;
+        }
+
+        [data-scope="toast"][data-part="indicator"][data-state="error"] {
+            background: CanvasText;
+            forced-color-adjust: none;
+        }
+
         [data-scope="toast"][data-part="action"]::before {
             display: none;
         }
@@ -357,8 +398,15 @@
         [data-scope="toast"][data-part="root"][data-state="open"] {
             transform: none;
         }
+
+        [data-scope="toast"][data-part="indicator"][data-state="loading"] {
+            animation: none;
+        }
     }
 }
 @keyframes toast-ripple {
     from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+@keyframes zero-material-toast-spin {
+    to { transform: rotate(360deg); }
 }

@@ -320,7 +320,15 @@ component's anatomy). No component code is ever written or changed.
      an unconditional one would defeat the UA's hiding of the closed
      popover. Stacked/offset effects key on the published `--toast-index` /
      `--toast-count` custom properties, the same contract idea as
-     `--press-*`. The toast root also carries `data-color` per toast, so a
+     `--press-*`, plus the measured `--toast-height` / `--toast-offset`
+     (the heights of the newer toasts in front) and the viewport's
+     `data-state` (`open` while the stack is expanded): enough to deal a
+     resting stack as cards and fan it out on `open`, or to ignore it and
+     keep a column (then `skipStates: { viewport: ['open', 'closed'] }`).
+     All four properties are web runtime properties — in a design system
+     that also builds lynx they go in `targets.web`. A promise toast's
+     `indicator` (`loading|complete|error`) is a paint part: draw each state
+     distinctly and cancel the loading spin under reduced motion. The toast root also carries `data-color` per toast, so a
      `variants.color` block routing roles through a component token is the
      natural shape.
    - **A disclosure panel animates through `::details-content`.** Collapsible

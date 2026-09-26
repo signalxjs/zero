@@ -3343,6 +3343,24 @@ export const avatar: RecipeInput = {
 };
 
 /**
+ * A toast whose indicator is rendered (#292): the grid grows a leading column
+ * for the mark, and the text, action and close step one column along.
+ */
+const TOAST_MARKED = '[data-scope="toast"][data-part="root"]:has(> [data-scope="toast"][data-part="indicator"]) > &';
+/** The indicator's marks, cut from its fill — not mirrored in RTL (a tick is not a direction). */
+const TOAST_CHECK = 'polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%)';
+const TOAST_CROSS = 'polygon(20% 8%, 50% 38%, 80% 8%, 92% 20%, 62% 50%, 92% 80%, 80% 92%, 50% 62%, 20% 92%, 8% 80%, 38% 50%, 8% 20%)';
+
+/**
+ * daisy's success and error are FILLS — light enough in `light` and `nord`
+ * that a bare mark in them reads under 2:1 on the toast's base-200. Deepened
+ * toward base-content (which flips with the theme), the hue survives and the
+ * mark clears the 3:1 non-text floor in every theme.
+ */
+const TOAST_SUCCESS_INK = 'color-mix(in oklab, var(--color-success) 55%, var(--color-base-content))';
+const TOAST_ERROR_INK = 'color-mix(in oklab, var(--color-error) 55%, var(--color-base-content))';
+
+/**
  * Toast presence is runtime-managed (see the SKILL's Toast section): plain
  * two-state transitions only — no `@starting-style`, no `allow-discrete`.
  */
@@ -3352,6 +3370,7 @@ export const toast: RecipeInput = {
         '--toast-bg': 'var(--color-base-200)',
         '--toast-ink': 'var(--color-base-content)',
         '--toast-from': '8px',
+        '--toast-mark': '1rem',
     },
     parts: {
         viewport: {
@@ -3405,6 +3424,7 @@ export const toast: RecipeInput = {
             },
             selectors: {
                 '&[data-placement^="top"]': { '--toast-from': '-8px' },
+                '&:has(> [data-scope="toast"][data-part="indicator"])': { gridTemplateColumns: 'auto 1fr auto auto' },
             },
             states: {
                 open: { opacity: '1', transform: 'none' },
@@ -3414,8 +3434,39 @@ export const toast: RecipeInput = {
                 'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
             },
         },
+        // daisy's `loading-spinner` ring in the alert's own ink, then the
+        // success tick or the error cross — the promise toast's status.
+        indicator: {
+            base: {
+                gridColumn: '1',
+                gridRow: '1 / span 2',
+                inlineSize: 'var(--toast-mark)',
+                blockSize: 'var(--toast-mark)',
+                boxSizing: 'border-box',
+            },
+            states: {
+                loading: {
+                    borderRadius: '50%',
+                    border: 'calc(var(--border) * 2) solid color-mix(in oklab, var(--toast-ink) 25%, transparent)',
+                    borderBlockStartColor: 'var(--toast-ink)',
+                    animation: 'zero-daisyui-toast-spin 0.75s linear infinite',
+                },
+                complete: { background: TOAST_SUCCESS_INK, clipPath: TOAST_CHECK },
+                error: { background: TOAST_ERROR_INK, clipPath: TOAST_CROSS },
+            },
+            at: {
+                'reduced-motion': { states: { loading: { animation: 'none' } } },
+                'forced-colors': {
+                    states: {
+                        complete: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                        error: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                    },
+                },
+            },
+        },
         title: {
             base: { gridColumn: '1', fontWeight: 'var(--weight-semibold)' },
+            selectors: { [TOAST_MARKED]: { gridColumn: '2' } },
         },
         description: {
             base: {
@@ -3423,6 +3474,7 @@ export const toast: RecipeInput = {
                 fontSize: 'var(--text-xs)',
                 color: 'color-mix(in oklab, var(--toast-ink) 75%, transparent)',
             },
+            selectors: { [TOAST_MARKED]: { gridColumn: '2' } },
         },
         action: {
             base: {
@@ -3443,6 +3495,7 @@ export const toast: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
+            selectors: { [TOAST_MARKED]: { gridColumn: '3' } },
         },
         close: {
             base: {
@@ -3462,6 +3515,7 @@ export const toast: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 ...focusRing,
             },
+            selectors: { [TOAST_MARKED]: { gridColumn: '4' } },
         },
     },
     variants: {
@@ -3498,6 +3552,7 @@ export const toast: RecipeInput = {
     // signalxjs/lynx#1070. No `color` default: the un-attributed toast is a
     // neutral base-200 surface, outside the color vocabulary.
     defaultVariants: { size: 'md' },
+    keyframes: { 'zero-daisyui-toast-spin': 'to { transform: rotate(360deg); }' },
     targets: {
         lynx: {
             parts: {
@@ -3561,6 +3616,10 @@ export const toast: RecipeInput = {
             },
         },
     },
+    // The viewport's `open` (the stack expanded) is a fact this skin has no
+    // use for: its toasts are always a plain column, so both states look the
+    // same by design (#292).
+    skipStates: { viewport: ['open', 'closed'] },
 };
 
 export const combobox: RecipeInput = {

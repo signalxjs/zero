@@ -2,6 +2,7 @@
     [data-scope="toast"][data-part="root"] {
         --toast-accent: var(--color-primary);
         --toast-from: 8px;
+        --toast-mark: 1rem;
     }
 
     [data-scope="toast"][data-part="viewport"] {
@@ -17,10 +18,12 @@
         flex-direction: column;
         gap: var(--space-sm);
         pointer-events: none;
+        align-items: end;
+        --toast-lift: -1;
     }
 
     [data-scope="toast"][data-part="viewport"]:popover-open {
-        display: flex;
+        display: grid;
     }
 
     [data-scope="toast"][data-part="viewport"][data-placement="top-start"] {
@@ -58,6 +61,11 @@
         flex-direction: column-reverse;
     }
 
+    [data-scope="toast"][data-part="viewport"][data-placement^="top"] {
+        align-items: start;
+        --toast-lift: 1;
+    }
+
     [data-scope="toast"][data-part="root"] {
         pointer-events: auto;
         display: grid;
@@ -75,17 +83,74 @@
         font-variant-numeric: tabular-nums;
         opacity: 0;
         transform: translateY(var(--toast-from));
-        transition: opacity var(--duration-fast) var(--ease-exit), transform var(--duration-fast) step-end;
+        transition: opacity var(--duration-fast) var(--ease-exit), transform var(--duration-fast) step-end, translate var(--duration-normal) var(--ease-standard), scale var(--duration-normal) var(--ease-standard);
+        grid-area: 1 / 1;
+        position: relative;
+        z-index: var(--toast-index);
+        --toast-depth: calc(var(--toast-count) - var(--toast-index) - 1);
+        translate: 0 calc(var(--toast-lift) * var(--toast-depth) * var(--space-sm));
+        scale: calc(1 - var(--toast-depth) * 0.04);
     }
 
     [data-scope="toast"][data-part="root"][data-state="open"] {
         opacity: 1;
         transform: none;
-        transition: opacity var(--duration-slow) var(--ease-standard), transform var(--duration-slow) var(--ease-standard);
+        transition: opacity var(--duration-slow) var(--ease-standard), transform var(--duration-slow) var(--ease-standard), translate var(--duration-normal) var(--ease-standard), scale var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="toast"][data-part="root"][data-placement^="top"] {
         --toast-from: -8px;
+    }
+
+    [data-scope="toast"][data-part="root"]:has(> [data-scope="toast"][data-part="indicator"]) {
+        grid-template-columns: auto 1fr auto auto;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-state="open"] > [data-scope="toast"][data-part="root"] {
+        translate: 0 calc(var(--toast-lift) * (var(--toast-offset) + var(--toast-depth) * var(--space-sm)));
+        scale: 1;
+    }
+
+    [data-scope="toast"][data-part="root"]::after {
+        content: "";
+        position: absolute;
+        inset-inline: 0;
+        block-size: var(--space-sm);
+        inset-block-end: 100%;
+    }
+
+    [data-scope="toast"][data-part="root"][data-placement^="top"]::after {
+        inset-block-end: auto;
+        inset-block-start: 100%;
+    }
+
+    [data-scope="toast"][data-part="viewport"]:not([data-state="open"]) > [data-scope="toast"][data-part="root"]:not(:last-child) > * {
+        opacity: 0;
+    }
+
+    [data-scope="toast"][data-part="indicator"] {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        inline-size: var(--toast-mark);
+        block-size: var(--toast-mark);
+        box-sizing: border-box;
+    }
+
+    [data-scope="toast"][data-part="indicator"][data-state="loading"] {
+        border-radius: 50%;
+        border: calc(var(--border) * 2) solid var(--color-base-300);
+        border-block-start-color: var(--color-base-content);
+        animation: zero-basic-toast-spin 0.7s linear infinite;
+    }
+
+    [data-scope="toast"][data-part="indicator"][data-state="complete"] {
+        background: var(--color-success);
+        clip-path: polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%);
+    }
+
+    [data-scope="toast"][data-part="indicator"][data-state="error"] {
+        background: var(--color-error);
+        clip-path: polygon(20% 8%, 50% 38%, 80% 8%, 92% 20%, 62% 50%, 92% 80%, 80% 92%, 50% 62%, 20% 92%, 8% 80%, 38% 50%, 8% 20%);
     }
 
     [data-scope="toast"][data-part="title"] {
@@ -93,10 +158,18 @@
         font-weight: var(--weight-medium);
     }
 
+    [data-scope="toast"][data-part="root"]:has(> [data-scope="toast"][data-part="indicator"]) > [data-scope="toast"][data-part="title"] {
+        grid-column: 2;
+    }
+
     [data-scope="toast"][data-part="description"] {
         grid-column: 1;
         font-size: var(--text-xs);
         color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+    }
+
+    [data-scope="toast"][data-part="root"]:has(> [data-scope="toast"][data-part="indicator"]) > [data-scope="toast"][data-part="description"] {
+        grid-column: 2;
     }
 
     [data-scope="toast"][data-part="action"] {
@@ -138,6 +211,10 @@
         transition: none;
     }
 
+    [data-scope="toast"][data-part="root"]:has(> [data-scope="toast"][data-part="indicator"]) > [data-scope="toast"][data-part="action"] {
+        grid-column: 3;
+    }
+
     [data-scope="toast"][data-part="close"] {
         appearance: none;
         padding: var(--space-2xs) var(--space-xs);
@@ -171,6 +248,10 @@
     [data-scope="toast"][data-part="close"][data-pressed]:not([data-disabled]) {
         background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
         transition: none;
+    }
+
+    [data-scope="toast"][data-part="root"]:has(> [data-scope="toast"][data-part="indicator"]) > [data-scope="toast"][data-part="close"] {
+        grid-column: 4;
     }
 
     [data-scope="toast"][data-part="root"][data-color="primary"] {
@@ -237,6 +318,18 @@
         }
     }
 
+    @media (forced-colors: active) {
+        [data-scope="toast"][data-part="indicator"][data-state="complete"] {
+            background: CanvasText;
+            forced-color-adjust: none;
+        }
+
+        [data-scope="toast"][data-part="indicator"][data-state="error"] {
+            background: CanvasText;
+            forced-color-adjust: none;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="toast"][data-part="root"] {
             transition: none;
@@ -246,5 +339,12 @@
             transition: none;
             transform: none;
         }
+
+        [data-scope="toast"][data-part="indicator"][data-state="loading"] {
+            animation: none;
+        }
     }
+}
+@keyframes zero-basic-toast-spin {
+    to { transform: rotate(360deg); }
 }

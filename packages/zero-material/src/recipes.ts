@@ -2531,6 +2531,10 @@ export const avatar: RecipeInput = {
     },
 };
 
+/** The indicator's marks, cut from its fill — not mirrored in RTL (a tick is not a direction). */
+const TOAST_CHECK = 'polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%)';
+const TOAST_CROSS = 'polygon(20% 8%, 50% 38%, 80% 8%, 92% 20%, 62% 50%, 92% 80%, 80% 92%, 50% 62%, 20% 92%, 8% 80%, 38% 50%, 8% 20%)';
+
 /**
  * Toast presence is runtime-managed — plain two-state transitions, no
  * `@starting-style`/`allow-discrete`. The M3 snackbar: a raised
@@ -2561,6 +2565,7 @@ export const toast: RecipeInput = {
     tokens: {
         '--toast-accent': 'var(--color-primary)',
         '--toast-from': '8px',
+        '--toast-mark': '1rem',
     },
     parts: {
         viewport: {
@@ -2627,6 +2632,9 @@ export const toast: RecipeInput = {
                     borderRadius: '50%',
                     background: 'var(--toast-accent)',
                 },
+                // A promise toast's indicator takes the marker's column —
+                // the status IS the marker then, so the dot steps aside.
+                '&:has(> [data-scope="toast"][data-part="indicator"])::before': { display: 'none' },
             },
             states: {
                 open: { opacity: '1', transform: 'none' },
@@ -2638,6 +2646,38 @@ export const toast: RecipeInput = {
                 // marker that is nothing but one — the same trade the radio
                 // dot makes. A system colour is honoured as given.
                 'forced-colors': { selectors: { '&::before': { background: 'CanvasText' } } },
+            },
+        },
+        // The promise status in the marker's column: M3's circular progress
+        // (the accent arc on its outline track) while pending, then a tick
+        // or a cross.
+        indicator: {
+            base: {
+                gridColumn: '1',
+                gridRow: '1 / -1',
+                alignSelf: 'center',
+                inlineSize: 'var(--toast-mark)',
+                blockSize: 'var(--toast-mark)',
+                boxSizing: 'border-box',
+            },
+            states: {
+                loading: {
+                    borderRadius: '50%',
+                    border: 'calc(var(--border) * 2) solid var(--color-outline)',
+                    borderBlockStartColor: 'var(--toast-accent)',
+                    animation: 'zero-material-toast-spin 0.7s linear infinite',
+                },
+                complete: { background: 'var(--color-success)', clipPath: TOAST_CHECK },
+                error: { background: 'var(--color-error)', clipPath: TOAST_CROSS },
+            },
+            at: {
+                'reduced-motion': { states: { loading: { animation: 'none' } } },
+                'forced-colors': {
+                    states: {
+                        complete: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                        error: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                    },
+                },
             },
         },
         title: {
@@ -2711,7 +2751,11 @@ export const toast: RecipeInput = {
             },
         },
     },
-    keyframes: rippleKeyframes('toast'),
+    keyframes: { ...rippleKeyframes('toast'), 'zero-material-toast-spin': 'to { transform: rotate(360deg); }' },
+    // The viewport's `open` (the stack expanded) is a fact this skin has no
+    // use for: its toasts are always a plain column, so both states look the
+    // same by design (#292).
+    skipStates: { viewport: ['open', 'closed'] },
 };
 
 export const combobox: RecipeInput = {

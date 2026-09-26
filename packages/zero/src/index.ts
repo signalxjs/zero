@@ -151,6 +151,7 @@ export type {
     ToastRootProps,
     ToastTitleProps,
     ToastDescriptionProps,
+    ToastIndicatorProps,
     ToastActionProps,
     ToastCloseProps,
     Toaster,
@@ -159,6 +160,9 @@ export type {
     ToastOptions,
     ToastActionData,
     ToastRole,
+    ToastStatus,
+    ToastInput,
+    ToastPromiseOptions,
 } from './components/toast/index.js';
 
 export { Toggle, toggleAnatomy } from './components/toggle/index.js';

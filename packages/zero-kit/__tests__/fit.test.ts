@@ -87,7 +87,7 @@ describe("zero-basic's recipes fit riso's tokens (roles: {}, sizes: [], fused va
         expect(report.identity).toBe(false);
         expect(report).toMatchInlineSnapshot(`
           {
-            "collapsedCategoryRefs": 14,
+            "collapsedCategoryRefs": 15,
             "droppedAxisValues": 0,
             "droppedColorValues": 448,
             "droppedCompounds": 0,
@@ -98,7 +98,7 @@ describe("zero-basic's recipes fit riso's tokens (roles: {}, sizes: [], fused va
             "droppedVariantBlocks": 3,
             "droppedVariantValues": 5,
             "identity": false,
-            "rewrittenRoleRefs": 168,
+            "rewrittenRoleRefs": 170,
           }
         `);
     });

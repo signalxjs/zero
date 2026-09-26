@@ -2968,6 +2968,10 @@
 }
 
 @layer zero.recipes {
+    [data-scope="toast"][data-part="root"] {
+        --toast-mark: 1rem;
+    }
+
     [data-scope="toast"][data-part="viewport"] {
         position: fixed;
         inset: auto;
@@ -2978,13 +2982,18 @@
         overflow: visible;
         width: min(24rem, 100vw);
         list-style: none;
-        flex-direction: column;
-        gap: var(--space-sm);
+        align-items: end;
+        --toast-lift: -1;
         pointer-events: none;
     }
 
     [data-scope="toast"][data-part="viewport"]:popover-open {
-        display: flex;
+        display: grid;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement^="top"] {
+        align-items: start;
+        --toast-lift: 1;
     }
 
     [data-scope="toast"][data-part="viewport"][data-placement="top-start"] {
@@ -3037,7 +3046,13 @@
         --toast-from: 8px;
         --toast-dir: 1;
         transform: translateX(calc(var(--toast-dir) * var(--toast-from)));
-        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+        grid-area: 1 / 1;
+        position: relative;
+        z-index: var(--toast-index);
+        --toast-depth: calc(var(--toast-count) - var(--toast-index) - 1);
+        translate: 0 calc(var(--toast-lift) * var(--toast-depth) * var(--space-md));
+        scale: calc(1 - var(--toast-depth) * 0.05);
+        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), translate var(--duration-normal) var(--ease-standard), scale var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="toast"][data-part="root"][data-state="open"] {
@@ -3051,6 +3066,53 @@
 
     [data-scope="toast"][data-part="root"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
         --toast-dir: -1;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-state="open"] > [data-scope="toast"][data-part="root"] {
+        translate: 0 calc(var(--toast-lift) * (var(--toast-offset) + var(--toast-depth) * var(--space-sm)));
+        scale: 1;
+    }
+
+    [data-scope="toast"][data-part="root"]::after {
+        content: "";
+        position: absolute;
+        inset-inline: 0;
+        block-size: var(--space-sm);
+        inset-block-end: 100%;
+    }
+
+    [data-scope="toast"][data-part="root"][data-placement^="top"]::after {
+        inset-block-end: auto;
+        inset-block-start: 100%;
+    }
+
+    [data-scope="toast"][data-part="viewport"]:not([data-state="open"]) > [data-scope="toast"][data-part="root"]:not(:last-child) > * {
+        opacity: 0;
+    }
+
+    [data-scope="toast"][data-part="indicator"] {
+        flex-shrink: 0;
+        align-self: center;
+        inline-size: var(--toast-mark);
+        block-size: var(--toast-mark);
+        box-sizing: border-box;
+    }
+
+    [data-scope="toast"][data-part="indicator"][data-state="loading"] {
+        border-radius: 50%;
+        border: calc(var(--border) * 2) solid var(--hero-line);
+        border-block-start-color: var(--hero-primary);
+        animation: zero-heroui-toast-spin 0.7s linear infinite;
+    }
+
+    [data-scope="toast"][data-part="indicator"][data-state="complete"] {
+        background: var(--hero-primary);
+        clip-path: polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%);
+    }
+
+    [data-scope="toast"][data-part="indicator"][data-state="error"] {
+        background: var(--hero-danger);
+        clip-path: polygon(20% 8%, 50% 38%, 80% 8%, 92% 20%, 62% 50%, 92% 80%, 80% 92%, 50% 62%, 20% 92%, 8% 80%, 38% 50%, 8% 20%);
     }
 
     [data-scope="toast"][data-part="title"] {
@@ -3155,6 +3217,18 @@
         }
     }
 
+    @media (forced-colors: active) {
+        [data-scope="toast"][data-part="indicator"][data-state="complete"] {
+            background: CanvasText;
+            forced-color-adjust: none;
+        }
+
+        [data-scope="toast"][data-part="indicator"][data-state="error"] {
+            background: CanvasText;
+            forced-color-adjust: none;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="toast"][data-part="root"] {
             transition: none;
@@ -3163,7 +3237,14 @@
         [data-scope="toast"][data-part="root"][data-state="open"] {
             transform: none;
         }
+
+        [data-scope="toast"][data-part="indicator"][data-state="loading"] {
+            animation: none;
+        }
     }
+}
+@keyframes zero-heroui-toast-spin {
+    to { transform: rotate(360deg); }
 }
 
 @layer zero.recipes {

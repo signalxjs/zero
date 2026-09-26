@@ -2108,6 +2108,12 @@ export const avatar: RecipeInput = {
 };
 
 // ── Toast ─────────────────────────────────────────────────────────────────
+const TOAST_FANNED = '[data-scope="toast"][data-part="viewport"][data-state="open"] > &';
+const TOAST_STACKED = '[data-scope="toast"][data-part="viewport"]:not([data-state="open"]) > &';
+/** The indicator's marks, cut from its fill — not mirrored in RTL (a tick is not a direction). */
+const TOAST_CHECK = 'polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%)';
+const TOAST_CROSS = 'polygon(20% 8%, 50% 38%, 80% 8%, 92% 20%, 62% 50%, 92% 80%, 80% 92%, 50% 62%, 20% 92%, 8% 80%, 38% 50%, 8% 20%)';
+
 /**
  * Toast presence is runtime-managed — the one popup-shaped component where
  * `@starting-style`/`allow-discrete` must NOT be used: zero mounts the root
@@ -2119,6 +2125,7 @@ export const avatar: RecipeInput = {
  */
 export const toast: RecipeInput = {
     component: 'toast',
+    tokens: { '--toast-mark': '1rem' },
     parts: {
         viewport: {
             base: {
@@ -2131,14 +2138,22 @@ export const toast: RecipeInput = {
                 overflow: 'visible',
                 width: 'min(24rem, 100vw)',
                 listStyle: 'none',
-                flexDirection: 'column',
-                gap: 'var(--space-sm)',
+                // The deck sits on the placement's edge; `--toast-lift` is
+                // which way "behind" is — up from a bottom edge, down from a
+                // top one.
+                alignItems: 'end',
+                '--toast-lift': '-1',
                 pointerEvents: 'none',
             },
+            // The stack's two layouts are painted on its toasts (the root's
+            // fanned selector), not on the viewport box itself.
+            states: { open: {}, closed: {} },
             selectors: {
                 // The UA hides closed popovers by unsetting display — an
-                // unconditional `display: flex` would defeat that.
-                '&:popover-open': { display: 'flex' },
+                // unconditional `display: grid` would defeat that. One grid
+                // cell: the toasts are a deck (see the root), not a column.
+                '&:popover-open': { display: 'grid' },
+                '&[data-placement^="top"]': { alignItems: 'start', '--toast-lift': '1' },
                 // Logical, because `ToastPlacement` is: `top-start` means the
                 // top of the reading side, which is the left edge only in a
                 // left-to-right document. The centred pair stays physical —
@@ -2178,7 +2193,22 @@ export const toast: RecipeInput = {
                 '--toast-from': '8px',
                 '--toast-dir': '1',
                 transform: 'translateX(calc(var(--toast-dir) * var(--toast-from)))',
-                transition: motion('opacity, transform'),
+                // HeroUI's stacked toasts (#292): at rest a deck on the edge,
+                // newest in front, each older card a step behind and smaller
+                // with its content faded; fanned into a column while the
+                // viewport is `open`. `--toast-offset` — the measured height
+                // of the newer cards in front — is the column's arithmetic.
+                // `translate`/`scale` are separate from the enter/exit
+                // `transform`, so the two compose.
+                gridArea: '1 / 1',
+                position: 'relative',
+                zIndex: 'var(--toast-index)',
+                '--toast-depth': 'calc(var(--toast-count) - var(--toast-index) - 1)',
+                translate: '0 calc(var(--toast-lift) * var(--toast-depth) * var(--space-md))',
+                scale: 'calc(1 - var(--toast-depth) * 0.05)',
+                transition: `${motion('opacity, transform')}, `
+                    + 'translate var(--duration-normal) var(--ease-standard), '
+                    + 'scale var(--duration-normal) var(--ease-standard)',
             },
             states: {
                 open: { opacity: '1', transform: 'none' },
@@ -2187,9 +2217,55 @@ export const toast: RecipeInput = {
             selectors: {
                 '&[data-placement$="-start"]': { '--toast-from': '-8px' },
                 [`&${rtl}`]: { '--toast-dir': '-1' },
+                [TOAST_FANNED]: {
+                    translate: '0 calc(var(--toast-lift) * (var(--toast-offset) + var(--toast-depth) * var(--space-sm)))',
+                    scale: '1',
+                },
+                // The gap between fanned cards is still the stack: a bridge
+                // on each card's far side keeps the pointer in while it
+                // crosses, or the column would fold under it.
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    insetInline: '0',
+                    blockSize: 'var(--space-sm)',
+                    insetBlockEnd: '100%',
+                },
+                '&[data-placement^="top"]::after': { insetBlockEnd: 'auto', insetBlockStart: '100%' },
+                [`${TOAST_STACKED}:not(:last-child) > *`]: { opacity: '0' },
             },
             at: {
                 'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+            },
+        },
+        // The promise status, leading the row: v3's spinner ring while
+        // loading, then a tick or a cross cut from the fill.
+        indicator: {
+            base: {
+                flexShrink: '0',
+                alignSelf: 'center',
+                inlineSize: 'var(--toast-mark)',
+                blockSize: 'var(--toast-mark)',
+                boxSizing: 'border-box',
+            },
+            states: {
+                loading: {
+                    borderRadius: '50%',
+                    border: 'calc(var(--border) * 2) solid var(--hero-line)',
+                    borderBlockStartColor: 'var(--hero-primary)',
+                    animation: 'zero-heroui-toast-spin 0.7s linear infinite',
+                },
+                complete: { background: 'var(--hero-primary)', clipPath: TOAST_CHECK },
+                error: { background: 'var(--hero-danger)', clipPath: TOAST_CROSS },
+            },
+            at: {
+                'reduced-motion': { states: { loading: { animation: 'none' } } },
+                'forced-colors': {
+                    states: {
+                        complete: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                        error: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                    },
+                },
             },
         },
         title: {
@@ -2247,6 +2323,7 @@ export const toast: RecipeInput = {
             },
         },
     },
+    keyframes: { 'zero-heroui-toast-spin': 'to { transform: rotate(360deg); }' },
 };
 
 // ── Combobox ──────────────────────────────────────────────────────────────

@@ -361,7 +361,11 @@ export const ARROW_PROPERTIES = [
  * `--tabs-indicator-*` quartet is written on Tabs' `indicator`: the active
  * tab's box relative to the list's padding box (px, logical — the inline
  * offset from the inline-start edge), so a recipe slides a mark between tabs
- * (#283). The `POSITION_PROPERTIES` five come from the anchored-position
+ * (#283). The `--toast-*` quartet is written on every Toast root: its
+ * position in the stack (`--toast-index`, oldest first, of `--toast-count`)
+ * and, measured, its own height and the summed heights of the newer toasts in
+ * front of it (`--toast-height`, `--toast-offset`, px — #292), so a recipe can
+ * stack the toasts as cards and fan them out. The `POSITION_PROPERTIES` five come from the anchored-position
  * strategy, on every floating popup it positions, and the `ARROW_PROPERTIES`
  * pair from the same strategy, on a popup's arrow part.
  *
@@ -387,6 +391,10 @@ export const RUNTIME_PROPERTIES = [
     '--tabs-indicator-inset-block-start',
     '--tabs-indicator-inline-size',
     '--tabs-indicator-block-size',
+    '--toast-index',
+    '--toast-count',
+    '--toast-height',
+    '--toast-offset',
     ...POSITION_PROPERTIES,
     ...ARROW_PROPERTIES,
 ] as const;
