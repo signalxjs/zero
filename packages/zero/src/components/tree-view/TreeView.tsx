@@ -760,8 +760,11 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, on
         ref: (n: HTMLElement | null) => { el = n; },
         onClick: (e: MouseEvent) => {
             if (disabled()) return;
-            // No selection in use: the row is the box's label.
+            // No selection in use: the row is the box's label — and, like
+            // NodeCheckbox, it keeps an asChild link or button row from
+            // navigating or submitting on the click that checked it.
             if (!ctx.selecting()) {
+                e.preventDefault();
                 ctx.toggleCheck(props.value);
                 return;
             }

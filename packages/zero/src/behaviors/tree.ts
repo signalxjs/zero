@@ -108,11 +108,16 @@ export function createTreeController(opts: {
             return visible.slice(Math.min(a, b), Math.max(a, b) + 1);
         },
         leavesOf(value) {
+            // One parent index per call, so each ancestor hop is a lookup
+            // rather than another scan of the registry: a branch's state is
+            // derived at render time, once per rendered branch.
+            const parentOf = new Map<string, string | null>();
+            for (const i of registered) if (!parentOf.has(i.value)) parentOf.set(i.value, i.parentValue);
             const under = (item: TreeItem): boolean => {
                 let parent = item.parentValue;
                 for (let hops = 0; parent !== null && hops < registered.length; hops++) {
                     if (parent === value) return true;
-                    parent = findNode(parent)?.parentValue ?? null;
+                    parent = parentOf.get(parent) ?? null;
                 }
                 return false;
             };

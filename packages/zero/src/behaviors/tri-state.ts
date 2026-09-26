@@ -14,7 +14,8 @@ export type TriState = 'checked' | 'unchecked' | 'indeterminate';
  */
 export function triState(members: readonly string[], selected: readonly string[]): TriState {
     if (members.length === 0) return 'unchecked';
-    const count = members.filter((v) => selected.includes(v)).length;
+    const inSelection = new Set(selected);
+    const count = members.filter((v) => inSelection.has(v)).length;
     return count === 0 ? 'unchecked' : count === members.length ? 'checked' : 'indeterminate';
 }
 
@@ -24,7 +25,10 @@ export function triState(members: readonly string[], selected: readonly string[]
  * outside `members` are left exactly where they were.
  */
 export function toggleTriState(members: readonly string[], selected: readonly string[]): string[] {
-    return triState(members, selected) === 'checked'
-        ? selected.filter((v) => !members.includes(v))
-        : [...selected, ...members.filter((v) => !selected.includes(v))];
+    if (triState(members, selected) === 'checked') {
+        const inMembers = new Set(members);
+        return selected.filter((v) => !inMembers.has(v));
+    }
+    const inSelection = new Set(selected);
+    return [...selected, ...members.filter((v) => !inSelection.has(v))];
 }

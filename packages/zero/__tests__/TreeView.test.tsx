@@ -1132,8 +1132,11 @@ describe('TreeView checkable', () => {
     it('with no selection in use a leaf row is the box\'s label: a click or Enter toggles its check', () => {
         const state = signal({ checked: [] as string[] });
         mountCheckable({ checked: [state, 'checked'] });
-        click(node('d'));
+        const rowClick = new MouseEvent('click', { bubbles: true, cancelable: true });
+        node('d').dispatchEvent(rowClick);
         expect(state.checked).toEqual(['d']);
+        // Like the box: an asChild link or button row does not also navigate or submit.
+        expect(rowClick.defaultPrevented).toBe(true);
         expect(node('d').hasAttribute('data-selected')).toBe(false);
         press(node('d'), 'Enter');
         expect(state.checked).toEqual([]);
