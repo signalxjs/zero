@@ -1280,6 +1280,60 @@ export const field: RecipeInput = {
 };
 
 /**
+ * Fieldset (#285): the group frame reset away — basic's fields stand
+ * unframed, so a group is its legend over a column of them, a step wider
+ * than a field's own stack. `min-inline-size: 0` undoes the UA's
+ * `min-content`, which otherwise lets a wide control push the group past its
+ * column. The legend is a group heading, so it takes the semibold weight
+ * field labels deliberately do not; colour accents its ink, the Field way.
+ */
+export const fieldset: RecipeInput = {
+    component: 'fieldset',
+    tokens: { '--fieldset-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-md)',
+                minInlineSize: '0',
+                margin: '0',
+                padding: '0',
+                border: 'none',
+            },
+        },
+        legend: {
+            base: {
+                padding: '0',
+                marginBlockEnd: 'var(--space-sm)',
+                fontSize: 'var(--text-md)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--fieldset-accent)',
+            },
+            // The controls dim themselves; the caption dims with them.
+            // Invalid is semantic — error under every colour.
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--fieldset-accent': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { gap: 'var(--space-sm)' } }, legend: { base: { fontSize: 'var(--text-sm)' } } },
+            sm: { root: { base: { gap: 'var(--space-sm)' } }, legend: { base: { fontSize: 'var(--text-sm)' } } },
+            // `md` is the un-attributed render.
+            md: {},
+            lg: { legend: { base: { fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { gap: 'var(--space-lg)' } }, legend: { base: { fontSize: 'var(--text-xl)' } } },
+        },
+    },
+};
+
+/**
  * Where a background-painted mark stops being visible, and what stands in.
  *
  * Forced colours rewrites `background-color` to the user's palette, so a
@@ -7066,7 +7120,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,

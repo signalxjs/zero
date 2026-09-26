@@ -1118,6 +1118,55 @@ export const field: RecipeInput = {
 };
 
 /**
+ * Fieldset (#285), Carbon's `cds--fieldset`: no frame, no padding, and a
+ * legend set as the `cds--label` caption — label-01's 12px, wide tracking,
+ * muted ink — with the same 8px under it a form item's label has.
+ * `min-inline-size: 0` undoes the UA's `min-content`. Danger ink on invalid;
+ * no colour axis to wire (`roles: {}`).
+ */
+export const fieldset: RecipeInput = {
+    component: 'fieldset',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-md)',
+                minInlineSize: '0',
+                margin: '0',
+                padding: '0',
+                border: 'none',
+                fontFamily: 'var(--font-sans)',
+            },
+        },
+        legend: {
+            base: {
+                padding: '0',
+                marginBlockEnd: 'var(--space-sm)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--carbon-danger)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { gap: 'var(--space-sm)' } } },
+            // `md` is the un-attributed render.
+            md: {},
+            lg: { legend: { base: { fontSize: 'var(--text-sm)' } } },
+            xl: { legend: { base: { fontSize: 'var(--text-md)' } } },
+            '2xl': { legend: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
  * Carbon's $support-success, deepened toward the page ink by the same
  * scheme-aware mix — it darkens on white and lightens on g100.
  *
@@ -6015,7 +6064,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,

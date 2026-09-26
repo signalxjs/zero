@@ -1531,6 +1531,61 @@ export const field: RecipeInput = {
 };
 
 /**
+ * Fieldset (#285), daisyUI 5's `.fieldset` / `.fieldset-legend`: a
+ * one-column grid with a tight row gap and a little block padding, no frame
+ * of its own (daisy draws one only when the app adds `border`), and a
+ * semibold legend with block padding standing in for its margin. The UA
+ * `min-inline-size: min-content` is undone so a wide control cannot push the
+ * group past its column. Colour accents the legend through `roleInk`, the
+ * Field way.
+ */
+export const fieldset: RecipeInput = {
+    component: 'fieldset',
+    tokens: { '--fieldset-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: '1fr',
+                gridAutoRows: 'max-content',
+                gap: 'var(--space-sm)',
+                minInlineSize: '0',
+                margin: '0',
+                paddingBlock: 'var(--space-xs)',
+                paddingInline: '0',
+                border: 'none',
+            },
+        },
+        legend: {
+            base: {
+                paddingBlock: 'var(--space-sm)',
+                paddingInline: '0',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--fieldset-accent)',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: roleInk('error') },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--fieldset-accent': roleInk(c),
+        } } }])),
+        size: {
+            xs: { legend: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { legend: { base: { fontSize: 'var(--text-xs)' } } },
+            // `md` is the un-attributed render.
+            md: {},
+            lg: { legend: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { legend: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
  * daisy's tick, drawn by a clip-path that GROWS.
  *
  * The mark is a 45°-rotated bar pair clipped out of a solid box: six points,
@@ -7431,7 +7486,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,

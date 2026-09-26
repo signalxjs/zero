@@ -34,6 +34,7 @@ export { Popover } from '@sigx/zero/popover';
 export { Tooltip } from '@sigx/zero/tooltip';
 export { Menu } from '@sigx/zero/menu';
 export { Field } from '@sigx/zero/field';
+export { Fieldset } from '@sigx/zero/fieldset';
 export { Checkbox } from '@sigx/zero/checkbox';
 export { CheckboxGroup } from '@sigx/zero/checkbox-group';
 export { RadioGroup } from '@sigx/zero/radio-group';

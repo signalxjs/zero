@@ -2601,6 +2601,96 @@
 }
 
 @layer zero.recipes {
+    [data-scope="fieldset"][data-part="root"] {
+        --fieldset-accent: var(--color-base-content);
+    }
+
+    [data-scope="fieldset"][data-part="root"] {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-auto-rows: max-content;
+        gap: var(--space-sm);
+        min-inline-size: 0;
+        margin: 0;
+        padding-block: var(--space-xs);
+        padding-inline: 0;
+        border: none;
+    }
+
+    [data-scope="fieldset"][data-part="legend"] {
+        padding-block: var(--space-sm);
+        padding-inline: 0;
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--fieldset-accent);
+    }
+
+    [data-scope="fieldset"][data-part="legend"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="fieldset"][data-part="legend"][data-invalid] {
+        color: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="primary"] {
+        --fieldset-accent: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="secondary"] {
+        --fieldset-accent: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="accent"] {
+        --fieldset-accent: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="neutral"] {
+        --fieldset-accent: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="info"] {
+        --fieldset-accent: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="success"] {
+        --fieldset-accent: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="warning"] {
+        --fieldset-accent: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="error"] {
+        --fieldset-accent: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+    }
+
+    @scope ([data-scope="fieldset"][data-part="root"][data-size="xs"]) to ([data-scope="fieldset"][data-part="root"]) {
+        [data-scope="fieldset"][data-part="legend"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="fieldset"][data-part="root"][data-size="sm"]) to ([data-scope="fieldset"][data-part="root"]) {
+        [data-scope="fieldset"][data-part="legend"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="fieldset"][data-part="root"][data-size="lg"]) to ([data-scope="fieldset"][data-part="root"]) {
+        [data-scope="fieldset"][data-part="legend"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="fieldset"][data-part="root"][data-size="xl"]) to ([data-scope="fieldset"][data-part="root"]) {
+        [data-scope="fieldset"][data-part="legend"] {
+            font-size: var(--text-lg);
+        }
+    }
+}
+
+@layer zero.recipes {
     [data-scope="checkbox"][data-part="root"] {
         --checkbox-size: calc(var(--size-selector) * 6);
         --checkbox-pad: 0.25rem;

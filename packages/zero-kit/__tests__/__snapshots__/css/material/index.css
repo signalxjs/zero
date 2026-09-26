@@ -4298,6 +4298,108 @@
 }
 
 @layer zero.recipes {
+    [data-scope="fieldset"][data-part="root"] {
+        --fieldset-accent: var(--color-base-content);
+    }
+
+    [data-scope="fieldset"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+        min-inline-size: 0;
+        margin: 0;
+        padding: 0;
+        border: none;
+    }
+
+    [data-scope="fieldset"][data-part="legend"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        padding: 0;
+        margin-block-end: var(--space-sm);
+        color: var(--fieldset-accent);
+    }
+
+    [data-scope="fieldset"][data-part="legend"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="fieldset"][data-part="legend"][data-invalid] {
+        color: var(--color-error);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="primary"] {
+        --fieldset-accent: var(--color-primary);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="secondary"] {
+        --fieldset-accent: var(--color-secondary);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="tertiary"] {
+        --fieldset-accent: var(--color-tertiary);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="error"] {
+        --fieldset-accent: var(--color-error);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="neutral"] {
+        --fieldset-accent: var(--color-neutral);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="info"] {
+        --fieldset-accent: var(--color-info);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="success"] {
+        --fieldset-accent: var(--color-success);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="warning"] {
+        --fieldset-accent: var(--color-warning);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-color="accent"] {
+        --fieldset-accent: var(--color-accent);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-size="xs"] {
+        gap: var(--space-sm);
+    }
+
+    [data-scope="fieldset"][data-part="root"][data-size="sm"] {
+        gap: var(--space-sm);
+    }
+
+    @scope ([data-scope="fieldset"][data-part="root"][data-size="xs"]) to ([data-scope="fieldset"][data-part="root"]) {
+        [data-scope="fieldset"][data-part="legend"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="fieldset"][data-part="root"][data-size="sm"]) to ([data-scope="fieldset"][data-part="root"]) {
+        [data-scope="fieldset"][data-part="legend"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="fieldset"][data-part="root"][data-size="lg"]) to ([data-scope="fieldset"][data-part="root"]) {
+        [data-scope="fieldset"][data-part="legend"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="fieldset"][data-part="root"][data-size="xl"]) to ([data-scope="fieldset"][data-part="root"]) {
+        [data-scope="fieldset"][data-part="legend"] {
+            font-size: var(--text-lg);
+        }
+    }
+}
+
+@layer zero.recipes {
     [data-scope="slider"][data-part="root"] {
         --slider-accent: var(--color-primary);
     }

@@ -913,6 +913,44 @@ export const field: RecipeInput = {
 };
 
 /**
+ * Fieldset (#285). HeroUI v3's Fieldset is an unframed stack under a
+ * medium-weight legend — the UA frame reset away, `min-inline-size: 0`
+ * undoing the UA's `min-content`. Danger ink on invalid, the Field label's
+ * answer; no colour axis to wire (`roles: {}`).
+ */
+export const fieldset: RecipeInput = {
+    component: 'fieldset',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-md)',
+                minInlineSize: '0',
+                margin: '0',
+                padding: '0',
+                border: 'none',
+            },
+        },
+        legend: {
+            base: { ...label, padding: '0', marginBlockEnd: 'var(--space-sm)', fontSize: 'var(--text-md)', fontWeight: 'var(--weight-semibold)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--hero-danger)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { gap: 'var(--space-sm)' } }, legend: { base: { fontSize: 'var(--text-sm)' } } },
+            // `md` is the un-attributed render.
+            md: {},
+            lg: { legend: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
  * Forced colors and print both erase painted geometry — the forced palette
  * revalues every colour the marks are drawn in, and a print engine drops
  * background paint by default — so both swap the drawn tick for text, the way
@@ -5460,7 +5498,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
