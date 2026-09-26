@@ -313,8 +313,8 @@ component renders; the root is called out separately where it carries props.
 - Progress: Root/Label/Track/Range/ValueText; `value: number | null`
   (null = indeterminate). Root renders aria-valuetext and the default
   ValueText paints the SAME string (#274): getValueText(value, {min, max,
-  percent}) if given, else Intl.NumberFormat(locale, formatOptions), default
-  {style:'percent'} over percent/100 (another style formats the value).
+  percent}) if given, else Intl.NumberFormat(locale, formatOptions), formatOptions
+  merged over {style:'percent'} (percent/100) (another style formats the value).
   Indeterminate: no valuetext. Pass `locale` under SSR.
 - RadialProgress: Root/Label/ValueText — circular progress as its OWN scope
   (a radial has no track/range geometry: the ring is one painted layer on

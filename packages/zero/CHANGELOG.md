@@ -114,7 +114,7 @@
   `ValueText` paints the same string — a raw `aria-valuenow` of 256 out of
   1024 is now heard as "25%". New root props `getValueText(value, { min,
   max, percent })`, `locale` and `formatOptions` (`Intl.NumberFormat`,
-  default `{ style: 'percent' }`; another style formats the value). An
+  merged over `{ style: 'percent' }`; another style formats the value). An
   indeterminate bar has none. Types `ProgressGetValueText` and
   `ProgressValueTextDetails` are exported.
 - **Spinner** puts its words in a new visually hidden `label` part (anatomy:

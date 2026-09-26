@@ -491,9 +491,9 @@ the app's own `data-scope`/`data-part`.
   `ValueText` paints the same string — so a 256-of-1024 upload is heard as
   "25%", not "256". The string comes from `getValueText(value, { min, max,
   percent })` when given, else from `Intl.NumberFormat(locale,
-  formatOptions)` with `formatOptions` defaulting to `{ style: 'percent' }`:
-  a percent style formats the filled fraction, any other style formats the
-  value (`{ style: 'unit', unit: 'megabyte' }` → "62 MB"). An indeterminate
+  formatOptions)` with `formatOptions` merged over `{ style: 'percent' }`
+  (so `{ minimumFractionDigits: 1 }` is still a percent): a percent style
+  formats the filled fraction, any other style formats the value (`{ style: 'unit', unit: 'megabyte' }` → "62 MB"). An indeterminate
   bar has no value text. Server-rendered, pass `locale` so server and client
   format alike; custom `ValueText` children are painted only — use
   `getValueText` to change what is announced.

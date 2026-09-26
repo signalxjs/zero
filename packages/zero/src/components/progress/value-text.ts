@@ -8,7 +8,7 @@
  * no value text either.
  *
  * The default formats through `Intl.NumberFormat` (`locale`,
- * `formatOptions`, default `{ style: 'percent' }`): a percent style formats
+ * `formatOptions`, merged over `{ style: 'percent' }`): a percent style formats
  * the filled fraction (`percent / 100`), any other style formats the value
  * itself (`{ style: 'unit', unit: 'megabyte' }` → "62 MB"). `getValueText`
  * replaces the formatter outright. Server-rendered without a `locale`, the
@@ -35,7 +35,7 @@ export type WithProgressValueText =
     & Define.Prop<'getValueText', ProgressGetValueText, false>
     /** BCP 47 locale for the default formatter; the runtime's default when omitted. */
     & Define.Prop<'locale', string, false>
-    /** `Intl.NumberFormat` options for the default formatter; `{ style: 'percent' }` when omitted. */
+    /** `Intl.NumberFormat` options for the default formatter, merged over `{ style: 'percent' }`. */
     & Define.Prop<'formatOptions', Intl.NumberFormatOptions, false>;
 
 export interface ProgressValueTextInput {
@@ -57,7 +57,9 @@ export function progressValueText(
 ): string | undefined {
     if (value == null || percent == null) return undefined;
     if (props.getValueText) return props.getValueText(value, { min, max, percent });
-    const options = props.formatOptions ?? { style: 'percent' };
+    // Merged over the percent default: options that leave `style` out
+    // (`{ minimumFractionDigits: 1 }`) still format a percent.
+    const options: Intl.NumberFormatOptions = { style: 'percent', ...props.formatOptions };
     const n = options.style === 'percent' ? percent / 100 : value;
     return new Intl.NumberFormat(props.locale, options).format(n);
 }

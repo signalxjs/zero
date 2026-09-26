@@ -63,6 +63,11 @@ describe('Progress / RadialProgress value text', () => {
                 other.remove();
             });
 
+            it('formatOptions without a style still format a percent', () => {
+                render(make({ value: 256, max: 1024, locale: 'en-US', formatOptions: { minimumFractionDigits: 1 } }), container);
+                expect(part(container, scope, 'root')!.getAttribute('aria-valuetext')).toBe('25.0%');
+            });
+
             it('getValueText replaces the formatter, told the clamped value and the range', () => {
                 const calls: unknown[] = [];
                 render(make({
