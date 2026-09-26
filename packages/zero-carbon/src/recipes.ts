@@ -5306,6 +5306,9 @@ export const drawer: RecipeInput = {
  */
 export const table: RecipeInput = {
     component: 'table',
+    // A sortable header cell (any sort state) hands its padding to the
+    // trigger that fills it; the trigger and indicator paint the direction.
+    sameAs: { 'header-cell': { descending: 'ascending', none: 'ascending' } },
     // Public to a design system derived from this one (#73).
     hooks: {
         properties: {
@@ -5384,7 +5387,61 @@ export const table: RecipeInput = {
                 fontWeight: 'var(--weight-semibold)',
                 fontSize: 'var(--table-font)',
             },
+            states: { ascending: { padding: '0' }, descending: { padding: '0' }, none: { padding: '0' } },
             at: tableStackAt(tokens, 'header-cell', { paddingInline: '0' }),
+        },
+        // Sorting (#286): Carbon's sortable header is the whole cell — the
+        // cell gives its padding to the trigger, which fills it and takes the
+        // layer's hover and active fills; the arrow turns with the direction.
+        'sort-trigger': {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                margin: '0',
+                border: '0',
+                font: 'inherit',
+                letterSpacing: 'inherit',
+                textTransform: 'inherit',
+                textAlign: 'inherit',
+                cursor: 'pointer',
+                justifyContent: 'space-between',
+                gap: 'var(--space-xs)',
+                boxSizing: 'border-box',
+                inlineSize: '100%',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                borderRadius: '0',
+                background: 'transparent',
+                color: 'inherit',
+                transition: 'background-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                ascending: {},
+                descending: {},
+                none: {},
+                hover: { background: layerHover },
+                disabled: { cursor: 'not-allowed', opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+            selectors: { '&[data-pressed]:not([data-disabled])': { background: layerActive } },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
+        },
+        // The arrow: zero's ▲ turned for descending. Carbon shows an unsorted
+        // column's arrow only under the hovered or focused trigger.
+        'sort-indicator': {
+            base: {
+                display: 'inline-block',
+                fontSize: '0.75em',
+                lineHeight: '1',
+                transition: 'transform var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                ascending: {},
+                descending: { transform: 'rotate(180deg)' },
+                none: { opacity: '0' },
+            },
+            selectors: { '[data-scope="table"][data-part="sort-trigger"]:is(:hover, [data-focus-visible]) > &[data-state="none"]': { opacity: '1' } },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
         cell: {
             base: {

@@ -198,3 +198,79 @@ for (const ds of DESIGN_SYSTEMS) {
             .toBeGreaterThan(0);
     });
 }
+
+/**
+ * Sorting (#286), in real engines: a sortable header is a real button inside
+ * the `<th>` that carries `aria-sort`, a click AND the keyboard's Enter both
+ * cycle it, and the app's rows follow `sortChange`. The demo starts sorted by
+ * Service ascending, on the three-press cycle. Behaviour is skin-independent,
+ * so it runs once, on every engine.
+ */
+test('sorting: click and Enter cycle aria-sort, and the rows follow', async ({ page }, testInfo) => {
+    test.skip(!['chromium', 'firefox', 'webkit'].includes(testInfo.project.name), 'behaviour — the three engines');
+    await bootPage(page, 'table', 'basic');
+    const root = rootLabelled(page, 'table', 'Services (sortable)');
+    const service = root.getByRole('columnheader', { name: 'Service' });
+    const latency = root.getByRole('columnheader', { name: 'Latency' });
+    const region = root.getByRole('columnheader', { name: 'Region' });
+    const firstCells = root.locator('[data-scope="table"][data-part="body"] [data-scope="table"][data-part="row"] > [data-scope="table"][data-part="cell"]:first-child');
+
+    await expect(service).toHaveAttribute('aria-sort', 'ascending');
+    await expect(latency).toHaveAttribute('aria-sort', 'none');
+    await expect(region).not.toHaveAttribute('aria-sort');
+    await expect(region.getByRole('button')).toHaveCount(0);
+    await expect(firstCells).toHaveText(['api-gateway', 'billing', 'notifications', 'search']);
+
+    // A click flips the sorted column.
+    await service.getByRole('button', { name: 'Service' }).click();
+    await expect(service).toHaveAttribute('aria-sort', 'descending');
+    await expect(firstCells).toHaveText(['search', 'notifications', 'billing', 'api-gateway']);
+
+    // Enter on another column's trigger starts it ascending and releases the first.
+    const latencyTrigger = latency.getByRole('button', { name: 'Latency' });
+    await latencyTrigger.focus();
+    await page.keyboard.press('Enter');
+    await expect(latency).toHaveAttribute('aria-sort', 'ascending');
+    await expect(service).toHaveAttribute('aria-sort', 'none');
+    await expect(firstCells).toHaveText(['api-gateway', 'billing', 'search', 'notifications']);
+    await page.keyboard.press('Enter');
+    await expect(latency).toHaveAttribute('aria-sort', 'descending');
+    // The third press on the three-step cycle unsorts: the app's own order.
+    await page.keyboard.press('Space');
+    await expect(latency).toHaveAttribute('aria-sort', 'none');
+    await expect(firstCells).toHaveText(['search', 'api-gateway', 'notifications', 'billing']);
+});
+
+/**
+ * Every skin paints the direction: the indicator reads differently ascending
+ * and descending (a turn or a flip — the glyph is zero's one ▲), an unsorted
+ * column's mark is not painted at rest, and a keyboard-focused trigger shows
+ * a ring. Chromium: cascade facts.
+ */
+for (const ds of DESIGN_SYSTEMS) {
+    test(`${ds}: the sort indicator paints the direction, and the trigger rings on keyboard focus`, async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium', 'cascade facts — one engine is enough');
+        await bootPage(page, 'table', ds);
+        const root = rootLabelled(page, 'table', 'Services (sortable)');
+        const service = root.getByRole('columnheader', { name: 'Service' });
+        const latency = root.getByRole('columnheader', { name: 'Latency' });
+        const indicator = (th: typeof service) => th.locator('[data-scope="table"][data-part="sort-indicator"]');
+        const transformOf = (th: typeof service) => indicator(th).evaluate((el) => getComputedStyle(el).transform);
+
+        await expect(indicator(latency)).toHaveCSS('opacity', '0');
+        await expect(indicator(service)).not.toHaveCSS('opacity', '0');
+        const ascending = await transformOf(service);
+        await service.getByRole('button').click();
+        await expect(service).toHaveAttribute('aria-sort', 'descending');
+        await expect.poll(() => transformOf(service), { message: `${ds}: descending turns the mark` }).not.toBe(ascending);
+
+        // Keyboard focus: the trigger rings, and the unsorted mark shows.
+        await service.getByRole('button').focus();
+        await page.keyboard.press('Tab');
+        const trigger = latency.getByRole('button');
+        await expect(trigger).toBeFocused();
+        await expect(trigger).toHaveAttribute('data-focus-visible', '');
+        await expect(trigger).not.toHaveCSS('outline-style', 'none');
+        await expect.poll(() => indicator(latency).evaluate((el) => Number(getComputedStyle(el).opacity)), { message: `${ds}: focus reveals the unsorted mark` }).toBeGreaterThan(0);
+    });
+}

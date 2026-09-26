@@ -614,12 +614,18 @@ component renders; the root is called out separately where it carries props.
   td; the elements are the semantics, so no asChild anywhere). Root is the
   SCROLL CONTAINER — a <table> cannot be its own overflow box, so the
   wrapper div is anatomy, carries the axes, and recipes give it
-  overflow-x auto. No states; a row can carry the shared data-selected
-  flag (`selected` prop). Zebra striping and hover-highlight are design-
-  system mods (data-mod-* on the root) in the skins that offer them, never
-  anatomy. Sorting is deliberately out: header-cell renders the <th> that
-  will carry aria-sort later. Write a Caption — it is the table's
-  accessible name.
+  overflow-x auto. A row can carry the shared data-selected flag
+  (`selected` prop). Zebra striping and hover-highlight are design-system
+  mods (data-mod-* on the root) in the skins that offer them, never
+  anatomy. Sorting (#286): Root's named model `model:sort`
+  ({ column, direction } | null, defaultSort/sortChange, sortCycle
+  'two'|'three'); a `sortable` HeaderCell (sorting under its string
+  `column`, or the spec column's `key`; a spec column `sortable: true` does
+  it for <Table.Head />) carries aria-sort + data-state
+  ascending|descending|none and wraps its content in the `sort-trigger`
+  <button>, with the aria-hidden `sort-indicator` (▲) inside it. The
+  runtime never re-orders rows — the app sorts its data from the model.
+  Write a Caption — it is the table's accessible name.
 - Divider: Root only, role=separator, orientation. Non-focusable;
   aria-orientation emitted only for `vertical`.
 - Navbar: Root/Start/Center/End — the landmark header bar, pure

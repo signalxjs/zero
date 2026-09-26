@@ -110,6 +110,13 @@ export const STATE_VOCABULARY = {
      * (`animation-play-state`).
      */
     lifecycle: ['running', 'paused', 'denied', 'cancelled'],
+    /**
+     * Sort direction — a sortable table column (#286). `aria-sort`'s own
+     * spellings, so the attribute and the state never need translating:
+     * `none` is a sortable column the table is not sorted by, which is
+     * different from a column that cannot sort (no state at all).
+     */
+    sort: ['ascending', 'descending', 'none'],
 } as const;
 
 /** Every governed `data-state` value, flat — the membership check's set. */
@@ -150,6 +157,9 @@ export const STATE_SYNONYMS: Record<string, string> = {
     declined: 'denied',
     canceled: 'cancelled',
     aborted: 'cancelled',
+    asc: 'ascending',
+    desc: 'descending',
+    unsorted: 'none',
 };
 
 /**

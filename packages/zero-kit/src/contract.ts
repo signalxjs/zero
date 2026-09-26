@@ -498,6 +498,7 @@ export const STATE_VOCABULARY = {
     loading: ['loading', 'loaded', 'complete', 'error'],
     fill: ['full', 'half', 'empty'],
     lifecycle: ['running', 'paused', 'denied', 'cancelled'],
+    sort: ['ascending', 'descending', 'none'],
 } as const;
 
 /** Every governed `data-state` value, flat. Mirrors zero's `STATE_NAMES`. */
@@ -536,6 +537,9 @@ export const STATE_SYNONYMS: Record<string, string> = {
     declined: 'denied',
     canceled: 'cancelled',
     aborted: 'cancelled',
+    asc: 'ascending',
+    desc: 'descending',
+    unsorted: 'none',
 };
 
 /**

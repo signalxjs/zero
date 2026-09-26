@@ -2,6 +2,38 @@
 
 ## [Unreleased]
 
+### Added — Table sorting: `model:sort`, `sort-trigger` / `sort-indicator` and `aria-sort` (#286)
+
+- **A governed sort state family**: `STATE_VOCABULARY.sort` is
+  `ascending|descending|none`, `aria-sort`'s own spellings, and
+  `STATE_SYNONYMS` maps `asc`, `desc` and `unsorted` to them.
+- **`Table.Root` gains the named model `model:sort`**: `{ column, direction }
+  | null`, seeded by `defaultSort` and reported by `sortChange`. A trigger
+  press sorts an unsorted column `ascending` and flips the sorted one;
+  `sortCycle="three"` adds a third press back to `null`. The cycle is
+  exported as `nextTableSort(current, column, cycle?)`, and the types as
+  `TableSort` / `TableSortDirection`. The runtime never re-orders rows: the
+  app sorts its data from the model.
+- **`Table.HeaderCell sortable`** carries `aria-sort` and `data-state`
+  (`none` on a sortable column the table is not sorted by; a cell that
+  cannot sort has neither), and wraps its content in the new
+  **`sort-trigger`** part, a real `<button>` (flags `disabled`,
+  `focus-visible`, `pressed`, `press-animating`), with the new
+  **`sort-indicator`** part inside it: an `aria-hidden` span holding `▲`,
+  declared `paint`, so the contrast audit measures it. The cell sorts under
+  its string `column`, or the `key` of the spec column an index names;
+  `TableColumn.sortable` makes `<Table.Head />` render the column sortable.
+  `disabled` on the cell disables its trigger. With no column spec, a
+  sortable cell's string `column` no longer throws — it is only the sort
+  name.
+- **All six design systems style the sort parts**: the label becomes a
+  reset button that marks the sorted column in each skin's idiom (full ink
+  in basic, material and HeroUI, the accent in daisyUI, an inverted slab in
+  brutalist, and in Carbon a trigger that fills the whole cell with the
+  layer's hover and active fills). The indicator turns (flips in brutalist)
+  for descending, and an unsorted column's mark stays hidden until the
+  trigger is hovered or keyboard-focused.
+
 ### Added — Popup arrows placed by the position strategy; `Popover.Description` and `Popover.Anchor` (#279)
 
 - **`Popover.Arrow`, `Tooltip.Arrow` and `Menu.Arrow`**: an `arrow` part
