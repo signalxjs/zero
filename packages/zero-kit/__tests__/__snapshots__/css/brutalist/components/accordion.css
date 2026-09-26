@@ -10,6 +10,11 @@
         gap: var(--space-md);
     }
 
+    [data-scope="accordion"][data-part="root"][data-orientation="horizontal"] {
+        flex-direction: row;
+        align-items: start;
+    }
+
     [data-scope="accordion"][data-part="item"] {
         interpolate-size: allow-keywords;
         border: var(--border) solid var(--color-base-content);
@@ -27,6 +32,11 @@
 
     [data-scope="accordion"][data-part="item"][open]::details-content {
         block-size: auto;
+    }
+
+    [data-scope="accordion"][data-part="root"][data-orientation="horizontal"] > [data-scope="accordion"][data-part="item"] {
+        flex: 1 1 0;
+        min-inline-size: 0;
     }
 
     [data-scope="accordion"][data-part="trigger"] {

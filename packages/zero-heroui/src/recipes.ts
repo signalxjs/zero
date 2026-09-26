@@ -168,15 +168,49 @@ const disclosurePresence: PartStyles = {
         '&::details-content': {
             blockSize: '0',
             overflow: 'hidden',
-            transition: 'block-size var(--duration-normal) var(--ease-standard), '
-                + 'content-visibility var(--duration-normal) allow-discrete',
         },
-        '&[open]::details-content': { blockSize: 'auto' },
+        // Open only: a close removes `open`, which hides the content before
+        // any transition could run — the panel animates that half (#276).
+        '&[open]::details-content': {
+            blockSize: 'auto',
+            transition: 'block-size var(--duration-normal) var(--ease-standard), '
+                    + 'content-visibility var(--duration-normal) allow-discrete',
+        },
     },
     at: {
-        'reduced-motion': { selectors: { '&::details-content': { transition: 'none' } } },
+        'reduced-motion': { selectors: { '&[open]::details-content': { transition: 'none' } } },
     },
 };
+
+/**
+ * The panel's close (#276). Removing `open` hides a `<details>` at once, so
+ * the close cannot live on `::details-content` the way the open does: zero
+ * flips the panel to `closed` first and holds the element open until the
+ * panel's own animation has played. The runtime publishes the panel's
+ * measured height as `--<scope>-panel-height`, which is the one value this
+ * needs — `auto` is not an endpoint any engine but Chromium can animate.
+ * `border-box` so the measured height (content + padding) is the whole box.
+ * Web-only: the property is written by the DOM runtime (`RUNTIME_PROPERTIES`).
+ */
+const disclosureExit = (scope: 'collapsible' | 'accordion'): RecipeInput['targets'] => ({
+    web: {
+        parts: {
+            panel: {
+                states: {
+                    closed: {
+                        boxSizing: 'border-box',
+                        animation: `${scope}-panel-exit var(--duration-normal) var(--ease-standard)`,
+                    },
+                },
+                at: { 'reduced-motion': { states: { closed: { animation: 'none' } } } },
+            },
+        },
+        keyframes: {
+            [`${scope}-panel-exit`]:
+                `from { block-size: var(--${scope}-panel-height); } to { block-size: 0; padding-block: 0; }`,
+        },
+    },
+});
 
 /**
  * The shared disclosure row — collapsible IS the accordion language minus the
@@ -316,6 +350,7 @@ export const tabs: RecipeInput = {
 // ── Collapsible ───────────────────────────────────────────────────────────
 export const collapsible: RecipeInput = {
     component: 'collapsible',
+    targets: disclosureExit('collapsible'),
     tokens: disclosureTokens,
     parts: {
         root: withPresence(disclosurePresence, {
@@ -1497,10 +1532,14 @@ export const slider: RecipeInput = {
 // ── Accordion ─────────────────────────────────────────────────────────────
 export const accordion: RecipeInput = {
     component: 'accordion',
+    targets: disclosureExit('accordion'),
     tokens: disclosureTokens,
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', color: 'var(--color-base-content)' },
+            // `orientation="horizontal"` (#276): the rows become columns, and
+            // the dividing hairline turns with them.
+            selectors: { '&[data-orientation="horizontal"]': { flexDirection: 'row', alignItems: 'start' } },
         },
         // Hairline-divided rows, no outer box — v3 keeps the frame this light.
         item: withPresence(disclosurePresence, {
@@ -1512,6 +1551,13 @@ export const accordion: RecipeInput = {
             },
             selectors: {
                 '&:last-child': { borderBlockEnd: 'none' },
+                '[data-scope="accordion"][data-part="root"][data-orientation="horizontal"] > &': {
+                    flex: '1 1 0',
+                    minInlineSize: '0',
+                    borderBlockEnd: 'none',
+                    borderInlineEnd: 'var(--border) solid var(--hero-line)',
+                },
+                '[data-scope="accordion"][data-part="root"][data-orientation="horizontal"] > &:last-child': { borderInlineEnd: 'none' },
             },
         }),
         trigger: disclosureTrigger,

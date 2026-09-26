@@ -99,6 +99,12 @@ const popupPresence = (from: string): PartStyles => ({
  * the browser's `::details-content`. `interpolate-size: allow-keywords`
  * unlocks `auto` as a transition endpoint — set on the element itself rather
  * than globally, so nothing outside this design system changes behaviour.
+ *
+ * No panel exit (#276): the other skins animate a close on the panel from
+ * the runtime's `--*-panel-height`, in every engine; brutalist opts out and
+ * keeps the one transition above. With no panel animation to wait for, zero
+ * drops `open` on the next frame and this transition plays the close in
+ * Chromium; elsewhere it cuts, which this skin is content to do.
  */
 const disclosurePresence: PartStyles = {
     base: { interpolateSize: 'allow-keywords' },
@@ -414,8 +420,16 @@ export const accordion: RecipeInput = {
     component: 'accordion',
     tokens: disclosureTokens,
     parts: {
-        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' } },
-        item: withPresence(disclosurePresence, { base: { ...inked, boxShadow: 'var(--shadow-sm)' }, states: { open: {}, closed: {} } }),
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
+            // `orientation="horizontal"` (#276): the slabs sit in a row.
+            selectors: { '&[data-orientation="horizontal"]': { flexDirection: 'row', alignItems: 'start' } },
+        },
+        item: withPresence(disclosurePresence, {
+            base: { ...inked, boxShadow: 'var(--shadow-sm)' },
+            states: { open: {}, closed: {} },
+            selectors: { '[data-scope="accordion"][data-part="root"][data-orientation="horizontal"] > &': { flex: '1 1 0', minInlineSize: '0' } },
+        }),
         trigger: disclosureTrigger,
         panel: {
             base: {
