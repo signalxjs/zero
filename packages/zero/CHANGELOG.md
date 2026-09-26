@@ -13,7 +13,9 @@
   native `Slider.Control`, whose own PageUp is engine-defined.
 - **Slider `minStepsBetweenThumbs`** (default 0) keeps neighbouring thumbs
   that many steps apart; each thumb announces the gap in its
-  `aria-valuemin`/`aria-valuemax`.
+  `aria-valuemin`/`aria-valuemax`. A gap the neighbours leave no room for
+  degrades to plain no-crossing, so the bounds never invert or leave
+  `[min, max]`.
 - **Diff.Handle** takes `getValueText` (`aria-valuetext`, default `"50%"`),
   `step` (default 1) and `largeStep` (default 10, also on Shift+Arrow).
 - **`disabled` on `Diff.Root`** freezes the divider: `data-disabled` on the
