@@ -70,7 +70,7 @@
         "@sigx/zero": "workspace:^",
         "@sigx/zero-kit": "workspace:^",
         "sigx": "catalog:",
-        "typescript": "^6.0.3"
+        "typescript": "^7.0.2"
     },
     "private": true
 }
