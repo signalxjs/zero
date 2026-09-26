@@ -38,9 +38,9 @@
   column. Every skin draws the indicator in its own idiom: a ring while
   loading (stopped under reduced motion), then a tick or a cross, with
   forced-colours fallbacks. Material's leading dot steps aside for it.
-- **Size.** `@sigx/zero/toast` goes from 6.1 to 6.52 kB and the full barrel
-  from 65.10 to 65.51 kB; `@sigx/zero/anatomy` grows 4 B. The new limits are
-  the measured values.
+- **Size.** `@sigx/zero/toast` goes from 6.1 to 6.52 kB, the full barrel
+  from 66.78 to 67.18 kB and `@sigx/zero/anatomy` from 4.13 to 4.15 kB. The
+  new limits are the measured values.
 
 ### Added — `HoverCard`: a hover-intent preview card with interactive content (#290)
 
