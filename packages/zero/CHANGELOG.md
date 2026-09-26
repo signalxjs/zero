@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-26
+
 ### Added — Tabs indicator and lazy panels (#283)
 
 - **`Tabs.Indicator`** (part `indicator`, inside `list`): an optional

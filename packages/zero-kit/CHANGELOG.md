@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-26
+
 ### Added — The tabs indicator's box is a runtime-published property (zero#283)
 
 - `RUNTIME_PROPERTIES` gains `--tabs-indicator-inset-inline-start`,
