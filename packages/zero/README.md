@@ -251,8 +251,8 @@ for degrades to plain no-crossing, so the bounds never invert or leave
 `[min, max]`. Slider's `valueCommit` fires with
 the model's shape once a drag is released, after each keyboard step, and on
 the native control's `change` — each only when the value moved. It is an
-event, not a model: there is no `valueChange` pair to bind, and `valueChange`
-keeps firing on every intermediate value. A NumberInput value that sits off
+event, not a model: there is no `model:valueCommit` to bind, and the `value`
+model's own `valueChange` keeps firing on every intermediate value. A NumberInput value that sits off
 the step grid (an off-grid `max`, a value written from outside) steps to the
 neighbouring grid value in the direction of travel — 5 on `step={2}` goes
 Up to 6 and Down to 4, where rounding to the nearest used to skip to 8.
