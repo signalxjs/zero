@@ -63,6 +63,11 @@
  * point and the submenu's near edge. `closeDelay` still bounds it — a
  * pointer that lingers closes the submenu, and the item under it then
  * takes hover.
+ *
+ * `Menu.Arrow`, rendered inside the root `Menu.Popup`, is pointed at the
+ * trigger's centre by the position strategy (`--arrow-x`/`--arrow-y`).
+ * Submenus take no arrow: an arrow inside a `Menu.SubPopup` renders but is
+ * never positioned, and no recipe places it.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
@@ -131,6 +136,11 @@ interface MenuContext {
     openAt(x: number, y: number): void;
     setPopup(el: HTMLElement | null): void;
     /**
+     * The rendered `Menu.Arrow`, which the position strategy points at the
+     * anchor. The root popup's only — a submenu level ignores it.
+     */
+    setArrow(el: HTMLElement | null): void;
+    /**
      * This level's safe-triangle hover grace (#19): an open child submenu
      * starts it, the level's items consult it before taking hover.
      */
@@ -177,6 +187,7 @@ function makeInert(): MenuContext {
         setAnchor: () => {},
         openAt: () => {},
         setPopup: () => {},
+        setArrow: () => {},
         grace: createPointerGrace(),
     };
 }
@@ -199,6 +210,8 @@ export type MenuRootProps =
     & Define.Prop<'collisionPadding', number, false>
     /** Cross-axis offset, px, from a `-start`/`-end` alignment (default 0). */
     & Define.Prop<'alignOffset', number, false>
+    /** Minimum distance, px, between a `Menu.Arrow` and the popup's corners (default 8). */
+    & Define.Prop<'arrowPadding', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & Define.Slot<'default'>;
 
@@ -215,6 +228,7 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
     const present = signal({ trigger: false });
     let anchor: PositionAnchor | null = null;
     let popup: HTMLElement | null = null;
+    let arrow: HTMLElement | null = null;
     let triggerEl: HTMLElement | null = null;
     let openFocus: 'first' | 'last' = 'first';
     // A close that must not hand focus back: focus already went (or is
@@ -251,6 +265,8 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
         offset: () => props.offset ?? 4,
         collisionPadding: () => props.collisionPadding,
         alignOffset: () => props.alignOffset,
+        getArrow: () => arrow,
+        arrowPadding: () => props.arrowPadding,
         strategy: props.positionStrategy,
     });
 
@@ -301,6 +317,15 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
             else state.value = true;
         },
         setPopup: (el) => { popup = el; },
+        // An arrow mounted while the menu is open (conditional render) is
+        // placed a microtask later, once it is in the document — not at the
+        // next scroll or resize: the strategy otherwise runs only on
+        // open/close and its own listeners.
+        setArrow: (el) => {
+            if (arrow === el) return;
+            arrow = el;
+            queueMicrotask(() => pos.update());
+        },
         grace: createPointerGrace(),
     };
     defineProvide(useMenuContext, () => ctx);
@@ -1066,6 +1091,9 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
         // popup; submenus anchor to their sub-trigger, so this is inert.
         openAt: () => {},
         setPopup: (el) => { subPopup = el; },
+        // Submenus take no arrow (#279): the root popup's is the only one
+        // the strategy positions, so one rendered here stays inert.
+        setArrow: () => {},
         grace: createPointerGrace(),
     };
     defineProvide(useMenuContext, () => subCtx);
@@ -1434,6 +1462,37 @@ const MenuGroupLabel = component<MenuGroupLabelProps>(({ props, slots, onUnmount
     );
 }, { name: 'Menu.GroupLabel' });
 
+// ── Arrow ──
+
+/** The arrow is decoration: it renders `aria-hidden="true"` whatever the app passes. */
+export type MenuArrowProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
+
+/**
+ * A mark on the root popup's edge facing the trigger, pointed at the
+ * trigger's centre (or a context menu's pointer) through
+ * `--arrow-x`/`--arrow-y` (see `Popover.Arrow`). Root popup only — see the
+ * module note on submenus.
+ */
+const MenuArrow = component<MenuArrowProps>(({ props, slots, onUnmounted }) => {
+    const menu = useMenuContext();
+    let el: HTMLElement | null = null;
+    onUnmounted(() => {
+        if (el) menu.setArrow(null);
+    });
+    return () => (
+        <span
+            {...htmlAttrs(props)}
+            data-scope={SCOPE}
+            data-part="arrow"
+            aria-hidden="true"
+            class={props.class}
+            ref={(node: HTMLElement | null) => { el = node; menu.setArrow(node); }}
+        >
+            {slots.default?.()}
+        </span>
+    );
+}, { name: 'Menu.Arrow' });
+
 /** Not `role`: the part is a `separator`. */
 export type MenuSeparatorProps = WithClass & Omit<WithHtmlAttrs, 'role'>;
 
@@ -1458,4 +1517,5 @@ export const Menu = compound(MenuRoot, {
     Group: MenuGroup,
     GroupLabel: MenuGroupLabel,
     Separator: MenuSeparator,
+    Arrow: MenuArrow,
 });

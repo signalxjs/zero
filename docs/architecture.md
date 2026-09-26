@@ -166,6 +166,23 @@ from `--transform-origin`. Physical by design: they measure the glass, like
 the coordinates. They survive the close, so an exit transition keeps its
 box and origin; the next open rewrites them before it paints.
 
+**The arrow is placed by the strategy, drawn by the recipe** (#279).
+Popover, Tooltip and Menu declare an `arrow` part (`span`, parent `popup`,
+rendered only when the app renders it, `aria-hidden`). Each root hands its
+arrow to the position behavior (`getArrow`, `arrowPadding` default 8), and
+after the flip and the shift the strategy writes `ARROW_PROPERTIES` on it:
+`--arrow-x` for a `top*`/`bottom*` popup or `--arrow-y` for a side one — the
+anchor's centre projected onto the facing edge, from the popup's padding
+edge, clamped `arrowPadding` clear of both ends; the other is removed. The
+recipe picks the edge from the popup's `data-placement` — the one thing a
+stylesheet can know — and the kit's `popupArrow`/`popupArrowHost`
+(`/define`) spell that reading once for every skin: a rotated square of the
+popup's paint clipped to its outer half, `display: none` except under a root
+popup with a placement (so a menu sub-popup's arrow, which the strategy
+never positions, stays inert), and the popup `overflow: visible` while it
+holds one. The pair is listed in both contracts (parity-tested) and joins
+`RUNTIME_PROPERTIES`, so it is web-only like the geometry above.
+
 **Layout attributes are a namespaced family.** `LAYOUT_VOCABULARY` closes a
 seventeen-attribute set (`gap`, `pad`, `align`, `justify`, `cols`, `span`, …)
 rendered under a `data-l-` prefix, and a part that can carry one declares
@@ -1131,8 +1148,9 @@ physical properties that have logical twins (`left` → `inset-inline-start`,
 `margin-left` → `margin-inline-start`, physical corner radii → logical
 ones) — in part declarations, `@keyframes` bodies, and the raw `recipe.css`
 escape hatch alike. Exemptions are reasoned, not silenced: parts that are
-rotated/drawn, pure centring translations, and `--press-x` (a measured
-pixel offset from the element's own left edge). Its known blind spot is
+rotated/drawn, pure centring translations, and `--press-x` and
+`--arrow-x` (measured pixel offsets from the element's own, or its popup's,
+left edge). Its known blind spot is
 **`transform`**: `translateX(8px)` moves physically right under both
 directions and has no logical spelling — which is exactly why the RTL e2e
 measures rendered boxes; the lint reads declarations, the spec reads boxes,

@@ -4,7 +4,7 @@
  * browser-safe `/define` subpath; compiled to CSS by build.mjs.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
-import { axisRoles, tableStackAt } from '@sigx/zero-kit/define';
+import { axisRoles, popupArrow, popupArrowHost, tableStackAt } from '@sigx/zero-kit/define';
 import { roles, tokens } from './tokens.js';
 
 /**
@@ -111,6 +111,25 @@ const overlayPanel: NonNullable<PartStyles['base']> = {
     borderRadius: 'var(--radius-box)',
     boxShadow: 'var(--shadow-lg)',
 };
+
+/**
+ * The arrow an overlay grows toward its anchor (#279) — the panel's paper
+ * and hairline continued, no shadow of its own (the panel's already falls
+ * past it). Popover, tooltip and menu share it. Web-only: it is placed by
+ * the runtime's `--arrow-x`/`--arrow-y`, so each recipe carries it in
+ * `targets.web` with the popup's permission to let it out.
+ */
+const overlayArrow = (scope: string): RecipeInput['targets'] => ({
+    web: {
+        parts: {
+            popup: { selectors: popupArrowHost(scope) },
+            arrow: popupArrow(scope, {
+                size: '0.625rem',
+                paint: { background: overlaySurface, border: hairline },
+            }),
+        },
+    },
+});
 
 /**
  * A listbox popup sized by the geometry the anchored-position strategy
@@ -872,10 +891,21 @@ export const popover: RecipeInput = {
                 fontVariantNumeric: 'tabular-nums',
             },
         },
+        // Dialog's description, a step tighter: the panel is smaller.
+        description: {
+            base: {
+                margin: '0 0 var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
         close: dismissAction,
     },
     // Trigger-carried axes — same wiring as dialog, same reason.
     variants: { color: quietTriggerColors(), size: quietTriggerSizes },
+    targets: overlayArrow('popover'),
 };
 
 export const tooltip: RecipeInput = {
@@ -916,6 +946,7 @@ export const tooltip: RecipeInput = {
     },
     // Trigger-carried axes — same wiring as dialog, same reason.
     variants: { color: quietTriggerColors(), size: quietTriggerSizes },
+    targets: overlayArrow('tooltip'),
 };
 
 /**
@@ -1165,6 +1196,7 @@ export const menu: RecipeInput = {
     // lynx target's norm — no RTL flow there for the logical spelling to
     // flip with.
     targets: {
+        ...overlayArrow('menu'),
         lynx: {
             parts: {
                 item: { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },

@@ -603,6 +603,10 @@ export function validateRecipes(
                 // the correct pairing — a logical inset would put the ripple
                 // somewhere the pointer never was.
                 if (value.includes('--press-x')) continue;
+                // `--arrow-x` is likewise measured from the popup's own left
+                // padding edge (`behaviors/position.ts`): the arrow follows
+                // the anchor on the glass, which RTL does not mirror.
+                if (value.includes('--arrow-x')) continue;
                 warn(
                     `${where}.${path}`,
                     `"${rawProp}" is a physical direction — use ${twin}, or this paints the same side ` +

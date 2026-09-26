@@ -17,6 +17,17 @@ export const tooltipAnatomy = defineAnatomy('tooltip', {
         placements: [...PLACEMENT_VOCABULARY],
         tokens: ['color', 'radius-field', 'text'],
     },
+    // The mark on the popup edge facing the anchor, rendered only when the
+    // app renders Tooltip.Arrow. Decorative (`aria-hidden`), and not a paint
+    // part: it is the popup's own surface continued, never a mark a reader
+    // must see. The strategy writes ARROW_PROPERTIES on it — `--arrow-x` on
+    // a `top*`/`bottom*` popup, `--arrow-y` beside — and the recipe picks
+    // the edge from the popup's `data-placement`.
+    arrow: {
+        element: 'span',
+        parent: 'popup',
+        tokens: ['color'],
+    },
 }, {
     models: [
         { concept: 'open', type: 'boolean' },

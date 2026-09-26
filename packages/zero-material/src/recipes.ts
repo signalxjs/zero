@@ -6,7 +6,7 @@
  * emphasized easings, and a dialog that goes full-screen below `sm`.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
-import { axisRoles, tableStackAt } from '@sigx/zero-kit/define';
+import { axisRoles, popupArrow, popupArrowHost, tableStackAt } from '@sigx/zero-kit/define';
 import { roles, tokens } from './tokens.js';
 
 /**
@@ -942,6 +942,16 @@ const growFromAnchor: CssProps = { transformOrigin: 'var(--transform-origin, cen
 const floating: CssProps = { ...raised('level2'), padding: 'var(--space-xs)', ...growFromAnchor };
 
 /**
+ * The arrow a floating surface grows toward its anchor (#279). Material's
+ * own surfaces carry none — it is here because an app that renders one
+ * should get the surface it points from, not a stray box: borderless, in
+ * the surface's container tone, and scaled in with the popup (it is a
+ * child, so the popup's `transform-origin` carries it).
+ */
+const surfaceArrow = (scope: string, background: string): PartStyles =>
+    popupArrow(scope, { size: '0.5rem', paint: { background, border: 'none' } });
+
+/**
  * A listbox menu sized by the same published geometry: at least the width of
  * the field that opened it (`--anchor-width`, Material's 12rem menu floor
  * otherwise) and never taller than the room on the side it opened to
@@ -966,8 +976,19 @@ export const popover: RecipeInput = {
         popup: withPresence(popupPresence('scale(0.9)'), {
             base: { ...floating, padding: 'var(--space-md)', maxWidth: '20rem' },
             states: { open: {}, closed: {} },
+            selectors: popupArrowHost('popover'),
         }),
         title: { base: { margin: '0 0 var(--space-xs)', fontWeight: 'var(--weight-medium)' } },
+        // The rich tooltip's supporting text: body-medium in the variant ink.
+        description: {
+            base: {
+                margin: '0 0 var(--space-sm)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                color: 'color-mix(in oklch, var(--color-surface-container-high-content) 75%, transparent)',
+            },
+        },
+        arrow: surfaceArrow('popover', 'var(--color-surface-container-high)'),
         close: withPresence(pressable('popover'), {
             base: {
                 appearance: 'none',
@@ -1017,7 +1038,9 @@ export const tooltip: RecipeInput = {
                 ...growFromAnchor,
             },
             states: { open: {}, closed: {} },
+            selectors: popupArrowHost('tooltip'),
         }),
+        arrow: surfaceArrow('tooltip', 'var(--color-neutral)'),
     },
     // Trigger-carried axes — same wiring as dialog, same reason. The bubble
     // stays Material's inverse-surface tooltip whatever the trigger's colour.
@@ -1032,7 +1055,12 @@ export const menu: RecipeInput = {
             base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
-        popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        popup: withPresence(popupPresence('scale(0.9)'), {
+            base: { ...floating, minWidth: '12rem' },
+            states: { open: {}, closed: {} },
+            selectors: popupArrowHost('menu'),
+        }),
+        arrow: surfaceArrow('menu', 'var(--color-surface-container-high)'),
         // The popup keeps no overflow clip; the item's own clips its ripple.
         item: withPresence(pressable('menu'), {
             base: {

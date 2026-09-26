@@ -127,6 +127,38 @@ export async function settledBox(loc: Locator, what = 'element'): Promise<
 }
 
 /**
+ * An anchored popup, its arrow and the element it points at, measured in ONE
+ * read once all three have settled (#279), plus the placement the strategy
+ * resolved at that moment. One read, because the strategy re-positions on
+ * every scroll: focus moving into a menu can scroll the page, flip the popup,
+ * and leave separately measured boxes describing two different layouts.
+ */
+export async function arrowGeometry(popup: Locator, target: Locator, what = 'popup') {
+    await settledBox(target, `${what}: the anchor`);
+    await settledBox(popup, what);
+    const arrow = popup.locator(':scope > [data-part="arrow"]');
+    await settledBox(arrow, `${what}: the arrow`);
+    const handle = await target.elementHandle();
+    expect(handle, `${what}: the anchor has no element to measure`).not.toBeNull();
+    try {
+        return await popup.evaluate((el, anchor) => {
+            const box = (e: Element) => {
+                const r = e.getBoundingClientRect();
+                return { x: r.x, y: r.y, width: r.width, height: r.height };
+            };
+            return {
+                placement: el.getAttribute('data-placement'),
+                popup: box(el),
+                arrow: box(el.querySelector(':scope > [data-part="arrow"]')!),
+                target: box(anchor as Element),
+            };
+        }, handle);
+    } finally {
+        await handle!.dispose();
+    }
+}
+
+/**
  * A scroll box's scrollport — its padding box, the rectangle it clips its
  * content to — in viewport coordinates. What a scrolled-to-end claim or a
  * focus-ring-inside claim measures against (Pagination #44, Stats #43):

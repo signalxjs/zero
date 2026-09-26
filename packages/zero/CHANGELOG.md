@@ -2,6 +2,46 @@
 
 ## [Unreleased]
 
+### Added — Popup arrows placed by the position strategy; `Popover.Description` and `Popover.Anchor` (#279)
+
+- **`Popover.Arrow`, `Tooltip.Arrow` and `Menu.Arrow`**: an `arrow` part
+  (`span`, parent `popup`, `aria-hidden="true"`) rendered only when the
+  app renders it inside the popup. Each root hands it to the position
+  strategy, which writes where the anchor's centre falls along the popup
+  edge facing it — after the flip and the shift — as `--arrow-x` (a
+  `top*`/`bottom*` popup) or `--arrow-y` (a side popup), px from the popup's
+  padding edge, and removes the other. The offset is clamped
+  `arrowPadding` clear of both ends of the edge (a popup too short for
+  that centres it). The pair is `ARROW_PROPERTIES` in
+  `@sigx/zero/contract`. The recipe places the arrow on the edge the
+  popup's `data-placement` names. A `Menu.Arrow` inside a `Menu.SubPopup`
+  is never positioned (submenus take no arrow).
+- **`arrowPadding`** (px, default 8) on `Popover.Root`, `Tooltip.Root` and
+  `Menu.Root`; **`getArrow`** and **`arrowPadding`** on `PositionOptions`
+  and `AnchorPositionInput`, so a substituted `PositionStrategy` receives
+  the arrow too.
+- **`Popover.Description`** (`p`, parent `popup`): the popup's
+  `aria-describedby` names it only while it is rendered, joined with any
+  app `aria-describedby` — Dialog's pattern.
+- **`Popover.Anchor`** (`div`, `asChild`, top-level): while rendered, the
+  popup is positioned against it instead of the trigger. The trigger stays
+  the toggle and the element focus returns to on close.
+- **All six design systems draw the arrow** on popover and tooltip, and all
+  but Carbon (whose menus have no caret) on menu: a square of the popup's
+  own paint turned 45° and clipped to its outer half, so its two outer
+  sides continue the popup's border — the kit's new `popupArrow`. A popup
+  holding an arrow is `overflow: visible`. Each skin also styles
+  `Popover.Description` in its own muted body type.
+
+### Fixed — Popover's title reference dropped with the title (#279)
+
+- Unmounting a `Popover.Title` while the popup stayed mounted left the
+  popup's `aria-labelledby` pointing at the removed id: the presence write
+  ran inside the popup's own re-render, which had already read it. Title and
+  Description now report their presence a microtask after mount and after
+  unmount, counted, so a swap never leaves a dangling or a missing
+  reference.
+
 ### Added — TreeView multiple selection (#287)
 
 - **`TreeView.Root multiple`**: the model becomes a `string[]`

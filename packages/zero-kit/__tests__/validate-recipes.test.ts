@@ -248,6 +248,14 @@ describe('physical directions', () => {
             })).warnings).not.toContainEqual(physical);
         });
 
+        it('allows `left: var(--arrow-x)`, a runtime offset from the popup\'s left edge', () => {
+            // The strategy measures the arrow offset on the glass, like
+            // `--press-x`; a logical inset would mirror it away from the
+            // anchor under RTL.
+            expect(check(tabsWith({ position: 'absolute', left: 'var(--arrow-x, 50%)' })).warnings)
+                .not.toContainEqual(physical);
+        });
+
         it('still warns on a bare `left: 50%`, which really does pick a side', () => {
             expect(check(tabsWith({ position: 'absolute', left: '50%' })).warnings)
                 .toContainEqual(physical);

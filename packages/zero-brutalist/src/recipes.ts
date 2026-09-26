@@ -6,7 +6,7 @@
  * shoves it into its own shadow.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
-import { axisRoles, tableStackAt } from '@sigx/zero-kit/define';
+import { axisRoles, popupArrow, popupArrowHost, tableStackAt } from '@sigx/zero-kit/define';
 import { roles, tokens } from './tokens.js';
 
 /**
@@ -609,12 +609,29 @@ const anchoredListbox: CssProps = {
     overflowY: 'auto',
 };
 
+/**
+ * The arrow a slab points with (#279): a big, blunt wedge cut from the same
+ * inked stock — the slab's full-weight border on its two outer edges, the
+ * slab's fill between them. No shadow of its own; the slab's offset shadow
+ * is the one block of ink the system allows per object.
+ */
+const slabArrow = (scope: string, paint: CssProps = inked): PartStyles =>
+    popupArrow(scope, { size: '0.875rem', paint: { background: paint.background, border: paint.border } });
+
 export const popover: RecipeInput = {
     component: 'popover',
     parts: {
         trigger: overlayTrigger,
-        popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, maxWidth: '20rem' }, states: { open: {}, closed: {} } }),
+        popup: withPresence(popupPresence('translate(4px, 4px)'), {
+            base: { ...slab, maxWidth: '20rem' },
+            states: { open: {}, closed: {} },
+            selectors: popupArrowHost('popover'),
+        }),
         title: { base: { margin: '0 0 var(--space-sm)', ...label, fontSize: 'var(--text-sm)' } },
+        // Body copy under a mono label: plain, no tint — contrast is not a
+        // thing this system spends.
+        description: { base: { margin: '0 0 var(--space-sm)', fontSize: 'var(--text-sm)', lineHeight: 'var(--leading-normal)' } },
+        arrow: slabArrow('popover'),
         close: {
             base: { appearance: 'none', border: 'none', background: 'transparent', ...label, fontSize: 'var(--text-xs)', cursor: 'pointer' },
             states: { disabled: {}, ...focusRing },
@@ -646,6 +663,11 @@ export const tooltip: RecipeInput = {
                 fontSize: 'var(--text-xs)',
             },
             states: { open: {}, closed: {} },
+            selectors: popupArrowHost('tooltip'),
+        }),
+        arrow: slabArrow('tooltip', {
+            background: 'var(--color-neutral)',
+            border: 'var(--border) solid var(--color-base-content)',
         }),
     },
     // Trigger-carried axes — same wiring as dialog, same reason. The bubble
@@ -657,7 +679,12 @@ export const menu: RecipeInput = {
     component: 'menu',
     parts: {
         trigger: overlayTrigger,
-        popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        popup: withPresence(popupPresence('translate(4px, 4px)'), {
+            base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' },
+            states: { open: {}, closed: {} },
+            selectors: popupArrowHost('menu'),
+        }),
+        arrow: slabArrow('menu'),
         item: {
             base: {
                 display: 'flex',

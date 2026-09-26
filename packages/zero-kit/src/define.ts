@@ -43,6 +43,8 @@ export { defineRecipe, HOOK_PSEUDO_ELEMENTS } from './recipes.js';
 export { LAYOUT_SCOPES, layoutCss, layoutRecipes, layoutScopes } from './layout-recipes.js';
 export type { TableStackPart } from './table-stack.js';
 export { tableStackAt } from './table-stack.js';
+export type { PopupArrowOptions } from './popup-arrow.js';
+export { popupArrow, popupArrowHost } from './popup-arrow.js';
 
 export type { FitReport } from './fit.js';
 export { explainFit, fitRecipes, fitRecipesToVocabulary } from './fit.js';

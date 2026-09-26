@@ -728,6 +728,53 @@ axis, away from the edge it aligns to — in the reading direction for an
 alignment above or below. A centred placement ignores it. `Menu.Sub` takes
 both too.
 
+**The arrow (#279).** Popover, Tooltip and Menu take an arrow part —
+`Popover.Arrow`, `Tooltip.Arrow`, `Menu.Arrow` — rendered only when the app
+renders it, inside the popup: an empty `<span aria-hidden="true">` the
+design system draws. Only the strategy knows where the anchor's centre
+lands on the popup edge that faces it once the flip and the shift have
+run, so it writes that on the arrow — `ARROW_PROPERTIES`
+(`@sigx/zero/contract`):
+
+| Property | Value |
+|---|---|
+| `--arrow-x` | on a `top*`/`bottom*` popup: the arrow's left offset along that edge, px from the popup's padding edge |
+| `--arrow-y` | on a side popup (`left*`, `right*`, `start`, `end`): its top offset, px |
+
+One is set and the other removed. The offset centres the arrow on the
+anchor, clamped to `[arrowPadding, edge - arrowSize - arrowPadding]` so it
+never slides onto a rounded corner — and when the popup has been shifted
+back on screen, it still points at the anchor rather than at the popup's
+middle. `arrowPadding` (px, default 8) is a prop on each of the three roots.
+Which edge the arrow sits on is the recipe's to read from the popup's
+`data-placement` (`[data-placement^="top"] > [data-part="arrow"]` sits on
+the bottom edge, and so on); `popupArrow` in `@sigx/zero-kit/define` is that
+reading, ready-made. The arrow is the root popup's only: a `Menu.Arrow`
+inside a `Menu.SubPopup` is never positioned, and no shipped skin paints it.
+A popup that holds an arrow lets it paint outside its box
+(`overflow: visible` in every skin that paints one), so give such a popup's scrolling
+content its own scroller.
+
+```tsx
+<Popover.Root placement="bottom">
+    <Popover.Trigger>Sharing</Popover.Trigger>
+    <Popover.Popup>
+        <Popover.Arrow />
+        <Popover.Title>Sharing</Popover.Title>
+        <Popover.Description>Shared with 3 people.</Popover.Description>
+    </Popover.Popup>
+</Popover.Root>
+```
+
+**Popover.Description and Popover.Anchor.** `Popover.Description` (a
+`<p>`) describes the popup: the popup's `aria-describedby` names it only
+while it is rendered, joined with any app `aria-describedby`, like Dialog's.
+`Popover.Anchor` (a `<div>`, `asChild`) is what the popup is positioned
+against in the trigger's place, while it is rendered — a whole row whose
+trigger is a small button inside it. The trigger stays the toggle and the
+element focus returns to on close; unmount the anchor and the trigger
+anchors again.
+
 ARIA wiring is presence-aware: an overlay references its `Title` /
 `Description` ids only while those parts are actually rendered, so omitting a
 title never leaves a dangling `aria-labelledby` (which would suppress the
@@ -1722,7 +1769,9 @@ same behaviors, held to the same conformance assertion:
   keeps `collisionPadding` (default 8) off the viewport edges, offsets an
   aligned popup by `alignOffset`, publishes the logical placement as
   `data-placement` and the `POSITION_PROPERTIES` geometry
-  (`--anchor-*`, `--available-*`, `--transform-origin`), and re-measures on
+  (`--anchor-*`, `--available-*`, `--transform-origin`), points an arrow
+  element (`getArrow`, clamped by `arrowPadding`) at the anchor through
+  `ARROW_PROPERTIES` (`--arrow-x`/`--arrow-y`), and re-measures on
   scroll, resize and a `ResizeObserver` over the popup and the anchor
   element; a virtual anchor may name a `contextElement`, which is observed
   and read the direction from), press feedback, the form contract (`createFormControl`, `onFormReset`), and the

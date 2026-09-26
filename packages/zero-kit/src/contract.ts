@@ -338,6 +338,16 @@ export const POSITION_PROPERTIES = [
 ] as const;
 
 /**
+ * The anchored-position strategy's arrow offsets, written on a popup's
+ * `arrow` part. Mirrors `ARROW_PROPERTIES` in `@sigx/zero/contract`
+ * (parity-tested) — see the zero copy for what each one measures.
+ */
+export const ARROW_PROPERTIES = [
+    '--arrow-x',
+    '--arrow-y',
+] as const;
+
+/**
  * Custom properties the `@sigx/zero` runtime writes on elements — not design
  * tokens, but runtime-published interaction/measurement data recipes may
  * reference. `--press-*` come from the press-feedback behavior (press point
@@ -352,7 +362,8 @@ export const POSITION_PROPERTIES = [
  * tab's box relative to the list's padding box (px, logical — the inline
  * offset from the inline-start edge), so a recipe slides a mark between tabs
  * (#283). The `POSITION_PROPERTIES` five come from the anchored-position
- * strategy, on every floating popup it positions.
+ * strategy, on every floating popup it positions, and the `ARROW_PROPERTIES`
+ * pair from the same strategy, on a popup's arrow part.
  *
  * WEB-ONLY: these exist because the DOM runtime can write custom properties
  * that stylesheet rules then read. A target whose engine cannot resolve
@@ -377,6 +388,7 @@ export const RUNTIME_PROPERTIES = [
     '--tabs-indicator-inline-size',
     '--tabs-indicator-block-size',
     ...POSITION_PROPERTIES,
+    ...ARROW_PROPERTIES,
 ] as const;
 
 /**

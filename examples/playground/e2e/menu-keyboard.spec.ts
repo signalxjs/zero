@@ -8,7 +8,7 @@
  * key is not prevented; only a real engine moves focus to the next stop.
  */
 import { test, expect, type Page } from '@playwright/test';
-import { controlledPopup } from './demo';
+import { arrowGeometry, controlledPopup } from './demo';
 import { bootPage } from './nav';
 
 test.beforeEach(async ({ page }, testInfo) => {
@@ -119,4 +119,24 @@ test('Tab from a nested submenu closes the whole chain (#263)', async ({ page })
         await expect(level).toBeHidden();
     }
     await expect(contextSurface(page)).toBeFocused();
+});
+
+test('a keyboard-opened menu\'s arrow points at its trigger (#279)', async ({ page }) => {
+    const sort = page.getByRole('button', { name: 'Sort', exact: true });
+    await sort.focus();
+    await page.keyboard.press('Enter');
+    const popup = await controlledPopup(page, sort, 'the Sort menu trigger');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await expect(popup.getByRole('menuitem', { name: 'Newest first' })).toBeFocused();
+    const { placement, popup: box, arrow, target: trigger } = await arrowGeometry(popup, sort, 'the Sort menu');
+    expect(['top', 'bottom']).toContain(placement);
+    expect(Math.abs(arrow.x + arrow.width / 2 - (trigger.x + trigger.width / 2))).toBeLessThanOrEqual(2);
+    const edge = placement === 'bottom' ? box.y : box.y + box.height;
+    expect(arrow.y).toBeLessThan(edge);
+    expect(arrow.y + arrow.height).toBeGreaterThan(edge);
+    // Arrow keys still walk the items only: the arrow is not one.
+    await page.keyboard.press('ArrowDown');
+    await expect(popup.getByRole('menuitem', { name: 'Oldest first' })).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await expect(popup.getByRole('menuitem', { name: 'Newest first' })).toBeFocused();
 });

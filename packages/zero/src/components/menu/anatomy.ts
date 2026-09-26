@@ -108,6 +108,18 @@ export const menuAnatomy = defineAnatomy('menu', {
         parent: 'popup',
         tokens: ['color'],
     },
+    // The mark on the popup edge facing the anchor, rendered only when the
+    // app renders Menu.Arrow. Decorative (`aria-hidden`), and not a paint
+    // part: it is the popup's own surface continued, never a mark a reader
+    // must see. The strategy writes ARROW_PROPERTIES on it — `--arrow-x` on
+    // a `top*`/`bottom*` popup, `--arrow-y` beside — and the recipe picks
+    // the edge from the popup's `data-placement`.
+    // Root popup only: a Menu.Arrow inside a sub-popup is never positioned.
+    arrow: {
+        element: 'span',
+        parent: 'popup',
+        tokens: ['color'],
+    },
 }, {
     models: [
         { concept: 'open', type: 'boolean' },

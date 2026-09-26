@@ -391,3 +391,122 @@ describe('fixedPositionStrategy: published geometry', () => {
         cleanup();
     });
 });
+
+describe('fixedPositionStrategy: arrow', () => {
+    /** A popup with a `border`-px border and an `arrowSize`-px square arrow inside it. */
+    function popupWithArrow(width: number, height: number, border = 0, arrowSize = 10) {
+        const floating = fakeFloating(width, height);
+        Object.defineProperty(floating, 'clientWidth', { value: width - 2 * border });
+        Object.defineProperty(floating, 'clientHeight', { value: height - 2 * border });
+        Object.defineProperty(floating, 'clientLeft', { value: border });
+        Object.defineProperty(floating, 'clientTop', { value: border });
+        const arrow = document.createElement('span');
+        Object.defineProperty(arrow, 'offsetWidth', { value: arrowSize });
+        Object.defineProperty(arrow, 'offsetHeight', { value: arrowSize });
+        floating.appendChild(arrow);
+        return { floating, arrow };
+    }
+    const vars = (arrow: HTMLElement) => ({
+        x: arrow.style.getPropertyValue('--arrow-x'),
+        y: arrow.style.getPropertyValue('--arrow-y'),
+    });
+
+    it('centres the arrow on the anchor along a top/bottom edge, from the padding edge', () => {
+        // Anchor centre x = 360; the popup (200 wide, centred) sits at 260
+        // with a 1px border, so the padding edge is at 261: 360 - 261 - 5.
+        const { anchor } = fakeAnchor(300, 100, 120, 30);
+        const { floating, arrow } = popupWithArrow(200, 50, 1);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom', offset: 4, flip: true, getArrow: () => arrow });
+        expect(vars(arrow)).toEqual({ x: '94px', y: '' });
+        cleanup();
+        // Kept after cleanup, like the popup's own geometry.
+        expect(vars(arrow).x).toBe('94px');
+    });
+
+    it('uses --arrow-y beside the anchor, and removes the other property', () => {
+        const { anchor } = fakeAnchor(300, 100, 120, 30);
+        const { floating, arrow } = popupWithArrow(100, 80);
+        arrow.style.setProperty('--arrow-x', '12px');
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'right-start', offset: 4, flip: true, getArrow: () => arrow });
+        // Popup top at 100; anchor centre y = 115: 115 - 100 - 5.
+        expect(vars(arrow)).toEqual({ x: '', y: '10px' });
+        cleanup();
+    });
+
+    it('still points at the anchor after a shift, clamped inside the arrow padding', () => {
+        const W = window.innerWidth;
+        // A small anchor 12px from the right edge: the centred popup shifts
+        // left to W - 8 - 200, and the anchor centre (W - 6) lies past the
+        // popup's end — so the arrow clamps to the far end, 8px in.
+        const { anchor } = fakeAnchor(W - 12, 100, 12, 20);
+        const { floating, arrow } = popupWithArrow(200, 50);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom', offset: 4, flip: true, getArrow: () => arrow });
+        expect(parseFloat(floating.style.left)).toBe(W - 8 - 200);
+        expect(vars(arrow).x).toBe(`${200 - 10 - 8}px`);
+        cleanup();
+
+        // The shift alone, without the clamp: the arrow follows the anchor,
+        // not the popup's centre.
+        const near = fakeAnchor(W - 60, 100, 20, 20);
+        const second = popupWithArrow(200, 50);
+        const c2 = fixedPositionStrategy.apply(near.anchor, second.floating, { placement: 'bottom', offset: 4, flip: true, getArrow: () => second.arrow });
+        expect(vars(second.arrow).x).toBe(`${W - 50 - (W - 208) - 5}px`);
+        c2();
+    });
+
+    it('clamps at the start end too, and honours a custom arrowPadding', () => {
+        const { anchor } = fakeAnchor(0, 100, 10, 20);
+        const { floating, arrow } = popupWithArrow(200, 50);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom', offset: 4, flip: true, getArrow: () => arrow, arrowPadding: 20 });
+        expect(parseFloat(floating.style.left)).toBe(8);
+        // Anchor centre 5, popup at 8: ideal -8, clamped to the 20px padding.
+        expect(vars(arrow).x).toBe('20px');
+        cleanup();
+    });
+
+    it('treats a negative arrowPadding as 0 and a non-finite one as the default 8', () => {
+        const { anchor } = fakeAnchor(0, 100, 10, 20);
+        const x = (arrowPadding: number) => {
+            const { floating, arrow } = popupWithArrow(200, 50);
+            const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom', offset: 4, flip: true, getArrow: () => arrow, arrowPadding });
+            cleanup();
+            return vars(arrow).x;
+        };
+        expect(x(-5)).toBe('0px');
+        expect(x(Number.NaN)).toBe('8px');
+    });
+
+    it('centres the arrow on a popup too short for it and both paddings', () => {
+        const { anchor } = fakeAnchor(300, 100, 120, 30);
+        const { floating, arrow } = popupWithArrow(20, 20);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom-start', offset: 4, flip: true, getArrow: () => arrow });
+        expect(vars(arrow).x).toBe('5px');
+        cleanup();
+    });
+
+    it('moves to the other axis when a re-measure lands the popup on an inline side', () => {
+        const frames: FrameRequestCallback[] = [];
+        vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frames.push(cb));
+        vi.stubGlobal('cancelAnimationFrame', () => {});
+        const { anchor } = fakeAnchor(300, 100, 120, 30);
+        const { floating, arrow } = popupWithArrow(100, 50);
+        let placement: Placement = 'bottom';
+        const opts = { get placement() { return placement; }, offset: 4, flip: true, getArrow: () => arrow };
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, opts);
+        expect(vars(arrow).y).toBe('');
+        placement = 'left';
+        window.dispatchEvent(new Event('resize'));
+        expect(vars(arrow).x).toBe('');
+        // Popup top = 115 - 25 = 90; anchor centre 115: 115 - 90 - 5.
+        expect(vars(arrow).y).toBe('20px');
+        cleanup();
+    });
+
+    it('writes nothing when no arrow is rendered', () => {
+        const { anchor } = fakeAnchor(300, 100, 120, 30);
+        const { floating, arrow } = popupWithArrow(200, 50);
+        const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom', offset: 4, flip: true, getArrow: () => null });
+        expect(vars(arrow)).toEqual({ x: '', y: '' });
+        cleanup();
+    });
+});

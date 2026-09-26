@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
-import { signal } from 'sigx';
+import { component, signal } from 'sigx';
 import { Menu, menuAnatomy } from '@sigx/zero';
+import type { PositionOptions, PositionStrategy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 /** watch()-driven cascades settle a microtask after the write. */
@@ -47,6 +48,66 @@ describe('Menu', () => {
         );
         expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
         expect(container.querySelector('[data-part="sub-popup"]')!.getAttribute('data-state')).toBe('open');
+    });
+
+    it('hands the root popup\'s arrow to the strategy; a submenu positions none', async () => {
+        const seen: PositionOptions[] = [];
+        const spy: PositionStrategy = { apply: (_a, _f, opts) => { seen.push(opts); return () => {}; } };
+        const root = signal({ open: false });
+        const sub = signal({ open: false });
+        render(
+            <Menu.Root model={[root, 'open']} positionStrategy={spy}>
+                <Menu.Trigger>Actions</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.Arrow />
+                    <Menu.Item value="rename">Rename</Menu.Item>
+                    <Menu.Sub model={[sub, 'open']} positionStrategy={spy}>
+                        <Menu.SubTrigger>More</Menu.SubTrigger>
+                        <Menu.SubPopup><Menu.Arrow /><Menu.Item value="a">A</Menu.Item></Menu.SubPopup>
+                    </Menu.Sub>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        root.open = true;
+        await tick();
+        sub.open = true;
+        await tick();
+        expectAnatomy(container, menuAnatomy);
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        const rootArrow = popup.querySelector<HTMLElement>(':scope > [data-part="arrow"]')!;
+        expect(rootArrow.getAttribute('aria-hidden')).toBe('true');
+        const arrows = seen.map((o) => o.getArrow?.() ?? null);
+        expect(arrows).toContain(rootArrow);
+        // The submenu is positioned exactly once, arrowless; every other call is
+        // the root's (its arrow mounting with the popup content re-applies).
+        expect(arrows.filter((a) => a !== rootArrow)).toEqual([null]);
+        expect(seen.every((o) => o.arrowPadding === 8)).toBe(true);
+        // Still a menu of three items: the arrow is not one of them.
+        expect(container.querySelectorAll('[role="menuitem"]').length).toBe(3);
+    });
+
+    it('re-applies the strategy when an arrow mounts while the menu is open', async () => {
+        const seen: PositionOptions[] = [];
+        const spy: PositionStrategy = { apply: (_a, _f, opts) => { seen.push(opts); return () => {}; } };
+        const state = signal({ open: false, arrow: false });
+        const App = component(() => () => (
+            <Menu.Root model={[state, 'open']} positionStrategy={spy}>
+                <Menu.Trigger>Actions</Menu.Trigger>
+                <Menu.Popup>
+                    {state.arrow ? <Menu.Arrow /> : null}
+                    <Menu.Item value="rename">Rename</Menu.Item>
+                </Menu.Popup>
+            </Menu.Root>
+        ));
+        render(<App />, container);
+        state.open = true;
+        await tick();
+        const before = seen.length;
+        state.arrow = true;
+        await tick();
+        expect(seen.length).toBe(before + 1);
+        expect(seen.at(-1)!.getArrow?.()).toBe(container.querySelector('[data-scope="menu"][data-part="arrow"]'));
     });
 
     it('renders a valid anatomy with APG roles', () => {

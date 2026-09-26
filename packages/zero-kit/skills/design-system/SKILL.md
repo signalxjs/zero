@@ -590,6 +590,13 @@ component's anatomy). No component code is ever written or changed.
      center)'`. Always read them with a fallback. They are runtime
      properties, so web-only: in a design system that also builds lynx, put
      them in the recipe's `targets.web` section.
+   - **Paint the popup arrow with `popupArrow`.** Popover, tooltip and menu
+     have an `arrow` part the strategy points at the anchor through
+     `--arrow-x`/`--arrow-y`. Do not hand-place it: `popupArrow(scope,
+     { size, paint })` (from `@sigx/zero-kit/define`) is the whole geometry,
+     and `paint` is just the popup's own `background` and `border`; spread
+     `popupArrowHost(scope)` into the popup's `selectors` so the arrow is not
+     clipped. Web-only, like the geometry above.
    - `RecipeInput.css` takes raw CSS for anything the typed surface can't say.
    - **Style Button first, and make its axes compose.** It is the component a
      design system is judged on, and the only one where all three axes matter

@@ -55,6 +55,71 @@
         transform: none;
     }
 
+    [data-scope="tooltip"][data-part="popup"]:has(> [data-scope="tooltip"][data-part="arrow"]) {
+        overflow: visible;
+    }
+
+    [data-scope="tooltip"][data-part="arrow"] {
+        display: none;
+        position: absolute;
+        box-sizing: border-box;
+        width: 0.5rem;
+        height: 0.5rem;
+        rotate: 45deg;
+        pointer-events: none;
+        background: var(--color-neutral);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="top"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        top: calc(100% - 0.5rem / 2);
+        left: var(--arrow-x, calc(50% - 0.5rem / 2));
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="bottom"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        top: calc(0.5rem / -2);
+        left: var(--arrow-x, calc(50% - 0.5rem / 2));
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="left"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        left: calc(100% - 0.5rem / 2);
+        top: var(--arrow-y, calc(50% - 0.5rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="right"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        left: calc(0.5rem / -2);
+        top: var(--arrow-y, calc(50% - 0.5rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="start"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(100% - 0.5rem / 2);
+        top: var(--arrow-y, calc(50% - 0.5rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="end"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(0.5rem / -2);
+        top: var(--arrow-y, calc(50% - 0.5rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="start"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="tooltip"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="end"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="tooltip"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
     [data-scope="tooltip"][data-part="trigger"][data-color="primary"] {
         background: var(--color-primary);
         color: var(--color-primary-content);

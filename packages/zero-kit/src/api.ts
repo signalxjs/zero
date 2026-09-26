@@ -279,12 +279,12 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     input: ['autocapitalize', 'autocomplete', 'autocorrect', 'autofocus', 'defaultValue', 'defaultVisible', 'enterkeyhint', 'form', 'id', 'inputmode', 'invalid', 'maxlength', 'minlength', 'name', 'pattern', 'readonly', 'required', 'role', 'spellcheck', 'title', 'type', 'value'],
     join: ['id', 'role', 'title'],
     kbd: ['id', 'role', 'title'],
-    menu: ['alignOffset', 'closeOnSelect', 'collisionPadding', 'defaultOpen', 'loop', 'offset', 'placement', 'positionStrategy', 'value'],
+    menu: ['alignOffset', 'arrowPadding', 'closeOnSelect', 'collisionPadding', 'defaultOpen', 'loop', 'offset', 'placement', 'positionStrategy', 'value'],
     'nav-list': ['id', 'label', 'title'],
     navbar: ['id', 'role', 'title'],
     'number-input': ['allowWheel', 'clampOnBlur', 'defaultValue', 'form', 'format', 'id', 'invalid', 'largeStep', 'max', 'min', 'name', 'parse', 'readonly', 'required', 'role', 'step', 'title', 'value'],
     pagination: ['boundaryCount', 'count', 'defaultPage', 'id', 'label', 'nextLabel', 'pageLabel', 'prevLabel', 'role', 'siblingCount', 'title', 'value'],
-    popover: ['alignOffset', 'collisionPadding', 'defaultOpen', 'offset', 'placement', 'positionStrategy', 'value'],
+    popover: ['alignOffset', 'arrowPadding', 'collisionPadding', 'defaultOpen', 'offset', 'placement', 'positionStrategy', 'value'],
     progress: ['formatOptions', 'getValueText', 'id', 'locale', 'max', 'min', 'title', 'value'],
     'radial-progress': ['formatOptions', 'getValueText', 'id', 'locale', 'max', 'min', 'title', 'value'],
     'radio-group': ['defaultValue', 'form', 'id', 'invalid', 'itemDisabled', 'itemKey', 'itemLabel', 'items', 'name', 'readonly', 'required', 'title', 'value'],
@@ -307,7 +307,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     toast: ['id', 'title', 'toast'],
     toggle: ['defaultPressed', 'id', 'label', 'title', 'value'],
     'toggle-group': ['defaultValue', 'deselectable', 'form', 'id', 'invalid', 'label', 'loop', 'multiple', 'name', 'required', 'title', 'value'],
-    tooltip: ['alignOffset', 'closeDelay', 'collisionPadding', 'defaultOpen', 'offset', 'openDelay', 'placement', 'positionStrategy', 'value'],
+    tooltip: ['alignOffset', 'arrowPadding', 'closeDelay', 'collisionPadding', 'defaultOpen', 'offset', 'openDelay', 'placement', 'positionStrategy', 'value'],
     'tree-view': ['defaultExpandedValues', 'defaultValue', 'expandOnClick', 'id', 'multiple', 'role', 'title', 'value'],
 };
 

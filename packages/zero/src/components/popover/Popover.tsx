@@ -5,12 +5,19 @@
  * <Popover.Root model={() => state.open} placement="bottom-start">
  *     <Popover.Trigger>Filters</Popover.Trigger>
  *     <Popover.Popup>
+ *         <Popover.Arrow />
  *         <Popover.Title>Filters</Popover.Title>
+ *         <Popover.Description>Narrow the list.</Popover.Description>
  *         …
  *         <Popover.Close>Done</Popover.Close>
  *     </Popover.Popup>
  * </Popover.Root>
  * ```
+ *
+ * `Popover.Anchor`, when rendered, is what the popup is positioned against
+ * instead of the trigger (a field the trigger sits inside); the trigger
+ * stays the toggle and the focus-restore target. `Popover.Arrow` is pointed
+ * at the anchor's centre by the position strategy (`--arrow-x`/`--arrow-y`).
  *
  * `popover="auto"` supplies the top layer, light dismiss and Escape
  * natively; the model mirrors into `showPopover()`/`hidePopover()` and
@@ -37,26 +44,43 @@ const SCOPE = popoverAnatomy.scope;
 
 interface PopoverContext {
     state: ControllableState<boolean>;
-    ids: { popup: string; title: string };
-    /** Title reports its presence so the popup's ARIA ref never dangles. */
+    ids: { popup: string; title: string; description: string };
+    /**
+     * Title/Description report their presence so the popup's ARIA refs never
+     * dangle — counted, one `true` per mounted instance and one `false` per
+     * unmounted one, so a swap that mounts the new part before the old one
+     * reports gone still ends present.
+     */
     titlePresent(): boolean;
     setTitlePresent(present: boolean): void;
+    descriptionPresent(): boolean;
+    setDescriptionPresent(present: boolean): void;
+    /** The rendered Trigger — the toggle and the focus-restore target. */
+    setTrigger(el: HTMLElement | null): void;
+    /** The rendered `Popover.Anchor`, which positions the popup in the trigger's place. */
     setAnchor(el: HTMLElement | null): void;
+    /** What the popup is positioned against: the Anchor when rendered, else the Trigger. */
     getAnchor(): HTMLElement | null;
     setPopup(el: HTMLElement | null): void;
     getPopup(): HTMLElement | null;
+    /** The rendered `Popover.Arrow`, which the position strategy points at the anchor. */
+    setArrow(el: HTMLElement | null): void;
 }
 
 function makeInert(): PopoverContext {
     return {
         state: createInertState<boolean>(false),
-        ids: { popup: 'zx-popover-inert', title: 'zx-popover-inert-title' },
+        ids: { popup: 'zx-popover-inert', title: 'zx-popover-inert-title', description: 'zx-popover-inert-description' },
         titlePresent: () => false,
         setTitlePresent: () => {},
+        descriptionPresent: () => false,
+        setDescriptionPresent: () => {},
+        setTrigger: () => {},
         setAnchor: () => {},
         getAnchor: () => null,
         setPopup: () => {},
         getPopup: () => null,
+        setArrow: () => {},
     };
 }
 
@@ -74,6 +98,8 @@ export type PopoverRootProps =
     & Define.Prop<'collisionPadding', number, false>
     /** Cross-axis offset, px, from a `-start`/`-end` alignment (default 0). */
     & Define.Prop<'alignOffset', number, false>
+    /** Minimum distance, px, between a `Popover.Arrow` and the popup's corners (default 8). */
+    & Define.Prop<'arrowPadding', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & Define.Slot<'default'>;
 
@@ -84,39 +110,57 @@ const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal })
         (v) => emit('openChange', v),
     );
     const baseId = createId('zx-popover');
-    // Written from Title one microtask after its setup — a write made during
-    // the render pass is invisible to the already-rendered popup.
-    const present = signal({ title: false });
+    // Written from Title/Description one microtask after their setup — a
+    // write made during the render pass is invisible to the already-rendered
+    // popup.
+    const present = signal({ title: 0, description: 0 });
+    let trigger: HTMLElement | null = null;
     let anchor: HTMLElement | null = null;
     let popup: HTMLElement | null = null;
+    let arrow: HTMLElement | null = null;
+    const positionAnchor = (): HTMLElement | null => anchor ?? trigger;
+    const reposition = () => queueMicrotask(() => position.update());
 
     const ctx: PopoverContext = {
         state,
-        ids: { popup: `${baseId}-popup`, title: `${baseId}-title` },
-        titlePresent: () => present.title,
-        setTitlePresent: (p) => { present.title = p; },
-        setAnchor: (el) => { anchor = el; },
-        getAnchor: () => anchor,
+        ids: { popup: `${baseId}-popup`, title: `${baseId}-title`, description: `${baseId}-description` },
+        titlePresent: () => present.title > 0,
+        setTitlePresent: (p) => { present.title += p ? 1 : -1; },
+        descriptionPresent: () => present.description > 0,
+        setDescriptionPresent: (p) => { present.description += p ? 1 : -1; },
+        setTrigger: (el) => { trigger = el; },
+        // A `Popover.Anchor` or `Popover.Arrow` that mounts or unmounts while
+        // the popup is open re-applies the strategy, a microtask later so the
+        // part is in the document: the strategy otherwise runs only on
+        // open/close and its own scroll/resize listeners, and would keep
+        // measuring a detached anchor.
+        setAnchor: (el) => { if (anchor === el) return; anchor = el; reposition(); },
+        getAnchor: positionAnchor,
         setPopup: (el) => { popup = el; },
         getPopup: () => popup,
+        setArrow: (el) => { if (arrow === el) return; arrow = el; reposition(); },
     };
     defineProvide(usePopoverContext, () => ctx);
 
-    createAnchorPosition({
-        getAnchor: () => anchor,
+    const position = createAnchorPosition({
+        getAnchor: positionAnchor,
         getFloating: () => popup,
         isOpen: () => state.value,
         placement: () => props.placement ?? 'bottom',
         offset: () => props.offset ?? 6,
         collisionPadding: () => props.collisionPadding,
         alignOffset: () => props.alignOffset,
+        getArrow: () => arrow,
+        arrowPadding: () => props.arrowPadding,
         strategy: props.positionStrategy,
     });
     // Focus goes back only while it is still the popup's: an outside
     // pointerdown on an input, or a Tab out, keeps it where it went (#262).
+    // The fallback is the TRIGGER, never a `Popover.Anchor`: the anchor is
+    // where the popup sits, the trigger is what the user pressed.
     createFocusRestore(() => state.value, {
         getSurface: () => popup,
-        fallback: () => anchor,
+        fallback: () => trigger,
     });
 
     return () => <>{slots.default?.()}</>;
@@ -166,7 +210,7 @@ const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal })
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
         onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; popover.setAnchor(node); },
+        ref: (node: HTMLElement | null) => { el = node; popover.setTrigger(node); },
     });
 
     return () => {
@@ -245,10 +289,14 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
                 popover="auto"
                 role="dialog"
                 tabIndex={-1}
-                // An app's own references join the Title's.
+                // An app's own references join the Title's and Description's.
                 aria-labelledby={[
                     popover.titlePresent() ? popover.ids.title : undefined,
                     attrs['aria-labelledby'],
+                ].filter(Boolean).join(' ') || undefined}
+                aria-describedby={[
+                    popover.descriptionPresent() ? popover.ids.description : undefined,
+                    attrs['aria-describedby'],
                 ].filter(Boolean).join(' ') || undefined}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; popover.setPopup(node); }}
@@ -269,21 +317,118 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
 /** Not `id`: the popup is labelled by the Title's own. */
 export type PopoverTitleProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
 
-const PopoverTitle = component<PopoverTitleProps>(({ props, slots, onUnmounted }) => {
-    const popover = usePopoverContext();
-    // Deferred past the render pass — see the note on `present` in Root.
+/**
+ * Report a labelling part's presence to the Root. Both writes are deferred a
+ * microtask: the mount's past the render pass (see `present` in Root), and
+ * the unmount's because it runs INSIDE the popup's re-render, which has
+ * already read the flag — a write there would not re-run it, and the popup
+ * would keep pointing at an id that is gone. An instance unmounted before its
+ * mount write landed reports nothing either way.
+ */
+function reportPresence(set: (present: boolean) => void, onUnmounted: (fn: () => void) => void): void {
     let alive = true;
-    queueMicrotask(() => { if (alive) popover.setTitlePresent(true); });
+    let reported = false;
+    queueMicrotask(() => {
+        if (!alive) return;
+        reported = true;
+        set(true);
+    });
     onUnmounted(() => {
         alive = false;
-        popover.setTitlePresent(false);
+        if (reported) queueMicrotask(() => set(false));
     });
+}
+
+const PopoverTitle = component<PopoverTitleProps>(({ props, slots, onUnmounted }) => {
+    const popover = usePopoverContext();
+    reportPresence(popover.setTitlePresent, onUnmounted);
     return () => (
         <h3 {...htmlAttrs(props)} id={popover.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
             {slots.default?.()}
         </h3>
     );
 }, { name: 'Popover.Title' });
+
+// ── Description ──
+
+/** Not `id`: the popup is described by the Description's own. */
+export type PopoverDescriptionProps = WithClass & Omit<WithHtmlAttrs, 'id'> & Define.Slot<'default'>;
+
+const PopoverDescription = component<PopoverDescriptionProps>(({ props, slots, onUnmounted }) => {
+    const popover = usePopoverContext();
+    reportPresence(popover.setDescriptionPresent, onUnmounted);
+    return () => (
+        <p {...htmlAttrs(props)} id={popover.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
+            {slots.default?.()}
+        </p>
+    );
+}, { name: 'Popover.Description' });
+
+// ── Anchor ──
+
+export type PopoverAnchorProps =
+    & WithClass
+    & WithHtmlAttrs
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
+
+/**
+ * What the popup is positioned against, in the trigger's place — a field
+ * whose trigger is a small button inside it, a row the popup should line up
+ * with. Only while rendered: unmounted, the trigger anchors again. No
+ * behaviour of its own; the trigger still toggles and still receives focus
+ * back on close.
+ */
+const PopoverAnchor = component<PopoverAnchorProps>(({ props, slots, onUnmounted }) => {
+    const popover = usePopoverContext();
+    let el: HTMLElement | null = null;
+    onUnmounted(() => {
+        if (el) popover.setAnchor(null);
+    });
+    const bag = (): PartProps => ({
+        ...htmlAttrs(props),
+        'data-scope': SCOPE,
+        'data-part': 'anchor',
+        ref: (node: HTMLElement | null) => { el = node; popover.setAnchor(node); },
+    });
+    return () => {
+        const b = bag();
+        if (props.asChild) return renderAsChild(slots.default, b);
+        return <div class={props.class} {...b}>{slots.default?.(b)}</div>;
+    };
+}, { name: 'Popover.Anchor' });
+
+// ── Arrow ──
+
+/** The arrow is decoration: it renders `aria-hidden="true"` whatever the app passes. */
+export type PopoverArrowProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
+
+/**
+ * A mark on the popup edge facing the anchor. The position strategy writes
+ * `--arrow-x` (a popup above or below) or `--arrow-y` (one beside) on it, the
+ * offset that points it at the anchor's centre after any flip or shift; the
+ * recipe places it on the edge the popup's `data-placement` names and draws
+ * it. Empty by default — children (an SVG) replace the recipe's drawing.
+ */
+const PopoverArrow = component<PopoverArrowProps>(({ props, slots, onUnmounted }) => {
+    const popover = usePopoverContext();
+    let el: HTMLElement | null = null;
+    onUnmounted(() => {
+        if (el) popover.setArrow(null);
+    });
+    return () => (
+        <span
+            {...htmlAttrs(props)}
+            data-scope={SCOPE}
+            data-part="arrow"
+            aria-hidden="true"
+            class={props.class}
+            ref={(node: HTMLElement | null) => { el = node; popover.setArrow(node); }}
+        >
+            {slots.default?.()}
+        </span>
+    );
+}, { name: 'Popover.Arrow' });
 
 // ── Close ──
 
@@ -342,5 +487,8 @@ export const Popover = compound(PopoverRoot, {
     Trigger: PopoverTrigger,
     Popup: PopoverPopup,
     Title: PopoverTitle,
+    Description: PopoverDescription,
+    Anchor: PopoverAnchor,
+    Arrow: PopoverArrow,
     Close: PopoverClose,
 });

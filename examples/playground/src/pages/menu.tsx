@@ -113,6 +113,20 @@ const MenuDemos = component(() => () => (
                 </Menu.RadioGroup>
             </Menu.Popup>
         </Menu.Root>
+
+        <h2>Arrow</h2>
+        <p>
+            <code>Menu.Arrow</code> in the root popup points at the trigger
+            (submenus take none).
+        </p>
+        <Menu.Root placement="bottom" onSelect={(v) => console.log('arrow menu select:', v)}>
+            <Menu.Trigger>Sort</Menu.Trigger>
+            <Menu.Popup>
+                <Menu.Arrow />
+                <Menu.Item value="newest">Newest first</Menu.Item>
+                <Menu.Item value="oldest">Oldest first</Menu.Item>
+            </Menu.Popup>
+        </Menu.Root>
     </>
 ), { name: 'MenuDemos' });
 

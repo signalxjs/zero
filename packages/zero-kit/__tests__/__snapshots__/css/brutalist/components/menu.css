@@ -47,6 +47,72 @@
         transform: none;
     }
 
+    [data-scope="menu"][data-part="popup"]:has(> [data-scope="menu"][data-part="arrow"]) {
+        overflow: visible;
+    }
+
+    [data-scope="menu"][data-part="arrow"] {
+        display: none;
+        position: absolute;
+        box-sizing: border-box;
+        width: 0.875rem;
+        height: 0.875rem;
+        rotate: 45deg;
+        pointer-events: none;
+        background: var(--color-base-100);
+        border: var(--border) solid var(--color-base-content);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="top"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        top: calc(100% - 0.875rem / 2);
+        left: var(--arrow-x, calc(50% - 0.875rem / 2));
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="bottom"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        top: calc(0.875rem / -2);
+        left: var(--arrow-x, calc(50% - 0.875rem / 2));
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="left"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        left: calc(100% - 0.875rem / 2);
+        top: var(--arrow-y, calc(50% - 0.875rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="right"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        left: calc(0.875rem / -2);
+        top: var(--arrow-y, calc(50% - 0.875rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="start"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(100% - 0.875rem / 2);
+        top: var(--arrow-y, calc(50% - 0.875rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="end"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(0.875rem / -2);
+        top: var(--arrow-y, calc(50% - 0.875rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="start"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="menu"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="end"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="menu"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
     [data-scope="menu"][data-part="item"] {
         display: flex;
         align-items: center;

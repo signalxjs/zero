@@ -134,7 +134,8 @@ Real-browser interaction tests (Playwright over the playground; press-feedback
 contract plus per-component interaction specs on chromium/firefox/webkit —
 combobox, menu-submenu, menu-keyboard (ArrowUp opens on the last item; Enter
 on an asChild link item really navigates, #175; Tab and Shift+Tab close the
-whole chain while focus moves on to the neighbouring tab stop, #263), toast
+whole chain while focus moves on to the neighbouring tab stop, #263; a
+`Menu.Arrow` over its trigger's centre, #279), toast
 (presence, and since #269 the focus hand-off when a focused toast leaves,
 F8/Escape, and the re-stack above a modal dialog measured in pixels), select
 (and since #278, per design system on chromium, the popup geometry: a listbox
@@ -158,11 +159,17 @@ only the first close request without a fresh user activation (#260) — the
 non-modal dismiss-layer fallback), popover (`focusFirst` on open, light dismiss, focus
 restore — the restore tests open by KEYBOARD, because WebKit does not focus
 buttons on click, so a click-open leaves the restore target as body and the
-assertion would prove nothing), tooltip (hover-intent delay asserted as a
+assertion would prove nothing; since #279 the arrow, per design system on
+chromium: its centre within 2px of the trigger's on the edge facing it,
+below and beside, and still over the trigger and inside the popup once a
+narrow viewport has shifted the popup back on screen — measured in one read
+through `arrowGeometry` (`demo.ts`), since a scroll can re-flip the popup
+between separate reads; and `Popover.Anchor` lining the popup up with the
+anchor while the trigger keeps focus restore), tooltip (hover-intent delay asserted as a
 lower bound only, and WCAG 1.4.13: Escape dismisses a hover-opened tooltip
 while focus sits elsewhere; a click neither opens nor, until the pointer
 leaves, re-opens it; and a `Tooltip.Group` sibling opens inside the intent
-delay, #268), tabs (one roving tab stop, automatic
+delay, #268; the arrow over the trigger's centre, #279), tabs (one roving tab stop, automatic
 activation, and the #283 indicator landing on the active tab within 1px and
 sliding there — and not under reduced motion), accordion (#276: arrows/Home/End move focus between triggers
 that all stay tabbable, panels are regions named by their triggers, and a

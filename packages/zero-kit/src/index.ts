@@ -42,6 +42,8 @@ export { clampChroma, contrastRatio, derivePalette, deriveThemePair, formatOklch
 export { LAYOUT_SCOPES, layoutCss, layoutRecipes, layoutScopes } from './layout-recipes.js';
 export type { TableStackPart } from './table-stack.js';
 export { tableStackAt, tableStackCss } from './table-stack.js';
+export type { PopupArrowOptions } from './popup-arrow.js';
+export { popupArrow, popupArrowHost } from './popup-arrow.js';
 
 export type { FitReport } from './fit.js';
 export { explainFit, fitRecipes, fitRecipesToVocabulary } from './fit.js';
@@ -259,5 +261,6 @@ export {
     RESERVED_AXES,
     RUNTIME_PROPERTIES,
     POSITION_PROPERTIES,
+    ARROW_PROPERTIES,
     MEDIUM_PROPERTIES,
 } from './contract.js';
