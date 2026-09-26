@@ -129,6 +129,37 @@ describe('HoverCard', () => {
         expect(state(popup)).toBe('closed');
     });
 
+    it('a popup unmounted mid-trip ends the trip: its pointermove listener is removed', () => {
+        const show = signal({ on: true });
+        render(
+            <HoverCard.Root openDelay={0} closeDelay={100}>
+                <HoverCard.Trigger href="/users/ada">@ada</HoverCard.Trigger>
+                {() => show.on ? <HoverCard.Popup>Ada Lovelace</HoverCard.Popup> : null}
+            </HoverCard.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-scope="hover-card"][data-part="trigger"]')!;
+        const popup = container.querySelector<HTMLElement>('[data-scope="hover-card"][data-part="popup"]')!;
+        popup.getBoundingClientRect = () => ({
+            left: 100, top: 200, right: 400, bottom: 320, width: 300, height: 120, x: 100, y: 200, toJSON: () => ({}),
+        });
+        const add = vi.spyOn(document, 'addEventListener');
+        const remove = vi.spyOn(document, 'removeEventListener');
+        try {
+            trigger.dispatchEvent(pointer('pointerenter'));
+            trigger.dispatchEvent(pointer('pointerleave', { clientX: 150, clientY: 180 }));
+            const onMove = add.mock.calls.find(([type]) => type === 'pointermove')?.[1];
+            expect(onMove).toBeTypeOf('function');
+            expect(remove.mock.calls.some(([type, fn]) => type === 'pointermove' && fn === onMove)).toBe(false);
+            show.on = false;
+            expect(container.querySelector('[data-part="popup"]')).toBeNull();
+            expect(remove.mock.calls.some(([type, fn]) => type === 'pointermove' && fn === onMove)).toBe(true);
+        } finally {
+            add.mockRestore();
+            remove.mockRestore();
+        }
+    });
+
     it('ignores a touch pointerenter (touch has no hover)', () => {
         const { trigger, popup } = mount({ openDelay: 0 });
         trigger.dispatchEvent(pointer('pointerenter', { pointerType: 'touch' }));

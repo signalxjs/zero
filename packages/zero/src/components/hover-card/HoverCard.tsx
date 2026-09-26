@@ -230,7 +230,12 @@ const HoverCardRoot = component<HoverCardRootProps>(({ props, slots, emit, onUnm
             }
         },
         setAnchor: (el) => { anchor = el; },
-        setPopup: (el) => { popup = el; },
+        setPopup: (el) => {
+            // A popup unmounted mid-trip (conditional render) takes the
+            // trip's geometry with it: end it rather than leak the listener.
+            if (!el) endTravel();
+            popup = el;
+        },
         // An arrow mounted while the card is open (conditional render) is
         // placed a microtask later, once it is in the document.
         setArrow: (el) => {
