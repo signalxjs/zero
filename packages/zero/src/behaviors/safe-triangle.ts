@@ -8,6 +8,10 @@
  * pointer left the trigger and the submenu's near edge; while the pointer
  * stays inside it, sibling items do not take hover.
  *
+ * HoverCard reuses the geometry for the trip from its trigger to its popup,
+ * which usually sits below or above rather than beside
+ * ({@link safeTriangleTo}).
+ *
  * Pure geometry plus a DOM-free holder; the menu wires both. The existing
  * hover-intent close delay stays the fallback — it bounds how long a
  * pointer may linger inside the triangle before the submenu closes anyway.
@@ -55,6 +59,31 @@ export function safeTriangle(exit: Point, target: RectLike, slack = 4): Triangle
         ];
     }
     return null;
+}
+
+/**
+ * {@link safeTriangle} for a target on any side: a pointer that left above
+ * or below the target gets the triangle to the target's facing horizontal
+ * edge, one beside it the vertical-edge triangle. `null` when the exit point
+ * lies inside the target's box, or the target has no box.
+ */
+export function safeTriangleTo(exit: Point, target: RectLike, slack = 4): Triangle | null {
+    if (target.right <= target.left || target.bottom <= target.top) return null;
+    if (exit.y <= target.top) {
+        return [
+            { x: exit.x, y: exit.y - slack },
+            { x: target.left, y: target.top },
+            { x: target.right, y: target.top },
+        ];
+    }
+    if (exit.y >= target.bottom) {
+        return [
+            { x: exit.x, y: exit.y + slack },
+            { x: target.left, y: target.bottom },
+            { x: target.right, y: target.bottom },
+        ];
+    }
+    return safeTriangle(exit, target, slack);
 }
 
 /** Whether `p` lies inside `tri`, edges included. Winding-agnostic. */

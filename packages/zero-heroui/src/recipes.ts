@@ -697,6 +697,58 @@ export const tooltip: RecipeInput = {
     variants: { size: overlayTriggerSizes },
 };
 
+// ── HoverCard ─────────────────────────────────────────────────────────────
+/**
+ * HeroUI's `Link` opening its popover surface. The trigger is running text
+ * in the primary ink with HeroUI's `underline="hover"` — no underline at
+ * rest, one under the pointer and while the card is up. The card is the
+ * popover's surface and arrow verbatim. Size moves the link's type on the
+ * three-step ramp; there is no colour axis here (`roles: {}`).
+ */
+export const hoverCard: RecipeInput = {
+    component: 'hover-card',
+    parts: {
+        trigger: {
+            base: {
+                color: 'var(--hero-primary)',
+                textDecoration: 'none',
+                textUnderlineOffset: '0.2em',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { textDecoration: 'underline' },
+                open: { textDecoration: 'underline' },
+                closed: {},
+                ...focusRing,
+            },
+        },
+        popup: withPresence(popupPresence('translateY(4px)'), {
+            base: {
+                margin: '0',
+                padding: 'var(--space-lg)',
+                maxWidth: 'min(20rem, calc(100vw - var(--space-2xl)))',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                boxShadow: 'var(--shadow-lg)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+            },
+            selectors: popupArrowHost('hover-card'),
+        }),
+        arrow: heroArrow('hover-card', surfaceArrowPaint),
+    },
+    variants: {
+        size: {
+            sm: { trigger: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { trigger: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 // ── Menu ──────────────────────────────────────────────────────────────────
 export const menu: RecipeInput = {
     component: 'menu',
@@ -5572,7 +5624,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,

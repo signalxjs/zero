@@ -47,9 +47,10 @@ export async function bootPage(page: Page, pageId: string, ds: string): Promise<
 
 /**
  * Navigate to `pageId` on a page whose design system `bootPage` already
- * pinned, with the same three waits. For a spec that reloads many times
- * (the axe audit's fresh load per scan): calling `bootPage` again would
- * register another init script on every load, and they accumulate.
+ * pinned, with the same three waits. For a spec that navigates one page many
+ * times: calling `bootPage` again would register another init script on
+ * every load, and they accumulate. (The axe audit, which loads ~90 times,
+ * opens a fresh page per scan instead: #350.)
  */
 export async function gotoPage(page: Page, pageId: string, ds: string): Promise<void> {
     await page.goto(`/#/${pageId}`);

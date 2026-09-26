@@ -70,6 +70,10 @@
             "types": "./dist/components/tooltip/index.d.ts",
             "import": "./dist/components/tooltip/index.js"
         },
+        "./hover-card": {
+            "types": "./dist/components/hover-card/index.d.ts",
+            "import": "./dist/components/hover-card/index.js"
+        },
         "./menu": {
             "types": "./dist/components/menu/index.d.ts",
             "import": "./dist/components/menu/index.js"

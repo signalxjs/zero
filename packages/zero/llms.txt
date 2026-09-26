@@ -128,7 +128,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-60 components ship today. Every part each renders is listed below, in
+61 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -160,8 +160,8 @@ the invalid focus lands on the trigger/input.
 
 Every component has a `Root` COMPONENT — it takes the `model` and the
 configuration props, and always wraps the others. For Dialog, Popover,
-Tooltip and Menu the root renders no DOM element of its own (it only provides
-context), so those four have no `root` PART and nothing to select with
+Tooltip, HoverCard and Menu the root renders no DOM element of its own (it only
+provides context), so those five have no `root` PART and nothing to select with
 `[data-part="root"]`. Below, the slash-separated names are the parts a
 component renders; the root is called out separately where it carries props.
 
@@ -209,6 +209,16 @@ component renders; the root is called out separately where it carries props.
   positioning.
 - Tooltip: Root(model=open, defaultOpen, openDelay, closeDelay, placement — renders no
   element) then Trigger/Popup.
+- HoverCard: Root(model=open, defaultOpen, openDelay 700, closeDelay 300,
+  openOnFocus, placement bottom, offset — renders no element) then
+  Trigger(href, asChild — an <a>)/Popup/Arrow, on popover="manual" + anchor
+  positioning. A hover-intent preview whose content may be interactive: no
+  role="tooltip", no aria-describedby, no aria-expanded on the trigger. Opens
+  on mouse/pen hover after openDelay and on keyboard focus (focus-visible) at
+  once; closes closeDelay after the pointer leaves trigger and card (a trip
+  inside the safe triangle toward the card keeps pushing the close back);
+  focus inside the card keeps it open; Escape closes and returns focus to the
+  trigger when it was inside the card.
 - Menu: Root(model=open, defaultOpen, closeOnSelect, placement — renders no element) then
   Trigger/Popup/Item(asChild)/CheckboxItem/RadioGroup/RadioItem/Group/
   GroupLabel/Separator; `select` event.
@@ -932,13 +942,13 @@ value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, CheckboxGroup, Collapsible, Combobox, Dialog,
-Divider, EmptyState, Field, Fieldset, Indicator, Input, Join, Kbd, Menu, NumberInput,
+Divider, EmptyState, Field, Fieldset, HoverCard, Indicator, Input, Join, Kbd, Menu, NumberInput,
 Navbar, NavList, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
 Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
 Table, FileUpload, Carousel, Swap, Countdown, Diff and TreeView;
 that is every component. Where the Root renders a fragment (a
-dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
+dialog/menu/popover/tooltip/hover-card) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the
 queue's `toast({ color })` through the same pass-through with an explicit prop
 on a composed Root winning. The axes pass through as

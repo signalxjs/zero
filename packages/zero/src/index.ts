@@ -49,6 +49,13 @@ export type {
 } from './components/popover/index.js';
 
 export { Tooltip, tooltipAnatomy, useTooltipContext } from './components/tooltip/index.js';
+export { HoverCard, hoverCardAnatomy, useHoverCardContext } from './components/hover-card/index.js';
+export type {
+    HoverCardRootProps,
+    HoverCardTriggerProps,
+    HoverCardPopupProps,
+    HoverCardArrowProps,
+} from './components/hover-card/index.js';
 export type {
     TooltipRootProps,
     TooltipGroupProps,

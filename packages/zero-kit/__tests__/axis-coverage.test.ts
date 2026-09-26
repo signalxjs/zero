@@ -211,6 +211,9 @@ const NO_VARIANT: Record<string, string> = {
     menu: 'no surveyed system varies a menu — Radix DropdownMenu and HeroUI '
         + 'Dropdown style through the item, not a style axis.',
     popover: 'no surveyed system varies a popover surface.',
+    'hover-card': 'no surveyed system varies a hover card — Radix HoverCard, '
+        + 'Ark HoverCard, Base UI PreviewCard and Mantine HoverCard style the '
+        + 'surface singular; the trigger is a link, coloured by the color axis.',
     toast: 'Chakra\'s toast varies as solid | subtle | left-accent | '
         + 'top-accent; no shipped skin declares a vocabulary for it yet '
         + '(#321) — colour, its actual axis here, IS wired (toast.color).',

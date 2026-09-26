@@ -1326,6 +1326,57 @@ export const tooltip: RecipeInput = {
     },
 };
 
+/**
+ * Hover card — daisy's `link` opening a `dropdown-content` card. The trigger
+ * is running text, not a btn: underlined in the ink it sits in (daisy's bare
+ * `link`), and a colour is `link-<role>` in the role's readable ink
+ * (`roleInk`). The underline thickens on hover and while the card is up,
+ * rather than the ink dimming — the `btn-link` reasoning. The card is the
+ * floating panel popover and menu wear.
+ */
+export const hoverCard: RecipeInput = {
+    component: 'hover-card',
+    parts: {
+        trigger: {
+            base: {
+                color: 'inherit',
+                textDecorationLine: 'underline',
+                textUnderlineOffset: '2px',
+                cursor: 'pointer',
+                borderRadius: 'var(--radius-selector)',
+            },
+            states: {
+                hover: { textDecorationThickness: '2px' },
+                open: { textDecorationThickness: '2px' },
+                closed: {},
+                ...focusRing,
+            },
+        },
+        popup: withPresence(popupPresence('translateY(-4px)'), {
+            base: {
+                ...floatingPanel,
+                padding: 'var(--space-xl)',
+                maxWidth: '20rem',
+                fontSize: 'var(--text-sm)',
+            },
+            states: { open: {}, closed: {} },
+        }),
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { trigger: { base: { color: roleInk(c) } } }])),
+        size: {
+            xs: { trigger: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { trigger: { base: { fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { trigger: { base: { fontSize: 'var(--text-lg)' } } },
+            xl: { trigger: { base: { fontSize: 'var(--text-xl)' } } },
+        },
+    },
+    // Web-only: the popover top layer and the runtime's arrow geometry have
+    // no lynx counterpart.
+    targets: { web: floatingArrow('hover-card', panelArrowPaint) },
+};
+
 // daisy "menu in a dropdown" look.
 export const menu: RecipeInput = {
     component: 'menu',
@@ -7541,7 +7592,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,

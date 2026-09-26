@@ -149,6 +149,15 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** hover-card — color, size wired. */
+            'hover-card': {
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** menu — color, size wired. */
             'menu': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';

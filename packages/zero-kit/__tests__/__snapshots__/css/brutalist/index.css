@@ -1681,6 +1681,195 @@
 }
 
 @layer zero.recipes {
+    [data-scope="hover-card"][data-part="trigger"] {
+        --hc-accent: var(--color-base-content);
+        --hc-accent-content: var(--color-base-100);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"] {
+        color: var(--color-base-content);
+        text-decoration: underline;
+        text-decoration-thickness: calc(var(--border) * 2);
+        text-underline-offset: 0.2em;
+        cursor: pointer;
+    }
+
+    [data-scope="hover-card"][data-part="trigger"]:hover:not([data-disabled]) {
+        background: var(--hc-accent);
+        color: var(--hc-accent-content);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-state="open"] {
+        background: var(--hc-accent);
+        color: var(--hc-accent-content);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-focus-visible] {
+        outline: calc(var(--border) * 2) solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
+    [data-scope="hover-card"][data-part="popup"] {
+        opacity: 0;
+        transform: translate(4px, 4px);
+        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), display var(--duration-fast) allow-discrete, overlay var(--duration-fast) allow-discrete;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-md);
+        padding: var(--space-md);
+        max-width: 20rem;
+        font-size: var(--text-sm);
+        line-height: var(--leading-normal);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-state="open"] {
+        opacity: 1;
+        transform: none;
+    }
+
+    [data-scope="hover-card"][data-part="popup"]:has(> [data-scope="hover-card"][data-part="arrow"]) {
+        overflow: visible;
+    }
+
+    [data-scope="hover-card"][data-part="arrow"] {
+        display: none;
+        position: absolute;
+        box-sizing: border-box;
+        width: 0.875rem;
+        height: 0.875rem;
+        rotate: 45deg;
+        pointer-events: none;
+        background: var(--color-base-100);
+        border: var(--border) solid var(--color-base-content);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="top"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        top: calc(100% - 0.875rem / 2);
+        left: var(--arrow-x, calc(50% - 0.875rem / 2));
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="bottom"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        top: calc(0.875rem / -2);
+        left: var(--arrow-x, calc(50% - 0.875rem / 2));
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="left"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        left: calc(100% - 0.875rem / 2);
+        top: var(--arrow-y, calc(50% - 0.875rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="right"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        left: calc(0.875rem / -2);
+        top: var(--arrow-y, calc(50% - 0.875rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="start"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(100% - 0.875rem / 2);
+        top: var(--arrow-y, calc(50% - 0.875rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="end"] > [data-scope="hover-card"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(0.875rem / -2);
+        top: var(--arrow-y, calc(50% - 0.875rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="start"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="hover-card"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="hover-card"][data-part="popup"][data-placement^="end"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="hover-card"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-color="primary"] {
+        --hc-accent: var(--color-primary);
+        --hc-accent-content: var(--color-primary-content);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-color="secondary"] {
+        --hc-accent: var(--color-secondary);
+        --hc-accent-content: var(--color-secondary-content);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-color="accent"] {
+        --hc-accent: var(--color-accent);
+        --hc-accent-content: var(--color-accent-content);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-color="neutral"] {
+        --hc-accent: var(--color-neutral);
+        --hc-accent-content: var(--color-neutral-content);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-color="info"] {
+        --hc-accent: var(--color-info);
+        --hc-accent-content: var(--color-info-content);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-color="success"] {
+        --hc-accent: var(--color-success);
+        --hc-accent-content: var(--color-success-content);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-color="warning"] {
+        --hc-accent: var(--color-warning);
+        --hc-accent-content: var(--color-warning-content);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-color="error"] {
+        --hc-accent: var(--color-error);
+        --hc-accent-content: var(--color-error-content);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-size="xs"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-size="sm"] {
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-size="lg"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="hover-card"][data-part="trigger"][data-size="xl"] {
+        font-size: var(--text-lg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="hover-card"][data-part="popup"] {
+            transition: none;
+        }
+
+        [data-scope="hover-card"][data-part="popup"][data-state="open"] {
+            transform: none;
+        }
+    }
+
+    @starting-style {
+        [data-scope="hover-card"][data-part="popup"][data-state="open"] {
+            opacity: 0;
+            transform: translate(4px, 4px);
+        }
+    }
+}
+
+@layer zero.recipes {
     [data-scope="menu"][data-part="trigger"] {
         appearance: none;
         border: var(--border) solid var(--color-base-content);

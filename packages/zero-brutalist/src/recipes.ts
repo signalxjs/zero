@@ -675,6 +675,60 @@ export const tooltip: RecipeInput = {
     variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
+/**
+ * Hover card — a stamped link opening a slab. The trigger is running text
+ * with the breadcrumb link's double-weight underline; under the pointer and
+ * while the card is up it is stamped in the accent pair (ink by default,
+ * the colour axis rebinds the pair) — brutalism has no subtle hover. The
+ * card is the popover's slab, arrow and all.
+ */
+export const hoverCard: RecipeInput = {
+    component: 'hover-card',
+    tokens: {
+        '--hc-accent': 'var(--color-base-content)',
+        '--hc-accent-content': 'var(--color-base-100)',
+    },
+    parts: {
+        trigger: {
+            base: {
+                color: 'var(--color-base-content)',
+                textDecoration: 'underline',
+                textDecorationThickness: 'calc(var(--border) * 2)',
+                textUnderlineOffset: '0.2em',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: 'var(--hc-accent)', color: 'var(--hc-accent-content)' },
+                open: { background: 'var(--hc-accent)', color: 'var(--hc-accent-content)' },
+                closed: {},
+                'focus-visible': {
+                    outline: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                    outlineOffset: '2px',
+                },
+            },
+        },
+        popup: withPresence(popupPresence('translate(4px, 4px)'), {
+            base: { ...slab, maxWidth: '20rem', fontSize: 'var(--text-sm)', lineHeight: 'var(--leading-normal)' },
+            states: { open: {}, closed: {} },
+            selectors: popupArrowHost('hover-card'),
+        }),
+        arrow: slabArrow('hover-card'),
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { trigger: { base: {
+            '--hc-accent': `var(--color-${c})`,
+            '--hc-accent-content': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { trigger: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { trigger: { base: { fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { trigger: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { trigger: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const menu: RecipeInput = {
     component: 'menu',
     parts: {
@@ -5738,7 +5792,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
+    button, tabs, collapsible, accordion, dialog, popover, tooltip, hoverCard, menu, select,
     switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,

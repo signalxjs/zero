@@ -55,7 +55,7 @@ describe('anatomy registry', () => {
     it('contains every component', () => {
         expect(Object.keys(anatomies).sort()).toEqual([
             'accordion', 'alert', 'avatar', 'badge', 'box', 'breadcrumbs', 'button', 'card', 'carousel', 'center', 'chat', 'checkbox', 'checkbox-group', 'collapsible',
-            'combobox', 'container', 'countdown', 'dialog', 'diff', 'divider', 'drawer', 'empty-state', 'field', 'fieldset', 'file-upload', 'grid', 'indicator', 'input', 'join', 'kbd', 'menu',
+            'combobox', 'container', 'countdown', 'dialog', 'diff', 'divider', 'drawer', 'empty-state', 'field', 'fieldset', 'file-upload', 'grid', 'hover-card', 'indicator', 'input', 'join', 'kbd', 'menu',
             'nav-list', 'navbar', 'number-input', 'pagination', 'popover', 'progress', 'radial-progress', 'radio-group',
             'rating-group', 'select', 'skeleton', 'slider', 'spacer', 'spinner', 'stack', 'stats', 'status', 'steps', 'swap', 'switch', 'table', 'tabs',
             'textarea', 'timeline', 'toast', 'toggle', 'toggle-group', 'tooltip',
@@ -191,7 +191,7 @@ describe('anatomy registry', () => {
         // input's adornment, which names the control edge it sits at (#281).
         // The DOM half is asserted by expectAnatomy in each component's tests.
         expect(declared.sort()).toEqual([
-            'chat.root', 'combobox.popup', 'drawer.panel', 'indicator.item', 'input.adornment', 'menu.popup', 'menu.sub-popup',
+            'chat.root', 'combobox.popup', 'drawer.panel', 'hover-card.popup', 'indicator.item', 'input.adornment', 'menu.popup', 'menu.sub-popup',
             'popover.popup', 'select.popup', 'timeline.content', 'toast.root', 'toast.viewport', 'tooltip.popup',
         ]);
     });

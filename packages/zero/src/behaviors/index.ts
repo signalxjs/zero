@@ -19,6 +19,9 @@ export { createRovingKeydown } from './roving.js';
 
 export { isFocusVisible } from './focus-visible.js';
 
+export { createHoverIntent } from './hover-intent.js';
+export type { HoverIntent } from './hover-intent.js';
+
 export { createPressFeedback } from './press.js';
 export type { PressFeedbackOptions, PressFeedbackHandlers } from './press.js';
 

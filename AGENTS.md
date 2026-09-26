@@ -169,7 +169,11 @@ anchor while the trigger keeps focus restore), tooltip (hover-intent delay asser
 lower bound only, and WCAG 1.4.13: Escape dismisses a hover-opened tooltip
 while focus sits elsewhere; a click neither opens nor, until the pointer
 leaves, re-opens it; and a `Tooltip.Group` sibling opens inside the intent
-delay, #268; the arrow over the trigger's centre, #279), tabs (one roving tab stop, automatic
+delay, #268; the arrow over the trigger's centre, #279), hover-card (#290:
+the 700 ms intent delay as a lower bound, the pointer's trip from the
+trigger into the card's links, keyboard focus opening it and focus inside
+holding it open, Escape handing focus back to the trigger without reopening
+it, and the arrow's geometry), tabs (one roving tab stop, automatic
 activation, and the #283 indicator landing on the active tab within 1px and
 sliding there — and not under reduced motion), accordion (#276: arrows/Home/End move focus between triggers
 that all stay tabbable, panels are regions named by their triggers, and a
@@ -462,7 +466,7 @@ slides, is fine).
   (`danger-soft` is one member), a declared three-step size ramp, and
   HeroUI's `isIconOnly`/`isPending` as `data-mod-*` modifiers. Where
   zero-material proves vocabularies can be *extended*, this proves they can be
-  a different *shape*. Full component coverage (54 recipes, plus the kit's layout tier), with `variant`
+  a different *shape*. Full component coverage (55 recipes, plus the kit's layout tier), with `variant`
   wired on button only (the repo-wide decision, #175) — it exercises the axis
   surface, not a product. Private.
 - `packages/zero-carbon` → `@sigx/zero-carbon` — Carbon-flavoured skin, and
@@ -492,7 +496,7 @@ slides, is fine).
 - `packages/create-zero-ds` → `@sigx/create-zero-ds` — the scaffold behind
   `pnpm create @sigx/zero-ds <name> --brief <id>` (#401): a Node-only bin with
   zero runtime deps that lays down a design-system package from nothing —
-  the brief's tokens + Button, `@sigx/zero-basic`'s 54 recipes as
+  the brief's tokens + Button, `@sigx/zero-basic`'s 55 recipes as
   `src/baseline.ts`, and a `src/recipes.ts` composing them through the kit's
   `fitRecipesToVocabulary` (on `/define`) so any axis shape compiles on the
   first build. Templates are embedded at build time
@@ -608,7 +612,7 @@ reopen the PR (or push an empty commit to it) to start CI.
 - Contract variant props pass through as `data-color` / `data-size` /
   `data-variant`. Zero attaches **no styling** to any of these. Every
   component carries the axis surface (`WithVariantAxes`); for the
-  fragment-rooted scopes (dialog, menu, popover, tooltip) the props live on
+  fragment-rooted scopes (dialog, menu, popover, tooltip, hover-card) the props live on
   the Trigger, which renders the carrier part.
 - A non-carrier part that takes an axis prop of its own declares it:
   `carries: ['color']` on `timeline.marker` (#94), `steps.item` (#112) and

@@ -43,6 +43,7 @@ export { Switch } from '@sigx/zero/switch';
 export { Dialog } from '@sigx/zero/dialog';
 export { Popover } from '@sigx/zero/popover';
 export { Tooltip } from '@sigx/zero/tooltip';
+export { HoverCard } from '@sigx/zero/hover-card';
 export { Menu } from '@sigx/zero/menu';
 export { Field } from '@sigx/zero/field';
 export { Fieldset } from '@sigx/zero/fieldset';

@@ -26,9 +26,9 @@
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
-import { bootPage, gotoPage } from './nav';
+import { bootPage } from './nav';
 import { controlledPopup, demoPosting } from './demo';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -132,6 +132,14 @@ const SCANS: Record<string, Scan[]> = {
             // Focus opens immediately — no intent delay to wait out.
             await page.getByRole('button', { name: 'Hover me', exact: true }).focus();
             await expect(page.locator('[data-scope="tooltip"][data-part="popup"][data-state="open"]')).toBeVisible();
+        },
+    }],
+    'hover-card': [{
+        name: 'hover card with interactive content',
+        open: async (page) => {
+            // Keyboard focus opens at once — no intent delay to wait out.
+            await page.getByRole('link', { name: '@ada', exact: true }).focus();
+            await expect(page.locator('[data-scope="hover-card"][data-part="popup"][data-state="open"]')).toBeVisible();
         },
     }],
     menu: [
@@ -241,16 +249,18 @@ const SCANS: Record<string, Scan[]> = {
 };
 
 /**
- * Every scan's starting point: a fresh document on `pageId`. The design
- * system was pinned once by the test's initial `bootPage`, whose init script
- * persists across navigations — so this uses `gotoPage`, not another
- * `bootPage`, which would stack one more init script per scan.
+ * Every scan's starting point: a fresh document on `pageId`, in a fresh page.
+ * A page that is navigated ~80 times (the old `about:blank` hop per scan)
+ * stops connecting the dev server's HMR websocket: the Vite client polls for
+ * a restart and reloads forever, the app never mounts, and the scan times
+ * out on a blank document (#350). A new page per scan never gets near that,
+ * and the caller closes it once the scan is done.
  */
-async function freshBoot(page: Page, pageId: string): Promise<void> {
-    // Navigating straight to the SAME id would be a no-op hash navigation,
-    // leaving the previous scan's open surfaces in place.
-    await page.goto('about:blank');
-    await gotoPage(page, pageId, 'basic');
+async function freshBoot(context: BrowserContext, pageId: string, viewport?: Scan['viewport']): Promise<Page> {
+    const page = await context.newPage();
+    if (viewport) await page.setViewportSize(viewport);
+    await bootPage(page, pageId, 'basic');
+    return page;
 }
 
 interface Finding {
@@ -265,7 +275,7 @@ interface Finding {
 const allowlisted = (rule: string, target: string): AllowlistEntry | undefined =>
     allowlist.find((entry) => entry.rule === rule && entry.selector === target);
 
-test('axe: every registry page (overlays open) is free of serious/critical WCAG A/AA violations', async ({ page }, testInfo) => {
+test('axe: every registry page (overlays open) is free of serious/critical WCAG A/AA violations', async ({ page: listing, context }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'semantics are engine-independent — one engine is enough');
     // ~60 pages, ~85 scans, each from a fresh load; the default budget is
     // per-action, not per-test, but be explicit about the shape of this test.
@@ -274,8 +284,8 @@ test('axe: every registry page (overlays open) is free of serious/critical WCAG 
     // The sidebar derives from the registry — its links ARE the page list.
     // `all` is excluded: it re-renders every page's demos on one document,
     // so auditing it would double-count every finding.
-    await bootPage(page, 'about', 'basic');
-    const hrefs = await page.locator('nav[aria-label="Pages"] a').evaluateAll(
+    await bootPage(listing, 'about', 'basic');
+    const hrefs = await listing.locator('nav[aria-label="Pages"] a').evaluateAll(
         (links) => links.map((a) => a.getAttribute('href') ?? ''),
     );
     const pageIds = hrefs
@@ -290,12 +300,11 @@ test('axe: every registry page (overlays open) is free of serious/critical WCAG 
 
     const findings: Finding[] = [];
     const usedAllowlist = new Set<AllowlistEntry>();
-    const defaultViewport = page.viewportSize();
+    await listing.close();
 
     for (const pageId of pageIds) {
         for (const scan of SCANS[pageId] ?? [{ name: 'idle', open: async () => {} }]) {
-            if (scan.viewport) await page.setViewportSize(scan.viewport);
-            await freshBoot(page, pageId);
+            const page = await freshBoot(context, pageId, scan.viewport);
             await scan.open(page);
 
             const results = await new AxeBuilder({ page })
@@ -307,7 +316,7 @@ test('axe: every registry page (overlays open) is free of serious/critical WCAG 
                 // coverage. Everything else runs.
                 .disableRules(['color-contrast'])
                 .analyze();
-            if (scan.viewport && defaultViewport) await page.setViewportSize(defaultViewport);
+            await page.close();
 
             for (const violation of results.violations) {
                 if (violation.impact !== 'serious' && violation.impact !== 'critical') continue;
