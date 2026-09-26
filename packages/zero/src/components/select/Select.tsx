@@ -364,6 +364,9 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         });
     }));
     onUnmounted(() => detachReset());
+    // Validity lives on the hidden select, which renders only with a `name`;
+    // the trigger is what the user fixes.
+    fc.reportValidity({ element: () => hidden, value: () => state.value, focus: () => trigger?.focus() }, onUnmounted);
 
     const ctx: SelectContext = {
         state,

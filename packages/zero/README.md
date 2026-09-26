@@ -247,6 +247,57 @@ its label, not the control.
     <Select.Root items={['ask', 'allow', 'deny']} defaultValue="ask" />
 </Field.Root>
 ```
+
+**A Field validates through the platform (#284).** Every control inside a
+`Field.Root` reports the element constraint validation runs on — Input's
+and Textarea's own, NumberInput's text input, Checkbox's and Switch's hidden
+checkbox, the first radio of a RadioGroup, FileUpload's file input, the
+hidden `<select>` a named Select or Combobox posts through (an unnamed one
+has none, so only `validate` runs), a Slider's native range. The Field
+listens for that element's `invalid` event (a submit, `reportValidity()`,
+`checkValidity()`), snapshots its `ValidityState`, and every control's
+`data-invalid`/`aria-invalid` reads `invalid || (validated && !valid)`.
+
+- `validate(value, validity)` — synchronous, over the control's model value
+  (a string, a boolean, a number, the selected key(s), `File[]`) and a copy
+  of its native validity taken with no custom message set. A message (or
+  an array) goes through `setCustomValidity`, so a native submit blocks on
+  it; it is kept current on every change, whatever `validateOn` says. Async
+  and schema orchestration stay the app's — set `invalid` from them.
+- `validateOn` — when the Field SHOWS its validity: `'submit'` (default,
+  the first failed submit), `'blur'` (focus leaving the Field) or
+  `'change'`. After a failed submit every change revalidates, and so does
+  any change while an error shows, so fixing the value clears it.
+- `Field.Error match` — a `ValidityState` key (`valueMissing`, `tooShort`,
+  `patternMismatch`, `typeMismatch`, …), `'custom'` for a `validate`
+  message, or `true`. With a key it renders only while that key is set,
+  under an id of its own (`<error id>-<key>`), and the control's
+  `aria-describedby` follows it; without `match` (or with `true`) it renders
+  as before. With no children it renders the message: the platform's for a
+  key, `validate`'s for `custom`, all of them otherwise.
+- A Field that renders a `Field.Error` cancels the `invalid` event, so the
+  platform's bubble does not repeat the message, and focuses the FIRST
+  invalid control of the form itself (the trigger, for a Select). Without
+  one, the platform's bubble and focus stand.
+- A form `reset` forgets what was shown.
+
+```tsx
+<form>
+    <Field.Root validate={(v) => (v === 'admin' ? 'That username is reserved.' : null)}>
+        <Field.Label>Username</Field.Label>
+        <Input.Root name="user" required pattern="[a-z]{3,}">…</Input.Root>
+        <Field.Error match="valueMissing">Choose a username.</Field.Error>
+        <Field.Error match="patternMismatch">Three or more lowercase letters.</Field.Error>
+        <Field.Error match="custom" />
+    </Field.Root>
+</form>
+```
+
+`tooShort` and `tooLong` are raised by the platform only for a value the
+user last edited, and sigx's value binding writes the model back into the
+element on every keystroke, which a browser counts as a script's change —
+so in a real engine they do not report today. Spell a length rule with
+`pattern` or `validate` until the binding skips an unchanged value.
 Native-platform first: `<dialog>` +
 top layer (no Portal), the `popover` attribute, `<details>`, real form
 inputs. SSR-safe ids via `app.use(zeroPlugin())` per request. Collapsible

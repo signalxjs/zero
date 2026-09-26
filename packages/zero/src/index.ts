@@ -67,7 +67,7 @@ export type {
 } from './components/menu/index.js';
 
 export { Field, fieldAnatomy } from './components/field/index.js';
-export type { FieldRootProps, FieldLabelProps, FieldDescriptionProps, FieldErrorProps } from './components/field/index.js';
+export type { FieldRootProps, FieldLabelProps, FieldDescriptionProps, FieldErrorProps, FieldErrorMatch, FieldValidate, FieldValidateOn } from './components/field/index.js';
 
 export { Checkbox, checkboxAnatomy } from './components/checkbox/index.js';
 export type { CheckboxRootProps } from './components/checkbox/index.js';

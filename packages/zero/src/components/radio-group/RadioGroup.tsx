@@ -104,7 +104,7 @@ export type RadioGroupRootProps<T = unknown> =
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
-const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit, signal, onMounted }) => {
+const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
@@ -147,6 +147,23 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit,
     };
     defineProvide(useRadioGroupContext, () => ctx);
 
+    // Validity: every radio of the group shares it (the platform's rule), so
+    // the first one speaks for the group; focus lands where the keyboard
+    // would enter it — the checked radio, else the first enabled one.
+    let rootEl: HTMLElement | null = null;
+    const radios = (): HTMLInputElement[] =>
+        rootEl
+            ? [...rootEl.querySelectorAll<HTMLInputElement>('input[type="radio"]')].filter((r) => r.name === ctx.name)
+            : [];
+    fc.reportValidity({
+        element: () => radios()[0] ?? null,
+        value: () => state.value,
+        focus: () => {
+            const all = radios();
+            (all.find((r) => r.checked) ?? all.find((r) => !r.disabled))?.focus();
+        },
+    }, onUnmounted);
+
     const orientation = (): Orientation => props.orientation ?? 'vertical';
 
     const dataContent = (): JSXElement[] => collection.items().map((item) => {
@@ -184,6 +201,7 @@ const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit,
                 aria-describedby={[fc.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
                 {...fc.axisAttrs()}
                 class={props.class}
+                ref={(node: HTMLElement | null) => { rootEl = node; }}
             >
                 {slots.default ? slots.default() : items() ? dataContent() : null}
             </div>

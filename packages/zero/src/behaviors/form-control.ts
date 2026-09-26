@@ -25,9 +25,13 @@
  *   and those elements are not.
  * - Reset restores the component's default into the model and the element
  *   (`onFormReset`).
+ * - A control reports its validation surface to the Field
+ *   (`reportValidity`): the element constraint validation runs on, the
+ *   model value, and what to focus. The Field owns everything after that —
+ *   `validate`, `validateOn`, the `invalid` event, `Field.Error`'s `match`.
  */
 import { createId } from './create-id.js';
-import { useFieldContext, type FieldContext } from './field.js';
+import { useFieldContext, type FieldContext, type FieldValidityReport } from './field.js';
 import { dataAttr } from '../contract/data-attrs.js';
 import type { ColorValue, SizeScale } from '../contract/tokens.js';
 import { variantAttrs } from '../contract/variant-attrs.js';
@@ -84,6 +88,11 @@ export interface FormControl {
     axisAttrs(): Record<string, string | undefined>;
     /** A hidden control's wiring: name, form, disabled. Render it only when `hasName()`. */
     hiddenAttrs(): { name: string | undefined; form: string | undefined; disabled: boolean };
+    /**
+     * Report the control's validation surface to its Field (#284) — call
+     * during setup; it detaches on unmount. A no-op outside a Field.
+     */
+    reportValidity(report: FieldValidityReport, onUnmounted: (fn: () => void) => void): void;
 }
 
 export function createFormControl(opts: FormControlOptions): FormControl {
@@ -135,6 +144,10 @@ export function createFormControl(opts: FormControlOptions): FormControl {
             form: form(),
             disabled: disabled(),
         }),
+        reportValidity: (report, onUnmounted) => {
+            const detach = field.report?.(report);
+            if (detach) onUnmounted(detach);
+        },
     };
 }
 

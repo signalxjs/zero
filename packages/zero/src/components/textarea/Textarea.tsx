@@ -30,7 +30,7 @@
 import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define, ModelModifiers } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
-import { createFormControl } from '../../behaviors/form-control.js';
+import { createFormControl, type FormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { createAutosize, type Autosize } from '../../behaviors/autosize.js';
 import { useTextControlBinding } from '../../behaviors/text-control-binding.js';
@@ -78,6 +78,8 @@ interface TextareaContext {
     required(): boolean;
     readonly(): boolean;
     focusVisible: { value: boolean };
+    /** The Root's `reportValidity` — the Textarea part reports its element (#284). */
+    reportValidity: FormControl['reportValidity'];
 }
 
 function makeInert(): TextareaContext {
@@ -100,6 +102,7 @@ function makeInert(): TextareaContext {
         required: () => false,
         readonly: () => false,
         focusVisible: { value: false },
+        reportValidity: () => {},
     };
 }
 
@@ -187,6 +190,7 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
         required: fc.required,
         readonly: fc.readonly,
         focusVisible,
+        reportValidity: fc.reportValidity,
     };
     defineProvide(useTextareaContext, () => ctx);
 
@@ -255,6 +259,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
     // keys first, and every text or caret change.
     const claim = useTextControlBinding()?.claim() ?? null;
     let el: HTMLTextAreaElement | null = null;
+    ctx.reportValidity({ element: () => el, value: () => ctx.state.value, focus: () => el?.focus() }, onUnmounted);
 
     // The app's onInput is attached at mount, not in the JSX: sigx appends
     // the model's own listener after every declared prop, so a JSX onInput

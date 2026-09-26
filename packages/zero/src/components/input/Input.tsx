@@ -174,7 +174,7 @@ export type InputRootProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => {
+const InputRoot = component<InputRootProps>(({ props, slots, emit, signal, onUnmounted }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
@@ -248,6 +248,11 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
         },
     };
     defineProvide(useInputContext, () => ctx);
+    fc.reportValidity({
+        element: () => inputEl,
+        value: () => state.value,
+        focus: () => inputEl?.focus(),
+    }, onUnmounted);
 
     return () => (
         <div

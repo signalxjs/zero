@@ -786,6 +786,16 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         });
     }));
     onUnmounted(() => detachReset());
+    // Validity lives on the hidden select when named, else on the input. In
+    // trigger mode the Input or Textarea inside is the field's control and
+    // reports itself.
+    if (!triggerMode) {
+        fc.reportValidity({
+            element: () => hidden ?? (input as HTMLInputElement | null),
+            value: () => state.value,
+            focus: () => input?.focus(),
+        }, onUnmounted);
+    }
 
     const ctx: ComboboxContext = {
         state,
