@@ -244,6 +244,232 @@ describe('FileUpload', () => {
         expect(trigger.id).toBe(label.getAttribute('for'));
     });
 
+    it('a failed required check lands focus on the trigger, cancels the bubble, and reads invalid until the files change', () => {
+        const form = document.createElement('form');
+        container.appendChild(form);
+        render(sample({ required: true, name: 'docs' }), form);
+        const trigger = part(form, 'trigger');
+        const root = part(form, 'root');
+        expect(root.hasAttribute('data-invalid')).toBe(false);
+
+        const invalid = new Event('invalid', { cancelable: true });
+        part(form, 'input').dispatchEvent(invalid);
+        // No 1px bubble: the platform's default is cancelled, the user lands
+        // where they can act.
+        expect(invalid.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(trigger);
+        expect(root.getAttribute('data-invalid')).toBe('');
+        expect(trigger.getAttribute('aria-invalid')).toBe('true');
+        expect(part(form, 'label').getAttribute('data-invalid')).toBe('');
+
+        // Any change to the files clears the redirect's invalid.
+        drag(part(form, 'dropzone'), 'drop', [file('a.txt')]);
+        expect(root.hasAttribute('data-invalid')).toBe(false);
+        expect(trigger.hasAttribute('aria-invalid')).toBe(false);
+    });
+
+    it('removing a file moves focus to the next remove button, else the previous, else the trigger', () => {
+        render(sample(), container);
+        drag(part(container, 'dropzone'), 'drop', [file('a.txt'), file('b.txt'), file('c.txt')]);
+        const names = () => parts(container, 'item-name').map((el) => el.textContent);
+        expect(names()).toEqual(['a.txt', 'b.txt', 'c.txt']);
+
+        // Middle: the next file's button (c).
+        let removes = parts(container, 'item-remove');
+        removes[1]!.focus();
+        removes[1]!.click();
+        expect(names()).toEqual(['a.txt', 'c.txt']);
+        expect(document.activeElement?.getAttribute('aria-label')).toBe('Remove c.txt');
+
+        // Last: no next, so the previous one (a).
+        removes = parts(container, 'item-remove');
+        removes[1]!.click();
+        expect(names()).toEqual(['a.txt']);
+        expect(document.activeElement?.getAttribute('aria-label')).toBe('Remove a.txt');
+
+        // Only one left: the trigger.
+        parts(container, 'item-remove')[0]!.click();
+        expect(names()).toEqual([]);
+        expect(document.activeElement).toBe(part(container, 'trigger'));
+    });
+
+    it('a drag leaving into a child of the dropzone keeps the highlight', () => {
+        render(
+            <FileUpload.Root>
+                <FileUpload.Dropzone><span class="hint">Drop here</span></FileUpload.Dropzone>
+            </FileUpload.Root>,
+            container,
+        );
+        const dropzone = part(container, 'dropzone');
+        const child = dropzone.querySelector<HTMLElement>('.hint')!;
+        const leave = (el: HTMLElement, relatedTarget: EventTarget | null) => {
+            const e = new Event('dragleave', { bubbles: true });
+            Object.defineProperty(e, 'relatedTarget', { value: relatedTarget });
+            el.dispatchEvent(e);
+        };
+
+        drag(dropzone, 'dragenter');
+        drag(dropzone, 'dragover');
+        expect(dropzone.getAttribute('data-highlighted')).toBe('');
+        // relatedTarget names a descendant: not a leave at all.
+        drag(child, 'dragenter');
+        leave(dropzone, child);
+        expect(dropzone.getAttribute('data-highlighted')).toBe('');
+        // Out to somewhere else entirely: cleared.
+        leave(child, document.body);
+        expect(dropzone.hasAttribute('data-highlighted')).toBe(false);
+
+        // No relatedTarget (WebKit): enters and leaves are counted.
+        drag(dropzone, 'dragenter');
+        drag(dropzone, 'dragover');
+        drag(child, 'dragenter');
+        leave(dropzone, null);
+        expect(dropzone.getAttribute('data-highlighted')).toBe('');
+        leave(child, null);
+        expect(dropzone.hasAttribute('data-highlighted')).toBe(false);
+    });
+
+    it('constraints reject with codes through filesReject; accepted files still join the model', () => {
+        const rejects: { file: File; errors: string[] }[][] = [];
+        const changes: File[][] = [];
+        render(sample({
+            maxFiles: 3,
+            minFileSize: 2,
+            maxFileSize: 100,
+            validate: (f: File) => (f.name.startsWith('secret') ? 'forbidden-name' : null),
+            onFilesReject: (r: { file: File; errors: string[] }[]) => rejects.push(r),
+            onFilesChange: (f: File[]) => changes.push(f),
+        }), container);
+        const dropzone = part(container, 'dropzone');
+        drag(dropzone, 'drop', [
+            file('ok.txt', 10),
+            file('huge.txt', 500),
+            file('tiny.txt', 1),
+            file('pic.png', 10, 'image/png'),
+            file('secret.txt', 10),
+            file('big.png', 500, 'image/png'),
+        ]);
+        expect(changes.at(-1)!.map((f) => f.name)).toEqual(['ok.txt']);
+        expect(rejects).toHaveLength(1);
+        expect(rejects[0]!.map((r) => [r.file.name, r.errors])).toEqual([
+            ['huge.txt', ['too-large']],
+            ['tiny.txt', ['too-small']],
+            ['pic.png', ['invalid-type']],
+            ['secret.txt', ['forbidden-name']],
+            ['big.png', ['invalid-type', 'too-large']],
+        ]);
+
+        // maxFiles counts what the model already holds.
+        drag(dropzone, 'drop', [file('b.txt', 10), file('c.txt', 10), file('d.txt', 10)]);
+        expect(changes.at(-1)!.map((f) => f.name)).toEqual(['ok.txt', 'b.txt', 'c.txt']);
+        expect(rejects.at(-1)!.map((r) => [r.file.name, r.errors])).toEqual([['d.txt', ['too-many']]]);
+
+        // A selection with nothing refused emits no filesReject.
+        parts(container, 'item-remove')[0]!.click();
+        drag(dropzone, 'drop', [file('e.txt', 10)]);
+        expect(rejects).toHaveLength(2);
+    });
+
+    it('validate may return several codes; single mode refuses the extras as too-many', () => {
+        const rejects: { file: File; errors: string[] }[][] = [];
+        render(
+            <FileUpload.Root
+                validate={(f: File) => (f.name === 'x.txt' ? ['a', 'b'] : null)}
+                onFilesReject={(r: { file: File; errors: string[] }[]) => rejects.push(r)}
+            >
+                <FileUpload.Dropzone>Drop</FileUpload.Dropzone>
+            </FileUpload.Root>,
+            container,
+        );
+        drag(part(container, 'dropzone'), 'drop', [file('x.txt'), file('one.txt'), file('two.txt')]);
+        expect(rejects[0]!.map((r) => [r.file.name, r.errors])).toEqual([
+            ['x.txt', ['a', 'b']],
+            ['two.txt', ['too-many']],
+        ]);
+    });
+
+    it('a refused picker selection is not left in the input to post', () => {
+        render(sample({ maxFileSize: 10 }), container);
+        const input = part(container, 'input') as unknown as HTMLInputElement;
+        const dt = new DataTransfer();
+        dt.items.add(file('big.txt', 50));
+        input.files = dt.files;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(parts(container, 'item')).toHaveLength(0);
+        expect(input.files?.length ?? 0).toBe(0);
+    });
+
+    it('directory and capture reach the input', () => {
+        render(sample({ directory: true, capture: 'environment' }), container);
+        const input = part(container, 'input');
+        expect(input.hasAttribute('webkitdirectory')).toBe(true);
+        expect(input.getAttribute('capture')).toBe('environment');
+
+        const plain = document.createElement('div');
+        document.body.appendChild(plain);
+        render(sample(), plain);
+        expect(part(plain, 'input').hasAttribute('webkitdirectory')).toBe(false);
+        expect(part(plain, 'input').hasAttribute('capture')).toBe(false);
+    });
+
+    it('clear-trigger renders only with files, empties the model and hands focus to the trigger', () => {
+        const changes: File[][] = [];
+        render(
+            <FileUpload.Root multiple defaultFiles={[file('a.txt'), file('b.txt')]} onFilesChange={(f: File[]) => changes.push(f)}>
+                <FileUpload.Trigger>Browse…</FileUpload.Trigger>
+                <FileUpload.ClearTrigger>Clear</FileUpload.ClearTrigger>
+                <FileUpload.ItemGroup>
+                    {(files: File[]) => files.map((f) => (
+                        <FileUpload.Item file={f} key={f.name}><FileUpload.ItemName /></FileUpload.Item>
+                    ))}
+                </FileUpload.ItemGroup>
+            </FileUpload.Root>,
+            container,
+        );
+        expectAnatomy(container, fileUploadAnatomy);
+        const clear = part(container, 'clear-trigger');
+        expect(clear.tagName).toBe('BUTTON');
+        expect(clear.getAttribute('type')).toBe('button');
+        expect(clear.getAttribute('aria-label')).toBe('Clear files');
+        clear.focus();
+        clear.click();
+        expect(changes.at(-1)).toEqual([]);
+        expect(parts(container, 'item')).toHaveLength(0);
+        // Nothing to clear: nothing rendered.
+        expect(part(container, 'clear-trigger')).toBeNull();
+        expect(document.activeElement).toBe(part(container, 'trigger'));
+    });
+
+    it('clear-trigger takes a label and answers to disabled', () => {
+        render(
+            <FileUpload.Root disabled defaultFiles={[file('a.txt')]}>
+                <FileUpload.ClearTrigger label="Remove all attachments">✕</FileUpload.ClearTrigger>
+            </FileUpload.Root>,
+            container,
+        );
+        const clear = part(container, 'clear-trigger') as unknown as HTMLButtonElement;
+        expect(clear.getAttribute('aria-label')).toBe('Remove all attachments');
+        expect(clear.disabled).toBe(true);
+        expect(clear.getAttribute('data-disabled')).toBe('');
+    });
+
+    it('an Item renders a rejected file with data-invalid', () => {
+        const rejected = file('nope.png', 4, 'image/png');
+        render(
+            <FileUpload.Root>
+                <FileUpload.ItemGroup>
+                    <FileUpload.Item file={rejected} invalid><FileUpload.ItemName /></FileUpload.Item>
+                    <FileUpload.Item file={file('fine.txt')}><FileUpload.ItemName /></FileUpload.Item>
+                </FileUpload.ItemGroup>
+            </FileUpload.Root>,
+            container,
+        );
+        expectAnatomy(container, fileUploadAnatomy);
+        const items = parts(container, 'item');
+        expect(items[0]!.getAttribute('data-invalid')).toBe('');
+        expect(items[1]!.hasAttribute('data-invalid')).toBe(false);
+    });
+
     it('declares no states — presence flags carry everything', () => {
         for (const name of fileUploadAnatomy.partNames()) {
             expect(fileUploadAnatomy.parts[name].states, `${name} must declare no states`).toBeUndefined();

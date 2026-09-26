@@ -417,6 +417,7 @@ describe('the pass-through reaches every part', () => {
                 <FileUpload.Label {...p('label')}>Files</FileUpload.Label>
                 <FileUpload.Dropzone {...p('dropzone')}>Drop</FileUpload.Dropzone>
                 <FileUpload.Trigger {...p('trigger')}>Browse</FileUpload.Trigger>
+                <FileUpload.ClearTrigger {...p('clear-trigger')}>Clear</FileUpload.ClearTrigger>
                 <FileUpload.ItemGroup {...p('item-group')}>
                     {(files: File[]) => files.map((f) => (
                         <FileUpload.Item {...p('item')} file={f}>

@@ -343,16 +343,20 @@ export type {
 export { Table, tableAnatomy, useTableContext } from './components/table/index.js';
 export type { TableRootProps, TablePartProps, TableCaptionProps, TableRowProps, TableHeaderCellProps, TableCellProps, TableCellSpanProps, TableCellColumnProps, TableColumn } from './components/table/index.js';
 
-export { FileUpload, fileUploadAnatomy, acceptsFile, formatBytes, useFileUploadContext } from './components/file-upload/index.js';
+export { FileUpload, fileUploadAnatomy, acceptsFile, fileErrors, formatBytes, useFileUploadContext } from './components/file-upload/index.js';
 export type {
     FileUploadRootProps,
     FileUploadLabelProps,
     FileUploadTriggerProps,
+    FileUploadClearTriggerProps,
     FileUploadDropzoneProps,
     FileUploadItemGroupProps,
     FileUploadItemProps,
     FileUploadItemTextProps,
     FileUploadItemRemoveProps,
+    FileRejection,
+    FileRejectionCode,
+    FileConstraints,
 } from './components/file-upload/index.js';
 
 export { Carousel, carouselAnatomy, useCarouselContext } from './components/carousel/index.js';

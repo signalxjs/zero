@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE['file-upload']` gains the constraint props (zero#273)
+
+- FileUpload's new root props — `capture`, `directory`, `maxFileSize`,
+  `maxFiles`, `minFileSize`, `validate` — are reserved, so a vendor-named
+  api cannot claim them as axis props.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE.button` gains `focusableWhenDisabled` (zero#275)
 
 - Button's new prop is reserved, so a vendor-named api cannot claim it as

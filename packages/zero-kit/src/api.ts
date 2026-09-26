@@ -273,7 +273,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     drawer: ['defaultOpen', 'dismissible', 'label', 'modal', 'placement', 'value'],
     field: ['id', 'invalid', 'readonly', 'required', 'role', 'title'],
     grid: ['align', 'cols', 'gap', 'gapX', 'gapY', 'id', 'justify', 'pad', 'padX', 'padY', 'role', 'title', 'track'],
-    'file-upload': ['accept', 'defaultFiles', 'form', 'id', 'invalid', 'multiple', 'name', 'required', 'role', 'title', 'value'],
+    'file-upload': ['accept', 'capture', 'defaultFiles', 'directory', 'form', 'id', 'invalid', 'maxFileSize', 'maxFiles', 'minFileSize', 'multiple', 'name', 'required', 'role', 'title', 'validate', 'value'],
     indicator: ['id', 'role', 'title'],
     input: ['autocapitalize', 'autocomplete', 'autocorrect', 'autofocus', 'defaultValue', 'enterkeyhint', 'form', 'id', 'inputmode', 'invalid', 'maxlength', 'minlength', 'name', 'pattern', 'readonly', 'required', 'role', 'spellcheck', 'title', 'type', 'value'],
     join: ['id', 'role', 'title'],

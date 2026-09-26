@@ -6161,6 +6161,12 @@ export const fileUpload: RecipeInput = {
             },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)' },
+                // A rejected file the app renders through Item: the error
+                // border AND a wash — the app's message carries the reason.
+                invalid: {
+                    borderColor: 'var(--color-error)',
+                    background: 'color-mix(in oklch, var(--color-error) 6%, var(--color-base-100))',
+                },
             },
         },
         'item-name': {
@@ -6186,6 +6192,21 @@ export const fileUpload: RecipeInput = {
             base: {
                 ...iconClose,
                 padding: 'var(--space-2xs) var(--space-xs)',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+        // Empties the list — the remove button's quiet look, at text size,
+        // since it usually carries a word rather than a glyph.
+        'clear-trigger': {
+            base: {
+                ...iconClose,
+                padding: 'var(--space-2xs) var(--space-xs)',
+                fontSize: 'var(--fu-font)',
             },
             states: {
                 hover: { background: inkWash },

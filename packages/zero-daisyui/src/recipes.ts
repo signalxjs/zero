@@ -6252,7 +6252,15 @@ export const fileUpload: RecipeInput = {
                 borderRadius: 'var(--radius-field)',
                 background: 'var(--color-base-100)',
             },
-            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                // A rejected file the app renders through Item: daisy's
+                // error border over a faint error wash.
+                invalid: {
+                    borderColor: 'var(--color-error)',
+                    background: 'color-mix(in oklab, var(--color-error) 8%, var(--color-base-100))',
+                },
+            },
         },
         'item-name': {
             base: {
@@ -6279,6 +6287,26 @@ export const fileUpload: RecipeInput = {
                 color: 'inherit',
                 borderRadius: '9999px',
                 padding: 'var(--space-2xs) var(--space-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        // daisy's btn-ghost btn-xs: the remove button's pill, at text size.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                borderRadius: '9999px',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                fontSize: 'var(--fu-font)',
+                fontWeight: 'var(--weight-semibold)',
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
             },
