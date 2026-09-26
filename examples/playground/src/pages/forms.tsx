@@ -1,6 +1,6 @@
 import { component, signal } from 'sigx';
 import {
-    Button, Checkbox, Combobox, Field, Input, NumberInput,
+    Button, Checkbox, Combobox, Field, Fieldset, Input, NumberInput,
     RadioGroup, RatingGroup, Select, Slider, Switch, Textarea, ToggleGroup,
 } from '@sigx/zero';
 import type { PageEntry } from './registry';
@@ -25,7 +25,7 @@ const COUNTRIES = [
  * six claims per scope in happy-dom.
  */
 const FormsDemos = component(() => {
-    const state = signal({ posted: '', validPosted: '' });
+    const state = signal({ posted: '', validPosted: '', fieldsetPosted: '', shipElsewhere: false });
 
     const onSubmit = (e: Event): void => {
         e.preventDefault();
@@ -271,6 +271,83 @@ const FormsDemos = component(() => {
                 </Slider.Track>
                 <Slider.ValueText />
             </Slider.Root>
+            <h2>Fieldset</h2>
+            <p>
+                <small>
+                    <code>Fieldset.Root</code> renders a native{' '}
+                    <code>&lt;fieldset&gt;</code> named by its{' '}
+                    <code>Fieldset.Legend</code> (#285). Its <code>disabled</code>{' '}
+                    disables the native controls the platform's way and reaches
+                    the ones zero draws itself — the slider thumb, the radio
+                    items, the select trigger — through context, so nothing
+                    inside takes input or posts. The checkbox in the legend
+                    stays live, as the platform exempts a legend's controls:
+                    tick it to enable the section. <code>readonly</code> and{' '}
+                    <code>invalid</code>, which a native fieldset cannot say,
+                    reach every control the same way.
+                </small>
+            </p>
+            <form
+                data-demo="fieldset-form"
+                onSubmit={(e: Event) => {
+                    e.preventDefault();
+                    const data = new FormData(e.target as HTMLFormElement);
+                    state.fieldsetPosted = JSON.stringify(Object.fromEntries(
+                        [...data.entries()].filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+                    ));
+                }}
+            >
+                <Fieldset.Root disabled={!state.shipElsewhere}>
+                    <Fieldset.Legend>
+                        <Checkbox.Root model={[state, 'shipElsewhere']}>Ship to a different address</Checkbox.Root>
+                    </Fieldset.Legend>
+                    <Field.Root>
+                        <Field.Label>Street</Field.Label>
+                        <Input.Root name="fs-street" defaultValue="Storgatan 1">
+                            <Input.Control><Input.Input /></Input.Control>
+                        </Input.Root>
+                    </Field.Root>
+                    <Field.Root>
+                        <Field.Label>Country</Field.Label>
+                        <Select.Root name="fs-country" defaultValue="sweden" items={COUNTRIES} itemKey={(c) => c.value} itemValue={(c) => c.value} />
+                    </Field.Root>
+                    <Field.Root>
+                        <Field.Label>Delivery</Field.Label>
+                        <RadioGroup.Root
+                            name="fs-delivery"
+                            defaultValue="standard"
+                            items={[{ id: 'standard', name: 'Standard' }, { id: 'express', name: 'Express' }]}
+                            itemKey={(d) => d.id}
+                            itemLabel={(d) => d.name}
+                        />
+                    </Field.Root>
+                    <Slider.Root name="fs-priority" defaultValue={[2]} min={0} max={5}>
+                        <Slider.Label>Priority</Slider.Label>
+                        <Slider.Track>
+                            <Slider.Range />
+                            <Slider.Thumb label="Priority" />
+                        </Slider.Track>
+                    </Slider.Root>
+                </Fieldset.Root>
+                <p><Button.Root type="submit">Save address</Button.Root></p>
+            </form>
+            <pre data-testid="fieldset-posted">{state.fieldsetPosted || '—'}</pre>
+            <Fieldset.Root readonly>
+                <Fieldset.Legend>Billing (readonly)</Fieldset.Legend>
+                <Field.Root>
+                    <Field.Label>Company</Field.Label>
+                    <Input.Root name="fs-company" defaultValue="Acme AB">
+                        <Input.Control><Input.Input /></Input.Control>
+                    </Input.Root>
+                </Field.Root>
+                <Switch.Root name="fs-invoice" defaultChecked>Paper invoice</Switch.Root>
+            </Fieldset.Root>
+            <Fieldset.Root invalid>
+                <Fieldset.Legend>Contact me by (invalid)</Fieldset.Legend>
+                <Checkbox.Root name="fs-contact-email">Email</Checkbox.Root>
+                <Checkbox.Root name="fs-contact-phone">Phone</Checkbox.Root>
+                <p><small>Choose at least one.</small></p>
+            </Fieldset.Root>
         </>
     );
 }, { name: 'FormsDemos' });
