@@ -275,7 +275,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     grid: ['align', 'cols', 'gap', 'gapX', 'gapY', 'id', 'justify', 'pad', 'padX', 'padY', 'role', 'title', 'track'],
     'file-upload': ['accept', 'capture', 'defaultFiles', 'directory', 'form', 'id', 'invalid', 'maxFileSize', 'maxFiles', 'minFileSize', 'multiple', 'name', 'required', 'role', 'title', 'validate', 'value'],
     indicator: ['id', 'role', 'title'],
-    input: ['autocapitalize', 'autocomplete', 'autocorrect', 'autofocus', 'defaultValue', 'enterkeyhint', 'form', 'id', 'inputmode', 'invalid', 'maxlength', 'minlength', 'name', 'pattern', 'readonly', 'required', 'role', 'spellcheck', 'title', 'type', 'value'],
+    input: ['autocapitalize', 'autocomplete', 'autocorrect', 'autofocus', 'defaultValue', 'defaultVisible', 'enterkeyhint', 'form', 'id', 'inputmode', 'invalid', 'maxlength', 'minlength', 'name', 'pattern', 'readonly', 'required', 'role', 'spellcheck', 'title', 'type', 'value'],
     join: ['id', 'role', 'title'],
     kbd: ['id', 'role', 'title'],
     menu: ['closeOnSelect', 'defaultOpen', 'loop', 'offset', 'placement', 'positionStrategy', 'value'],

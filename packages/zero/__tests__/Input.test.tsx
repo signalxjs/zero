@@ -247,3 +247,216 @@ describe('Input', () => {
         expect(root.getAttribute('data-size')).toBe('lg');
     });
 });
+
+describe('Input affordances (#281)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    function mountAll(extra: {
+        model?: unknown;
+        defaultValue?: string;
+        type?: 'text' | 'password' | 'search';
+        visible?: unknown;
+        defaultVisible?: boolean;
+        disabled?: boolean;
+        readonly?: boolean;
+        onValueChange?: (v: string) => void;
+        onVisibleChange?: (v: boolean) => void;
+        onInput?: (e: Event) => void;
+    } = {}) {
+        render(
+            <Input.Root
+                model={extra.model as never}
+                model:visible={extra.visible as never}
+                defaultValue={extra.defaultValue}
+                defaultVisible={extra.defaultVisible}
+                type={extra.type}
+                disabled={extra.disabled}
+                readonly={extra.readonly}
+                onValueChange={extra.onValueChange}
+                onVisibleChange={extra.onVisibleChange}
+            >
+                <Input.Label>Secret</Input.Label>
+                <Input.Control>
+                    <Input.Adornment placement="start"><svg data-icon="" /></Input.Adornment>
+                    <Input.Input onInput={extra.onInput} />
+                    <Input.Adornment placement="end"><button type="button" data-own="">?</button></Input.Adornment>
+                    <Input.ClearTrigger />
+                    <Input.VisibilityTrigger />
+                </Input.Control>
+            </Input.Root>,
+            container,
+        );
+    }
+
+    it('renders a valid anatomy with every part', () => {
+        mountAll({ type: 'password', defaultValue: 'hunter2' });
+        expectAnatomy(container, inputAnatomy);
+        for (const name of ['adornment', 'clear-trigger', 'visibility-trigger']) {
+            expect(part(container, name), `input/${name} must render`).toBeTruthy();
+        }
+        const [start, end] = container.querySelectorAll('[data-part="adornment"]');
+        expect(start!.getAttribute('data-placement')).toBe('start');
+        expect(end!.getAttribute('data-placement')).toBe('end');
+        // Consumer content decides whether it speaks.
+        expect(start!.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    it('a press on an adornment focuses the input and keeps the caret', () => {
+        mountAll({ defaultValue: 'x' });
+        const icon = container.querySelector('[data-icon]')!;
+        const down = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+        icon.dispatchEvent(down);
+        expect(down.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(field(container));
+    });
+
+    it('an interactive element inside an adornment keeps its own press', () => {
+        mountAll({ defaultValue: 'x' });
+        const own = container.querySelector<HTMLButtonElement>('[data-own]')!;
+        const down = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+        own.dispatchEvent(down);
+        expect(down.defaultPrevented).toBe(false);
+        expect(document.activeElement).not.toBe(field(container));
+    });
+
+    it('clear-trigger is a labelled, untabbable button that controls the input', () => {
+        mountAll({ defaultValue: 'abc' });
+        const clear = part(container, 'clear-trigger') as HTMLButtonElement;
+        expect(clear.tagName).toBe('BUTTON');
+        expect(clear.getAttribute('type')).toBe('button');
+        expect(clear.tabIndex).toBe(-1);
+        expect(clear.getAttribute('aria-label')).toBe('Clear');
+        expect(clear.getAttribute('aria-controls')).toBe(field(container).id);
+    });
+
+    it('clear-trigger empties the value like typing, emits valueChange, and focuses the input', () => {
+        const state = signal({ q: 'abc' });
+        const changes: string[] = [];
+        const inputs: string[] = [];
+        mountAll({
+            model: () => state.q,
+            onValueChange: (v) => changes.push(v),
+            onInput: (e) => inputs.push((e.target as HTMLInputElement).value),
+        });
+        part(container, 'clear-trigger').click();
+        expect(state.q).toBe('');
+        expect(field(container).value).toBe('');
+        expect(changes).toEqual(['']);
+        // The app's own input listener sees the clear as it sees a keystroke.
+        expect(inputs).toEqual(['']);
+        expect(document.activeElement).toBe(field(container));
+        // Nothing left to clear: nothing rendered.
+        expect(part(container, 'clear-trigger')).toBeNull();
+        type(field(container), 'z');
+        expect(part(container, 'clear-trigger')).toBeTruthy();
+    });
+
+    it('clear-trigger is not rendered while the value is empty', () => {
+        mountAll();
+        expect(part(container, 'clear-trigger')).toBeNull();
+    });
+
+    it('clear-trigger answers to disabled and readonly — clearing is an edit', () => {
+        mountAll({ defaultValue: 'x', readonly: true });
+        const clear = part(container, 'clear-trigger') as HTMLButtonElement;
+        expect(clear.disabled).toBe(true);
+        expect(clear.getAttribute('data-disabled')).toBe('');
+    });
+
+    it('clear-trigger takes a label', () => {
+        render(
+            <Input.Root defaultValue="x">
+                <Input.Control>
+                    <Input.Input />
+                    <Input.ClearTrigger label="Clear search">✕</Input.ClearTrigger>
+                </Input.Control>
+            </Input.Root>,
+            container,
+        );
+        expect(part(container, 'clear-trigger').getAttribute('aria-label')).toBe('Clear search');
+    });
+
+    it('Escape clears a non-empty search field and is cancelled for enclosing layers', () => {
+        const changes: string[] = [];
+        mountAll({ type: 'search', defaultValue: 'term', onValueChange: (v) => changes.push(v) });
+        const esc = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+        field(container).dispatchEvent(esc);
+        expect(esc.defaultPrevented).toBe(true);
+        expect(field(container).value).toBe('');
+        expect(changes).toEqual(['']);
+        // Empty now: Escape passes through to whatever would close.
+        const again = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+        field(container).dispatchEvent(again);
+        expect(again.defaultPrevented).toBe(false);
+    });
+
+    it('Escape leaves a non-search field alone', () => {
+        mountAll({ type: 'text', defaultValue: 'term' });
+        const esc = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+        field(container).dispatchEvent(esc);
+        expect(esc.defaultPrevented).toBe(false);
+        expect(field(container).value).toBe('term');
+    });
+
+    it('visibility-trigger toggles a password field between hidden and shown', () => {
+        const changes: boolean[] = [];
+        mountAll({ type: 'password', onVisibleChange: (v) => changes.push(v) });
+        const toggle = part(container, 'visibility-trigger') as HTMLButtonElement;
+        expect(toggle.getAttribute('type')).toBe('button');
+        expect(toggle.getAttribute('aria-label')).toBe('Show password');
+        expect(toggle.getAttribute('aria-controls')).toBe(field(container).id);
+        expect(toggle.getAttribute('aria-pressed')).toBe('false');
+        expect(toggle.getAttribute('data-state')).toBe('off');
+        expect(field(container).getAttribute('type')).toBe('password');
+
+        toggle.click();
+        expect(toggle.getAttribute('aria-pressed')).toBe('true');
+        expect(toggle.getAttribute('data-state')).toBe('on');
+        expect(field(container).getAttribute('type')).toBe('text');
+        // One constant name — the pressed state says the rest.
+        expect(toggle.getAttribute('aria-label')).toBe('Show password');
+        expect(changes).toEqual([true]);
+
+        toggle.click();
+        expect(field(container).getAttribute('type')).toBe('password');
+        expect(changes).toEqual([true, false]);
+    });
+
+    it('model:visible binds, and defaultVisible seeds', () => {
+        const state = signal({ shown: true });
+        mountAll({ type: 'password', visible: () => state.shown });
+        expect(field(container).getAttribute('type')).toBe('text');
+        part(container, 'visibility-trigger').click();
+        expect(state.shown).toBe(false);
+        expect(field(container).getAttribute('type')).toBe('password');
+
+        const other = document.createElement('div');
+        document.body.appendChild(other);
+        render(
+            <Input.Root type="password" defaultVisible>
+                <Input.Control><Input.Input /><Input.VisibilityTrigger /></Input.Control>
+            </Input.Root>,
+            other,
+        );
+        expect(field(other).getAttribute('type')).toBe('text');
+    });
+
+    it('visible changes nothing on a field that is not a password', () => {
+        mountAll({ type: 'search', defaultVisible: true });
+        expect(field(container).getAttribute('type')).toBe('search');
+    });
+
+    it('the triggers answer to disabled', () => {
+        mountAll({ type: 'password', defaultValue: 'x', disabled: true });
+        for (const name of ['clear-trigger', 'visibility-trigger']) {
+            const el = part(container, name) as HTMLButtonElement;
+            expect(el.disabled, name).toBe(true);
+            expect(el.getAttribute('data-disabled'), name).toBe('');
+        }
+        expect(part(container, 'adornment').getAttribute('data-disabled')).toBe('');
+    });
+});

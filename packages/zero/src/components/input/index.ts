@@ -4,6 +4,9 @@ export type {
     InputLabelProps,
     InputControlProps,
     InputInputProps,
+    InputAdornmentProps,
+    InputClearTriggerProps,
+    InputVisibilityTriggerProps,
     InputHandle,
     InputType,
 } from './Input.js';
