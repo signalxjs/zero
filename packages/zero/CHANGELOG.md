@@ -65,7 +65,8 @@
 
 - **`expandOnClick`** on `TreeView.Root` (default `true`): a branch-row
   click selects and toggles. `false`: the row only selects, and a click on
-  `TreeView.BranchIndicator` only toggles (it stops the row's click).
+  `TreeView.BranchIndicator` only toggles (it stops the row's click and
+  its default action, so an `asChild` link trigger does not navigate).
 - **`*`** expands every enabled branch at the focused node's level (the
   focused node included, as APG's reference tree does), merged
   into the expanded model in one `expandedValuesChange`; it is not a
