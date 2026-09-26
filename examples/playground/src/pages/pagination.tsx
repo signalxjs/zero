@@ -40,8 +40,7 @@ const PaginationDemos = component(() => {
                 <code>role="link"</code> and <code>aria-disabled</code>.
             </p>
             <div onClick={(e: MouseEvent) => {
-                const link = (e.target as Element | null)?.closest('a[href]');
-                if (link) e.preventDefault();
+                if (e.target instanceof Element && e.target.closest('a[href]')) e.preventDefault();
             }}>
                 <Pagination.Root
                     count={6}
