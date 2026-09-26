@@ -164,6 +164,8 @@ const SCANS: Record<string, Scan[]> = {
         { name: 'grouped select', open: openSelect('select', 'grouped-fruit') },
         { name: 'virtual select', open: openSelect('select', 'station') },
         { name: 'virtual grouped select', open: openSelect('select', 'station-by-line') },
+        // The separator and the clear-trigger beside the trigger (#280).
+        { name: 'clearable select with separator', open: openSelect('select', 'clearable-fruit') },
     ],
     combobox: [
         // A bare input click only focuses — the caret Trigger is the opener.
@@ -171,6 +173,10 @@ const SCANS: Record<string, Scan[]> = {
         { name: 'grouped combobox', open: openSelect('combobox', 'grouped-country') },
         { name: 'virtual combobox', open: openSelect('combobox', 'station-search') },
         { name: 'virtual grouped combobox', open: openSelect('combobox', 'station-search-by-line') },
+        // The separator, the clear-trigger, and a busy listbox owning the
+        // loading live region (#280).
+        { name: 'clearable combobox with separator', open: openSelect('combobox', 'clearable-country') },
+        { name: 'loading combobox', open: openSelect('combobox', 'city') },
     ],
     forms: [
         { name: 'form select', open: openSelect('select', 'form-fruit') },

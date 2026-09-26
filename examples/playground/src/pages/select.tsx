@@ -127,6 +127,32 @@ const SelectDemos = component(() => {
                     </Select.Group>
                 </Select.Popup>
             </Select.Root>
+            <h2>Clearing, and separators</h2>
+            <p>
+                <small>
+                    <code>Select.ClearTrigger</code> is a real button beside the
+                    trigger — never inside it — rendered while something is
+                    selected; it clears the model and hands focus back to the
+                    trigger (<code>clearable</code> adds one to the default
+                    composition). <code>Select.Separator</code> is a rule
+                    between runs of options that navigation, typeahead and the
+                    option count walk straight past.
+                </small>
+            </p>
+            <Select.Root name="clearable-fruit" defaultValue="lime" placeholder="Pick a fruit…">
+                <Select.Trigger label="Fruit (clearable)">
+                    <Select.Value />
+                    <Select.Indicator />
+                </Select.Trigger>
+                <Select.ClearTrigger />
+                <Select.Popup>
+                    <Select.Item value="lemon">Lemon</Select.Item>
+                    <Select.Item value="lime">Lime</Select.Item>
+                    <Select.Separator />
+                    <Select.Item value="peach">Peach</Select.Item>
+                    <Select.Item value="plum">Plum</Select.Item>
+                </Select.Popup>
+            </Select.Root>
             {/*
               * The first scope other than button to wire a variant (#297).
               * zero-basic gives select its OWN three-value vocabulary through

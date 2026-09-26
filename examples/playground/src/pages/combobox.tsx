@@ -11,6 +11,8 @@ const COUNTRIES = [
     'Portugal', 'Sweden', 'Thailand', 'Uruguay',
 ];
 
+const CITIES = ['Bergen', 'Gothenburg', 'Helsinki', 'Malmö', 'Oslo', 'Reykjavík', 'Stockholm', 'Tampere'];
+
 const TOOLS = ['browser', 'editor', 'git', 'search', 'shell'];
 
 const COMMANDS = ['clear', 'deploy', 'describe', 'help', 'history'];
@@ -32,6 +34,7 @@ const ComboboxDemos = component(() => {
         sent: '',
         command: '',
         ran: '',
+        citiesLoading: true,
     });
 
     return () => (
@@ -92,6 +95,58 @@ const ComboboxDemos = component(() => {
                     </Combobox.Group>
                 </Combobox.Popup>
             </Combobox.Root>
+            <h2>Clearing, separators and loading</h2>
+            <p>
+                <small>
+                    <code>Combobox.ClearTrigger</code> sits in the control beside
+                    the chevron while there is a value or text to clear, and
+                    empties both (Escape on the closed input does the same from
+                    the keyboard). <code>Combobox.Separator</code> rules off a
+                    run of options without ever becoming one.
+                </small>
+            </p>
+            <Combobox.Root name="clearable-country" defaultValue="sweden" placeholder="Pick a country…" openOnClick>
+                <Combobox.Control>
+                    <Combobox.Input aria-label="Country (clearable)" />
+                    <Combobox.ClearTrigger />
+                    <Combobox.Trigger />
+                </Combobox.Control>
+                <Combobox.Popup>
+                    <Combobox.Item value="norway">Norway</Combobox.Item>
+                    <Combobox.Item value="sweden">Sweden</Combobox.Item>
+                    <Combobox.Separator />
+                    <Combobox.Item value="australia">Australia</Combobox.Item>
+                    <Combobox.Item value="japan">Japan</Combobox.Item>
+                </Combobox.Popup>
+            </Combobox.Root>
+            <p>
+                <small>
+                    <code>loading</code> marks the listbox <code>aria-busy</code>,
+                    renders <code>Combobox.Loading</code> (here from{' '}
+                    <code>loadingText</code>) and holds <code>Combobox.Empty</code>{' '}
+                    back — an unfinished list is not an empty one.
+                </small>
+            </p>
+            <label>
+                <input
+                    type="checkbox"
+                    checked={state.citiesLoading}
+                    onChange={(e: Event) => { state.citiesLoading = (e.target as HTMLInputElement).checked; }}
+                />
+                {' '}Cities still loading
+            </label>
+            <Field.Root>
+                <Field.Label>City</Field.Label>
+                <Combobox.Root
+                    items={state.citiesLoading ? [] : CITIES}
+                    loading={state.citiesLoading}
+                    loadingText="Loading cities…"
+                    emptyText="No city matches"
+                    clearable
+                    name="city"
+                    placeholder="Search cities…"
+                />
+            </Field.Root>
             <h2>Long lists</h2>
             <p>
                 <small>
