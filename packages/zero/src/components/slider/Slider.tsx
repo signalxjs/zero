@@ -376,7 +376,9 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
     const boundsAt = (index: number): { lo: number; hi: number } => {
         const vals = values();
         const raw = props.minStepsBetweenThumbs;
-        const steps = typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : 0;
+        // Whole steps only, so the bounds stay on the grid: a fractional
+        // count rounds up to the gap that honours it.
+        const steps = typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? Math.ceil(raw) : 0;
         const p = precision();
         const lower = min();
         const upper = Math.max(lower, max());

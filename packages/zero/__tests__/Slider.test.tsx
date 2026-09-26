@@ -594,6 +594,13 @@ describe('Slider minStepsBetweenThumbs (#272)', () => {
         expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('0.3');
     });
 
+    it('rounds a fractional step count up, keeping the bounds on the grid', () => {
+        const state = signal({ price: [20, 40] });
+        const { thumbs } = mountRange(state, { minStepsBetweenThumbs: 1.5, step: 2 });
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('36');
+        expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('24');
+    });
+
     it('degrades an impossible gap to no-crossing, never inverting the bounds', () => {
         const state = signal({ price: [40, 50] });
         const { thumbs } = mountRange(state, { minStepsBetweenThumbs: 80 });

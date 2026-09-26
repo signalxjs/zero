@@ -244,8 +244,8 @@ spelled `writing-mode: vertical-lr; direction: rtl`); Select and Combobox group 
 Diff's handle all move by `step` on the arrows and by `largeStep` on
 PageUp/PageDown and Shift+Arrow (default ten steps; Diff's `step` 1 and
 `largeStep` 10, in percent) — a native `Slider.Control` included, whose own
-PageUp is engine-defined. Slider's `minStepsBetweenThumbs` (default 0) keeps
-neighbouring thumbs that many steps apart, and each thumb announces the gap
+PageUp is engine-defined. Slider's `minStepsBetweenThumbs` (default 0; a fraction rounds up to
+whole steps) keeps neighbouring thumbs that many steps apart, and each thumb announces the gap
 in its `aria-valuemin`/`aria-valuemax`; a gap its neighbours leave no room
 for degrades to plain no-crossing, so the bounds never invert or leave
 `[min, max]`, and they always hold the thumb's own value. Slider's `valueCommit` fires with
