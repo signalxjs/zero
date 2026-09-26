@@ -670,11 +670,13 @@ const TreeViewBranchIndicator = component<TreeViewBranchIndicatorProps>(({ props
                 // under an asChild link or button trigger, from navigating
                 // or submitting.
                 if (ctx.expandOnClick()) return;
+                // Outside a registered Branch there is nothing to toggle, so
+                // the click is not ours to swallow.
+                const node = ctx.tree.findNode(value());
+                if (!node) return;
                 e.stopPropagation();
                 e.preventDefault();
-                // Outside a registered Branch there is nothing to toggle.
-                const node = ctx.tree.findNode(value());
-                if (!node || ctx.disabled() || node.disabled()) return;
+                if (ctx.disabled() || node.disabled()) return;
                 ctx.toggleBranch(node.value);
                 node.el()?.focus();
             }}

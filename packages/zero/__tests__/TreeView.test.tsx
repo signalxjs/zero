@@ -245,10 +245,11 @@ describe('TreeView', () => {
         expect(document.activeElement).toBe(branch);
     });
 
-    it('expandOnClick=false: an indicator outside any Branch toggles nothing', () => {
+    it('expandOnClick=false: an indicator outside any Branch toggles nothing and swallows nothing', () => {
+        const state = signal({ file: '' });
         const onExpandedValuesChange = vi.fn();
         render(
-            <TreeView.Root expandOnClick={false} onExpandedValuesChange={onExpandedValuesChange}>
+            <TreeView.Root model={[state, 'file'] as never} expandOnClick={false} onExpandedValuesChange={onExpandedValuesChange}>
                 <TreeView.Tree>
                     <TreeView.Item value="leaf">
                         <TreeView.BranchIndicator />
@@ -258,8 +259,12 @@ describe('TreeView', () => {
             </TreeView.Root>,
             container,
         );
-        container.querySelector<HTMLElement>('[data-part="branch-indicator"]')!.click();
+        const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+        container.querySelector<HTMLElement>('[data-part="branch-indicator"]')!.dispatchEvent(click);
         expect(onExpandedValuesChange).not.toHaveBeenCalled();
+        // The click reaches the item it sits in, default intact.
+        expect(click.defaultPrevented).toBe(false);
+        expect(state.file).toBe('leaf');
     });
 
     it("'*' on a closed branch expands it along with its level", () => {
