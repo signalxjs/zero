@@ -287,6 +287,16 @@ declare module '@sigx/zero' {
                 axes: { 'shape': 'circle' | 'square' | 'rounded' };
                 mods: Record<string, never>;
             };
+            /** avatar-group — size wired. */
+            'avatar-group': {
+                /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
+                color: never;
+                size: 'sm' | 'lg' | 'xl' | '2xl' | 'md';
+                /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** toast — size wired. */
             'toast': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */

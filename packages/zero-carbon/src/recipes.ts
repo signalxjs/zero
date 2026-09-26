@@ -2585,6 +2585,74 @@ export const avatar: RecipeInput = {
     },
 };
 
+// ── Avatar group ──────────────────────────────────────────────────────────
+/**
+ * Avatar group (#297) — Carbon does not overlap: its square tiles sit in a
+ * row with the 2px spacing-01 gap between them, the grid's own rhythm, and
+ * the "+N" count is one more tile on the next layer up. No colour axis here
+ * (`roles: {}`); the group's `size` borrows the avatar's own size step
+ * (`composes`), so a group sizes its tiles without a prop on each, and an
+ * avatar's own `size` still wins.
+ */
+const avatarGroupSteps: Record<string, [string, string]> = {
+    sm: ['calc(var(--size-selector) * 8)', 'var(--text-xs)'],
+    lg: ['calc(var(--size-selector) * 12)', 'var(--text-md)'],
+    xl: ['calc(var(--size-selector) * 16)', 'var(--text-lg)'],
+    '2xl': ['calc(var(--size-selector) * 20)', 'var(--text-xl)'],
+};
+
+export const avatarGroup: RecipeInput = {
+    component: 'avatar-group',
+    tokens: {
+        '--avatar-group-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-group-text': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                verticalAlign: 'middle',
+            },
+        },
+        overflow: {
+            base: {
+                display: 'inline-grid',
+                placeItems: 'center',
+                boxSizing: 'border-box',
+                minWidth: 'var(--avatar-group-size)',
+                height: 'var(--avatar-group-size)',
+                paddingInline: 'var(--space-2xs)',
+                borderRadius: 'var(--radius-selector)',
+                background: 'var(--color-base-300)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--avatar-group-text)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap',
+                userSelect: 'none',
+            },
+        },
+    },
+    compoundVariants: Object.keys(avatarGroupSteps).map((size) => ({
+        match: { size },
+        parts: {},
+        composes: { avatar: { axes: { size } } },
+    })),
+    variants: {
+        size: {
+            ...Object.fromEntries(Object.entries(avatarGroupSteps).map(([size, [box, text]]) => [size, { root: { base: {
+                '--avatar-group-size': box, '--avatar-group-text': text,
+            } } }])),
+            // `md` is the un-attributed render — the defaults in `tokens:`.
+            md: {},
+        },
+    },
+};
+
 // ── Toast ─────────────────────────────────────────────────────────────────
 /**
  * A toast whose indicator is rendered (#292): the grid grows a leading column
@@ -6531,7 +6599,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
-    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, avatarGroup, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,

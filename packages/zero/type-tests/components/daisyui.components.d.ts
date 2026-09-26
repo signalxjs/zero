@@ -32,6 +32,7 @@ import type { Accordion as ZAccordion } from '@sigx/zero/accordion';
 import type { Select as ZSelect } from '@sigx/zero/select';
 import type { Button as ZButton } from '@sigx/zero/button';
 import type { Avatar as ZAvatar } from '@sigx/zero/avatar';
+import type { AvatarGroup as ZAvatarGroup } from '@sigx/zero/avatar-group';
 import type { Toast as ZToast } from '@sigx/zero/toast';
 import type { Combobox as ZCombobox } from '@sigx/zero/combobox';
 import type { Toggle as ZToggle } from '@sigx/zero/toggle';
@@ -271,6 +272,14 @@ type AvatarProps = {
 };
 type AvatarAdapted = Adapted<typeof ZAvatar, ZeroAxisProp, AvatarProps>;
 export declare const Avatar: AvatarAdapted & AdaptedStatics<typeof ZAvatar> & { Root: AvatarAdapted };
+
+/** avatar-group — no vendor route; the wired surface keeps zero's names. */
+type AvatarGroupProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'lg' | 'xl' | 'md';
+};
+type AvatarGroupAdapted = Adapted<typeof ZAvatarGroup, ZeroAxisProp, AvatarGroupProps>;
+export declare const AvatarGroup: AvatarGroupAdapted & AdaptedStatics<typeof ZAvatarGroup> & { Root: AvatarGroupAdapted };
 
 /** toast — no vendor route; the wired surface keeps zero's names. */
 type ToastProps = {

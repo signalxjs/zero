@@ -2584,6 +2584,93 @@ const TOAST_CHECK = 'polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 
 const TOAST_CROSS = 'polygon(20% 8%, 50% 38%, 80% 8%, 92% 20%, 62% 50%, 92% 80%, 80% 92%, 50% 62%, 20% 92%, 8% 80%, 38% 50%, 8% 20%)';
 
 /**
+ * Avatar group (#297) — Material has no group component, so this is its
+ * avatar vocabulary stacked: circles overlapping by a quarter, each cut out
+ * of the one before by a surface ring, and the "+N" chip is a monogram on
+ * the high surface container in the label type. The group's `size` borrows
+ * the avatar's own size step (`composes`), so a group sizes its faces
+ * without a prop on each, and an avatar's own `size` still wins. Colour is
+ * the chip's tonal container, the monogram's own treatment.
+ */
+const avatarGroupSteps: Record<string, [string, string]> = {
+    xs: ['calc(var(--size-selector) * 6)', 'var(--text-xs)'],
+    sm: ['calc(var(--size-selector) * 8)', 'var(--text-xs)'],
+    lg: ['calc(var(--size-selector) * 12)', 'var(--text-md)'],
+    xl: ['calc(var(--size-selector) * 16)', 'var(--text-lg)'],
+};
+
+export const avatarGroup: RecipeInput = {
+    component: 'avatar-group',
+    tokens: {
+        '--avatar-group-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-group-accent': 'var(--color-surface-container-high)',
+        '--avatar-group-on-accent': 'var(--color-surface-container-high-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                verticalAlign: 'middle',
+                isolation: 'isolate',
+            },
+        },
+        overflow: {
+            base: {
+                // Positioned like the avatars, or it would paint under the
+                // face it overlaps.
+                position: 'relative',
+                ...label,
+                display: 'inline-grid',
+                placeItems: 'center',
+                boxSizing: 'border-box',
+                minWidth: 'var(--avatar-group-size)',
+                height: 'var(--avatar-group-size)',
+                paddingInline: 'var(--space-2xs)',
+                marginInlineStart: 'calc(var(--avatar-group-size) * -0.25)',
+                borderRadius: '9999px',
+                boxShadow: '0 0 0 2px var(--color-base-100)',
+                background: 'var(--avatar-group-accent)',
+                color: 'var(--avatar-group-on-accent)',
+                whiteSpace: 'nowrap',
+                userSelect: 'none',
+            },
+        },
+    },
+    composes: {
+        avatar: {
+            parts: {
+                root: {
+                    base: { boxShadow: '0 0 0 2px var(--color-base-100)' },
+                    selectors: {
+                        '&:not(:first-child)': { marginInlineStart: 'calc(var(--avatar-group-size) * -0.25)' },
+                    },
+                },
+            },
+        },
+    },
+    compoundVariants: Object.keys(avatarGroupSteps).map((size) => ({
+        match: { size },
+        parts: {},
+        composes: { avatar: { axes: { size } } },
+    })),
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--avatar-group-accent': `var(--color-${c}-soft)`,
+            '--avatar-group-on-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            ...Object.fromEntries(Object.entries(avatarGroupSteps).map(([size, [box, text]]) => [size, {
+                root: { base: { '--avatar-group-size': box } },
+                overflow: { base: { fontSize: text } },
+            }])),
+            // `md` is the un-attributed render — the defaults in `tokens:`.
+            md: {},
+        },
+    },
+};
+
+/**
  * Toast presence is runtime-managed — plain two-state transitions, no
  * `@starting-style`/`allow-discrete`. The M3 snackbar: a raised
  * surface-container card sliding in from the nearest edge, ripples on its
@@ -6732,7 +6819,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, hoverCard, menu, menubar, select,
-    switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, toast, combobox,
+    switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, avatarGroup, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,

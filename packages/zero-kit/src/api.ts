@@ -253,6 +253,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     accordion: ['collapsible', 'defaultValue', 'id', 'loop', 'multiple', 'regions', 'role', 'title', 'value'],
     alert: ['defaultOpen', 'finalFocus', 'id', 'live', 'title', 'value'],
     avatar: ['id', 'role', 'title'],
+    'avatar-group': ['id', 'label', 'title'],
     badge: ['id', 'role', 'title'],
     box: ['id', 'pad', 'padX', 'padY', 'role', 'title'],
     breadcrumbs: ['defaultExpanded', 'id', 'itemsAfterCollapse', 'itemsBeforeCollapse', 'label', 'maxItems', 'role', 'title'],

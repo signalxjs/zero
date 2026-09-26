@@ -28,6 +28,7 @@ import { accordionAnatomy } from './components/accordion/anatomy.js';
 import { buttonAnatomy } from './components/button/anatomy.js';
 import { selectAnatomy } from './components/select/anatomy.js';
 import { avatarAnatomy } from './components/avatar/anatomy.js';
+import { avatarGroupAnatomy } from './components/avatar-group/anatomy.js';
 import { toastAnatomy } from './components/toast/anatomy.js';
 import { comboboxAnatomy } from './components/combobox/anatomy.js';
 import { toggleAnatomy } from './components/toggle/anatomy.js';
@@ -76,7 +77,7 @@ export {
     buttonAnatomy,
     tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, hoverCardAnatomy, menuAnatomy, menubarAnatomy,
     fieldAnatomy, fieldsetAnatomy, checkboxAnatomy, checkboxGroupAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
-    avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
+    avatarAnatomy, avatarGroupAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
     stackAnatomy, spacerAnatomy, gridAnatomy, centerAnatomy, boxAnatomy, containerAnatomy,
@@ -107,6 +108,7 @@ export const anatomies = {
     accordion: accordionAnatomy,
     select: selectAnatomy,
     avatar: avatarAnatomy,
+    'avatar-group': avatarGroupAnatomy,
     toast: toastAnatomy,
     combobox: comboboxAnatomy,
     toggle: toggleAnatomy,

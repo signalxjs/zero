@@ -266,6 +266,15 @@ declare module '@sigx/zero' {
                 axes: { 'shape': 'circle' | 'square' | 'rounded' };
                 mods: Record<string, never>;
             };
+            /** avatar-group — color, size wired. */
+            'avatar-group': {
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                size: 'xs' | 'sm' | 'lg' | 'xl' | 'md';
+                /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** toast — color, size wired. */
             'toast': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';

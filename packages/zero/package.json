@@ -131,6 +131,10 @@
             "types": "./dist/components/avatar/index.d.ts",
             "import": "./dist/components/avatar/index.js"
         },
+        "./avatar-group": {
+            "types": "./dist/components/avatar-group/index.d.ts",
+            "import": "./dist/components/avatar-group/index.js"
+        },
         "./toast": {
             "types": "./dist/components/toast/index.d.ts",
             "import": "./dist/components/toast/index.js"

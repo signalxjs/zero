@@ -36,6 +36,7 @@ export default defineLibConfig({
         'components/accordion/index': 'src/components/accordion/index.ts',
         'components/select/index': 'src/components/select/index.ts',
         'components/avatar/index': 'src/components/avatar/index.ts',
+        'components/avatar-group/index': 'src/components/avatar-group/index.ts',
         'components/toast/index': 'src/components/toast/index.ts',
         'components/combobox/index': 'src/components/combobox/index.ts',
         'components/toggle/index': 'src/components/toggle/index.ts',

@@ -196,7 +196,12 @@ REAL scroll drives the model back through the IntersectionObserver),
 diff (the divider handle's captured drag moves the painted reveal, APG
 keyboard steps, and an RTL check measured in boxes — the reveal is a
 logical inline-size, which the physical-direction lint cannot see),
-pagination link mode (#294: every control an `<a href>`, a real click and
+avatar-group (#297, every design system: the "+N" chip stands as tall as
+the faces beside it, a small group's avatars really are smaller than a
+default group's while carrying no `data-size` of their own — the size
+arrives through the recipe's borrowed `composes`, an `@scope` block no
+simulated DOM resolves — and the stack keeps reading order however far a
+skin overlaps it), pagination link mode (#294: every control an `<a href>`, a real click and
 Enter move the model while only the demo's stand-in router prevents the
 navigation, and a bound that lost its `href` stays a tab stop),
 breadcrumbs collapse (#295: Tab steps from the leading link straight to

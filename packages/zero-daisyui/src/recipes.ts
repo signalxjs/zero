@@ -3600,6 +3600,100 @@ export const avatar: RecipeInput = {
 };
 
 /**
+ * Avatar group (#297) — daisy's `avatar-group`: the faces overlap by a
+ * quarter, each already cut out by the avatar's own base-100 gap ring, and the
+ * "+N" chip is daisy's `avatar-placeholder` (neutral fill, neutral-content
+ * ink, a circle) wearing the same ring. The group's `size` borrows the
+ * avatar's own size step (`composes`), so a group sizes its faces without a
+ * prop on each, and an avatar's own `size` still wins. Colour is daisy's
+ * ring colour: it rings the chip, and it is borrowed by the avatars too, so
+ * one `color` on the group rings every face alike.
+ */
+const avatarGroupSteps: Record<string, [string, string]> = {
+    xs: ['calc(var(--size-selector) * 6)', 'var(--text-xs)'],
+    sm: ['calc(var(--size-selector) * 8)', 'var(--text-xs)'],
+    lg: ['calc(var(--size-selector) * 12)', 'var(--text-md)'],
+    xl: ['calc(var(--size-selector) * 16)', 'var(--text-lg)'],
+};
+
+export const avatarGroup: RecipeInput = {
+    component: 'avatar-group',
+    tokens: {
+        '--avatar-group-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-group-text': 'var(--text-sm)',
+        '--avatar-group-ring': 'var(--color-primary)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                verticalAlign: 'middle',
+                isolation: 'isolate',
+            },
+        },
+        overflow: {
+            base: {
+                // Positioned like the avatars, or it would paint under the
+                // face it overlaps.
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                boxSizing: 'border-box',
+                minWidth: 'var(--avatar-group-size)',
+                height: 'var(--avatar-group-size)',
+                paddingInline: 'var(--space-2xs)',
+                marginInlineStart: 'calc(var(--avatar-group-size) * -0.25)',
+                borderRadius: '9999px',
+                boxShadow: '0 0 0 2px var(--color-base-100), 0 0 0 4px var(--avatar-group-ring)',
+                background: 'var(--color-neutral)',
+                color: 'var(--color-neutral-content)',
+                fontSize: 'var(--avatar-group-text)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap',
+                userSelect: 'none',
+            },
+        },
+    },
+    composes: {
+        avatar: {
+            parts: {
+                root: {
+                    selectors: {
+                        '&:not(:first-child)': { marginInlineStart: 'calc(var(--avatar-group-size) * -0.25)' },
+                    },
+                },
+            },
+        },
+    },
+    compoundVariants: [
+        ...Object.keys(avatarGroupSteps).map((size) => ({
+            match: { size },
+            parts: {},
+            composes: { avatar: { axes: { size } } },
+        })),
+        ...ROLES.map((color) => ({
+            match: { color },
+            parts: {},
+            composes: { avatar: { axes: { color } } },
+        })),
+    ],
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--avatar-group-ring': `var(--color-${c})`,
+        } } }])),
+        size: {
+            ...Object.fromEntries(Object.entries(avatarGroupSteps).map(([size, [box, text]]) => [size, { root: { base: {
+                '--avatar-group-size': box, '--avatar-group-text': text,
+            } } }])),
+            // `md` is the un-attributed render — the defaults in `tokens:`.
+            md: {},
+        },
+    },
+};
+
+/**
  * A toast whose indicator is rendered (#292): the grid grows a leading column
  * for the mark, and the text, action and close step one column along.
  */
@@ -8151,7 +8245,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
-    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, avatarGroup, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
