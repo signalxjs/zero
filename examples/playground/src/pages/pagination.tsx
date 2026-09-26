@@ -40,6 +40,9 @@ const PaginationDemos = component(() => {
                 <code>role="link"</code> and <code>aria-disabled</code>.
             </p>
             <div onClick={(e: MouseEvent) => {
+                // Like a router: only a plain primary click is intercepted; a
+                // modified or middle click opens elsewhere as usual.
+                if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                 if (e.target instanceof Element && e.target.closest('a[href]')) e.preventDefault();
             }}>
                 <Pagination.Root
