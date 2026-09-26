@@ -44,7 +44,7 @@ export const POSITION_PROPERTIES = [
  *
  * - `--arrow-x` — on a `top*`/`bottom*` popup (the arrow runs along the
  *   top or bottom edge): the arrow's left offset.
- * - `--arrow-y` — on a side popup (`left*`/`right*`/`start*`/`end*`): the
+ * - `--arrow-y` — on a side popup (`left*`/`right*`/`start`/`end`): the
  *   arrow's top offset.
  *
  * Exactly one is set at a time; the other is removed. The value centres the
