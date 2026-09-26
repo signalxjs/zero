@@ -113,6 +113,40 @@
   shading.
 - **Switch, lynx target:** daisy's depth shading on the track and knob.
 
+### Added — Fieldset, and group-level disabled/readonly/invalid (#285)
+
+- **A new component, `Fieldset`** (`@sigx/zero/fieldset` and the barrel):
+  `Fieldset.Root` renders a native `<fieldset>`, `Fieldset.Legend` the
+  native `<legend>` (render it first — the platform names the group from
+  it; no `aria-labelledby`). Root takes `disabled`, `readonly`, `invalid`
+  and the axis props. Parts: `root` (flags `disabled`, `readonly`,
+  `invalid`; tokens color/size) and `legend` (`parent: 'root'`, flags
+  `disabled`, `invalid`). No state, no model.
+- **The flags reach every control inside.** A new `FieldsetContext`
+  (`useFieldsetContext` / `provideFieldsetContext`, on
+  `@sigx/zero/behaviors` and `/behaviors/core`) carries the effective
+  flags — own OR the nearest enclosing fieldset's, so nested fieldsets
+  chain. `createFormControl` ORs them into every control's
+  `disabled`/`readonly`/`invalid`, so the controls the platform cannot
+  disable (Slider thumbs, RadioGroup and RatingGroup items, ToggleGroup
+  items, the Select trigger's flags, the FileUpload trigger) render
+  `data-disabled`/`aria-disabled`, refuse input and do not post.
+  `Field.Root` ORs them too, so a Field's root and Label carry the group's
+  flags. Controls inside `Fieldset.Legend` answer to the fieldsets outside
+  it — the platform's legend exemption, where an "enable this section"
+  checkbox lives.
+- **All six design systems style it**: an unframed stack under a
+  heading-weight legend in basic, daisyUI (its `.fieldset` grid), Material,
+  HeroUI and Carbon (`cds--fieldset`), an inked frame with a stamped legend
+  in brutalist; every skin undoes the UA's `min-inline-size: min-content`.
+- Playground: a Fieldset section on the Forms page; `e2e/fieldset.spec.ts`
+  holds the native/non-native split, the legend exemption and posting in
+  three engines.
+- Size: `@sigx/zero/fieldset` 1.7 kB; the full barrel 64.83 → 65.10 kB, and
+  the form-control entries (input, textarea, select, combobox, toggle-group,
+  number-input, rating-group, file-upload) grow by 8–34 B each for the
+  context read.
+
 ## [0.6.0] - 2026-09-26
 
 ### Added — Tabs indicator and lazy panels (#283)
