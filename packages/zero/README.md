@@ -30,7 +30,7 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 
 ## Components
 
-Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · Menu ·
+Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · HoverCard · Menu ·
 Select · Switch · Checkbox · CheckboxGroup · RadioGroup · Slider · Progress ·
 Field · Fieldset · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · EmptyState · Badge · Divider ·
@@ -490,8 +490,8 @@ renders (empty and `hidden`), so every tab's `aria-controls` resolves.
 **Popup exits play in every engine** (#17). A design system animates a
 popup's exit in CSS off `data-state="closed"`, and on Chromium CSS `overlay`
 keeps the element in the top layer while it plays. Firefox and WebKit have
-no `overlay`, so there Dialog, Drawer, Popover, Menu, Tooltip, Select and
-Combobox hold the native `close()` / `hidePopover()` back until the popup's
+no `overlay`, so there Dialog, Drawer, Popover, Menu, Tooltip, HoverCard,
+Select and Combobox hold the native `close()` / `hidePopover()` back until the popup's
 own exit transition or animation has finished — never longer than its
 computed length, so a stalled one cannot leave a popup stuck open. For
 that span the popup is still shown natively (a modal dialog stays modal),
@@ -758,7 +758,7 @@ halo and slider-thumb halo — expressible as pure CSS.
 
 Popup geometry is published the same way (#278). Every popup the built-in
 position strategy places — Select, Combobox, Menu and its submenus, Popover,
-Tooltip — carries, beside `data-placement`, the custom properties
+Tooltip, HoverCard — carries, beside `data-placement`, the custom properties
 `POSITION_PROPERTIES` names (`@sigx/zero/contract`), re-measured on every
 update:
 
@@ -779,7 +779,7 @@ them with a fallback: a substituted `positionStrategy` may not publish
 them. They are left in place when the popup closes, so an exit transition
 keeps its size and origin.
 
-Those five roots also take `collisionPadding` (px, default 8): the margin a
+Those six roots also take `collisionPadding` (px, default 8): the margin a
 popup keeps from the viewport edges. The flip treats it as the edge, the
 shift clamps inside it, and the available sizes subtract it. And
 `alignOffset` (px, default 0) moves a `-start`/`-end` popup along the cross
@@ -787,8 +787,9 @@ axis, away from the edge it aligns to — in the reading direction for an
 alignment above or below. A centred placement ignores it. `Menu.Sub` takes
 both too.
 
-**The arrow (#279).** Popover, Tooltip and Menu take an arrow part —
-`Popover.Arrow`, `Tooltip.Arrow`, `Menu.Arrow` — rendered only when the app
+**The arrow (#279).** Popover, Tooltip, HoverCard and Menu take an arrow
+part — `Popover.Arrow`, `Tooltip.Arrow`, `HoverCard.Arrow`, `Menu.Arrow` —
+rendered only when the app
 renders it, inside the popup: an empty `<span aria-hidden="true">` the
 design system draws. Only the strategy knows where the anchor's centre
 lands on the popup edge that faces it once the flip and the shift have
@@ -1048,7 +1049,7 @@ its native `form`/`name`/`value`, `Table.Cell`/`Table.HeaderCell` take
 
 - **On the part's own element**, for nearly every part. A fragment root
   (`Dialog.Root`, `Drawer.Root`, `Popover.Root`, `Tooltip.Root`,
-  `Menu.Root`, `Menu.Sub`, `Combobox.Tags`) renders no element and takes
+  `HoverCard.Root`, `Menu.Root`, `Menu.Sub`, `Combobox.Tags`) renders no element and takes
   none: the Trigger and the popup each carry their own.
 - **Split, where the part wraps the element assistive tech reads**:
   `Table.Root` puts `aria-*` and `role` on the `<table>` and the rest on its
@@ -1645,6 +1646,47 @@ the open sibling at once. While a member is open, or within `skipDelay` ms
 user has already shown they are reading labels. The shared state lives in
 the provided context, one per rendered group, so nothing leaks across SSR
 requests.
+
+**The hover card (#290).** A preview on the way to a destination — the
+profile behind an `@mention`, the page behind a link — whose content may be
+interactive:
+
+```tsx
+<HoverCard.Root>
+    <HoverCard.Trigger href="/users/ada">@ada</HoverCard.Trigger>
+    <HoverCard.Popup>
+        <HoverCard.Arrow />
+        Ada Lovelace — <a href="/users/ada/followers">1.2k followers</a>
+    </HoverCard.Popup>
+</HoverCard.Root>
+```
+
+Parts: `trigger` (an `<a>`, `asChild` for your own element; `href` rides the
+bag; `data-state` open|closed and `data-focus-visible`), `popup` (a
+`popover="manual"` div, open|closed, anchor-positioned with the published
+geometry and `data-placement`) and `arrow`. The root takes `model` /
+`defaultOpen` / `openChange`, `openDelay` (default 700), `closeDelay`
+(default 300), `openOnFocus` (default true), `placement` (default `bottom`),
+`offset` (default 8) and the other anchored-popup props (`collisionPadding`,
+`alignOffset`, `arrowPadding`, `positionStrategy`).
+
+It is deliberately neither a tooltip nor a disclosure: the popup has no
+`role="tooltip"`, the trigger gets no `aria-describedby` and no
+`aria-expanded`. The card is an enhancement for sighted pointer and keyboard
+users; the link's destination is the accessible path to the same content.
+
+It opens on mouse or pen hover after `openDelay` (a touch `pointerenter` is
+ignored) and at once on *keyboard* focus of the trigger (`:focus-visible`;
+`openOnFocus={false}` turns that off). It closes `closeDelay` after the
+pointer has left both the trigger and the card; while the pointer travels
+from the trigger toward the card inside the safe triangle between them, each
+move pushes the close back, so a slow trip still arrives. Focus inside the
+card keeps it open, and it closes when focus leaves both — unless the pointer
+is over one of them. Escape closes it wherever focus is (the dismiss layer);
+when focus was inside the card, it goes back to the trigger, and that focus
+does not reopen the card. An outside press does not close it. Tooltip and
+HoverCard share their open/close timers (`createHoverIntent`, exported with
+the behaviors).
 
 ## Responsive: breakpoints and `useMediaQuery`
 

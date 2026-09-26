@@ -169,7 +169,11 @@ anchor while the trigger keeps focus restore), tooltip (hover-intent delay asser
 lower bound only, and WCAG 1.4.13: Escape dismisses a hover-opened tooltip
 while focus sits elsewhere; a click neither opens nor, until the pointer
 leaves, re-opens it; and a `Tooltip.Group` sibling opens inside the intent
-delay, #268; the arrow over the trigger's centre, #279), tabs (one roving tab stop, automatic
+delay, #268; the arrow over the trigger's centre, #279), hover-card (#290:
+the 700 ms intent delay as a lower bound, the pointer's trip from the
+trigger into the card's links, keyboard focus opening it and focus inside
+holding it open, Escape handing focus back to the trigger without reopening
+it, and the arrow's geometry), tabs (one roving tab stop, automatic
 activation, and the #283 indicator landing on the active tab within 1px and
 sliding there — and not under reduced motion), accordion (#276: arrows/Home/End move focus between triggers
 that all stay tabbable, panels are regions named by their triggers, and a
@@ -608,7 +612,7 @@ reopen the PR (or push an empty commit to it) to start CI.
 - Contract variant props pass through as `data-color` / `data-size` /
   `data-variant`. Zero attaches **no styling** to any of these. Every
   component carries the axis surface (`WithVariantAxes`); for the
-  fragment-rooted scopes (dialog, menu, popover, tooltip) the props live on
+  fragment-rooted scopes (dialog, menu, popover, tooltip, hover-card) the props live on
   the Trigger, which renders the carrier part.
 - A non-carrier part that takes an axis prop of its own declares it:
   `carries: ['color']` on `timeline.marker` (#94), `steps.item` (#112) and
