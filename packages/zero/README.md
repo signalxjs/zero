@@ -140,8 +140,9 @@ toggled. Space toggles the focused node's check (on a branch: every enabled
 leaf beneath it, all or none; a disabled leaf keeps its value); Enter keeps
 the selection, and under `multiple` Shift+Space keeps its range.
 `TreeView.NodeCheckbox` — part `node-checkbox`, an `aria-hidden` span with
-`data-state="checked|unchecked|indeterminate"` and `data-disabled` — is the
-paint hook: put it in an `Item` or a `BranchTrigger` row; a click on it
+`data-state="checked|unchecked|indeterminate"` and `data-disabled` when
+nothing can toggle it (the tree, the node, or a branch whose every leaf is
+disabled) — is the paint hook: put it in an `Item` or a `BranchTrigger` row; a click on it
 toggles the check and changes neither selection nor expansion. The selection
 stays in use under `multiple`, a bound `model` or a `defaultValue`; without
 any of them a checkable tree renders no `aria-selected`, and a click on (or

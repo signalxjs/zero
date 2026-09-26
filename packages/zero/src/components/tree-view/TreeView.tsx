@@ -137,6 +137,11 @@ interface TreeViewContext {
     checkState(value: string, isBranch: boolean): TriState;
     /** Toggle a leaf, or all of a branch's enabled descendant leaves. */
     toggleCheck(value: string): void;
+    /**
+     * Can nothing toggle this node's check? The tree or the node is disabled,
+     * or it is a branch whose every descendant leaf is.
+     */
+    checkDisabled(value: string, isBranch: boolean): boolean;
     tree: TreeController;
     labelId(): string;
     disabled(): boolean;
@@ -187,6 +192,7 @@ function makeInert(): TreeViewContext {
         checkable: () => false,
         checkState: () => 'unchecked',
         toggleCheck: () => {},
+        checkDisabled: () => false,
         tree: createTreeController({ isExpanded: () => true }),
         labelId: () => 'zx-tree-inert',
         disabled: () => false,
@@ -471,6 +477,14 @@ const TreeViewRootImpl = component<TreeViewRootProps>(({ props, slots, emit, onM
             // Disabled leaves keep their value: only the enabled ones move.
             const { enabled } = checkMembers(value);
             if (enabled.length > 0) checked.value = toggleTriState(enabled, current);
+        },
+        checkDisabled(value, isBranch) {
+            if (props.disabled || tree.findNode(value)?.disabled()) return true;
+            if (!isBranch) return false;
+            // A branch whose leaves have not registered (lazily loaded) is
+            // not disabled: it has nothing yet, not nothing enabled.
+            const { all, enabled } = checkMembers(value);
+            return all.length > 0 && enabled.length === 0;
         },
         tree,
         labelId: () => `${baseId}-label`,
@@ -1038,7 +1052,7 @@ const TreeViewNodeCheckbox = component<TreeViewNodeCheckboxProps>(({ props, slot
     const ctx = useTreeViewContext();
     const node = useTreeNodeContext();
     const disabled = (): boolean =>
-        ctx.disabled() || (node.value !== null && !!ctx.tree.findNode(node.value)?.disabled());
+        ctx.disabled() || (node.value !== null && ctx.checkDisabled(node.value, node.isBranch));
     return () => {
         const value = node.value;
         return (

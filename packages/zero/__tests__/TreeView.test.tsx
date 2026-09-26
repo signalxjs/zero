@@ -1095,6 +1095,35 @@ describe('TreeView checkable', () => {
         expect(checkedOf('a')).toBe('false');
     });
 
+    it('a branch whose every leaf is disabled paints its box disabled; a lazy branch with no leaves yet does not', () => {
+        const state = signal({ checked: ['x/1'] as string[] });
+        render(
+            <TreeView.Root model:checkedValues={[state, 'checked'] as never} defaultExpandedValues={['x']}>
+                <TreeView.Tree>
+                    <TreeView.Branch value="x">
+                        <TreeView.BranchTrigger><TreeView.NodeCheckbox />x</TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Item value="x/1" disabled><TreeView.NodeCheckbox />x1</TreeView.Item>
+                            <TreeView.Item value="x/2" disabled><TreeView.NodeCheckbox />x2</TreeView.Item>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                    <TreeView.Branch value="lazy">
+                        <TreeView.BranchTrigger><TreeView.NodeCheckbox />lazy</TreeView.BranchTrigger>
+                        <TreeView.BranchContent />
+                    </TreeView.Branch>
+                </TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+        const boxes = [...container.querySelectorAll<HTMLElement>('[data-part="branch-trigger"] > [data-part="node-checkbox"]')];
+        const [x, lazy] = boxes;
+        expect(x.getAttribute('data-state')).toBe('indeterminate');
+        expect(x.hasAttribute('data-disabled')).toBe(true);
+        click(x);
+        expect(state.checked).toEqual(['x/1']);
+        expect(lazy.hasAttribute('data-disabled')).toBe(false);
+    });
+
     it('a click on the box toggles the check and nothing else', () => {
         const checked = signal({ v: [] as string[] });
         const selected = signal({ v: '' });
