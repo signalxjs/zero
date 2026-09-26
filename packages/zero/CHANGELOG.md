@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+### Added — range stepping: `valueCommit`, `largeStep`, `minStepsBetweenThumbs`, Diff `getValueText` and `disabled` (#272)
+
+- **Slider `valueCommit`** fires with the model's shape (`number` or
+  `number[]`) when a drag is released, after each keyboard step, and on the
+  native control's `change` — each only when the value moved. It is an
+  event, not a model; `valueChange` still fires on every intermediate value.
+- **`largeStep`** on Slider and NumberInput (default `10 * step`) is what
+  PageUp/PageDown and now Shift+Arrow move by — on a Slider thumb and on the
+  native `Slider.Control`, whose own PageUp is engine-defined.
+- **Slider `minStepsBetweenThumbs`** (default 0) keeps neighbouring thumbs
+  that many steps apart; each thumb announces the gap in its
+  `aria-valuemin`/`aria-valuemax`.
+- **Diff.Handle** takes `getValueText` (`aria-valuetext`, default `"50%"`),
+  `step` (default 1) and `largeStep` (default 10, also on Shift+Arrow).
+- **`disabled` on `Diff.Root`** freezes the divider: `data-disabled` on the
+  root and the handle (a new flag on both parts' anatomy), `aria-disabled`,
+  no tab stop, no keys, no drag. Every skin fades the handle, not the panes.
+
+### Fixed — NumberInput steps an off-grid value in the direction of travel (#272)
+
+- An off-grid value (an odd `max` with `step={2}`, a value written from
+  outside) used to step by rounding to the nearest grid value, so 5 with
+  `step={2}` went Up to 8. It now lands on the neighbouring grid value in
+  the direction of travel — Up 6, Down 4 — and that landing counts as the
+  first step of a large step. On-grid values keep plain ±step. The helper
+  is `stepToward`, beside `snapToStep`.
+
 ### Fixed — pagination, carousel and table: bound triggers keep focus, DOM-ordered slides, live region, keyboard-reachable table scroll (#270)
 
 - **Bound triggers stay focusable.** Pagination's and Carousel's prev/next
