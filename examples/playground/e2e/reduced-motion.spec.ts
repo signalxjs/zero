@@ -1,5 +1,7 @@
 /**
- * The reduced-motion contract for the two components that loop (#314).
+ * The reduced-motion contract for the two components that loop (#314), plus
+ * the one-shot exits that must stop too (the drawer slide, the disclosure
+ * close).
  *
  * Skeleton and Spinner are the only parts in zero whose resting state is an
  * infinite animation, and an infinite animation is the one kind
@@ -134,6 +136,45 @@ for (const ds of SLIDES) {
         } else {
             expect(slide.duration, `${ds}: the sheet does not slide, so the reduced-motion half proves nothing`).not.toBeNull();
             expect(slide.duration!).toBeGreaterThan(100);
+        }
+    });
+}
+
+/**
+ * The disclosure close (#276), in the skins that animate it — every one but
+ * brutalist, which opts out and keeps its hard cut. A one-shot exit on the
+ * panel, read the moment after the click that starts it: in `chromium` the
+ * panel must be running the skin's exit while the `<details>` is still open
+ * (or the reduced-motion half proves nothing); under reduced motion there is
+ * no exit animation, and zero shuts the element at once rather than waiting
+ * a frame for one.
+ */
+const DISCLOSURE_EXITS = ['basic', 'daisyui', 'material', 'heroui', 'carbon'] as const;
+
+for (const ds of DISCLOSURE_EXITS) {
+    test(`${ds}: the accordion panel's close answers prefers-reduced-motion`, async ({ page }, testInfo) => {
+        const reduced = testInfo.project.name === 'reduced-motion';
+        test.skip(
+            !reduced && testInfo.project.name !== 'chromium',
+            'two projects are the whole point; the other engines add nothing here',
+        );
+        await bootPage(page, 'accordion', ds);
+        const trigger = rootLabelled(page, 'accordion', 'Native details')
+            .locator('[data-scope="accordion"][data-part="trigger"]')
+            .filter({ hasText: 'Native details' });
+        const exit = await trigger.evaluate(async (summary: HTMLElement) => {
+            const details = summary.closest('details')!;
+            const panel = details.querySelector<HTMLElement>('[data-part="panel"]')!;
+            summary.click();
+            await new Promise((r) => requestAnimationFrame(r));
+            return { name: getComputedStyle(panel).animationName, open: details.open };
+        });
+        if (reduced) {
+            expect(exit.name, `${ds}: the panel still animates its close under reduced motion`).toBe('none');
+            expect(exit.open, `${ds}: under reduced motion the <details> closes at once`).toBe(false);
+        } else {
+            expect(exit.name, `${ds}: the panel has no exit, so the reduced-motion half proves nothing`).toBe('accordion-panel-exit');
+            expect(exit.open, `${ds}: the <details> shut before the exit could play`).toBe(true);
         }
     });
 }

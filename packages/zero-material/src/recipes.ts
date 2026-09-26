@@ -240,13 +240,47 @@ const disclosurePresence: PartStyles = {
         '&::details-content': {
             blockSize: '0',
             overflow: 'hidden',
-            transition: 'block-size var(--duration-normal) var(--ease-emphasized), '
-                + 'content-visibility var(--duration-normal) allow-discrete',
         },
-        '&[open]::details-content': { blockSize: 'auto' },
+        // Open only: a close removes `open`, which hides the content before
+        // any transition could run — the panel animates that half (#276).
+        '&[open]::details-content': {
+            blockSize: 'auto',
+            transition: 'block-size var(--duration-normal) var(--ease-emphasized), '
+                    + 'content-visibility var(--duration-normal) allow-discrete',
+        },
     },
-    at: { 'reduced-motion': { selectors: { '&::details-content': { transition: 'none' } } } },
+    at: { 'reduced-motion': { selectors: { '&[open]::details-content': { transition: 'none' } } } },
 };
+
+/**
+ * The panel's close (#276). Removing `open` hides a `<details>` at once, so
+ * the close cannot live on `::details-content` the way the open does: zero
+ * flips the panel to `closed` first and holds the element open until the
+ * panel's own animation has played. The runtime publishes the panel's
+ * measured height as `--<scope>-panel-height`, which is the one value this
+ * needs — `auto` is not an endpoint any engine but Chromium can animate.
+ * `border-box` so the measured height (content + padding) is the whole box.
+ * Web-only: the property is written by the DOM runtime (`RUNTIME_PROPERTIES`).
+ */
+const disclosureExit = (scope: 'collapsible' | 'accordion'): RecipeInput['targets'] => ({
+    web: {
+        parts: {
+            panel: {
+                states: {
+                    closed: {
+                        boxSizing: 'border-box',
+                        animation: `${scope}-panel-exit var(--duration-normal) var(--ease-emphasized)`,
+                    },
+                },
+                at: { 'reduced-motion': { states: { closed: { animation: 'none' } } } },
+            },
+        },
+        keyframes: {
+            [`${scope}-panel-exit`]:
+                `from { block-size: var(--${scope}-panel-height); } to { block-size: 0; padding-block: 0; }`,
+        },
+    },
+});
 
 /**
  * Merge presence into a part's own styles per KEY, not per block: a recipe
@@ -620,6 +654,7 @@ const disclosureSizes: Record<string, Record<string, PartStyles>> = {
 
 export const collapsible: RecipeInput = {
     component: 'collapsible',
+    targets: disclosureExit('collapsible'),
     // Public to a design system derived from this one (#73).
     hooks: {
         properties: {
@@ -653,12 +688,17 @@ export const collapsible: RecipeInput = {
 
 export const accordion: RecipeInput = {
     component: 'accordion',
+    targets: disclosureExit('accordion'),
     tokens: {
         '--disclosure-accent': 'var(--color-primary)',
         '--disclosure-soft': 'var(--color-primary-soft)',
     },
     parts: {
-        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' } },
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+            // `orientation="horizontal"` (#276): the containers sit in a row.
+            selectors: { '&[data-orientation="horizontal"]': { flexDirection: 'row', alignItems: 'start' } },
+        },
         item: withPresence(disclosurePresence, {
             base: {
                 background: 'var(--color-surface-container)',
@@ -667,6 +707,7 @@ export const accordion: RecipeInput = {
                 overflow: 'hidden',
             },
             states: { open: {}, closed: {} },
+            selectors: { '[data-scope="accordion"][data-part="root"][data-orientation="horizontal"] > &': { flex: '1 1 0', minInlineSize: '0' } },
         }),
         trigger: disclosureTrigger('accordion'),
         panel: {

@@ -171,9 +171,19 @@ component renders; the root is called out separately where it carries props.
   interactive parts — see the press-feedback bullet above.
 - Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
   roving arrows, automatic|manual activation, orientation.
-- Collapsible: Root(model=open)/Trigger/Panel on native <details>.
+- Collapsible: Root(model=open)/Trigger/Panel on native <details>. The
+  panel is labelled by the trigger (no role) and publishes
+  --collapsible-panel-height/--collapsible-panel-width (measured px); a
+  close flips data-state to closed at once and keeps <details open> until
+  the panel's own animations finish, so recipes animate the panel's closed
+  state from var(--collapsible-panel-height) to 0 (web-only property).
 - Accordion: Root(model=string[])/Item/Trigger/Panel on native <details>;
-  `multiple` and `collapsible`.
+  `multiple`, `collapsible`, `orientation` (vertical default; data-orientation
+  on root and trigger), `loop`, `regions`. APG keyboard: arrows move focus
+  between enabled triggers, Home/End; no roving tabindex. Panels are
+  role=region labelled by their trigger (`regions={false}` drops the role).
+  Same size properties and deferred close as Collapsible, named
+  --accordion-panel-height/--accordion-panel-width.
 - Dialog: Root(model=open, modal, dismissible, role — renders no element)
   then Trigger/Popup/Title/Description/Footer/Close/Cancel on native <dialog>
   + top layer (no Portal). The backdrop is a `backdrop` part that renders no

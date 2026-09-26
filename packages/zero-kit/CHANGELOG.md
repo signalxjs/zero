@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added — Disclosure panel sizes are runtime-published properties (zero#276)
+
+- `RUNTIME_PROPERTIES` gains `--accordion-panel-height`,
+  `--accordion-panel-width`, `--collapsible-panel-height` and
+  `--collapsible-panel-width`, which `@sigx/zero` now writes on the panels.
+  A recipe may reference them without declaring them; like the rest of the
+  list they are web-only (`targets.web`).
+
+### Changed — `RESERVED_PROPS_BY_SCOPE.accordion` gains `loop` and `regions` (zero#276)
+
+- Accordion's new root props are reserved, so a vendor-named api cannot
+  claim them as axis props.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE['file-upload']` gains the constraint props (zero#273)
 
 - FileUpload's new root props — `capture`, `directory`, `maxFileSize`,

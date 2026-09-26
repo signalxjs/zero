@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+### Added — Accordion keyboard, labelled panels, animatable disclosure close (#276)
+
+- **Accordion follows the APG accordion keyboard.** ArrowDown/ArrowUp move
+  focus between the enabled triggers (ArrowRight/ArrowLeft under
+  `orientation="horizontal"`, flipped in RTL), Home/End jump to the
+  first/last, and focus wraps unless `loop={false}`. Arrival opens nothing,
+  and there is no roving tabindex — every trigger stays tabbable.
+- **New `Accordion.Root` props** `orientation` (`'vertical'` default),
+  `loop` (default `true`) and `regions` (default `true`). The anatomy
+  declares `orientation`; `data-orientation` rides the root and every
+  trigger.
+- **Panels are labelled by their triggers.** Each Accordion panel is
+  `role="region"` with `aria-labelledby` naming its trigger (`regions={false}`
+  drops the role — APG warns against more than ~6 regions); a Collapsible
+  panel is `aria-labelledby` its trigger with no role. An app
+  `aria-labelledby` joins the trigger's. Accordion and Collapsible triggers
+  now own their `id`, so `id` is no longer a Trigger prop.
+- **Measured panel sizes.** Panels publish `--accordion-panel-height` /
+  `--accordion-panel-width` and `--collapsible-panel-height` /
+  `--collapsible-panel-width` (px, `scrollHeight`/`scrollWidth`), fresh while
+  open and re-measured as a close starts.
+- **A `<details>` close can animate.** On close `data-state` flips to
+  `closed` at once, while the element stays `open` until the panel's own
+  animations have finished — so a recipe animates the panel's `closed`
+  state from `var(--*-panel-height)` to `0`. No animation, or
+  `prefers-reduced-motion: reduce`, closes at once; reopening mid-exit
+  cancels it; find-in-page and fragment navigation still sync the model
+  (#166).
+
 ### Fixed — FileUpload: required redirect, focus after remove, drag flicker, FileList sync (#273)
 
 - **A required upload left empty no longer bubbles from a 1px input.** The

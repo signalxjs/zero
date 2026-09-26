@@ -250,7 +250,7 @@ export interface ValidateApiOptions {
  * any drift.
  */
 export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>> = {
-    accordion: ['collapsible', 'defaultValue', 'id', 'multiple', 'role', 'title', 'value'],
+    accordion: ['collapsible', 'defaultValue', 'id', 'loop', 'multiple', 'regions', 'role', 'title', 'value'],
     alert: ['defaultOpen', 'finalFocus', 'id', 'live', 'title', 'value'],
     avatar: ['id', 'role', 'title'],
     badge: ['id', 'role', 'title'],
