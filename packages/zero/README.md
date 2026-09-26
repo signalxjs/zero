@@ -360,6 +360,28 @@ something, so on an empty combobox it still reaches an enclosing dialog.
 `openOnClick` (default `false`) opens the list on a pointer click in the
 input as well.
 
+**Clearing, separators and loading (#280).** `Select.ClearTrigger` is a real
+button in the tab order, a *sibling* of `Select.Trigger` inside the root
+(never inside it — a button cannot hold a button, and the trigger's name
+must not absorb it), `aria-label` "Clear selection" (`label` overrides). It
+renders only while something is selected and the select is editable, and a
+click writes the empty value (`null`, `''` for hand-written items, `[]` under
+`multiple`) and puts focus back on the trigger. `Combobox.ClearTrigger` sits
+in the control beside the input and trigger, a pointer affordance like the
+trigger (`tabIndex=-1`, `aria-label` "Clear"; Escape on the closed input is
+the keyboard's clear), rendered while there is a value *or* typed text; a
+click empties both and refocuses the input. `clearable` on either Root adds
+one to the default composition. `Select.Separator` / `Combobox.Separator`
+draw a rule between runs of options: `role="separator"`, `aria-hidden`
+(ARIA's listbox owns only options and groups), and never an option — the
+arrows, typeahead and a reader's option count walk straight past it.
+`Combobox.Root loading` says the list is still arriving: the listbox is
+`aria-busy="true"`, `Combobox.Loading` renders its content (the data
+expansion renders `loadingText`), and `Combobox.Empty` holds back — an
+unfinished list is not an empty one. The popup's open state is untouched.
+Like `Empty`, `Loading` is `presentation` in the listbox rather than a
+`status` region, which a listbox may not own.
+
 **Trigger mode: `@mentions` over a Textarea.** `Combobox.Root trigger="@"`
 (or a RegExp matched before the caret, whose first group is the query)
 turns the `Textarea.Textarea` composed inside it into the combobox's
