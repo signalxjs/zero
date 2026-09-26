@@ -14,10 +14,11 @@
  * turn into the arc (conic-gradient masks). Children render centred in the
  * ring's eye by every recipe, which is where the value text lives.
  */
-import { component, compound, defineInjectable, defineProvide } from 'sigx';
+import { component, compound, computed, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { countPresence, reportPresence, settleAfterMount } from '../../behaviors/part-presence.js';
 import { createId } from '../../behaviors/create-id.js';
+import { progressValueText, type WithProgressValueText } from '../progress/value-text.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { radialProgressAnatomy } from './anatomy.js';
@@ -27,6 +28,8 @@ const SCOPE = radialProgressAnatomy.scope;
 interface RadialProgressContext {
     value(): number | null;
     percent(): number | null;
+    /** The announced and shown value text; `undefined` while indeterminate (#274). */
+    valueText(): string | undefined;
     state(): 'loading' | 'complete' | 'indeterminate';
     ids: { label: string };
     /** Label reports its presence so the root's reference never dangles (#169). */
@@ -37,6 +40,7 @@ function makeInert(): RadialProgressContext {
     return {
         value: () => null,
         percent: () => null,
+        valueText: () => undefined,
         state: () => 'indeterminate',
         ids: { label: 'zx-radial-progress-inert' },
         setLabelPresent: () => {},
@@ -50,6 +54,7 @@ export type RadialProgressRootProps =
     & Define.Prop<'value', number | null, false>
     & Define.Prop<'min', number, false>
     & Define.Prop<'max', number, false>
+    & WithProgressValueText
     & WithVariantAxes<'radial-progress'>
     & WithClass
     /**
@@ -85,9 +90,14 @@ const RadialProgressRoot = component<RadialProgressRootProps>(({ props, slots, s
         if (!(span > 0)) return 100;
         return Math.min(100, Math.max(0, ((v - min()) / span) * 100));
     };
+    // One formatted string per update: the root's aria-valuetext and the
+    // default ValueText both read it, so a custom `getValueText` (or the
+    // Intl.NumberFormat) runs once, not once per reader.
+    const valueText = computed(() => progressValueText(props, valueNow(), percent(), min(), max()));
     const ctx: RadialProgressContext = {
         value,
         percent,
+        valueText: () => valueText.value,
         state: () => {
             const p = percent();
             if (p == null) return 'indeterminate';
@@ -110,6 +120,7 @@ const RadialProgressRoot = component<RadialProgressRootProps>(({ props, slots, s
                 aria-valuemin={min()}
                 aria-valuemax={max()}
                 aria-valuenow={valueNow()}
+                aria-valuetext={ctx.valueText()}
                 aria-labelledby={[
                     !present.settled || present.label > 0 ? ctx.ids.label : undefined,
                     attrs['aria-labelledby'],
@@ -143,7 +154,7 @@ const RadialProgressValueText = component<RadialProgressValueTextProps>(({ props
     const radial = useRadialProgressContext();
     return () => (
         <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="value-text" class={props.class}>
-            {slots.default?.() ?? (radial.value() != null ? `${Math.round(radial.percent()!)}%` : null)}
+            {slots.default?.() ?? radial.valueText() ?? null}
         </div>
     );
 }, { name: 'RadialProgress.ValueText' });

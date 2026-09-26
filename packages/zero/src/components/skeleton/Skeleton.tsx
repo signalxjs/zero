@@ -15,6 +15,11 @@
  * `aria-busy` rather than a live region: the reader is told this region is
  * being updated, and told once it settles. A skeleton that announced itself
  * would interrupt for something that is, by definition, not content yet.
+ *
+ * `inert` while loading: the children are placeholder content holding the
+ * layout, and a link or button in them must not take focus or clicks — Tab
+ * would otherwise land on controls nobody can see (#274). Removed once
+ * loaded.
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
@@ -48,6 +53,7 @@ const SkeletonRoot = component<SkeletonRootProps>(({ props, slots, emit }) => {
             data-part="root"
             data-state={state.value ? 'loading' : 'loaded'}
             aria-busy={state.value ? 'true' : undefined}
+            inert={state.value ? true : undefined}
             {...variantAttrs(props)}
             class={props.class}
         >

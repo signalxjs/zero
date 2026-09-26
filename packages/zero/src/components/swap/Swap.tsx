@@ -16,8 +16,13 @@
  * ```
  *
  * See `anatomy.ts` for the display-by-default and both-faces-rendered
- * decisions. Interactive mode is a native `<button aria-pressed>` — the
- * platform supplies Enter/Space activation.
+ * decisions. Interactive mode is a native `<button>` — the platform supplies
+ * Enter/Space activation — and announces its state ONE way (#274): with a
+ * `label` (or an app `aria-label`/`aria-labelledby`) the name is fixed, so
+ * `aria-pressed` carries the state and both faces stay out of the name;
+ * without one the active face IS the name ("Dark mode" / "Light mode"), so
+ * `aria-pressed` is dropped rather than announced on top of it, and a
+ * console warning asks for a label.
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
@@ -34,11 +39,17 @@ const SCOPE = swapAnatomy.scope;
 
 interface SwapContext {
     state: ControllableState<boolean>;
+    /** An interactive swap with a fixed name: both faces leave the name. */
+    labelled(): boolean;
 }
 
 export const useSwapContext = defineInjectable<SwapContext>(() => ({
     state: createInertState<boolean>(false),
+    labelled: () => false,
 }));
+
+// See theme/registry.ts: `console` typed locally, so no lib.dom/@types/node.
+declare const console: { warn(message: string): void };
 
 export type SwapRootProps =
     /** Active shows the `on` face. The concept is daisy's own (`swap-active`); the faces keep `data-state on|off`. */
@@ -59,13 +70,26 @@ export type SwapRootProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal }) => {
+const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal, onMounted }) => {
     const state = createControllableState<boolean>(
         () => props.model,
         props.defaultActive ?? false,
         (v) => emit('activeChange', v),
     );
-    defineProvide(useSwapContext, () => ({ state }));
+    const labelled = (): boolean => {
+        if (!props.interactive) return false;
+        const attrs = htmlAttrs(props);
+        return !!(props.label || attrs['aria-label'] || attrs['aria-labelledby']);
+    };
+    defineProvide(useSwapContext, () => ({ state, labelled }));
+    onMounted(() => {
+        if (props.interactive && !labelled()) {
+            console.warn(
+                '[zero] Swap.Root interactive has no label: its name is the active face, so it announces no '
+                + 'pressed state. Pass `label` (or aria-label) so the name stays fixed and aria-pressed carries the state.',
+            );
+        }
+    });
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
@@ -104,7 +128,9 @@ const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal }) => {
                 data-disabled={dataAttr(props.disabled)}
                 data-focus-visible={dataAttr(focus.visible)}
                 disabled={props.disabled}
-                aria-pressed={state.value ? 'true' : 'false'}
+                // One channel for the state: aria-pressed under a fixed
+                // name, or the face as the name — never both.
+                aria-pressed={labelled() ? (state.value ? 'true' : 'false') : undefined}
                 aria-label={props.label ?? attrs['aria-label']}
                 {...variantAttrs(props)}
                 class={props.class}
@@ -138,14 +164,17 @@ const face = (partName: 'on' | 'off', name: string) =>
         return () => {
             const on = swap.state.value;
             const isActive = partName === 'on' ? on : !on;
+            // A labelled button's name is fixed: neither face may join it.
+            const hidden = !isActive || swap.labelled();
             return (
                 <span
                     {...htmlAttrs(props)}
                     data-scope={SCOPE}
                     data-part={partName}
                     data-state={stateAttr(on, 'on', 'off')}
-                    // Painted for the cross-fade, absent for AT when inactive.
-                    aria-hidden={isActive ? undefined : 'true'}
+                    // Painted for the cross-fade, absent for AT when inactive
+                    // (and always, under a fixed name).
+                    aria-hidden={hidden ? 'true' : undefined}
                     class={props.class}
                 >
                     {slots.default?.()}

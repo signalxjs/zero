@@ -40,6 +40,18 @@ describe('Skeleton', () => {
         expect(root.getAttribute('data-state')).toBe('loaded');
     });
 
+    it('is inert while loading, so placeholder controls take no focus (#274)', () => {
+        const state = signal({ loading: true });
+        render(
+            <Skeleton.Root model={() => state.loading}><a href="#x">Read more</a></Skeleton.Root>,
+            container,
+        );
+        const root = part(container, 'skeleton', 'root');
+        expect(root.hasAttribute('inert')).toBe(true);
+        state.loading = false;
+        expect(root.hasAttribute('inert')).toBe(false);
+    });
+
     it('drops aria-busy once loaded — the region has settled', () => {
         render(<Skeleton.Root defaultLoading={false}>Done</Skeleton.Root>, container);
         const root = part(container, 'skeleton', 'root');
@@ -77,26 +89,50 @@ describe('Spinner', () => {
         const root = part(container, 'spinner', 'root');
         expect(root.tagName).toBe('SPAN');
         expect(root.getAttribute('role')).toBe('status');
-        // A spinner with no accessible name is a decoration that happens to
-        // move; `role="status"` is what makes the name useful rather than
-        // noisy, since it announces on appearance and not on every frame.
-        expect(root.getAttribute('aria-label')).toBe('Loading');
+        // A spinner that says nothing is a decoration that happens to move;
+        // `role="status"` is what makes the words useful rather than noisy,
+        // since it announces on appearance and not on every frame. The words
+        // are TEXT in a visually hidden label (#274) — a live region
+        // announces content, and an aria-label alone is skipped.
+        expect(root.hasAttribute('aria-label')).toBe(false);
+        const label = part(container, 'spinner', 'label');
+        expect(label.textContent).toBe('Loading');
+        expect(label.hasAttribute('data-visually-hidden')).toBe(true);
+        expect(label.parentElement).toBe(root);
     });
 
-    it('takes a name of its own', () => {
+    it('takes words of its own', () => {
         render(<Spinner label="Uploading" />, container);
-        expect(part(container, 'spinner', 'root').getAttribute('aria-label')).toBe('Uploading');
+        expect(part(container, 'spinner', 'label').textContent).toBe('Uploading');
+        expect(part(container, 'spinner', 'root').hasAttribute('aria-label')).toBe(false);
+    });
+
+    it('a decorative spinner is out of the accessibility tree: no role, no label', () => {
+        render(<Spinner decorative label="ignored" />, container);
+        const root = part(container, 'spinner', 'root');
+        expect(root.getAttribute('aria-hidden')).toBe('true');
+        expect(root.hasAttribute('role')).toBe(false);
+        expect(root.childNodes.length).toBe(0);
+        expectAnatomy(container, spinnerAnatomy);
+    });
+
+    it('declares its label part visually hidden, under the root', () => {
+        expect(spinnerAnatomy.parts.label.visuallyHidden).toBe(true);
+        expect(spinnerAnatomy.parts.label.parent).toBe('root');
     });
 
     it('has no state — it spins or it is not rendered', () => {
         expect(spinnerAnatomy.parts.root.states).toBeUndefined();
         render(<Spinner />, container);
         expect(part(container, 'spinner', 'root').hasAttribute('data-state')).toBe(false);
+        expect(spinnerAnatomy.parts.label.states).toBeUndefined();
     });
 
-    it('renders nothing of its own — the mark is the design system\'s', () => {
+    it('renders nothing visible of its own — the mark is the design system\'s', () => {
         render(<Spinner />, container);
-        expect(part(container, 'spinner', 'root').childNodes.length).toBe(0);
+        // The only child is the clipped label; the root is the canvas.
+        const children = [...part(container, 'spinner', 'root').children];
+        expect(children).toEqual([part(container, 'spinner', 'label')]);
     });
 
     it('passes the variant axes through', () => {

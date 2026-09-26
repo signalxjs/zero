@@ -13,10 +13,17 @@
  * Zero toggles `hidden` — fallback while `loaded`, image while `error` (the
  * broken-image glyph) — and styles nothing. Server markup always renders
  * `loading`; the status resolves on mount (a microtask after render), so the
- * fallback is what paints until the image reports in.
+ * fallback is what paints until the image reports in. A root with no
+ * `Avatar.Image` at all settles to `error` a microtask after mount — the
+ * fallback is then the avatar, not a placeholder stuck `loading` (#274).
+ *
+ * `Avatar.Fallback delay={ms}` keeps the fallback out of the DOM for that
+ * long, so a fast image never flashes initials first. The timer is
+ * client-only: server markup renders no fallback while a delay is set.
  */
 import { component, compound, defineInjectable, defineProvide, watch } from 'sigx';
 import type { Define } from 'sigx';
+import { countPresence, reportPresence, settleAfterMount } from '../../behaviors/part-presence.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
@@ -29,10 +36,12 @@ export type AvatarStatus = 'loading' | 'loaded' | 'error';
 interface AvatarContext {
     status(): AvatarStatus;
     setStatus(s: AvatarStatus): void;
+    /** The Image reports its presence: with none, the avatar is its fallback. */
+    setImagePresent(present: boolean): void;
 }
 
 function makeInert(): AvatarContext {
-    return { status: () => 'error', setStatus: () => {} };
+    return { status: () => 'error', setStatus: () => {}, setImagePresent: () => {} };
 }
 
 export const useAvatarContext = defineInjectable<AvatarContext>(() => makeInert());
@@ -46,14 +55,28 @@ export type AvatarRootProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const AvatarRoot = component<AvatarRootProps>(({ props, slots, emit, signal }) => {
+const AvatarRoot = component<AvatarRootProps>(({ props, slots, emit, signal, onMounted }) => {
     const state = signal({ status: 'loading' as AvatarStatus });
+    // Plain counters: nothing renders from them, only the settle reads them.
+    let images = 0;
+    let settled = false;
+    const setStatus = (s: AvatarStatus): void => {
+        if (state.status === s) return;
+        state.status = s;
+        emit('statusChange', s);
+    };
+    // No Image after the mount settles (or the last one gone since) — there
+    // is nothing left to load, so the fallback is the avatar.
+    const settle = (): void => {
+        if (settled && images === 0) setStatus('error');
+    };
+    settleAfterMount(onMounted, () => { settled = true; settle(); });
     const ctx: AvatarContext = {
         status: () => state.status,
-        setStatus: (s) => {
-            if (state.status === s) return;
-            state.status = s;
-            emit('statusChange', s);
+        setStatus,
+        setImagePresent: (p) => {
+            images = countPresence(images, p);
+            settle();
         },
     };
     defineProvide(useAvatarContext, () => ctx);
@@ -85,14 +108,18 @@ export type AvatarImageProps =
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
-const AvatarImage = component<AvatarImageProps>(({ props, slots, onMounted }) => {
+const AvatarImage = component<AvatarImageProps>(({ props, slots, onMounted, onUnmounted }) => {
     const avatar = useAvatarContext();
     let el: HTMLElement | null = null;
+    /** The element's own load/error event has settled the status. */
+    let answered = false;
+    reportPresence(avatar.setImagePresent, onUnmounted);
 
     watch(
         () => props.src,
         (src, prev) => {
             if (src === prev) return;
+            answered = false;
             avatar.setStatus(src ? 'loading' : 'error');
         },
     );
@@ -112,6 +139,10 @@ const AvatarImage = component<AvatarImageProps>(({ props, slots, onMounted }) =>
             // fired.
             const img = el as HTMLImageElement | null;
             if (img?.complete) avatar.setStatus(img.naturalWidth > 0 ? 'loaded' : 'error');
+            // An image mounted into a root that had already settled on
+            // `error` (none was there) has something to load again — unless
+            // its own load/error event already answered.
+            else if (!answered) avatar.setStatus('loading');
         });
     });
 
@@ -126,8 +157,8 @@ const AvatarImage = component<AvatarImageProps>(({ props, slots, onMounted }) =>
         // Until the image is what the avatar shows, the fallback is the one
         // accessible representation — otherwise AT announces initials AND alt.
         'aria-hidden': avatar.status() === 'loaded' ? undefined : 'true',
-        onLoad: () => avatar.setStatus('loaded'),
-        onError: () => avatar.setStatus('error'),
+        onLoad: () => { answered = true; avatar.setStatus('loaded'); },
+        onError: () => { answered = true; avatar.setStatus('error'); },
         ref: (node: HTMLElement | null) => { el = node; },
     });
 
@@ -140,11 +171,27 @@ const AvatarImage = component<AvatarImageProps>(({ props, slots, onMounted }) =>
 
 // ── Fallback ──
 
-export type AvatarFallbackProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
+export type AvatarFallbackProps =
+    /**
+     * Milliseconds the fallback stays out of the DOM, so a fast image never
+     * flashes initials first. Client-only: server markup renders no
+     * fallback while it is set.
+     */
+    & Define.Prop<'delay', number, false>
+    & WithClass
+    & WithHtmlAttrs
+    & Define.Slot<'default'>;
 
-const AvatarFallback = component<AvatarFallbackProps>(({ props, slots }) => {
+const AvatarFallback = component<AvatarFallbackProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
     const avatar = useAvatarContext();
-    return () => (
+    const wait = signal({ over: !(props.delay && props.delay > 0) });
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    onMounted(() => {
+        if (wait.over) return;
+        timer = setTimeout(() => { wait.over = true; }, props.delay);
+    });
+    onUnmounted(() => { if (timer !== undefined) clearTimeout(timer); });
+    return () => !wait.over ? null : (
         <span
             {...htmlAttrs(props)}
             data-scope={SCOPE}

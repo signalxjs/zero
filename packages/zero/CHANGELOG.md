@@ -108,6 +108,39 @@
   first step of a large step. On-grid values keep plain ±step. The helper
   is `stepToward`, beside `snapToStep`.
 
+### Fixed — feedback components announce what users see (#274)
+
+- **Progress / RadialProgress** render `aria-valuetext`, and the default
+  `ValueText` paints the same string — a raw `aria-valuenow` of 256 out of
+  1024 is now heard as "25%". New root props `getValueText(value, { min,
+  max, percent })`, `locale` and `formatOptions` (`Intl.NumberFormat`,
+  merged over `{ style: 'percent' }`; another style formats the value). An
+  indeterminate bar has none. Types `ProgressGetValueText` and
+  `ProgressValueTextDetails` are exported.
+- **Spinner** puts its words in a new visually hidden `label` part (anatomy:
+  `spinner.label`, `visuallyHidden`) as text inside the `role="status"`
+  root, which no longer carries `aria-label` — screen readers skipped a
+  live region's attribute-only name. An app `aria-label` becomes that text
+  when `label` is absent. New `decorative` prop: no role, no label,
+  `aria-hidden="true"`.
+- **Alert** is named by its `Title` (`aria-labelledby`) and described by its
+  `Description` (`aria-describedby`), presence-tracked and joined with app
+  references; both parts now carry generated ids and take no `id` prop. New
+  `live` prop: `assertive` (default, `role="alert"`) or `polite`
+  (`role="status"`). Closing an alert that holds focus moves it to the new
+  `finalFocus()` prop's element, else the nearest focusable element before
+  the alert, instead of dropping it on `<body>`.
+- **Skeleton** is `inert` while loading, so placeholder links and buttons
+  take no focus or clicks.
+- **Swap** (interactive) announces its state once: without a `label` (or
+  app `aria-label`/`aria-labelledby`) the active face is the name and
+  `aria-pressed` is omitted, with a console warning; with one, both faces
+  are `aria-hidden` and `aria-pressed` carries the state.
+- **Avatar** with no `Avatar.Image` settles to `error` after mount instead
+  of staying `loading`. New `Avatar.Fallback delay` (ms): the fallback is
+  not rendered until the delay passes (client-only timer, cleared on
+  unmount; server markup renders none while a delay is set).
+
 ### Fixed — pagination, carousel and table: bound triggers keep focus, DOM-ordered slides, live region, keyboard-reachable table scroll (#270)
 
 - **Bound triggers stay focusable.** Pagination's and Carousel's prev/next

@@ -26,9 +26,14 @@ const RadialProgressDemos = component(() => {
                     <RadialProgress.Label>Sync</RadialProgress.Label>
                     <RadialProgress.ValueText />
                 </RadialProgress.Root>
-                <RadialProgress.Root value={100}>
+                {/*
+                  * `getValueText`, not ValueText children: the string is
+                  * both shown and announced as aria-valuetext (#274), where
+                  * children would paint "Done" while a reader said "100%".
+                  */}
+                <RadialProgress.Root value={100} getValueText={() => 'Done'}>
                     <RadialProgress.Label>Backup</RadialProgress.Label>
-                    <RadialProgress.ValueText>Done</RadialProgress.ValueText>
+                    <RadialProgress.ValueText />
                 </RadialProgress.Root>
                 <RadialProgress.Root value={null}>
                     <RadialProgress.Label>Indexing</RadialProgress.Label>

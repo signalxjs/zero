@@ -64,6 +64,8 @@ function rootPropsOf(scope: string): string[] {
         // never be an `as` (API_PROP_PATTERN spells no hyphen), but these
         // three can.
         WithHtmlAttrs: ['id', 'title', 'role'],
+        // Progress and RadialProgress share one value-text surface (#274).
+        WithProgressValueText: ['getValueText', 'locale', 'formatOptions'],
     };
     for (const [fragment, names] of Object.entries(FRAGMENTS)) {
         if (!new RegExp(`\\b${fragment}\\b`).test(block)) continue;

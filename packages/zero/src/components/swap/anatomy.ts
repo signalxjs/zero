@@ -13,8 +13,10 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *
  * Interactive is OPT-IN: a swap is a DISPLAY by default (a theme icon that
  * follows external state) and must not claim button semantics; with
- * `interactive` the root renders a real `<button aria-pressed>` — Toggle's
- * contract, restated here because the faces are the content. There is no
+ * `interactive` the root renders a real `<button>` — `aria-pressed` under a
+ * fixed `label` (Toggle's contract, both faces then out of the name), or,
+ * unlabelled, the active face as the name and no `aria-pressed`, so the
+ * state is announced once (#274). There is no
  * indeterminate face: the model is a boolean and a third face would be a
  * third state wearing a styling costume.
  *

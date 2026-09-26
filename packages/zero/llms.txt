@@ -311,7 +311,11 @@ component renders; the root is called out separately where it carries props.
   fires with the model's shape once per drag end, per keyboard step and on
   the native control's change, each only when the value moved.
 - Progress: Root/Label/Track/Range/ValueText; `value: number | null`
-  (null = indeterminate).
+  (null = indeterminate). Root renders aria-valuetext and the default
+  ValueText paints the SAME string (#274): getValueText(value, {min, max,
+  percent}) if given, else Intl.NumberFormat(locale, formatOptions), formatOptions
+  merged over {style:'percent'} (percent/100) (another style formats the value).
+  Indeterminate: no valuetext. Pass `locale` under SSR.
 - RadialProgress: Root/Label/ValueText — circular progress as its OWN scope
   (a radial has no track/range geometry: the ring is one painted layer on
   the root, so reusing progress's anatomy would ship dead parts, and a
@@ -321,7 +325,8 @@ component renders; the root is called out separately where it carries props.
   loading|complete|indeterminate, and the SAME runtime-published
   --progress-percent — recipes paint the arc from it via conic-gradient
   masks over a background-color ink, and stop the indeterminate loop under
-  reduced motion. ValueText defaults to the rounded percent.
+  reduced motion. Value text (aria-valuetext + default ValueText) is
+  Progress's: getValueText / locale / formatOptions, default a percent.
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/
   required down to the control it wraps, and its `size` when the control
   sets none (#57): a sized Field is a sized control.
@@ -340,7 +345,11 @@ component renders; the root is called out separately where it carries props.
   role=alert on Root; a live region announces CHANGES, so a server-rendered
   alert is silent at load and one inserted later is announced. Close sets the
   model false and the runtime sets `hidden` (anatomy: hiddenIn: ['closed']),
-  so design systems never paint `closed`. Icon is aria-hidden.
+  so design systems never paint `closed`. Icon is aria-hidden. Root is
+  aria-labelledby Title / aria-describedby Description (presence-tracked);
+  live="polite" renders role=status instead (#274). Closing while focus is
+  inside moves it to finalFocus(), else the nearest focusable sibling
+  before the root, else leaves it.
 - EmptyState: Root/Icon/Title/Description/Actions (#131) — what stands where
   the content would be: nothing yet, nothing found, nothing reachable. No
   state and no behaviour (presence is the consumer's `if`); no role of its
@@ -534,8 +543,10 @@ component renders; the root is called out separately where it carries props.
   them; `hidden` computes display:none and would kill it) and the inactive
   one is aria-hidden. All three parts ride data-state on|off. DISPLAY by
   default (a span, no semantics — a theme icon following external state);
-  `interactive` renders a real <button aria-pressed> that toggles on click
-  (platform Enter/Space), labelled via `label`. No indeterminate face —
+  `interactive` renders a real <button> that toggles on click (platform
+  Enter/Space): with `label` (or aria-label/labelledby) aria-pressed carries
+  the state and both faces are aria-hidden; unlabelled, the active face is
+  the name, no aria-pressed, and it console-warns (#274). No indeterminate face —
   the model is a boolean, and rotate/flip looks are recipe styling, not
   contract.
 - Table: Root/Table/Caption/Head/Body/Foot/Row/HeaderCell/Cell — semantic
@@ -644,13 +655,15 @@ component renders; the root is called out separately where it carries props.
   glyph (Select.Indicator's convention), named by aria-label; recipes flip
   the glyph under RTL (scaleX(-1) under the skin's rtl guard).
 - Skeleton: Root only(model=loading, default TRUE), data-state loading|loaded,
-  aria-busy while loading. Children stay in the DOM in BOTH states — the
+  aria-busy and inert while loading. Children stay in the DOM in BOTH states — the
   component exists to hold the layout its content will occupy, so the recipe
   paints OVER them while loading. No hiddenIn: the states differ by paint, so
   every design system must tell them apart.
 - Spinner: Root only, no state — it spins or it is not rendered.
-  role=status with aria-label (default "Loading"); renders empty, the mark is
-  the design system's. Both loop, so both owe a prefers-reduced-motion answer
+  role=status whose words are TEXT in a visually hidden `label` part
+  (label ?? aria-label ?? "Loading"; no aria-label on the root — #274);
+  `decorative` drops role and label and sets aria-hidden. The mark is
+  the design system's, drawn on the root. Both loop, so both owe a prefers-reduced-motion answer
   that STOPS rather than collapsing the duration to ~0 (which strobes).
 - Textarea: Root(model=string)/Label/Textarea. Input's shape minus `control`
   — nothing sits inside a textarea for a wrapper to hold, so the chrome draws
@@ -669,7 +682,9 @@ component renders; the root is called out separately where it carries props.
   error). Zero toggles `hidden` (fallback while loaded, image while error), so
   recipes must not set `display` on those parts unconditionally — style
   `&:not([hidden])` instead. Server markup always renders `loading`; the
-  status resolves on mount. `statusChange` event.
+  status resolves on mount; with no Image rendered it settles to error
+  (#274). Fallback `delay` ms keeps it out of the DOM until the delay passes
+  (client timer; SSR renders none). `statusChange` event.
 - Toast: Viewport(placement, toaster, label, hotkey)/Root(toast)/Title/
   Description/Action/Close, over an imperative queue:
   `toast({ title, color, duration, role })` (browser-only), `createToaster()`

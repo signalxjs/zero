@@ -485,6 +485,47 @@ row (skipping `aria-hidden` decoration such as the default indicator glyph)
 — the element `BranchTrigger` renders, even an `asChild` row stamped with
 the app's own `data-scope`/`data-part`.
 
+**Feedback announces what users see** (#274):
+
+- **Progress / RadialProgress** render `aria-valuetext`, and the default
+  `ValueText` paints the same string — so a 256-of-1024 upload is heard as
+  "25%", not "256". The string comes from `getValueText(value, { min, max,
+  percent })` when given, else from `Intl.NumberFormat(locale,
+  formatOptions)` with `formatOptions` merged over `{ style: 'percent' }`
+  (so `{ minimumFractionDigits: 1 }` is still a percent): a percent style
+  formats the filled fraction, any other style formats the value (`{ style: 'unit', unit: 'megabyte' }` → "62 MB"). An indeterminate
+  bar has no value text. Server-rendered, pass `locale` so server and client
+  format alike; custom `ValueText` children are painted only — use
+  `getValueText` to change what is announced.
+- **Spinner** says its words as TEXT: a visually hidden `label` part holds
+  `label ?? aria-label ?? "Loading"` inside the `role="status"` root, which
+  carries no `aria-label` (a live region announces content; a name in an
+  attribute alone is skipped). `decorative` is for a spinner beside text
+  that already says it: no role, no label, `aria-hidden="true"`.
+- **Alert** is named by its `Title` (`aria-labelledby`) and described by its
+  `Description` (`aria-describedby`), each only while rendered and joined
+  with any app reference. `live="assertive"` (default) renders
+  `role="alert"`; `live="polite"` renders `role="status"` for a
+  confirmation that should wait its turn. Closing an alert that holds focus
+  (its Close button, typically) moves focus to `finalFocus()` when that
+  returns a focusable element, else to the nearest focusable element before
+  the alert among its siblings (the last tabbable inside one), else leaves it
+  alone; focus that is elsewhere is never moved.
+- **Skeleton** is `inert` while `loading`, so links and buttons in the
+  placeholder take neither focus nor clicks; the attribute goes once loaded.
+- **Swap** (interactive) states its state once: with a `label` (or an app
+  `aria-label`/`aria-labelledby`) the name is fixed, `aria-pressed` carries
+  the state and both faces are `aria-hidden`; without one the active face is
+  the name, `aria-pressed` is omitted, and a console warning asks for a
+  label.
+- **Avatar** settles to `error` a microtask after mount when no
+  `Avatar.Image` is rendered (or the last one unmounts), so an image-less
+  avatar shows its fallback instead of sitting in `loading`.
+  `Avatar.Fallback delay={ms}` keeps the fallback out of the DOM until the
+  delay passes, so a fast image never flashes initials first — a client-only
+  timer, cleared on unmount; server markup renders no fallback while a delay
+  is set.
+
 **Drawer width is `measure`.** `Drawer.Panel measure="md"` sizes the panel
 from the design system's `--measure-*` ramp — Container's layout attribute,
 not the `size` axis, which rides the trigger and cannot reach a panel that
@@ -639,7 +680,8 @@ The part's own attributes win where both set one, with three refinements:
   RatingGroup, Slider and FileUpload). `Dialog.Popup`'s role is the Root's
   `role` prop.
 - A name the part only defaults gives way: an app `aria-label` replaces
-  Spinner's "Loading", Breadcrumbs' "Breadcrumb", Pagination's
+  Spinner's "Loading" (as the hidden label's text, not an attribute on
+  the live region), Breadcrumbs' "Breadcrumb", Pagination's
   "Pagination" and every icon trigger's default (`Alert.Close`, the
   Carousel triggers and dots, `Diff.Handle`, the NumberInput steppers,
   `FileUpload.ItemRemove`, a Carousel slide's "n of m", `Toast.Close`,
@@ -649,9 +691,9 @@ The part's own attributes win where both set one, with three refinements:
   `Countdown` (a named countdown is a `timer`) the way `label` does. An app
   `aria-labelledby`/`aria-describedby` joins the one the part wires (a
   progressbar's, a tab panel's, a tree's, a control's Field description, a
-  popup's title and description, a group's label, a tooltip trigger's
-  popup).
-- State ARIA stays the component's: `aria-busy` on a loading Skeleton,
+  popup's or an alert's title and description, a group's label, a tooltip
+  trigger's popup).
+- State ARIA stays the component's: `aria-busy` and `inert` on a loading Skeleton,
   `aria-current` on the current `Breadcrumbs.Link`, `aria-valuenow`,
   `aria-expanded`, `aria-selected`, `aria-checked`, `aria-pressed`,
   `aria-controls`, `aria-haspopup`, `aria-activedescendant`, `aria-modal`.

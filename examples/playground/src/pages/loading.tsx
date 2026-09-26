@@ -1,7 +1,7 @@
 import { component, signal } from 'sigx';
 import { Skeleton, Spinner } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
-import { pickRole } from '../design-systems';
+import { pickRole, pickSize } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const SkeletonDemos = component(() => {
@@ -15,7 +15,9 @@ const SkeletonDemos = component(() => {
                 out for a placeholder box would make the box the wrong size and
                 the page jump when the real thing arrives. The recipe paints
                 over them while <code>loading</code> and paints nothing once{' '}
-                <code>loaded</code>.
+                <code>loaded</code>. While loading the root is{' '}
+                <code>inert</code>, so a link in the placeholder takes neither
+                focus nor clicks.
             </p>
             <p>
                 <small>
@@ -35,6 +37,10 @@ const SkeletonDemos = component(() => {
                 </Skeleton.Root>
                 <Skeleton.Root model={() => state.loading} color={pickRole('primary')}>
                     A second line, tinted by the role
+                </Skeleton.Root>
+                {/* Placeholder controls are `inert` while loading (#274). */}
+                <Skeleton.Root model={() => state.loading}>
+                    <a href="#/skeleton">Read the full report</a>
                 </Skeleton.Root>
             </div>
             <p>
@@ -61,20 +67,26 @@ const SpinnerDemos = component(() => () => (
             is not rendered. <code>role="status"</code> carries an implicit
             polite live region, which is what makes the accessible name useful
             rather than noisy: it is announced when the spinner appears, not on
-            every frame. The mark itself is the design system's; zero renders an
-            empty element.
+            every frame. The words are a visually hidden <code>label</code> part's
+            text — a live region announces content, not an{' '}
+            <code>aria-label</code>. The mark itself is the design system's.
         </p>
         {/*
-          * Distinct labels on purpose: a spinner renders no text, so its
-          * accessible name is the only thing that names the instance — and the
-          * e2e specs locate by name rather than by document order (see the
-          * convention in `e2e/demo.ts`).
+          * Distinct labels on purpose: a spinner's hidden label is the only
+          * text that names the instance — and the e2e specs locate by that
+          * text rather than by document order (see the convention in
+          * `e2e/demo.ts`).
           */}
         <DemoRow gap="1rem" align="center">
             <Spinner label="Loading results" />
             <Spinner color={pickRole('secondary')} label="Saving draft" />
             <Spinner color={pickRole('error', 'danger')} label="Retrying" />
         </DemoRow>
+        <p>
+            Beside text that already says it, <code>decorative</code> drops the
+            role and the label and hides the mark:{' '}
+            <Spinner decorative size={pickSize('sm')} /> Syncing your library…
+        </p>
         <p>
             It is measured by the contrast audit's indicator matrix, unlike the
             skeleton: a spinner is a UI component and answers to the 3:1

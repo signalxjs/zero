@@ -324,7 +324,7 @@ type SpinnerProps = {
     size?: 'sm' | 'md' | 'lg';
 };
 type SpinnerAdapted = Adapted<typeof ZSpinner, ZeroAxisProp, SpinnerProps>;
-export declare const Spinner: SpinnerAdapted & { Root: SpinnerAdapted };
+export declare const Spinner: SpinnerAdapted & AdaptedStatics<typeof ZSpinner> & { Root: SpinnerAdapted };
 
 /** kbd — no vendor route; the wired surface keeps zero's names. */
 type KbdProps = {
