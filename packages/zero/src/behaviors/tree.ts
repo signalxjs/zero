@@ -40,6 +40,13 @@ export interface TreeController extends ListController {
      * nodes are included; the caller decides what may be selected.
      */
     range(from: string, to: string): TreeItem[];
+    /**
+     * Every registered LEAF under `value`, at any depth, in DOM order —
+     * collapsed or not: what a checkable branch derives its state from and
+     * toggles. Empty for a leaf, an unregistered value, or a branch whose
+     * children have not registered (a lazily loaded subtree).
+     */
+    leavesOf(value: string): TreeItem[];
 }
 
 export function createTreeController(opts: {
@@ -99,6 +106,17 @@ export function createTreeController(opts: {
             const b = visible.findIndex((i) => i.value === to);
             if (a === -1 || b === -1) return [];
             return visible.slice(Math.min(a, b), Math.max(a, b) + 1);
+        },
+        leavesOf(value) {
+            const under = (item: TreeItem): boolean => {
+                let parent = item.parentValue;
+                for (let hops = 0; parent !== null && hops < registered.length; hops++) {
+                    if (parent === value) return true;
+                    parent = findNode(parent)?.parentValue ?? null;
+                }
+                return false;
+            };
+            return sortByDomOrder(registered.filter((i) => !i.isBranch() && under(i)));
         },
     };
 }

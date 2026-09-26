@@ -526,7 +526,7 @@ describe('the pass-through reaches every part', () => {
             </ToggleGroup.Root>
         ),
         'tree-view': () => (
-            <TreeView.Root {...p('root')} defaultExpandedValues={['src']}>
+            <TreeView.Root {...p('root')} defaultExpandedValues={['src']} checkable>
                 <TreeView.Label {...p('label')}>Files</TreeView.Label>
                 <TreeView.Tree {...p('tree')}>
                     <TreeView.Branch {...p('branch')} value="src">
@@ -534,7 +534,7 @@ describe('the pass-through reaches every part', () => {
                             <TreeView.BranchIndicator {...p('branch-indicator')} />src
                         </TreeView.BranchTrigger>
                         <TreeView.BranchContent {...p('branch-content')}>
-                            <TreeView.Item {...p('item')} value="src/a.ts">a.ts</TreeView.Item>
+                            <TreeView.Item {...p('item')} value="src/a.ts"><TreeView.NodeCheckbox {...p('node-checkbox')} />a.ts</TreeView.Item>
                         </TreeView.BranchContent>
                     </TreeView.Branch>
                 </TreeView.Tree>

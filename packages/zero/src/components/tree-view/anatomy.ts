@@ -18,6 +18,15 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * `multiple` (the model becomes `string[]`) adds no part and no state: the
  * tree carries `aria-multiselectable`, and each selected node the same
  * `selected` flag single mode sets.
+ *
+ * Checkable (`model:checkedValues`, or `checkable`): `node-checkbox` is the
+ * paint hook — an `aria-hidden` box inside a node's row (an `item`, or a
+ * branch's `branch-trigger`) mirroring the node's check state; the treeitem
+ * itself carries `aria-checked`. A branch's state is DERIVED from its enabled
+ * descendant leaves, never stored. `parent` names the containing `tree`
+ * because the box sits in either row, and `paint.host` names the leaf row
+ * the audit measures it on — the menu `item-indicator` shape, since a
+ * branch row shares the item row's grammar in every skin.
  */
 export const treeViewAnatomy = defineAnatomy('tree-view', {
     root: {
@@ -62,6 +71,16 @@ export const treeViewAnatomy = defineAnatomy('tree-view', {
         parent: 'branch-trigger',
         states: ['open', 'closed', 'loading'],
     },
+    'node-checkbox': {
+        element: 'span',
+        // No glyph: zero renders an empty span and the recipe draws the box
+        // and its mark.
+        paint: { host: 'item' },
+        parent: 'tree',
+        states: ['checked', 'unchecked', 'indeterminate'],
+        flags: ['disabled'],
+        tokens: ['color', 'radius-selector'],
+    },
     'branch-content': {
         element: 'div',
         parent: 'branch',
@@ -76,5 +95,6 @@ export const treeViewAnatomy = defineAnatomy('tree-view', {
     models: [
         { concept: 'value', type: 'string', multiple: true },
         { name: 'expandedValues', concept: 'expandedValues', type: 'string[]' },
+        { name: 'checkedValues', concept: 'checkedValues', type: 'string[]' },
     ],
 });

@@ -52,6 +52,20 @@
  *
  * A Branch marked `loading` (its children are being fetched) is
  * `aria-busy`, and its indicator and open content read `data-state="loading"`.
+ *
+ * Checkable (`model:checkedValues`, `defaultCheckedValues`, or `checkable`):
+ * the model is the `string[]` of checked LEAF values. A branch's check state
+ * is derived, never stored — `checked` when every enabled descendant leaf is
+ * checked, `indeterminate` when some are, `unchecked` otherwise (the
+ * tri-state rule CheckboxGroup's parent box uses) — and toggling it checks or
+ * unchecks all of its enabled descendant leaves; a disabled leaf keeps its
+ * value. Every treeitem carries `aria-checked`, Space toggles the check and
+ * Enter keeps the selection. `NodeCheckbox` is the paint hook: an
+ * `aria-hidden` box in the row whose click toggles the check without
+ * touching selection or expansion. The selection stays in use under
+ * `multiple`, a bound `model` or a `defaultValue`; without any of them a
+ * checkable tree renders no `aria-selected`, and a click on (or Enter at) a
+ * leaf toggles its check — the row is the box's label.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define, JSXElement, Model } from 'sigx';
@@ -61,6 +75,7 @@ import { createId } from '../../behaviors/create-id.js';
 import { createRovingKeydown } from '../../behaviors/roving.js';
 import { createTypeahead } from '../../behaviors/typeahead.js';
 import { createTreeController, type TreeController, type TreeItem } from '../../behaviors/tree.js';
+import { toggleTriState, triState, type TriState } from '../../behaviors/tri-state.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -92,6 +107,9 @@ function visibleText(node: Node): string {
     return text;
 }
 
+const ariaChecked = (state: TriState): 'true' | 'false' | 'mixed' =>
+    state === 'checked' ? 'true' : state === 'indeterminate' ? 'mixed' : 'false';
+
 interface TreeNodeInfo {
     value: string;
     isBranch: boolean;
@@ -104,6 +122,21 @@ interface TreeViewContext {
     /** Is `value` in the selection, under either shape? */
     isSelected(value: string): boolean;
     multiple(): boolean;
+    /**
+     * Is the selection in use? Always, unless the tree is checkable with no
+     * `multiple`, `model` or `defaultValue` — then no node is selectable and
+     * none renders `aria-selected`.
+     */
+    selecting(): boolean;
+    /** Is the tree checkable (`checkable`, or a checkedValues model/seed)? */
+    checkable(): boolean;
+    /**
+     * A node's check state: a leaf's membership in the checkedValues model,
+     * a branch's derived from its enabled descendant leaves.
+     */
+    checkState(value: string, isBranch: boolean): TriState;
+    /** Toggle a leaf, or all of a branch's enabled descendant leaves. */
+    toggleCheck(value: string): void;
     tree: TreeController;
     labelId(): string;
     disabled(): boolean;
@@ -150,6 +183,10 @@ function makeInert(): TreeViewContext {
         selected: createInertState<string | string[]>(''),
         isSelected: () => false,
         multiple: () => false,
+        selecting: () => true,
+        checkable: () => false,
+        checkState: () => 'unchecked',
+        toggleCheck: () => {},
         tree: createTreeController({ isExpanded: () => true }),
         labelId: () => 'zx-tree-inert',
         disabled: () => false,
@@ -167,6 +204,18 @@ function makeInert(): TreeViewContext {
 }
 
 export const useTreeViewContext = defineInjectable<TreeViewContext>(() => makeInert());
+
+/**
+ * The node a row belongs to — provided by both an Item and a Branch, so a
+ * NodeCheckbox reads its own node whichever row it sits in (inside an Item,
+ * the Item's value shadows the enclosing Branch's).
+ */
+interface TreeNodeContext {
+    /** null outside any node (the fallback provider). */
+    readonly value: string | null;
+    readonly isBranch: boolean;
+}
+const useTreeNodeContext = defineInjectable<TreeNodeContext>(() => ({ value: null, isBranch: false }));
 export const useTreeBranchContext = defineInjectable<TreeBranchContext>(
     () => ({ value: null, focus: { visible: false }, setTrigger: () => {}, loading: () => false }),
 );
@@ -196,6 +245,19 @@ export type TreeViewRootProps<M = string | string[]> =
      * toggle's hit area.
      */
     & Define.Prop<'expandOnClick', boolean, false>
+    /**
+     * The checked LEAF values of a checkable tree — branch states derive
+     * from them. Binding it (or seeding `defaultCheckedValues`) makes the
+     * tree checkable.
+     */
+    & Define.Model<'checkedValues', string[]>
+    & Define.Prop<'defaultCheckedValues', string[], false>
+    & Define.Event<'checkedValuesChange', string[]>
+    /**
+     * Checkable without binding `checkedValues`: treeitems carry
+     * `aria-checked` and Space toggles the check (default false).
+     */
+    & Define.Prop<'checkable', boolean, false>
     & WithDisabled
     & WithVariantAxes<'tree-view'>
     & WithClass
@@ -216,10 +278,20 @@ const TreeViewRootImpl = component<TreeViewRootProps>(({ props, slots, emit, onM
         if (Array.isArray(v)) return [...new Set(v)];
         return v !== '' ? [v] : [];
     };
+    const checkable = (): boolean =>
+        !!props.checkable || props.checkedValues !== undefined || props.defaultCheckedValues !== undefined;
+    const selecting = (): boolean =>
+        !checkable() || !!props.multiple || props.model !== undefined || props.defaultValue !== undefined;
     const isSelected = (value: string): boolean => {
+        if (!selecting()) return false;
         const v = selected.value;
         return Array.isArray(v) ? v.includes(value) : v === value;
     };
+    const checked = createControllableState<string[]>(
+        () => props.checkedValues as Model<string[]> | undefined,
+        props.defaultCheckedValues ?? [],
+        (v) => emit('checkedValuesChange', v),
+    );
     /**
      * Where a Shift range starts: the node last selected alone or toggled.
      * Not rendered, so a plain variable; a range whose anchor is no longer
@@ -361,10 +433,45 @@ const TreeViewRootImpl = component<TreeViewRootProps>(({ props, slots, emit, onM
         return false;
     };
 
+    /**
+     * The leaves a branch's check state answers to: its enabled descendant
+     * leaves — or, when every one is disabled, all of them, so a fully
+     * disabled branch still shows what its leaves hold.
+     */
+    const checkMembers = (value: string): { all: string[]; enabled: string[] } => {
+        void registry.version;
+        const leaves = tree.leavesOf(value);
+        return {
+            all: leaves.map((n) => n.value),
+            enabled: leaves.filter((n) => !n.disabled()).map((n) => n.value),
+        };
+    };
+
     const ctx: TreeViewContext = {
         selected,
         isSelected,
         multiple: () => !!props.multiple,
+        selecting,
+        checkable,
+        checkState(value, isBranch) {
+            const current = checked.value;
+            if (!isBranch) return current.includes(value) ? 'checked' : 'unchecked';
+            const { all, enabled } = checkMembers(value);
+            return triState(enabled.length > 0 ? enabled : all, current);
+        },
+        toggleCheck(value) {
+            if (props.disabled || !checkable()) return;
+            const node = tree.findNode(value);
+            if (!node || node.disabled()) return;
+            const current = checked.value;
+            if (!node.isBranch()) {
+                checked.value = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+                return;
+            }
+            // Disabled leaves keep their value: only the enabled ones move.
+            const { enabled } = checkMembers(value);
+            if (enabled.length > 0) checked.value = toggleTriState(enabled, current);
+        },
         tree,
         labelId: () => `${baseId}-label`,
         disabled: () => !!props.disabled,
@@ -372,12 +479,12 @@ const TreeViewRootImpl = component<TreeViewRootProps>(({ props, slots, emit, onM
         expandOnClick: () => props.expandOnClick ?? true,
         toggleBranch,
         select(value) {
-            if (props.disabled) return;
+            if (props.disabled || !selecting()) return;
             anchor = value;
             selected.value = props.multiple ? [value] : value;
         },
         pointerSelect(value, e) {
-            if (props.disabled) return;
+            if (props.disabled || !selecting()) return;
             if (!props.multiple) {
                 ctx.select(value);
                 return;
@@ -470,11 +577,23 @@ const TreeViewRootImpl = component<TreeViewRootProps>(({ props, slots, emit, onM
                 if (closed.length > 0) expanded.value = [...expanded.value, ...closed];
                 return;
             }
+            // Checkable: Space checks — under `multiple` too, where Shift+Space
+            // keeps its range. A running typeahead search still owns it.
+            if (checkable() && e.key === ' ' && !typeahead.searching() && !(props.multiple && e.shiftKey)) {
+                e.preventDefault();
+                if (!inert) ctx.toggleCheck(node.value);
+                return;
+            }
             if (props.multiple && multiKeydown(e, node, inert)) return;
             // Space continues a running typeahead search ("Save As").
             if (e.key === 'Enter' || (e.key === ' ' && !typeahead.searching())) {
                 e.preventDefault();
-                if (!inert) ctx.select(node.value);
+                if (inert) return;
+                if (selecting()) ctx.select(node.value);
+                // No selection in use: Enter does what a click on the row
+                // does — a leaf toggles its check, a branch row its expansion.
+                else if (!node.isBranch) ctx.toggleCheck(node.value);
+                else if (ctx.expandOnClick()) toggleBranch(node.value);
                 return;
             }
             // Roving and typeahead index the ENABLED nodes, where a disabled
@@ -614,6 +733,10 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, on
         unregister();
         ctx.nodesChanged();
     });
+    defineProvide(useTreeNodeContext, () => ({
+        get value() { return props.value; },
+        isBranch: false,
+    }));
 
     const isSelected = (): boolean => ctx.isSelected(props.value);
 
@@ -626,7 +749,8 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, on
         'data-focus-visible': dataAttr(focus.visible),
         role: 'treeitem',
         tabIndex: ctx.isTabbable(props.value) ? 0 : -1,
-        'aria-selected': isSelected() ? 'true' : 'false',
+        'aria-selected': ctx.selecting() ? (isSelected() ? 'true' : 'false') : undefined,
+        'aria-checked': ctx.checkable() ? ariaChecked(ctx.checkState(props.value, false)) : undefined,
         // No aria-posinset/setsize: the whole tree is in the DOM under
         // proper role=group nesting, so AT computes them — and computing
         // them here at render time would freeze counts before later
@@ -636,6 +760,11 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, on
         ref: (n: HTMLElement | null) => { el = n; },
         onClick: (e: MouseEvent) => {
             if (disabled()) return;
+            // No selection in use: the row is the box's label.
+            if (!ctx.selecting()) {
+                ctx.toggleCheck(props.value);
+                return;
+            }
             ctx.pointerSelect(props.value, e);
             // A Shift+click's mousedown was kept from focusing (below).
             if (e.shiftKey && ctx.multiple()) el?.focus();
@@ -734,6 +863,10 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onMounted
         setTrigger: (n) => { triggerEl = n; },
         loading: () => !!props.loading,
     }));
+    defineProvide(useTreeNodeContext, () => ({
+        get value() { return props.value; },
+        isBranch: true,
+    }));
 
     const isOpen = (): boolean => ctx.isExpanded(props.value);
     const isSelected = (): boolean => ctx.isSelected(props.value);
@@ -749,7 +882,8 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onMounted
             data-disabled={dataAttr(disabled())}
             tabIndex={ctx.isTabbable(props.value) ? 0 : -1}
             aria-expanded={isOpen() ? 'true' : 'false'}
-            aria-selected={isSelected() ? 'true' : 'false'}
+            aria-selected={ctx.selecting() ? (isSelected() ? 'true' : 'false') : undefined}
+            aria-checked={ctx.checkable() ? ariaChecked(ctx.checkState(props.value, true)) : undefined}
             aria-level={ctx.tree.level(props.value)}
             aria-disabled={disabled() ? 'true' : undefined}
             aria-busy={props.loading ? 'true' : undefined}
@@ -887,6 +1021,49 @@ const TreeViewBranchIndicator = component<TreeViewBranchIndicatorProps>(({ props
     );
 }, { name: 'TreeView.BranchIndicator' });
 
+// ── NodeCheckbox ──
+
+export type TreeViewNodeCheckboxProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
+
+/**
+ * The check box of a checkable tree's node — inside an Item, or inside a
+ * Branch's BranchTrigger. Paint only: `aria-hidden`, since the treeitem
+ * carries `aria-checked`. A click toggles the node's check and nothing else
+ * — no selection, no expansion, no navigation under an `asChild` link row.
+ */
+const TreeViewNodeCheckbox = component<TreeViewNodeCheckboxProps>(({ props, slots }) => {
+    const ctx = useTreeViewContext();
+    const node = useTreeNodeContext();
+    const disabled = (): boolean =>
+        ctx.disabled() || (node.value !== null && !!ctx.tree.findNode(node.value)?.disabled());
+    return () => {
+        const value = node.value;
+        return (
+            <span
+                {...htmlAttrs(props)}
+                data-scope={SCOPE}
+                data-part="node-checkbox"
+                data-state={value === null ? 'unchecked' : ctx.checkState(value, node.isBranch)}
+                data-disabled={dataAttr(disabled())}
+                aria-hidden="true"
+                class={props.class}
+                onClick={(e: MouseEvent) => {
+                    // Outside a node there is nothing to toggle, so the
+                    // click is not ours to swallow.
+                    if (value === null) return;
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (disabled()) return;
+                    ctx.toggleCheck(value);
+                    ctx.tree.findNode(value)?.el()?.focus();
+                }}
+            >
+                {slots.default?.()}
+            </span>
+        );
+    };
+}, { name: 'TreeView.NodeCheckbox' });
+
 // ── BranchContent ──
 
 /** Not `role`: the content is the branch's `group`. */
@@ -923,4 +1100,5 @@ export const TreeView = compound(TreeViewRoot, {
     BranchTrigger: TreeViewBranchTrigger,
     BranchIndicator: TreeViewBranchIndicator,
     BranchContent: TreeViewBranchContent,
+    NodeCheckbox: TreeViewNodeCheckbox,
 });

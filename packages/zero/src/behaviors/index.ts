@@ -6,6 +6,8 @@ export { createId, idToken, useIdGenerator, zeroPlugin } from './create-id.js';
 export type { ControllableState, ControllableOptions } from './controllable.js';
 export { createControllableState, createInertState, namedModel } from './controllable.js';
 export { derivedModel } from './derived-model.js';
+export { triState, toggleTriState } from './tri-state.js';
+export type { TriState } from './tri-state.js';
 export { mountScope } from './mount-scope.js';
 export { timingModifiers } from './model-modifiers.js';
 

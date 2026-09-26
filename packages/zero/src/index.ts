@@ -188,6 +188,7 @@ export type {
     TreeViewBranchTriggerProps,
     TreeViewBranchIndicatorProps,
     TreeViewBranchContentProps,
+    TreeViewNodeCheckboxProps,
 } from './components/tree-view/index.js';
 
 export { Combobox, comboboxAnatomy, useComboboxContext, useComboboxGroupContext, useComboboxTagContext } from './components/combobox/index.js';

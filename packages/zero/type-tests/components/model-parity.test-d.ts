@@ -65,6 +65,7 @@ export type Pins = [
     MustBeTrue<Companions<TooltipRootProps, 'model', 'defaultOpen', 'openChange'>>,
     MustBeTrue<Companions<TreeViewRootProps, 'model', 'defaultValue', 'valueChange'>>,
     MustBeTrue<Companions<TreeViewRootProps, 'expandedValues', 'defaultExpandedValues', 'expandedValuesChange'>>,
+    MustBeTrue<Companions<TreeViewRootProps, 'checkedValues', 'defaultCheckedValues', 'checkedValuesChange'>>,
 ];
 
 // Checkbox's model is `boolean | string[]` (sigx's array mode); its seed and
