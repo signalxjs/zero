@@ -5,7 +5,7 @@ import { pickRole } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const InputDemos = component(() => {
-    const state = signal({ email: '', code: '', codeError: '' });
+    const state = signal({ email: '', code: '', codeError: '', query: 'anatomy', shown: false });
 
     return () => (
         <>
@@ -117,6 +117,46 @@ const InputDemos = component(() => {
                     {state.codeError ? <Field.Error>{state.codeError}</Field.Error> : null}
                 </Field.Root>
             </DemoRow>
+            <p>
+                The control is also a row for three affordances.{' '}
+                <code>Adornment</code> puts consumer content at a logical
+                edge (<code>placement="start" | "end"</code>) — a press on it
+                focuses the input. <code>ClearTrigger</code> empties the value
+                the way typing would and exists only while there is something
+                to clear; in a <code>search</code> field Escape does the same.{' '}
+                <code>VisibilityTrigger</code> shows a password through{' '}
+                <code>model:visible</code>, as a pressed toggle.
+            </p>
+            <DemoRow gap="1rem" align="flex-end">
+                <Input.Root type="search" model={() => state.query} data-demo="search-affordances">
+                    <Input.Label>Search docs</Input.Label>
+                    <Input.Control>
+                        <Input.Adornment placement="start"><span aria-hidden="true">⌕</span></Input.Adornment>
+                        <Input.Input placeholder="Filter…" />
+                        <Input.ClearTrigger label="Clear search" />
+                    </Input.Control>
+                </Input.Root>
+                <Input.Root type="password" defaultValue="correct horse" model:visible={() => state.shown} autocomplete="new-password" data-demo="password-affordances">
+                    <Input.Label>New password</Input.Label>
+                    <Input.Control>
+                        <Input.Input />
+                        <Input.ClearTrigger />
+                        <Input.VisibilityTrigger />
+                    </Input.Control>
+                </Input.Root>
+                <Input.Root type="url" defaultValue="example" data-demo="url-affordances">
+                    <Input.Label>Website</Input.Label>
+                    <Input.Control>
+                        <Input.Adornment placement="start">https://</Input.Adornment>
+                        <Input.Input />
+                        <Input.Adornment placement="end">.com</Input.Adornment>
+                    </Input.Control>
+                </Input.Root>
+            </DemoRow>
+            <p><small>
+                Query: <code>{state.query || '—'}</code> · password shown:{' '}
+                <code>{state.shown ? 'yes' : 'no'}</code>
+            </small></p>
             <p><small>Email model: <code>{state.email || '—'}</code></small></p>
         </>
     );
