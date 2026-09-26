@@ -163,6 +163,21 @@ describe('Alert', () => {
         expect(document.activeElement).toBe(before);
     });
 
+    it('skips a sibling that is focusable but not a Tab stop', () => {
+        render(
+            <div>
+                <button data-probe="before">Before</button>
+                <div data-probe="scripted" tabIndex={-1}>Scripted target</div>
+                <Alert.Root><Alert.Close /></Alert.Root>
+            </div>,
+            container,
+        );
+        const close = part(container, 'alert', 'close')!;
+        close.focus();
+        close.click();
+        expect(document.activeElement).toBe(container.querySelector('[data-probe="before"]'));
+    });
+
     it('finalFocus wins over the sibling fallback', () => {
         const { elsewhere, close } = mountWithSiblings(() => container.querySelector<HTMLElement>('[data-probe="elsewhere"]'));
         close.focus();

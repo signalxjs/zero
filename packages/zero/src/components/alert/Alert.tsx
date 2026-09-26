@@ -78,7 +78,10 @@ function previousFocusable(root: HTMLElement): HTMLElement | null {
         if (!(el instanceof HTMLElement)) continue;
         const inside = getTabbables(el);
         if (inside.length) return inside[inside.length - 1];
-        if (isFocusable(el)) return el;
+        // A sibling that is itself a Tab stop: focusable and not opted out
+        // with a negative tabindex (a `tabindex="-1"` target is reachable by
+        // script only, so parking focus there strands a keyboard user).
+        if (isFocusable(el) && !(Number(el.getAttribute('tabindex') ?? 0) < 0)) return el;
     }
     return null;
 }
