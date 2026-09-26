@@ -16,7 +16,7 @@ const ButtonDemos = component(() => {
     // the rows against the newly active vocabulary.
     const axes = activeVocabulary;
     const swatchColors = () => axes().colors.slice(0, SWATCH_LIMIT);
-    const state = signal({ saving: false });
+    const state = signal({ saving: false, presses: 0 });
 
     const save = () => {
         state.saving = true;
@@ -102,6 +102,33 @@ const ButtonDemos = component(() => {
                     {(p: Record<string, unknown>) => <a href="#/button" {...p}>Link button</a>}
                 </Button.Root>
                 <Button.Root>Button twin</Button.Root>
+                {/*
+                  * Disabled, a link stops going anywhere: no href, still read
+                  * as a link (role="link" + aria-disabled), out of the tab
+                  * order (#275).
+                  */}
+                <Button.Root asChild disabled>
+                    {(p: Record<string, unknown>) => <a href="#/button" {...p}>Disabled link</a>}
+                </Button.Root>
+            </DemoRow>
+            <p>
+                <small>
+                    <strong>Any element</strong> — <code>asChild</code> over a{' '}
+                    <code>&lt;span&gt;</code> gets the button contract: a role, a
+                    tab stop, Enter and Space. <code>focusableWhenDisabled</code>{' '}
+                    keeps a disabled button reachable, so a reader can find it
+                    and hear why it cannot act.
+                </small>
+            </p>
+            <DemoRow>
+                <AxisLabel>element</AxisLabel>
+                <Button.Root asChild onClick={() => { state.presses += 1; }}>
+                    {(p: Record<string, unknown>) => <span {...p}>Span button</span>}
+                </Button.Root>
+                <Button.Root disabled focusableWhenDisabled onClick={() => { state.presses += 1; }}>
+                    Focusable disabled
+                </Button.Root>
+                <output aria-live="polite" data-testid="span-button-presses">Pressed {state.presses}×</output>
             </DemoRow>
         </>
     );

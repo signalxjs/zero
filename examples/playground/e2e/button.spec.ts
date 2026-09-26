@@ -72,3 +72,72 @@ for (const ds of DESIGN_SYSTEMS) {
         });
     });
 }
+
+/**
+ * The button contract on a non-button element, under a real keyboard (#275).
+ *
+ * The unit suite dispatches synthetic key events; only an engine proves the
+ * contract is real — a `<span>` is a Tab stop, Enter and Space each activate
+ * it exactly once (Space on release, so no double from the native keyup
+ * path), `focusableWhenDisabled` keeps a disabled button reachable without
+ * letting it act, and a disabled link leaves the tab order entirely. Three
+ * engines: tab order and key activation are engine behaviour. One skin:
+ * none of it is paint.
+ */
+test.describe('asChild button semantics (#275)', () => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        test.skip(!['chromium', 'firefox', 'webkit'].includes(testInfo.project.name), 'keyboard behaviour — the three engines');
+        // Linux WebKit headless does not reliably synthesize keyboard input.
+        test.skip(testInfo.project.name === 'webkit' && process.platform === 'linux', 'headless WPE keyboard');
+        await bootPage(page, 'button', 'basic');
+    });
+
+    test('a span button is a tab stop that Enter and Space each activate once', async ({ page }) => {
+        const span = rootLabelled(page, 'button', 'Span button');
+        const presses = page.getByTestId('span-button-presses');
+        await expect(span).toHaveJSProperty('tagName', 'SPAN');
+        await expect(span).toHaveAttribute('role', 'button');
+        await expect(span).toHaveAttribute('tabindex', '0');
+
+        await span.focus();
+        await expect(span).toBeFocused();
+        await page.keyboard.press('Enter');
+        await expect(presses).toHaveText('Pressed 1×');
+        await page.keyboard.press('Space');
+        await expect(presses).toHaveText('Pressed 2×');
+    });
+
+    test('focusableWhenDisabled keeps the tab stop and blocks activation', async ({ page }, testInfo) => {
+        const span = rootLabelled(page, 'button', 'Span button');
+        const disabled = rootLabelled(page, 'button', 'Focusable disabled');
+        const presses = page.getByTestId('span-button-presses');
+        await expect(disabled).toHaveAttribute('aria-disabled', 'true');
+        // Not the native attribute (Playwright's toBeDisabled reads
+        // aria-disabled too, so ask the element itself).
+        await expect(disabled).toHaveJSProperty('disabled', false);
+
+        // Reached by Tab from the span before it — the real tab order.
+        // WebKit's default Tab skips buttons (Safari's "press Tab to
+        // highlight each item" is off); Option+Tab is its full-keyboard Tab.
+        await span.focus();
+        await page.keyboard.press(testInfo.project.name === 'webkit' ? 'Alt+Tab' : 'Tab');
+        await expect(disabled).toBeFocused();
+        await page.keyboard.press('Enter');
+        await page.keyboard.press('Space');
+        // force: Playwright's actionability waits out aria-disabled.
+        await disabled.click({ force: true });
+        await expect(presses).toHaveText('Pressed 0×');
+    });
+
+    test('a disabled link has no href and no tab stop', async ({ page }) => {
+        const link = rootLabelled(page, 'button', 'Disabled link');
+        await expect(link).toHaveJSProperty('tagName', 'A');
+        expect(await link.getAttribute('href'), 'the disabled link renders no href').toBeNull();
+        await expect(link).toHaveAttribute('role', 'link');
+        await expect(link).toHaveAttribute('aria-disabled', 'true');
+        await expect(link).toHaveAttribute('tabindex', '-1');
+        const url = page.url();
+        await link.click({ force: true });
+        expect(page.url()).toBe(url);
+    });
+});

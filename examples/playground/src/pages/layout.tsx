@@ -1,5 +1,6 @@
 import { component } from 'sigx';
 import { Badge, Box, Button, Card, Center, Col, Container, Grid, Row, Spacer, Stack } from '@sigx/zero';
+import type { PartProps } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
 import { pickRole, pickScopeVariant } from '../design-systems';
 import type { PageEntry } from './registry';
@@ -168,6 +169,22 @@ const LayoutDemos = component(() => () => (
             <Cell>gamma</Cell>
             <Cell>delta</Cell>
             <Cell>epsilon</Cell>
+        </Grid>
+
+        <p>
+            Every layout root takes <code>asChild</code> (#275), so a grid that
+            is a list IS the list: a <code>&lt;ul&gt;</code> carrying the
+            columns, each cell an <code>&lt;li&gt;</code>. The list reset is
+            the app's — zero ships none.
+        </p>
+        <Grid cols="auto" track="xs" gap="md" asChild>
+            {(p: PartProps) => (
+                <ul {...p} aria-label="Planets" style="list-style: none; margin: 0; padding: 0">
+                    <Grid.Cell asChild>{(c: PartProps) => <li {...c}><Cell>Mercury</Cell></li>}</Grid.Cell>
+                    <Grid.Cell asChild>{(c: PartProps) => <li {...c}><Cell>Venus</Cell></li>}</Grid.Cell>
+                    <Grid.Cell asChild>{(c: PartProps) => <li {...c}><Cell>Earth</Cell></li>}</Grid.Cell>
+                </ul>
+            )}
         </Grid>
 
         <h3>Center</h3>

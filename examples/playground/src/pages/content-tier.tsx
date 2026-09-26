@@ -32,6 +32,24 @@ const CardDemos = component(() => () => (
             <Card.Root>
                 <Card.Body>Just a body — the smallest card there is.</Card.Body>
             </Card.Root>
+            {/*
+              * #275: the card is an <article>, its title the heading level
+              * the outline wants, its description more than one paragraph.
+              */}
+            <Card.Root asChild aria-labelledby="card-article-title">
+                {(p: PartProps) => (
+                    <article {...p}>
+                        <Card.Header>
+                            <Card.Title asChild id="card-article-title">
+                                {(t: PartProps) => <h4 {...t}>Release notes</h4>}
+                            </Card.Title>
+                            <Card.Description asChild>
+                                {(d: PartProps) => <div {...d}><p>Two fixes.</p><p>One new prop.</p></div>}
+                            </Card.Description>
+                        </Card.Header>
+                    </article>
+                )}
+            </Card.Root>
         </DemoRow>
     </>
 ), { name: 'CardDemos' });
