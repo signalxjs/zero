@@ -73,6 +73,8 @@ describe('Progress / RadialProgress value text', () => {
                 expect(part(container, scope, 'root')!.getAttribute('aria-valuetext')).toBe('10 of 10 files');
                 expect(part(container, scope, 'value-text')!.textContent).toBe('10 of 10 files');
                 expect(calls[0]).toEqual([10, { min: 0, max: 10, percent: 100 }]);
+                // One shared string: the root and the ValueText read it, the formatter runs once.
+                expect(calls).toHaveLength(1);
             });
 
             it('an indeterminate bar has no value text', () => {

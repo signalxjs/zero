@@ -15,7 +15,7 @@
  * (`getValueText` / `locale` / `formatOptions` — see `value-text.ts`), so
  * what is announced is what is shown.
  */
-import { component, compound, defineInjectable, defineProvide } from 'sigx';
+import { component, compound, computed, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { countPresence, reportPresence, settleAfterMount } from '../../behaviors/part-presence.js';
 import { createId } from '../../behaviors/create-id.js';
@@ -94,12 +94,16 @@ const ProgressRoot = component<ProgressRootProps>(({ props, slots, signal, onMou
         if (!(span > 0)) return 100;
         return Math.min(100, Math.max(0, ((v - min()) / span) * 100));
     };
+    // One formatted string per update: the root's aria-valuetext and the
+    // default ValueText both read it, so a custom `getValueText` (or the
+    // Intl.NumberFormat) runs once, not once per reader.
+    const valueText = computed(() => progressValueText(props, valueNow(), percent(), min(), max()));
     const ctx: ProgressContext = {
         value,
         min,
         max,
         percent,
-        valueText: () => progressValueText(props, valueNow(), percent(), min(), max()),
+        valueText: () => valueText.value,
         state: () => {
             const p = percent();
             if (p == null) return 'indeterminate';
