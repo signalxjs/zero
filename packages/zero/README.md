@@ -32,7 +32,7 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 
 Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · Menu ·
 Select · Switch · Checkbox · CheckboxGroup · RadioGroup · Slider · Progress ·
-Field · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
+Field · Fieldset · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · EmptyState · Badge · Divider ·
 Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · RadialProgress · Join ·
 Navbar · NavList · Breadcrumbs · Pagination · Steps · Drawer · Table · FileUpload · Carousel · Swap · Countdown · Diff
@@ -131,7 +131,8 @@ item or branch valued `''` throws there (as a ToggleGroup item does); under
 **The form contract.** Every posting control takes the same five props
 (`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus
 `readonly` on every value control — see below) and answers to a `Field.Root` for all
-of them. A control posts only while it carries a `name`; a disabled control
+of them — and to an enclosing `Fieldset.Root` for `disabled`, `readonly`
+and `invalid` (#285). A control posts only while it carries a `name`; a disabled control
 never posts; `form="id"` associates it from outside the form's subtree; and
 the owning form's `reset()` restores the component default into the model
 and the DOM. Select, Combobox and ToggleGroup post through a real,
@@ -144,7 +145,9 @@ constraint validation): a required rating left at 0 fails
 `checkValidity()`, the invalid focus lands on its tab stop, and the
 radiogroup carries `aria-required`. The runtime
 half is `createFormControl` + `onFormReset` (`@sigx/zero/behaviors`), the
-one `VISUALLY_HIDDEN_STYLE` beside them.
+one `VISUALLY_HIDDEN_STYLE` beside them; a component of your own that renders
+a non-native control reads an enclosing Fieldset's flags from
+`createFormControl` for free, or directly through `useFieldsetContext()`.
 
 **FileUpload checks its files, and reports what it refused (#273).**
 `FileUpload.Root` takes `maxFiles`, `minFileSize` and `maxFileSize`
@@ -351,6 +354,39 @@ listens for that element's `invalid` event (a submit, `reportValidity()`,
         <Field.Error match="custom" />
     </Field.Root>
 </form>
+```
+
+**A Fieldset groups controls and says their flags once (#285).**
+`Fieldset.Root` renders a native `<fieldset>` and `Fieldset.Legend` the
+native `<legend>` — render it as the Root's first child: the platform names
+the group from it (`role="group"`, no `aria-labelledby` of zero's own).
+`disabled` sets the native attribute, which disables every native control
+inside; the controls zero draws itself (a Slider thumb, a RadioGroup item,
+a RatingGroup star, a Select trigger's `data-disabled`) read the Fieldset's
+context through `createFormControl` / `Field.Root`, so they render
+`data-disabled` / `aria-disabled`, refuse input and never post either.
+`readonly` and `invalid` have no native fieldset spelling and travel by the
+context alone. A control's effective flag is its own OR its Field's OR any
+enclosing fieldset's — nested fieldsets chain — and a `Field.Root` inside
+takes them too, so its Label dims with the group. Controls inside the Legend
+answer to the fieldsets *outside* it, as the platform exempts a legend's
+controls from its fieldset's `disabled`: that is where the "enable this
+section" checkbox goes. The root carries `data-disabled` / `data-readonly`
+/ `data-invalid`, the legend `data-disabled` / `data-invalid`; the six
+skins reset the UA frame (brutalist keeps it as an inked box) and undo its
+`min-inline-size: min-content`.
+
+```tsx
+<Fieldset.Root disabled={!state.shipElsewhere}>
+    <Fieldset.Legend>
+        <Checkbox.Root model={() => state.shipElsewhere}>Ship to a different address</Checkbox.Root>
+    </Fieldset.Legend>
+    <Field.Root>
+        <Field.Label>Street</Field.Label>
+        <Input.Root name="street">…</Input.Root>
+    </Field.Root>
+    <Slider.Root name="priority" defaultValue={[2]}>…</Slider.Root>
+</Fieldset.Root>
 ```
 
 `tooShort` and `tooLong` are raised by the platform only for a value the

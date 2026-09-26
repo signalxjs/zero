@@ -128,7 +128,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-59 components ship today. Every part each renders is listed below, in
+60 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.

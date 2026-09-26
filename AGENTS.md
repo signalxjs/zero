@@ -457,7 +457,7 @@ slides, is fine).
   (`danger-soft` is one member), a declared three-step size ramp, and
   HeroUI's `isIconOnly`/`isPending` as `data-mod-*` modifiers. Where
   zero-material proves vocabularies can be *extended*, this proves they can be
-  a different *shape*. Full component coverage (53 recipes, plus the kit's layout tier), with `variant`
+  a different *shape*. Full component coverage (54 recipes, plus the kit's layout tier), with `variant`
   wired on button only (the repo-wide decision, #175) — it exercises the axis
   surface, not a product. Private.
 - `packages/zero-carbon` → `@sigx/zero-carbon` — Carbon-flavoured skin, and
@@ -487,7 +487,7 @@ slides, is fine).
 - `packages/create-zero-ds` → `@sigx/create-zero-ds` — the scaffold behind
   `pnpm create @sigx/zero-ds <name> --brief <id>` (#401): a Node-only bin with
   zero runtime deps that lays down a design-system package from nothing —
-  the brief's tokens + Button, `@sigx/zero-basic`'s 53 recipes as
+  the brief's tokens + Button, `@sigx/zero-basic`'s 54 recipes as
   `src/baseline.ts`, and a `src/recipes.ts` composing them through the kit's
   `fitRecipesToVocabulary` (on `/define`) so any axis shape compiles on the
   first build. Templates are embedded at build time
