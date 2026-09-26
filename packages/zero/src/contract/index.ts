@@ -57,6 +57,7 @@ export {
     dataAttr,
     stateAttr,
 } from './data-attrs.js';
+export { POSITION_PROPERTIES } from './position-properties.js';
 
 export type { Responsive, LayoutProps, LayoutAttrName, LayoutAttrSpec, LayoutValue, LayoutProp } from './layout-attrs.js';
 export {

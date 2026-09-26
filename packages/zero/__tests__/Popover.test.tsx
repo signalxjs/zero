@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { Popover, popoverAnatomy } from '@sigx/zero';
+import type { PositionOptions, PositionStrategy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 /** Presence flags land one microtask after the render pass; settle them. */
@@ -155,5 +156,30 @@ describe('Popover', () => {
         (e as unknown as { newState: string }).newState = 'closed';
         popup.dispatchEvent(e);
         expect(state.open).toBe(false);
+    });
+    it('forwards collisionPadding and alignOffset to the position strategy (defaults 8 and 0)', async () => {
+        const seen: PositionOptions[] = [];
+        const spy: PositionStrategy = { apply: (_a, _f, opts) => { seen.push(opts); return () => {}; } };
+        const a = signal({ open: false });
+        const b = signal({ open: false });
+        render(
+            <div>
+                <Popover.Root model={[a, 'open']} positionStrategy={spy}>
+                    <Popover.Trigger>Defaults</Popover.Trigger>
+                    <Popover.Popup>…</Popover.Popup>
+                </Popover.Root>
+                <Popover.Root model={[b, 'open']} positionStrategy={spy} collisionPadding={16} alignOffset={-4}>
+                    <Popover.Trigger>Set</Popover.Trigger>
+                    <Popover.Popup>…</Popover.Popup>
+                </Popover.Root>
+            </div>,
+            container,
+        );
+        await tick();
+        a.open = true;
+        await tick();
+        b.open = true;
+        await tick();
+        expect(seen.map((o) => [o.collisionPadding, o.alignOffset])).toEqual([[8, 0], [16, -4]]);
     });
 });

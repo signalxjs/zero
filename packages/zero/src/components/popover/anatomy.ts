@@ -9,6 +9,9 @@ export const popoverAnatomy = defineAnatomy('popover', {
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },
+    // Anchor-positioned: carries `data-placement` plus the published
+    // POSITION_PROPERTIES — `--anchor-width`/`--anchor-height`,
+    // `--available-width`/`--available-height`, `--transform-origin`.
     popup: {
         element: 'div',
         states: ['open', 'closed'],

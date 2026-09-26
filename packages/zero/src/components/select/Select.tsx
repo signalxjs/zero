@@ -186,6 +186,10 @@ export type SelectRootProps<T = unknown, M = unknown> =
     /** Under `virtual`: an option's height before it is measured, in px (default 36). */
     & Define.Prop<'estimateItemSize', number, false>
     & Define.Prop<'placement', Placement, false>
+    /** Margin, px, the popup keeps from the viewport edges when flipping and shifting (default 8). */
+    & Define.Prop<'collisionPadding', number, false>
+    /** Cross-axis offset, px, from a `-start`/`-end` alignment (default 0). */
+    & Define.Prop<'alignOffset', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & WithVariantAxes<'select'>
     & WithClass
@@ -444,6 +448,8 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         isOpen: () => openState.value,
         placement: () => props.placement ?? 'bottom-start',
         offset: () => 4,
+        collisionPadding: () => props.collisionPadding,
+        alignOffset: () => props.alignOffset,
         strategy: props.positionStrategy,
     });
 

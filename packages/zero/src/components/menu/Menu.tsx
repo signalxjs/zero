@@ -195,6 +195,10 @@ export type MenuRootProps =
     & Define.Prop<'loop', boolean, false>
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'offset', number, false>
+    /** Margin, px, the popup keeps from the viewport edges when flipping and shifting (default 8). */
+    & Define.Prop<'collisionPadding', number, false>
+    /** Cross-axis offset, px, from a `-start`/`-end` alignment (default 0). */
+    & Define.Prop<'alignOffset', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & Define.Slot<'default'>;
 
@@ -245,6 +249,8 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
         isOpen: () => state.value,
         placement: () => props.placement ?? 'bottom-start',
         offset: () => props.offset ?? 4,
+        collisionPadding: () => props.collisionPadding,
+        alignOffset: () => props.alignOffset,
         strategy: props.positionStrategy,
     });
 
@@ -933,6 +939,10 @@ export type MenuSubProps =
     & Define.Event<'openChange', boolean>
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'offset', number, false>
+    /** Margin, px, the popup keeps from the viewport edges when flipping and shifting (default 8). */
+    & Define.Prop<'collisionPadding', number, false>
+    /** Cross-axis offset, px, from a `-start`/`-end` alignment (default 0). */
+    & Define.Prop<'alignOffset', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     /** Hover-intent delays in ms; openDelay 100, closeDelay 300. */
     & Define.Prop<'openDelay', number, false>
@@ -1115,6 +1125,8 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
         isOpen: () => state.value,
         placement: () => props.placement ?? (isRtl() ? 'left-start' : 'right-start'),
         offset: () => props.offset ?? 4,
+        collisionPadding: () => props.collisionPadding,
+        alignOffset: () => props.alignOffset,
         strategy: props.positionStrategy,
     });
 

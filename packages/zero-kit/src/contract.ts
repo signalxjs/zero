@@ -325,6 +325,19 @@ export function contrastPairs(roles: Record<string, RoleDecl>): readonly (readon
 }
 
 /**
+ * The anchored-position strategy's published geometry. Mirrors
+ * `POSITION_PROPERTIES` in `@sigx/zero/contract` (parity-tested) — see the
+ * zero copy for what each one measures.
+ */
+export const POSITION_PROPERTIES = [
+    '--anchor-width',
+    '--anchor-height',
+    '--available-width',
+    '--available-height',
+    '--transform-origin',
+] as const;
+
+/**
  * Custom properties the `@sigx/zero` runtime writes on elements — not design
  * tokens, but runtime-published interaction/measurement data recipes may
  * reference. `--press-*` come from the press-feedback behavior (press point
@@ -335,6 +348,8 @@ export function contrastPairs(roles: Record<string, RoleDecl>): readonly (readon
  * quartet is written on Accordion's and Collapsible's panel (measured
  * `scrollHeight`/`scrollWidth`, px) so a recipe can animate a `<details>`
  * close from `var(--accordion-panel-height)` to `0` (#276).
+ * The `POSITION_PROPERTIES` five come from the anchored-position strategy,
+ * on every floating popup it positions.
  *
  * WEB-ONLY: these exist because the DOM runtime can write custom properties
  * that stylesheet rules then read. A target whose engine cannot resolve
@@ -354,6 +369,7 @@ export const RUNTIME_PROPERTIES = [
     '--accordion-panel-width',
     '--collapsible-panel-height',
     '--collapsible-panel-width',
+    ...POSITION_PROPERTIES,
 ] as const;
 
 /**

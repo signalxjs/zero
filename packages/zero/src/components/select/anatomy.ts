@@ -39,6 +39,9 @@ export const selectAnatomy = defineAnatomy('select', {
         flags: ['focus-visible'],
         tokens: ['color'],
     },
+    // Anchor-positioned: carries `data-placement` plus the published
+    // POSITION_PROPERTIES — `--anchor-width`/`--anchor-height`,
+    // `--available-width`/`--available-height`, `--transform-origin`.
     popup: {
         element: 'div',
         parent: 'root',

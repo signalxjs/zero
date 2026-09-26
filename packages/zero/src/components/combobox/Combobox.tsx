@@ -307,6 +307,10 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     & WithFormControl
     & WithReadonly
     & Define.Prop<'placement', Placement, false>
+    /** Margin, px, the popup keeps from the viewport edges when flipping and shifting (default 8). */
+    & Define.Prop<'collisionPadding', number, false>
+    /** Cross-axis offset, px, from a `-start`/`-end` alignment (default 0). */
+    & Define.Prop<'alignOffset', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & WithVariantAxes<'combobox'>
     & WithClass
@@ -949,6 +953,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         isOpen: () => openState.value,
         placement: () => props.placement ?? 'bottom-start',
         offset: () => 4,
+        collisionPadding: () => props.collisionPadding,
+        alignOffset: () => props.alignOffset,
         strategy: props.positionStrategy,
     });
     // A new token, or the typed query rewrapping the line the token is on —
