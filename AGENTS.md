@@ -154,7 +154,10 @@ lower bound only, and WCAG 1.4.13: Escape dismisses a hover-opened tooltip
 while focus sits elsewhere; a click neither opens nor, until the pointer
 leaves, re-opens it; and a `Tooltip.Group` sibling opens inside the intent
 delay, #268), tabs (one roving tab stop, automatic
-activation), slider drag under implicit pointer capture (and, since
+activation), accordion (#276: arrows/Home/End move focus between triggers
+that all stay tabbable, panels are regions named by their triggers, and a
+close PLAYS — sampled per frame, the panel shrinks inside a still-open
+`<details>` and never snaps back before it shuts, for Collapsible too), slider drag under implicit pointer capture (and, since
 #170, a vertical slider: bottom-to-top drags on both projections, and a
 rail every skin stands upright, measured in boxes), tree-view
 keyboard (expand/descend/collapse/climb, typeahead against the accessible
@@ -213,7 +216,8 @@ all six design systems, asserting the OPPOSITE thing in two projects:
 recipe that never animated — and `animation-name` rather than duration,
 because the kit collapses `--duration-*` to ~0 under reduced motion and a
 loop at ~0s strobes rather than stops (the same both-ways check holds the
-drawer sheet's slide in the four skins that slide, #83);
+drawer sheet's slide in the four skins that slide, #83, and the accordion
+panel's close in the five skins that animate it, #276 — brutalist cuts);
 and the **RTL spec** (`e2e/rtl.spec.ts`), the other
 spec that walks all six — chromium-only, one page load per design system, it
 sets `dir="rtl"` *after* boot (an `addInitScript` runs before `documentElement`
