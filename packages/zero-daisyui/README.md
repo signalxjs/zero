@@ -73,8 +73,7 @@ fidelity; the same trade as the ratios below.
 Five of daisy's own ratios are deliberately moved, and only these five: the
 unchecked toggle knob and the unfilled rating symbol are base-content at **60%**
 rather than daisy's 50% and 20%, the rating's default `warning` fill is deepened
-**60/40** toward its content pair, the progress bar's fill **90/10** (its
-`complete` green **55/45**), and the role **ink** — the colour a transparent or
+**60/40** toward its content pair, the progress bar's fill **90/10**, and the role **ink** — the colour a transparent or
 tinted surface draws a label, a border, a focus ring or an error message with —
 is the role mixed toward `--color-base-content`, per role, rather than the raw
 role token daisy draws with. Each was measured under 3:1 against the surface it

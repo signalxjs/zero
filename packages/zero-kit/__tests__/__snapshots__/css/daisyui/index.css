@@ -2962,10 +2962,6 @@
         transition: width var(--duration-slow) var(--ease-standard);
     }
 
-    [data-scope="progress"][data-part="range"][data-state="complete"] {
-        background: color-mix(in oklab, var(--color-success) 55%, var(--color-success-content));
-    }
-
     [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
         width: 40%;
         animation: zero-daisy-indeterminate 1.2s ease-in-out infinite;

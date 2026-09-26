@@ -918,6 +918,10 @@ export const switchRecipe: RecipeInput = {
                         // No currentColor on this target — the ink is named
                         // directly, and `checked` moves border + fill below.
                         border: 'var(--border) solid var(--switch-ink)',
+                        // daisy's 1px inset depth line along the track's top
+                        // edge — `currentColor` at `--depth` × 10% on the
+                        // web, the theme's own depth shade here.
+                        boxShadow: '0 1px var(--depth-shade) inset',
                         userSelect: 'none',
                         transition: 'border-color var(--duration-slow) var(--ease-standard), '
                             + 'background-color var(--duration-normal) var(--ease-standard)',
@@ -938,6 +942,12 @@ export const switchRecipe: RecipeInput = {
                         height: 'calc(var(--switch-size) - (var(--border) + var(--switch-p)) * 2)',
                         borderRadius: 'var(--radius-selector)',
                         backgroundColor: 'var(--switch-ink)',
+                        // daisy's knob relief (`.toggle:before`): a shade
+                        // along the bottom edge, a sheen across the top, and
+                        // a 1px drop — the web's `currentColor` drop spelled
+                        // as the theme's depth shade. The noise layer has no
+                        // lynx spelling and stays web-only.
+                        boxShadow: '0 -1px var(--depth-shade) inset, 0 8px 0 -4px var(--depth-sheen) inset, 0 1px var(--depth-shade)',
                         transition: 'transform var(--duration-normal) var(--ease-standard), '
                             + 'background-color var(--duration-instant) var(--ease-standard)',
                     },
@@ -1999,9 +2009,13 @@ export const progress: RecipeInput = {
                 transition: 'width var(--duration-slow) var(--ease-standard)',
             },
             states: {
-                // `complete` is a semantic state, not an accent: it stays
-                // success regardless of the colour variant, on purpose.
-                complete: { background: progressFill('success', 55) },
+                // `complete` keeps the colour axis. daisyUI 5 has no complete
+                // tint — a full `progress-primary` stays primary — and a
+                // `color="secondary"` bar that turns green at 100% reads as a
+                // bug, not as meaning (signalxjs/lynx#1144). A caller who wants
+                // "done" to look like success says so: `color="success"`.
+                // Declared equal to `loading` in `sameAs` below.
+                complete: {},
                 loading: {},
                 indeterminate: { width: '40%', animation: 'zero-daisy-indeterminate 1.2s ease-in-out infinite' },
             },
@@ -2037,6 +2051,8 @@ export const progress: RecipeInput = {
     // so the manifest states the default for runtimes with no `:not()`
     // fallback (the lynx target; signalxjs/lynx#1070).
     defaultVariants: { color: 'primary', size: 'md' },
+    // A finished bar is a full bar of the same ink (see `complete` above).
+    sameAs: { root: { complete: 'loading' }, range: { complete: 'loading' } },
     keyframes: {
         // Logical, so the sweep runs the way the bar fills — `margin-inline-start`
         // is animatable and direction-aware on its own. The determinate `width`,
@@ -2057,6 +2073,10 @@ export const progress: RecipeInput = {
         },
     },
 };
+
+/** The slider's deepened fill — the web's `--slider-fill` mix, for a given accent. */
+const sliderFill = (accent: string): string =>
+    `color-mix(in oklab, ${accent} 90%, var(--color-base-content))`;
 
 export const slider: RecipeInput = {
     component: 'slider',
@@ -2368,29 +2388,94 @@ export const slider: RecipeInput = {
             },
         },
         lynx: {
+            // The web's deepened fill, theme-baked: `color-mix()` over theme
+            // colours cannot resolve on device, but the emitter restates a
+            // colour function per theme as literals (as `progress` does for
+            // its accent), so each colour step gets the same 90/10 mix the
+            // web track and knob ring wear. Bound on the root like
+            // `--slider-accent`, rebound by `color` below and by `invalid`
+            // on the control (which wraps the rail on lynx).
+            tokens: { '--slider-fill': sliderFill('var(--color-primary)') },
+            variants: {
+                color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+                    '--slider-fill': sliderFill(`var(--color-${c})`),
+                } } }])),
+            },
             parts: {
+                // Vertical (lynx#1144): the lynx runtime positions the moving
+                // parts itself — `top` percentages, the knob centred by
+                // `left: 50%` plus the base's `translateY(-50%)` and
+                // negative `margin-left` — so the class rules only turn the
+                // channel upright: the control is a thumb-wide column of
+                // daisy's rail length, the track fills it.
+                root: {
+                    selectors: {
+                        '&[data-orientation="vertical"]': { width: 'auto', alignItems: 'center' },
+                    },
+                },
+                control: {
+                    states: {
+                        invalid: { '--slider-fill': sliderFill('var(--color-error)') },
+                    },
+                    selectors: {
+                        '&[data-orientation="vertical"]': {
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            width: 'var(--slider-thumb-size)',
+                            height: 'calc(var(--size-selector) * 40)',
+                        },
+                    },
+                },
                 track: {
                     // The web track's `margin-block` breathing room,
                     // restated physically: logical spellings resolve on iOS
                     // but not on Android (measured, signalxjs/lynx#1084), so
                     // the emitter refuses them. Physical is the lynx
                     // target's norm — no RTL flow there.
+                    //
+                    // daisy's channel radius is the selector radius (the
+                    // native control's runnable-track), not a pill.
                     base: {
                         marginTop: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
                         marginBottom: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
+                        borderRadius: 'var(--radius-selector)',
+                    },
+                    selectors: {
+                        '&[data-orientation="vertical"]': {
+                            width: 'var(--slider-track-size)',
+                            height: '100%',
+                            marginTop: '0',
+                            marginBottom: '0',
+                        },
                     },
                 },
                 mark: {
-                    // Same #1084 verdict: the tick labels hang below the
-                    // track off a physical padding.
-                    base: { paddingTop: 'calc(var(--slider-track-size) + var(--space-2xs))' },
+                    // The web draws the tick with `::before`, which lynx has
+                    // no projection for — the mark was an empty, invisible
+                    // box. Here the mark IS the tick: a 2px rule across the
+                    // channel, centred on its runtime-set `left` percent.
+                    // (Lynx marks carry no label text.)
+                    base: {
+                        top: '0',
+                        width: '2px',
+                        height: 'var(--slider-track-size)',
+                        marginLeft: '-1px',
+                        paddingTop: '0',
+                        backgroundColor: 'var(--color-base-content)',
+                    },
+                    selectors: {
+                        '&[data-orientation="vertical"]': {
+                            left: '0',
+                            width: 'var(--slider-track-size)',
+                            height: '2px',
+                            marginLeft: '0',
+                            marginTop: '-1px',
+                        },
+                    },
                 },
                 range: {
-                    // The web fill deepens the accent 90/10 toward
-                    // base-content (`progressFill`'s recipe); the plain
-                    // accent — a var() chain, proven working on device — is
-                    // the closest lynx-expressible equivalent.
-                    base: { background: 'var(--slider-accent)' },
+                    base: { background: 'var(--slider-fill)', borderRadius: 'var(--radius-selector)' },
                 },
                 thumb: {
                     // daisy's real range thumb, ported from daisyUI 5
@@ -2401,13 +2486,16 @@ export const slider: RecipeInput = {
                     // `--range-thumb` defaults to `var(--color-base-100)`,
                     // `--range-p` is daisy's literal `.25rem` (deliberately
                     // not the theme's size token), and the border ink is the
-                    // accent (currentColor on a daisy `.range-*` IS the
-                    // accent role) — because on lynx a named value is a
-                    // var-chain fewer to resolve. daisy paints the progress
-                    // fill itself as a 100cqw box-shadow thrown off this
-                    // thumb — a native-input trick with no lynx equivalent;
-                    // the composed `.zx-slider__range` box above IS that
-                    // fill here, so the knob only needs its own two paints.
+                    // deepened fill the web's native thumb ring reads. daisy
+                    // paints the progress fill itself as a 100cqw box-shadow
+                    // thrown off this thumb — a native-input trick with no
+                    // lynx equivalent; the composed `.zx-slider__range` box
+                    // above IS that fill here, so the knob only needs its own
+                    // paints. Its radius is daisy's formula minus the min()
+                    // clamp lynx cannot evaluate — exact for every shipped
+                    // theme (all set `--radius-selector` ≥ .25rem / 3) — and
+                    // it wears daisy's depth shading (`currentColor`'s 10%
+                    // outer shadow spelled as the theme's shade).
                     //
                     // The centering geometry is restated physically beside
                     // the paint: `inset-block-start`/`translate`/
@@ -2418,7 +2506,9 @@ export const slider: RecipeInput = {
                     // proven on both platforms.
                     base: {
                         background: 'var(--color-base-100)',
-                        border: '0.25rem solid var(--slider-accent)',
+                        border: '0.25rem solid var(--slider-fill)',
+                        borderRadius: 'calc(var(--radius-selector) + 0.25rem)',
+                        boxShadow: '0 -1px var(--depth-shade) inset, 0 8px 0 -4px var(--depth-sheen) inset, 0 1px var(--depth-shade)',
                         top: '50%',
                         transform: 'translateY(-50%)',
                         marginLeft: 'calc(var(--slider-thumb-size) / -2)',
