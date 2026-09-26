@@ -316,7 +316,9 @@ export const tabs: RecipeInput = {
         },
         // daisy draws each flavor's active mark on the tab itself (the
         // underline, the lift, the pill) and none of them slides, so a
-        // `Tabs.Indicator` renders nothing here (#283).
+        // `Tabs.Indicator` renders nothing here (#283). On lynx, which has
+        // no pseudo-elements, the `border` flavor's underline is drawn on
+        // this part instead (see `targets.lynx`).
         indicator: { base: { display: 'none' } },
         panel: {
             base: { fontSize: 'var(--text-md)' },
@@ -520,11 +522,17 @@ export const tabs: RecipeInput = {
     targets: {
         lynx: {
             parts: {
-                // The default active ink — base-content, exactly what the
-                // shared `states.active.color` paints. One class, so any
+                // No hover on a touch platform: the held tab takes the ink
+                // daisy's hover gives it.
+                tab: { states: { pressed: { color: 'var(--color-base-content)' } } },
+                // The list is the indicator's containing block.
+                list: { base: { position: 'relative' } },
+                // The underline's ink (read by the `border` flavor below) —
+                // base-content by default, exactly what the shared
+                // `states.active.color` paints on the tab. One class, so any
                 // color-axis definition below (host + two classes, baked per
                 // theme) wins on specificity.
-                tab: { base: { '--tab-active-ink': 'var(--color-base-content)' } },
+                indicator: { base: { '--tab-active-ink': 'var(--color-base-content)' } },
             },
             variants: {
                 // `currentColor` never resolves on lynx (measured on device
@@ -535,19 +543,29 @@ export const tabs: RecipeInput = {
                 // once per theme — the same per-color/per-theme literal the
                 // active `color:` rules already land as.
                 color: Object.fromEntries(
-                    ROLES.map((c) => [c, { tab: { base: { '--tab-active-ink': roleInk(c) } } }]),
+                    ROLES.map((c) => [c, { indicator: { base: { '--tab-active-ink': roleInk(c) } } }]),
                 ),
                 variant: {
                     // The underline is a ::before on the web, which lynx
-                    // drops — redrawn as a real bottom border on the tab
-                    // itself (transparent at rest so activation never moves
-                    // the row). The active ink rides `--tab-active-ink`
-                    // above — a plain var() chain, device-proven — instead
-                    // of `currentColor`, which lynx never resolves.
+                    // drops. It is redrawn on the `indicator` part (zero#324),
+                    // which lynx-zero renders in every list and positions
+                    // over the active tab from measured geometry (the web's
+                    // `--tabs-indicator-*` properties are web-only). The part
+                    // IS the tab's box, so daisy's bar is its bottom edge:
+                    // 3px, 80% wide and centred, like `left: 10%; width: 80%`
+                    // on the web. The ink rides `--tab-active-ink` — a plain
+                    // var() chain, device-proven — instead of `currentColor`,
+                    // which lynx never resolves.
                     border: {
-                        tab: {
-                            base: { borderBottom: '3px solid transparent' },
-                            states: { active: { borderBottomColor: 'var(--tab-active-ink)' } },
+                        indicator: {
+                            base: {
+                                display: 'flex',
+                                boxSizing: 'border-box',
+                                borderBottomWidth: '3px',
+                                borderBottomStyle: 'solid',
+                                borderBottomColor: 'var(--tab-active-ink)',
+                                transform: 'scaleX(0.8)',
+                            },
                         },
                     },
                     // `min()` does not exist on lynx (signalxjs/lynx#1066) and
@@ -2413,7 +2431,18 @@ export const slider: RecipeInput = {
 
 export const accordion: RecipeInput = {
     component: 'accordion',
-    targets: disclosureExit('accordion'),
+    targets: {
+        ...disclosureExit('accordion'),
+        lynx: {
+            parts: {
+                // No hover on a touch platform: the held trigger takes daisy's
+                // hover fill. The ::after chevron has no lynx counterpart (no
+                // pseudo-elements, and the anatomy declares no part for it) —
+                // an app draws its own glyph in the trigger.
+                trigger: { states: { pressed: { background: 'var(--color-base-200)' } } },
+            },
+        },
+    },
     // Same accent grammar as collapsible: the open heading's ink, defaulting
     // to base-content so the un-attributed render is unchanged.
     tokens: { '--accordion-accent': 'var(--color-base-content)' },
@@ -5277,6 +5306,87 @@ export const timeline: RecipeInput = {
             md: {},
             lg: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 3.5)' } }, content: { base: { fontSize: 'var(--text-md)' } } },
             xl: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 4)' } }, content: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+    /**
+     * Lynx has no grid, and it does not resolve `inline-size`/`block-size`:
+     * the item fell back to the engine's default layout and the marker,
+     * sized only logically, stretched into a pill (signalxjs/lynx#1145).
+     *
+     * The item is a wrapping flex row instead. Vertical: line one is the
+     * marker beside its content (start-side content ordered before the
+     * marker), and the connector takes line two by itself (`flex-basis:
+     * 100%`), drawn as a left border under the marker's centre, which is the
+     * web's row-2 segment. Horizontal: line one is the marker with the
+     * connector running on to the item's end, and the content wraps under it
+     * (start-side content above). Content grows from a zero basis, so long
+     * text never wraps onto its own line.
+     *
+     * The web collapses the start track when no item has start-side content
+     * (`:has()`); lynx has no such test. The vertical connector sits under a
+     * marker at the item's start edge, which is where the marker is unless
+     * that item has start-side content: an alternating vertical timeline is
+     * web-only for now.
+     */
+    targets: {
+        lynx: {
+            parts: {
+                item: { base: { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' } },
+                marker: {
+                    base: {
+                        width: 'var(--timeline-marker-size)',
+                        height: 'var(--timeline-marker-size)',
+                        flexGrow: '0',
+                        flexShrink: '0',
+                    },
+                },
+                connector: {
+                    selectors: {
+                        '&[data-orientation="vertical"]': {
+                            flexGrow: '0',
+                            flexShrink: '1',
+                            flexBasis: '100%',
+                            height: 'var(--space-lg)',
+                            background: 'transparent',
+                            borderLeftWidth: 'var(--border)',
+                            borderLeftStyle: 'solid',
+                            borderLeftColor: 'var(--color-base-300)',
+                            marginLeft: 'calc(var(--timeline-marker-size) / 2 - var(--border) / 2)',
+                        },
+                        '&[data-orientation="horizontal"]': {
+                            order: '1',
+                            flexGrow: '1',
+                            flexShrink: '1',
+                            flexBasis: '0',
+                            height: 'var(--border)',
+                            minWidth: 'var(--space-lg)',
+                        },
+                    },
+                },
+                content: {
+                    selectors: {
+                        '&[data-orientation="vertical"][data-placement="start"]': {
+                            order: '-1',
+                            flexGrow: '1',
+                            flexShrink: '1',
+                            flexBasis: '0',
+                        },
+                        '&[data-orientation="vertical"][data-placement="end"]': {
+                            flexGrow: '1',
+                            flexShrink: '1',
+                            flexBasis: '0',
+                        },
+                        '&[data-orientation="horizontal"][data-placement="start"]': {
+                            order: '-1',
+                            flexBasis: '100%',
+                        },
+                        '&[data-orientation="horizontal"][data-placement="end"]': {
+                            order: '2',
+                            flexBasis: '100%',
+                        },
+                    },
+                },
+            },
         },
     },
 };

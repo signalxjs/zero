@@ -750,17 +750,43 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
         const css = componentCss['tabs']!;
         expect(css).not.toMatch(/currentcolor/i);
-        // The underline consumes the named ink…
-        expect(css).toMatch(/\.zx-tabs__tab\.zx-a-variant-border\.zx-s-active \{\n\s+border-bottom-color: var\(--tab-active-ink\);/);
+        // The underline is drawn on the indicator part (lynx-zero positions
+        // it over the active tab) and consumes the named ink…
+        expect(css).toMatch(/\.zx-tabs__indicator\.zx-a-variant-border \{[^}]*display: flex;[^}]*border-bottom-color: var\(--tab-active-ink\);/);
+        // …no tab draws a border of its own any more…
+        expect(css).not.toMatch(/\.zx-tabs__tab[^{]*\{[^}]*border-bottom/);
         // …the un-attributed default is base-content, the shared active ink…
-        expect(css).toContain('--tab-active-ink: var(--color-base-content);');
-        // …and a color-attributed tab's ink is a concrete per-theme literal
-        // (host + two classes, so it beats the one-class default), equal to
-        // the very hex its active `color:` bakes to in the same theme.
-        const ink = css.match(/\.zx-root \.zx-tabs__tab\.zx-a-color-primary \{\n\s+--tab-active-ink: (#[0-9a-f]{6,8});/)?.[1];
+        expect(css).toMatch(/\.zx-tabs__indicator \{[^}]*--tab-active-ink: var\(--color-base-content\);/);
+        // …and a color-attributed indicator's ink is a concrete per-theme
+        // literal (host + two classes, so it beats the one-class default),
+        // equal to the very hex the active tab's `color:` bakes to in the
+        // same theme.
+        const ink = css.match(/\.zx-root \.zx-tabs__indicator\.zx-a-color-primary \{\n\s+--tab-active-ink: (#[0-9a-f]{6,8});/)?.[1];
         const activeColor = css.match(/\.zx-root \.zx-tabs__tab\.zx-a-color-primary\.zx-s-active \{\n\s+color: (#[0-9a-f]{6,8});/)?.[1];
         expect(ink).toBeDefined();
         expect(ink).toBe(activeColor);
+    });
+
+    // signalxjs/lynx#1145: lynx has no grid and no logical sizes, so the
+    // timeline item fell back to the default layout and the marker (sized
+    // only by inline-size/block-size) stretched into a pill.
+    it('zero-daisyui timeline: flex items and a physically sized marker', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const css = componentCss['timeline']!;
+        expect(css).toMatch(/\.zx-timeline__item \{[^}]*display: flex;[^}]*flex-wrap: wrap;/);
+        expect(css).not.toMatch(/\.zx-timeline__item \{[^}]*display: grid/);
+        // The size chain is inlined (lynx drops var() over a calc-holding
+        // property) into width/height, per size too.
+        expect(css).toMatch(/\.zx-timeline__marker \{[^}]*width: calc\(var\(--size-selector\) \* 3\);[^}]*height: calc\(var\(--size-selector\) \* 3\);[^}]*flex-shrink: 0;/);
+        expect(css).toMatch(/\.zx-timeline__marker\.zx-a-size-xl \{[^}]*width: calc\(var\(--size-selector\) \* 4\);/);
+        // The vertical connector is a left border under the marker's centre.
+        expect(css).toMatch(/\.zx-timeline__connector\.zx-o-vertical \{[^}]*flex-basis: 100%;[^}]*border-left-width: var\(--border\);[^}]*margin-left: calc\(/);
+    });
+
+    it('zero-daisyui tabs/accordion: the held part takes daisy\'s hover style', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        expect(componentCss['tabs']).toMatch(/\.zx-tabs__tab\.zx-f-pressed \{\n\s+color: var\(--color-base-content\);/);
+        expect(componentCss['accordion']).toMatch(/\.zx-accordion__trigger\.zx-f-pressed \{\n\s+background: var\(--color-base-200\);/);
     });
 
     // The checkbox tick and the radio ring/dot were the other three
