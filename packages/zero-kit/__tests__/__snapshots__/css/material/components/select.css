@@ -101,6 +101,42 @@
         transform: rotate(180deg);
     }
 
+    [data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) [data-scope="select"][data-part="indicator"] {
+        margin-inline-start: calc(var(--space-2xl) + var(--space-sm));
+    }
+
+    [data-scope="select"][data-part="clear-trigger"] {
+        appearance: none;
+        position: absolute;
+        inset-block: 0;
+        margin-block: auto;
+        block-size: min(1.5rem, 100%);
+        min-inline-size: 1.5rem;
+        inset-inline-end: calc(var(--space-md) + 1em + var(--space-xs));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 var(--space-xs);
+        border: none;
+        background: transparent;
+        color: var(--color-surface-container-content);
+        font: inherit;
+        font-size: var(--text-md);
+        line-height: var(--leading-none);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="select"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-surface-container-content) 8%, transparent);
+    }
+
+    [data-scope="select"][data-part="clear-trigger"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
     [data-scope="select"][data-part="popup"] {
         opacity: 0;
         transform: scale(0.9);
@@ -205,6 +241,12 @@
 
     [data-scope="select"][data-part="item-indicator"] {
         color: var(--select-accent);
+    }
+
+    [data-scope="select"][data-part="separator"] {
+        height: var(--border);
+        margin: var(--space-2xs) 0;
+        background: var(--color-outline);
     }
 
     [data-scope="select"][data-part="hidden-input"] {

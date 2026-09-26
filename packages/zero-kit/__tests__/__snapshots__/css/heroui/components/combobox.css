@@ -133,6 +133,22 @@
         transform: scale(0.97);
     }
 
+    [data-scope="combobox"][data-part="clear-trigger"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--hero-muted);
+        font: inherit;
+        padding: 0 var(--space-xs);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        transition: color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="combobox"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        color: var(--color-base-content);
+    }
+
     [data-scope="combobox"][data-part="popup"] {
         opacity: 0;
         transform: translateY(-4px);
@@ -209,6 +225,20 @@
         font-size: var(--combobox-text);
         color: var(--hero-muted);
         text-align: center;
+    }
+
+    [data-scope="combobox"][data-part="loading"] {
+        padding: var(--space-md);
+        font-family: var(--font-sans);
+        font-size: var(--combobox-text);
+        color: var(--hero-muted);
+        text-align: center;
+    }
+
+    [data-scope="combobox"][data-part="separator"] {
+        height: var(--border);
+        margin: var(--space-2xs) 0;
+        background: var(--hero-line);
     }
 
     [data-scope="combobox"][data-part="root"][data-size="sm"] {

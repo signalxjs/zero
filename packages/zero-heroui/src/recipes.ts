@@ -1567,12 +1567,19 @@ export const accordion: RecipeInput = {
 };
 
 // ── Select ────────────────────────────────────────────────────────────────
+/**
+ * A select whose clear-trigger is rendered (#280) — anchored on the root, so
+ * a part inside the trigger can make room for the button laid over it.
+ */
+const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
+
 export const select: RecipeInput = {
     component: 'select',
     tokens: { '--select-text': 'var(--text-sm)' },
     parts: {
+        // Positioned: the clear-trigger sits over the trigger's inline end.
         root: {
-            base: { display: 'inline-flex', flexDirection: 'column' },
+            base: { display: 'inline-flex', flexDirection: 'column', position: 'relative' },
             states: { disabled: {}, invalid: {}, required: {} },
         },
         trigger: {
@@ -1616,6 +1623,41 @@ export const select: RecipeInput = {
         indicator: {
             base: { flex: 'none', color: 'var(--hero-muted)', transition: motion('rotate') },
             states: { open: { rotate: '180deg' }, closed: {} },
+            // Room for the clear-trigger laid over the field (#280).
+            selectors: { [SELECT_CLEARABLE]: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' } },
+        },
+        // Clears the selection (#280): HeroUI's clear button in the field's
+        // end content, before the chevron — muted ink that firms up on a
+        // base-300 wash, the focus ring on keyboard focus.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlock: '0',
+                // Centred in the field at WCAG 2.5.8's 24px target, shrinking
+                // only with a field too short to hold it.
+                marginBlock: 'auto',
+                blockSize: 'min(1.5rem, 100%)',
+                minInlineSize: '1.5rem',
+                insetInlineEnd: 'calc(var(--space-md) + 1em + var(--space-xs))',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 var(--space-xs)',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--hero-muted)',
+                font: 'inherit',
+                fontSize: 'var(--select-text)',
+                lineHeight: 'var(--leading-none)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)', color: 'var(--color-base-content)' },
+                ...focusRing,
+            },
         },
         popup: withPresence(popupPresence('translateY(-4px)'), {
             base: {
@@ -1676,6 +1718,10 @@ export const select: RecipeInput = {
         'item-indicator': {
             base: { flex: 'none', color: 'var(--hero-primary)' },
             states: { selected: {} },
+        },
+        // The menu's rule between runs of options (#280).
+        separator: {
+            base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--hero-line)' },
         },
     },
     variants: {
@@ -2142,6 +2188,22 @@ export const combobox: RecipeInput = {
                 '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
             },
         },
+        // Clears the value and the text (#280): HeroUI's clear button in
+        // the end content, before the chevron — muted, firming on hover.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--hero-muted)',
+                font: 'inherit',
+                padding: '0 var(--space-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('color'),
+            },
+            states: { hover: { color: 'var(--color-base-content)' } },
+        },
         popup: withPresence(popupPresence('translateY(-4px)'), {
             base: {
                 margin: '0',
@@ -2210,6 +2272,20 @@ export const combobox: RecipeInput = {
                 color: 'var(--hero-muted)',
                 textAlign: 'center',
             },
+        },
+        // The list still arriving (#280): the empty row's muted ink.
+        loading: {
+            base: {
+                padding: 'var(--space-md)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--combobox-text)',
+                color: 'var(--hero-muted)',
+                textAlign: 'center',
+            },
+        },
+        // The menu's rule between runs of options (#280).
+        separator: {
+            base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--hero-line)' },
         },
     },
     variants: {

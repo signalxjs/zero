@@ -2004,6 +2004,12 @@ export const accordion: RecipeInput = {
     },
 };
 
+/**
+ * A select whose clear-trigger is rendered (#280) — anchored on the root, so
+ * a part inside the trigger can make room for the button laid over it.
+ */
+const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
+
 export const select: RecipeInput = {
     component: 'select',
     // The accent pair: the marker ink and its soft wash — no solid selected
@@ -2016,8 +2022,9 @@ export const select: RecipeInput = {
         '--select-ink': softInk('primary'),
     },
     parts: {
+        // Positioned: the clear-trigger sits over the trigger's inline end.
         root: {
-            base: { display: 'inline-flex', flexDirection: 'column' },
+            base: { display: 'inline-flex', flexDirection: 'column', position: 'relative' },
         },
         // Wells are paper: base-100 fill with the full-perimeter hairline,
         // even on a tinted panel. Hover darkens the line toward secondary
@@ -2075,10 +2082,46 @@ export const select: RecipeInput = {
             states: {
                 placeholder: { color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)' },
             },
+            // Room for the clear-trigger laid over the well (#280).
+            selectors: { [SELECT_CLEARABLE]: { marginInlineEnd: 'calc(var(--space-2xl) + var(--space-sm))' } },
         },
         indicator: {
             base: { opacity: '0.55', transition: 'transform var(--duration-fast) var(--ease-standard)' },
             states: { open: { transform: 'rotate(180deg)' }, closed: {} },
+        },
+        // Clears the selection (#280): a sibling of the trigger laid over its
+        // inline end, just before the chevron — the chevron's furniture
+        // grammar (quiet ink, one film on hover), a real tab stop with the
+        // one-ink ring.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlock: '0',
+                // Centred in the field at WCAG 2.5.8's 24px target, shrinking
+                // only with a field too short to hold it.
+                marginBlock: 'auto',
+                blockSize: 'min(1.5rem, 100%)',
+                minInlineSize: '1.5rem',
+                insetInlineEnd: 'calc(var(--space-xl) + 1em + var(--space-xs))',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 var(--space-xs)',
+                border: 'none',
+                background: 'transparent',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash, color: 'var(--color-base-content)' },
+                ...focusRing,
+            },
         },
         popup: withPresence(popupPresence('translateY(4px)'), {
             base: {
@@ -2154,6 +2197,14 @@ export const select: RecipeInput = {
             base: { fontSize: 'var(--text-xs)' },
             states: { selected: {} },
         },
+        // The menu's hairline rule (#280).
+        separator: {
+            base: {
+                height: 'var(--border)',
+                margin: 'var(--space-sm) 0',
+                background: 'var(--color-base-300)',
+            },
+        },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
@@ -2225,6 +2276,7 @@ export const select: RecipeInput = {
         lynx: {
             parts: {
                 item: { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
+                'clear-trigger': { base: { top: 'var(--space-xs)', bottom: 'var(--space-xs)', right: 'calc(var(--space-xl) + 1em + var(--space-xs))', minWidth: '1.5rem' } },
             },
         },
     },
@@ -2840,6 +2892,23 @@ export const combobox: RecipeInput = {
             // furniture: two films of ink, landing instantly.
             selectors: { ...pressedInk },
         },
+        // Clears the value and the text (#280): the chevron's furniture,
+        // one step before it — quiet ink, one film on press-in hover.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                opacity: '0.55',
+                padding: '0 var(--space-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: { hover: { opacity: '1' } },
+        },
         popup: withPresence(popupPresence('translateY(4px)'), {
             base: {
                 ...overlayPanel,
@@ -2921,6 +2990,23 @@ export const combobox: RecipeInput = {
                 fontVariantNumeric: 'tabular-nums',
                 textAlign: 'center',
                 color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
+            },
+        },
+        // The list still arriving (#280): the empty row's muted grammar.
+        loading: {
+            base: {
+                padding: 'var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                textAlign: 'center',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
+            },
+        },
+        // The menu's hairline rule (#280).
+        separator: {
+            base: {
+                height: 'var(--border)',
+                margin: 'var(--space-sm) 0',
+                background: 'var(--color-base-300)',
             },
         },
     },

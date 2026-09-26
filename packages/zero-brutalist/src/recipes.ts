@@ -751,6 +751,12 @@ export const menu: RecipeInput = {
     variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
+/**
+ * A select whose clear-trigger is rendered (#280) — anchored on the root, so
+ * a part inside the trigger can make room for the button laid over it.
+ */
+const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
+
 export const select: RecipeInput = {
     component: 'select',
     // Accent defaults live in `tokens:` so the un-attributed render IS the
@@ -788,7 +794,45 @@ export const select: RecipeInput = {
             },
         },
         value: { base: { flex: '1', textAlign: 'start' } },
-        indicator: { base: { transition: motion('transform') }, states: { open: { transform: 'rotate(180deg)' }, closed: {} } },
+        indicator: {
+            base: { transition: motion('transform') },
+            states: { open: { transform: 'rotate(180deg)' }, closed: {} },
+            // Room for the clear-trigger laid over the slab (#280).
+            selectors: { [SELECT_CLEARABLE]: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' } },
+        },
+        // Clears the selection (#280): a bare glyph on the slab's inline end,
+        // before the arrow — full ink, a base-200 block on hover, the
+        // primary ring on focus.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlock: '0',
+                // Centred in the field at WCAG 2.5.8's 24px target, shrinking
+                // only with a field too short to hold it.
+                marginBlock: 'auto',
+                blockSize: 'min(1.5rem, 100%)',
+                minInlineSize: '1.5rem',
+                insetInlineEnd: 'calc(var(--space-md) + 1em + var(--space-xs))',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 var(--space-xs)',
+                border: 'none',
+                borderRadius: '0',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                ...focusRing,
+            },
+        },
         popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } }),
         // The optgroup equivalent (#325) — the menu's group grammar.
         group: { base: { padding: 'var(--space-2xs) 0' } },
@@ -821,6 +865,10 @@ export const select: RecipeInput = {
             },
         },
         'item-indicator': { base: { fontWeight: 'var(--weight-bold)' } },
+        // The menu's rule between runs of options (#280).
+        separator: {
+            base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-base-content)' },
+        },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0', pointerEvents: 'none' } },
     },
     variants: {
@@ -2047,6 +2095,22 @@ export const combobox: RecipeInput = {
                 disabled: { cursor: 'not-allowed' },
             },
         },
+        // Clears the value and the text (#280): the arrow's bare glyph, one
+        // step before it — a base-200 block on hover.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                padding: '0 var(--space-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: { hover: { background: 'var(--color-base-200)' } },
+        },
         popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } }),
         // The optgroup equivalent (#325) — the menu's group grammar.
         group: { base: { padding: 'var(--space-2xs) 0' } },
@@ -2086,6 +2150,20 @@ export const combobox: RecipeInput = {
                 textAlign: 'center',
                 opacity: '0.7',
             },
+        },
+        // The list still arriving (#280): the empty row's stencil.
+        loading: {
+            base: {
+                padding: 'var(--space-md)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                textAlign: 'center',
+                opacity: '0.7',
+            },
+        },
+        // The menu's rule between runs of options (#280).
+        separator: {
+            base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-base-content)' },
         },
     },
     variants: {

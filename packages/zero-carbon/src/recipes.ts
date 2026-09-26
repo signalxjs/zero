@@ -1823,11 +1823,18 @@ export const accordion: RecipeInput = {
 };
 
 // ── Select ────────────────────────────────────────────────────────────────
+/**
+ * A select whose clear-trigger is rendered (#280) — anchored on the root, so
+ * a part inside the trigger can make room for the button laid over it.
+ */
+const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
+
 export const select: RecipeInput = {
     component: 'select',
     parts: {
+        // Positioned: the clear-trigger sits over the trigger's inline end.
         root: {
-            base: { display: 'inline-flex', flexDirection: 'column' },
+            base: { display: 'inline-flex', flexDirection: 'column', position: 'relative' },
         },
         trigger: {
             // Carbon's field-01: a base-200 fill with ONLY the assertive
@@ -1885,6 +1892,41 @@ export const select: RecipeInput = {
         indicator: {
             base: { display: 'inline-flex', transition: motion('transform') },
             states: { open: { transform: 'rotate(180deg)' }, closed: {} },
+            // Room for the clear-trigger laid over the field (#280).
+            selectors: { [SELECT_CLEARABLE]: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' } },
+        },
+        // Clears the selection (#280): Carbon's list-box selection-clear, a
+        // square icon button over the field's inline end before the chevron
+        // — the layer-hover wash, the inset focus outline.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlock: '0',
+                // Centred in the field at WCAG 2.5.8's 24px target, shrinking
+                // only with a field too short to hold it.
+                marginBlock: 'auto',
+                blockSize: 'min(1.5rem, 100%)',
+                minInlineSize: '1.5rem',
+                insetInlineEnd: 'calc(var(--space-md) + 1em + var(--space-xs))',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 var(--space-xs)',
+                border: 'none',
+                borderRadius: '0',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: layerHover },
+                ...focusRing,
+            },
         },
         popup: {
             // A Carbon flyout: square, flush, borderless, on the $layer-01
@@ -1969,6 +2011,10 @@ export const select: RecipeInput = {
         'item-indicator': {
             base: { fontSize: 'var(--text-xs)' },
             states: { selected: {} },
+        },
+        // The menu's rule between runs of options (#280).
+        separator: {
+            base: { height: 'var(--border)', margin: 'var(--space-xs) 0', background: 'var(--carbon-line)' },
         },
     },
     variants: {
@@ -2586,6 +2632,22 @@ export const combobox: RecipeInput = {
         // `@starting-style`, exit held open by the two allow-discrete
         // transitions (`overlay` is Chromium-only; elsewhere zero defers the
         // native close until the exit has played, #17).
+        // Clears the value and the text (#280): Carbon's selection-clear
+        // beside the chevron — the same square, the layer-hover wash.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                alignSelf: 'stretch',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                padding: '0 var(--space-xs)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: { hover: { background: layerHover } },
+        },
         popup: {
             base: {
                 minWidth: '12rem',
@@ -2666,6 +2728,18 @@ export const combobox: RecipeInput = {
                 fontSize: 'var(--text-sm)',
                 color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)',
             },
+        },
+        // The list still arriving (#280): the empty row's helper ink.
+        loading: {
+            base: {
+                padding: 'var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)',
+            },
+        },
+        // The menu's rule between runs of options (#280).
+        separator: {
+            base: { height: 'var(--border)', margin: 'var(--space-xs) 0', background: 'var(--carbon-line)' },
         },
     },
     variants: {
