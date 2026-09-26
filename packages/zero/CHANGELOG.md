@@ -29,9 +29,9 @@
 
 - **Progress `complete` keeps the colour axis.** The range no longer turns
   success green at 100% — daisyUI 5 has no complete tint, and a
-  `color="secondary"` bar changing hue when it fills read as a bug on device
+  `color="secondary"` bar changing hue when it fills reads as a bug on device
   (signalxjs/lynx#1144). Pass `color="success"` for a success-coloured bar.
-  Declared `sameAs: { complete: 'loading' }`.
+  Declared `sameAs: { root: { complete: 'loading' }, range: { complete: 'loading' } }`.
 - **Slider, lynx target:** a `mark` is now its own 2px tick across the
   channel (the web's `::before` tick has no lynx projection, so marks were
   invisible); `data-orientation="vertical"` rules in class grammar for the
