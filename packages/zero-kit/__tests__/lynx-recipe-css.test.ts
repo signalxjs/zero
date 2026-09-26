@@ -141,6 +141,58 @@ describe('compileLynxRecipeCss', () => {
         expect(report.dropped.some((f) => f.what.includes(':first-child'))).toBe(true);
     });
 
+    it('translates flag/state attribute compounds against the anatomy (zero#326)', () => {
+        const { css, report } = compile({
+            component: 'button',
+            parts: {
+                root: {
+                    selectors: {
+                        '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
+                        '&[data-disabled]': { opacity: '0.5' },
+                        '&[data-state="checked"]': { color: 'red' },
+                        '&[data-open]': { color: 'blue' },
+                        '&[data-pressed]:not([data-selected])': { color: 'green' },
+                        '&:not([data-disabled])': { color: 'teal' },
+                    },
+                },
+            },
+        });
+        // The press rule loses its disabled negation: lynx never stamps
+        // `pressed` on a disabled part.
+        expect(css).toContain('.zx-button__root.zx-f-pressed {');
+        expect(css).toContain('.zx-button__root.zx-f-disabled {');
+        expect(css).not.toContain(':not');
+        // Undeclared state/flag, unexplained negation, negation-only: dropped.
+        const dropped = report.dropped.map((f) => f.what);
+        expect(dropped).toContain('selectors["&[data-state="checked"]"]');
+        expect(dropped).toContain('selectors["&[data-open]"]');
+        expect(dropped).toContain('selectors["&[data-pressed]:not([data-selected])"]');
+        expect(dropped).toContain('selectors["&:not([data-disabled])"]');
+        expectFlatCompounds(css);
+    });
+
+    it('translates machine-state and multi-attribute compounds', () => {
+        const { css } = compile({
+            component: 'tabs',
+            parts: {
+                tab: {
+                    selectors: {
+                        '&[data-state="active"]': { color: 'red' },
+                        '&[data-orientation="vertical"][data-state="active"]': { color: 'blue' },
+                    },
+                },
+            },
+        }, tabs);
+        expect(css).toContain('.zx-tabs__tab.zx-s-active {');
+        expect(css).toContain('.zx-tabs__tab.zx-o-vertical.zx-s-active {');
+        expectFlatCompounds(css);
+    });
+
+    it('ships the daisy button press rule on lynx', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        expect(componentCss.button).toMatch(/\.zx-button__root\.zx-f-pressed[.a-z0-9-]* \{/);
+    });
+
     it('projects layout attribute selectors onto the class grammar', () => {
         // The branch exists so the `zx-l-` grammar is not dead code: without
         // it every layout rule would be dropped and the layout tier would

@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Fixed — lynx target translates flag/state attribute compounds in `selectors:` keys (zero#326)
+
+- A `selectors:` key that is a compound of attribute tests on `&`
+  (`&[data-pressed]`, `&[data-state="open"]`,
+  `&[data-orientation="vertical"][data-state="active"]`, …) now translates
+  to the grammar classes the part's anatomy declares, instead of being
+  dropped. daisy's press rule `&[data-pressed]:not([data-disabled])` finally
+  reaches lynx as `.zx-f-pressed`: `:not([data-disabled])` is elided beside
+  `pressed`, which the lynx runtime never stamps on a disabled part. Any
+  other negation, undeclared flag or undeclared state still drops with a
+  report entry naming the reason.
+
 ### Added — `POSITION_PROPERTIES`, and the position geometry as runtime properties (zero#278)
 
 - **`POSITION_PROPERTIES`** (`--anchor-width`, `--anchor-height`,
