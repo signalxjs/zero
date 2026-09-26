@@ -582,6 +582,26 @@ describe('Breadcrumbs collapse (#295)', () => {
         warn.mockRestore();
     });
 
+    it('an app aria-labelledby replaces the default labels', () => {
+        render(
+            <Breadcrumbs.Root maxItems={1} aria-labelledby="crumbs-heading">
+                <Breadcrumbs.List>
+                    <Breadcrumbs.Item><Breadcrumbs.Link href="/">A</Breadcrumbs.Link></Breadcrumbs.Item>
+                    <Breadcrumbs.Ellipsis><Breadcrumbs.EllipsisTrigger aria-labelledby="more-label" /></Breadcrumbs.Ellipsis>
+                    <Breadcrumbs.Item><Breadcrumbs.Link href="/b">B</Breadcrumbs.Link></Breadcrumbs.Item>
+                    <Breadcrumbs.Item><Breadcrumbs.Link href="/c">C</Breadcrumbs.Link></Breadcrumbs.Item>
+                </Breadcrumbs.List>
+            </Breadcrumbs.Root>,
+            container,
+        );
+        const root = part(container, 'breadcrumbs', 'root');
+        expect(root.getAttribute('aria-labelledby')).toBe('crumbs-heading');
+        expect(root.hasAttribute('aria-label')).toBe(false);
+        const trigger = part(container, 'breadcrumbs', 'ellipsis-trigger');
+        expect(trigger.getAttribute('aria-labelledby')).toBe('more-label');
+        expect(trigger.hasAttribute('aria-label')).toBe(false);
+    });
+
     it('judges placement in tree order inside a detached subtree', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
         // Never attached: items and ellipsis still share one tree, so a
