@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { Tabs, tabsAnatomy, type PartProps } from '@sigx/zero';
@@ -190,3 +190,173 @@ describe('Tabs', () => {
         expect(tabs[0]!.id).not.toBe(tabs[1]!.id);
     });
 });
+
+const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()));
+
+/** Lay the list and its tabs out by hand: happy-dom has no layout. */
+function layout(boxes: (el: Element) => { left: number; top: number; width: number; height: number } | null) {
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+        const b = boxes(this) ?? { left: 0, top: 0, width: 0, height: 0 };
+        return { ...b, x: b.left, y: b.top, right: b.left + b.width, bottom: b.top + b.height, toJSON: () => b } as DOMRect;
+    });
+    vi.spyOn(Element.prototype, 'getClientRects').mockImplementation(function (this: Element) {
+        return (boxes(this) ? [this.getBoundingClientRect()] : []) as unknown as DOMRectList;
+    });
+}
+
+describe('Tabs.Indicator (#283)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    afterEach(() => {
+        vi.restoreAllMocks();
+        container.remove();
+    });
+
+    // A list at (10, 20); First at +2..+82, Second at +90..+180, both 36 tall
+    // and 2px down from the list's top.
+    const boxes = (el: Element) => {
+        const part = el.getAttribute('data-part');
+        if (part === 'list') return { left: 10, top: 20, width: 300, height: 40 };
+        if (part !== 'tab') return null;
+        return el.textContent === 'First'
+            ? { left: 12, top: 22, width: 80, height: 36 }
+            : { left: 100, top: 22, width: 90, height: 36 };
+    };
+
+    const mount = async (props: { defaultValue?: string; dir?: 'rtl' } = {}) => {
+        if (props.dir) container.style.direction = props.dir;
+        render(
+        <Tabs.Root defaultValue={props.defaultValue ?? 'a'}>
+            <Tabs.List>
+                <Tabs.Tab value="a">First</Tabs.Tab>
+                <Tabs.Tab value="b">Second</Tabs.Tab>
+                <Tabs.Indicator />
+            </Tabs.List>
+            <Tabs.Panel value="a">Panel A</Tabs.Panel>
+            <Tabs.Panel value="b">Panel B</Tabs.Panel>
+        </Tabs.Root>,
+        container,
+        );
+        await frame();
+    };
+    const indicator = () => container.querySelector<HTMLElement>('[data-part="indicator"]')!;
+    const vars = () => {
+        const style = indicator().style;
+        return ['inset-inline-start', 'inset-block-start', 'inline-size', 'block-size']
+            .map((name) => style.getPropertyValue(`--tabs-indicator-${name}`));
+    };
+
+    it('renders a decorative span inside the list, with a valid anatomy', async () => {
+        layout(boxes);
+        await mount();
+        expectAnatomy(container, tabsAnatomy);
+        const el = indicator();
+        expect(el.tagName).toBe('SPAN');
+        expect(el.getAttribute('aria-hidden')).toBe('true');
+        expect(el.getAttribute('data-orientation')).toBe('horizontal');
+        expect(el.parentElement!.getAttribute('data-part')).toBe('list');
+    });
+
+    it('publishes the active tab\'s box relative to the list, and follows the value', async () => {
+        layout(boxes);
+        await mount();
+        expect(vars()).toEqual(['2px', '2px', '80px', '36px']);
+        expect(indicator().style.display).toBe('');
+
+        container.querySelectorAll<HTMLElement>('[data-part="tab"]')[1]!.click();
+        await frame();
+        expect(vars()).toEqual(['90px', '2px', '90px', '36px']);
+    });
+
+    it('measures the inline offset from the inline-start edge under RTL', async () => {
+        layout(boxes);
+        await mount({ dir: 'rtl' });
+        // The list's right edge is 310; First ends at 92 → 218px from it.
+        expect(vars()).toEqual(['218px', '2px', '80px', '36px']);
+    });
+
+    it('is not displayed until it has something to measure', async () => {
+        // Rendered but not yet measured (SSR's markup, the first render): the
+        // element is out of the box tree, so no transition plays from nowhere.
+        layout(() => null);
+        const pending = mount();
+        expect(indicator().style.display).toBe('none');
+        expect(vars()).toEqual(['', '', '', '']);
+        // A list with no layout (a hidden ancestor) stays that way.
+        await pending;
+        expect(indicator().style.display).toBe('none');
+    });
+
+    it('is not displayed when no tab is active', async () => {
+        layout(boxes);
+        await mount({ defaultValue: '' });
+        expect(indicator().style.display).toBe('none');
+    });
+});
+
+describe('Tabs lazyMount / unmountOnExit (#283)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    afterEach(() => container.remove());
+
+    const mount = (props: { lazyMount?: boolean; unmountOnExit?: boolean }) => render(
+        <Tabs.Root defaultValue="a" {...props}>
+            <Tabs.List>
+                <Tabs.Tab value="a">First</Tabs.Tab>
+                <Tabs.Tab value="b">Second</Tabs.Tab>
+                <Tabs.Tab value="c">Third</Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel value="a"><i>A</i></Tabs.Panel>
+            <Tabs.Panel value="b"><i>B</i></Tabs.Panel>
+            <Tabs.Panel value="c"><i>C</i></Tabs.Panel>
+        </Tabs.Root>,
+        container,
+    );
+    const panels = () => [...container.querySelectorAll<HTMLElement>('[data-part="panel"]')];
+    const rendered = () => panels().map((p) => p.textContent);
+    const select = (i: number) => container.querySelectorAll<HTMLElement>('[data-part="tab"]')[i]!.click();
+
+    it('renders every panel\'s content by default', () => {
+        mount({});
+        expect(rendered()).toEqual(['A', 'B', 'C']);
+    });
+
+    it('lazyMount renders a panel\'s content once it has been active, then keeps it', () => {
+        mount({ lazyMount: true });
+        expect(rendered()).toEqual(['A', '', '']);
+        select(1);
+        expect(rendered()).toEqual(['A', 'B', '']);
+        select(0);
+        expect(rendered()).toEqual(['A', 'B', '']);
+    });
+
+    it('unmountOnExit renders only the active panel\'s content', () => {
+        mount({ unmountOnExit: true });
+        expect(rendered()).toEqual(['A', '', '']);
+        select(2);
+        expect(rendered()).toEqual(['', '', 'C']);
+    });
+
+    it('lazyMount with unmountOnExit behaves like unmountOnExit', () => {
+        mount({ lazyMount: true, unmountOnExit: true });
+        select(1);
+        select(0);
+        expect(rendered()).toEqual(['A', '', '']);
+    });
+
+    it('every panel element still renders, so no tab\'s aria-controls dangles', () => {
+        mount({ lazyMount: true, unmountOnExit: true });
+        expect(panels()).toHaveLength(3);
+        for (const tab of container.querySelectorAll<HTMLElement>('[data-part="tab"]')) {
+            expect(document.getElementById(tab.getAttribute('aria-controls')!)).not.toBeNull();
+        }
+        expectAnatomy(container, tabsAnatomy);
+    });
+});
+

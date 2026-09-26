@@ -368,6 +368,10 @@
         transform: scale(0.97);
     }
 
+    [data-scope="tabs"][data-part="indicator"] {
+        display: none;
+    }
+
     [data-scope="tabs"][data-part="panel"] {
         font-family: var(--font-sans);
         font-size: var(--text-md);

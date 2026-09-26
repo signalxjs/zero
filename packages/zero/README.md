@@ -333,6 +333,41 @@ declared, `prefers-reduced-motion: reduce`) closes at once; reopening
 mid-exit cancels it; find-in-page and fragment navigation still sync the
 model as above. Five of the six bundled skins animate it; brutalist cuts.
 
+**A Tabs indicator can slide** (#283). `Tabs.Indicator` is an optional,
+`aria-hidden` span placed inside `Tabs.List`. It publishes the active tab's
+box as `--tabs-indicator-inset-inline-start`,
+`--tabs-indicator-inset-block-start`, `--tabs-indicator-inline-size` and
+`--tabs-indicator-block-size` (px), relative to the list's padding box in its
+scrolled content. The inline offset is measured from the list's inline-start
+edge, so a recipe that positions the indicator `absolute` inside a
+`relative` list with `inset-inline-start` lands on the tab in both writing
+directions. The box is re-measured when the value changes and whenever the
+list or a tab resizes; a scale or translate on the tab (a press effect) is
+undone first. Until the first measurement, and while no tab is active, the
+indicator is `display: none`, so a transition on those properties never
+plays on first paint. basic, material and carbon slide their underline with
+it and hand the active tab's own underline over to it; daisyui, brutalist
+and heroui keep their static active style and render it `display: none`.
+
+```tsx
+<Tabs.Root defaultValue="a" lazyMount>
+    <Tabs.List aria-label="Account">
+        <Tabs.Tab value="a">Profile</Tabs.Tab>
+        <Tabs.Tab value="b">Billing</Tabs.Tab>
+        <Tabs.Indicator />
+    </Tabs.List>
+    <Tabs.Panel value="a">…</Tabs.Panel>
+    <Tabs.Panel value="b">…</Tabs.Panel>
+</Tabs.Root>
+```
+
+**Tabs panels can render lazily** (#283). With `lazyMount` on `Tabs.Root`, a
+panel renders its content only once its tab has been active, and keeps it
+afterwards. With `unmountOnExit`, a panel renders its content only while its
+tab is active, so state inside it resets when the user leaves; together the
+two behave like `unmountOnExit`. Either way the panel element itself always
+renders (empty and `hidden`), so every tab's `aria-controls` resolves.
+
 **Popup exits play in every engine** (#17). A design system animates a
 popup's exit in CSS off `data-state="closed"`, and on Chromium CSS `overlay`
 keeps the element in the top layer while it plays. Firefox and WebKit have

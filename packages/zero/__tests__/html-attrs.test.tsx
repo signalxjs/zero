@@ -496,7 +496,10 @@ describe('the pass-through reaches every part', () => {
         switch: () => <Switch.Root {...p('root')}>Wi-Fi</Switch.Root>,
         tabs: () => (
             <Tabs.Root {...p('root')} defaultValue="a">
-                <Tabs.List {...p('list')}><Tabs.Tab {...p('tab')} value="a">A</Tabs.Tab></Tabs.List>
+                <Tabs.List {...p('list')}>
+                    <Tabs.Tab {...p('tab')} value="a">A</Tabs.Tab>
+                    <Tabs.Indicator {...p('indicator')} />
+                </Tabs.List>
                 <Tabs.Panel {...p('panel')} value="a">Body</Tabs.Panel>
             </Tabs.Root>
         ),

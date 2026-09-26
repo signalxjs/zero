@@ -498,6 +498,13 @@ export const button: RecipeInput = {
 };
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
+/**
+ * A list that holds a `Tabs.Indicator` (#283): MD3's primary-tab indicator
+ * slides between tabs, so the active tab hands its own underline to it —
+ * otherwise the underline would snap into place under the moving one.
+ */
+const TABS_WITH_INDICATOR = '[data-scope="tabs"][data-part="list"]:has([data-scope="tabs"][data-part="indicator"])';
+
 export const tabs: RecipeInput = {
     component: 'tabs',
     // Accent default in `tokens:` — the un-attributed render IS the primary
@@ -508,6 +515,9 @@ export const tabs: RecipeInput = {
         list: {
             base: {
                 display: 'flex',
+                // The indicator's containing block: `--tabs-indicator-*` are
+                // offsets from this padding box.
+                position: 'relative',
                 background: 'var(--color-surface)',
                 borderBottom: 'var(--border) solid var(--color-outline)',
             },
@@ -533,7 +543,41 @@ export const tabs: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
+            selectors: {
+                [`${TABS_WITH_INDICATOR} &[data-state="active"]`]: { borderBottomColor: 'transparent' },
+            },
         }),
+        // MD3's primary-tab indicator: the 3px accent bar with rounded top
+        // corners, sliding to the active tab's box. A border rather than a
+        // fill, so forced colours keep it.
+        indicator: {
+            base: {
+                position: 'absolute',
+                boxSizing: 'border-box',
+                pointerEvents: 'none',
+                insetInlineStart: 'var(--tabs-indicator-inset-inline-start)',
+                insetBlockStart: 'calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - 3px)',
+                inlineSize: 'var(--tabs-indicator-inline-size)',
+                blockSize: '3px',
+                borderBlockEnd: '3px solid var(--tabs-accent)',
+                borderStartStartRadius: '3px',
+                borderStartEndRadius: '3px',
+                transition: motion('inset-inline-start, inset-block-start, inline-size, block-size'),
+            },
+            selectors: {
+                // A vertical list: the bar runs down the tab's inline-end
+                // edge instead.
+                '&[data-orientation="vertical"]': {
+                    insetInlineStart: 'calc(var(--tabs-indicator-inset-inline-start) + var(--tabs-indicator-inline-size) - 3px)',
+                    insetBlockStart: 'var(--tabs-indicator-inset-block-start)',
+                    inlineSize: '3px',
+                    blockSize: 'var(--tabs-indicator-block-size)',
+                    borderBlockEnd: 'none',
+                    borderInlineEnd: '3px solid var(--tabs-accent)',
+                },
+            },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
+        },
         panel: {
             base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-md)', lineHeight: 'var(--leading-normal)' },
             states: { active: {}, inactive: {} },

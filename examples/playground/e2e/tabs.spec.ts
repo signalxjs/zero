@@ -111,3 +111,64 @@ test('under dir="rtl" the horizontal arrows follow the reading direction (#165)'
     await page.keyboard.press('ArrowLeft');
     await expect(tab(page, 'Details')).toBeFocused();
 });
+
+/**
+ * The indicator (#283) under real layout: the runtime publishes the active
+ * tab's box and basic's recipe draws its bar from it, so the bar's edges must
+ * land on the tab's — within 1px, since the tab's box is sub-pixel. Polled
+ * first, because the measurement lands a frame after the click and the bar
+ * then transitions; asserted again once the transition has settled.
+ */
+async function expectIndicatorOn(page: Page, name: string): Promise<void> {
+    const indicator = demo(page)('indicator');
+    const edges = async () => {
+        const [t, i] = await Promise.all([tab(page, name).boundingBox(), indicator.boundingBox()]);
+        if (!t || !i) return Infinity;
+        return Math.max(Math.abs(i.x - t.x), Math.abs(i.x + i.width - (t.x + t.width)), Math.abs(i.y + i.height - (t.y + t.height)));
+    };
+    await expect.poll(edges, { message: `the indicator never reached ${name}` }).toBeLessThanOrEqual(1);
+    const t = await settledBox(tab(page, name), `${name} tab`);
+    const i = await settledBox(indicator, 'indicator');
+    expect(Math.abs(i.x - t.x), `indicator's left edge vs ${name}'s`).toBeLessThanOrEqual(1);
+    expect(Math.abs(i.x + i.width - (t.x + t.width)), `indicator's right edge vs ${name}'s`).toBeLessThanOrEqual(1);
+    // basic's bar sits on the tab's block-end edge, where its own bar was.
+    expect(Math.abs(i.y + i.height - (t.y + t.height)), `indicator's bottom edge vs ${name}'s`).toBeLessThanOrEqual(1);
+}
+
+test('the indicator sits on the active tab and follows the selection (#283)', async ({ page }) => {
+    await expect(demo(page)('indicator')).toHaveAttribute('aria-hidden', 'true');
+    await expectIndicatorOn(page, 'Overview');
+    await tab(page, 'History').click();
+    await expectIndicatorOn(page, 'History');
+    await page.keyboard.press('Home');
+    await expectIndicatorOn(page, 'Overview');
+    await tab(page, 'Details').click();
+    await expectIndicatorOn(page, 'Details');
+});
+
+/**
+ * Both directions, the reduced-motion spec's rule: a one-way check passes for
+ * a recipe that never animated. The transition runs by default and is `none`
+ * under `prefers-reduced-motion: reduce`, where the bar jumps.
+ */
+test('the indicator slides, and does not under reduced motion (#283)', async ({ page }, testInfo) => {
+    const reduced = testInfo.project.name === 'reduced-motion';
+    const indicator = demo(page)('indicator');
+    await expectIndicatorOn(page, 'Overview');
+    // Sampled per frame in the page: the transition is shorter than a
+    // Playwright poll interval, so a poll could miss it entirely.
+    const slid = await indicator.evaluate(async (el) => {
+        const list = el.closest('[data-part="list"]')!;
+        const target = [...list.querySelectorAll<HTMLElement>('[data-part="tab"]')].find((t) => t.textContent === 'History')!;
+        target.click();
+        for (let i = 0; i < 30; i++) {
+            if (el.getAnimations().some((a) => a instanceof CSSTransition)) return true;
+            await new Promise((r) => requestAnimationFrame(r));
+        }
+        return false;
+    });
+    expect(slid, reduced
+        ? 'the indicator transitioned under prefers-reduced-motion: reduce'
+        : 'no transition ran on the indicator after the selection moved').toBe(!reduced);
+    await expectIndicatorOn(page, 'History');
+});

@@ -314,6 +314,10 @@ export const tabs: RecipeInput = {
                 ...focusRing,
             },
         },
+        // daisy draws each flavor's active mark on the tab itself (the
+        // underline, the lift, the pill) and none of them slides, so a
+        // `Tabs.Indicator` renders nothing here (#283).
+        indicator: { base: { display: 'none' } },
         panel: {
             base: { fontSize: 'var(--text-md)' },
             states: { active: {}, inactive: {} },

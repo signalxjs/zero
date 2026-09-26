@@ -387,6 +387,7 @@
         display: flex;
         gap: var(--space-xs);
         border-bottom: var(--border) solid var(--color-base-300);
+        position: relative;
     }
 
     [data-scope="tabs"][data-part="tab"] {
@@ -429,9 +430,34 @@
         transition: none;
     }
 
+    [data-scope="tabs"][data-part="list"]:has([data-scope="tabs"][data-part="indicator"]) [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        border-bottom-color: transparent;
+    }
+
     [data-scope="tabs"][data-part="panel"] {
         font-size: var(--text-md);
         font-variant-numeric: tabular-nums;
+    }
+
+    [data-scope="tabs"][data-part="indicator"] {
+        position: absolute;
+        box-sizing: border-box;
+        pointer-events: none;
+        inset-inline-start: var(--tabs-indicator-inset-inline-start);
+        inset-block-start: calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - 2px);
+        inline-size: var(--tabs-indicator-inline-size);
+        block-size: 2px;
+        border-block-end: 2px solid var(--tabs-accent);
+        transition: inset-inline-start var(--duration-normal) var(--ease-standard), inset-block-start var(--duration-normal) var(--ease-standard), inline-size var(--duration-normal) var(--ease-standard), block-size var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="tabs"][data-part="indicator"][data-orientation="vertical"] {
+        inset-inline-start: calc(var(--tabs-indicator-inset-inline-start) + var(--tabs-indicator-inline-size) - 2px);
+        inset-block-start: var(--tabs-indicator-inset-block-start);
+        inline-size: 2px;
+        block-size: var(--tabs-indicator-block-size);
+        border-block-end: none;
+        border-inline-end: 2px solid var(--tabs-accent);
     }
 
     [data-scope="tabs"][data-part="root"][data-color="primary"] {
@@ -491,6 +517,12 @@
         [data-scope="tabs"][data-part="tab"] {
             font-size: var(--text-lg);
             padding: var(--space-xl) var(--space-2xl);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="tabs"][data-part="indicator"] {
+            transition: none;
         }
     }
 }

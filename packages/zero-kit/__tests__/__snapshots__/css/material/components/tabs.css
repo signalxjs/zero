@@ -11,6 +11,7 @@
 
     [data-scope="tabs"][data-part="list"] {
         display: flex;
+        position: relative;
         background: var(--color-surface);
         border-bottom: var(--border) solid var(--color-outline);
     }
@@ -83,6 +84,33 @@
 
     [data-scope="tabs"][data-part="tab"][data-press-animating]::after {
         animation: tab-ripple var(--duration-slow) var(--ease-standard);
+    }
+
+    [data-scope="tabs"][data-part="list"]:has([data-scope="tabs"][data-part="indicator"]) [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        border-bottom-color: transparent;
+    }
+
+    [data-scope="tabs"][data-part="indicator"] {
+        position: absolute;
+        box-sizing: border-box;
+        pointer-events: none;
+        inset-inline-start: var(--tabs-indicator-inset-inline-start);
+        inset-block-start: calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - 3px);
+        inline-size: var(--tabs-indicator-inline-size);
+        block-size: 3px;
+        border-block-end: 3px solid var(--tabs-accent);
+        border-start-start-radius: 3px;
+        border-start-end-radius: 3px;
+        transition: inset-inline-start var(--duration-fast) var(--ease-standard), inset-block-start var(--duration-fast) var(--ease-standard), inline-size var(--duration-fast) var(--ease-standard), block-size var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="tabs"][data-part="indicator"][data-orientation="vertical"] {
+        inset-inline-start: calc(var(--tabs-indicator-inset-inline-start) + var(--tabs-indicator-inline-size) - 3px);
+        inset-block-start: var(--tabs-indicator-inset-block-start);
+        inline-size: 3px;
+        block-size: var(--tabs-indicator-block-size);
+        border-block-end: none;
+        border-inline-end: 3px solid var(--tabs-accent);
     }
 
     [data-scope="tabs"][data-part="panel"] {
@@ -168,6 +196,12 @@
 
         [data-scope="tabs"][data-part="tab"]::after {
             display: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="tabs"][data-part="indicator"] {
+            transition: none;
         }
     }
 }

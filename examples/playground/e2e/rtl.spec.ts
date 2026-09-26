@@ -320,5 +320,33 @@ for (const ds of DESIGN_SYSTEMS) {
                 `${ds}: › points right in every writing direction, so RTL needs its mirror ‹`,
             ).toContain('‹');
         });
+
+        /**
+         * The tabs indicator (#283): its inline offset is measured from the
+         * list's inline-start edge, so `inset-inline-start` lands it on the
+         * active tab under RTL with no correction. A skin that keeps a
+         * static active style renders it `display: none`; there is nothing
+         * to measure.
+         */
+        test('the tabs indicator lands on the active tab', async ({ page }) => {
+            const parts = demoLabelled(page, 'tabs', 'Overview');
+            const indicator = parts('indicator');
+            const display = await indicator.evaluate((el) => getComputedStyle(el).display);
+            test.skip(display === 'none', `${ds} keeps a static active tab style`);
+            const tab = parts('tab').filter({ hasText: 'Details' });
+            await tab.click();
+            await expect(tab).toHaveAttribute('data-state', 'active');
+            const edges = async () => {
+                const [t, i] = await Promise.all([tab.boundingBox(), indicator.boundingBox()]);
+                if (!t || !i) return Infinity;
+                return Math.max(Math.abs(i.x - t.x), Math.abs(i.x + i.width - (t.x + t.width)));
+            };
+            await expect.poll(edges, { message: `${ds}: the indicator never reached the active tab under RTL` })
+                .toBeLessThanOrEqual(1);
+            const t = await settledBox(tab, `${ds}: Details tab`);
+            const i = await settledBox(indicator, `${ds}: tabs indicator`);
+            expect(Math.abs(i.x - t.x), `${ds}: indicator's left edge vs the tab's`).toBeLessThanOrEqual(1);
+            expect(Math.abs(i.x + i.width - (t.x + t.width)), `${ds}: indicator's right edge vs the tab's`).toBeLessThanOrEqual(1);
+        });
     });
 }

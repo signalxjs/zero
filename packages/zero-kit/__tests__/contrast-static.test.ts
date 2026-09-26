@@ -131,6 +131,7 @@ describe('the cell product is the browser spec\'s', () => {
             'radial-progress/root': [],
             'pagination/prev-trigger': ['root'],
             'pagination/next-trigger': ['root'],
+            'tabs/indicator': ['root', 'list'],
         };
         const derived = Object.fromEntries(indicatorChains(manifest.components).map(({ spec, ancestors }) => [`${spec.scope}/${spec.part}`, ancestors]));
         expect(derived).toEqual(hand);

@@ -333,6 +333,11 @@ export const tabs: RecipeInput = {
                 '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
             },
         },
+        // v3's cursor is the raised base-100 pill, and that pill stays on
+        // the tab: it is a surface one step off the track, which
+        // the indicator matrix would measure as a mark and fail against its
+        // 3:1 floor. So a `Tabs.Indicator` renders nothing here (#283).
+        indicator: { base: { display: 'none' } },
         panel: {
             base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-md)', color: 'var(--color-base-content)' },
             states: { active: {}, inactive: {} },

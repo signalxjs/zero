@@ -18,7 +18,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
 import type { EffectFn, EffectOptions } from 'sigx';
-import { Checkbox, Dialog, Drawer, Menu, Popover, Select, Toast, Tooltip, createToaster, syncPopover } from '@sigx/zero';
+import { Checkbox, Dialog, Drawer, Menu, Popover, Select, Tabs, Toast, Tooltip, createToaster, syncPopover } from '@sigx/zero';
 
 type Rec = { n: number; runner?: () => void };
 const probe = vi.hoisted(() => ({ tracking: false, runs: [] as Rec[] }));
@@ -133,6 +133,30 @@ describe('effects created in onMounted stop on unmount (#163)', () => {
         state.open = true;
         await tick();
         state.open = false;
+        await tick();
+        expect(totalRuns(recs)).toBe(0);
+    });
+
+    it('Tabs.Indicator under a surviving root (#283)', async () => {
+        const state = signal({ tab: 'a' });
+        const show = signal({ on: false });
+        const App = component(() => () => (
+            <Tabs.Root model={() => state.tab}>
+                <Tabs.List>
+                    <Tabs.Tab value="a">A</Tabs.Tab>
+                    <Tabs.Tab value="b">B</Tabs.Tab>
+                    {show.on ? <Tabs.Indicator /> : null}
+                </Tabs.List>
+            </Tabs.Root>
+        ));
+        render(<App />, container);
+
+        const recs = await track(() => { show.on = true; });
+        expect(recs.length).toBeGreaterThan(0);
+        show.on = false;
+        await tick();
+        expect(container.querySelector('[data-part="indicator"]')).toBeNull();
+        state.tab = 'b';
         await tick();
         expect(totalRuns(recs)).toBe(0);
     });

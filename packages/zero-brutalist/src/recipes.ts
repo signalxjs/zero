@@ -307,6 +307,10 @@ export const tabs: RecipeInput = {
                 ...focusRing,
             },
         },
+        // Brutalism switches, it does not glide: the active tab's own flat
+        // accent fill is the mark, so a `Tabs.Indicator` renders nothing
+        // here (#283).
+        indicator: { base: { display: 'none' } },
         panel: {
             base: { ...inked, padding: 'var(--space-lg)', boxShadow: 'var(--shadow-md)', lineHeight: 'var(--leading-normal)' },
             states: { active: {}, inactive: {} },
