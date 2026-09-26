@@ -13,6 +13,12 @@
   `number-input` reserves `largeStep`, so a vendor-named api cannot claim
   them as axis props.
 
+### Changed — `RESERVED_PROPS_BY_SCOPE` reserves the feedback tier's new root props (zero#274)
+
+- `progress` and `radial-progress` reserve `getValueText`, `locale` and
+  `formatOptions`; `alert` reserves `live` and `finalFocus`; `spinner`
+  reserves `decorative`. A DS-wide api mapping onto one of them is refused.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE.menu` gains `loop` (zero#263)
 
 - Menu's new root prop is reserved, so a vendor-named api cannot claim it
