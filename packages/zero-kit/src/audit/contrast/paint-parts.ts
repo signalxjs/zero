@@ -25,7 +25,9 @@
  * The ancestor chains are DERIVED from the anatomy's part tree
  * (`PartSpec.parent`, #317). A popup ancestor is pinned open — a closed popup
  * is `visibility: hidden`, which inherits, so a `✓` inside a default-state
- * popup would measure as "not painted" and the cell would silently vanish. A
+ * popup would measure as "not painted" and the cell would silently vanish.
+ * So is a positioned part (one declaring `placements`) with an `open` state —
+ * toast's root is `opacity: 0` while `closed`, its enter/exit frame. A
  * trigger with an `open` state is NOT pinned: the resting trigger is the one
  * a reader sees. A mark whose `parent` names only the containing part (menu's
  * `item-indicator`: the popup) declares `paint.host` — the row it is
@@ -66,8 +68,19 @@ export function paintSpecs(anatomy: readonly ManifestComponent[]): IndicatorSpec
 }
 
 /**
+ * An ancestor whose `closed` is ABSENCE rather than a resting look, so a mark
+ * inside it is only ever seen with it `open`: a popup, or a part that
+ * declares `placements` — a positioned surface (toast's root and viewport,
+ * #292), whose closed state is its enter/exit frame. A trigger's `open` is
+ * neither, and stays unpinned: the resting trigger is the one a reader sees.
+ */
+const isPresenceSurface = (part: ManifestPart): boolean =>
+    (isPopupPart(part.name) || (part.placements?.length ?? 0) > 0) && (part.states?.includes('open') ?? false);
+
+/**
  * The ancestor chain of a mark, derived from the part tree: every containing
- * part up to the top, outermost first, with popup ancestors pinned open.
+ * part up to the top, outermost first, with presence surfaces (popups and
+ * positioned parts, `isPresenceSurface`) pinned open.
  */
 export function indicatorAncestors(component: ManifestComponent, part: ManifestPart): string[] {
     const byName = new Map(component.parts.map((p) => [p.name, p]));
@@ -76,7 +89,7 @@ export function indicatorAncestors(component: ManifestComponent, part: ManifestP
     while (cursor?.parent !== undefined) {
         const parent = byName.get(cursor.parent);
         if (!parent) throw new Error(`[zero-kit] ${component.scope}/${cursor.name} declares parent "${cursor.parent}", which the anatomy does not declare`);
-        ancestors.unshift(isPopupPart(parent.name) && parent.states?.includes('open') ? `${parent.name}=open` : parent.name);
+        ancestors.unshift(isPresenceSurface(parent) ? `${parent.name}=open` : parent.name);
         cursor = parent;
     }
     return ancestors;
