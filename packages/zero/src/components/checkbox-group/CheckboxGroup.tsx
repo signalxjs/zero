@@ -76,9 +76,13 @@ export type CheckboxGroupRootProps =
     & Define.Slot<'default'>;
 
 const CheckboxGroupRoot = component<CheckboxGroupRootProps>(({ props, slots, emit, signal, onMounted }) => {
+    // One empty default per instance: a form reset has every box write the
+    // default, and a fresh `[]` each time would defeat the same-value guard.
+    const noDefault: string[] = [];
+    const defaultValue = (): string[] => props.defaultValue ?? noDefault;
     const state = createControllableState<string[]>(
         () => props.model,
-        props.defaultValue ?? [],
+        defaultValue(),
         (v) => emit('valueChange', v),
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-checkbox-group' });
@@ -95,7 +99,7 @@ const CheckboxGroupRoot = component<CheckboxGroupRootProps>(({ props, slots, emi
         state,
         name: fc.name,
         form: fc.form,
-        defaultValue: () => props.defaultValue ?? [],
+        defaultValue,
         disabled: fc.disabled,
         invalid: fc.invalid,
         required: fc.required,

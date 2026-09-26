@@ -152,9 +152,12 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
         });
         detachReset = onFormReset(() => inputEl, () => {
             if (inGroup) {
-                // Every box restores the same group default — the
-                // same-value guard makes the N writes one.
-                group.state.value = group.defaultValue();
+                // Every box restores the same group default; only the
+                // first write changes anything (compared by content — the
+                // stored array is the state's proxy, never the prop's).
+                const def = group.defaultValue();
+                const cur = group.state.value;
+                if (cur.length !== def.length || cur.some((v, i) => v !== def[i])) group.state.value = def;
                 if (inputEl && !isParent()) inputEl.checked = group.state.value.includes(itemValue());
                 syncNative();
                 return;

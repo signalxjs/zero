@@ -254,6 +254,27 @@ describe('CheckboxGroup', () => {
         expect(boxes(form)[0]!.getAttribute('data-state')).toBe('indeterminate');
         expect(inputs(form)[0]!.indeterminate).toBe(true);
     });
+
+    it('form reset with no defaultValue empties the group with ONE valueChange, not one per box', async () => {
+        const form = document.createElement('form');
+        container.appendChild(form);
+        const changes: string[][] = [];
+        render(
+            <CheckboxGroup.Root name="letters" onValueChange={(v: string[]) => changes.push(v)}>
+                <Checkbox.Root value="a">A</Checkbox.Root>
+                <Checkbox.Root value="b">B</Checkbox.Root>
+                <Checkbox.Root value="c">C</Checkbox.Root>
+            </CheckboxGroup.Root>,
+            form,
+        );
+        await tick();
+        click(inputs(form)[0]!);
+        changes.length = 0;
+        form.reset();
+        await tick();
+        expect(changes).toEqual([[]]);
+        expect(inputs(form).map((i) => i.checked)).toEqual([false, false, false]);
+    });
 });
 
 describe('Checkbox.Root parent — the derived tri-state box', () => {
