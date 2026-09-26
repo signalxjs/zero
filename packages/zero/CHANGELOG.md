@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Added — Pagination first/last triggers and link mode (#294)
+
+- **`withEdges`** renders `first-trigger` and `last-trigger` (new parts,
+  `parent: 'root'`, flags `disabled`/`focus-visible`/`pressed`/
+  `press-animating`, `paint: { glyph: '«' | '»' }`) outside prev/next.
+  They jump to page 1 and the last page, are named "First page"/"Last
+  page" (`firstLabel`/`lastLabel`), and at their bound take the focusable
+  `aria-disabled` treatment prev/next have (#270).
+- **`getPageHref={(n) => string}`** is link mode: every item and trigger
+  renders `<a href>` instead of `<button>`; the current item keeps
+  `aria-current="page"`. A control with nowhere to go (a bound, or
+  anything under a disabled root) is an `<a>` without `href`, with
+  `role="link"` and `aria-disabled`; a bound keeps a tab stop
+  (`tabindex="0"`). A plain primary click still moves the model and is
+  never prevented, so an SPA router can intercept it; a modified or
+  non-primary click leaves the model alone. Space does not press a link.
+- The anatomy's `element: 'button'` on `item` and the triggers is the
+  default; link mode renders `a`.
+
 ### Added — TreeView checkbox selection (#288)
 
 - **Checkable trees**: bind `model:checkedValues` (a `string[]` of checked

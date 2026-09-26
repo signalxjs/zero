@@ -519,6 +519,152 @@ describe('Pagination', () => {
         expectAnatomy(container, paginationAnatomy);
     });
 
+    it('withEdges brackets the row with first/last triggers that jump to the bounds (#294)', () => {
+        const state = signal({ page: 2 });
+        render(<Pagination.Root count={9} withEdges model={[state, 'page']} />, container);
+        expectAnatomy(container, paginationAnatomy);
+        const root = part(container, 'pagination', 'root');
+        const order = [...root.children].map((el) => el.getAttribute('data-part'));
+        expect(order[0]).toBe('first-trigger');
+        expect(order[1]).toBe('prev-trigger');
+        expect(order.at(-2)).toBe('next-trigger');
+        expect(order.at(-1)).toBe('last-trigger');
+        const first = part(container, 'pagination', 'first-trigger') as HTMLButtonElement;
+        const last = part(container, 'pagination', 'last-trigger') as HTMLButtonElement;
+        expect(first.getAttribute('aria-label')).toBe('First page');
+        expect(last.getAttribute('aria-label')).toBe('Last page');
+        expect(first.textContent).toBe('«');
+        expect(last.textContent).toBe('»');
+
+        last.focus();
+        last.click();
+        expect(state.page).toBe(9);
+        // The bound is the focusable aria-disabled treatment (#270).
+        expect(document.activeElement).toBe(last);
+        expect(last.disabled).toBe(false);
+        expect(last.getAttribute('aria-disabled')).toBe('true');
+        expect(last.getAttribute('data-disabled')).toBe('');
+        expect(first.hasAttribute('aria-disabled')).toBe(false);
+        last.click();
+        expect(state.page).toBe(9);
+
+        first.click();
+        expect(state.page).toBe(1);
+        expect(first.getAttribute('aria-disabled')).toBe('true');
+        expect(first.getAttribute('data-disabled')).toBe('');
+        expectAnatomy(container, paginationAnatomy);
+    });
+
+    it('renders no edge triggers by default, and names them localizably', () => {
+        render(<Pagination.Root count={3} />, container);
+        expect(container.querySelector(selector('pagination', 'first-trigger'))).toBeNull();
+        expect(container.querySelector(selector('pagination', 'last-trigger'))).toBeNull();
+
+        const other = document.createElement('div');
+        document.body.appendChild(other);
+        render(<Pagination.Root count={3} withEdges firstLabel="Första" lastLabel="Sista" />, other);
+        expect(part(other, 'pagination', 'first-trigger').getAttribute('aria-label')).toBe('Första');
+        expect(part(other, 'pagination', 'last-trigger').getAttribute('aria-label')).toBe('Sista');
+        render(null, other);
+        other.remove();
+    });
+
+    it('link mode renders every control as <a href>, current page aria-current (#294)', () => {
+        const state = signal({ page: 2 });
+        render(
+            <Pagination.Root count={5} withEdges model={[state, 'page']} getPageHref={(n) => `/posts?page=${n}`} />,
+            container,
+        );
+        expectAnatomy(container, paginationAnatomy);
+        const root = part(container, 'pagination', 'root');
+        expect(root.querySelector('button')).toBeNull();
+        const items = [...container.querySelectorAll<HTMLAnchorElement>(selector('pagination', 'item'))];
+        expect(items.map((a) => a.tagName)).toEqual(['A', 'A', 'A', 'A', 'A']);
+        expect(items.map((a) => a.getAttribute('href'))).toEqual([1, 2, 3, 4, 5].map((n) => `/posts?page=${n}`));
+        expect(items[1]!.getAttribute('aria-current')).toBe('page');
+        expect(items[0]!.hasAttribute('aria-current')).toBe(false);
+        // A live link is a link by its href — no role, no type, no tabindex.
+        for (const a of items) {
+            expect(a.hasAttribute('role')).toBe(false);
+            expect(a.hasAttribute('type')).toBe(false);
+            expect(a.hasAttribute('tabindex')).toBe(false);
+        }
+        const href = (name: string) => part(container, 'pagination', name).getAttribute('href');
+        expect(href('first-trigger')).toBe('/posts?page=1');
+        expect(href('prev-trigger')).toBe('/posts?page=1');
+        expect(href('next-trigger')).toBe('/posts?page=3');
+        expect(href('last-trigger')).toBe('/posts?page=5');
+    });
+
+    it('a link-mode click moves the model and is never prevented; a modified click is left alone', () => {
+        const state = signal({ page: 2 });
+        render(<Pagination.Root count={5} model={[state, 'page']} getPageHref={(n) => `#p${n}`} />, container);
+        const four = [...container.querySelectorAll<HTMLAnchorElement>(selector('pagination', 'item'))]
+            .find((a) => a.textContent === '4')!;
+        const click = (el: HTMLElement, init: MouseEventInit = {}) => {
+            const e = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ...init });
+            el.dispatchEvent(e);
+            return e;
+        };
+        // An SPA router intercepts by preventing the default itself — zero
+        // never does, so the href is followed when nothing intercepts.
+        let seen: MouseEvent | null = null;
+        const spy = (e: Event) => { seen = e as MouseEvent; e.preventDefault(); };
+        container.addEventListener('click', spy);
+        click(four);
+        container.removeEventListener('click', spy);
+        expect(state.page).toBe(4);
+        expect(seen).not.toBeNull();
+
+        // Ctrl/Cmd-click opens the page elsewhere: the view stays put.
+        const five = [...container.querySelectorAll<HTMLAnchorElement>(selector('pagination', 'item'))]
+            .find((a) => a.textContent === '5')!;
+        const guard = (e: Event) => e.preventDefault();
+        container.addEventListener('click', guard);
+        const e = click(five, { ctrlKey: true });
+        click(five, { metaKey: true });
+        container.removeEventListener('click', guard);
+        expect(state.page).toBe(4);
+        // The default-prevented flag is the guard's, not zero's.
+        expect(e.defaultPrevented).toBe(true);
+    });
+
+    it('a link-mode bound is an <a> without href, role=link, aria-disabled, still focusable', () => {
+        const state = signal({ page: 1 });
+        render(<Pagination.Root count={3} withEdges model={[state, 'page']} getPageHref={(n) => `#p${n}`} />, container);
+        for (const name of ['first-trigger', 'prev-trigger']) {
+            const a = part(container, 'pagination', name);
+            expect(a.tagName).toBe('A');
+            expect(a.hasAttribute('href')).toBe(false);
+            expect(a.getAttribute('role')).toBe('link');
+            expect(a.getAttribute('aria-disabled')).toBe('true');
+            expect(a.getAttribute('data-disabled')).toBe('');
+            expect(a.getAttribute('tabindex')).toBe('0');
+            a.click();
+            expect(state.page).toBe(1);
+        }
+        const next = part(container, 'pagination', 'next-trigger');
+        expect(next.hasAttribute('role')).toBe(false);
+        expect(next.getAttribute('href')).toBe('#p2');
+        expectAnatomy(container, paginationAnatomy);
+    });
+
+    it('a disabled link-mode Root leaves nothing to follow or focus', () => {
+        const state = signal({ page: 2 });
+        render(<Pagination.Root count={3} withEdges disabled model={[state, 'page']} getPageHref={(n) => `#p${n}`} />, container);
+        expectAnatomy(container, paginationAnatomy);
+        const links = [...part(container, 'pagination', 'root').querySelectorAll<HTMLAnchorElement>('a')];
+        expect(links.length).toBe(7);
+        for (const a of links) {
+            expect(a.hasAttribute('href')).toBe(false);
+            expect(a.hasAttribute('tabindex')).toBe(false);
+            expect(a.getAttribute('aria-disabled')).toBe('true');
+            expect(a.getAttribute('role')).toBe('link');
+            a.click();
+        }
+        expect(state.page).toBe(2);
+    });
+
     it('passes the variant axes through on the root', () => {
         render(<Pagination.Root count={2} color="primary" size="sm" />, container);
         const root = part(container, 'pagination', 'root');

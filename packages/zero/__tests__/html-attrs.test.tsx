@@ -687,7 +687,7 @@ describe('the pass-through reaches every part', () => {
         countdown: ['digits'],
         'file-upload': ['input'],
         'number-input': ['hidden-input'],
-        pagination: ['item', 'ellipsis', 'prev-trigger', 'next-trigger'],
+        pagination: ['item', 'ellipsis', 'first-trigger', 'prev-trigger', 'next-trigger', 'last-trigger'],
         'radio-group': ['item-control', 'item-indicator', 'item-label', 'hidden-input'],
         'rating-group': ['hidden-input'],
         slider: ['mark', 'hidden-input'],

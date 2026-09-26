@@ -4517,6 +4517,42 @@ export const breadcrumbs: RecipeInput = {
 };
 
 /**
+ * The four pagination triggers — prev/next and, with `withEdges`, the
+ * first/last jumps (#294) — are one cell: the same box, the same
+ * glyph-sized type, and the same flip under the rtl guard, since every
+ * glyph (`‹ › « »`) is physical ink pointing at a reading edge.
+ */
+const pageTrigger: PartStyles = {
+    base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minInlineSize: 'var(--pg-size)',
+        blockSize: 'var(--pg-size)',
+        background: 'transparent',
+        color: 'var(--color-base-content)',
+        border: 'none',
+        borderRadius: 'var(--radius-field)',
+        fontSize: 'calc(var(--pg-font) * 1.2)',
+        lineHeight: 'var(--leading-none)',
+        appearance: 'none',
+        // Link mode renders an <a> (#294): no UA underline.
+        textDecoration: 'none',
+        cursor: 'pointer',
+        transition: motion('background, transform'),
+    },
+    states: {
+        hover: { background: 'var(--color-base-200)' },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        ...pressScale,
+        [`&${rtl}`]: { scale: '-1 1' },
+    },
+};
+
+/**
  * Pagination — HeroUI's rounded cells: transparent at rest, base-200 under
  * the pointer, the current page inverted to full foreground (this design
  * system has no colour axis, so the inversion IS the accent). Pressed is
@@ -4564,6 +4600,7 @@ export const pagination: RecipeInput = {
                 fontWeight: 'var(--weight-medium)',
                 fontVariantNumeric: 'tabular-nums',
                 appearance: 'none',
+                textDecoration: 'none',
                 cursor: 'pointer',
                 transition: motion('background, color, transform'),
             },
@@ -4588,60 +4625,10 @@ export const pagination: RecipeInput = {
                 userSelect: 'none',
             },
         },
-        'prev-trigger': {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minInlineSize: 'var(--pg-size)',
-                blockSize: 'var(--pg-size)',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: 'none',
-                borderRadius: 'var(--radius-field)',
-                fontSize: 'calc(var(--pg-font) * 1.2)',
-                lineHeight: 'var(--leading-none)',
-                appearance: 'none',
-                cursor: 'pointer',
-                transition: motion('background, transform'),
-            },
-            states: {
-                hover: { background: 'var(--color-base-200)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-            selectors: {
-                ...pressScale,
-                [`&${rtl}`]: { scale: '-1 1' },
-            },
-        },
-        'next-trigger': {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minInlineSize: 'var(--pg-size)',
-                blockSize: 'var(--pg-size)',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: 'none',
-                borderRadius: 'var(--radius-field)',
-                fontSize: 'calc(var(--pg-font) * 1.2)',
-                lineHeight: 'var(--leading-none)',
-                appearance: 'none',
-                cursor: 'pointer',
-                transition: motion('background, transform'),
-            },
-            states: {
-                hover: { background: 'var(--color-base-200)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-            selectors: {
-                ...pressScale,
-                [`&${rtl}`]: { scale: '-1 1' },
-            },
-        },
+        'first-trigger': pageTrigger,
+        'prev-trigger': pageTrigger,
+        'next-trigger': pageTrigger,
+        'last-trigger': pageTrigger,
     },
     variants: {
         size: {

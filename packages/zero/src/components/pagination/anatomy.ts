@@ -20,10 +20,20 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * model, so it cannot be consumer-composed): `item` per visible page,
  * `ellipsis` (aria-hidden punctuation) where the window elides,
  * `prev-trigger`/`next-trigger` bracketing it — carrying the `‹`/`›`
- * glyph (Select.Indicator's convention) and named by `aria-label`. The
- * glyph is physical ink, so the reading-direction correction is the design
- * system's `scaleX(-1)` under its rtl guard, exactly like the other
- * pointing chevrons.
+ * glyph (Select.Indicator's convention) and named by `aria-label`. With
+ * `withEdges`, `first-trigger`/`last-trigger` (`«`/`»`, "First page"/
+ * "Last page") bracket those in turn (#294). Every glyph is physical ink,
+ * so the reading-direction correction is the design system's `scaleX(-1)`
+ * under its rtl guard, exactly like the other pointing chevrons.
+ *
+ * Link mode (#294): with `getPageHref` on the root, `item` and the four
+ * triggers render `<a href>` instead of `<button>` — the declared
+ * `element` is the default, like an `asChild` part's (Tabs' tab). The
+ * current item keeps `aria-current="page"`. A control that cannot move
+ * the page (a trigger at its bound, anything under a disabled root)
+ * renders `<a>` with no `href`, `role="link"` and `aria-disabled`; a
+ * bound keeps its tab stop. A plain click still moves the model and is
+ * never prevented, so an SPA router intercepts it.
  *
  * The window is constant-width, so its rendered width follows `count` and
  * the windowing props, not the container. The root is therefore the row's
@@ -39,7 +49,8 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * `data-disabled` and every button is natively disabled. A trigger at its
  * bound (prev on page 1, next on the last page) is different — it is
  * `aria-disabled` + `data-disabled` but stays focusable, so the press that
- * reaches the last page does not drop keyboard focus to the body.
+ * reaches the last page does not drop keyboard focus to the body. The edge
+ * triggers share the bounds: first with prev, last with next.
  */
 export const paginationAnatomy = defineAnatomy('pagination', {
     root: {
@@ -59,6 +70,13 @@ export const paginationAnatomy = defineAnatomy('pagination', {
         parent: 'root',
         tokens: ['color', 'text'],
     },
+    'first-trigger': {
+        element: 'button',
+        paint: { glyph: '«' },
+        parent: 'root',
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        tokens: ['color', 'radius-field', 'size'],
+    },
     'prev-trigger': {
         element: 'button',
         // The `‹`/`›` glyph is the only affordance for "there are more pages" (#339).
@@ -70,6 +88,13 @@ export const paginationAnatomy = defineAnatomy('pagination', {
     'next-trigger': {
         element: 'button',
         paint: { glyph: '›' },
+        parent: 'root',
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        tokens: ['color', 'radius-field', 'size'],
+    },
+    'last-trigger': {
+        element: 'button',
+        paint: { glyph: '»' },
         parent: 'root',
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size'],

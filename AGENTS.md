@@ -184,6 +184,9 @@ REAL scroll drives the model back through the IntersectionObserver),
 diff (the divider handle's captured drag moves the painted reveal, APG
 keyboard steps, and an RTL check measured in boxes — the reveal is a
 logical inline-size, which the physical-direction lint cannot see),
+pagination link mode (#294: every control an `<a href>`, a real click and
+Enter move the model while only the demo's stand-in router prevents the
+navigation, and a bound that lost its `href` stays a tab stop),
 file-upload (#273: an empty `required` upload's real submit lands focus
 on the trigger and reads invalid until a file arrives, a refused picker
 selection never stays in the input's own FileList, a removal hands focus
@@ -285,7 +288,9 @@ control is reachable scrolled to the end, and a keyboard-focused trigger at
 either end keeps its whole focus ring inside the scrollport — a scroll box
 clips at its padding box, so the recipes pad the root by the ring's reach —
 and the Enter that reaches the last page leaves focus on the (now
-`aria-disabled`) next trigger (#270);
+`aria-disabled`) next trigger (#270) — with `withEdges` on the demo, the
+outermost controls are the first/last triggers, held to the same ring and
+bound claims (#294);
 the **narrow-stats spec** (`e2e/narrow-stats.spec.ts`, #43) — the same
 shape for Stats: a value never wraps, so the root is the row's scroll box.
 At the case that found it (brutalist at 1100px, where shout-scale values

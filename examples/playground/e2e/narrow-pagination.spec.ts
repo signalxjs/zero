@@ -11,7 +11,8 @@
  * 1. the root stays inside the column it sits in (and genuinely overflows —
  *    a row that fits proves nothing about scrolling);
  * 2. scrolled to its end, the last control is inside the scrollport, so
- *    every page is reachable;
+ *    every page is reachable — the demo carries `withEdges` (#294), so the
+ *    outermost controls are the first/last triggers;
  * 3. a keyboard-focused control at either end keeps its whole focus ring
  *    inside the scrollport — a scroll box clips at its padding box, so a
  *    recipe that scrolls without leaving room for the ring (padding, plus
@@ -80,12 +81,15 @@ for (const ds of DESIGN_SYSTEMS) {
         expect(fit.right, `${ds}: the root's right edge against its column`)
             .toBeLessThanOrEqual(fit.columnRight + SLACK);
 
-        // 2. Every page reachable: scrolled to the end, the next trigger is in view.
+        // 2. Every page reachable: scrolled to the end, the last control —
+        //    the last-page trigger — is in view.
         await root.evaluate((el) => { el.scrollLeft = el.scrollWidth; });
         const next = part('next-trigger');
-        const nextBox = await settledBox(next, `${ds}: the next trigger`);
+        const last = part('last-trigger');
+        const first = part('first-trigger');
+        const lastBox = await settledBox(last, `${ds}: the last trigger`);
         const port = await scrollport(root);
-        expect(nextBox.x + nextBox.width, `${ds}: the scrolled-to-end next trigger`)
+        expect(lastBox.x + lastBox.width, `${ds}: the scrolled-to-end last trigger`)
             .toBeLessThanOrEqual(port.right + SLACK);
 
         // 3. The focus ring survives the scroll box at both ends — reached by
@@ -93,10 +97,14 @@ for (const ds of DESIGN_SYSTEMS) {
         await root.getByRole('button', { name: 'Page 20', exact: true }).focus();
         await page.keyboard.press('Tab');
         await expectRingInside(root, next, `${ds}: the focused next trigger`);
+        await page.keyboard.press('Tab');
+        await expectRingInside(root, last, `${ds}: the focused last trigger`);
 
         await root.getByRole('button', { name: 'Page 1', exact: true }).focus();
         await page.keyboard.press('Shift+Tab');
         await expectRingInside(root, part('prev-trigger'), `${ds}: the focused prev trigger`);
+        await page.keyboard.press('Shift+Tab');
+        await expectRingInside(root, first, `${ds}: the focused first trigger`);
 
         // 4. The press that reaches the last page keeps focus on next (#270):
         //    the bound is aria-disabled, never natively disabled — which
@@ -107,5 +115,12 @@ for (const ds of DESIGN_SYSTEMS) {
         await expect(root.getByRole('button', { name: 'Page 20', exact: true })).toHaveAttribute('aria-current', 'page');
         await expect(next, `${ds}: next at the last page`).toHaveAttribute('aria-disabled', 'true');
         await expect(next, `${ds}: next keeps focus at the bound`).toBeFocused();
+
+        // …and so does the jump that reaches the first page (#294).
+        await first.focus();
+        await page.keyboard.press('Enter');
+        await expect(root.getByRole('button', { name: 'Page 1', exact: true })).toHaveAttribute('aria-current', 'page');
+        await expect(first, `${ds}: first at the first page`).toHaveAttribute('aria-disabled', 'true');
+        await expect(first, `${ds}: first keeps focus at the bound`).toBeFocused();
     });
 }

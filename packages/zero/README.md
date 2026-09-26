@@ -1169,6 +1169,25 @@ live region (`aria-live` is overridable — set `off` for auto-rotation).
 Carousel's `indicator` no longer declares a `disabled` flag it never
 rendered.
 
+**Pagination edges and links.** `withEdges` adds `first-trigger` and
+`last-trigger` outside prev/next — `«`/`»` glyphs (flipped under RTL by the
+design system, like `‹`/`›`), named "First page"/"Last page"
+(`firstLabel`/`lastLabel`), with the same focusable `aria-disabled` bound
+as prev/next. `getPageHref={(n) => …}` switches the row to links: every
+page and trigger renders `<a href>` instead of a button (the anatomy's
+`element: 'button'` is the default), the current page keeps
+`aria-current="page"`, and a control that goes nowhere — a bound, or
+anything under a disabled root — renders `<a>` with no `href`,
+`role="link"` and `aria-disabled` (a bound keeps a tab stop). A plain
+click still moves the model and zero never prevents it, so an SPA router
+can intercept the navigation; a modified click (new tab) leaves the
+model alone.
+
+```tsx
+<Pagination.Root count={12} model={[state, 'page']} withEdges
+    getPageHref={(n) => `/posts?page=${n}`} />
+```
+
 **Scrollable tables are keyboard stops.** `Table.Root`'s scroll wrapper has
 `tabIndex=0` (axe `scrollable-region-focusable`: a table wider than its
 container must scroll without a pointer — focused, the arrow keys scroll
