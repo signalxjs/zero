@@ -196,6 +196,13 @@
         opacity: 0.6;
     }
 
+    [data-scope="menu"][data-part="shortcut"] {
+        margin-inline-start: auto;
+        padding-inline-start: var(--space-lg);
+        font-size: var(--text-xs);
+        opacity: 0.75;
+    }
+
     [data-scope="menu"][data-part="separator"] {
         height: var(--border);
         margin: var(--space-sm) var(--space-md);

@@ -32,6 +32,7 @@ import { popoverPage } from './popover';
 import { tooltipPage } from './tooltip';
 import { hoverCardPage } from './hover-card';
 import { menuPage } from './menu';
+import { menubarPage } from './menubar';
 import { toastPage } from './toast';
 import { tabsPage } from './tabs';
 import { accordionPage } from './accordion';
@@ -124,6 +125,7 @@ export const pages: PageEntry[] = [
     tooltipPage,
     hoverCardPage,
     menuPage,
+    menubarPage,
     toastPage,
     tabsPage,
     accordionPage,

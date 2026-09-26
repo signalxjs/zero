@@ -1223,6 +1223,16 @@ export const menu: RecipeInput = {
                 color: 'var(--color-outline)',
             },
         },
+        // M3's trailing supporting text: outline ink, pushed to the row's end.
+        shortcut: {
+            base: {
+                marginInlineStart: 'auto',
+                paddingInlineStart: 'var(--space-lg)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'var(--color-outline)',
+            },
+        },
         separator: {
             base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-outline)' },
         },
@@ -1231,6 +1241,44 @@ export const menu: RecipeInput = {
     // Trigger-carried axes — same wiring as dialog, same reason. The popup
     // and its items are top-layer siblings the donut cannot reach.
     variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
+};
+
+// The M3 menu bar: a surface-container strip the menu triggers sit in.
+export const menubar: RecipeInput = {
+    component: 'menubar',
+    tokens: { '--menubar-surface': 'var(--color-surface-container)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                padding: 'var(--space-2xs)',
+                width: 'max-content',
+                maxWidth: '100%',
+                flexWrap: 'wrap',
+                background: 'var(--menubar-surface)',
+                borderRadius: 'var(--radius-box)',
+            },
+            // The triggers fade themselves.
+            states: { disabled: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column', alignItems: 'stretch' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--menubar-surface': `color-mix(in oklch, var(--color-${c}) 10%, var(--color-surface-container))`,
+        } } }])),
+        size: {
+            xs: { root: { base: { gap: '0', padding: '0' } } },
+            sm: { root: { base: { padding: 'var(--space-2xs)' } } },
+            md: {},
+            lg: { root: { base: { gap: 'var(--space-sm)', padding: 'var(--space-sm)' } } },
+            xl: { root: { base: { gap: 'var(--space-md)', padding: 'var(--space-sm)' } } },
+        },
+    },
 };
 
 /**
@@ -6400,7 +6448,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    button, tabs, collapsible, accordion, dialog, popover, tooltip, hoverCard, menu, select,
+    button, tabs, collapsible, accordion, dialog, popover, tooltip, hoverCard, menu, menubar, select,
     switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,

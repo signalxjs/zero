@@ -1,0 +1,80 @@
+@layer zero.recipes {
+    [data-scope="menubar"][data-part="root"] {
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        padding: var(--space-xs);
+        width: max-content;
+        max-width: 100%;
+        flex-wrap: wrap;
+        box-shadow: var(--shadow-xs);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="primary"] {
+        border-color: var(--color-primary);
+        box-shadow: 2px 2px 0 0 var(--color-primary);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="secondary"] {
+        border-color: var(--color-secondary);
+        box-shadow: 2px 2px 0 0 var(--color-secondary);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="accent"] {
+        border-color: var(--color-accent);
+        box-shadow: 2px 2px 0 0 var(--color-accent);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="neutral"] {
+        border-color: var(--color-neutral);
+        box-shadow: 2px 2px 0 0 var(--color-neutral);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="info"] {
+        border-color: var(--color-info);
+        box-shadow: 2px 2px 0 0 var(--color-info);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="success"] {
+        border-color: var(--color-success);
+        box-shadow: 2px 2px 0 0 var(--color-success);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="warning"] {
+        border-color: var(--color-warning);
+        box-shadow: 2px 2px 0 0 var(--color-warning);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="error"] {
+        border-color: var(--color-error);
+        box-shadow: 2px 2px 0 0 var(--color-error);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="xs"] {
+        gap: 0;
+        padding: 0;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="sm"] {
+        padding: var(--space-2xs);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="lg"] {
+        gap: var(--space-sm);
+        padding: var(--space-sm);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="xl"] {
+        gap: var(--space-md);
+        padding: var(--space-sm);
+    }
+}

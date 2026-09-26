@@ -64,6 +64,14 @@
  * pointer that lingers closes the submenu, and the item under it then
  * takes hover.
  *
+ * `Menu.Shortcut` is the visible shortcut hint inside an item — decorative
+ * (`aria-hidden`); the item's `keyshortcuts` prop renders
+ * `aria-keyshortcuts`, which is what AT announces. Zero binds no keys.
+ *
+ * Inside a `Menubar.Root` the root's `value` names the menu, its open state
+ * follows the bar's model and its Trigger becomes a roving `menuitem` of the
+ * bar (see `Menubar`); outside one, `value` is unused.
+ *
  * `Menu.Arrow`, rendered inside the root `Menu.Popup`, is pointed at the
  * trigger's centre by the position strategy (`--arrow-x`/`--arrow-y`).
  * Submenus take no arrow: an arrow inside a `Menu.SubPopup` renders but is
@@ -88,11 +96,22 @@ import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { menuAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
+import { derivedModel } from '../../behaviors/derived-model.js';
+import { inertMenubarContext, useMenubarContext, type MenubarContext } from '../menubar/context.js';
 
 const SCOPE = menuAnatomy.scope;
 
 interface MenuContext {
     state: ControllableState<boolean>;
+    /**
+     * The enclosing `Menubar.Root`'s context, or the inert fallback
+     * (`bar.inert`) for a menu outside any bar. Captured by the root: the
+     * root hides the bar from its own subtree, so a menu nested inside
+     * never mistakes itself for a bar menu.
+     */
+    bar: MenubarContext;
+    /** This menu's identity in its bar — the root's `value`, else a generated id. */
+    value(): string;
     list: ReturnType<typeof createListController>;
     ids: { trigger: string; popup: string };
     /**
@@ -172,6 +191,8 @@ function graceHover(grace: PointerGrace, hover: () => void) {
 function makeInert(): MenuContext {
     return {
         state: createInertState<boolean>(false),
+        bar: inertMenubarContext(),
+        value: () => '',
         list: createListController(),
         ids: { trigger: 'zx-menu-inert-trigger', popup: 'zx-menu-inert' },
         triggerPresent: () => false,
@@ -197,6 +218,11 @@ export const useMenuContext = defineInjectable<MenuContext>(() => makeInert());
 // ── Root ──
 
 export type MenuRootProps =
+    /**
+     * Identity inside a `Menubar.Root`: the bar's `value` names the open
+     * menu by it. Defaults to a generated id; outside a bar it is unused.
+     */
+    & Define.Prop<'value', string, false>
     & Define.Model<boolean>
     & Define.Prop<'defaultOpen', boolean, false>
     & Define.Event<'openChange', boolean>
@@ -216,13 +242,32 @@ export type MenuRootProps =
     & Define.Slot<'default'>;
 
 const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmounted }) => {
-    const state = createControllableState<boolean>(
+    const bar = useMenubarContext();
+    const inBar = !bar.inert;
+    const baseId = createId('zx-menu');
+    const value = (): string => props.value ?? baseId;
+    const own = createControllableState<boolean>(
         () => props.model,
         props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
+    // Inside a bar the bar's `value` is the one source of truth: this menu
+    // is open while the bar names it. Opening names it; closing clears the
+    // bar only while it still names THIS menu — a switch to a sibling has
+    // already moved it on.
+    const state: ControllableState<boolean> = inBar
+        ? derivedModel<boolean>(
+            () => bar.state.value === value(),
+            (open) => {
+                if (open) bar.state.value = value();
+                else if (bar.state.value === value()) bar.state.value = '';
+            },
+        )
+        : own;
+    if (inBar) watch(() => state.value, (open) => emit('openChange', open));
+    // A Menu.Root nested inside this one is not a bar menu.
+    defineProvide(useMenubarContext, () => inertMenubarContext());
     const list = createListController();
-    const baseId = createId('zx-menu');
     // Written from Trigger one microtask after its setup — a write made
     // during the render pass is invisible to the already-rendered popup.
     const present = signal({ trigger: false });
@@ -272,6 +317,8 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
 
     const ctx: MenuContext = {
         state,
+        bar,
+        value,
         list,
         ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
         triggerPresent: () => present.trigger,
@@ -291,13 +338,30 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
             }, 0);
         },
         loop,
-        keydown(e, value) {
+        keydown(e, item) {
             if (e.key === 'Tab') {
                 ctx.closeChain();
                 return;
             }
-            roving(e, value);
-            if (!e.defaultPrevented) typeahead(e, value);
+            if (inBar && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+                // A submenu level forwards its inline-end arrow here (and a
+                // sub-trigger its inline-start one): across a horizontal bar
+                // it steps to the adjacent menu; down a vertical one the
+                // inline-start arrow closes back to the trigger.
+                const forward = e.key === (bar.rtl() ? 'ArrowLeft' : 'ArrowRight');
+                if (bar.orientation() === 'horizontal') {
+                    e.preventDefault();
+                    bar.step(value(), forward ? 1 : -1);
+                    return;
+                }
+                if (!forward) {
+                    e.preventDefault();
+                    state.value = false;
+                    return;
+                }
+            }
+            roving(e, item);
+            if (!e.defaultPrevented) typeahead(e, item);
         },
         searching: () => typeahead.searching(),
         takeOpenFocus() {
@@ -335,8 +399,30 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
     createFocusRestore(() => state.value, {
         getSurface: () => popup,
         fallback: () => (anchor instanceof HTMLElement ? anchor : null),
-        skip: () => skipRestore,
+        // A bar menu restores on its own terms, below.
+        skip: () => skipRestore || inBar,
     });
+
+    // In a bar, focus goes back to THIS menu's trigger — never to what was
+    // focused when it opened, which after a switch is an item of the
+    // sibling menu, now hidden — and only when the bar closed outright
+    // (Escape, a selection): a switch hands focus to the next menu itself.
+    if (inBar && typeof document !== 'undefined') {
+        watch(
+            () => state.value,
+            (open, wasOpen) => {
+                if (open || !wasOpen || skipRestore || bar.state.value !== '') return;
+                // Ours to move: on nothing, inside the popup — or on a sibling
+                // trigger, where the platform's own hide put it (a switch
+                // hides the previous menu first, so THIS popover recorded
+                // that menu's trigger as the element to hand focus back to).
+                const active = document.activeElement;
+                const onBar = bar.list.items().some((i) => i.el() === active);
+                if (active && active !== document.body && !popup?.contains(active) && !onBar) return;
+                triggerEl?.focus();
+            },
+        );
+    }
 
     // Focus leaving the menu tree — to anything but the trigger, whose own
     // click toggles — closes the whole chain. Submenu popups are DOM
@@ -351,6 +437,9 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
                 const target = e.target as Node | null;
                 if (!target || !popup) return;
                 if (popup.contains(target) || triggerEl?.contains(target)) return;
+                // Focus on another trigger of the same bar is the bar's
+                // business: a switch, or a pointer on its way to a click.
+                if (inBar && bar.list.items().some((i) => i.el()?.contains(target))) return;
                 closeWithoutRestore();
             };
             document.addEventListener('focusin', onFocusin);
@@ -377,13 +466,16 @@ export type MenuTriggerProps =
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
-const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onUnmounted }) => {
+const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
     const menu = useMenuContext();
+    const bar = menu.bar;
+    const inBar = !bar.inert;
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    const disabled = (): boolean => !!props.disabled || bar.disabled();
     const press = createPressFeedback({
         getElement: () => el,
-        isDisabled: () => !!props.disabled,
+        isDisabled: disabled,
     });
     // Deferred past the render pass — see the note on `present` in Root.
     let alive = true;
@@ -393,6 +485,48 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onUnmou
         menu.setTriggerPresent(false);
     });
 
+    // In a bar the trigger is a `menuitem` of the bar's roving row.
+    if (inBar) {
+        const item: ListItem = {
+            id: `menubar-trigger-${menu.ids.trigger}`,
+            get value() { return menu.value(); },
+            disabled,
+            el: () => el,
+            textValue: () => el?.textContent?.trim() ?? menu.value(),
+        };
+        const unregister = bar.list.register(item);
+        onMounted(() => bar.tabStop.changed());
+        onUnmounted(() => {
+            unregister();
+            bar.tabStop.changed();
+        });
+    }
+    const isTabStop = (): boolean => {
+        const last = bar.focused();
+        return bar.tabStop.isTabStop(menu.value(), last !== '' ? [last] : []);
+    };
+
+    const open = (end: 'first' | 'last'): void => {
+        menu.setAnchor(el);
+        if (menu.state.value) {
+            // Already open (focus came back to the trigger): just go in.
+            const items = menu.list.enabledItems();
+            items[end === 'last' ? items.length - 1 : 0]?.el()?.focus();
+            return;
+        }
+        menu.setOpenFocus(end);
+        menu.state.value = true;
+    };
+
+    // A bar trigger's click follows the pointer's story, not a blind toggle:
+    // a menu open BEFORE the pointer came (a click on its own open trigger)
+    // closes, while one the pointer's hover just switched to stays open —
+    // the popover's light dismiss may already have closed either by the
+    // time `click` fires, so the decision is taken at pointerdown.
+    let hoverOpened = false;
+    let pointerGesture = false;
+    let closeOnClick = false;
+
     const bag = (): PartProps => ({
         ...htmlAttrs(props),
         id: menu.ids.trigger,
@@ -400,39 +534,90 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onUnmou
         'data-part': 'trigger',
         ...variantAttrs(props),
         'data-state': stateAttr(menu.state.value, 'open', 'closed'),
-        'data-disabled': dataAttr(props.disabled),
+        'data-disabled': dataAttr(disabled()),
         'data-focus-visible': dataAttr(focus.visible),
+        role: inBar ? 'menuitem' : undefined,
+        tabIndex: inBar ? (isTabStop() ? 0 : -1) : undefined,
         'aria-haspopup': 'menu',
         'aria-expanded': menu.state.value ? 'true' : 'false',
         'aria-controls': menu.ids.popup,
         onClick: () => {
-            if (props.disabled) return;
+            const pointer = pointerGesture;
+            const close = closeOnClick;
+            pointerGesture = closeOnClick = false;
+            if (disabled()) return;
             // Re-claim the anchor on every open: a context-trigger open may
             // have moved it to a point — last opener wins.
             menu.setAnchor(el);
+            if (inBar && pointer) {
+                const open = !close;
+                menu.state.value = open;
+                // The popover's light dismiss answers the same gesture: it
+                // hides a menu the press landed outside of (this trigger is
+                // outside its own popup) and reports it in a `toggle` task
+                // that lands AFTER this click. Restate the decision once
+                // that report is in, or a menu meant to stay open would
+                // close under the pointer.
+                if (open) setTimeout(() => { if (!disabled() && el?.isConnected) menu.state.value = true; }, 0);
+                return;
+            }
             menu.state.value = !menu.state.value;
         },
         onKeydown: (e: KeyboardEvent) => {
             press.onKeydown(e);
+            if (disabled()) return;
+            if (inBar) {
+                // Horizontal bar: ArrowDown/ArrowUp open on the first/last
+                // item. Vertical: the inline-end arrow opens, Up/Down rove.
+                const vertical = bar.orientation() === 'vertical';
+                if (!vertical && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+                    e.preventDefault();
+                    open(e.key === 'ArrowUp' ? 'last' : 'first');
+                    return;
+                }
+                if (vertical && e.key === (bar.rtl() ? 'ArrowLeft' : 'ArrowRight')) {
+                    e.preventDefault();
+                    open('first');
+                    return;
+                }
+                bar.keydown(e, menu.value());
+                return;
+            }
             // ArrowDown on a closed trigger opens the menu on its first
             // item, ArrowUp on its last (APG menu button).
-            if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !menu.state.value && !props.disabled) {
+            if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !menu.state.value) {
                 e.preventDefault();
-                menu.setAnchor(el);
-                menu.setOpenFocus(e.key === 'ArrowUp' ? 'last' : 'first');
-                menu.state.value = true;
+                open(e.key === 'ArrowUp' ? 'last' : 'first');
             }
         },
         onKeyup: press.onKeyup,
-        onFocus: () => { focus.visible = isFocusVisible(el); },
+        onFocus: () => {
+            focus.visible = isFocusVisible(el);
+            if (inBar) bar.setFocused(menu.value());
+        },
         onBlur: (e: FocusEvent) => {
             press.onBlur(e);
             focus.visible = false;
         },
-        onPointerdown: press.onPointerdown,
+        onPointerenter: () => {
+            // While any menu of the bar is open, hovering another trigger
+            // switches to its menu.
+            if (!inBar || disabled() || bar.state.value === '' || menu.state.value) return;
+            hoverOpened = true;
+            open('first');
+        },
+        onPointerdown: (e: PointerEvent) => {
+            pointerGesture = true;
+            closeOnClick = menu.state.value && !hoverOpened;
+            hoverOpened = false;
+            press.onPointerdown(e);
+        },
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
-        onPointerleave: press.onPointerleave,
+        onPointerleave: (e: PointerEvent) => {
+            hoverOpened = false;
+            press.onPointerleave(e);
+        },
         ref: (node: HTMLElement | null) => { el = node; menu.setAnchor(node); menu.setTriggerEl(node); },
     });
 
@@ -440,7 +625,7 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onUnmou
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <button type="button" class={props.class} {...b} disabled={props.disabled}>
+            <button type="button" class={props.class} {...b} disabled={disabled()}>
                 {slots.default?.(b)}
             </button>
         );
@@ -722,6 +907,12 @@ function useMenuItemCore({ signal, onUnmounted }: ItemHooks, opts: ItemCoreOpts)
 export type MenuItemProps =
     & Define.Prop<'value', string, true>
     & Define.Prop<'textValue', string, false>
+    /**
+     * The keyboard shortcut the app binds for this item, in
+     * `aria-keyshortcuts` syntax (`"Control+S"`). Announced only — zero binds
+     * no keys; pair it with a visible `Menu.Shortcut`.
+     */
+    & Define.Prop<'keyshortcuts', string, false>
     & WithDisabled
     & WithClass
     /** Not `role`: the item's role is its menu semantics. */
@@ -742,6 +933,7 @@ const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }
         ...core.handlers(),
         'data-scope': SCOPE,
         'data-part': 'item',
+        'aria-keyshortcuts': props.keyshortcuts,
         role: 'menuitem',
     });
 
@@ -766,6 +958,12 @@ export type MenuCheckboxItemProps =
     /** Close the menu when this item toggles — default FALSE (unlike plain items). */
     & Define.Prop<'closeOnSelect', boolean, false>
     & Define.Prop<'textValue', string, false>
+    /**
+     * The keyboard shortcut the app binds for this item, in
+     * `aria-keyshortcuts` syntax (`"Control+S"`). Announced only — zero binds
+     * no keys; pair it with a visible `Menu.Shortcut`.
+     */
+    & Define.Prop<'keyshortcuts', string, false>
     & WithDisabled
     & WithClass
     /** Not `role`: the item's role is its menu semantics. */
@@ -799,6 +997,7 @@ const MenuCheckboxItem = component<MenuCheckboxItemProps>(({ props, slots, emit,
         ...core.handlers(),
         'data-scope': SCOPE,
         'data-part': 'checkbox-item',
+        'aria-keyshortcuts': props.keyshortcuts,
         'data-state': stateAttr(checked.value, 'checked', 'unchecked'),
         role: 'menuitemcheckbox',
         'aria-checked': checked.value ? 'true' : 'false',
@@ -864,6 +1063,12 @@ export type MenuRadioItemProps =
     /** Close the menu when this item is chosen — default FALSE, like CheckboxItem. */
     & Define.Prop<'closeOnSelect', boolean, false>
     & Define.Prop<'textValue', string, false>
+    /**
+     * The keyboard shortcut the app binds for this item, in
+     * `aria-keyshortcuts` syntax (`"Control+S"`). Announced only — zero binds
+     * no keys; pair it with a visible `Menu.Shortcut`.
+     */
+    & Define.Prop<'keyshortcuts', string, false>
     & WithDisabled
     & WithClass
     /** Not `role`: the item's role is its menu semantics. */
@@ -890,6 +1095,7 @@ const MenuRadioItem = component<MenuRadioItemProps>(({ props, slots, signal, onU
         ...core.handlers(),
         'data-scope': SCOPE,
         'data-part': 'radio-item',
+        'aria-keyshortcuts': props.keyshortcuts,
         'data-state': stateAttr(isChecked(), 'checked', 'unchecked'),
         role: 'menuitemradio',
         'aria-checked': isChecked() ? 'true' : 'false',
@@ -1054,6 +1260,8 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
     // unchanged. Selection bubbles to the root; ArrowLeft steps back out.
     const subCtx: MenuContext = {
         state,
+        bar: parent.bar,
+        value: parent.value,
         list,
         ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
         // The SubPopup labels itself from the sub-trigger unconditionally —
@@ -1074,6 +1282,13 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
             if (e.key === closeKey) {
                 e.preventDefault();
                 close(true);
+                return;
+            }
+            // The opening arrow on an item that opens nothing is the
+            // enclosing level's to answer — in a menubar, the root steps to
+            // the adjacent menu (APG); a standalone menu ignores it.
+            if (e.key === (isRtl() ? 'ArrowLeft' : 'ArrowRight')) {
+                parent.keydown(e, value);
                 return;
             }
             roving(e, value);
@@ -1493,6 +1708,25 @@ const MenuArrow = component<MenuArrowProps>(({ props, slots, onUnmounted }) => {
     );
 }, { name: 'Menu.Arrow' });
 
+// ── Shortcut ──
+
+/** The hint is decoration: it renders `aria-hidden="true"` — the item's `keyshortcuts` is what AT announces. */
+export type MenuShortcutProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
+
+/**
+ * The visible keyboard-shortcut hint inside an item (`⌘S`, `Ctrl+S`).
+ * Hidden from AT — the item's `keyshortcuts` prop states the shortcut as
+ * `aria-keyshortcuts` instead, so it is announced once, in a form a reader
+ * can parse. Zero binds no keys.
+ */
+const MenuShortcut = component<MenuShortcutProps>(({ props, slots }) => {
+    return () => (
+        <span {...htmlAttrs(props)} data-scope={SCOPE} data-part="shortcut" aria-hidden="true" class={props.class}>
+            {slots.default?.()}
+        </span>
+    );
+}, { name: 'Menu.Shortcut' });
+
 /** Not `role`: the part is a `separator`. */
 export type MenuSeparatorProps = WithClass & Omit<WithHtmlAttrs, 'role'>;
 
@@ -1518,4 +1752,5 @@ export const Menu = compound(MenuRoot, {
     GroupLabel: MenuGroupLabel,
     Separator: MenuSeparator,
     Arrow: MenuArrow,
+    Shortcut: MenuShortcut,
 });

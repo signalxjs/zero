@@ -452,6 +452,14 @@
         color: var(--color-outline);
     }
 
+    [data-scope="menu"][data-part="shortcut"] {
+        margin-inline-start: auto;
+        padding-inline-start: var(--space-lg);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        color: var(--color-outline);
+    }
+
     [data-scope="menu"][data-part="separator"] {
         height: var(--border);
         margin: var(--space-2xs) 0;

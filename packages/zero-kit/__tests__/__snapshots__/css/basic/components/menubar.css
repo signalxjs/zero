@@ -1,0 +1,74 @@
+@layer zero.recipes {
+    [data-scope="menubar"][data-part="root"] {
+        --menubar-line: var(--color-base-300);
+    }
+
+    [data-scope="menubar"][data-part="root"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        padding: var(--space-xs);
+        width: max-content;
+        max-width: 100%;
+        flex-wrap: wrap;
+        background: var(--color-base-100);
+        border: var(--border) solid var(--menubar-line);
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="primary"] {
+        --menubar-line: color-mix(in oklch, var(--color-primary) 45%, var(--color-base-300));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="secondary"] {
+        --menubar-line: color-mix(in oklch, var(--color-secondary) 45%, var(--color-base-300));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="accent"] {
+        --menubar-line: color-mix(in oklch, var(--color-accent) 45%, var(--color-base-300));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="neutral"] {
+        --menubar-line: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="info"] {
+        --menubar-line: color-mix(in oklch, var(--color-info) 45%, var(--color-base-300));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="success"] {
+        --menubar-line: color-mix(in oklch, var(--color-success) 45%, var(--color-base-300));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="warning"] {
+        --menubar-line: color-mix(in oklch, color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content)) 45%, var(--color-base-300));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="error"] {
+        --menubar-line: color-mix(in oklch, var(--color-error) 45%, var(--color-base-300));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="xs"] {
+        gap: 0;
+        padding: 0;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="sm"] {
+        padding: var(--space-2xs);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="lg"] {
+        gap: var(--space-sm);
+        padding: var(--space-sm);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="xl"] {
+        gap: var(--space-md);
+        padding: var(--space-sm);
+    }
+}

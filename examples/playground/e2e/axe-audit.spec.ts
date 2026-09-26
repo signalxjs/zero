@@ -166,6 +166,22 @@ const SCANS: Record<string, Scan[]> = {
         },
         { name: 'selection-items menu', open: (page) => openMenu(page, 'View') },
     ],
+    menubar: [
+        {
+            // A bar trigger is a `menuitem`, not a button — open it by keyboard
+            // from the bar's one tab stop, then its submenu.
+            name: 'Editor menubar, File open with its submenu',
+            open: async (page) => {
+                const file = page.getByRole('menuitem', { name: 'File', exact: true });
+                await file.focus();
+                await page.keyboard.press('ArrowDown');
+                const popup = await controlledPopup(page, file, 'the File menubar trigger');
+                await expect(popup).toHaveAttribute('data-state', 'open');
+                await expect(popup).toBeVisible();
+                await openSub(page, 'Open recent');
+            },
+        },
+    ],
     select: [
         { name: 'children select', open: openSelect('select', 'fruit') },
         { name: 'options-driven select', open: openSelect('select', 'sugar-fruit') },

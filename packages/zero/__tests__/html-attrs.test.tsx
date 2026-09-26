@@ -15,7 +15,7 @@ import { anatomies } from '@sigx/zero/anatomy';
 import {
     Accordion, Alert, Avatar, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, Checkbox, CheckboxGroup,
     Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, EmptyState, Field, Fieldset, FileUpload, Grid,
-    HoverCard, Indicator, Input, Join, Kbd, Menu, Navbar, NavList, NumberInput, Pagination, Popover, Progress,
+    HoverCard, Indicator, Input, Join, Kbd, Menu, Menubar, Navbar, NavList, NumberInput, Pagination, Popover, Progress,
     RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spacer, Spinner, Stack, Stats,
     Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
     TreeView, createToaster,
@@ -602,7 +602,7 @@ describe('the pass-through reaches every part', () => {
                         <Menu.Arrow {...p('arrow')} />
                         <Menu.Group {...p('group')}>
                             <Menu.GroupLabel {...p('group-label')}>File</Menu.GroupLabel>
-                            <Menu.Item {...p('item')} value="rename">Rename</Menu.Item>
+                            <Menu.Item {...p('item')} value="rename">Rename <Menu.Shortcut {...p('shortcut')}>F2</Menu.Shortcut></Menu.Item>
                         </Menu.Group>
                         <Menu.Separator {...p('separator')} />
                         <Menu.CheckboxItem {...p('checkbox-item')} value="wrap">Wrap</Menu.CheckboxItem>
@@ -620,6 +620,14 @@ describe('the pass-through reaches every part', () => {
                     <Menu.Popup><Menu.Item value="x">X</Menu.Item></Menu.Popup>
                 </Menu.Root>
             </div>
+        ),
+        menubar: () => (
+            <Menubar.Root {...p('root')}>
+                <Menu.Root value="file">
+                    <Menu.Trigger>File</Menu.Trigger>
+                    <Menu.Popup><Menu.Item value="new">New</Menu.Item></Menu.Popup>
+                </Menu.Root>
+            </Menubar.Root>
         ),
         popover: () => (
             <Popover.Root defaultOpen>
