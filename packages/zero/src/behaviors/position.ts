@@ -42,6 +42,11 @@ export interface PositionOptions {
 /** `PositionOptions.collisionPadding` when a caller leaves it out. */
 export const DEFAULT_COLLISION_PADDING = 8;
 
+/** `value` when it is a finite number (raised to `min`, if given), else `fallback`. */
+function finiteOr(value: number | undefined, fallback: number, min = -Infinity): number {
+    return typeof value === 'number' && Number.isFinite(value) ? Math.max(min, value) : fallback;
+}
+
 /**
  * Anything that can report a client rect — an element, or a virtual anchor
  * standing in for one (the floating-ui convention). Strategies only ever
@@ -228,8 +233,11 @@ export const fixedPositionStrategy: PositionStrategy = {
             // from where the popup lives).
             const rtl = isRtl(isElement(anchor) ? anchor : anchor.contextElement ?? floating);
 
-            const pad = opts.collisionPadding ?? DEFAULT_COLLISION_PADDING;
-            const alignOffset = opts.alignOffset ?? 0;
+            // Both feed comparisons and clamps: a NaN/Infinity would make
+            // every flip test false and the clamp unbounded, and a negative
+            // padding would let the popup past the edge it exists to keep.
+            const pad = finiteOr(opts.collisionPadding, DEFAULT_COLLISION_PADDING, 0);
+            const alignOffset = finiteOr(opts.alignOffset, 0);
 
             let placement = opts.placement;
             let coords = computeCoords(anchorRect, size, placement, opts.offset, rtl, alignOffset);

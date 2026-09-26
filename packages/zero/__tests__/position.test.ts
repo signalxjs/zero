@@ -268,6 +268,20 @@ describe('fixedPositionStrategy: collisionPadding', () => {
         expect(floating.style.left).toBe('16px');
         cleanup();
     });
+
+    it('treats a negative padding as 0 and a non-finite one as the default', () => {
+        const { anchor } = fakeAnchor(0, 100, 10, 20);
+        const left = (collisionPadding: number) => {
+            const floating = fakeFloating(200, 50);
+            const cleanup = fixedPositionStrategy.apply(anchor, floating, { placement: 'bottom-end', offset: 4, flip: true, collisionPadding });
+            const out = floating.style.left;
+            cleanup();
+            return out;
+        };
+        expect(left(-20)).toBe('0px');
+        expect(left(Number.NaN)).toBe('8px');
+        expect(left(Number.POSITIVE_INFINITY)).toBe('8px');
+    });
 });
 
 describe('fixedPositionStrategy: alignOffset', () => {
@@ -296,6 +310,12 @@ describe('fixedPositionStrategy: alignOffset', () => {
         const { anchor } = fakeAnchor(300, 100, 120, 30);
         expect(apply(anchor, fakeFloating(100, 50), 'right-start', 6).top).toBe(106);
         expect(apply(anchor, fakeFloating(100, 20), 'right-end', 6).top).toBe(130 - 20 - 6);
+    });
+
+    it('ignores a non-finite offset', () => {
+        const { anchor } = fakeAnchor(300, 100, 120, 30);
+        expect(apply(anchor, fakeFloating(200, 50), 'bottom-start', Number.NaN).left).toBe(300);
+        expect(apply(anchor, fakeFloating(200, 50), 'bottom-start', Number.POSITIVE_INFINITY).left).toBe(300);
     });
 });
 
