@@ -12,7 +12,7 @@
 import type {
     AccordionRootProps, AlertRootProps, CarouselRootProps, CheckboxGroupRootProps, CheckboxRootProps, CollapsibleRootProps,
     ComboboxRootProps, DialogRootProps, DiffRootProps, DrawerRootProps, FileUploadRootProps, HoverCardRootProps, InputRootProps,
-    MenuCheckboxItemProps, MenuRadioGroupProps, MenuRootProps, MenuSubProps, NumberInputRootProps,
+    MenubarRootProps, MenuCheckboxItemProps, MenuRadioGroupProps, MenuRootProps, MenuSubProps, NumberInputRootProps,
     PaginationRootProps, PopoverRootProps, RadioGroupRootProps, RatingGroupRootProps, SelectRootProps,
     SkeletonRootProps, SliderRootProps, StepsRootProps, SwapRootProps, SwitchRootProps, TabsRootProps,
     TextareaRootProps, ToggleGroupRootProps, ToggleRootProps, TooltipRootProps, TreeViewRootProps,
@@ -44,6 +44,7 @@ export type Pins = [
     MustBeTrue<Companions<FileUploadRootProps, 'model', 'defaultFiles', 'filesChange'>>,
     MustBeTrue<Companions<HoverCardRootProps, 'model', 'defaultOpen', 'openChange'>>,
     MustBeTrue<Companions<InputRootProps, 'model', 'defaultValue', 'valueChange'>>,
+    MustBeTrue<Companions<MenubarRootProps, 'model', 'defaultValue', 'valueChange'>>,
     MustBeTrue<Companions<MenuRootProps, 'model', 'defaultOpen', 'openChange'>>,
     MustBeTrue<Companions<MenuSubProps, 'model', 'defaultOpen', 'openChange'>>,
     MustBeTrue<Companions<MenuCheckboxItemProps, 'model', 'defaultChecked', 'checkedChange'>>,

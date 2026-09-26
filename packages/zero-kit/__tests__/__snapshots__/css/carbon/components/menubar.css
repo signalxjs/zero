@@ -1,0 +1,34 @@
+@layer zero.recipes {
+    [data-scope="menubar"][data-part="root"] {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        min-block-size: 3rem;
+        width: max-content;
+        max-width: 100%;
+        flex-wrap: wrap;
+        background: var(--color-base-200);
+        border-radius: var(--radius-box);
+        font-family: var(--font-sans);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="sm"] {
+        min-block-size: 2rem;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="md"] {
+        min-block-size: 2.5rem;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="xl"] {
+        min-block-size: 4rem;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="2xl"] {
+        min-block-size: 5rem;
+    }
+}

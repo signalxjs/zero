@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added — the `menubar` scope (zero#289)
+
+- **`RESERVED_PROPS_BY_SCOPE`** reserves `menubar`'s root props
+  (`defaultValue`, `id`, `loop`, `title`, `value`); the `menu` entry already
+  covered its new `value`.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE['hover-card']` (zero#290)
 
 - The new `hover-card` scope's root props are reserved (`openDelay`,

@@ -1094,6 +1094,16 @@ export const menu: RecipeInput = {
                 color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
             },
         },
+        // Carbon's menu shortcut: helper-text ink at the row's trailing edge.
+        shortcut: {
+            base: {
+                marginInlineStart: 'auto',
+                paddingInlineStart: 'var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
+            },
+        },
         separator: {
             base: {
                 height: 'var(--border)',
@@ -1108,6 +1118,43 @@ export const menu: RecipeInput = {
     skipStates: { 'context-trigger': ['focus-visible'] },
     // Trigger-carried size — see `overlayTriggerSizes`.
     variants: { size: overlayTriggerSizes },
+};
+
+// Carbon's header menu bar: a flush layer-01 strip, square, no frame.
+export const menubar: RecipeInput = {
+    component: 'menubar',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'stretch',
+                gap: '0',
+                minBlockSize: '3rem',
+                width: 'max-content',
+                maxWidth: '100%',
+                flexWrap: 'wrap',
+                background: 'var(--color-base-200)',
+                borderRadius: 'var(--radius-box)',
+                fontFamily: 'var(--font-sans)',
+            },
+            // The triggers fade themselves.
+            states: { disabled: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+    },
+    variants: {
+        // Carbon's field heights (32/40/48/64/80px): the bar is as tall as
+        // the controls of its size, and the triggers stretch to fill it.
+        size: {
+            sm: { root: { base: { minBlockSize: '2rem' } } },
+            md: { root: { base: { minBlockSize: '2.5rem' } } },
+            lg: {},
+            xl: { root: { base: { minBlockSize: '4rem' } } },
+            '2xl': { root: { base: { minBlockSize: '5rem' } } },
+        },
+    },
 };
 
 // ── Field ─────────────────────────────────────────────────────────────────
@@ -6206,7 +6253,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu,
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,

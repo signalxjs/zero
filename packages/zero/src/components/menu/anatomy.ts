@@ -120,6 +120,16 @@ export const menuAnatomy = defineAnatomy('menu', {
         parent: 'popup',
         tokens: ['color'],
     },
+    // The visible keyboard-shortcut hint an app places inside an item
+    // (`Menu.Shortcut`). Decorative (`aria-hidden`): the item's own
+    // `keyshortcuts` prop is what AT announces, as `aria-keyshortcuts`.
+    // `parent` names the popup, like `item-indicator`: it sits in whichever
+    // row kind hosts it. Zero binds no keys.
+    shortcut: {
+        element: 'span',
+        parent: 'popup',
+        tokens: ['color', 'text'],
+    },
 }, {
     models: [
         { concept: 'open', type: 'boolean' },

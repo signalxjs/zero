@@ -16,6 +16,7 @@ import { popoverAnatomy } from './components/popover/anatomy.js';
 import { tooltipAnatomy } from './components/tooltip/anatomy.js';
 import { hoverCardAnatomy } from './components/hover-card/anatomy.js';
 import { menuAnatomy } from './components/menu/anatomy.js';
+import { menubarAnatomy } from './components/menubar/anatomy.js';
 import { fieldAnatomy } from './components/field/anatomy.js';
 import { fieldsetAnatomy } from './components/fieldset/anatomy.js';
 import { checkboxAnatomy } from './components/checkbox/anatomy.js';
@@ -72,7 +73,7 @@ import { diffAnatomy } from './components/diff/anatomy.js';
 
 export {
     buttonAnatomy,
-    tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, hoverCardAnatomy, menuAnatomy,
+    tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, hoverCardAnatomy, menuAnatomy, menubarAnatomy,
     fieldAnatomy, fieldsetAnatomy, checkboxAnatomy, checkboxGroupAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
@@ -94,6 +95,7 @@ export const anatomies = {
     tooltip: tooltipAnatomy,
     'hover-card': hoverCardAnatomy,
     menu: menuAnatomy,
+    menubar: menubarAnatomy,
     field: fieldAnatomy,
     fieldset: fieldsetAnatomy,
     checkbox: checkboxAnatomy,

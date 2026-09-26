@@ -221,6 +221,14 @@
         color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     }
 
+    [data-scope="menu"][data-part="shortcut"] {
+        margin-inline-start: auto;
+        padding-inline-start: var(--space-md);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+    }
+
     [data-scope="menu"][data-part="separator"] {
         height: var(--border);
         margin: var(--space-xs) 0;

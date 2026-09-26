@@ -168,6 +168,16 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** menubar — size wired. */
+            'menubar': {
+                /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
+                color: never;
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+                /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** field — size wired. */
             'field': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */

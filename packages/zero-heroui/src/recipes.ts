@@ -907,6 +907,16 @@ export const menu: RecipeInput = {
                 color: 'var(--hero-muted)',
             },
         },
+        // HeroUI's `shortcut` slot: muted small type at the row's end.
+        shortcut: {
+            base: {
+                marginInlineStart: 'auto',
+                paddingInlineStart: 'var(--space-md)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+        },
         separator: {
             base: {
                 height: 'var(--border)',
@@ -921,6 +931,40 @@ export const menu: RecipeInput = {
     skipStates: { 'context-trigger': ['focus-visible'] },
     // Trigger-carried size — see `overlayTriggerSizes`.
     variants: { size: overlayTriggerSizes },
+};
+
+// HeroUI has no menubar; the bar borrows its navbar strip — the hairline
+// the popups draw, the triggers sitting inside.
+export const menubar: RecipeInput = {
+    component: 'menubar',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                padding: 'var(--space-2xs)',
+                width: 'max-content',
+                maxWidth: '100%',
+                flexWrap: 'wrap',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+            },
+            // The triggers fade themselves.
+            states: { disabled: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column', alignItems: 'stretch' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { gap: '0', padding: '0' } } },
+            md: {},
+            lg: { root: { base: { gap: 'var(--space-xs)', padding: 'var(--space-xs)' } } },
+        },
+    },
 };
 
 // ── Field ─────────────────────────────────────────────────────────────────
@@ -5624,7 +5668,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu,
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,

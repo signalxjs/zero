@@ -1233,6 +1233,20 @@ export const menu: RecipeInput = {
                 color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
             },
         },
+        // The shortcut hint: the group label's mono meta-text, pushed to the
+        // row's reading end. Decorative (aria-hidden) — the item's
+        // `aria-keyshortcuts` is what AT announces — but still read by eye,
+        // so its ink holds 4.5:1 where the overline's 60% does not.
+        shortcut: {
+            base: {
+                marginInlineStart: 'auto',
+                paddingInlineStart: 'var(--space-lg)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
         separator: {
             base: {
                 height: 'var(--border)',
@@ -1257,7 +1271,49 @@ export const menu: RecipeInput = {
                 'checkbox-item': { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
                 'radio-item': { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
                 'sub-trigger': { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
+                shortcut: { base: { marginLeft: 'auto', paddingLeft: 'var(--space-lg)' } },
             },
+        },
+    },
+};
+
+// The menubar row: a hairline-framed strip the menu triggers sit in. The
+// triggers are ordinary `menu` triggers — the bar only lays them out.
+export const menubar: RecipeInput = {
+    component: 'menubar',
+    tokens: { '--menubar-line': 'var(--color-base-300)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                padding: 'var(--space-xs)',
+                width: 'max-content',
+                maxWidth: '100%',
+                flexWrap: 'wrap',
+                background: 'var(--color-base-100)',
+                border: 'var(--border) solid var(--menubar-line)',
+                borderRadius: 'var(--radius-box)',
+            },
+            // The triggers carry `disabled` themselves and fade there — a
+            // second fade on the row would double it.
+            states: { disabled: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column', alignItems: 'stretch' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--menubar-line': `color-mix(in oklch, ${softInk(c)} 45%, var(--color-base-300))`,
+        } } }])),
+        size: {
+            xs: { root: { base: { gap: '0', padding: '0' } } },
+            sm: { root: { base: { padding: 'var(--space-2xs)' } } },
+            md: {},
+            lg: { root: { base: { gap: 'var(--space-sm)', padding: 'var(--space-sm)' } } },
+            xl: { root: { base: { gap: 'var(--space-md)', padding: 'var(--space-sm)' } } },
         },
     },
 };
@@ -7237,7 +7293,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu,
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,

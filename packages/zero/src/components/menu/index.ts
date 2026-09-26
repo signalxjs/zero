@@ -15,5 +15,6 @@ export type {
     MenuGroupLabelProps,
     MenuSeparatorProps,
     MenuArrowProps,
+    MenuShortcutProps,
 } from './Menu.js';
 export { menuAnatomy } from './anatomy.js';

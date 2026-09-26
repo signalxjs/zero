@@ -1,0 +1,29 @@
+@layer zero.recipes {
+    [data-scope="menubar"][data-part="root"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2xs);
+        padding: var(--space-2xs);
+        width: max-content;
+        max-width: 100%;
+        flex-wrap: wrap;
+        border: var(--border) solid var(--hero-line);
+        border-radius: var(--radius-box);
+        background: var(--color-base-100);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="sm"] {
+        gap: 0;
+        padding: 0;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="lg"] {
+        gap: var(--space-xs);
+        padding: var(--space-xs);
+    }
+}
