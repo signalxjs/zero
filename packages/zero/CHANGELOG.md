@@ -12,7 +12,8 @@
   that stage sets its own. A stage is a title string or ordinary toast
   options; `success`/`error` may be functions of the value or the reason. The
   rejection is handled, and so is a stage function that throws (a throwing
-  `success` settles the error stage with what it threw; a throwing `error`
+  `success` settles the error stage, passing what it threw to a function
+  `error` as the reason; a throwing `error`
   still moves the status to `error`). A toast removed before `p` settles
   stays gone.
   `ToastOptions`/`ToastData` gain `status`; `ToastStatus`, `ToastInput` and
