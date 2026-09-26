@@ -17,7 +17,11 @@
  * enabled item; inside, ArrowDown/Up move focus through enabled items,
  * Home/End jump, typeahead matches item text, Enter/Space activate (Enter on
  * an asChild `<a href>` item keeps its default, so the link navigates),
- * Escape closes (native popover) and focus returns to the trigger.
+ * Escape closes (native popover) and focus returns to the trigger. Tab and
+ * Shift+Tab close the whole chain (root and every open submenu) and let the
+ * browser move focus onward — it is not pulled back to the trigger; focus
+ * leaving the menu any other way (a pointer, an AT) closes it too. `loop`
+ * (default true) wraps ArrowDown/ArrowUp at the ends, at every level.
  *
  * Stateful items follow the APG menu-button pattern's checkbox/radio roles:
  * ```tsx
@@ -93,6 +97,15 @@ interface MenuContext {
      */
     triggerPresent(): boolean;
     setTriggerPresent(present: boolean): void;
+    /** The rendered Menu.Trigger — focus landing on it does not close the menu. */
+    setTriggerEl(el: HTMLElement | null): void;
+    /**
+     * Tab/Shift+Tab: close this level and every ancestor, leaving focus
+     * where the browser's own Tab puts it (APG menu button).
+     */
+    closeChain(): void;
+    /** Whether ArrowDown/ArrowUp wrap at the ends — the root's `loop`, at every level. */
+    loop(): boolean;
     keydown(e: KeyboardEvent, value: string): void;
     /** A typeahead search is running in this list — Space continues it instead of activating. */
     searching(): boolean;
@@ -153,6 +166,9 @@ function makeInert(): MenuContext {
         ids: { trigger: 'zx-menu-inert-trigger', popup: 'zx-menu-inert' },
         triggerPresent: () => false,
         setTriggerPresent: () => {},
+        setTriggerEl: () => {},
+        closeChain: () => {},
+        loop: () => true,
         keydown: () => {},
         searching: () => false,
         takeOpenFocus: () => 'first',
@@ -175,12 +191,14 @@ export type MenuRootProps =
     & Define.Event<'openChange', boolean>
     & Define.Event<'select', string>
     & Define.Prop<'closeOnSelect', boolean, false>
+    /** ArrowDown/ArrowUp wrap from the last item to the first and back — default true, at every level. */
+    & Define.Prop<'loop', boolean, false>
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'offset', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & Define.Slot<'default'>;
 
-const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
+const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmounted }) => {
     const state = createControllableState<boolean>(
         () => props.model,
         props.defaultOpen ?? false,
@@ -193,11 +211,27 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
     const present = signal({ trigger: false });
     let anchor: PositionAnchor | null = null;
     let popup: HTMLElement | null = null;
+    let triggerEl: HTMLElement | null = null;
     let openFocus: 'first' | 'last' = 'first';
+    // A close that must not hand focus back: focus already went (or is
+    // going) where the user sent it. Re-armed on every open.
+    let skipRestore = false;
+    let tabClose: ReturnType<typeof setTimeout> | null = null;
+    const loop = (): boolean => props.loop ?? true;
+
+    const closeWithoutRestore = (): void => {
+        if (!state.value) return;
+        skipRestore = true;
+        state.value = false;
+        // A controlled owner that keeps it open must not leave the flag
+        // armed for some later, ordinary close.
+        if (state.value) skipRestore = false;
+    };
 
     const roving = createRovingKeydown({
         list,
         orientation: () => 'vertical',
+        loop,
         onMove: () => {},
     });
     const typeahead = createTypeahead({
@@ -220,7 +254,26 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
         ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
         triggerPresent: () => present.trigger,
         setTriggerPresent: (p) => { present.trigger = p; },
+        setTriggerEl: (el) => { triggerEl = el; },
+        closeChain() {
+            // Not now: closing inside the keydown hides the popover while it
+            // still holds focus, and the native hide hands focus back to the
+            // opener before Tab's default action runs — Tab would then move
+            // on from the trigger, and Shift+Tab would skip it. Unprevented,
+            // Tab moves focus first; the close follows a task later (and a
+            // focusin outside the menu may already have made it).
+            if (tabClose != null) clearTimeout(tabClose);
+            tabClose = setTimeout(() => {
+                tabClose = null;
+                closeWithoutRestore();
+            }, 0);
+        },
+        loop,
         keydown(e, value) {
+            if (e.key === 'Tab') {
+                ctx.closeChain();
+                return;
+            }
             roving(e, value);
             if (!e.defaultPrevented) typeahead(e, value);
         },
@@ -251,6 +304,32 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
     createFocusRestore(() => state.value, {
         getSurface: () => popup,
         fallback: () => (anchor instanceof HTMLElement ? anchor : null),
+        skip: () => skipRestore,
+    });
+
+    // Focus leaving the menu tree — to anything but the trigger, whose own
+    // click toggles — closes the whole chain. Submenu popups are DOM
+    // descendants of the root popup, so one `contains` covers every level.
+    watch(
+        () => state.value,
+        (open, _prev, onCleanup) => {
+            if (!open) return;
+            skipRestore = false;
+            if (typeof document === 'undefined') return;
+            const onFocusin = (e: FocusEvent): void => {
+                const target = e.target as Node | null;
+                if (!target || !popup) return;
+                if (popup.contains(target) || triggerEl?.contains(target)) return;
+                closeWithoutRestore();
+            };
+            document.addEventListener('focusin', onFocusin);
+            onCleanup(() => document.removeEventListener('focusin', onFocusin));
+        },
+        { immediate: true },
+    );
+
+    onUnmounted(() => {
+        if (tabClose != null) clearTimeout(tabClose);
     });
 
     return () => <>{slots.default?.()}</>;
@@ -323,7 +402,7 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onUnmou
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
         onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; menu.setAnchor(node); },
+        ref: (node: HTMLElement | null) => { el = node; menu.setAnchor(node); menu.setTriggerEl(node); },
     });
 
     return () => {
@@ -928,6 +1007,7 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
     const roving = createRovingKeydown({
         list,
         orientation: () => 'vertical',
+        loop: () => parent.loop(),
         onMove: () => {},
     });
     const typeahead = createTypeahead({
@@ -945,7 +1025,16 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
         // a submenu without its trigger cannot open at all.
         triggerPresent: () => true,
         setTriggerPresent: () => {},
+        setTriggerEl: () => {},
+        // Tab closes the chain from the root down: the submenus follow
+        // their parents' state.
+        closeChain: () => parent.closeChain(),
+        loop: () => parent.loop(),
         keydown(e, value) {
+            if (e.key === 'Tab') {
+                parent.closeChain();
+                return;
+            }
             const closeKey = isRtl() ? 'ArrowRight' : 'ArrowLeft';
             if (e.key === closeKey) {
                 e.preventDefault();

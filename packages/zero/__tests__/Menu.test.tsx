@@ -625,6 +625,158 @@ describe('Menu submenus', () => {
         expect(subPopup.getAttribute('data-state')).toBe('closed');
     });
 
+    describe('Tab leaves the menu (#263)', () => {
+        const tab = (el: HTMLElement, shiftKey = false) => {
+            const e = new KeyboardEvent('keydown', { key: 'Tab', shiftKey, cancelable: true, bubbles: true });
+            el.dispatchEvent(e);
+            return e;
+        };
+
+        it('Tab and Shift+Tab on an item close the menu, unprevented, without refocusing the trigger', async () => {
+            for (const shiftKey of [false, true]) {
+                const onOpenChange = vi.fn();
+                const host = document.createElement('div');
+                container.appendChild(host);
+                render(
+                    <Menu.Root onOpenChange={onOpenChange}>
+                        <Menu.Trigger>Actions</Menu.Trigger>
+                        <Menu.Popup>
+                            <Menu.Item value="rename">Rename</Menu.Item>
+                        </Menu.Popup>
+                    </Menu.Root>,
+                    host,
+                );
+                const trigger = host.querySelector<HTMLElement>('[data-part="trigger"]')!;
+                trigger.click();
+                const item = host.querySelector<HTMLElement>('[data-part="item"]')!;
+                item.focus();
+                const e = tab(item, shiftKey);
+                // The browser's own Tab moves focus onward — never prevented.
+                expect(e.defaultPrevented).toBe(false);
+                await tick();
+                expect(onOpenChange).toHaveBeenLastCalledWith(false);
+                expect(trigger.getAttribute('aria-expanded')).toBe('false');
+                // happy-dom moves no focus on Tab: had the close restored
+                // focus, it would be on the trigger now.
+                expect(document.activeElement).not.toBe(trigger);
+            }
+        });
+
+        it('Tab inside a submenu closes the whole chain', async () => {
+            const { rootTrigger, subTrigger, subPopup } = mountSub();
+            rootTrigger.click();
+            subTrigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', cancelable: true, bubbles: true }));
+            expect(subPopup.getAttribute('data-state')).toBe('open');
+            const email = subPopup.querySelector<HTMLElement>('[data-part="item"]')!;
+            email.focus();
+            expect(tab(email).defaultPrevented).toBe(false);
+            await tick();
+            await tick();
+            expect(rootTrigger.getAttribute('aria-expanded')).toBe('false');
+            expect(subPopup.getAttribute('data-state')).toBe('closed');
+            expect(document.activeElement).not.toBe(rootTrigger);
+            expect(document.activeElement).not.toBe(subTrigger);
+        });
+
+        it('Tab on a sub-trigger closes the chain too', async () => {
+            const { rootTrigger, subTrigger } = mountSub();
+            rootTrigger.click();
+            subTrigger.focus();
+            expect(tab(subTrigger).defaultPrevented).toBe(false);
+            await tick();
+            expect(rootTrigger.getAttribute('aria-expanded')).toBe('false');
+        });
+
+        it('focus moving outside the menu closes it; onto the trigger it does not', async () => {
+            const outside = document.createElement('button');
+            document.body.appendChild(outside);
+            try {
+                const { rootTrigger, subTrigger, subPopup } = mountSub();
+                rootTrigger.click();
+                subTrigger.click();
+                expect(subPopup.getAttribute('data-state')).toBe('open');
+                // Focus inside any level, or onto the trigger, keeps it open.
+                subPopup.querySelector<HTMLElement>('[data-part="item"]')!.focus();
+                rootTrigger.focus();
+                await tick();
+                expect(rootTrigger.getAttribute('aria-expanded')).toBe('true');
+
+                outside.focus();
+                await tick();
+                expect(rootTrigger.getAttribute('aria-expanded')).toBe('false');
+                expect(subPopup.getAttribute('data-state')).toBe('closed');
+                // Focus stays where it went.
+                expect(document.activeElement).toBe(outside);
+
+                // An ordinary close afterwards restores focus again.
+                rootTrigger.focus();
+                rootTrigger.click();
+                container.querySelector<HTMLElement>('[data-part="item"]')!.focus();
+                rootTrigger.click();
+                await tick();
+                expect(document.activeElement).toBe(rootTrigger);
+            } finally {
+                outside.remove();
+            }
+        });
+    });
+
+    describe('loop', () => {
+        const arrow = (el: HTMLElement, key: string) =>
+            el.dispatchEvent(new KeyboardEvent('keydown', { key, cancelable: true, bubbles: true }));
+
+        function mountLoop(loop?: boolean) {
+            render(
+                <Menu.Root loop={loop}>
+                    <Menu.Trigger>Actions</Menu.Trigger>
+                    <Menu.Popup>
+                        <Menu.Item value="a">A</Menu.Item>
+                        <Menu.Item value="b">B</Menu.Item>
+                        <Menu.Sub>
+                            <Menu.SubTrigger value="more">More</Menu.SubTrigger>
+                            <Menu.SubPopup>
+                                <Menu.Item value="x">X</Menu.Item>
+                                <Menu.Item value="y">Y</Menu.Item>
+                            </Menu.SubPopup>
+                        </Menu.Sub>
+                    </Menu.Popup>
+                </Menu.Root>,
+                container,
+            );
+            container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+            const [a, , x, y] = Array.from(container.querySelectorAll<HTMLElement>('[data-part="item"]'));
+            return { a: a!, x: x!, y: y!, more: container.querySelector<HTMLElement>('[data-part="sub-trigger"]')! };
+        }
+
+        it('wraps at the ends by default, at every level', () => {
+            const { a, x, y, more } = mountLoop();
+            a.focus();
+            arrow(a, 'ArrowUp');
+            expect(document.activeElement).toBe(more);
+            more.click();
+            y.focus();
+            arrow(y, 'ArrowDown');
+            expect(document.activeElement).toBe(x);
+        });
+
+        it('loop={false} stops at the ends, at every level', () => {
+            const { a, x, y, more } = mountLoop(false);
+            a.focus();
+            arrow(a, 'ArrowUp');
+            expect(document.activeElement).toBe(a);
+            more.focus();
+            arrow(more, 'ArrowDown');
+            expect(document.activeElement).toBe(more);
+            more.click();
+            y.focus();
+            arrow(y, 'ArrowDown');
+            expect(document.activeElement).toBe(y);
+            x.focus();
+            arrow(x, 'ArrowUp');
+            expect(document.activeElement).toBe(x);
+        });
+    });
+
     it('a disabled sub-trigger neither opens nor presses', () => {
         const { rootTrigger, subTrigger, subPopup } = mountSub(() => {}, true);
         rootTrigger.click();
