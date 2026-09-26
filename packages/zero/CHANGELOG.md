@@ -2,6 +2,42 @@
 
 ## [Unreleased]
 
+### Added — Promise toasts with `Toast.Indicator`, and an expanded toast stack (#292)
+
+- **`toaster.promise(p, { id?, loading, success, error })`** shows one toast
+  for the life of a promise and returns its id. The `loading` stage is sticky
+  (`duration: Infinity`) with `status: 'loading'`. When `p` settles, the same
+  toast is updated in place with `success` (`status: 'complete'`) or `error`
+  (`status: 'error'`) and the toaster's default duration is re-armed, unless
+  that stage sets its own. A stage is a title string or ordinary toast
+  options; `success`/`error` may be functions of the value or the reason. The
+  rejection is handled, and a toast removed before `p` settles stays gone.
+  `ToastOptions`/`ToastData` gain `status`; `ToastStatus`, `ToastInput` and
+  `ToastPromiseOptions` are exported.
+- **New part `toast.indicator`** (`span`, parent `root`, `aria-hidden`,
+  states `loading|complete|error`, declared `paint`): `Toast.Indicator`
+  renders the toast's `status`, and renders nothing while it has none. The
+  stock composition includes it. No new state values: the loading family
+  already had all three.
+- **The viewport gains `data-state`**: `open` while the stack is expanded
+  (the pointer over it or focus inside it, the same holds that pause the
+  timers), `closed` at rest. The new Viewport prop `expand="always"` keeps it
+  open; the default is `'hover'`.
+- **Each root publishes its measured `--toast-height` and `--toast-offset`**
+  (px). The offset is the summed height of the newer toasts in front of it.
+  They sit beside `--toast-index`/`--toast-count`. The heights come from a
+  `ResizeObserver` started in the root's mount scope.
+- **All six design systems style it.** basic and heroui deal a resting stack
+  as a deck of cards (newest in front, older cards a step behind, smaller and
+  faded) and fan it into a column on `open`. A bridge across each gap keeps
+  the pointer in the stack. daisyUI, Material, brutalist and Carbon keep a
+  column. Every skin draws the indicator in its own idiom: a ring while
+  loading (stopped under reduced motion), then a tick or a cross, with
+  forced-colours fallbacks. Material's leading dot steps aside for it.
+- **Size.** `@sigx/zero/toast` goes from 6.1 to 6.51 kB and the full barrel
+  from 65.10 to 65.49 kB; `@sigx/zero/anatomy` grows 4 B. The new limits are
+  the measured values.
+
 ### Added — `HoverCard`: a hover-intent preview card with interactive content (#290)
 
 - **`HoverCard`** (`@sigx/zero/hover-card` and the barrel), scope
