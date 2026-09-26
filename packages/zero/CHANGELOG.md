@@ -11,7 +11,10 @@
   (`status: 'error'`) and the toaster's default duration is re-armed, unless
   that stage sets its own. A stage is a title string or ordinary toast
   options; `success`/`error` may be functions of the value or the reason. The
-  rejection is handled, and a toast removed before `p` settles stays gone.
+  rejection is handled, and so is a stage function that throws (a throwing
+  `success` settles the error stage with what it threw; a throwing `error`
+  still moves the status to `error`). A toast removed before `p` settles
+  stays gone.
   `ToastOptions`/`ToastData` gain `status`; `ToastStatus`, `ToastInput` and
   `ToastPromiseOptions` are exported.
 - **New part `toast.indicator`** (`span`, parent `root`, `aria-hidden`,
@@ -34,8 +37,8 @@
   column. Every skin draws the indicator in its own idiom: a ring while
   loading (stopped under reduced motion), then a tick or a cross, with
   forced-colours fallbacks. Material's leading dot steps aside for it.
-- **Size.** `@sigx/zero/toast` goes from 6.1 to 6.51 kB and the full barrel
-  from 65.10 to 65.49 kB; `@sigx/zero/anatomy` grows 4 B. The new limits are
+- **Size.** `@sigx/zero/toast` goes from 6.1 to 6.52 kB and the full barrel
+  from 65.10 to 65.51 kB; `@sigx/zero/anatomy` grows 4 B. The new limits are
   the measured values.
 
 ### Added — `HoverCard`: a hover-intent preview card with interactive content (#290)
