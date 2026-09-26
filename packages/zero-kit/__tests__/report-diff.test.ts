@@ -101,7 +101,15 @@ describe('diffReports', () => {
         expect(diff.skipped.newly).toEqual([key]);
         const states = diff.score.criteria['states']!;
         const total = Number(skipped.score.criteria.states.detail['total']);
-        expect(states.delta).toBeGreaterThan(0);
+        // One skip is worth 50/total points, and the score is rounded to 0.1,
+        // so once the anatomy grows past ~500 states and flags the rounded
+        // delta can be 0. Read the half credit off the unrounded counts; the
+        // rounded delta only has to stay below the full share.
+        const detail = (r: DesignSystemReport, k: string): number => Number(r.score.criteria.states.detail[k]);
+        expect(detail(skipped, 'skipped')).toBe(detail(baseline, 'skipped') + 1);
+        expect(detail(skipped, 'uncovered')).toBe(detail(baseline, 'uncovered') - 1);
+        expect(detail(skipped, 'covered')).toBe(detail(baseline, 'covered'));
+        expect(states.delta).toBeGreaterThanOrEqual(0);
         expect(states.delta).toBeLessThan(100 / total); // half credit, never the full share
         expect(formatReportDiff(diff)).toContain(`  states newly skipped (delegated, not styled): ${key}`);
 
