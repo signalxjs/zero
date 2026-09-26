@@ -41,6 +41,38 @@
   (`visibilitychange`) and an unfocused window (`blur`/`focus`) — and the
   queue resumes only once all have gone.
 
+### Added — `focusableWhenDisabled` on Button, and asChild where semantics demand it (#275)
+
+- **`Button.Root` `focusableWhenDisabled`** keeps a disabled button a tab
+  stop: `aria-disabled="true"` instead of the native `disabled` (an asChild
+  element keeps `tabindex="0"`, a disabled link stays reachable), with
+  activation still blocked — so a reader can reach it and hear why it
+  cannot act.
+- **`asChild` on the layout and content roots** — `Box`, `Center`,
+  `Container`, `Grid`, `Stack` (and `Row`/`Col`), `Join`, `Chat` and
+  `Stats` — and on **`Card.Title`** (an `<h3>` by default) and
+  **`Card.Description`** (a `<p>`). The semantic element (`<main>`, a
+  `<ul>`, an `<li>`, an `<h2>`) now carries the part, the layout attributes
+  and the axes itself instead of sitting inside a `<div>`. Each part
+  declares `asChild: true` in its anatomy; no recipe changes. New type
+  export `CardTextProps`.
+
+### Fixed — Button's non-button asChild gets the button contract; a disabled link stops navigating (#275)
+
+- An asChild `Button.Root` over an element with no button semantics (a
+  `<span>`, a `<div>`) was keyboard-inert: no role, no tab stop, no
+  activation. Read from the element's tag on mount, it now gets
+  `role="button"` (unless the app passes a `role`), `tabindex="0"`
+  (`-1` while disabled), Enter activating on press and Space on release. A
+  `<button>`, `<input>`, `<summary>` or link gets none of that — the
+  platform already synthesizes the click. Server rendering cannot see the
+  tag, so the contract arrives on mount.
+- A disabled asChild `<a>` only cancelled `click`, so middle-click and
+  "open in new tab" still navigated. It now renders without its `href`
+  (the bag's `href: undefined` wins when spread after the caller's own
+  attributes), keeps `role="link"` with `aria-disabled="true"`, leaves the
+  tab order, and cancels `auxclick`.
+
 ### Added — range stepping: `valueCommit`, `largeStep`, `minStepsBetweenThumbs`, Diff `getValueText` and `disabled` (#272)
 
 - **Slider `valueCommit`** fires with the model's shape (`number` or
