@@ -108,20 +108,33 @@ export function createTreeController(opts: {
             return visible.slice(Math.min(a, b), Math.max(a, b) + 1);
         },
         leavesOf(value) {
-            // One parent index per call, so each ancestor hop is a lookup
-            // rather than another scan of the registry: a branch's state is
-            // derived at render time, once per rendered branch.
-            const parentOf = new Map<string, string | null>();
-            for (const i of registered) if (!parentOf.has(i.value)) parentOf.set(i.value, i.parentValue);
-            const under = (item: TreeItem): boolean => {
-                let parent = item.parentValue;
-                for (let hops = 0; parent !== null && hops < registered.length; hops++) {
-                    if (parent === value) return true;
-                    parent = parentOf.get(parent) ?? null;
+            // One parent -> children index per call, then a walk down from
+            // `value`: work in proportion to the registry plus the subtree,
+            // not the registry times its depth — a branch's state is derived
+            // at render time, once per rendered branch.
+            const childrenByParent = new Map<string, TreeItem[]>();
+            for (const i of registered) {
+                if (i.parentValue === null) continue;
+                const siblings = childrenByParent.get(i.parentValue);
+                if (siblings) siblings.push(i);
+                else childrenByParent.set(i.parentValue, [i]);
+            }
+            const leaves = new Set<TreeItem>();
+            // Cycle guard: a malformed parent chain must not hang a render.
+            const seen = new Set<string>([value]);
+            const stack = [...(childrenByParent.get(value) ?? [])];
+            while (stack.length > 0) {
+                const item = stack.pop()!;
+                if (!item.isBranch()) {
+                    leaves.add(item);
+                    continue;
                 }
-                return false;
-            };
-            return sortByDomOrder(registered.filter((i) => !i.isBranch() && under(i)));
+                if (seen.has(item.value)) continue;
+                seen.add(item.value);
+                stack.push(...(childrenByParent.get(item.value) ?? []));
+            }
+            // Registration order first: the fallback when nothing is mounted (SSR).
+            return sortByDomOrder(registered.filter((i) => leaves.has(i)));
         },
     };
 }
