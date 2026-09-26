@@ -1,7 +1,7 @@
 /**
  * createTopLayerExit (#17) — when the native close runs.
  *
- * happy-dom has neither `overlay` nor Web Animations, so the engines are
+ * happy-dom has no `overlay` and runs no animations, so the engines are
  * simulated: `CSS.supports` and `Element.getAnimations` are stubbed per test
  * and frames are driven by fake timers. The real-engine half (the fade
  * actually playing in Firefox/WebKit) is `e2e/top-layer-exit.spec.ts`.
@@ -56,7 +56,10 @@ describe('createTopLayerExit', () => {
 
     it('hides at once when the engine has no Web Animations', () => {
         const hide = vi.fn();
-        createTopLayerExit().close(document.createElement('div'), hide);
+        const el = document.createElement('div');
+        // happy-dom implements getAnimations since 20.14; remove it here.
+        Object.defineProperty(el, 'getAnimations', { value: undefined });
+        createTopLayerExit().close(el, hide);
         expect(hide).toHaveBeenCalledTimes(1);
     });
 

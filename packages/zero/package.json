@@ -339,10 +339,10 @@
         "@sigx/runtime-dom": "catalog:",
         "@sigx/server-renderer": "catalog:",
         "@sigx/vite": "catalog:",
-        "happy-dom": "^20.0.11",
+        "happy-dom": "^20.14.5",
         "sigx": "catalog:",
         "typescript": "^7.0.2",
-        "vite": "^8.0.3",
+        "vite": "^8.3.0",
         "vitest": "^4.1.1"
     },
     "publishConfig": {

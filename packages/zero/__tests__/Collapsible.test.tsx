@@ -4,6 +4,8 @@ import { signal } from 'sigx';
 import { Collapsible, collapsibleAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
+const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()));
+
 describe('Collapsible', () => {
     let container: HTMLElement;
     beforeEach(() => {
@@ -81,6 +83,8 @@ describe('Collapsible', () => {
         // One press closes it — no silent resync click first.
         trigger.click();
         expect(state.open).toBe(false);
+        // The native close waits a frame for the panel's exit animation (#276).
+        await frame();
         expect(details.open).toBe(false);
         expect(trigger.getAttribute('aria-expanded')).toBe('false');
     });

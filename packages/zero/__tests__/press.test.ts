@@ -5,8 +5,8 @@
  * `data-pressed`, `data-press-animating` and `--press-x/y/r`, so the tests
  * assert those, not internal state. happy-dom reports all-zero layout rects,
  * so coordinate assertions check presence and the `px` unit rather than
- * geometry, and `getAnimations` (absent in happy-dom) is stubbed where the
- * no-animation guard is under test.
+ * geometry, and `getAnimations` is stubbed wherever a test depends on what
+ * the element is animating (happy-dom reports none).
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createPressFeedback } from '@sigx/zero';
@@ -41,6 +41,8 @@ describe('createPressFeedback', () => {
     });
 
     it('marks a pointer press and publishes the press point', () => {
+        // A skin that animates the press; with none, the flag clears at once.
+        el.getAnimations = () => [{} as Animation];
         press.onPointerdown(pointerdown());
         expect(el.hasAttribute('data-pressed')).toBe(true);
         expect(el.hasAttribute('data-press-animating')).toBe(true);
@@ -231,8 +233,8 @@ describe('createPressFeedback', () => {
         /**
          * An Animation double whose `finished` promise we settle by hand.
          *
-         * happy-dom runs no animations at all — `getAnimations` does not exist
-         * here — so it cannot destroy a live CSSAnimation the way removing a
+         * happy-dom runs no animations at all — `getAnimations` always comes
+         * back empty here — so it cannot destroy a live CSSAnimation the way removing a
          * stylesheet does in a browser. What these tests CAN pin is the wiring
          * that reacts to it: `finished` settling is what clears the flag, and
          * it is keyed to the press that armed it. That stylesheet teardown

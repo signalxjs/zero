@@ -28,6 +28,7 @@ import {
 import { expectAnatomy } from './helpers';
 
 const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()));
 
 let container: HTMLElement;
 beforeEach(() => {
@@ -475,10 +476,13 @@ describe('Accordion', () => {
         expect(items[1]!.getAttribute('data-state')).toBe('open');
         expect(triggers[1]!.getAttribute('data-state')).toBe('open');
         expect(triggers[1]!.getAttribute('aria-expanded')).toBe('true');
+        // The native close waits a frame for the panel's exit animation (#276).
+        await frame();
         expect(items[0]!.open).toBe(false);
         // One press closes it.
         triggers[1]!.click();
         expect(state.open).toEqual([]);
+        await frame();
         expect(items[1]!.open).toBe(false);
         expect(triggers[1]!.getAttribute('aria-expanded')).toBe('false');
     });
