@@ -21,11 +21,16 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *
  * Declares the `text` hint so the contrast audit measures it: a
  * `color="primary"` box is exactly the kind of thing whose ink can go wrong.
+ *
+ * `root` supports `asChild` (#275): a callout is often an `<aside>`, a
+ * sidebar panel a `<nav>` — the element the page's semantics want, carrying
+ * the padding and the tint.
  */
 export const boxAnatomy = defineAnatomy('box', {
     root: {
         element: 'div',
         layout: ['pad', 'pad-x', 'pad-y'],
         tokens: ['color', 'radius-box', 'text'],
+        asChild: true,
     },
 });

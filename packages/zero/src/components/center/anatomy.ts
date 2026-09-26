@@ -16,10 +16,15 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * Distinct from `<Row justify="center" align="center">`, which centres a
  * row's CONTENT along its own axes. Center is the single-child case, and it
  * does not care what the child is.
+ *
+ * `root` supports `asChild` (#275): the centred region is often a `<main>`
+ * or a `<section>` in its own right, and a wrapper `div` would push it down
+ * a level.
  */
 export const centerAnatomy = defineAnatomy('center', {
     root: {
         element: 'div',
         layout: ['axis', 'pad', 'pad-x', 'pad-y', 'gap'],
+        asChild: true,
     },
 });

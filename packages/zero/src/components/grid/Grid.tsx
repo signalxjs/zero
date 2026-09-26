@@ -38,15 +38,16 @@ export type GridRootProps =
     & Define.Prop<'padY', LayoutProp<'pad-y'>, false>
     & Define.Prop<'align', LayoutProp<'align'>, false>
     & Define.Prop<'justify', LayoutProp<'justify'>, false>
-    & Define.Slot<'default'>;
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
 
 const GridRoot = component<GridRootProps>(({ props, slots }) => {
-    return () => (
-        <div
-            {...htmlAttrs(props)}
-            data-scope={SCOPE}
-            data-part="root"
-            {...layoutAttrs({
+    return () => {
+        const bag: PartProps = {
+            ...htmlAttrs(props),
+            'data-scope': SCOPE,
+            'data-part': 'root',
+            ...layoutAttrs({
                 'cols': props.cols,
                 'track': props.track,
                 'gap': props.gap,
@@ -57,12 +58,15 @@ const GridRoot = component<GridRootProps>(({ props, slots }) => {
                 'pad-y': props.padY,
                 'align': props.align,
                 'justify': props.justify,
-            }, gridAnatomy.parts.root.layout)}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+            }, gridAnatomy.parts.root.layout),
+        };
+        if (props.asChild) return renderAsChild(slots.default, bag);
+        return (
+            <div class={props.class} {...bag}>
+                {slots.default?.(bag)}
+            </div>
+        );
+    };
 }, { name: 'Grid.Root' });
 
 export type GridCellProps =

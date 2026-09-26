@@ -238,6 +238,189 @@ describe('Button', () => {
     });
 });
 
+describe('Button asChild semantics (#275)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    const root = () =>
+        container.querySelector<HTMLElement>('[data-scope="button"][data-part="root"]')!;
+    const key = (type: 'keydown' | 'keyup', k: string) => {
+        const e = new KeyboardEvent(type, { key: k, bubbles: true, cancelable: true });
+        root().dispatchEvent(e);
+        return e;
+    };
+    const span = (p: Record<string, unknown>) => <span {...p}>Save</span>;
+
+    it('gives a non-interactive element the button contract: role and a tab stop', () => {
+        render(<Button.Root asChild>{span}</Button.Root>, container);
+        expect(root().tagName).toBe('SPAN');
+        expect(root().getAttribute('role')).toBe('button');
+        expect(root().tabIndex).toBe(0);
+        root().focus();
+        expect(document.activeElement).toBe(root());
+        expectAnatomy(container, buttonAnatomy);
+    });
+
+    it('keeps an app-named role', () => {
+        render(<Button.Root asChild role="menuitem">{span}</Button.Root>, container);
+        expect(root().getAttribute('role')).toBe('menuitem');
+    });
+
+    it('activates once from Enter (on press) and once from Space (on release)', () => {
+        const onClick = vi.fn();
+        render(<Button.Root asChild onClick={onClick}>{span}</Button.Root>, container);
+        expect(key('keydown', 'Enter').defaultPrevented).toBe(true);
+        expect(onClick).toHaveBeenCalledTimes(1);
+        key('keyup', 'Enter');
+        expect(onClick).toHaveBeenCalledTimes(1);
+        // Space: nothing on press (it only stops the page scrolling) …
+        expect(key('keydown', ' ').defaultPrevented).toBe(true);
+        expect(onClick).toHaveBeenCalledTimes(1);
+        // … and one click on release.
+        key('keyup', ' ');
+        expect(onClick).toHaveBeenCalledTimes(2);
+    });
+
+    it('a Space release that did not start here activates nothing', () => {
+        const onClick = vi.fn();
+        render(<Button.Root asChild onClick={onClick}>{span}</Button.Root>, container);
+        key('keyup', ' ');
+        expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('adds no role, tab stop or synthesized click to a native button or a link', () => {
+        const onClick = vi.fn();
+        render(
+            <div>
+                <Button.Root asChild onClick={onClick}>
+                    {(p: Record<string, unknown>) => <button type="button" {...p}>Save</button>}
+                </Button.Root>
+                <Button.Root asChild onClick={onClick}>
+                    {(p: Record<string, unknown>) => <a href="/docs" {...p}>Docs</a>}
+                </Button.Root>
+            </div>,
+            container,
+        );
+        for (const el of container.querySelectorAll<HTMLElement>('[data-scope="button"]')) {
+            expect(el.hasAttribute('role')).toBe(false);
+            expect(el.hasAttribute('tabindex')).toBe(false);
+            // The platform synthesizes these; a second click would double it.
+            el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+        }
+        expect(onClick).not.toHaveBeenCalled();
+        expect(container.querySelector('a')!.getAttribute('href')).toBe('/docs');
+    });
+
+    it('a disabled element leaves the tab order and activates nothing', () => {
+        const onClick = vi.fn();
+        render(<Button.Root asChild disabled onClick={onClick}>{span}</Button.Root>, container);
+        expect(root().tabIndex).toBe(-1);
+        expect(root().getAttribute('aria-disabled')).toBe('true');
+        key('keydown', 'Enter');
+        key('keydown', ' ');
+        key('keyup', ' ');
+        root().click();
+        expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('a disabled link loses its href, keeps the link role, and cancels middle-click', () => {
+        const state = signal({ disabled: true });
+        const App = component(() => () => (
+            <Button.Root asChild disabled={state.disabled}>
+                {(p: Record<string, unknown>) => <a href="/docs" {...p}>Docs</a>}
+            </Button.Root>
+        ));
+        render(<App />, container);
+        expect(root().tagName).toBe('A');
+        expect(root().hasAttribute('href')).toBe(false);
+        expect(root().getAttribute('role')).toBe('link');
+        expect(root().getAttribute('aria-disabled')).toBe('true');
+        expect(root().tabIndex).toBe(-1);
+        const aux = new MouseEvent('auxclick', { button: 1, bubbles: true, cancelable: true });
+        root().dispatchEvent(aux);
+        expect(aux.defaultPrevented).toBe(true);
+        // Enabled again, it is a plain link once more.
+        state.disabled = false;
+        expect(root().getAttribute('href')).toBe('/docs');
+        expect(root().hasAttribute('role')).toBe(false);
+        expect(root().hasAttribute('tabindex')).toBe(false);
+        expect(root().hasAttribute('aria-disabled')).toBe(false);
+    });
+
+    it('a disabled native asChild button gets the native disabled, so it cannot submit', () => {
+        const state = signal({ disabled: true, focusable: false });
+        const App = component(() => () => (
+            <Button.Root asChild disabled={state.disabled} focusableWhenDisabled={state.focusable}>
+                {(p: Record<string, unknown>) => <button type="submit" {...p}>Save</button>}
+            </Button.Root>
+        ));
+        render(<App />, container);
+        const el = root() as HTMLButtonElement;
+        expect(el.disabled).toBe(true);
+        // focusableWhenDisabled trades it for aria-disabled, as on the built-in button.
+        state.focusable = true;
+        expect(el.disabled).toBe(false);
+        expect(el.getAttribute('aria-disabled')).toBe('true');
+        state.focusable = false;
+        state.disabled = false;
+        expect(el.disabled).toBe(false);
+    });
+
+    it('a disabled asChild summary gets no disabled attribute it does not have', () => {
+        render(
+            <Button.Root asChild disabled>
+                {(p: Record<string, unknown>) => <details><summary {...p}>More</summary></details>}
+            </Button.Root>,
+            container,
+        );
+        expect(root().hasAttribute('disabled')).toBe(false);
+        expect(root().getAttribute('aria-disabled')).toBe('true');
+    });
+
+    it('focusableWhenDisabled: a native button keeps its tab stop and blocks activation', () => {
+        const onClick = vi.fn();
+        const onSubmit = vi.fn((e: Event) => e.preventDefault());
+        const form = document.createElement('form');
+        form.addEventListener('submit', onSubmit);
+        container.appendChild(form);
+        render(<Button.Root disabled focusableWhenDisabled type="submit" onClick={onClick}>Save</Button.Root>, form);
+        const el = root() as HTMLButtonElement;
+        expect(el.disabled).toBe(false);
+        expect(el.getAttribute('aria-disabled')).toBe('true');
+        expect(el.hasAttribute('data-disabled')).toBe(true);
+        el.focus();
+        expect(document.activeElement).toBe(el);
+        el.click();
+        expect(onClick).not.toHaveBeenCalled();
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('focusableWhenDisabled: an asChild element keeps tabindex 0 and blocks activation', () => {
+        const onClick = vi.fn();
+        render(<Button.Root asChild disabled focusableWhenDisabled onClick={onClick}>{span}</Button.Root>, container);
+        expect(root().tabIndex).toBe(0);
+        expect(root().getAttribute('aria-disabled')).toBe('true');
+        expect(key('keydown', ' ').defaultPrevented).toBe(true);
+        key('keyup', ' ');
+        key('keydown', 'Enter');
+        root().click();
+        expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('focusableWhenDisabled: a disabled link stays a tab stop', () => {
+        render(
+            <Button.Root asChild disabled focusableWhenDisabled>
+                {(p: Record<string, unknown>) => <a href="/docs" {...p}>Docs</a>}
+            </Button.Root>,
+            container,
+        );
+        expect(root().hasAttribute('href')).toBe(false);
+        expect(root().tabIndex).toBe(0);
+    });
+});
+
 describe('Button loading (#50)', () => {
     let container: HTMLElement;
     beforeEach(() => {

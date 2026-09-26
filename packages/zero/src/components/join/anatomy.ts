@@ -16,12 +16,15 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *
  * No `role="group"`, considered and cut: a join is VISUAL grouping, and a
  * search field joined to its button is not a semantic group the reader needs
- * announced. A consumer who means "toolbar" writes the role.
+ * announced. A consumer who means "toolbar" writes the role — or renders
+ * its own element through `asChild` on `root` (#275), a `<fieldset>` or a
+ * `<ul>`.
  */
 export const joinAnatomy = defineAnatomy('join', {
     root: {
         element: 'div',
         tokens: ['radius-field'],
+        asChild: true,
     },
     item: {
         element: 'div',

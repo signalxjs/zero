@@ -23,9 +23,10 @@
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
+import { renderAsChild } from '../../contract/as-child.js';
 import type { Orientation } from '../../contract/data-attrs.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithColor, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithColor, WithHtmlAttrs, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { statsAnatomy } from './anatomy.js';
 
 const SCOPE = statsAnatomy.scope;
@@ -43,23 +44,27 @@ export type StatsRootProps =
     & WithVariantAxes<'stats'>
     & WithClass
     & WithHtmlAttrs
-    & Define.Slot<'default'>;
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
 
 const StatsRoot = component<StatsRootProps>(({ props, slots }) => {
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
     defineProvide(useStatsContext, () => ({ orientation }));
-    return () => (
-        <div
-            {...htmlAttrs(props)}
-            data-scope={SCOPE}
-            data-part="root"
-            data-orientation={orientation()}
-            {...variantAttrs(props)}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const bag: PartProps = {
+            ...htmlAttrs(props),
+            'data-scope': SCOPE,
+            'data-part': 'root',
+            'data-orientation': orientation(),
+            ...variantAttrs(props),
+        };
+        if (props.asChild) return renderAsChild(slots.default, bag);
+        return (
+            <div class={props.class} {...bag}>
+                {slots.default?.(bag)}
+            </div>
+        );
+    };
 }, { name: 'Stats.Root' });
 
 export type StatsPartProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;

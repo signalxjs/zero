@@ -19,12 +19,15 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * part attributes.
  *
  * No `role`: a stack is visual grouping. A consumer who means `list` or
- * `toolbar` writes that role on their own element through `asChild`.
+ * `toolbar` writes that role on their own element through `asChild` — on
+ * `root` (#275) for the stack itself, a `<ul>` or a `<nav>`, and on `item`
+ * for its children.
  */
 export const stackAnatomy = defineAnatomy('stack', {
     root: {
         element: 'div',
         layout: ['gap', 'gap-x', 'gap-y', 'pad', 'pad-x', 'pad-y', 'align', 'justify', 'wrap'],
+        asChild: true,
     },
     item: {
         element: 'div',

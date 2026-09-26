@@ -218,7 +218,7 @@ export type {
 } from './components/textarea/index.js';
 
 export { Card, cardAnatomy } from './components/card/index.js';
-export type { CardRootProps, CardPartProps } from './components/card/index.js';
+export type { CardRootProps, CardPartProps, CardTextProps } from './components/card/index.js';
 
 export { Alert, alertAnatomy, useAlertContext } from './components/alert/index.js';
 export type {

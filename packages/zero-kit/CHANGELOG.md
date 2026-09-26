@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.button` gains `focusableWhenDisabled` (zero#275)
+
+- Button's new prop is reserved, so a vendor-named api cannot claim it as
+  an axis prop.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE` gains the range-stepping props (zero#272)
 
 - `slider` reserves `largeStep` and `minStepsBetweenThumbs`, and

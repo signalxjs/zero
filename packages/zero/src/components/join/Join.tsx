@@ -35,23 +35,27 @@ export type JoinRootProps =
     & WithVariantAxes<'join'>
     & WithClass
     & WithHtmlAttrs
-    & Define.Slot<'default'>;
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
 
 const JoinRoot = component<JoinRootProps>(({ props, slots }) => {
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
     defineProvide(useJoinContext, () => ({ orientation }));
-    return () => (
-        <div
-            {...htmlAttrs(props)}
-            data-scope={SCOPE}
-            data-part="root"
-            data-orientation={orientation()}
-            {...variantAttrs(props)}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const bag: PartProps = {
+            ...htmlAttrs(props),
+            'data-scope': SCOPE,
+            'data-part': 'root',
+            'data-orientation': orientation(),
+            ...variantAttrs(props),
+        };
+        if (props.asChild) return renderAsChild(slots.default, bag);
+        return (
+            <div class={props.class} {...bag}>
+                {slots.default?.(bag)}
+            </div>
+        );
+    };
 }, { name: 'Join.Root' });
 
 export type JoinItemProps =

@@ -14,12 +14,17 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * `avatar` is a SLOT (put zero's Avatar, an `<img>`, initials — anything in
  * it), not a nested avatar anatomy. The colour axis rides the root and is
  * wired to the BUBBLE's fill by recipes — the row itself never paints.
+ *
+ * `root` supports `asChild` (#275): a transcript is a list, so a row inside
+ * the consumer's `<ol role="log">` wants to be an `<li>`, or an `<article>`
+ * where each message stands alone.
  */
 export const chatAnatomy = defineAnatomy('chat', {
     root: {
         element: 'div',
         placements: ['start', 'end'],
         tokens: ['color'],
+        asChild: true,
     },
     avatar: {
         element: 'div',
