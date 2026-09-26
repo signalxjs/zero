@@ -16,6 +16,11 @@
 - The design-system skill tells an author to size listbox popups from the
   published geometry rather than a fixed width.
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.field` reserves `validate` and `validateOn` (zero#284)
+
+- Field's new root props are reserved, so a vendor-named api cannot claim
+  them as axis props.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE` reserves the listbox parts' root props (zero#280)
 
 - `select` reserves `clearable`; `combobox` reserves `clearable`, `loading`

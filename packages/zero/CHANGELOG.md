@@ -39,6 +39,36 @@
   menu, submenu, popover, tooltip, select and combobox popups from
   `--transform-origin`.
 
+### Added — Field validation: native validity, `validate`/`validateOn`, `Field.Error match` (#284)
+
+- **Controls report their validating element to the Field.** Input,
+  Textarea, NumberInput, Select and Combobox (their hidden `<select>` when
+  named), Checkbox, Switch, RadioGroup (its first radio), Slider (its native
+  range) and FileUpload register the element constraint validation runs on,
+  their model value, and what to focus — `FormControl.reportValidity`, over
+  the new optional `FieldContext.report`.
+- **`Field.Root validate`** — `(value, validity) => string | string[] | null`,
+  synchronous. Its message goes through `setCustomValidity`, kept current on
+  every change, so a native submit blocks on it.
+- **`Field.Root validateOn`** — `'submit'` (default), `'blur'` or `'change'`:
+  when the Field shows its validity. After a failed submit, and while an
+  error shows, every change revalidates. The field reads invalid as
+  `invalid || (validated && !valid)`, and every control's `data-invalid` /
+  `aria-invalid` (and the Field root's) follows.
+- **`Field.Error match`** — a `ValidityState` key, `'custom'` or `true`. A
+  keyed Error renders only while that key is set, under its own id
+  (`<error id>-<key>`) that `aria-describedby` follows; without `match` it
+  renders as before. With no children an Error renders the current message.
+- **A Field that renders a `Field.Error` cancels the `invalid` event** (no
+  native bubble repeating it) and focuses the form's first invalid control
+  itself. A form `reset` forgets what was shown.
+- `tooShort`/`tooLong` do not report in real engines today: sigx's value
+  binding rewrites the value on every keystroke, which clears the
+  user-edit flag the platform requires. Use `pattern` or `validate`.
+- New types: `FieldValidate`, `FieldValidateOn`, `FieldErrorMatch`, and on
+  the behaviors surface `FieldValidity`, `FieldValidityReport`,
+  `ValidatableElement`, `ValidityKey`.
+
 ### Added — Select and Combobox: clear-trigger, separator, combobox loading (#280)
 
 - **`Select.ClearTrigger`** (part `clear-trigger`): a real button in the tab
