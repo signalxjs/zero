@@ -308,7 +308,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     toggle: ['defaultPressed', 'id', 'label', 'title', 'value'],
     'toggle-group': ['defaultValue', 'deselectable', 'form', 'id', 'invalid', 'label', 'loop', 'multiple', 'name', 'required', 'title', 'value'],
     tooltip: ['alignOffset', 'closeDelay', 'collisionPadding', 'defaultOpen', 'offset', 'openDelay', 'placement', 'positionStrategy', 'value'],
-    'tree-view': ['defaultExpandedValues', 'defaultValue', 'expandOnClick', 'id', 'role', 'title', 'value'],
+    'tree-view': ['defaultExpandedValues', 'defaultValue', 'expandOnClick', 'id', 'multiple', 'role', 'title', 'value'],
 };
 
 /** The surface keys one tier of the declaration may carry. */

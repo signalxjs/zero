@@ -32,6 +32,14 @@ export interface TreeController extends ListController {
     /** Ordered siblings under a parent — aria-posinset / aria-setsize. */
     childrenOf(parentValue: string | null): TreeItem[];
     findNode(value: string): TreeItem | undefined;
+    /**
+     * The VISIBLE nodes from `from` to `to` inclusive, in DOM order whichever
+     * way round they are given — the span a Shift range selects. Empty when
+     * either end is not visible (collapsed away, or not registered): a range
+     * over nodes the user cannot see is not one they asked for. Disabled
+     * nodes are included; the caller decides what may be selected.
+     */
+    range(from: string, to: string): TreeItem[];
 }
 
 export function createTreeController(opts: {
@@ -85,5 +93,12 @@ export function createTreeController(opts: {
         childrenOf: (parentValue) =>
             sortByDomOrder(registered.filter((i) => i.parentValue === parentValue)),
         findNode,
+        range(from, to) {
+            const visible = visibleItems();
+            const a = visible.findIndex((i) => i.value === from);
+            const b = visible.findIndex((i) => i.value === to);
+            if (a === -1 || b === -1) return [];
+            return visible.slice(Math.min(a, b), Math.max(a, b) + 1);
+        },
     };
 }

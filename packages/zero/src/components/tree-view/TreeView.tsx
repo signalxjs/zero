@@ -18,10 +18,22 @@
  * </TreeView.Root>
  * ```
  *
- * Named-models convention: the unnamed `model` is the selected value (the
+ * Named-models convention: the unnamed `model` is the selection (the
  * essential state); `model:expandedValues` is the branch expansion set,
  * with the standard `defaultExpandedValues` + `expandedValuesChange` companions.
- * Single selection in v1.
+ * The selection follows `multiple`, the Select / ToggleGroup rule: a `string`
+ * (`''` when none) in single mode, a `string[]` under `multiple`.
+ *
+ * `multiple` is APG's recommended multi-select tree: the tree is
+ * `aria-multiselectable`, Space toggles the focused node, Shift+ArrowUp/Down
+ * move focus and select from the anchor to it, Shift+Space selects the
+ * anchor→focused range, Ctrl/Cmd+Shift+Home/End extend it to the first/last
+ * visible node, and Ctrl/Cmd+A adds every visible enabled node. Enter
+ * selects the focused node alone, as in single mode. A plain click replaces
+ * the selection, Ctrl/Cmd+click toggles, Shift+click selects the range —
+ * ranges run over the VISIBLE nodes in DOM order and replace the selection.
+ * No gesture puts a disabled node in it; a model that names one still
+ * renders it selected (disabled blocks interaction, not state).
  *
  * The keyboard walks VISIBLE nodes — the tree controller implements the
  * flat list interface over them, so roving and typeahead are the same
@@ -42,7 +54,8 @@
  * `aria-busy`, and its indicator and open content read `data-state="loading"`.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
-import type { Define, Model } from 'sigx';
+import type { Define, JSXElement, Model } from 'sigx';
+import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createRovingKeydown } from '../../behaviors/roving.js';
@@ -86,7 +99,11 @@ interface TreeNodeInfo {
 }
 
 interface TreeViewContext {
-    selected: ControllableState<string>;
+    /** The model: a `string` in single mode, a `string[]` under `multiple`. */
+    selected: ControllableState<string | string[]>;
+    /** Is `value` in the selection, under either shape? */
+    isSelected(value: string): boolean;
+    multiple(): boolean;
     tree: TreeController;
     labelId(): string;
     disabled(): boolean;
@@ -94,7 +111,13 @@ interface TreeViewContext {
     /** Does a click on a branch row toggle it as well as select it? */
     expandOnClick(): boolean;
     toggleBranch(value: string): void;
+    /** Select `value` alone (the anchor moves to it). */
     select(value: string): void;
+    /**
+     * A click on `value`'s row: plain replaces, and under `multiple`
+     * Ctrl/Cmd toggles and Shift selects the range from the anchor.
+     */
+    pointerSelect(value: string, e: MouseEvent): void;
     isTabbable(value: string): boolean;
     /** From a node's mount/unmount: the registry changed, re-derive the stop. */
     nodesChanged(): void;
@@ -124,7 +147,9 @@ interface TreeBranchContext {
 
 function makeInert(): TreeViewContext {
     return {
-        selected: createInertState<string>(''),
+        selected: createInertState<string | string[]>(''),
+        isSelected: () => false,
+        multiple: () => false,
         tree: createTreeController({ isExpanded: () => true }),
         labelId: () => 'zx-tree-inert',
         disabled: () => false,
@@ -132,6 +157,7 @@ function makeInert(): TreeViewContext {
         expandOnClick: () => true,
         toggleBranch: () => {},
         select: () => {},
+        pointerSelect: () => {},
         isTabbable: () => false,
         nodesChanged: () => {},
         keydown: () => {},
@@ -147,10 +173,20 @@ export const useTreeBranchContext = defineInjectable<TreeBranchContext>(
 
 // ── Root ──
 
-export type TreeViewRootProps =
-    & Define.Model<string>
-    & Define.Prop<'defaultValue', string, false>
-    & Define.Event<'valueChange', string>
+/**
+ * The props, generic over the model `M`: `string` in single mode, `string[]`
+ * under `multiple` — the exported `TreeView.Root` narrows it from
+ * `multiple`.
+ */
+export type TreeViewRootProps<M = string | string[]> =
+    & Define.Model<M>
+    & Define.Prop<'defaultValue', M, false>
+    & Define.Event<'valueChange', M>
+    /**
+     * Allow more than one selected node (default false): the model becomes a
+     * `string[]`, and the APG multi-select keys and modifier clicks apply.
+     */
+    & Define.Prop<'multiple', boolean, false>
     & Define.Model<'expandedValues', string[]>
     & Define.Prop<'defaultExpandedValues', string[], false>
     & Define.Event<'expandedValuesChange', string[]>
@@ -166,12 +202,30 @@ export type TreeViewRootProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMounted, signal }) => {
-    const selected = createControllableState<string>(
+const TreeViewRootImpl = component<TreeViewRootProps>(({ props, slots, emit, onMounted, signal }) => {
+    const selected = createControllableState<string | string[]>(
         () => props.model,
-        props.defaultValue ?? '',
+        props.defaultValue !== undefined ? props.defaultValue : props.multiple ? [] : '',
         (v) => emit('valueChange', v),
     );
+    // The selection under either shape — a string model reads as a
+    // one-element list (empty when ''); a consumer-written array is
+    // de-duplicated.
+    const selectedValues = (): string[] => {
+        const v = selected.value;
+        if (Array.isArray(v)) return [...new Set(v)];
+        return v !== '' ? [v] : [];
+    };
+    const isSelected = (value: string): boolean => {
+        const v = selected.value;
+        return Array.isArray(v) ? v.includes(value) : v === value;
+    };
+    /**
+     * Where a Shift range starts: the node last selected alone or toggled.
+     * Not rendered, so a plain variable; a range whose anchor is no longer
+     * visible falls back to selecting its far end alone.
+     */
+    let anchor: string | null = null;
     const expanded = createControllableState<string[]>(
         () => props.expandedValues as Model<string[]> | undefined,
         props.defaultExpandedValues ?? [],
@@ -225,8 +279,92 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
         return side.find((n) => !n.disabled())?.value ?? null;
     };
 
+    // A value that names no registered node yet (a lazily loaded subtree)
+    // stays; one naming a disabled node does not.
+    const enabled = (value: string): boolean => !tree.findNode(value)?.disabled();
+    /** Write the multiple-mode selection (no disabled nodes). */
+    const setMany = (values: string[]): void => {
+        selected.value = values.filter(enabled);
+    };
+    /**
+     * Replace the selection with the visible range anchor→`to` (disabled
+     * nodes skipped). Without a usable anchor, `to` alone — and it becomes
+     * the anchor.
+     */
+    const selectRange = (to: string): void => {
+        const span = anchor !== null ? tree.range(anchor, to) : [];
+        if (span.length === 0) {
+            anchor = to;
+            setMany([to]);
+            return;
+        }
+        setMany(span.map((n) => n.value));
+    };
+    const toggleOne = (value: string): void => {
+        anchor = value;
+        const current = selectedValues();
+        setMany(current.includes(value) ? current.filter((v) => v !== value) : [...current, value]);
+    };
+
+    /**
+     * The multi-select keys (APG's recommended multi-select tree), handled
+     * before roving and typeahead: Ctrl/Cmd+A would otherwise be a no-op
+     * and Shift+Arrow a plain move. True when the key was one of them.
+     */
+    const multiKeydown = (e: KeyboardEvent, node: TreeNodeInfo, inert: boolean): boolean => {
+        const mod = e.ctrlKey || e.metaKey;
+        if (mod && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'a') {
+            e.preventDefault();
+            // Adds: a select-all never drops a selection the user has
+            // collapsed out of sight.
+            const all = selectedValues();
+            const seen = new Set(all);
+            for (const n of tree.enabledItems()) if (!seen.has(n.value)) all.push(n.value);
+            setMany(all);
+            return true;
+        }
+        if (e.shiftKey && !mod && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+            e.preventDefault();
+            const visible = tree.visibleItems();
+            const at = visible.findIndex((n) => n.value === node.value);
+            const side = e.key === 'ArrowDown' ? visible.slice(at + 1) : visible.slice(0, at).reverse();
+            const target = side.find((n) => !n.disabled());
+            if (!target) return true;
+            // A disabled origin cannot anchor a range; its target does.
+            if (anchor === null) anchor = inert ? target.value : node.value;
+            target.el()?.focus();
+            selectRange(target.value);
+            return true;
+        }
+        if (mod && e.shiftKey && (e.key === 'Home' || e.key === 'End')) {
+            e.preventDefault();
+            const items = tree.enabledItems();
+            const target = e.key === 'Home' ? items[0] : items[items.length - 1];
+            if (!target) return true;
+            if (anchor === null) anchor = inert ? target.value : node.value;
+            target.el()?.focus();
+            selectRange(target.value);
+            return true;
+        }
+        // Space continues a running typeahead search ("Save As").
+        if (e.key === ' ' && !typeahead.searching()) {
+            e.preventDefault();
+            if (inert) return true;
+            if (e.shiftKey) {
+                if (anchor === null) anchor = node.value;
+                selectRange(node.value);
+            } else {
+                toggleOne(node.value);
+            }
+            return true;
+        }
+        return false;
+    };
+
     const ctx: TreeViewContext = {
         selected,
+        isSelected,
+        multiple: () => !!props.multiple,
         tree,
         labelId: () => `${baseId}-label`,
         disabled: () => !!props.disabled,
@@ -235,33 +373,57 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
         toggleBranch,
         select(value) {
             if (props.disabled) return;
-            selected.value = value;
+            anchor = value;
+            selected.value = props.multiple ? [value] : value;
+        },
+        pointerSelect(value, e) {
+            if (props.disabled) return;
+            if (!props.multiple) {
+                ctx.select(value);
+                return;
+            }
+            if (e.shiftKey) {
+                if (anchor === null) anchor = value;
+                selectRange(value);
+            } else if (e.ctrlKey || e.metaKey) {
+                toggleOne(value);
+            } else {
+                ctx.select(value);
+            }
         },
         nodesChanged() {
             if (registry.settled) registry.version++;
         },
         isTabbable(value) {
-            // One tab stop: the selected node while it is VISIBLE and
-            // enabled, else the first visible enabled node — a selection
-            // hidden under a collapsed branch must not leave the tree
-            // unreachable by keyboard. Selection and expansion are both
-            // reactive reads, so this recomputes on every change; only the
-            // initial render can transiently see an incomplete registry
+            // One tab stop: the (first, in visible order) selected node while
+            // it is VISIBLE and enabled, else the first visible enabled node
+            // — a selection hidden under a collapsed branch must not leave
+            // the tree unreachable by keyboard. Selection and expansion are
+            // both reactive reads, so this recomputes on every change; only
+            // the initial render can transiently see an incomplete registry
             // (a second stop that heals on the first interaction), which
             // beats a permanently missing one.
             void registry.version;
-            const sel = selected.value;
-            if (sel !== '') {
-                const selNode = tree.findNode(sel);
-                // Unregistered BEFORE the root mounts means "registers later
-                // this render pass" — the claim stands, or the initial render
-                // would hand a second stop to the first node. Once mounted,
-                // an unregistered value names nothing (a typo, a removed
-                // node, #165) and falls back like a registered-but-hidden
-                // (collapsed ancestor) or disabled one.
-                if (!selNode) {
-                    if (!registry.settled) return sel === value;
-                } else if (!selNode.disabled() && tree.find(sel)) return sel === value;
+            const sel = selectedValues();
+            if (sel.length > 0) {
+                if (!registry.settled) {
+                    // Unregistered BEFORE the root mounts means "registers
+                    // later this render pass" — the claim stands, or the
+                    // initial render would hand a second stop to the first
+                    // node. The model's first value is the claimant then.
+                    const first = sel[0]!;
+                    const firstNode = tree.findNode(first);
+                    if (!firstNode) return first === value;
+                    if (!firstNode.disabled() && tree.find(first)) return first === value;
+                } else {
+                    // Once mounted, an unregistered value names nothing (a
+                    // typo, a removed node, #165) and falls back like a
+                    // registered-but-hidden (collapsed ancestor) or disabled
+                    // one.
+                    const chosen = new Set(sel);
+                    const stop = tree.enabledItems().find((n) => chosen.has(n.value));
+                    if (stop) return stop.value === value;
+                }
             }
             return tree.enabledItems()[0]?.value === value;
         },
@@ -308,6 +470,7 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
                 if (closed.length > 0) expanded.value = [...expanded.value, ...closed];
                 return;
             }
+            if (props.multiple && multiKeydown(e, node, inert)) return;
             // Space continues a running typeahead search ("Save As").
             if (e.key === 'Enter' || (e.key === ' ' && !typeahead.searching())) {
                 e.preventDefault();
@@ -351,6 +514,14 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
     );
 }, { name: 'TreeView.Root' });
 
+/** The exported root: the model's shape follows `multiple`. */
+export type TreeViewRoot = {
+    (props: JsxProps<TreeViewRootProps<string>> & { multiple?: false }): JSXElement;
+    (props: JsxProps<TreeViewRootProps<string[]>> & { multiple: true }): JSXElement;
+} & FactoryBrands;
+
+const TreeViewRoot = TreeViewRootImpl as unknown as TreeViewRoot;
+
 // ── Label ──
 
 /** Not `id`: the Tree is labelled by the Label's own. */
@@ -383,6 +554,7 @@ const TreeViewTree = component<TreeViewTreeProps>(({ props, slots }) => {
                 role="tree"
                 data-scope={SCOPE}
                 data-part="tree"
+                aria-multiselectable={ctx.multiple() ? 'true' : undefined}
                 aria-labelledby={[ctx.labelId(), attrs['aria-labelledby']].filter(Boolean).join(' ')}
                 class={props.class}
             >
@@ -403,8 +575,20 @@ export type TreeViewItemProps =
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
+/**
+ * `''` is the single-mode model's "nothing selected": a node carrying it
+ * would read as selected while nothing is. Only `multiple` (a `string[]`,
+ * no sentinel) may use it.
+ */
+const refuseEmptySentinel = (ctx: { multiple(): boolean }, value: string, part: string): void => {
+    if (value === '' && !ctx.multiple()) {
+        throw new Error(`[zero] TreeView: a ${part} valued "" is reserved for "nothing selected" in single mode — give it a non-empty value`);
+    }
+};
+
 const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, onUnmounted, signal }) => {
     const ctx = useTreeViewContext();
+    refuseEmptySentinel(ctx, props.value, 'item');
     const branch = useTreeBranchContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
@@ -431,7 +615,7 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, on
         ctx.nodesChanged();
     });
 
-    const isSelected = (): boolean => ctx.selected.value === props.value;
+    const isSelected = (): boolean => ctx.isSelected(props.value);
 
     const bag = (): PartProps => ({
         ...htmlAttrs(props),
@@ -450,8 +634,17 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, on
         'aria-level': ctx.tree.level(props.value),
         'aria-disabled': disabled() ? 'true' : undefined,
         ref: (n: HTMLElement | null) => { el = n; },
-        onClick: () => {
-            if (!disabled()) ctx.select(props.value);
+        onClick: (e: MouseEvent) => {
+            if (disabled()) return;
+            ctx.pointerSelect(props.value, e);
+            // A Shift+click's mousedown was kept from focusing (below).
+            if (e.shiftKey && ctx.multiple()) el?.focus();
+        },
+        // Shift+click extends a range: its mousedown must not extend the
+        // page's TEXT selection across the rows instead. Preventing it also
+        // withholds the focus, which the click hands back.
+        onMousedown: (e: MouseEvent) => {
+            if (e.shiftKey && ctx.multiple() && !disabled()) e.preventDefault();
         },
         onKeydown: (e: KeyboardEvent) => {
             // No early return when disabled: press feedback is gated by
@@ -501,6 +694,7 @@ export type TreeViewBranchProps =
 
 const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onMounted, onUnmounted, signal }) => {
     const ctx = useTreeViewContext();
+    refuseEmptySentinel(ctx, props.value, 'branch');
     const parent = useTreeBranchContext();
     let el: HTMLElement | null = null;
     let triggerEl: HTMLElement | null = null;
@@ -542,7 +736,7 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onMounted
     }));
 
     const isOpen = (): boolean => ctx.isExpanded(props.value);
-    const isSelected = (): boolean => ctx.selected.value === props.value;
+    const isSelected = (): boolean => ctx.isSelected(props.value);
 
     return () => (
         <div
@@ -606,7 +800,7 @@ const TreeViewBranchTrigger = component<TreeViewBranchTriggerProps>(({ props, sl
         'data-scope': SCOPE,
         'data-part': 'branch-trigger',
         'data-state': stateAttr(ctx.isExpanded(value()), 'open', 'closed'),
-        'data-selected': dataAttr(ctx.selected.value === value()),
+        'data-selected': dataAttr(ctx.isSelected(value())),
         'data-disabled': dataAttr(disabled()),
         // The branch element (the treeitem) owns focus; the row mirrors it
         // so recipes ring the row, never the whole subtree.
@@ -615,15 +809,22 @@ const TreeViewBranchTrigger = component<TreeViewBranchTriggerProps>(({ props, sl
             el = n;
             branch.setTrigger(n);
         },
-        onClick: () => {
+        onClick: (e: MouseEvent) => {
             if (disabled()) return;
             // A pointer selects a branch the way Enter does — a row the
             // keyboard can select must not be one a click only folds.
-            ctx.select(value());
-            if (ctx.expandOnClick()) ctx.toggleBranch(value());
+            ctx.pointerSelect(value(), e);
+            // A modified click under `multiple` is a selection gesture
+            // (toggle, range) — it never folds the branch as well.
+            const modified = ctx.multiple() && (e.shiftKey || e.ctrlKey || e.metaKey);
+            if (ctx.expandOnClick() && !modified) ctx.toggleBranch(value());
             // Parks focus on the branch (the treeitem), so keyboard
             // continues from where the user is.
             ctx.tree.findNode(value())?.el()?.focus();
+        },
+        onMousedown: (e: MouseEvent) => {
+            // As on an Item: a Shift+click selects rows, not their text.
+            if (e.shiftKey && ctx.multiple() && !disabled()) e.preventDefault();
         },
         onKeydown: press.onKeydown,
         onKeyup: press.onKeyup,

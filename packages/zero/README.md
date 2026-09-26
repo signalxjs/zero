@@ -107,6 +107,27 @@ focused node's level, the focused node included, as APG's reference tree does
 `branch-indicator` reads `data-state="loading"`, and so does its
 `branch-content` while open — closed content stays `closed` and `hidden`.
 
+**TreeView: `multiple`.** `TreeView.Root multiple` makes the model a
+`string[]` (`defaultValue` / `valueChange` follow; single mode keeps its
+`string`, `''` when none) and the tree `aria-multiselectable="true"`; each
+selected node carries the same `data-selected` flag as in single mode, so a
+recipe needs nothing new. The keys are APG's recommended multi-select tree:
+Space toggles the focused node; Shift+ArrowDown/Up move focus and select from
+the anchor to it; Shift+Space selects the anchor→focused range;
+Ctrl/Cmd+Shift+Home/End extend it to the first/last visible node; Ctrl/Cmd+A
+adds every visible enabled node (a selection collapsed out of sight stays).
+Enter keeps its activation — it selects the focused node alone. A plain click
+replaces the selection, Ctrl/Cmd+click toggles, Shift+click selects the range;
+a modified click on a branch row never folds it. The anchor is the node last
+selected alone or toggled, ranges run over the VISIBLE nodes in DOM order and
+replace the selection, and a range whose anchor has since been collapsed away
+selects its far end alone. No gesture puts a disabled node in the
+selection, though a model that names one still renders it selected: disabled
+blocks interaction, not state, as in single mode. The tab stop is the first
+selected visible node. Because `''` is single mode's "nothing selected", an
+item or branch valued `''` throws there (as a ToggleGroup item does); under
+`multiple` it is an ordinary value.
+
 **The form contract.** Every posting control takes the same five props
 (`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus
 `readonly` on every value control — see below) and answers to a `Field.Root` for all

@@ -4,6 +4,7 @@ import type { PageEntry } from './registry';
 
 const TreeViewDemos = component(({ onUnmounted }) => {
     const state = signal({ file: '' });
+    const multi = signal({ files: [] as string[] });
     // The lazy tree: `remote` has no children until it is first opened,
     // and is `loading` while they are "fetched".
     const lazy = signal({ file: '', loading: false, loaded: [] as string[] });
@@ -88,6 +89,34 @@ const TreeViewDemos = component(({ onUnmounted }) => {
                 </TreeView.Tree>
             </TreeView.Root>
             <p><small>Selected: <code>{lazy.file || '—'}</code></small></p>
+            <p>
+                <code>multiple</code>: the model is a <code>string[]</code> and the
+                tree is <code>aria-multiselectable</code>. Space toggles the focused
+                node, Shift+ArrowUp/Down and Shift+Space select from the anchor,
+                Ctrl/Cmd+Shift+Home/End extend to the edges, Ctrl/Cmd+A selects
+                every visible node. A click replaces the selection,
+                Ctrl/Cmd+click toggles, Shift+click selects the range.
+            </p>
+            <TreeView.Root multiple model={() => multi.files} defaultExpandedValues={['assets']}>
+                <TreeView.Label>Multi-select files</TreeView.Label>
+                <TreeView.Tree>
+                    <TreeView.Branch value="assets">
+                        <TreeView.BranchTrigger>
+                            <TreeView.BranchIndicator />
+                            assets
+                        </TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Item value="assets/logo.svg">logo.svg</TreeView.Item>
+                            <TreeView.Item value="assets/draft.psd" disabled>draft.psd</TreeView.Item>
+                            <TreeView.Item value="assets/hero.png">hero.png</TreeView.Item>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                    <TreeView.Item value="index.html">index.html</TreeView.Item>
+                    <TreeView.Item value="styles.css">styles.css</TreeView.Item>
+                    <TreeView.Item value="main.js">main.js</TreeView.Item>
+                </TreeView.Tree>
+            </TreeView.Root>
+            <p><small>Selected: <code data-testid="tree-multi-selection">{multi.files.length > 0 ? multi.files.join(', ') : '—'}</code></small></p>
         </>
     );
 }, { name: 'TreeViewDemos' });
