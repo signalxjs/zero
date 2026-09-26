@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "59.8 kB",
+        "limit": "61.36 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -62,7 +62,7 @@
     {
         "name": "@sigx/zero/select",
         "path": "packages/zero/dist/components/select/index.js",
-        "limit": "10.23 kB",
+        "limit": "10.27 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -120,7 +120,7 @@
     {
         "name": "@sigx/zero/combobox",
         "path": "packages/zero/dist/components/combobox/index.js",
-        "limit": "13.05 kB",
+        "limit": "13.12 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -156,7 +156,7 @@
     {
         "name": "@sigx/zero/toggle-group",
         "path": "packages/zero/dist/components/toggle-group/index.js",
-        "limit": "5.1 kB",
+        "limit": "5.12 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -168,7 +168,7 @@
     {
         "name": "@sigx/zero/number-input",
         "path": "packages/zero/dist/components/number-input/index.js",
-        "limit": "5.08 kB",
+        "limit": "5.13 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -204,7 +204,7 @@
     {
         "name": "@sigx/zero/input",
         "path": "packages/zero/dist/components/input/index.js",
-        "limit": "4.78 kB",
+        "limit": "4.83 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -216,7 +216,7 @@
     {
         "name": "@sigx/zero/textarea",
         "path": "packages/zero/dist/components/textarea/index.js",
-        "limit": "3.93 kB",
+        "limit": "4.00 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -480,7 +480,7 @@
     {
         "name": "@sigx/zero/file-upload",
         "path": "packages/zero/dist/components/file-upload/index.js",
-        "limit": "5.18 kB",
+        "limit": "5.23 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

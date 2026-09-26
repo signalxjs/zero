@@ -340,6 +340,13 @@ component renders; the root is called out separately where it carries props.
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/
   required down to the control it wraps, and its `size` when the control
   sets none (#57): a sized Field is a sized control.
+  Validation (#284): the control reports its native element; Root takes
+  `validate(value, validity) => string | string[] | null` (pushed through
+  setCustomValidity, so native submit blocks on it) and `validateOn`
+  (submit|blur|change; after a failed submit every change revalidates).
+  Error takes `match` (a ValidityState key | 'custom' | true) and, with no
+  children, renders the current message. A Field rendering an Error cancels
+  the `invalid` bubble and focuses the form's first invalid control.
 - Input: Root(model=string, model:visible)/Label/Control/Input/Adornment/ClearTrigger/
   VisibilityTrigger, a single-line text field.
   `type` is text|email|password|search|tel|url only (number is NumberInput;

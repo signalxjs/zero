@@ -297,6 +297,7 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
         focusInput: () => inputEl?.focus(),
     };
     defineProvide(useNumberInputContext, () => ctx);
+    fc.reportValidity({ element: () => inputEl, value: () => state.value, focus: () => inputEl?.focus() }, onUnmounted);
 
     let detachReset = (): void => {};
     onMounted(() => {

@@ -29,7 +29,7 @@ export type { HighlightStep, ItemElement, ListController, ListItem } from './lis
 export { createListController, moveHighlight, sortByDomOrder } from './list-core.js';
 
 export { useFieldContext, provideFieldContext } from './field.js';
-export type { FieldContext } from './field.js';
+export type { FieldContext, FieldValidity, FieldValidityReport, ValidatableElement, ValidityKey } from './field.js';
 
 export { createFormControl } from './form-control.js';
 export type { FormControl, FormControlOptions, FormControlProps, FormControlFlags } from './form-control.js';

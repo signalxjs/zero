@@ -94,6 +94,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
         });
     }));
     onUnmounted(() => detachReset());
+    fc.reportValidity({ element: () => inputEl, value: () => checkedOf(state.value), focus: () => inputEl?.focus() }, onUnmounted);
 
     const disabled = fc.disabled;
     const invalid = fc.invalid;

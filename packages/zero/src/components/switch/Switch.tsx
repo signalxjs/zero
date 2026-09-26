@@ -73,6 +73,7 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal, onM
         });
     });
     onUnmounted(() => detachReset());
+    fc.reportValidity({ element: () => inputEl, value: () => state.value, focus: () => inputEl?.focus() }, onUnmounted);
 
     // A Switch inside a Field answers to it, exactly as Checkbox does — the
     // prop wins when set, the Field supplies the rest (#269).

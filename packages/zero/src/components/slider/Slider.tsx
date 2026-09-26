@@ -525,6 +525,20 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
     };
     defineProvide(useSliderContext, () => ctx);
 
+    // Validity: the native range when the scalar projection renders one (a
+    // range reports none of its own failures, so this is `validate`'s
+    // stage); thumb mode has no validatable element, and focus goes to the
+    // first thumb.
+    let rootEl: HTMLElement | null = null;
+    const own = (sel: string): HTMLElement | null =>
+        [...(rootEl?.querySelectorAll<HTMLElement>(`[data-scope="${SCOPE}"]${sel}`) ?? [])]
+            .find((el) => el.closest(`[data-scope="${SCOPE}"][data-part="root"]`) === rootEl) ?? null;
+    fc.reportValidity({
+        element: () => own('[data-part="control"]') as HTMLInputElement | null,
+        value: () => state.value,
+        focus: () => (own('[data-part="control"]') ?? own('[data-part="thumb"]'))?.focus(),
+    }, onUnmounted);
+
     return () => (
         <div
             {...htmlAttrs(props)}
@@ -538,6 +552,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             style={{ '--slider-percent': `${ctx.percent()}%` }}
             {...fc.axisAttrs()}
             class={props.class}
+            ref={(node: HTMLElement | null) => { rootEl = node; }}
         >
             {slots.default?.()}
             {/*

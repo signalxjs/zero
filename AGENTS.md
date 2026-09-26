@@ -189,7 +189,11 @@ wheel scroll up, a prepend leaves the row being read in place, and no
 a Field control's `aria-describedby` follows a `Field.Error` rendered on
 and off by the platform's own `pattern` check and never names a missing
 id, and `spellcheck="false"` / `autocorrect="off"` survive as tokens in
-WebKit, whose `autocorrect` property is a boolean) — plus
+WebKit, whose `autocorrect` property is a boolean), and field-validation
+(#284: a real submit reaches each Field through the `invalid` event, the
+matched `Field.Error` shows, the bubble is cancelled and focus lands on the
+form's first invalid control; `validate`'s message blocks the native
+submit; a blur-mode field validates on a real Tab; reset forgets it) — plus
 reduced-motion and forced-colors projects, and
 the state-matrix contrast audit — two matrices over every state combination ×
 design system × theme, hard-fail below 3:1, chromium-only: **text legibility**
@@ -299,7 +303,8 @@ sidebar — importing the registry would drag every page's JSX through
 Playwright's transpiler), scans each page once per surface that idles closed
 (`SCANS`: a named step list per state, each from a fresh load — every
 dialog and alertdialog, the submenus, the context menu, each select and
-combobox popup incl. grouped/virtual and the forms page's, and the app
+combobox popup incl. grouped/virtual and the forms page's, the forms
+page's validated form after a failed submit (#284), and the app
 shell's sheet at a narrow viewport, #194; a closed popup contributes nothing
 to the scanned tree), and
 hard-fails on serious/critical WCAG A/AA violations. `color-contrast` is

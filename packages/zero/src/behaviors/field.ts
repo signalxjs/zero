@@ -11,6 +11,52 @@
  */
 import { defineInjectable, defineProvide } from 'sigx';
 
+/** The `ValidityState` flags, by name — `valid` included. */
+export type ValidityKey =
+    | 'badInput'
+    | 'customError'
+    | 'patternMismatch'
+    | 'rangeOverflow'
+    | 'rangeUnderflow'
+    | 'stepMismatch'
+    | 'tooLong'
+    | 'tooShort'
+    | 'typeMismatch'
+    | 'valid'
+    | 'valueMissing';
+
+/**
+ * A plain copy of an element's `ValidityState` — what `Field.Root`'s
+ * `validate` receives and what `Field.Error`'s `match` reads. Structural,
+ * so this module stays on the portable (`lib.dom`-free) surface; a real
+ * `ValidityState` satisfies it.
+ */
+export type FieldValidity = { readonly [K in ValidityKey]: boolean };
+
+/** The constraint-validation surface of a native control, structurally. */
+export interface ValidatableElement {
+    readonly validity: FieldValidity;
+    readonly validationMessage: string;
+    readonly willValidate: boolean;
+    setCustomValidity(message: string): void;
+}
+
+/**
+ * What a control reports to its Field for validation (#284): the element
+ * the platform's constraint validation runs on — the control itself, or
+ * the hidden `<select>`/`<input>` a composed control posts through — the
+ * value `validate` receives, and where focus goes when this control is the
+ * first invalid one after a failed submit.
+ */
+export interface FieldValidityReport {
+    /** `null` when nothing validates natively (an unnamed Select renders no hidden control). */
+    element(): ValidatableElement | null;
+    /** The control's model value — read reactively. */
+    value(): unknown;
+    /** Focus the control the user fixes (the trigger, not a hidden `<select>`). */
+    focus(): void;
+}
+
 export interface FieldContext {
     /** True on the fallback — controls skip adoption. */
     inert: boolean;
@@ -33,8 +79,18 @@ export interface FieldContext {
      * `describedBy` is all there is.
      */
     setDescriptionPresent?(present: boolean): void;
-    /** Field.Error's presence report — optional, as above. */
-    setErrorPresent?(present: boolean): void;
+    /**
+     * Field.Error's presence report — optional, as above. `id` is the
+     * rendered Error's own (a `match`-keyed Error has one per key); omitted,
+     * it is `ids.error`.
+     */
+    setErrorPresent?(present: boolean, id?: string): void;
+    /**
+     * Register the control's validation surface (#284) — optional, so a
+     * hand-provided context keeps compiling and the inert fallback ignores
+     * it. Returns the detach. The first report registered wins.
+     */
+    report?(report: FieldValidityReport): () => void;
 }
 
 const INERT_FIELD: FieldContext = {
