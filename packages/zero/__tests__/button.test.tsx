@@ -349,6 +349,36 @@ describe('Button asChild semantics (#275)', () => {
         expect(root().hasAttribute('aria-disabled')).toBe(false);
     });
 
+    it('a disabled native asChild button gets the native disabled, so it cannot submit', () => {
+        const state = signal({ disabled: true, focusable: false });
+        const App = component(() => () => (
+            <Button.Root asChild disabled={state.disabled} focusableWhenDisabled={state.focusable}>
+                {(p: Record<string, unknown>) => <button type="submit" {...p}>Save</button>}
+            </Button.Root>
+        ));
+        render(<App />, container);
+        const el = root() as HTMLButtonElement;
+        expect(el.disabled).toBe(true);
+        // focusableWhenDisabled trades it for aria-disabled, as on the built-in button.
+        state.focusable = true;
+        expect(el.disabled).toBe(false);
+        expect(el.getAttribute('aria-disabled')).toBe('true');
+        state.focusable = false;
+        state.disabled = false;
+        expect(el.disabled).toBe(false);
+    });
+
+    it('a disabled asChild summary gets no disabled attribute it does not have', () => {
+        render(
+            <Button.Root asChild disabled>
+                {(p: Record<string, unknown>) => <details><summary {...p}>More</summary></details>}
+            </Button.Root>,
+            container,
+        );
+        expect(root().hasAttribute('disabled')).toBe(false);
+        expect(root().getAttribute('aria-disabled')).toBe('true');
+    });
+
     it('focusableWhenDisabled: a native button keeps its tab stop and blocks activation', () => {
         const onClick = vi.fn();
         const onSubmit = vi.fn((e: Event) => e.preventDefault());

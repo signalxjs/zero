@@ -145,7 +145,16 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal, onMounted
             // longer a link to AT, so the role says it still is one.
             : kind === 'link' && disabled
                 ? { href: undefined, role: attrs.role ?? 'link', tabIndex: focusableDisabled ? 0 : -1 }
-                : {};
+                // A native control disables natively, as the built-in <button>
+                // does: out of the tab order, and no longer a form's implicit
+                // submitter (Enter in a field would otherwise still post
+                // through it). Only where the element has the attribute — a
+                // <summary> does not — and never when focusableWhenDisabled
+                // trades it for aria-disabled. Absent rather than `false`
+                // otherwise, so the element's own `disabled` survives.
+                : kind === 'native' && disabled && !focusableDisabled && el && 'disabled' in el
+                    ? { disabled: true }
+                    : {};
         return {
             // First, so the part's own attributes win on any name both set.
             ...attrs,

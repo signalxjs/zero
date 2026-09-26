@@ -1038,7 +1038,9 @@ on press and Space on release, like the native one. A `<button>`, `<input>`
 or `<summary>` already has all of that, and a link keeps its link semantics,
 so neither gets the synthesized role or keys — a second, synthesized click
 would activate twice. Disabled, the element leaves the tab order
-(`tabindex="-1"`) and activates nothing. Server rendering cannot see the
+(`tabindex="-1"`) and activates nothing; an asChild `<button>` or `<input>`
+gets the native `disabled` itself, like the built-in button, so it is no
+longer a form's implicit submitter. Server rendering cannot see the
 element's tag, so the contract arrives on mount.
 
 **Disabled, but still focusable.** `focusableWhenDisabled` keeps a disabled
