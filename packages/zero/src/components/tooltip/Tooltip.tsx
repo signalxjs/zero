@@ -239,11 +239,19 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
         getAnchor: () => anchor,
         setPopup: (el) => { popup = el; },
         getPopup: () => popup,
-        setArrow: (el) => { arrow = el; },
+        // An arrow mounted while the tooltip is open (conditional render) is
+        // placed a microtask later, once it is in the document — not at the
+        // next scroll or resize: the strategy otherwise runs only on
+        // open/close and its own listeners.
+        setArrow: (el) => {
+            if (arrow === el) return;
+            arrow = el;
+            queueMicrotask(() => position.update());
+        },
     };
     defineProvide(useTooltipContext, () => ctx);
 
-    createAnchorPosition({
+    const position = createAnchorPosition({
         getAnchor: () => anchor,
         getFloating: () => popup,
         isOpen: () => state.value,

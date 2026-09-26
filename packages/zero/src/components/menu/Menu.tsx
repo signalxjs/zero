@@ -317,7 +317,15 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
             else state.value = true;
         },
         setPopup: (el) => { popup = el; },
-        setArrow: (el) => { arrow = el; },
+        // An arrow mounted while the menu is open (conditional render) is
+        // placed a microtask later, once it is in the document — not at the
+        // next scroll or resize: the strategy otherwise runs only on
+        // open/close and its own listeners.
+        setArrow: (el) => {
+            if (arrow === el) return;
+            arrow = el;
+            queueMicrotask(() => pos.update());
+        },
         grace: createPointerGrace(),
     };
     defineProvide(useMenuContext, () => ctx);

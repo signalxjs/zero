@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
-import { signal } from 'sigx';
+import { component, signal } from 'sigx';
 import { Tooltip, tooltipAnatomy } from '@sigx/zero';
 import type { PositionOptions, PositionStrategy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
@@ -72,6 +72,28 @@ describe('Tooltip', () => {
         expect(seen.at(-1)!.getArrow?.()).toBe(arrow);
         // Decoration adds nothing to the description the trigger gets.
         expect(container.querySelector('[role="tooltip"]')!.textContent).toBe('Save the document');
+    });
+
+    it('re-applies the strategy when an arrow mounts while the tooltip is open', async () => {
+        vi.useRealTimers();
+        const seen: PositionOptions[] = [];
+        const spy: PositionStrategy = { apply: (_a, _f, opts) => { seen.push(opts); return () => {}; } };
+        const state = signal({ open: false, arrow: false });
+        const App = component(() => () => (
+            <Tooltip.Root model={[state, 'open']} positionStrategy={spy}>
+                <Tooltip.Trigger>Save</Tooltip.Trigger>
+                <Tooltip.Popup>Save the document{state.arrow ? <Tooltip.Arrow /> : null}</Tooltip.Popup>
+            </Tooltip.Root>
+        ));
+        render(<App />, container);
+        state.open = true;
+        await new Promise((r) => setTimeout(r, 0));
+        const before = seen.length;
+        expect(seen.at(-1)!.getArrow?.()).toBeNull();
+        state.arrow = true;
+        await new Promise((r) => setTimeout(r, 0));
+        expect(seen.length).toBe(before + 1);
+        expect(seen.at(-1)!.getArrow?.()).toBe(container.querySelector('[data-scope="tooltip"][data-part="arrow"]'));
     });
 
     it('passes the variant axes through on the trigger (the carrier part)', () => {

@@ -340,4 +340,50 @@ describe('Popover', () => {
         expect(seen[0]!.getArrow?.()).toBeNull();
         expect(seen[1]!.getArrow?.()).toBe(container.querySelector('[data-part="arrow"]'));
     });
+
+    it('re-applies the strategy when an Anchor or Arrow mounts or unmounts while open', async () => {
+        const calls: Array<{ anchor: Element; arrow: HTMLElement | null }> = [];
+        const spy: PositionStrategy = {
+            apply: (anchor, _f, opts) => {
+                calls.push({ anchor: anchor as Element, arrow: opts.getArrow?.() ?? null });
+                return () => {};
+            },
+        };
+        const state = signal({ open: false, anchor: false, arrow: false });
+        const App = component(() => () => (
+            <Popover.Root model={[state, 'open']} positionStrategy={spy}>
+                {state.anchor ? <Popover.Anchor>Field</Popover.Anchor> : null}
+                <Popover.Trigger>Filters</Popover.Trigger>
+                <Popover.Popup>{state.arrow ? <Popover.Arrow /> : null}…</Popover.Popup>
+            </Popover.Root>
+        ));
+        render(<App />, container);
+        await tick();
+        state.open = true;
+        await tick();
+        const trigger = container.querySelector('[data-part="trigger"]');
+        expect(calls.at(-1)!.anchor).toBe(trigger);
+
+        state.anchor = true;
+        await tick();
+        expect(calls.at(-1)!.anchor).toBe(container.querySelector('[data-part="anchor"]'));
+
+        state.arrow = true;
+        await tick();
+        expect(calls.at(-1)!.arrow).toBe(container.querySelector('[data-part="arrow"]'));
+
+        // The anchor unmounting hands the popup back to the trigger at once,
+        // rather than leaving the strategy measuring a detached element.
+        state.anchor = false;
+        await tick();
+        expect(calls.at(-1)!.anchor).toBe(trigger);
+
+        // Closed, a part change positions nothing.
+        state.open = false;
+        await tick();
+        const settled = calls.length;
+        state.anchor = true;
+        await tick();
+        expect(calls.length).toBe(settled);
+    });
 });

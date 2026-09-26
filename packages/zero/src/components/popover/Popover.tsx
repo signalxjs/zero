@@ -119,6 +119,7 @@ const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal })
     let popup: HTMLElement | null = null;
     let arrow: HTMLElement | null = null;
     const positionAnchor = (): HTMLElement | null => anchor ?? trigger;
+    const reposition = () => queueMicrotask(() => position.update());
 
     const ctx: PopoverContext = {
         state,
@@ -128,15 +129,20 @@ const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal })
         descriptionPresent: () => present.description > 0,
         setDescriptionPresent: (p) => { present.description += p ? 1 : -1; },
         setTrigger: (el) => { trigger = el; },
-        setAnchor: (el) => { anchor = el; },
+        // A `Popover.Anchor` or `Popover.Arrow` that mounts or unmounts while
+        // the popup is open re-applies the strategy, a microtask later so the
+        // part is in the document: the strategy otherwise runs only on
+        // open/close and its own scroll/resize listeners, and would keep
+        // measuring a detached anchor.
+        setAnchor: (el) => { if (anchor === el) return; anchor = el; reposition(); },
         getAnchor: positionAnchor,
         setPopup: (el) => { popup = el; },
         getPopup: () => popup,
-        setArrow: (el) => { arrow = el; },
+        setArrow: (el) => { if (arrow === el) return; arrow = el; reposition(); },
     };
     defineProvide(usePopoverContext, () => ctx);
 
-    createAnchorPosition({
+    const position = createAnchorPosition({
         getAnchor: positionAnchor,
         getFloating: () => popup,
         isOpen: () => state.value,
