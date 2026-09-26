@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE['hover-card']` (zero#290)
+
+- The new `hover-card` scope's root props are reserved (`openDelay`,
+  `closeDelay`, `openOnFocus`, `placement`, `offset` and the other
+  anchored-popup props), so a vendor-named api cannot claim them as axis
+  props.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE.pagination` reserves `firstLabel`, `getPageHref`, `lastLabel` and `withEdges` (zero#294)
 
 - Pagination's new root props are reserved, so a vendor-named api cannot

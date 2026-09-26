@@ -2,6 +2,38 @@
 
 ## [Unreleased]
 
+### Added — `HoverCard`: a hover-intent preview card with interactive content (#290)
+
+- **`HoverCard`** (`@sigx/zero/hover-card` and the barrel), scope
+  `hover-card`: `trigger` (an `<a>`, `asChild`, `href` in the bag; states
+  `open|closed`, flag `focus-visible`), `popup` (`popover="manual"`,
+  `open|closed`, anchor-positioned with `data-placement` and the published
+  position properties) and `arrow` (`span`, parent `popup`, `aria-hidden`,
+  placed by the strategy). `HoverCard.Root` takes `model` / `defaultOpen` /
+  `openChange`, `openDelay` (700), `closeDelay` (300), `openOnFocus`
+  (true), `placement` (`bottom`), `offset` (8), `collisionPadding`,
+  `alignOffset`, `arrowPadding` and `positionStrategy`.
+- **Not a tooltip, not a disclosure**: the popup has no `role`, the trigger
+  no `aria-describedby`, `aria-expanded` or `aria-controls` — the card may
+  hold links and buttons.
+- **Behavior**: opens on mouse/pen hover after `openDelay` (touch
+  `pointerenter` ignored) and at once on keyboard focus (`:focus-visible`).
+  Closes `closeDelay` after the pointer leaves both the trigger and the
+  card; a move inside the safe triangle toward the card restarts the delay.
+  Focus inside the card keeps it open, and it closes when focus leaves both
+  while the pointer is on neither. Escape closes it from anywhere (the
+  dismiss layer); when focus was inside the card it returns to the trigger
+  without reopening it. An outside press does not close it.
+- **`createHoverIntent`** (behaviors): the open/close timers, extracted from
+  Tooltip, which now uses it (no behavior change). **`safeTriangleTo`**
+  extends the submenu safe triangle to a target above or below the exit
+  point.
+- **All six design systems** style it: the trigger as a link in each
+  skin's idiom (colour is its ink, size its type, where the skin declares
+  the axis) and the card as that skin's popover surface with its arrow.
+- `.size-limit.json`: the barrel goes 66.00 → 66.78 kB and the anatomy
+  tooling entry 4.10 → 4.13 kB.
+
 ### Added — Pagination first/last triggers and link mode (#294)
 
 - **`withEdges`** renders `first-trigger` and `last-trigger` (new parts,
