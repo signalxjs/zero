@@ -28,6 +28,17 @@ export const selectAnatomy = defineAnatomy('select', {
         states: ['open', 'closed'],
         tokens: ['color'],
     },
+    // Clears the selection (#280): a real button in the tab order, a SIBLING
+    // of the trigger inside the root — never inside it, since a button in a
+    // button is invalid and the trigger's name must not absorb it. Rendered
+    // only while something is selected (and the select is editable), so it
+    // has no state of its own.
+    'clear-trigger': {
+        element: 'button',
+        parent: 'root',
+        flags: ['focus-visible'],
+        tokens: ['color'],
+    },
     popup: {
         element: 'div',
         parent: 'root',
@@ -71,6 +82,15 @@ export const selectAnatomy = defineAnatomy('select', {
         paint: { glyph: '✓', only: 'selected' },
         parent: 'item',
         flags: ['selected'],
+        tokens: ['color'],
+    },
+    // A visual rule between runs of options (#280). ARIA's listbox owns only
+    // options and groups, so it is `role="separator"` hidden from the
+    // accessibility tree — and it never registers as an option: navigation,
+    // typeahead and each option's position in the set walk straight past it.
+    separator: {
+        element: 'div',
+        parent: 'popup',
         tokens: ['color'],
     },
     // Windowing (#96): under `virtual` the options near the scroll position

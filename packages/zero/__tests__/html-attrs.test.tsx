@@ -532,6 +532,7 @@ describe('the pass-through reaches every part', () => {
                             <Combobox.TagRemove {...p('tag-remove')} />
                         </Combobox.Tag>
                         <Combobox.Input {...p('input')} />
+                        <Combobox.ClearTrigger {...p('clear-trigger')} />
                         <Combobox.Trigger {...p('trigger')} />
                     </Combobox.Control>
                     <Combobox.Popup {...p('popup')}>
@@ -539,11 +540,16 @@ describe('the pass-through reaches every part', () => {
                             <Combobox.GroupLabel {...p('group-label')}>Fruit</Combobox.GroupLabel>
                             <Combobox.Item {...p('item')} value="apple">Apple</Combobox.Item>
                         </Combobox.Group>
+                        <Combobox.Separator {...p('separator')} />
                     </Combobox.Popup>
                 </Combobox.Root>
                 <Combobox.Root defaultOpen>
                     <Combobox.Control><Combobox.Input /></Combobox.Control>
                     <Combobox.Popup><Combobox.Empty {...p('empty')}>None</Combobox.Empty></Combobox.Popup>
+                </Combobox.Root>
+                <Combobox.Root defaultOpen loading>
+                    <Combobox.Control><Combobox.Input /></Combobox.Control>
+                    <Combobox.Popup><Combobox.Loading {...p('loading')}>Loading…</Combobox.Loading></Combobox.Popup>
                 </Combobox.Root>
             </div>
         ),
@@ -606,16 +612,18 @@ describe('the pass-through reaches every part', () => {
             </Popover.Root>
         ),
         select: () => (
-            <Select.Root {...p('root')} defaultOpen>
+            <Select.Root {...p('root')} defaultOpen defaultValue="apple">
                 <Select.Trigger {...p('trigger')}>
                     <Select.Value {...p('value')} />
                     <Select.Indicator {...p('indicator')} />
                 </Select.Trigger>
+                <Select.ClearTrigger {...p('clear-trigger')} />
                 <Select.Popup {...p('popup')}>
                     <Select.Group {...p('group')}>
                         <Select.GroupLabel {...p('group-label')}>Fruit</Select.GroupLabel>
                         <Select.Item {...p('item')} value="apple">Apple</Select.Item>
                     </Select.Group>
+                    <Select.Separator {...p('separator')} />
                 </Select.Popup>
             </Select.Root>
         ),

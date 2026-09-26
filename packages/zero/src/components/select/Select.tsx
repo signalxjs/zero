@@ -105,6 +105,8 @@ interface SelectContext {
     setTrigger(el: HTMLElement | null): void;
     setPopup(el: HTMLElement | null): void;
     triggerKeydown(e: KeyboardEvent): void;
+    /** Clear the selection and return focus to the trigger (the clear-trigger's click). */
+    clear(): void;
     /** The windowed list (`virtual`), while one is rendered. */
     virtual: { current: VirtualListbox<unknown> | null };
 }
@@ -132,6 +134,7 @@ function makeInert(): SelectContext {
         setTrigger: () => {},
         setPopup: () => {},
         triggerKeydown: () => {},
+        clear: () => {},
         virtual: { current: null },
     };
 }
@@ -165,6 +168,8 @@ export type SelectRootProps<T = unknown, M = unknown> =
     /** Several selections: the model is an array, the hidden select `multiple`. */
     & Define.Prop<'multiple', boolean, false>
     & Define.Prop<'placeholder', string, false>
+    /** The data expansion renders a `Select.ClearTrigger` beside the trigger. */
+    & Define.Prop<'clearable', boolean, false>
     & WithFormControl
     /** Focusable, but does not open and no key changes the value. The prop OR the Field's. */
     & WithReadonly
@@ -423,6 +428,12 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
             if (key === 'Tab') { setOpen(false); return; }
             listbox.typeahead(e, listbox.highlighted.value, (k) => { listbox.highlighted.value = k; });
         },
+        clear() {
+            if (ctx.disabled() || ctx.readonly()) return;
+            if (listbox.selectedKeys().length > 0) listbox.clear();
+            // The button leaves with the value: focus goes back to the field.
+            trigger?.focus();
+        },
         virtual,
     };
     defineProvide(useSelectContext, () => ctx);
@@ -462,6 +473,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
                 <SelectValue />
                 <SelectIndicator />
             </SelectTrigger>
+            {props.clearable ? <SelectClearTrigger /> : null}
             <SelectPopup>
                 {windowed()
                     ? props.virtual!.render(virtual)
@@ -707,6 +719,49 @@ const SelectIndicator = component<SelectIndicatorProps>(({ props, slots }) => {
     );
 }, { name: 'Select.Indicator' });
 
+// ── ClearTrigger ──
+
+export type SelectClearTriggerProps =
+    /** Accessible name (default "Clear selection"). */
+    & Define.Prop<'label', string, false>
+    & WithClass
+    & WithHtmlAttrs
+    /** The mark (default `×`, aria-hidden). */
+    & Define.Slot<'default'>;
+
+/**
+ * Clears the selection — `null` (or `''` for hand-written items, `[]` under
+ * `multiple`) — and puts focus back on the trigger. A sibling of
+ * `Select.Trigger` inside the root, never inside it; rendered only while
+ * something is selected and the select is editable.
+ */
+const SelectClearTrigger = component<SelectClearTriggerProps>(({ props, slots, signal }) => {
+    const select = useSelectContext();
+    let el: HTMLElement | null = null;
+    const focus = signal({ visible: false });
+    return () => {
+        if (select.listbox.selectedKeys().length === 0 || select.disabled() || select.readonly()) return null;
+        const attrs = htmlAttrs(props);
+        return (
+            <button
+                {...attrs}
+                type="button"
+                data-scope={SCOPE}
+                data-part="clear-trigger"
+                data-focus-visible={dataAttr(focus.visible)}
+                aria-label={props.label ?? attrs['aria-label'] ?? 'Clear selection'}
+                class={props.class}
+                ref={(node: HTMLElement | null) => { el = node; }}
+                onClick={() => { select.clear(); }}
+                onFocus={() => { focus.visible = isFocusVisible(el); }}
+                onBlur={() => { focus.visible = false; }}
+            >
+                {slots.default ? slots.default() : <span aria-hidden="true">×</span>}
+            </button>
+        );
+    };
+}, { name: 'Select.ClearTrigger' });
+
 // ── Popup ──
 
 export type SelectPopupProps =
@@ -820,6 +875,20 @@ const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) =>
     };
 }, { name: 'Select.Item' });
 
+// ── Separator ──
+
+/** Not `role`: the part is a `separator`, hidden from the accessibility tree. */
+export type SelectSeparatorProps = WithClass & Omit<WithHtmlAttrs, 'role'>;
+
+/**
+ * A rule between runs of options. ARIA's listbox owns options and groups
+ * only, so the separator is aria-hidden; it never registers as an option,
+ * so navigation, typeahead and set positions walk past it.
+ */
+const SelectSeparator = component<SelectSeparatorProps>(({ props }) => () => (
+    <div {...htmlAttrs(props)} data-scope={SCOPE} data-part="separator" role="separator" aria-hidden="true" class={props.class} />
+), { name: 'Select.Separator' });
+
 // ── Group / GroupLabel ──
 
 export const useSelectGroupContext = defineInjectable<GroupPresence>(
@@ -881,8 +950,10 @@ export const Select = compound(SelectRoot, {
     Trigger: SelectTrigger,
     Value: SelectValue,
     Indicator: SelectIndicator,
+    ClearTrigger: SelectClearTrigger,
     Popup: SelectPopup,
     Group: SelectGroup,
     GroupLabel: SelectGroupLabel,
     Item: SelectItem,
+    Separator: SelectSeparator,
 });
