@@ -617,6 +617,11 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
         isDisabled: () => slider.disabled() || slider.readonly(),
         oneShot: false,
     });
+    // The value the last commit (or the interaction's start) saw: `change`
+    // commits only when the value moved from it, as a thumb's release does.
+    const current = (): number => slider.values()[0] ?? slider.min();
+    let committed = current();
+    const baseline = (): void => { committed = current(); };
 
     return () => {
         const attrs = htmlAttrs(props);
@@ -658,7 +663,10 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
                 aria-valuetext={slider.valueTextFor(slider.values()[0] ?? slider.min(), 0) ?? attrs['aria-valuetext']}
                 class={props.class}
                 ref={(node: HTMLInputElement | null) => { el = node; }}
-                onPointerdown={press.onPointerdown}
+                onPointerdown={(e: PointerEvent) => {
+                    baseline();
+                    press.onPointerdown(e);
+                }}
                 onPointerup={press.onPointerup}
                 onPointercancel={press.onPointercancel}
                 // A native range has no `readonly`: the value keys are cancelled
@@ -689,9 +697,15 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
                 // disabled or readonly control commits nothing, whatever
                 // dispatches a `change` at it.
                 onChange={() => {
-                    if (!slider.disabled() && !slider.readonly()) slider.commit();
+                    if (slider.disabled() || slider.readonly()) return;
+                    if (current() === committed) return;
+                    baseline();
+                    slider.commit();
                 }}
-                onFocus={() => { slider.focusVisible.visible = isFocusVisible(el); }}
+                onFocus={() => {
+                    baseline();
+                    slider.focusVisible.visible = isFocusVisible(el);
+                }}
                 onBlur={(e: FocusEvent) => {
                     press.onBlur(e);
                     slider.focusVisible.visible = false;

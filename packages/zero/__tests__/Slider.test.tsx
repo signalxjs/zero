@@ -475,6 +475,25 @@ describe('Slider valueCommit (#272)', () => {
         expect(commits).toEqual([55]);
     });
 
+    it('the native control commits only when the value moved', () => {
+        const commits: (number | number[])[] = [];
+        const state = signal({ volume: 40 });
+        render(
+            <Slider.Root model={[state, 'volume']} min={0} max={100} onValueCommit={(v: number | number[]) => commits.push(v)}>
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        const control = container.querySelector<HTMLInputElement>('[data-part="control"]')!;
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(commits).toEqual([]);
+        control.value = '60';
+        control.dispatchEvent(new Event('input', { bubbles: true }));
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(commits).toEqual([60]);
+    });
+
     it('a readonly native control commits nothing', () => {
         const onValueCommit = vi.fn();
         render(
