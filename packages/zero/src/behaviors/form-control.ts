@@ -12,7 +12,9 @@
  *
  * The regime, stated once:
  * - A control's flags are the prop OR the Field's (`disabled`, `invalid`,
- *   `required`, `readonly`); the Field supplies ids and `aria-describedby`.
+ *   `required`, `readonly`) OR the nearest `Fieldset.Root`'s (`disabled`,
+ *   `readonly`, `invalid` — #285, chained up through nested fieldsets); the
+ *   Field supplies ids and `aria-describedby`.
  * - A control's `size` is the prop, else the Field's (`axisAttrs()`): the
  *   Field's size means the whole field, so the control's chrome follows its
  *   label rather than staying at the base step beside a shrunken one.
@@ -31,7 +33,7 @@
  *   `validate`, `validateOn`, the `invalid` event, `Field.Error`'s `match`.
  */
 import { createId } from './create-id.js';
-import { useFieldContext, type FieldContext, type FieldValidityReport } from './field.js';
+import { useFieldContext, useFieldsetContext, type FieldContext, type FieldValidityReport } from './field.js';
 import { dataAttr } from '../contract/data-attrs.js';
 import type { ColorValue, SizeScale } from '../contract/tokens.js';
 import { variantAttrs } from '../contract/variant-attrs.js';
@@ -97,14 +99,17 @@ export interface FormControl {
 
 export function createFormControl(opts: FormControlOptions): FormControl {
     const field = useFieldContext();
+    // A Field inside a Fieldset already ORs the fieldset in; a bare control
+    // inside one reads it here — both is harmless.
+    const fieldset = useFieldsetContext();
     const baseId = createId(opts.idBase);
     const part = opts.controlPart ?? 'control';
     const p = opts.props;
 
-    const disabled = (): boolean => !!p().disabled || field.disabled();
-    const invalid = (): boolean => !!p().invalid || field.invalid() || !!opts.invalid?.();
+    const disabled = (): boolean => !!p().disabled || field.disabled() || fieldset.disabled();
+    const invalid = (): boolean => !!p().invalid || field.invalid() || fieldset.invalid() || !!opts.invalid?.();
     const required = (): boolean => !!p().required || field.required();
-    const readonly = (): boolean => !!p().readonly || field.readonly();
+    const readonly = (): boolean => !!p().readonly || field.readonly() || fieldset.readonly();
     const controlId = (): string => (field.inert ? `${baseId}-${part}` : field.ids.control);
     const labelId = (): string => (field.inert ? `${baseId}-label` : field.ids.label);
     const describedBy = (): string | undefined => (field.inert ? undefined : field.describedBy());

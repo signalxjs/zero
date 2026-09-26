@@ -14,7 +14,7 @@ import { component, signal } from 'sigx';
 import { anatomies } from '@sigx/zero/anatomy';
 import {
     Accordion, Alert, Avatar, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, Checkbox, CheckboxGroup,
-    Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, EmptyState, Field, FileUpload, Grid,
+    Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, EmptyState, Field, Fieldset, FileUpload, Grid,
     Indicator, Input, Join, Kbd, Menu, Navbar, NavList, NumberInput, Pagination, Popover, Progress,
     RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spacer, Spinner, Stack, Stats,
     Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
@@ -416,6 +416,11 @@ describe('the pass-through reaches every part', () => {
                 <Field.Description {...p('description')}>Work address</Field.Description>
                 <Field.Error {...p('error')}>Required</Field.Error>
             </Field.Root>
+        ),
+        fieldset: () => (
+            <Fieldset.Root {...p('root')} disabled>
+                <Fieldset.Legend {...p('legend')}>Address</Fieldset.Legend>
+            </Fieldset.Root>
         ),
         'file-upload': () => (
             <FileUpload.Root {...p('root')} defaultFiles={[new File(['x'], 'a.txt')]}>

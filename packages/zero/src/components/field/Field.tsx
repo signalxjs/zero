@@ -46,6 +46,7 @@ import { countPresence, reportPresence, settleAfterMount } from '../../behaviors
 import {
     provideFieldContext,
     useFieldContext,
+    useFieldsetContext,
     type FieldContext,
     type FieldValidity,
     type FieldValidityReport,
@@ -161,6 +162,11 @@ export type FieldRootProps =
 
 const FieldRoot = component<FieldRootProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
     const baseId = createId('zx-field');
+    // The enclosing Fieldset's flags (#285) are the Field's too — so its
+    // Label dims with the group and every control inside adopts them.
+    const fieldset = useFieldsetContext();
+    const disabled = (): boolean => !!props.disabled || fieldset.disabled();
+    const readonly = (): boolean => !!props.readonly || fieldset.readonly();
     // Reported by Field.Description and Field.Error (`reportPresence`), so a
     // control's `aria-describedby` names only what is rendered and never
     // dangles — optimistic until settled after mount, so server markup (and
@@ -224,15 +230,15 @@ const FieldRoot = component<FieldRootProps>(({ props, slots, signal, onMounted, 
         v.shown = check();
         v.validated = true;
     };
-    const invalid = (): boolean => !!props.invalid || (v.validated && !v.shown.validity.valid);
+    const invalid = (): boolean => !!props.invalid || fieldset.invalid() || (v.validated && !v.shown.validity.valid);
 
     const ctx: FieldContext = {
         inert: false,
         ids,
-        disabled: () => !!props.disabled,
+        disabled,
         invalid,
         required: () => !!props.required,
-        readonly: () => !!props.readonly,
+        readonly,
         size: () => props.size,
         describedBy: () => {
             if (!present.settled) return `${ids.description} ${ids.error}`;
@@ -338,10 +344,10 @@ const FieldRoot = component<FieldRootProps>(({ props, slots, signal, onMounted, 
             {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="root"
-            data-disabled={dataAttr(props.disabled)}
+            data-disabled={dataAttr(disabled())}
             data-invalid={dataAttr(invalid())}
             data-required={dataAttr(props.required)}
-            data-readonly={dataAttr(props.readonly)}
+            data-readonly={dataAttr(readonly())}
             {...variantAttrs(props)}
             class={props.class}
             ref={(node: HTMLElement | null) => { rootEl = node; }}

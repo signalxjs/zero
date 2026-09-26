@@ -28,8 +28,8 @@ export { timingModifiers } from './model-modifiers.js';
 export type { HighlightStep, ItemElement, ListController, ListItem } from './list-core.js';
 export { createListController, moveHighlight, sortByDomOrder } from './list-core.js';
 
-export { useFieldContext, provideFieldContext } from './field.js';
-export type { FieldContext, FieldValidity, FieldValidityReport, ValidatableElement, ValidityKey } from './field.js';
+export { useFieldContext, provideFieldContext, useFieldsetContext, provideFieldsetContext } from './field.js';
+export type { FieldContext, FieldsetContext, FieldValidity, FieldValidityReport, ValidatableElement, ValidityKey } from './field.js';
 
 export { createFormControl } from './form-control.js';
 export type { FormControl, FormControlOptions, FormControlProps, FormControlFlags } from './form-control.js';
