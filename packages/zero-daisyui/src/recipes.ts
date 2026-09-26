@@ -1036,6 +1036,22 @@ const lynxBtnSizes = (part: string): Record<string, Record<string, PartStyles>> 
     xl: { [part]: { base: lynxBtnPad(6) } },
 });
 
+/**
+ * The press rendering of the overlay btns (dialog, popover), for their
+ * `targets.lynx` sections. The web answers a pointer with `:hover`, which
+ * the lynx emitter drops (a touch platform), and these parts' `pressed`
+ * flag — stamped by the lynx runtime on every touch — had no rule, so a
+ * tap showed nothing (signalxjs/lynx#1146). daisy's `:hover` wash plus the
+ * btn's 1px sink, the same pair `button` paints for its own `pressed`. A
+ * colour variant restates the background after the states at equal
+ * specificity, so a coloured trigger keeps its fill and sinks.
+ */
+const lynxBtnPressed: NonNullable<PartStyles['base']> = {
+    background: 'var(--color-base-300)',
+    transform: 'translateY(1px)',
+    boxShadow: 'none',
+};
+
 export const dialog: RecipeInput = {
     component: 'dialog',
     // Public to a design system derived from this one (#73).
@@ -1127,14 +1143,16 @@ export const dialog: RecipeInput = {
     // reach and the trigger is the whole story here.
     variants: { color: btnColors(), size: btnSizes },
     // The btn paddings and the footer's push-down, restated physically —
-    // see `lynxBtnPad` for the #1084 verdict this answers.
+    // see `lynxBtnPad` for the #1084 verdict this answers — and the btns'
+    // press rendering (`lynxBtnPressed`). The footer states its row: on lynx
+    // a row container says so next to `display: flex`.
     targets: {
         lynx: {
             parts: {
-                trigger: { base: lynxBtnPad(4) },
-                close: { base: lynxBtnPad(4) },
-                cancel: { base: lynxBtnPad(4) },
-                footer: { base: { marginTop: 'var(--space-2xl)' } },
+                trigger: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed } },
+                close: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed } },
+                cancel: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed } },
+                footer: { base: { marginTop: 'var(--space-2xl)', flexDirection: 'row' } },
             },
             variants: { size: lynxBtnSizes('trigger') },
         },
@@ -1198,12 +1216,13 @@ export const popover: RecipeInput = {
     },
     // Trigger-carried axes — same wiring as dialog, same reason.
     variants: { color: btnColors(), size: btnSizes },
-    // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
+    // The btn paddings, restated physically — see `lynxBtnPad` (#1084) —
+    // and the btns' press rendering (`lynxBtnPressed`).
     targets: {
         lynx: {
             parts: {
-                trigger: { base: lynxBtnPad(4) },
-                close: { base: lynxBtnPad(3) },
+                trigger: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed } },
+                close: { base: lynxBtnPad(3), states: { pressed: lynxBtnPressed } },
             },
             variants: { size: lynxBtnSizes('trigger') },
         },
@@ -2678,7 +2697,23 @@ export const select: RecipeInput = {
         web: { parts: { popup: { base: anchoredListbox } } },
         lynx: {
             parts: {
-                trigger: { base: lynxBtnPad(4) },
+                // daisy's `.select` is `width: clamp(3rem, 20rem, 100%)`: 20rem,
+                // never wider than its container. lynx has no `clamp()`, so the
+                // same bounds are spelled out — and the base's 13rem floor
+                // comes down to daisy's 3rem, or the trigger overflowed any
+                // cell narrower than 208px (signalxjs/lynx#1146). The root
+                // caps too, so a shrink-wrapped root cannot push it back out.
+                root: { base: { maxWidth: '100%' } },
+                trigger: {
+                    base: { ...lynxBtnPad(4), width: '20rem', maxWidth: '100%', minWidth: '3rem' },
+                    // The web's `:hover` border is dropped on a touch
+                    // platform; a press gets a wash instead — a background,
+                    // so it never fights the open/invalid border inks.
+                    states: { pressed: { background: 'var(--color-base-200)' } },
+                },
+                // A touch list has no highlight: the pressed item takes the
+                // highlighted item's wash.
+                item: { states: { pressed: { background: 'var(--color-base-200)' } } },
                 'clear-trigger': { base: { top: 'var(--space-xs)', bottom: 'var(--space-xs)', right: 'calc(var(--size-field) * 4 + 1em + var(--space-xs))', minWidth: '1.5rem' } },
             },
             variants: {
