@@ -139,18 +139,23 @@ export async function arrowGeometry(popup: Locator, target: Locator, what = 'pop
     const arrow = popup.locator(':scope > [data-part="arrow"]');
     await settledBox(arrow, `${what}: the arrow`);
     const handle = await target.elementHandle();
-    return popup.evaluate((el, anchor) => {
-        const box = (e: Element) => {
-            const r = e.getBoundingClientRect();
-            return { x: r.x, y: r.y, width: r.width, height: r.height };
-        };
-        return {
-            placement: el.getAttribute('data-placement'),
-            popup: box(el),
-            arrow: box(el.querySelector(':scope > [data-part="arrow"]')!),
-            target: box(anchor as Element),
-        };
-    }, handle);
+    expect(handle, `${what}: the anchor has no element to measure`).not.toBeNull();
+    try {
+        return await popup.evaluate((el, anchor) => {
+            const box = (e: Element) => {
+                const r = e.getBoundingClientRect();
+                return { x: r.x, y: r.y, width: r.width, height: r.height };
+            };
+            return {
+                placement: el.getAttribute('data-placement'),
+                popup: box(el),
+                arrow: box(el.querySelector(':scope > [data-part="arrow"]')!),
+                target: box(anchor as Element),
+            };
+        }, handle);
+    } finally {
+        await handle!.dispose();
+    }
 }
 
 /**
