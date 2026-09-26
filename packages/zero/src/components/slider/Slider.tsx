@@ -387,11 +387,15 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             const hi = index < vals.length - 1 ? Number((vals[index + 1]! - gap).toFixed(p)) : upper;
             return lo <= hi && hi >= lower && lo <= upper ? { lo: within(lo), hi: within(hi) } : null;
         };
-        // Bounds always sit inside [min, max] with lo <= hi. A gap the
-        // neighbors leave no room for degrades to plain no-crossing; values
-        // that already arrive out of order pin the thumb where it is.
+        // Bounds always sit inside [min, max] with lo <= hi, and always hold
+        // the thumb's own value (so aria-valuenow never falls outside them).
+        // A gap the neighbors leave no room for degrades to plain
+        // no-crossing; values that already break the gap or arrive out of
+        // order widen the window to the thumb, which can then only move
+        // back toward order, never further from it.
         const here = within(vals[index] ?? lower);
-        return window(steps * step()) ?? window(0) ?? { lo: here, hi: here };
+        const b = window(steps * step()) ?? window(0) ?? { lo: here, hi: here };
+        return { lo: Math.min(b.lo, here), hi: Math.max(b.hi, here) };
     };
 
     const setValueAt = (index: number, raw: number): void => {

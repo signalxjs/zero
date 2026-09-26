@@ -598,13 +598,30 @@ describe('Slider minStepsBetweenThumbs (#272)', () => {
         expect(state.price).toEqual([50, 50]);
     });
 
-    it('pins a thumb whose incoming values are out of order', () => {
+    it('keeps out-of-order values inside their own bounds and moves them only back toward order', () => {
         const state = signal({ price: [70, 30] });
         const { thumbs } = mountRange(state);
-        expect(Number(thumbs[0]!.getAttribute('aria-valuemin')))
-            .toBeLessThanOrEqual(Number(thumbs[0]!.getAttribute('aria-valuemax')));
+        for (const t of thumbs) {
+            const now = Number(t.getAttribute('aria-valuenow'));
+            expect(Number(t.getAttribute('aria-valuemin'))).toBeLessThanOrEqual(now);
+            expect(Number(t.getAttribute('aria-valuemax'))).toBeGreaterThanOrEqual(now);
+        }
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('70');
+        expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('30');
         key(thumbs[0]!, 'ArrowRight');
-        expect(state.price[0]).toBeGreaterThanOrEqual(0);
-        expect(state.price[0]).toBeLessThanOrEqual(100);
+        expect(state.price).toEqual([70, 30]);
+        key(thumbs[0]!, 'ArrowLeft');
+        expect(state.price).toEqual([69, 30]);
+    });
+
+    it('keeps a thumb that already breaks the gap inside its own bounds', () => {
+        const state = signal({ price: [40, 50] });
+        const { thumbs } = mountRange(state, { minStepsBetweenThumbs: 20 });
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('40');
+        expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('50');
+        key(thumbs[0]!, 'ArrowRight');
+        expect(state.price).toEqual([40, 50]);
+        key(thumbs[0]!, 'ArrowLeft');
+        expect(state.price).toEqual([39, 50]);
     });
 });
