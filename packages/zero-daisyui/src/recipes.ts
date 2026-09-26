@@ -6265,10 +6265,46 @@ export const breadcrumbs: RecipeInput = {
 };
 
 /**
+ * The four pagination triggers — prev/next and, with `withEdges`, the
+ * first/last jumps (#294) — are one cell: the same box, the same
+ * glyph-sized type, and the same flip under the rtl guard, since every
+ * glyph (`‹ › « »`) is physical ink pointing at a reading edge.
+ */
+const pageTrigger: PartStyles = {
+    base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minInlineSize: 'var(--pg-size)',
+        blockSize: 'var(--pg-size)',
+        background: 'var(--color-base-200)',
+        color: 'var(--color-base-content)',
+        border: 'none',
+        borderRadius: 'var(--radius-field)',
+        fontSize: 'calc(var(--pg-font) * 1.2)',
+        lineHeight: 'var(--leading-none)',
+        appearance: 'none',
+        // Link mode renders an <a> (#294): no UA underline.
+        textDecoration: 'none',
+        cursor: 'pointer',
+        transition: 'background var(--duration-fast) var(--ease-standard)',
+    },
+    states: {
+        hover: { background: 'var(--color-base-300)' },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' },
+        [`&${rtl}`]: { scale: '-1 1' },
+    },
+};
+
+/**
  * Pagination — daisy's join-of-buttons made of standalone btn cells: the
  * quiet base-200 fill, base-300 hover, the current page inverted into the
  * accent pair (primary by default). Pressed is the daisy 1px sink. The
- * `‹`/`›` glyphs flip under the shared rtl guard.
+ * `‹ › « »` glyphs flip under the shared rtl guard.
  */
 export const pagination: RecipeInput = {
     component: 'pagination',
@@ -6314,6 +6350,7 @@ export const pagination: RecipeInput = {
                 fontWeight: 'var(--weight-semibold)',
                 fontVariantNumeric: 'tabular-nums',
                 appearance: 'none',
+                textDecoration: 'none',
                 cursor: 'pointer',
                 transition: 'background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard)',
             },
@@ -6341,60 +6378,10 @@ export const pagination: RecipeInput = {
                 userSelect: 'none',
             },
         },
-        'prev-trigger': {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minInlineSize: 'var(--pg-size)',
-                blockSize: 'var(--pg-size)',
-                background: 'var(--color-base-200)',
-                color: 'var(--color-base-content)',
-                border: 'none',
-                borderRadius: 'var(--radius-field)',
-                fontSize: 'calc(var(--pg-font) * 1.2)',
-                lineHeight: 'var(--leading-none)',
-                appearance: 'none',
-                cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard)',
-            },
-            states: {
-                hover: { background: 'var(--color-base-300)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-            selectors: {
-                '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' },
-                [`&${rtl}`]: { scale: '-1 1' },
-            },
-        },
-        'next-trigger': {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minInlineSize: 'var(--pg-size)',
-                blockSize: 'var(--pg-size)',
-                background: 'var(--color-base-200)',
-                color: 'var(--color-base-content)',
-                border: 'none',
-                borderRadius: 'var(--radius-field)',
-                fontSize: 'calc(var(--pg-font) * 1.2)',
-                lineHeight: 'var(--leading-none)',
-                appearance: 'none',
-                cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard)',
-            },
-            states: {
-                hover: { background: 'var(--color-base-300)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-            selectors: {
-                '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' },
-                [`&${rtl}`]: { scale: '-1 1' },
-            },
-        },
+        'first-trigger': pageTrigger,
+        'prev-trigger': pageTrigger,
+        'next-trigger': pageTrigger,
+        'last-trigger': pageTrigger,
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {

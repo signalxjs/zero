@@ -5139,6 +5139,44 @@ export const breadcrumbs: RecipeInput = {
 };
 
 /**
+ * The four pagination triggers — prev/next and, with `withEdges`, the
+ * first/last jumps (#294) — are one cell: the same box, the same
+ * glyph-sized type, and the same flip under the rtl guard, since every
+ * glyph (`‹ › « »`) is physical ink pointing at a reading edge.
+ */
+const pageTrigger: PartStyles = {
+    base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minInlineSize: 'var(--pg-size)',
+        blockSize: 'var(--pg-size)',
+        background: 'transparent',
+        color: 'var(--color-base-content)',
+        border: 'none',
+        borderRadius: '9999px',
+        fontSize: 'calc(var(--pg-font) * 1.2)',
+        lineHeight: 'var(--leading-none)',
+        appearance: 'none',
+        // Link mode renders an <a> (#294): no UA underline.
+        textDecoration: 'none',
+        cursor: 'pointer',
+        transition: motion('background'),
+    },
+    states: {
+        hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)' },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        '&[data-pressed]:not([data-disabled])': {
+            background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+        },
+        [`&${rtl}`]: { scale: '-1 1' },
+    },
+};
+
+/**
  * Pagination — M3 icon-button circles: transparent cells with the 8%/12%
  * state-layer washes, the current page a filled primary circle. The washes
  * are the simple read of the state layer (the full `pressable` ripple is
@@ -5188,6 +5226,7 @@ export const pagination: RecipeInput = {
                 fontWeight: 'var(--weight-medium)',
                 fontVariantNumeric: 'tabular-nums',
                 appearance: 'none',
+                textDecoration: 'none',
                 cursor: 'pointer',
                 transition: motion('background, color'),
             },
@@ -5224,64 +5263,10 @@ export const pagination: RecipeInput = {
                 userSelect: 'none',
             },
         },
-        'prev-trigger': {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minInlineSize: 'var(--pg-size)',
-                blockSize: 'var(--pg-size)',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: 'none',
-                borderRadius: '9999px',
-                fontSize: 'calc(var(--pg-font) * 1.2)',
-                lineHeight: 'var(--leading-none)',
-                appearance: 'none',
-                cursor: 'pointer',
-                transition: motion('background'),
-            },
-            states: {
-                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-            selectors: {
-                '&[data-pressed]:not([data-disabled])': {
-                    background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
-                },
-                [`&${rtl}`]: { scale: '-1 1' },
-            },
-        },
-        'next-trigger': {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minInlineSize: 'var(--pg-size)',
-                blockSize: 'var(--pg-size)',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: 'none',
-                borderRadius: '9999px',
-                fontSize: 'calc(var(--pg-font) * 1.2)',
-                lineHeight: 'var(--leading-none)',
-                appearance: 'none',
-                cursor: 'pointer',
-                transition: motion('background'),
-            },
-            states: {
-                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-            selectors: {
-                '&[data-pressed]:not([data-disabled])': {
-                    background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
-                },
-                [`&${rtl}`]: { scale: '-1 1' },
-            },
-        },
+        'first-trigger': pageTrigger,
+        'prev-trigger': pageTrigger,
+        'next-trigger': pageTrigger,
+        'last-trigger': pageTrigger,
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {

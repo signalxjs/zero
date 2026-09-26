@@ -5961,10 +5961,48 @@ export const breadcrumbs: RecipeInput = {
 };
 
 /**
+ * The four pagination triggers — prev/next and, with `withEdges`, the
+ * first/last jumps (#294) — are one cell: the same box, the same
+ * glyph-sized type, and the same flip under the rtl guard, since every
+ * glyph (`‹ › « »`) is physical ink pointing at a reading edge.
+ */
+const pageTrigger: PartStyles = {
+    base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minInlineSize: 'var(--pg-size)',
+        blockSize: 'var(--pg-size)',
+        background: 'transparent',
+        color: 'var(--color-base-content)',
+        border: hairline,
+        borderRadius: 'var(--radius-field)',
+        fontSize: 'calc(var(--pg-font) * 1.2)',
+        lineHeight: 'var(--leading-none)',
+        appearance: 'none',
+        // Link mode renders an <a> (#294): no UA underline.
+        textDecoration: 'none',
+        cursor: 'pointer',
+        transition: 'background var(--duration-fast) var(--ease-standard)',
+    },
+    states: {
+        hover: { background: inkWash },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        ...pressedInk,
+        // Each glyph points at a reading edge; `scale`, not a
+        // logical property, so the flip is by hand under the guard.
+        [`&${rtl}`]: { scale: '-1 1' },
+    },
+};
+
+/**
  * Pagination — furniture in the house dialect: quiet hairline-framed cells,
  * `inkWash` hover, `pressedInk` press, and the current page inverted into
  * the accent pair (primary by default; the colour axis rebinds the pair).
- * The `‹`/`›` glyphs are physical ink — flipped under the shared rtl guard,
+ * The `‹ › « »` glyphs are physical ink — flipped under the shared rtl guard,
  * the tree-view chevron's move.
  */
 export const pagination: RecipeInput = {
@@ -6010,6 +6048,7 @@ export const pagination: RecipeInput = {
                 fontSize: 'var(--pg-font)',
                 fontVariantNumeric: 'tabular-nums',
                 appearance: 'none',
+                textDecoration: 'none',
                 cursor: 'pointer',
                 transition: 'background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard)',
             },
@@ -6050,62 +6089,10 @@ export const pagination: RecipeInput = {
                 userSelect: 'none',
             },
         },
-        'prev-trigger': {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minInlineSize: 'var(--pg-size)',
-                blockSize: 'var(--pg-size)',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: hairline,
-                borderRadius: 'var(--radius-field)',
-                fontSize: 'calc(var(--pg-font) * 1.2)',
-                lineHeight: 'var(--leading-none)',
-                appearance: 'none',
-                cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard)',
-            },
-            states: {
-                hover: { background: inkWash },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-            selectors: {
-                ...pressedInk,
-                // The glyph points at the reading start; `scale`, not a
-                // logical property, so the flip is by hand under the guard.
-                [`&${rtl}`]: { scale: '-1 1' },
-            },
-        },
-        'next-trigger': {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minInlineSize: 'var(--pg-size)',
-                blockSize: 'var(--pg-size)',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: hairline,
-                borderRadius: 'var(--radius-field)',
-                fontSize: 'calc(var(--pg-font) * 1.2)',
-                lineHeight: 'var(--leading-none)',
-                appearance: 'none',
-                cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard)',
-            },
-            states: {
-                hover: { background: inkWash },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-            selectors: {
-                ...pressedInk,
-                [`&${rtl}`]: { scale: '-1 1' },
-            },
-        },
+        'first-trigger': pageTrigger,
+        'prev-trigger': pageTrigger,
+        'next-trigger': pageTrigger,
+        'last-trigger': pageTrigger,
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
