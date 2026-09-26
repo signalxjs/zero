@@ -1024,6 +1024,56 @@ a[data-scope="button"][data-part="root"] { color: revert-layer; text-decoration:
 recipe included. Every shipped button recipe sets `text-decoration: none`, so
 the underline reverts to none rather than the browser's link default.
 
+A **disabled** link button stops being a link that goes anywhere: it renders
+without its `href` (spread the bag after your own attributes, as above, so
+the bag's wins), with `role="link"` and `aria-disabled="true"` so it still
+reads as a link, out of the tab order, and middle-click (`auxclick`) is
+cancelled too.
+
+**A button on any element** (#275). `asChild` over an element with no
+button semantics of its own — a `<span>`, a `<div>`, a custom element — gets
+the whole button contract, read from the element's tag once it mounts:
+`role="button"` (unless you pass a `role`), `tabindex="0"`, Enter activating
+on press and Space on release, like the native one. A `<button>`, `<input>`
+or `<summary>` already has all of that, and a link keeps its link semantics,
+so neither gets the synthesized role or keys — a second, synthesized click
+would activate twice. Disabled, the element leaves the tab order
+(`tabindex="-1"`) and activates nothing. Server rendering cannot see the
+element's tag, so the contract arrives on mount.
+
+**Disabled, but still focusable.** `focusableWhenDisabled` keeps a disabled
+button a tab stop — `aria-disabled="true"` instead of the native `disabled`,
+activation still blocked — so a keyboard or screen-reader user can reach it
+and hear why it cannot act (a tooltip on it, a greyed-out toolbar command):
+
+```tsx
+<Button.Root disabled focusableWhenDisabled aria-describedby="why">Publish</Button.Root>
+```
+
+It applies to every element `Button.Root` renders: a native button keeps
+focus, an `asChild` element keeps `tabindex="0"`, a disabled link stays a
+tab stop.
+
+**The element the semantics want** (#275). The layout and content roots —
+`Box`, `Center`, `Container`, `Grid`, `Stack` (and `Row`/`Col`), `Join`,
+`Chat` and `Stats` — take `asChild`, and so do `Card.Title` (an `<h3>` by
+default) and `Card.Description` (a `<p>`). A `<div>` root forced a wrapper
+whenever the thing was really a landmark, a list or a heading at another
+level; now the semantic element carries the part, the layout attributes and
+the axes itself:
+
+```tsx
+<Container asChild measure="lg" padX="xl">{(p) => <main {...p}>…</main>}</Container>
+<Grid asChild cols="auto" gap="md">
+    {(p) => (
+        <ul {...p}>
+            <Grid.Cell asChild>{(c) => <li {...c}><Card.Root>…</Card.Root></li>}</Grid.Cell>
+        </ul>
+    )}
+</Grid>
+<Card.Title asChild>{(p) => <h2 {...p}>Monthly report</h2>}</Card.Title>
+```
+
 **The confirm dialog.** A destructive confirm is `Dialog.Root
 role="alertdialog"` — no backdrop dismiss, initial focus on the
 least-destructive action — with the dependents as the description's own
