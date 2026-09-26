@@ -1227,7 +1227,7 @@ same behaviors, held to the same conformance assertion:
   inert, hidden or unrendered, and a radio group is one stop;
   `createFocusRestore(isOpen, { getSurface, fallback, skip })` hands focus back
   on close only while it is still on the surface or on nothing (and never
-  when `skip()` answers true — a close that sent focus on on purpose, like
+  when `skip()` answers true — a close that sent focus onward on purpose, like
   Menu's Tab), and falls back — to the trigger, in Popover, Menu, Dialog and Drawer — when the
   element focused before opening can no longer take it), list/tree registration with listbox-highlight stepping
   (`moveHighlight`, `optionText`), typeahead (`createTypeahead`: a
