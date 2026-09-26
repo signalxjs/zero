@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.menu` gains `loop` (zero#263)
+
+- Menu's new root prop is reserved, so a vendor-named api cannot claim it
+  as an axis prop.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE` gains the native text props (zero#266)
 
 - `input` reserves `autocapitalize`, `autocorrect`, `autofocus`,

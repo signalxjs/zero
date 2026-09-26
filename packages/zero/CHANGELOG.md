@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Fixed — Tab and Shift+Tab close the menu chain (#263)
+
+- **Tab or Shift+Tab on a menu item or sub-trigger closes the whole menu**
+  — the root and every open submenu — and is not prevented, so the browser
+  moves focus on to the next or previous tab stop (APG menu button). The
+  menu used to stay open with focus outside it. Focus is not pulled back to
+  the trigger: the close runs after the key's default action, and skips the
+  focus restore.
+- **Focus leaving the menu any other way closes it too**: a `focusin`
+  outside every open menu popup and the trigger (a pointer, assistive
+  technology) closes the chain, leaving focus where it went.
+- `createFocusRestore` takes a `skip()` option: answering true on close
+  leaves focus where it is.
+
+### Added — `loop` on `Menu.Root` (#263)
+
+- **`loop`** (default `true`) decides whether ArrowDown/ArrowUp wrap from
+  the last item to the first and back, in the root popup and every submenu.
+  `loop={false}` stops at the ends.
+
 ### Fixed — tooltip opens on keyboard focus only, closes on press, ignores touch hover (#268)
 
 - **Focus opens a tooltip only when it is keyboard focus** — the trigger
