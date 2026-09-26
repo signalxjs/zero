@@ -6309,6 +6309,10 @@
         transform: rotate(90deg);
     }
 
+    [data-scope="tree-view"][data-part="branch-indicator"][data-state="loading"] {
+        transform: rotate(45deg);
+    }
+
     [data-scope="tree-view"][data-part="branch-indicator"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
         scale: -1 1;
     }
