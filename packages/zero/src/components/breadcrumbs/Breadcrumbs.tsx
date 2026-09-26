@@ -152,9 +152,11 @@ const BreadcrumbsRoot = component<BreadcrumbsRootProps>(({ props, slots, emit, o
         Math.max(0, Math.floor(typeof n === 'number' && Number.isFinite(n) ? n : fallback));
 
     const hiddenIndices = (): number[] => {
-        const max = props.maxItems;
-        // NaN reads as absent, never as "collapse everything".
-        if (max == null || Number.isNaN(max) || expanded.value) return [];
+        const raw = props.maxItems;
+        // A non-finite or negative maxItems reads as absent, never as
+        // "collapse everything"; a fractional one floors.
+        if (typeof raw !== 'number' || !Number.isFinite(raw) || raw < 0 || expanded.value) return [];
+        const max = Math.floor(raw);
         const total = items().length;
         if (total <= max) return [];
         const before = count(props.itemsBeforeCollapse, 1);

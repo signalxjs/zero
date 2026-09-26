@@ -438,7 +438,7 @@ describe('Breadcrumbs collapse (#295)', () => {
         expect(part(container, 'breadcrumbs', 'ellipsis-trigger').getAttribute('aria-label')).toBe('Show 1 more breadcrumbs');
     });
 
-    it('non-finite counts fall back instead of throwing', () => {
+    it('invalid counts fall back instead of throwing or over-collapsing', () => {
         // NaN kept ends take their defaults (1 and 1) rather than reaching
         // Array.from as an invalid length.
         render(trail({ maxItems: 3, itemsBeforeCollapse: Number.NaN, itemsAfterCollapse: Number.NaN }), container);
@@ -448,6 +448,15 @@ describe('Breadcrumbs collapse (#295)', () => {
         document.body.appendChild(other);
         render(trail({ maxItems: Number.NaN }), other);
         expect(visible(other)).toEqual(NAMES);
+        // So does a negative one; a fractional one floors.
+        const negative = document.createElement('div');
+        document.body.appendChild(negative);
+        render(trail({ maxItems: -1 }), negative);
+        expect(visible(negative)).toEqual(NAMES);
+        const fractional = document.createElement('div');
+        document.body.appendChild(fractional);
+        render(trail({ maxItems: 4.9 }), fractional);
+        expect(visible(fractional)).toEqual(['Home', '…', 'Breadcrumbs']);
     });
 
     it('shows the whole trail when the kept ends leave nothing to hide', () => {
