@@ -81,7 +81,10 @@ export type {
     MenuGroupLabelProps,
     MenuSeparatorProps,
     MenuArrowProps,
+    MenuShortcutProps,
 } from './components/menu/index.js';
+export { Menubar, menubarAnatomy, useMenubarContext } from './components/menubar/index.js';
+export type { MenubarRootProps, MenubarContext } from './components/menubar/index.js';
 
 export { Field, fieldAnatomy } from './components/field/index.js';
 export type { FieldRootProps, FieldLabelProps, FieldDescriptionProps, FieldErrorProps, FieldErrorMatch, FieldValidate, FieldValidateOn } from './components/field/index.js';

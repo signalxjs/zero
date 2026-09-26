@@ -234,6 +234,15 @@
         color: color-mix(in oklch, var(--color-base-content) 60%, transparent);
     }
 
+    [data-scope="menu"][data-part="shortcut"] {
+        margin-inline-start: auto;
+        padding-inline-start: var(--space-lg);
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+    }
+
     [data-scope="menu"][data-part="separator"] {
         height: var(--border);
         margin: var(--space-sm) 0;

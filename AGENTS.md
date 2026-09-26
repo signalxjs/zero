@@ -135,7 +135,12 @@ contract plus per-component interaction specs on chromium/firefox/webkit —
 combobox, menu-submenu, menu-keyboard (ArrowUp opens on the last item; Enter
 on an asChild link item really navigates, #175; Tab and Shift+Tab close the
 whole chain while focus moves on to the neighbouring tab stop, #263; a
-`Menu.Arrow` over its trigger's centre, #279), toast
+`Menu.Arrow` over its trigger's centre, #279), menubar (#289: one roving
+tab stop across the triggers, ArrowRight/ArrowLeft from inside an open menu
+— a submenu item included — opening the adjacent one, hover switching, a
+click on the open trigger closing it despite light dismiss racing the click,
+Escape back to the right trigger after a switch, the arrows flipped under
+RTL, and a vertical bar), toast
 (presence, and since #269 the focus hand-off when a focused toast leaves,
 F8/Escape, and the re-stack above a modal dialog measured in pixels), select
 (and since #278, per design system on chromium, the popup geometry: a listbox
@@ -325,7 +330,8 @@ skin-independent), it walks every registry page (ids read from the rendered
 sidebar — importing the registry would drag every page's JSX through
 Playwright's transpiler), scans each page once per surface that idles closed
 (`SCANS`: a named step list per state, each from a fresh load — every
-dialog and alertdialog, the submenus, the context menu, each select and
+dialog and alertdialog, the submenus, the context menu, the menubar's open
+menu and its submenu (#289), each select and
 combobox popup incl. grouped/virtual and the forms page's, the forms
 page's validated form after a failed submit (#284), and the app
 shell's sheet at a narrow viewport, #194; a closed popup contributes nothing
@@ -466,7 +472,7 @@ slides, is fine).
   (`danger-soft` is one member), a declared three-step size ramp, and
   HeroUI's `isIconOnly`/`isPending` as `data-mod-*` modifiers. Where
   zero-material proves vocabularies can be *extended*, this proves they can be
-  a different *shape*. Full component coverage (55 recipes, plus the kit's layout tier), with `variant`
+  a different *shape*. Full component coverage (56 recipes, plus the kit's layout tier), with `variant`
   wired on button only (the repo-wide decision, #175) — it exercises the axis
   surface, not a product. Private.
 - `packages/zero-carbon` → `@sigx/zero-carbon` — Carbon-flavoured skin, and
@@ -496,7 +502,7 @@ slides, is fine).
 - `packages/create-zero-ds` → `@sigx/create-zero-ds` — the scaffold behind
   `pnpm create @sigx/zero-ds <name> --brief <id>` (#401): a Node-only bin with
   zero runtime deps that lays down a design-system package from nothing —
-  the brief's tokens + Button, `@sigx/zero-basic`'s 55 recipes as
+  the brief's tokens + Button, `@sigx/zero-basic`'s 56 recipes as
   `src/baseline.ts`, and a `src/recipes.ts` composing them through the kit's
   `fitRecipesToVocabulary` (on `/define`) so any axis shape compiles on the
   first build. Templates are embedded at build time

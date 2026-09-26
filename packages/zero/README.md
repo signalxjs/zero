@@ -30,7 +30,7 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 
 ## Components
 
-Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · HoverCard · Menu ·
+Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · HoverCard · Menu · Menubar ·
 Select · Switch · Checkbox · CheckboxGroup · RadioGroup · Slider · Progress ·
 Field · Fieldset · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · EmptyState · Badge · Divider ·
@@ -282,6 +282,41 @@ to fix. RadioGroup also restates `invalid` on each `item` and
 `item-control` (Checkbox and Switch parity), and writes
 `aria-orientation` on the radiogroup.
 
+**Menubar: the APG menubar, over Menu (#289).** `Menubar.Root` renders one
+`role="menubar"` row (`aria-orientation` and `data-orientation`, default
+`horizontal`; a `disabled` flag that disables every trigger) and
+coordinates the plain `Menu.Root`s inside it. Its one model is the open
+menu's `value` (`''` when none — `model` / `defaultValue` / `valueChange`),
+so one menu is open at a time; each `Menu.Root` names itself with `value`
+(a generated id otherwise), and inside a bar its open state follows the
+bar's model — its own `openChange` still fires. A bar's `Menu.Trigger`
+renders `role="menuitem"` (still `aria-haspopup="menu"` and
+`aria-expanded`) with a roving `tabindex`: the bar is one tab stop, the
+trigger that last had focus, else the first enabled one. ArrowLeft/
+ArrowRight move between triggers (flipped under RTL; ArrowUp/ArrowDown when
+vertical), Home/End jump, `loop` (default `true`) wraps. ArrowDown, Enter
+and Space open a menu on its first item and ArrowUp on its last (vertical:
+Enter, Space or the inline-end arrow). Inside an open menu, ArrowRight from
+an item that opens no submenu — at any depth — and ArrowLeft from a
+top-level item close the chain and open the adjacent menu on its first
+item. With a menu open, hovering another trigger switches to its menu, and
+a click on the open menu's own trigger closes it. Escape and a selection
+hand focus back to that menu's trigger; Tab closes and lets focus move on.
+
+```tsx
+<Menubar.Root aria-label="Editor">
+    <Menu.Root value="file">
+        <Menu.Trigger>File</Menu.Trigger>
+        <Menu.Popup>
+            <Menu.Item value="save" keyshortcuts="Control+S">
+                Save <Menu.Shortcut>Ctrl+S</Menu.Shortcut>
+            </Menu.Item>
+        </Menu.Popup>
+    </Menu.Root>
+    <Menu.Root value="edit">…</Menu.Root>
+</Menubar.Root>
+```
+
 **CheckboxGroup: one `string[]` model for a set of boxes, and a derived
 parent box (#282).** `CheckboxGroup.Root` renders a `role="group"` named by
 its `CheckboxGroup.Label` (referenced only while it is rendered) and hands
@@ -514,7 +549,12 @@ closes the whole chain (root and every open submenu) while the browser
 moves focus on to the next or previous tab stop — it is not pulled back to
 the trigger; focus leaving the menu any other way (a pointer, assistive
 technology) closes it too. `loop` on `Menu.Root` (default `true`) decides
-whether ArrowDown/ArrowUp wrap at the ends, at every level; Dialog has an alert-dialog preset
+whether ArrowDown/ArrowUp wrap at the ends, at every level. `Menu.Shortcut`
+is the visible shortcut hint inside an item (a decorative, `aria-hidden`
+`shortcut` part the skins push to the row's end), and `keyshortcuts` on
+`Menu.Item`, `Menu.CheckboxItem` and `Menu.RadioItem` renders
+`aria-keyshortcuts` so the shortcut is announced once, in a form assistive
+technology parses — zero binds no keys; Dialog has an alert-dialog preset
 (`role="alertdialog"`: no backdrop dismiss, initial focus on the
 least-destructive `Dialog.Cancel`), and every Dialog/Drawer close reports
 why on a `close` event that follows `openChange(false)` — `{ reason, value }`

@@ -20,6 +20,7 @@ import type { Popover as ZPopover } from '@sigx/zero/popover';
 import type { Tooltip as ZTooltip } from '@sigx/zero/tooltip';
 import type { HoverCard as ZHoverCard } from '@sigx/zero/hover-card';
 import type { Menu as ZMenu } from '@sigx/zero/menu';
+import type { Menubar as ZMenubar } from '@sigx/zero/menubar';
 import type { Field as ZField } from '@sigx/zero/field';
 import type { Fieldset as ZFieldset } from '@sigx/zero/fieldset';
 import type { Checkbox as ZCheckbox } from '@sigx/zero/checkbox';
@@ -155,6 +156,13 @@ type MenuProps = {
 };
 type MenuAdapted = Adapted<typeof ZMenu, ZeroAxisProp, MenuProps>;
 export declare const Menu: MenuAdapted & AdaptedStatics<typeof ZMenu> & { Root: MenuAdapted };
+
+/** menubar — no vendor route; the wired surface keeps zero's names. */
+type MenubarProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type MenubarAdapted = Adapted<typeof ZMenubar, ZeroAxisProp, MenubarProps>;
+export declare const Menubar: MenubarAdapted & { Root: MenubarAdapted };
 
 /** field — no vendor route; the wired surface keeps zero's names. */
 type FieldProps = {

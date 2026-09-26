@@ -128,7 +128,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-61 components ship today. Every part each renders is listed below, in
+62 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -219,9 +219,12 @@ component renders; the root is called out separately where it carries props.
   inside the safe triangle toward the card keeps pushing the close back);
   focus inside the card keeps it open; Escape closes and returns focus to the
   trigger when it was inside the card.
-- Menu: Root(model=open, defaultOpen, closeOnSelect, placement — renders no element) then
+- Menu: Root(model=open, defaultOpen, closeOnSelect, placement, value — renders no element) then
   Trigger/Popup/Item(asChild)/CheckboxItem/RadioGroup/RadioItem/Group/
-  GroupLabel/Separator; `select` event.
+  GroupLabel/Separator/Shortcut; `select` event. Shortcut is a decorative
+  (aria-hidden) `shortcut` part for the visible hint (`Ctrl+S`); the item's
+  `keyshortcuts` prop (Item/CheckboxItem/RadioItem) renders
+  aria-keyshortcuts — zero binds no keys.
   Stateful items (APG menuitemcheckbox/menuitemradio): CheckboxItem(value,
   model=checked, closeOnSelect default FALSE — unlike plain items, toggling
   keeps the menu open) and RadioGroup(model=value — renders the same labelled
@@ -255,6 +258,18 @@ component renders; the root is called out separately where it carries props.
   to the popup's near edge; each move inside restarts closeDelay, so a
   pointer that stops lets the submenu close and the item under it take
   hover. Touch gets no triangle. No prop — it is always on.
+- Menubar: Root(model=value: string — the open menu's `value`, '' when none;
+  orientation, loop default true, disabled) renders the `root` part
+  (role=menubar, aria-orientation, data-orientation). Children are plain
+  Menu.Roots with a `value` each: inside a bar a menu's open state follows
+  the bar's value, and its Menu.Trigger renders role=menuitem with a roving
+  tabindex (one tab stop — the last-focused trigger). Keyboard (APG):
+  ArrowLeft/Right rove triggers (RTL-flipped; Up/Down when vertical),
+  Home/End; ArrowDown/Enter/Space open on the first item, ArrowUp on the
+  last; inside an open menu ArrowRight from an item that opens no submenu,
+  and ArrowLeft from a top-level item, open the adjacent menu. Hovering
+  another trigger while a menu is open switches. Escape returns to the
+  trigger; Tab closes and moves on.
 - Select: Root(model=value | value[], model:open, items, itemKey, itemLabel,
   itemValue, itemDisabled, itemGroup, multiple, virtual, estimateItemSize,
   name, form, required, placeholder)/Trigger/Value/Indicator/Popup/Group/
@@ -942,7 +957,7 @@ value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, CheckboxGroup, Collapsible, Combobox, Dialog,
-Divider, EmptyState, Field, Fieldset, HoverCard, Indicator, Input, Join, Kbd, Menu, NumberInput,
+Divider, EmptyState, Field, Fieldset, HoverCard, Indicator, Input, Join, Kbd, Menu, Menubar, NumberInput,
 Navbar, NavList, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
 Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Checkbox, CheckboxGroup, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, Field, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Checkbox, CheckboxGroup, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, Field, FileUpload, Indicator, Input, Join, Kbd, Menu, Menubar, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -430,6 +430,27 @@ describe('SSR', () => {
         expect(labels[1]).not.toMatch(/\sfor=/);
         const priceId = labels[1].match(/\sid="([^"]+)"/)?.[1];
         expect(html.match(new RegExp(`role="slider"[^>]*aria-labelledby="${priceId}"|aria-labelledby="${priceId}"[^>]*role="slider"`, 'g'))).toHaveLength(2);
+    });
+
+    // #289: the bar's roles and its one tab stop are in the server markup.
+    it('server-renders a Menubar with menuitem triggers and one tab stop', async () => {
+        const html = await renderApp(
+            <Menubar.Root aria-label="Editor">
+                <Menu.Root value="file">
+                    <Menu.Trigger>File</Menu.Trigger>
+                    <Menu.Popup><Menu.Item value="new">New</Menu.Item></Menu.Popup>
+                </Menu.Root>
+                <Menu.Root value="edit">
+                    <Menu.Trigger>Edit</Menu.Trigger>
+                    <Menu.Popup><Menu.Item value="undo">Undo</Menu.Item></Menu.Popup>
+                </Menu.Root>
+            </Menubar.Root>,
+        );
+        expect(html).toMatch(/<div[^>]*data-scope="menubar"[^>]*role="menubar"/);
+        const triggers = html.match(/<button[^>]*data-part="trigger"[^>]*>/g) ?? [];
+        expect(triggers).toHaveLength(2);
+        for (const t of triggers) expect(t).toContain('role="menuitem"');
+        expect(triggers.map((t) => t.match(/tabindex="(-?\d)"/i)?.[1])).toEqual(['0', '-1']);
     });
 
     // #266: a Field's describedby is optimistic on the server — nothing

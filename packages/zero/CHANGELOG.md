@@ -2,6 +2,37 @@
 
 ## [Unreleased]
 
+### Added — `Menubar`, the APG menubar over Menu; `Menu.Shortcut` and `keyshortcuts` (#289)
+
+- **`Menubar.Root`** (`@sigx/zero/menubar` and the barrel): a new `menubar`
+  scope whose one part, `root`, renders `role="menubar"` with
+  `aria-orientation` and `data-orientation` (default `horizontal`), the
+  `disabled` flag, and the `color`/`size` axes. One `value` model names the
+  open menu (`''` when none; `model` / `defaultValue` / `valueChange`);
+  `orientation`, `loop` (default `true`) and `disabled` (disables every
+  trigger) complete the props.
+- **`Menu.Root value`**: a menu's identity inside a bar (a generated id
+  otherwise; unused outside one). Inside a `Menubar.Root` the menu's open
+  state follows the bar's model — its `openChange` still fires — and
+  `Menu.Trigger` renders `role="menuitem"` with a roving `tabindex`: the
+  bar is one tab stop, the trigger that last had focus. A `Menu.Root`
+  nested inside a bar menu is an ordinary menu button.
+- **Keyboard (APG):** ArrowLeft/ArrowRight between triggers (flipped under
+  RTL; ArrowUp/ArrowDown when vertical), Home/End; ArrowDown, Enter and
+  Space open on the first item and ArrowUp on the last (vertical: Enter,
+  Space or the inline-end arrow). Inside an open menu, ArrowRight from an
+  item that opens no submenu — at any depth — and ArrowLeft from a
+  top-level item open the adjacent menu on its first item. Escape and a
+  selection return focus to that menu's trigger; Tab closes the chain.
+- **Pointer:** with a menu open, hovering another trigger switches to its
+  menu; a click on the open menu's own trigger closes it, while a click on
+  the trigger a hover just switched to keeps it open.
+- **`Menu.Shortcut`**: a `shortcut` part (`span`, parent `popup`,
+  `aria-hidden="true"`) for the visible hint, and **`keyshortcuts`** on
+  `Menu.Item`, `Menu.CheckboxItem` and `Menu.RadioItem`, rendered as
+  `aria-keyshortcuts`. Zero binds no keys.
+- All six design systems style `menubar.root` and `menu.shortcut`.
+
 ### Added — `HoverCard`: a hover-intent preview card with interactive content (#290)
 
 - **`HoverCard`** (`@sigx/zero/hover-card` and the barrel), scope

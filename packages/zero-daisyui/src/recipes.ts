@@ -1510,6 +1510,17 @@ export const menu: RecipeInput = {
                 opacity: '0.6',
             },
         },
+        // daisy's menu hint: the group label's faded ink, pushed to the
+        // row's reading end — faded less, since 0.6 leaves nord's paper
+        // under the 4.5:1 a line read by eye owes.
+        shortcut: {
+            base: {
+                marginInlineStart: 'auto',
+                paddingInlineStart: 'var(--space-lg)',
+                fontSize: 'var(--text-xs)',
+                opacity: '0.75',
+            },
+        },
         separator: {
             base: {
                 height: 'var(--border)',
@@ -1525,8 +1536,51 @@ export const menu: RecipeInput = {
     targets: {
         web: floatingArrow('menu', panelArrowPaint),
         lynx: {
-            parts: { trigger: { base: lynxBtnPad(4) } },
+            parts: {
+                trigger: { base: lynxBtnPad(4) },
+                // The shortcut's reading-end push, restated physically (#1084).
+                shortcut: { base: { marginLeft: 'auto', paddingLeft: 'var(--space-lg)' } },
+            },
             variants: { size: lynxBtnSizes('trigger') },
+        },
+    },
+};
+
+// The menubar row: daisy's `menu-horizontal` strip — a base-200 box the
+// menu triggers sit in. The triggers are ordinary `menu` triggers.
+export const menubar: RecipeInput = {
+    component: 'menubar',
+    tokens: { '--menubar-surface': 'var(--color-base-200)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                padding: 'var(--space-xs)',
+                width: 'max-content',
+                maxWidth: '100%',
+                flexWrap: 'wrap',
+                background: 'var(--menubar-surface)',
+                borderRadius: 'var(--radius-box)',
+            },
+            // The triggers fade themselves — see basic.
+            states: { disabled: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column', alignItems: 'stretch' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--menubar-surface': `color-mix(in oklch, var(--color-${c}) 12%, var(--color-base-200))`,
+        } } }])),
+        size: {
+            xs: { root: { base: { gap: '0', padding: '0' } } },
+            sm: { root: { base: { padding: 'var(--space-2xs)' } } },
+            md: {},
+            lg: { root: { base: { gap: 'var(--space-sm)', padding: 'var(--space-sm)' } } },
+            xl: { root: { base: { gap: 'var(--space-md)', padding: 'var(--space-sm)' } } },
         },
     },
 };
@@ -7592,7 +7646,7 @@ export const diff: RecipeInput = {
 };
 
 export const recipes: RecipeInput[] = [
-    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu,
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,

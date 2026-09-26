@@ -210,6 +210,8 @@ const NO_VARIANT: Record<string, string> = {
         + 'declares a vocabulary for it yet (#285).',
     menu: 'no surveyed system varies a menu — Radix DropdownMenu and HeroUI '
         + 'Dropdown style through the item, not a style axis.',
+    menubar: 'no surveyed system varies a menubar — Radix Menubar and '
+        + 'React Aria style the bar through its triggers, like the menu (#289).',
     popover: 'no surveyed system varies a popover surface.',
     'hover-card': 'no surveyed system varies a hover card — Radix HoverCard, '
         + 'Ark HoverCard, Base UI PreviewCard and Mantine HoverCard style the '

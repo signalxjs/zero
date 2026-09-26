@@ -2410,6 +2410,13 @@
         opacity: 0.6;
     }
 
+    [data-scope="menu"][data-part="shortcut"] {
+        margin-inline-start: auto;
+        padding-inline-start: var(--space-lg);
+        font-size: var(--text-xs);
+        opacity: 0.75;
+    }
+
     [data-scope="menu"][data-part="separator"] {
         height: var(--border);
         margin: var(--space-sm) var(--space-md);
@@ -2658,6 +2665,80 @@
             opacity: 0;
             transform: translateX(-4px);
         }
+    }
+}
+
+@layer zero.recipes {
+    [data-scope="menubar"][data-part="root"] {
+        --menubar-surface: var(--color-base-200);
+    }
+
+    [data-scope="menubar"][data-part="root"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        padding: var(--space-xs);
+        width: max-content;
+        max-width: 100%;
+        flex-wrap: wrap;
+        background: var(--menubar-surface);
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="primary"] {
+        --menubar-surface: color-mix(in oklch, var(--color-primary) 12%, var(--color-base-200));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="secondary"] {
+        --menubar-surface: color-mix(in oklch, var(--color-secondary) 12%, var(--color-base-200));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="accent"] {
+        --menubar-surface: color-mix(in oklch, var(--color-accent) 12%, var(--color-base-200));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="neutral"] {
+        --menubar-surface: color-mix(in oklch, var(--color-neutral) 12%, var(--color-base-200));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="info"] {
+        --menubar-surface: color-mix(in oklch, var(--color-info) 12%, var(--color-base-200));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="success"] {
+        --menubar-surface: color-mix(in oklch, var(--color-success) 12%, var(--color-base-200));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="warning"] {
+        --menubar-surface: color-mix(in oklch, var(--color-warning) 12%, var(--color-base-200));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-color="error"] {
+        --menubar-surface: color-mix(in oklch, var(--color-error) 12%, var(--color-base-200));
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="xs"] {
+        gap: 0;
+        padding: 0;
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="sm"] {
+        padding: var(--space-2xs);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="lg"] {
+        gap: var(--space-sm);
+        padding: var(--space-sm);
+    }
+
+    [data-scope="menubar"][data-part="root"][data-size="xl"] {
+        gap: var(--space-md);
+        padding: var(--space-sm);
     }
 }
 
