@@ -25,6 +25,22 @@
 - An item or branch valued `''` now throws in single mode, where `''` is
   "nothing selected" (ToggleGroup's rule); under `multiple` it is allowed.
 
+### Changed — zero-daisyui progress, slider and switch fidelity (#336)
+
+- **Progress `complete` keeps the colour axis.** The range no longer turns
+  success green at 100% — daisyUI 5 has no complete tint, and a
+  `color="secondary"` bar changing hue when it fills reads as a bug on device
+  (signalxjs/lynx#1144). Pass `color="success"` for a success-coloured bar.
+  Declared `sameAs: { root: { complete: 'loading' }, range: { complete: 'loading' } }`.
+- **Slider, lynx target:** a `mark` is now its own 2px tick across the
+  channel (the web's `::before` tick has no lynx projection, so marks were
+  invisible); `data-orientation="vertical"` rules in class grammar for the
+  lynx runtime's vertical slider; the fill and knob ring are the web's 90/10
+  deepened accent, theme-baked and rebound per colour and under `invalid`;
+  daisy's selector radius on the channel and knob, and the knob's depth
+  shading.
+- **Switch, lynx target:** daisy's depth shading on the track and knob.
+
 ## [0.6.0] - 2026-09-26
 
 ### Added — Tabs indicator and lazy panels (#283)

@@ -842,17 +842,21 @@ describe('assertNoCalcVarChains', () => {
         const css = componentCss['slider']!;
         // No unresolvable paint survives anywhere in the skin…
         expect(css).not.toMatch(/color-mix\(/);
-        // …the fill is the plain accent chain…
+        // …the fill is the web's 90/10 deepened accent, baked per theme
+        // (lynx#1144) and rebound per colour step and under `invalid`…
+        expect(css).toMatch(/\.zx-root \.zx-slider__root \{\s*--slider-fill: #[0-9a-f]{6};/);
+        expect(css).toMatch(/\.zx-root \.zx-slider__root\.zx-a-color-secondary \{\s*--slider-fill: #[0-9a-f]{6};/);
+        expect(css).toMatch(/\.zx-root \.zx-slider__control\.zx-f-invalid \{\s*--slider-fill: #[0-9a-f]{6};/);
         const range = css.match(/\.zx-slider__range \{[^}]*\}/)?.[0];
         expect(range).toBeDefined();
-        expect(range).toContain('background: var(--slider-accent);');
+        expect(range).toContain('background: var(--slider-fill);');
         // …the knob is daisy's real range-thumb look — a base-100 knob
-        // ringed by the accent — with daisy's `--range-p` border width
+        // ringed by the fill — with daisy's `--range-p` border width
         // stated as its literal value, 0.25rem…
         const thumb = css.match(/\.zx-slider__thumb \{[^}]*\}/)?.[0];
         expect(thumb).toBeDefined();
         expect(thumb).toContain('background: var(--color-base-100);');
-        expect(thumb).toContain('border: 0.25rem solid var(--slider-accent);');
+        expect(thumb).toContain('border: 0.25rem solid var(--slider-fill);');
         // …the knob centers PHYSICALLY: the web spelling
         // (`inset-block-start`/`translate`/`margin-inline-start`) resolves
         // on iOS but not on Android (signalxjs/lynx#1084 — the thumb sat
@@ -865,6 +869,30 @@ describe('assertNoCalcVarChains', () => {
         // mechanism lynx has no renderer for).
         expect(range).not.toContain('accent-color');
         expect(thumb).not.toContain('accent-color');
+    });
+
+    it('zero-daisyui slider: the mark is its own tick on lynx, and vertical turns the channel upright', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const css = componentCss['slider']!;
+        // The web's `::before` tick has no lynx projection — the mark box
+        // itself is the 2px rule across the channel (lynx#1144).
+        const mark = css.match(/\.zx-slider__mark \{[^}]*\}/)?.[0];
+        expect(mark).toBeDefined();
+        expect(mark).toContain('width: 2px;');
+        expect(mark).toContain('height: calc(var(--size-selector) * 3);');
+        expect(mark).toContain('margin-left: -1px;');
+        expect(mark).toContain('padding-top: 0;');
+        expect(mark).toContain('background-color: var(--color-base-content);');
+        expect(css).not.toContain('::before');
+        // Vertical, in class grammar: the control is a thumb-wide column,
+        // the track fills it, the tick lies across it — each re-sized per
+        // step with the calc chains inlined.
+        expect(css).toMatch(/\.zx-slider__control\.zx-o-vertical \{[^}]*height: calc\(var\(--size-selector\) \* 40\);/);
+        expect(css).toMatch(/\.zx-slider__track\.zx-o-vertical \{[^}]*width: calc\(var\(--size-selector\) \* 3\);[^}]*margin-top: 0;/);
+        expect(css).toMatch(/\.zx-slider__track\.zx-o-vertical\.zx-a-size-xl \{\s*width: calc\(var\(--size-selector\) \* 4\);/);
+        expect(css).toMatch(/\.zx-slider__mark\.zx-o-vertical \{[^}]*height: 2px;/);
+        // No logical spelling reaches the vertical rules either (lynx#1084).
+        expect(css).not.toMatch(/inset-|margin-block|margin-inline|padding-block|padding-inline/);
     });
 });
 
