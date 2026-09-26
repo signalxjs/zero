@@ -130,7 +130,8 @@ const pressable = (prefix: string, ink = 'var(--color-primary)'): PartStyles => 
 /**
  * Unbounded press feedback for selection controls: a fixed circle centered
  * on the part (MD3's 40dp state layer), press coordinates ignored, and no
- * clipping — the halo extends past the box.
+ * clipping — the halo extends past the box. A readonly control (#267) takes
+ * no hover layer: the halo would promise a press that changes nothing.
  */
 const pressableCentered = (prefix: string, diameter: string, ink = 'var(--color-primary)'): PartStyles => ({
     base: {
@@ -152,7 +153,7 @@ const pressableCentered = (prefix: string, diameter: string, ink = 'var(--color-
             pointerEvents: 'none',
             transition: 'opacity var(--duration-fast) var(--ease-standard)',
         },
-        '&:hover:not([data-disabled])::before': { opacity: '0.08' },
+        '&:hover:not([data-disabled], [data-readonly])::before': { opacity: '0.08' },
         '&[data-pressed]:not([data-disabled])::before': { opacity: '0.12' },
         // MD3 ink: on-surface while unselected, the accent once selected.
         '&[data-state="unchecked"]::before': { background: 'var(--color-base-content)' },
@@ -176,7 +177,7 @@ const pressableCentered = (prefix: string, diameter: string, ink = 'var(--color-
     },
     at: {
         'hover-none': {
-            selectors: { '&:hover:not([data-disabled])::before': { opacity: '0' } },
+            selectors: { '&:hover:not([data-disabled], [data-readonly])::before': { opacity: '0' } },
         },
         'forced-colors': {
             selectors: {
@@ -1075,6 +1076,8 @@ export const select: RecipeInput = {
             states: {
                 open: { borderBottomColor: 'var(--select-accent)' },
                 closed: {},
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 // Semantic role state, deliberately NOT the accent.
                 invalid: { borderBottomColor: 'var(--color-error)' },
@@ -1174,7 +1177,7 @@ export const switchRecipe: RecipeInput = {
                 cursor: 'pointer',
                 WebkitTapHighlightColor: 'transparent',
             },
-            states: { checked: {}, unchecked: {}, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+            states: { checked: {}, unchecked: {}, readonly: { cursor: 'default' }, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
         // Material's switch state layer rides the THUMB (which travels and
         // grows), so the held layer is a thumb pseudo lit from the control's
@@ -1209,7 +1212,9 @@ export const switchRecipe: RecipeInput = {
                 ...focusRing,
             },
             selectors: {
-                '&:hover:not([data-disabled]) [data-part="thumb"]::before': { opacity: '0.08' },
+                // No hover layer on a readonly switch: it would promise a
+                // press that changes nothing.
+                '&:hover:not([data-disabled], [data-readonly]) [data-part="thumb"]::before': { opacity: '0.08' },
                 '&[data-pressed]:not([data-disabled]) [data-part="thumb"]::before': { opacity: '0.12' },
                 // MD3 ink: on-surface while unselected (deliberately NOT the
                 // accent), the accent once checked (the thumb's own ::before).
@@ -1217,7 +1222,7 @@ export const switchRecipe: RecipeInput = {
             },
             at: {
                 'hover-none': {
-                    selectors: { '&:hover:not([data-disabled]) [data-part="thumb"]::before': { opacity: '0' } },
+                    selectors: { '&:hover:not([data-disabled], [data-readonly]) [data-part="thumb"]::before': { opacity: '0' } },
                 },
             },
         },
@@ -1419,7 +1424,7 @@ export const checkbox: RecipeInput = {
                 cursor: 'pointer',
                 WebkitTapHighlightColor: 'transparent',
             },
-            states: { disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+            states: { readonly: { cursor: 'default' }, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
         // MD3 selection-control halo: unbounded, centered, coords ignored.
         // 2.5 × the tick keeps the 15-unit resting diameter and scales with
@@ -1635,18 +1640,9 @@ export const radioGroup: RecipeInput = {
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            // `invalid` paints on each `item-control`, which carries the flag
+            // itself (#267) — the root only groups the items.
             states: { invalid: {}, required: {} },
-            selectors: {
-                // `invalid` is a fact about the GROUP — `item-control` carries
-                // no flag of its own. Rebinding the accent on each control
-                // carries M3's error state through the whole selection ring:
-                // the ring itself, the dot (which IS the accent — a Material
-                // radio's container is never filled) and the press halo.
-                '&[data-invalid] [data-part="item-control"]': {
-                    '--radio-accent': 'var(--color-error)',
-                    borderColor: 'var(--color-error)',
-                },
-            },
         },
         label: { base: { ...label, fontSize: 'var(--text-md)' } },
         item: {
@@ -1657,7 +1653,7 @@ export const radioGroup: RecipeInput = {
                 cursor: 'pointer',
                 WebkitTapHighlightColor: 'transparent',
             },
-            states: { disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+            states: { readonly: { cursor: 'default' }, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
         // Not the full `tickBox`: a radio has no indeterminate state, and
         // reusing the checkbox's states smuggled one in — which the compiler
@@ -1668,6 +1664,15 @@ export const radioGroup: RecipeInput = {
             states: {
                 checked: { borderColor: 'var(--radio-accent)' },
                 unchecked: {},
+                // Rebinding the accent carries M3's error state through the
+                // whole selection ring: the ring itself, the dot (which IS
+                // the accent — a Material radio's container is never filled)
+                // and the press halo. After `checked`, so it holds whichever
+                // radio is chosen.
+                invalid: {
+                    '--radio-accent': 'var(--color-error)',
+                    borderColor: 'var(--color-error)',
+                },
                 ...focusRing,
             },
         }),
@@ -1812,6 +1817,8 @@ export const slider: RecipeInput = {
                 pressed: {
                     '--slider-halo': 'color-mix(in oklab, var(--slider-accent) 12%, transparent)',
                 },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
             },
             selectors: {
@@ -1878,7 +1885,7 @@ export const slider: RecipeInput = {
                 background: 'var(--color-secondary-soft)',
                 cursor: 'pointer',
             },
-            states: { disabled: { cursor: 'not-allowed' } },
+            states: { readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
         },
         range: {
             base: {
@@ -1911,6 +1918,8 @@ export const slider: RecipeInput = {
                         + '0 0 0 4px var(--color-secondary), '
                         + '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 10%, transparent)',
                 },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
             },
         },

@@ -33,6 +33,10 @@
         border-bottom-color: var(--select-accent);
     }
 
+    [data-scope="select"][data-part="trigger"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="select"][data-part="trigger"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;

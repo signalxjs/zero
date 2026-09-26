@@ -19,7 +19,7 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { htmlAttrs } from '../../contract/props.js';
-import type { HtmlAttrValue, WithClass, WithFormControl, WithHtmlAttrs, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
+import type { HtmlAttrValue, WithClass, WithFormControl, WithHtmlAttrs, WithModelModifiers, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { switchAnatomy } from './anatomy.js';
 
 const SCOPE = switchAnatomy.scope;
@@ -30,6 +30,12 @@ export type SwitchRootProps =
     & Define.Event<'checkedChange', boolean>
     & Define.Prop<'value', string, false>
     & WithFormControl
+    /**
+     * Read-only: focusable and announced, but a click, Space or label press
+     * never toggles it (a native checkbox ignores `readonly`, so the
+     * activation is cancelled). The prop OR the Field's.
+     */
+    & WithReadonly
     & WithModelModifiers
     & WithVariantAxes<'switch'>
     & WithClass
@@ -73,12 +79,15 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal, onM
     const disabled = fc.disabled;
     const invalid = fc.invalid;
     const required = fc.required;
+    const readonly = fc.readonly;
     // Cross-element press: the row (label) is the pointer target and the
     // hidden input is the keyboard target, but the feedback lands on the
     // visible control — coordinates are computed against getElement's rect.
     const press = createPressFeedback({
         getElement: () => controlEl,
-        isDisabled: () => disabled(),
+        // A readonly control does not answer a press either — nothing
+        // will happen, so nothing should look like it is about to.
+        isDisabled: () => disabled() || readonly(),
     });
 
     const checkedState = () => stateAttr(state.value, 'checked', 'unchecked');
@@ -102,6 +111,7 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal, onM
                 data-focus-visible={dataAttr(focus.visible)}
                 data-invalid={dataAttr(invalid())}
                 data-required={dataAttr(required())}
+                data-readonly={dataAttr(readonly())}
                 {...fc.axisAttrs()}
                 class={props.class}
                 onPointerdown={press.onPointerdown}
@@ -120,11 +130,16 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal, onM
                     model={state}
                     modelModifiers={timingModifiers(props.modelModifiers)}
                     disabled={disabled()}
-                    required={required()}
+                    // A readonly box's state is not the user's to fix, so it
+                    // cannot be what blocks the submit — the native rule for
+                    // readonly controls (RatingGroup does the same).
+                    required={required() && !readonly()}
                     name={fc.name()}
                     form={fc.form()}
                     value={props.value ?? 'on'}
                     aria-invalid={invalid() ? 'true' : undefined}
+                    // No `aria-readonly`: the `switch` role does not support
+                    // it (ARIA 1.2), so readonly is `data-readonly` alone.
                     aria-describedby={[fc.describedBy(), inputAttrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
                     ref={(node: HTMLInputElement | null) => { inputEl = node; }}
                     onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
@@ -132,6 +147,11 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal, onM
                         press.onBlur(e);
                         focus.visible = false;
                     }}
+                    // Click is the one activation path — a pointer on the
+                    // box, a press on the label, Space — so cancelling it is
+                    // the whole of readonly: the platform restores the
+                    // checkedness and fires no change.
+                    onClick={(e: MouseEvent) => { if (readonly()) e.preventDefault(); }}
                     onKeydown={press.onKeydown}
                     onKeyup={press.onKeyup}
                 />
@@ -142,6 +162,7 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal, onM
                     data-disabled={dataAttr(disabled())}
                     data-focus-visible={dataAttr(focus.visible)}
                     data-invalid={dataAttr(invalid())}
+                    data-readonly={dataAttr(readonly())}
                     ref={(node: HTMLElement | null) => { controlEl = node; }}
                 >
                     <span

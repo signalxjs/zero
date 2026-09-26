@@ -43,6 +43,10 @@
  * platform constraint, autofill sees the options, a form `reset()` restores
  * the default, `form="id"` associates from outside. The invalid focus lands
  * on the trigger.
+ *
+ * READONLY (the prop or the Field's): the trigger stays focusable and
+ * announced (`aria-readonly`), but it does not open, and no key — typeahead
+ * included — changes the value. A readonly select never blocks a submit.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define, JSXElement } from 'sigx';
@@ -72,6 +76,7 @@ import type {
     WithDisabled,
     WithFormControl,
     WithHtmlAttrs,
+    WithReadonly,
     WithVariantAxes,
 } from '../../contract/props.js';
 import { selectAnatomy } from './anatomy.js';
@@ -95,6 +100,7 @@ interface SelectContext {
     disabled(): boolean;
     invalid(): boolean;
     required(): boolean;
+    readonly(): boolean;
     describedBy(): string | undefined;
     setTrigger(el: HTMLElement | null): void;
     setPopup(el: HTMLElement | null): void;
@@ -121,6 +127,7 @@ function makeInert(): SelectContext {
         disabled: () => false,
         invalid: () => false,
         required: () => false,
+        readonly: () => false,
         describedBy: () => undefined,
         setTrigger: () => {},
         setPopup: () => {},
@@ -159,6 +166,8 @@ export type SelectRootProps<T = unknown, M = unknown> =
     & Define.Prop<'multiple', boolean, false>
     & Define.Prop<'placeholder', string, false>
     & WithFormControl
+    /** Focusable, but does not open and no key changes the value. The prop OR the Field's. */
+    & WithReadonly
     /**
      * Window the options (#96): only those near the popup's scroll position
      * are rendered. Takes the strategy from its own entry, so only a list
@@ -246,13 +255,22 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
 
     const listbox = createListbox<unknown>({
         collection,
-        selection: state,
+        // Every user selection — a click on an option, Enter/Space, the
+        // closed typeahead — writes through here, so readonly is one guard
+        // (a popup a consumer opens through `model:open` included). The
+        // platform's own writes (reset, autofill) go to `state` directly.
+        selection: {
+            get value() { return state.value; },
+            set value(v: unknown) { if (!fc.readonly()) state.value = v; },
+        },
         multiple,
         list,
         idBase: baseId,
         emptyValue,
         // A single selection closes; a multiple one toggles and stays open.
-        onSelect: () => { if (!multiple()) setOpen(false); },
+        // A readonly select's option is inert: it neither writes nor closes
+        // a popup the app opened.
+        onSelect: () => { if (!multiple() && !fc.readonly()) setOpen(false); },
     });
     // The hidden select's `<option selected>` attributes say it; the
     // property settles it in every DOM, after the options exist (#145).
@@ -357,11 +375,15 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         disabled: fc.disabled,
         invalid: fc.invalid,
         required: fc.required,
+        readonly: fc.readonly,
         describedBy: fc.describedBy,
         setTrigger: (el) => { trigger = el; },
         setPopup: (el) => { popup = el; },
         triggerKeydown(e) {
             if (ctx.disabled()) return;
+            // Closed and readonly, no key opens it or picks through the
+            // typeahead — and none is swallowed: the page keeps its keys.
+            if (ctx.readonly() && !openState.value) return;
             const key = e.key;
             // `activateSpace`: a Space that opens / selects. While a typeahead
             // search is running Space is search text instead ("Save As"),
@@ -462,6 +484,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
             data-scope={SCOPE}
             data-part="root"
             {...fc.flags()}
+            data-readonly={dataAttr(fc.readonly())}
             {...fc.axisAttrs()}
             class={props.class}
         >
@@ -475,7 +498,9 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
                         style={VISUALLY_HIDDEN_STYLE}
                         {...fc.hiddenAttrs()}
                         multiple={multiple()}
-                        required={ctx.required()}
+                        // Readonly never blocks a submit — the native rule
+                        // for readonly controls.
+                        required={ctx.required() && !ctx.readonly()}
                         tabIndex={-1}
                         aria-hidden="true"
                         ref={(node: HTMLSelectElement | null) => { hidden = node; }}
@@ -486,6 +511,9 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
                         // form restoration): its selection flows back into the model.
                         onChange={() => {
                             if (!hidden) return;
+                            // Autofill never writes a readonly control: put
+                            // the platform's pick back.
+                            if (ctx.readonly()) { syncHidden(); return; }
                             // Only the single-mode placeholder carries the empty key;
                             // under `multiple` an empty-string key is a real item.
                             const keys = Array.from(hidden.options)
@@ -563,7 +591,7 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
     // Disabled lives in the root's context, not on this part's props.
     const press = createPressFeedback({
         getElement: () => el,
-        isDisabled: () => select.disabled(),
+        isDisabled: () => select.disabled() || select.readonly(),
     });
 
     const bag = (): PartProps => {
@@ -576,6 +604,7 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
             'data-state': stateAttr(select.open.value, 'open', 'closed'),
             'data-disabled': dataAttr(select.disabled()),
             'data-invalid': dataAttr(select.invalid()),
+            'data-readonly': dataAttr(select.readonly()),
             'data-placeholder': dataAttr(select.listbox.selectedKeys().length === 0),
             'data-focus-visible': dataAttr(focus.visible),
             role: 'combobox',
@@ -585,13 +614,18 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
             'aria-controls': select.ids.popup,
             'aria-invalid': select.invalid() ? 'true' : undefined,
             'aria-required': select.required() ? 'true' : undefined,
+            'aria-readonly': select.readonly() ? 'true' : undefined,
             'aria-describedby': [
                 select.describedBy(),
                 attrs['aria-describedby'],
             ].filter(Boolean).join(' ') || undefined,
             'aria-activedescendant': select.listbox.activeDescendant(select.open.value),
             onClick: () => {
-                if (!select.disabled()) select.open.value = !select.open.value;
+                // Readonly does not open; it may still close one a
+                // consumer opened.
+                if (select.disabled()) return;
+                if (select.readonly() && !select.open.value) return;
+                select.open.value = !select.open.value;
             },
             onKeydown: (e: KeyboardEvent) => {
                 // A Space that continues a search is search text, not a press.

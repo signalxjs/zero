@@ -512,6 +512,8 @@ export const switchRecipe: RecipeInput = {
                 cursor: 'pointer',
             },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {},
                 unchecked: {},
@@ -1209,6 +1211,8 @@ export const checkbox: RecipeInput = {
         root: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-md)', cursor: 'pointer' },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {}, unchecked: {}, indeterminate: {},
             },
@@ -1244,10 +1248,11 @@ export const checkbox: RecipeInput = {
                 disabled: {},
             },
             selectors: {
-                // Scoped to the empty, valid well — a bare `hover` outranks
-                // both the checked fill and the invalid border and would
-                // repaint them secondary.
-                '&[data-state="unchecked"]:hover:not([data-disabled], [data-invalid])': {
+                // Scoped to the empty, valid, editable well — a bare `hover`
+                // outranks both the checked fill and the invalid border and
+                // would repaint them secondary, and a readonly well invites
+                // nothing.
+                '&[data-state="unchecked"]:hover:not([data-disabled], [data-invalid], [data-readonly])': {
                     borderColor: 'var(--color-secondary)',
                 },
             },
@@ -1336,14 +1341,9 @@ export const radioGroup: RecipeInput = {
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
+            // `invalid` paints on each `item-control`, which carries the flag
+            // itself (#267) — the root only groups the items.
             states: { invalid: {}, required: {} },
-            selectors: {
-                // `invalid` is a fact about the GROUP — `item-control` carries
-                // no flag of its own — so the mark is reached from the root.
-                // The border is the same surface the system's other invalid
-                // controls turn error.
-                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--color-error)' },
-            },
         },
         // Weight 500, not 600 — semibold is for headings and table headers
         // only; a form label is chrome.
@@ -1358,6 +1358,8 @@ export const radioGroup: RecipeInput = {
         item: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-md)', cursor: 'pointer' },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {}, unchecked: {},
             },
@@ -1380,14 +1382,19 @@ export const radioGroup: RecipeInput = {
             states: {
                 checked: { borderColor: 'var(--radio-accent)' },
                 unchecked: {},
+                // After `checked`: an invalid group reads as invalid whichever
+                // radio is chosen — the same error border the system's other
+                // invalid controls turn.
+                invalid: { borderColor: 'var(--color-error)' },
                 // One-ink focus — petrol for every role.
                 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
                 disabled: {},
             },
             selectors: {
-                // Scoped to the empty well, like checkbox: a bare hover would
-                // outrank the checked ring.
-                '&[data-state="unchecked"]:hover:not([data-disabled])': {
+                // Scoped to the empty, valid, editable well, like checkbox: a
+                // bare hover would outrank the checked ring and the error
+                // border.
+                '&[data-state="unchecked"]:hover:not([data-disabled], [data-invalid], [data-readonly])': {
                     borderColor: 'var(--color-secondary)',
                 },
             },
@@ -1584,6 +1591,8 @@ export const slider: RecipeInput = {
                 // the lynx target hard-rejects in shared sections.
             },
             states: {
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
                 // One-ink focus — petrol for every role; the accent shows in
                 // the track, not the ring.
@@ -1652,7 +1661,7 @@ export const slider: RecipeInput = {
                 boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
                 cursor: 'pointer',
             },
-            states: { disabled: { cursor: 'not-allowed' } },
+            states: { readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
         },
         range: {
             base: {
@@ -1686,6 +1695,8 @@ export const slider: RecipeInput = {
                 // The same instantaneous ink film the native thumb takes.
                 pressed: { background: 'color-mix(in oklch, var(--color-base-content) 6%, var(--color-base-100))' },
                 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
             },
         },
@@ -1992,6 +2003,8 @@ export const select: RecipeInput = {
             },
             states: {
                 hover: { borderColor: 'var(--color-secondary)' },
+                // Readonly answers to nothing, so it does not invite a click.
+                readonly: { cursor: 'default' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 open: { borderColor: 'var(--select-accent)' },
                 closed: {},

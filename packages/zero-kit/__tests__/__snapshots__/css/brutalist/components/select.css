@@ -34,6 +34,11 @@
         transform: translate(2px, 2px);
     }
 
+    [data-scope="select"][data-part="trigger"][data-readonly] {
+        box-shadow: none;
+        cursor: default;
+    }
+
     [data-scope="select"][data-part="trigger"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;

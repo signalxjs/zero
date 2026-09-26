@@ -46,6 +46,12 @@
         --slider-track: linear-gradient(var(--slider-fill-dir), var(--slider-accent) var(--slider-percent, 50%), var(--color-base-100) 0);
     }
 
+    [data-scope="slider"][data-part="control"][data-readonly] {
+        cursor: default;
+        --slider-track-shadow: none;
+        --slider-thumb-shadow: none;
+    }
+
     [data-scope="slider"][data-part="control"][data-disabled] {
         cursor: not-allowed;
         --slider-track-shadow: none;
@@ -151,6 +157,11 @@
         cursor: pointer;
     }
 
+    [data-scope="slider"][data-part="track"][data-readonly] {
+        cursor: default;
+        box-shadow: none;
+    }
+
     [data-scope="slider"][data-part="track"][data-disabled] {
         cursor: not-allowed;
         box-shadow: none;
@@ -191,6 +202,11 @@
     }
 
     [data-scope="slider"][data-part="thumb"][data-pressed] {
+        box-shadow: none;
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-readonly] {
+        cursor: default;
         box-shadow: none;
     }
 

@@ -13,6 +13,10 @@
         cursor: pointer;
     }
 
+    [data-scope="switch"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="switch"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -37,6 +41,10 @@
 
     [data-scope="switch"][data-part="control"][data-invalid] {
         border-color: var(--color-error);
+    }
+
+    [data-scope="switch"][data-part="control"][data-readonly] {
+        box-shadow: none;
     }
 
     [data-scope="switch"][data-part="control"][data-focus-visible] {

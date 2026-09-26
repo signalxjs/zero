@@ -10,11 +10,6 @@
         gap: var(--space-sm);
     }
 
-    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
-        --radio-accent: var(--color-error);
-        border-color: var(--color-error);
-    }
-
     [data-scope="radio-group"][data-part="label"] {
         font-family: var(--font-sans);
         font-size: var(--text-md);
@@ -28,6 +23,10 @@
         gap: var(--space-sm);
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
+    }
+
+    [data-scope="radio-group"][data-part="item"][data-readonly] {
+        cursor: default;
     }
 
     [data-scope="radio-group"][data-part="item"][data-disabled] {
@@ -54,6 +53,11 @@
         border-color: var(--radio-accent);
     }
 
+    [data-scope="radio-group"][data-part="item-control"][data-invalid] {
+        --radio-accent: var(--color-error);
+        border-color: var(--color-error);
+    }
+
     [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;
@@ -74,7 +78,7 @@
         transition: opacity var(--duration-fast) var(--ease-standard);
     }
 
-    [data-scope="radio-group"][data-part="item-control"]:hover:not([data-disabled])::before {
+    [data-scope="radio-group"][data-part="item-control"]:hover:not([data-disabled], [data-readonly])::before {
         opacity: 0.08;
     }
 
@@ -219,7 +223,7 @@
     }
 
     @media (hover: none) {
-        [data-scope="radio-group"][data-part="item-control"]:hover:not([data-disabled])::before {
+        [data-scope="radio-group"][data-part="item-control"]:hover:not([data-disabled], [data-readonly])::before {
             opacity: 0;
         }
     }

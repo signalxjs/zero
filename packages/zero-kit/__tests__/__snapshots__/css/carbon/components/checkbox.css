@@ -12,6 +12,10 @@
         cursor: pointer;
     }
 
+    [data-scope="checkbox"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="checkbox"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;

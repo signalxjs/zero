@@ -133,7 +133,11 @@ from `dist/`), then `pnpm --filter zero-playground dev`.
 Real-browser interaction tests (Playwright over the playground; press-feedback
 contract plus per-component interaction specs on chromium/firefox/webkit —
 combobox, menu-submenu, menu-keyboard (ArrowUp opens on the last item; Enter
-on an asChild link item really navigates, #175), toast, select, and since #326 the overlays and
+on an asChild link item really navigates, #175), toast, select,
+form-readonly (#267: readonly checkbox, switch, radio group, select and
+slider refuse every click, key, press and drag — a cancelled radio
+activation re-checks the previous radio, which happy-dom does not run,
+and arrow-key roving still moves focus), and since #326 the overlays and
 composites a simulated DOM cannot host: dialog (real `showModal()` top layer,
 the geometric backdrop-vs-padding click from #324, a press dragged from
 text inside out to the backdrop that must not dismiss and Escape pressed

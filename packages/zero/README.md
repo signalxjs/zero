@@ -97,7 +97,7 @@ blocked.
 
 **The form contract.** Every posting control takes the same five props
 (`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus
-`readonly` where the platform has it) and answers to a `Field.Root` for all
+`readonly` on every value control — see below) and answers to a `Field.Root` for all
 of them. A control posts only while it carries a `name`; a disabled control
 never posts; `form="id"` associates it from outside the form's subtree; and
 the owning form's `reset()` restores the component default into the model
@@ -133,6 +133,29 @@ system's size axis (`data-size`), so width belongs to the recipe.
     <Input.Control><Input.Input /></Input.Control>
 </Input.Root>
 ```
+
+**Readonly reaches every value control, not only text (#267).** Input,
+Textarea, NumberInput, Combobox, RatingGroup — and Checkbox, Switch,
+RadioGroup, Select and Slider — take `readonly` (`WithReadonly`), the prop OR
+the Field's, so `<Field.Root readonly>` means the same thing whatever it
+wraps. A readonly control stays focusable and renders `data-readonly` on its
+root and the parts a design system paints (checkbox/switch `control`,
+radio-group `item`/`item-control`, select `trigger`, slider `control`/
+`track`/`thumb`), but refuses every user write while an app's model write
+still lands: Checkbox and Switch cancel the native click (a native checkbox
+ignores `readonly`), so no press, label click or Space toggles them;
+RadioGroup cancels the radios' activation, so the platform's arrow-key
+roving still moves focus but chooses nothing; Select does not open, and no
+key — typeahead included — changes it; Slider neither steps on a key nor
+moves on a press or drag, the native range's own input put back. ARIA
+follows each role: `aria-readonly` on the checkbox input, the radiogroup,
+the select's `combobox` trigger and every `slider` (thumb or native range);
+the `switch` role does not support it, so a readonly Switch says so through
+`data-readonly` alone. As on a native readonly control, a readonly
+`required` control never blocks the submit — its value is not the user's
+to fix. RadioGroup also restates `invalid` on each `item` and
+`item-control` (Checkbox and Switch parity), and writes
+`aria-orientation` on the radiogroup.
 
 **A sized Field sizes its control.** A control with no `size` of its own
 renders its Field's, the same way it adopts the Field's flags, so a compact

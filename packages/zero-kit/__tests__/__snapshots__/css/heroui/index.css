@@ -496,6 +496,10 @@
         cursor: pointer;
     }
 
+    [data-scope="switch"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="switch"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -1335,6 +1339,10 @@
         cursor: pointer;
     }
 
+    [data-scope="checkbox"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="checkbox"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -1529,10 +1537,6 @@
         flex-direction: row;
     }
 
-    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
-        border-color: var(--hero-danger);
-    }
-
     [data-scope="radio-group"][data-part="label"] {
         font-family: var(--font-sans);
         font-size: var(--text-sm);
@@ -1555,6 +1559,10 @@
         cursor: pointer;
     }
 
+    [data-scope="radio-group"][data-part="item"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="radio-group"][data-part="item"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -1574,6 +1582,10 @@
 
     [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
         border-color: var(--hero-primary);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-invalid] {
+        border-color: var(--hero-danger);
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
@@ -1744,6 +1756,10 @@
         --slider-accent: var(--hero-danger);
     }
 
+    [data-scope="slider"][data-part="control"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="slider"][data-part="control"][data-disabled] {
         cursor: not-allowed;
     }
@@ -1813,6 +1829,10 @@
         cursor: pointer;
     }
 
+    [data-scope="slider"][data-part="track"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="slider"][data-part="track"][data-disabled] {
         cursor: not-allowed;
     }
@@ -1858,6 +1878,10 @@
 
     [data-scope="slider"][data-part="thumb"][data-focus-visible] {
         box-shadow: 0 0 0 2px var(--hero-focus), var(--shadow-sm);
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-readonly] {
+        cursor: default;
     }
 
     [data-scope="slider"][data-part="thumb"][data-disabled] {
@@ -2079,6 +2103,10 @@
 
     [data-scope="select"][data-part="trigger"][data-placeholder] {
         color: var(--hero-muted);
+    }
+
+    [data-scope="select"][data-part="trigger"][data-readonly] {
+        cursor: default;
     }
 
     [data-scope="select"][data-part="trigger"][data-disabled] {

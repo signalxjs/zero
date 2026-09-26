@@ -13,7 +13,7 @@
  * `checkedChange` always reports THIS box's state.
  *
  * Inside a `Field.Root`, the input adopts the field's control id and
- * disabled/invalid/required flags automatically.
+ * disabled/invalid/required/readonly flags automatically.
  */
 import { component, compound, effect } from 'sigx';
 import type { Define } from 'sigx';
@@ -26,7 +26,7 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { htmlAttrs } from '../../contract/props.js';
-import type { HtmlAttrValue, WithClass, WithFormControl, WithHtmlAttrs, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
+import type { HtmlAttrValue, WithClass, WithFormControl, WithHtmlAttrs, WithModelModifiers, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { checkboxAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
 
@@ -39,6 +39,12 @@ export type CheckboxRootProps =
     & Define.Prop<'indeterminate', boolean, false>
     & Define.Prop<'value', string, false>
     & WithFormControl
+    /**
+     * Read-only: focusable and announced, but a click, Space or label press
+     * never toggles it (a native checkbox ignores `readonly`, so the
+     * activation is cancelled). The prop OR the Field's.
+     */
+    & WithReadonly
     & WithModelModifiers
     & WithVariantAxes<'checkbox'>
     & WithClass
@@ -92,6 +98,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
     const disabled = fc.disabled;
     const invalid = fc.invalid;
     const required = fc.required;
+    const readonly = fc.readonly;
     const checkedState = (): string =>
         props.indeterminate ? 'indeterminate' : checkedOf(state.value) ? 'checked' : 'unchecked';
 
@@ -100,7 +107,9 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
     // feedback on the visible control.
     const press = createPressFeedback({
         getElement: () => controlEl,
-        isDisabled: () => disabled(),
+        // A readonly control does not answer a press either — nothing
+        // will happen, so nothing should look like it is about to.
+        isDisabled: () => disabled() || readonly(),
     });
 
     return () => {
@@ -122,6 +131,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
                 data-focus-visible={dataAttr(focus.visible)}
                 data-invalid={dataAttr(invalid())}
                 data-required={dataAttr(required())}
+                data-readonly={dataAttr(readonly())}
                 {...fc.axisAttrs()}
                 class={props.class}
                 onPointerdown={press.onPointerdown}
@@ -139,11 +149,15 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
                     model={state}
                     modelModifiers={timingModifiers(props.modelModifiers)}
                     disabled={disabled()}
-                    required={required()}
+                    // A readonly box's state is not the user's to fix, so it
+                    // cannot be what blocks the submit — the native rule for
+                    // readonly controls (RatingGroup does the same).
+                    required={required() && !readonly()}
                     name={fc.name()}
                     form={fc.form()}
                     value={itemValue()}
                     aria-invalid={invalid() ? 'true' : undefined}
+                    aria-readonly={readonly() ? 'true' : undefined}
                     aria-describedby={[fc.describedBy(), inputAttrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
                     ref={(node: HTMLInputElement | null) => { inputEl = node; }}
                     onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
@@ -151,6 +165,11 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
                         press.onBlur(e);
                         focus.visible = false;
                     }}
+                    // Click is the one activation path — a pointer on the
+                    // box, a press on the label, Space — so cancelling it is
+                    // the whole of readonly: the platform restores the
+                    // checkedness and fires no change.
+                    onClick={(e: MouseEvent) => { if (readonly()) e.preventDefault(); }}
                     onKeydown={press.onKeydown}
                     onKeyup={press.onKeyup}
                 />
@@ -161,6 +180,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
                     data-disabled={dataAttr(disabled())}
                     data-focus-visible={dataAttr(focus.visible)}
                     data-invalid={dataAttr(invalid())}
+                    data-readonly={dataAttr(readonly())}
                     ref={(node: HTMLElement | null) => { controlEl = node; }}
                 >
                     <span

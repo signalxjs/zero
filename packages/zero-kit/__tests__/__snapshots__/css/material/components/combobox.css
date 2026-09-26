@@ -147,7 +147,7 @@
         transition: opacity var(--duration-fast) var(--ease-standard);
     }
 
-    [data-scope="combobox"][data-part="trigger"]:hover:not([data-disabled])::before {
+    [data-scope="combobox"][data-part="trigger"]:hover:not([data-disabled], [data-readonly])::before {
         opacity: 0.08;
     }
 
@@ -371,7 +371,7 @@
     }
 
     @media (hover: none) {
-        [data-scope="combobox"][data-part="trigger"]:hover:not([data-disabled])::before {
+        [data-scope="combobox"][data-part="trigger"]:hover:not([data-disabled], [data-readonly])::before {
             opacity: 0;
         }
 

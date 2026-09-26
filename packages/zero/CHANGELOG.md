@@ -164,6 +164,28 @@
 
 ### Fixed
 
+- **`readonly` on Checkbox, Switch, RadioGroup, Select and Slider (#267).**
+  `<Field.Root readonly>` was silently ignored by these five while the text
+  inputs honoured it. Each takes `readonly` (`WithReadonly`, the prop OR
+  the Field's), stays focusable, renders `data-readonly` and refuses every
+  user write — an app's model write still lands. Checkbox and Switch cancel
+  the native click (no press, label click or Space toggles); RadioGroup
+  cancels the radios' activation, so arrow-key roving moves focus but
+  chooses nothing; Select does not open and no key, typeahead included,
+  changes it (nor does an option in a popup the app opens); Slider neither
+  steps on a key nor moves on a press or drag, the native range's input
+  put back. `aria-readonly` lands on the checkbox input, the radiogroup,
+  the select trigger and every slider; the `switch` role does not support
+  it, so a readonly Switch is `data-readonly` alone. A readonly `required`
+  control no longer blocks the submit, and shows no press feedback.
+  Anatomy change: the `readonly` flag on checkbox and switch `root` +
+  `control`, radio-group `root` + `item` + `item-control`, select `root` +
+  `trigger`, and slider `root` + `control` + `track` + `thumb`.
+- **RadioGroup restates `invalid` on each item (#267).** `item` and
+  `item-control` carry `data-invalid` (Checkbox and Switch parity),
+  so a recipe paints the mark without a descendant selector from the root;
+  all six design systems moved their tint there. The radiogroup also
+  writes `aria-orientation`.
 - **Escape closes the inner popup, not the dialog around it (#261).** A
   Menu, Select or Popover open inside a non-modal Dialog or an inline
   Drawer used to take the whole dialog down on Escape: the dialog's

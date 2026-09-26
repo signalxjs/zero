@@ -12,7 +12,7 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const sliderAnatomy = defineAnatomy('slider', {
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'focus-visible'],
+        flags: ['disabled', 'invalid', 'readonly', 'focus-visible'],
         tokens: ['color'],
     },
     label: {
@@ -24,13 +24,13 @@ export const sliderAnatomy = defineAnatomy('slider', {
     control: {
         element: 'input',
         parent: 'root',
-        flags: ['disabled', 'invalid', 'focus-visible', 'pressed'],
+        flags: ['disabled', 'invalid', 'readonly', 'focus-visible', 'pressed'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     track: {
         element: 'div',
         parent: 'root',
-        flags: ['disabled'],
+        flags: ['disabled', 'readonly'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     range: {
@@ -46,7 +46,7 @@ export const sliderAnatomy = defineAnatomy('slider', {
         element: 'div',
         paint: true,
         parent: 'track',
-        flags: ['disabled', 'pressed', 'focus-visible'],
+        flags: ['disabled', 'readonly', 'pressed', 'focus-visible'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     // A tick from the root's `marks` prop, positioned on the track by the

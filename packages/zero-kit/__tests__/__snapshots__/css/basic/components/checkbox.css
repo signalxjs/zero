@@ -13,6 +13,10 @@
         cursor: pointer;
     }
 
+    [data-scope="checkbox"][data-part="root"][data-readonly] {
+        cursor: default;
+    }
+
     [data-scope="checkbox"][data-part="root"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -49,7 +53,7 @@
         border-color: var(--color-error);
     }
 
-    [data-scope="checkbox"][data-part="control"][data-state="unchecked"]:hover:not([data-disabled], [data-invalid]) {
+    [data-scope="checkbox"][data-part="control"][data-state="unchecked"]:hover:not([data-disabled], [data-invalid], [data-readonly]) {
         border-color: var(--color-secondary);
     }
 
