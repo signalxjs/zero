@@ -263,6 +263,15 @@ checked differs strongly from unchecked. Forced colours revalue every author
 background to Canvas, so a background-only track or thumb vanished in four
 skins. Byte-equal screenshots are too weak a test here, because daisyUI's
 noise texture made two identical-looking states differ;
+the **feedback-a11y spec** (`e2e/feedback-a11y.spec.ts`, #274) — the
+feedback tier's announcements where only a real engine can tell: closing an
+alert that holds focus hands it to `finalFocus()` before the browser's focus
+fixup drops it on body (keyboard-opened, for WebKit's sake), a loading
+skeleton's link refuses focus (`inert`) and takes it once loaded, a
+progressbar's `aria-valuetext` is its painted ValueText, and — chromium over
+all six — a spinner's words are clipped label text inside its `status`,
+measured by layout size since the spinner's rotation inflates a bounding
+rect;
 and the **axe audit** (`e2e/axe-audit.spec.ts`, #326) — the ARIA counterpart
 to the contrast audit: chromium + zero-basic only (semantics are engine- and
 skin-independent), it walks every registry page (ids read from the rendered
