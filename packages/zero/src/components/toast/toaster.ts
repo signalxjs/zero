@@ -61,9 +61,15 @@ export interface ToastPromiseOptions<T> {
     id?: string;
     /** Shown while the promise is pending — sticky, with `status: 'loading'`. */
     loading: ToastInput;
-    /** Replaces the loading content when the promise resolves (`status: 'complete'`). */
+    /**
+     * Replaces the loading content when the promise resolves (`status: 'complete'`).
+     * A mapper that throws settles the error stage with what it threw instead.
+     */
     success: ToastInput | ((value: T) => ToastInput);
-    /** Replaces the loading content when the promise rejects (`status: 'error'`). */
+    /**
+     * Replaces the loading content when the promise rejects (`status: 'error'`).
+     * A mapper that throws still settles the error stage, keeping the loading copy.
+     */
     error: ToastInput | ((error: unknown) => ToastInput);
 }
 
@@ -260,9 +266,32 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
             const next = stage(input);
             update(id, { ...next, duration: next.duration ?? defaultDuration, status });
         };
+        // The stage mappers are user code: one that throws must not turn the
+        // handled rejection back into an unhandled one. A throwing `success`
+        // mapper settles the error stage with what it threw; a throwing
+        // `error` mapper still settles the error stage, keeping the loading
+        // copy, since there is nothing left to map.
+        const fail = (reason: unknown): void => {
+            let input: ToastInput = {};
+            try {
+                input = typeof options.error === 'function' ? options.error(reason) : options.error;
+            } catch {
+                // Nothing to map: the status alone moves to error.
+            }
+            settle('error', input);
+        };
         pending.then(
-            (value) => settle('complete', typeof options.success === 'function' ? options.success(value) : options.success),
-            (reason: unknown) => settle('error', typeof options.error === 'function' ? options.error(reason) : options.error),
+            (value) => {
+                let input: ToastInput;
+                try {
+                    input = typeof options.success === 'function' ? options.success(value) : options.success;
+                } catch (thrown) {
+                    fail(thrown);
+                    return;
+                }
+                settle('complete', input);
+            },
+            fail,
         );
         return id;
     };

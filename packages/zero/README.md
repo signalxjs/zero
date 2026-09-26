@@ -1414,7 +1414,10 @@ and when `p` settles the same toast is updated in place with `success`
 default duration re-armed, unless that stage sets its own. Each stage is a
 title string or the options of an ordinary toast; `success` and `error` may
 also be functions of the value or the reason. The rejection is handled
-there, and a toast dismissed before the promise settles stays gone. Any
+there, and so is a mapper that throws: a throwing `success` settles the
+error stage with what it threw, and a throwing `error` still moves the
+status to `error`, keeping the loading copy. A toast dismissed before the
+promise settles stays gone. Any
 toast can carry a `status` (`create`/`update`). `Toast.Indicator` renders
 it — a decorative (`aria-hidden`) `span` with `data-state="loading" |
 "complete" | "error"`, and nothing at all while the toast has no status; the
