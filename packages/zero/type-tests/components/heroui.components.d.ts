@@ -21,6 +21,7 @@ import type { Tooltip as ZTooltip } from '@sigx/zero/tooltip';
 import type { Menu as ZMenu } from '@sigx/zero/menu';
 import type { Field as ZField } from '@sigx/zero/field';
 import type { Checkbox as ZCheckbox } from '@sigx/zero/checkbox';
+import type { CheckboxGroup as ZCheckboxGroup } from '@sigx/zero/checkbox-group';
 import type { RadioGroup as ZRadioGroup } from '@sigx/zero/radio-group';
 import type { Progress as ZProgress } from '@sigx/zero/progress';
 import type { Slider as ZSlider } from '@sigx/zero/slider';
@@ -159,6 +160,13 @@ type CheckboxProps = {
 };
 type CheckboxAdapted = Adapted<typeof ZCheckbox, ZeroAxisProp, CheckboxProps>;
 export declare const Checkbox: CheckboxAdapted & AdaptedStatics<typeof ZCheckbox> & { Root: CheckboxAdapted };
+
+/** checkbox-group — no vendor route; the wired surface keeps zero's names. */
+type CheckboxGroupProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type CheckboxGroupAdapted = Adapted<typeof ZCheckboxGroup, ZeroAxisProp, CheckboxGroupProps>;
+export declare const CheckboxGroup: CheckboxGroupAdapted & AdaptedStatics<typeof ZCheckboxGroup> & { Root: CheckboxGroupAdapted };
 
 /** radio-group — no vendor route; the wired surface keeps zero's names. */
 type RadioGroupProps = {

@@ -1,0 +1,170 @@
+@layer zero.recipes {
+    [data-scope="checkbox-group"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-orientation="horizontal"] {
+        flex-direction: row;
+        flex-wrap: wrap;
+        column-gap: var(--space-lg);
+    }
+
+    [data-scope="checkbox-group"][data-part="label"] {
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="checkbox-group"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="checkbox-group"][data-part="label"][data-required]::after {
+        content: " *";
+        color: var(--color-error);
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-size="xs"] {
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-size="sm"] {
+        gap: var(--space-xs);
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-size="xl"] {
+        gap: var(--space-md);
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-color="primary"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-primary);
+            color: var(--color-primary-content);
+        }
+
+        [data-scope="checkbox-group"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-color="secondary"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-secondary);
+            color: var(--color-secondary-content);
+        }
+
+        [data-scope="checkbox-group"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-color="accent"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-accent);
+            color: var(--color-accent-content);
+        }
+
+        [data-scope="checkbox-group"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-color="neutral"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-neutral);
+            color: var(--color-neutral-content);
+        }
+
+        [data-scope="checkbox-group"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-color="info"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-info);
+            color: var(--color-info-content);
+        }
+
+        [data-scope="checkbox-group"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-color="success"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-success);
+            color: var(--color-success-content);
+        }
+
+        [data-scope="checkbox-group"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-color="warning"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-warning);
+            color: var(--color-warning-content);
+        }
+
+        [data-scope="checkbox-group"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-color="error"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-error);
+            color: var(--color-error-content);
+        }
+
+        [data-scope="checkbox-group"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-size="xs"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-size="sm"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-size="lg"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-size="xl"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            font-size: var(--text-lg);
+        }
+    }
+}

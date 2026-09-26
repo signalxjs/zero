@@ -1540,6 +1540,53 @@ export const radioGroup: RecipeInput = {
     skipStates: { label: ['invalid', 'required'], item: ['focus-visible'] },
 };
 
+/**
+ * CheckboxGroup (#282) — the group of `Checkbox.Root`s. The boxes are
+ * checkbox parts and keep the checkbox recipe; the group owns only the stack
+ * and its legend, which speaks Field's label: colour accents its ink, size
+ * its type.
+ */
+export const checkboxGroup: RecipeInput = {
+    component: 'checkbox-group',
+    tokens: { '--checkbox-group-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
+            // `invalid` and `readonly` paint on each box, which carries the
+            // flag itself — the root only lays the boxes out.
+            states: { invalid: {}, required: {}, readonly: {} },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row', flexWrap: 'wrap', columnGap: 'var(--space-lg)' },
+            },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--checkbox-group-accent)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--checkbox-group-accent': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { gap: 'var(--space-sm)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { label: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { label: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { gap: 'var(--space-lg)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+    skipStates: { label: ['invalid'] },
+};
+
 export const progress: RecipeInput = {
     component: 'progress',
     tokens: {
@@ -6933,7 +6980,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,

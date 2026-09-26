@@ -1,0 +1,96 @@
+@layer zero.recipes {
+    [data-scope="checkbox-group"][data-part="root"] {
+        --checkbox-group-accent: var(--color-base-content);
+    }
+
+    [data-scope="checkbox-group"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-orientation="horizontal"] {
+        flex-direction: row;
+        flex-wrap: wrap;
+        column-gap: var(--space-lg);
+    }
+
+    [data-scope="checkbox-group"][data-part="label"] {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--checkbox-group-accent);
+    }
+
+    [data-scope="checkbox-group"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="checkbox-group"][data-part="label"][data-required]::after {
+        content: " *";
+        color: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-color="primary"] {
+        --checkbox-group-accent: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-color="secondary"] {
+        --checkbox-group-accent: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-color="accent"] {
+        --checkbox-group-accent: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-color="neutral"] {
+        --checkbox-group-accent: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-color="info"] {
+        --checkbox-group-accent: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-color="success"] {
+        --checkbox-group-accent: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-color="warning"] {
+        --checkbox-group-accent: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-color="error"] {
+        --checkbox-group-accent: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-size="xs"] {
+        gap: var(--space-sm);
+    }
+
+    [data-scope="checkbox-group"][data-part="root"][data-size="xl"] {
+        gap: var(--space-lg);
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-size="xs"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-size="sm"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-size="lg"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="checkbox-group"][data-part="root"][data-size="xl"]) to ([data-scope="checkbox-group"][data-part="root"]) {
+        [data-scope="checkbox-group"][data-part="label"] {
+            font-size: var(--text-lg);
+        }
+    }
+}

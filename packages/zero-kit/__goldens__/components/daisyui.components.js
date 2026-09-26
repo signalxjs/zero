@@ -46,6 +46,7 @@ export { Tooltip } from '@sigx/zero/tooltip';
 export { Menu } from '@sigx/zero/menu';
 export { Field } from '@sigx/zero/field';
 export { Checkbox } from '@sigx/zero/checkbox';
+export { CheckboxGroup } from '@sigx/zero/checkbox-group';
 export { RadioGroup } from '@sigx/zero/radio-group';
 export { Progress } from '@sigx/zero/progress';
 export { Slider } from '@sigx/zero/slider';
