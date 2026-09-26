@@ -3827,6 +3827,29 @@ export const treeView: RecipeInput = {
 };
 
 /**
+ * The affordances inside a text field (#281) — the adornment's quiet ink,
+ * the field buttons' box, and the size step both follow. The ink is the
+ * value's own at 70%: quieter than what was typed, still a readable glyph.
+ */
+const affixInk = 'color-mix(in oklch, var(--color-base-content) 70%, transparent)';
+const fieldButton: NonNullable<PartStyles['base']> = {
+    ...iconClose,
+    alignSelf: 'center',
+    flex: 'none',
+    order: '1',
+    marginInlineEnd: 'var(--space-xs)',
+    padding: 'var(--space-2xs) var(--space-xs)',
+    fontSize: 'var(--text-sm)',
+    color: affixInk,
+    transition: 'background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard)',
+};
+const affixSize = (fontSize: string) => ({
+    adornment: { base: { fontSize } },
+    'clear-trigger': { base: { fontSize } },
+    'visibility-trigger': { base: { fontSize } },
+});
+
+/**
  * The plain text field — the same well of paper the number input, the select
  * and the combobox all sit in, with nothing inside it but the text. One ink
  * move: the border goes primary under the petrol ring on focus, and the caret
@@ -3852,6 +3875,7 @@ export const input: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignItems: 'stretch',
+                gap: 'var(--space-2xs)',
                 background: 'var(--color-base-100)',
                 border: hairline,
                 borderRadius: 'var(--radius-field)',
@@ -3906,6 +3930,48 @@ export const input: RecipeInput = {
                 '&::placeholder': { color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)' },
             },
         },
+        // An icon, a unit, a prefix: quieter than the value, and ordered to
+        // its edge with `order` — logical, so it flips with the reading
+        // direction and never needs a physical margin.
+        adornment: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                flex: 'none',
+                color: affixInk,
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-lg)' },
+                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-lg)' },
+            },
+        },
+        // The two field buttons: the ✕'s quiet caption shape, centred in the
+        // row and kept after the text whatever order they are written in.
+        'clear-trigger': {
+            base: fieldButton,
+            states: {
+                hover: { color: 'var(--color-base-content)', background: inkWash },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+        // Shown is the ink of the value itself over a wash; hidden stays
+        // the quiet affix ink — the one ink move, not a role colour.
+        'visibility-trigger': {
+            base: fieldButton,
+            states: {
+                on: { color: 'var(--color-base-content)', background: inkWash },
+                off: {},
+                hover: { color: 'var(--color-base-content)', background: inkWash },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
     },
     // The visible ring lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
@@ -3914,13 +3980,13 @@ export const input: RecipeInput = {
             '--input-accent': `var(--color-${c})`,
         } } }])),
         size: {
-            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
-            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-sm) var(--space-md)' } } },
+            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } }, ...affixSize('var(--text-xs)') },
+            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-sm) var(--space-md)' } }, ...affixSize('var(--text-xs)') },
             // `md` is the un-attributed render: the base already IS the
             // middle step.
             md: {},
-            lg: { input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-lg) var(--space-xl)' } } },
-            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-xl) var(--space-2xl)' } } },
+            lg: { input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-lg) var(--space-xl)' } }, ...affixSize('var(--text-md)') },
+            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-xl) var(--space-2xl)' } }, ...affixSize('var(--text-lg)') },
         },
     },
 };

@@ -4026,6 +4026,33 @@ export const treeView: RecipeInput = {
 };
 
 /**
+ * The affordances inside a text field (#281): daisy's in-field label ink and
+ * the ghost circle button, both following the size step.
+ */
+const affixInk = 'color-mix(in oklab, var(--color-base-content) 70%, transparent)';
+const fieldButton: NonNullable<PartStyles['base']> = {
+    appearance: 'none',
+    border: 'none',
+    background: 'transparent',
+    color: affixInk,
+    borderRadius: '9999px',
+    alignSelf: 'center',
+    flex: 'none',
+    order: '1',
+    marginInlineEnd: 'var(--space-xs)',
+    padding: 'var(--space-2xs) var(--space-xs)',
+    fontSize: 'var(--text-sm)',
+    fontWeight: 'var(--weight-semibold)',
+    lineHeight: 'var(--leading-none)',
+    cursor: 'pointer',
+};
+const affixSize = (fontSize: string) => ({
+    adornment: { base: { fontSize } },
+    'clear-trigger': { base: { fontSize } },
+    'visibility-trigger': { base: { fontSize } },
+});
+
+/**
  * daisy "input" flavor: the shared field box with nothing in it but the text.
  * Same `fieldControl` metrics as select's trigger, combobox's control and the
  * number input's — the whole point of that helper is that a row of mixed
@@ -4051,6 +4078,7 @@ export const input: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignItems: 'stretch',
+                gap: 'var(--space-2xs)',
                 ...fieldControl,
                 overflow: 'hidden',
                 transition: 'border-color var(--duration-fast) var(--ease-standard)',
@@ -4087,6 +4115,43 @@ export const input: RecipeInput = {
                 '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
             },
         },
+        // daisy's `label` inside `.input`: a quiet prefix/suffix at one edge,
+        // ordered logically so it flips with the reading direction.
+        adornment: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                flex: 'none',
+                color: affixInk,
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
+                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+            },
+        },
+        // `btn btn-ghost btn-circle btn-xs` inside the field.
+        'clear-trigger': {
+            base: fieldButton,
+            states: {
+                hover: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        // Shown: the ghost button's active fill and full ink.
+        'visibility-trigger': {
+            base: fieldButton,
+            states: {
+                on: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
+                off: {},
+                hover: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
     },
     // The visible ring lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
@@ -4099,13 +4164,13 @@ export const input: RecipeInput = {
         // The control carries the height off the shared field ramp; the text
         // follows so the box stays proportional.
         size: {
-            xs: { control: { base: { height: fieldHeight('xs') } }, input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
-            sm: { control: { base: { height: fieldHeight('sm') } }, input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            xs: { control: { base: { height: fieldHeight('xs') } }, input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } }, ...affixSize('var(--text-xs)') },
+            sm: { control: { base: { height: fieldHeight('sm') } }, input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } }, ...affixSize('var(--text-xs)') },
             // `md` is the un-attributed render: the base already IS the
             // middle step.
             md: {},
-            lg: { control: { base: { height: fieldHeight('lg') } }, input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
-            xl: { control: { base: { height: fieldHeight('xl') } }, input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)' } } },
+            lg: { control: { base: { height: fieldHeight('lg') } }, input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } }, ...affixSize('var(--text-md)') },
+            xl: { control: { base: { height: fieldHeight('xl') } }, input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)' } }, ...affixSize('var(--text-lg)') },
         },
     },
 };

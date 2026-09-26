@@ -3276,6 +3276,28 @@ export const treeView: RecipeInput = {
 
 // ── Text fields ───────────────────────────────────────────────────────────
 /**
+ * The affordances inside a text field (#281): Carbon's $icon-secondary ink,
+ * and the square field icon button that fills the field's height — so it
+ * follows the five-step height ramp with no size rules of its own.
+ */
+const iconSecondary = 'color-mix(in oklab, var(--color-base-content) 75%, transparent)';
+const fieldButton: NonNullable<PartStyles['base']> = {
+    appearance: 'none',
+    border: 'none',
+    borderRadius: '0',
+    background: 'transparent',
+    color: iconSecondary,
+    flex: 'none',
+    order: '1',
+    minWidth: '2.5rem',
+    padding: '0 var(--space-sm)',
+    fontSize: 'var(--text-sm)',
+    lineHeight: 'var(--leading-none)',
+    cursor: 'pointer',
+    transition: motion('background'),
+};
+
+/**
  * Carbon's text input: `field-01` — a filled well with a single strong rule
  * under it, no side or top borders. The inset focus ring and the invalid
  * outline draw on the box, the same way the number input, the select and the
@@ -3336,6 +3358,43 @@ export const input: RecipeInput = {
             },
             selectors: {
                 '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+            },
+        },
+        // Carbon's in-field icon ($icon-secondary), at one edge, ordered
+        // logically.
+        adornment: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                flex: 'none',
+                color: iconSecondary,
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
+                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+            },
+        },
+        // Carbon's field icon buttons (the search close, the password
+        // toggle): square, full field height, layer hover, inset focus.
+        'clear-trigger': {
+            base: fieldButton,
+            states: {
+                hover: { background: layerHover, color: 'var(--color-base-content)' },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        'visibility-trigger': {
+            base: fieldButton,
+            states: {
+                on: { color: 'var(--color-base-content)', background: 'color-mix(in oklab, var(--color-base-content) 12%, transparent)' },
+                off: {},
+                hover: { background: layerHover, color: 'var(--color-base-content)' },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
             },
         },
     },

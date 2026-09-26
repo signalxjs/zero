@@ -5125,6 +5125,104 @@
         text-transform: uppercase;
     }
 
+    [data-scope="input"][data-part="adornment"] {
+        display: inline-flex;
+        align-items: center;
+        flex: none;
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        line-height: var(--leading-none);
+        color: var(--color-base-content);
+        background: var(--color-base-200);
+        padding: 0 var(--space-sm);
+    }
+
+    [data-scope="input"][data-part="adornment"][data-placement="start"] {
+        order: -1;
+        border-inline-end: var(--border) solid var(--color-base-content);
+    }
+
+    [data-scope="input"][data-part="adornment"][data-placement="end"] {
+        order: 1;
+        border-inline-start: var(--border) solid var(--color-base-content);
+    }
+
+    [data-scope="input"][data-part="clear-trigger"] {
+        appearance: none;
+        border: none;
+        border-inline-start: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        flex: none;
+        order: 1;
+        padding: 0 var(--space-sm);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        line-height: var(--leading-none);
+        cursor: pointer;
+    }
+
+    [data-scope="input"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="input"][data-part="clear-trigger"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="input"][data-part="clear-trigger"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: -4px;
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"] {
+        appearance: none;
+        border: none;
+        border-inline-start: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        flex: none;
+        order: 1;
+        padding: 0 var(--space-sm);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        line-height: var(--leading-none);
+        cursor: pointer;
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-state="on"] {
+        background: var(--color-base-content);
+        color: var(--color-base-100);
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: -4px;
+    }
+
+    [data-scope="input"][data-part="visibility-trigger"][data-state="on"]:hover {
+        background: var(--color-base-content);
+    }
+
     [data-scope="input"][data-part="root"][data-color="primary"] {
         --input-accent: var(--color-primary);
     }
@@ -5162,12 +5260,36 @@
             font-size: var(--text-xs);
             padding: var(--space-2xs) var(--space-xs);
         }
+
+        [data-scope="input"][data-part="adornment"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="input"][data-part="clear-trigger"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="input"][data-part="visibility-trigger"] {
+            font-size: var(--text-xs);
+        }
     }
 
     @scope ([data-scope="input"][data-part="root"][data-size="sm"]) to ([data-scope="input"][data-part="root"]) {
         [data-scope="input"][data-part="input"] {
             font-size: var(--text-xs);
             padding: var(--space-xs) var(--space-sm);
+        }
+
+        [data-scope="input"][data-part="adornment"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="input"][data-part="clear-trigger"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="input"][data-part="visibility-trigger"] {
+            font-size: var(--text-xs);
         }
     }
 
@@ -5176,12 +5298,36 @@
             font-size: var(--text-sm);
             padding: var(--space-md) var(--space-lg);
         }
+
+        [data-scope="input"][data-part="adornment"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="input"][data-part="clear-trigger"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="input"][data-part="visibility-trigger"] {
+            font-size: var(--text-sm);
+        }
     }
 
     @scope ([data-scope="input"][data-part="root"][data-size="xl"]) to ([data-scope="input"][data-part="root"]) {
         [data-scope="input"][data-part="input"] {
             font-size: var(--text-md);
             padding: var(--space-lg) var(--space-xl);
+        }
+
+        [data-scope="input"][data-part="adornment"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="input"][data-part="clear-trigger"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="input"][data-part="visibility-trigger"] {
+            font-size: var(--text-md);
         }
     }
 }

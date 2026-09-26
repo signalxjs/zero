@@ -3263,6 +3263,35 @@ export const treeView: RecipeInput = {
 
 // ── Text fields ───────────────────────────────────────────────────────────
 /**
+ * The affordances inside a text field (#281): M3's on-surface-variant ink
+ * for icons and affixes, the round icon button with its 8% state layer, and
+ * the size step both follow.
+ */
+const affixInk = 'color-mix(in oklch, var(--color-base-content) 75%, transparent)';
+const stateLayer = 'color-mix(in oklch, var(--color-base-content) 8%, transparent)';
+const fieldButton: NonNullable<PartStyles['base']> = {
+    appearance: 'none',
+    border: 'none',
+    background: 'transparent',
+    color: affixInk,
+    borderRadius: '9999px',
+    alignSelf: 'center',
+    flex: 'none',
+    order: '1',
+    marginInlineEnd: 'var(--space-xs)',
+    padding: 'var(--space-xs)',
+    fontSize: 'var(--text-md)',
+    lineHeight: 'var(--leading-none)',
+    cursor: 'pointer',
+    transition: motion('background'),
+};
+const affixSize = (fontSize: string) => ({
+    adornment: { base: { fontSize } },
+    'clear-trigger': { base: { fontSize } },
+    'visibility-trigger': { base: { fontSize } },
+});
+
+/**
  * Material's outlined text field, minus the notched floating label: zero's
  * anatomy puts the label above the box as its own part, and Material's notch
  * is a box-decoration trick that needs the label INSIDE the outline. Styling
@@ -3292,6 +3321,7 @@ export const input: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
+                gap: 'var(--space-2xs)',
                 background: 'transparent',
                 color: 'var(--color-base-content)',
                 border: 'var(--border) solid var(--color-outline)',
@@ -3328,6 +3358,45 @@ export const input: RecipeInput = {
                 '&::placeholder': { color: 'var(--color-outline)' },
             },
         },
+        // M3's leading / trailing icon (and prefix / suffix text):
+        // on-surface-variant ink at one edge, ordered logically.
+        adornment: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                flex: 'none',
+                color: affixInk,
+                fontSize: 'var(--text-md)',
+                lineHeight: 'var(--leading-none)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
+                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+            },
+        },
+        // M3's trailing icon button: a round state layer over on-surface-variant.
+        'clear-trigger': {
+            base: fieldButton,
+            states: {
+                hover: { background: stateLayer },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        // The M3 toggle icon button: selected lifts to full on-surface ink
+        // over a 12% layer, unselected keeps the variant ink. Not the role
+        // accent — a light role would drop the glyph under the text floor.
+        'visibility-trigger': {
+            base: fieldButton,
+            states: {
+                on: { color: 'var(--color-base-content)', background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)' },
+                off: {},
+                hover: { background: stateLayer },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
     },
     // The visible ring lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
@@ -3338,13 +3407,13 @@ export const input: RecipeInput = {
             '--input-accent': `var(--color-${c})`,
         } } }])),
         size: {
-            xs: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-xs)' } } },
-            sm: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            xs: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-xs)' } }, ...affixSize('var(--text-sm)') },
+            sm: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-sm)' } }, ...affixSize('var(--text-sm)') },
             // `md` is the un-attributed render: the base already IS the
             // middle step.
             md: {},
-            lg: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-lg)' } } },
-            xl: { input: { base: { fontSize: 'var(--text-xl)', padding: 'var(--space-lg) var(--space-xl)' } } },
+            lg: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-lg)' } }, ...affixSize('var(--text-lg)') },
+            xl: { input: { base: { fontSize: 'var(--text-xl)', padding: 'var(--space-lg) var(--space-xl)' } }, ...affixSize('var(--text-xl)') },
         },
     },
 };
