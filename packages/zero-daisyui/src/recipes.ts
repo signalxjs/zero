@@ -2706,6 +2706,23 @@ const BTN_STEPS = { xs: 6, sm: 8, md: 10, lg: 12, xl: 14 } as const;
 const btnHeight = (step: keyof typeof BTN_STEPS): string =>
     `calc(var(--size-field) * ${BTN_STEPS[step]})`;
 
+/**
+ * daisy 5's disabled btn, for the lynx target (signalxjs/lynx#1143). The web
+ * fades the whole button (`opacity: var(--disabled-opacity)`, 0.3 on the
+ * dark themes), which on device left a solid button's label barely legible.
+ * daisy's own `.btn:disabled` paints instead: a base-content wash (not on
+ * ghost/link), no border, no shadow, and a muted base-content label. daisy
+ * mutes that label to 20%; this keeps it at 50%, still plainly inert but
+ * readable on a phone at arm's length.
+ */
+const lynxBtnDisabled: CssProps = {
+    opacity: '1',
+    background: 'color-mix(in oklab, var(--color-base-content) 10%, transparent)',
+    color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)',
+    borderColor: 'transparent',
+    boxShadow: 'none',
+};
+
 export const button: RecipeInput = {
     component: 'button',
     // Public to a design system derived from this one (#73).
@@ -2921,11 +2938,39 @@ export const button: RecipeInput = {
     },
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
     keyframes: { 'zero-daisyui-btn-spin': 'to { transform: rotate(360deg) }' },
-    // The icon chips' zeroed inline padding, restated physically: logical
-    // spellings resolve on iOS but not on Android (measured,
-    // signalxjs/lynx#1084), so the emitter refuses them.
     targets: {
         lynx: {
+            parts: {
+                // The ring, restated: `currentColor` never resolves on lynx
+                // (signalxjs/lynx#1079) and the logical sizes/edge are
+                // unproven there, so the lynx ring is physical longhands in
+                // the variant's own ink (the variants below pick it).
+                spinner: {
+                    base: {
+                        width: '1em',
+                        height: '1em',
+                        border: 'calc(var(--border) * 2) solid var(--btn-ink)',
+                        borderTopColor: 'transparent',
+                    },
+                },
+                root: { states: { disabled: lynxBtnDisabled } },
+            },
+            variants: {
+                // The baked disabled paint above outranks every variant's fill
+                // (the theme host adds a class), but its plain declarations
+                // do not: outline/dash restate the border, ghost/link drop
+                // the wash (as in daisy).
+                variant: {
+                    solid: { spinner: { base: { borderColor: 'var(--btn-on-accent)', borderTopColor: 'transparent' } } },
+                    outline: { root: { states: { disabled: { borderColor: 'transparent' } } } },
+                    dash: { root: { states: { disabled: { borderColor: 'transparent' } } } },
+                    ghost: { root: { states: { disabled: { background: 'transparent' } } } },
+                    link: { root: { states: { disabled: { background: 'transparent' } } } },
+                },
+            },
+            // The icon chips' zeroed inline padding, restated physically: logical
+            // spellings resolve on iOS but not on Android (measured,
+            // signalxjs/lynx#1084), so the emitter refuses them.
             modifiers: {
                 square: { root: { base: { paddingLeft: '0', paddingRight: '0' } } },
                 circle: { root: { base: { paddingLeft: '0', paddingRight: '0' } } },
@@ -3166,21 +3211,66 @@ export const toast: RecipeInput = {
     // signalxjs/lynx#1070. No `color` default: the un-attributed toast is a
     // neutral base-200 surface, outside the color vocabulary.
     defaultVariants: { size: 'md' },
-    // The corner placements' physical anchors: logical inset spellings
-    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
-    // the emitter refuses them. Physical is the lynx target's norm — no RTL
-    // flow there, so `start` IS left and `end` IS right.
     targets: {
         lynx: {
             parts: {
+                // The viewport is a full-width strip on lynx (the runtime pins
+                // it to the outlet's top or bottom edge). What the web gets
+                // from `:popover-open` and `min(24rem, 100vw)` is restated:
+                // flex (a lynx view defaults to linear layout, which ignores
+                // flex-direction and gap), and the cards aligned to the
+                // placement's edge. The centred pair's `left: 50%` +
+                // `translateX(-50%)` pull-back is for a shrink-wrapped popover;
+                // on the strip it shifted everything half a width left, so it
+                // is cancelled. The corner anchors are physical: logical
+                // insets resolve on iOS but not on Android (measured,
+                // signalxjs/lynx#1084), and lynx has no RTL flow, so `start`
+                // IS left and `end` IS right.
                 viewport: {
+                    base: { display: 'flex', width: 'auto' },
                     selectors: {
-                        '&[data-placement="top-start"]': { left: '0' },
-                        '&[data-placement="top-end"]': { right: '0' },
-                        '&[data-placement="bottom-start"]': { left: '0' },
-                        '&[data-placement="bottom-end"]': { right: '0' },
+                        '&[data-placement="top-start"]': { left: '0', alignItems: 'flex-start' },
+                        '&[data-placement="top"]': { left: '0', right: '0', transform: 'none', alignItems: 'center' },
+                        '&[data-placement="top-end"]': { right: '0', alignItems: 'flex-end' },
+                        '&[data-placement="bottom-start"]': { left: '0', alignItems: 'flex-start' },
+                        '&[data-placement="bottom"]': { left: '0', right: '0', transform: 'none', alignItems: 'center' },
+                        '&[data-placement="bottom-end"]': { right: '0', alignItems: 'flex-end' },
                     },
                 },
+                // No grid on lynx (signalxjs/lynx#1075): the card is a flex
+                // column (title, description, then the action), with the
+                // close button pinned to the top-right corner and the title
+                // kept clear of it. The web's 24rem viewport cap becomes the
+                // card's own cap. The `^="top"` entry offset has no class
+                // form, so each top placement restates it.
+                root: {
+                    base: {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        position: 'relative',
+                        boxSizing: 'border-box',
+                        width: '100%',
+                        maxWidth: '24rem',
+                    },
+                    selectors: {
+                        '&[data-placement="top-start"]': { '--toast-from': '-8px' },
+                        '&[data-placement="top"]': { '--toast-from': '-8px' },
+                        '&[data-placement="top-end"]': { '--toast-from': '-8px' },
+                    },
+                },
+                title: { base: { paddingRight: '1.75em' } },
+                // The 75% ink mix over a recipe-local property cannot bake;
+                // the same ink at 75% opacity reads the same on the soft fill.
+                description: { base: { color: 'var(--toast-ink)', opacity: '0.75' } },
+                // The 25% ink border cannot bake either: it takes the full ink.
+                action: {
+                    base: {
+                        marginTop: 'var(--space-xs)',
+                        border: 'var(--border) solid var(--toast-ink)',
+                    },
+                },
+                close: { base: { position: 'absolute', top: 'var(--space-xs)', right: 'var(--space-xs)' } },
             },
         },
     },
