@@ -2834,12 +2834,28 @@ export const avatar: RecipeInput = {
  * transform rides the same clock on a `step-end` curve, holding its open
  * position for the whole fade and snapping back only once it has finished,
  * so dismissal never visibly moves.
+ *
+ * The stack (#292, web only): at rest the toasts lie as a deck of cards on
+ * the viewport's edge — the newest in front, each older one peeking out
+ * behind it a step smaller, its content faded — and they fan out into a
+ * column while the viewport is `open` (hovered, or holding focus). The
+ * runtime measures, the recipe lays out: `--toast-offset` is the height of
+ * the newer toasts in front of a card, so the fanned column needs no
+ * guessing. Both moves ride `translate`/`scale`, never the `transform` the
+ * enter/exit owns, so the two compose instead of fighting.
  */
+const TOAST_MARKED = '[data-scope="toast"][data-part="root"]:has(> [data-scope="toast"][data-part="indicator"]) > &';
+const TOAST_FANNED = '[data-scope="toast"][data-part="viewport"][data-state="open"] > &';
+const TOAST_STACKED = '[data-scope="toast"][data-part="viewport"]:not([data-state="open"]) > &';
+/** The indicator's `error` mark — a cross, the check's sibling in the same polygon grammar. */
+const CROSS_MARK = 'polygon(20% 8%, 50% 38%, 80% 8%, 92% 20%, 62% 50%, 92% 80%, 80% 92%, 50% 62%, 20% 92%, 8% 80%, 38% 50%, 8% 20%)';
+
 export const toast: RecipeInput = {
     component: 'toast',
     tokens: {
         '--toast-accent': 'var(--color-primary)',
         '--toast-from': '8px',
+        '--toast-mark': '1rem',
     },
     parts: {
         viewport: {
@@ -2857,6 +2873,9 @@ export const toast: RecipeInput = {
                 gap: 'var(--space-sm)',
                 pointerEvents: 'none',
             },
+            // The stack's two layouts are painted on its toasts (the root's
+            // fanned selector), not on the viewport box itself.
+            states: { open: {}, closed: {} },
             selectors: {
                 // The UA hides closed popovers by unsetting display — an
                 // unconditional `display: flex` would defeat that.
@@ -2905,6 +2924,7 @@ export const toast: RecipeInput = {
             },
             selectors: {
                 '&[data-placement^="top"]': { '--toast-from': '-8px' },
+                '&:has(> [data-scope="toast"][data-part="indicator"])': { gridTemplateColumns: 'auto 1fr auto auto' },
             },
             states: {
                 // The entry half rides the open declaration: the slide, at
@@ -2924,8 +2944,43 @@ export const toast: RecipeInput = {
                 },
             },
         },
+        // The work status, in the margin before the text: the grid grows a
+        // leading column only while the mark is rendered. A pen ring while
+        // loading (ink on a hairline, the spinner's own drawing); then the
+        // checkbox's tick or its cross sibling, in the role's readable ink.
+        indicator: {
+            base: {
+                gridColumn: '1',
+                gridRow: '1 / span 2',
+                inlineSize: 'var(--toast-mark)',
+                blockSize: 'var(--toast-mark)',
+                boxSizing: 'border-box',
+            },
+            states: {
+                loading: {
+                    borderRadius: '50%',
+                    border: 'calc(var(--border) * 2) solid var(--color-base-300)',
+                    borderBlockStartColor: 'var(--color-base-content)',
+                    animation: 'zero-basic-toast-spin 0.7s linear infinite',
+                },
+                complete: { background: softInk('success'), clipPath: CHECK_MARK },
+                error: { background: softInk('error'), clipPath: CROSS_MARK },
+            },
+            at: {
+                // A still ring with its pen mark still reads as "working".
+                'reduced-motion': { states: { loading: { animation: 'none' } } },
+                // Forced colours repaint the fill the tick is cut from.
+                'forced-colors': {
+                    states: {
+                        complete: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                        error: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                    },
+                },
+            },
+        },
         title: {
             base: { gridColumn: '1', fontWeight: 'var(--weight-medium)' },
+            selectors: { [TOAST_MARKED]: { gridColumn: '2' } },
         },
         description: {
             base: {
@@ -2933,6 +2988,7 @@ export const toast: RecipeInput = {
                 fontSize: 'var(--text-xs)',
                 color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
             },
+            selectors: { [TOAST_MARKED]: { gridColumn: '2' } },
         },
         action: {
             base: {
@@ -2948,7 +3004,7 @@ export const toast: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
-            selectors: { ...pressedInk },
+            selectors: { ...pressedInk, [TOAST_MARKED]: { gridColumn: '3' } },
         },
         close: {
             base: {
@@ -2962,7 +3018,7 @@ export const toast: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 ...focusRing,
             },
-            selectors: { ...pressedInk },
+            selectors: { ...pressedInk, [TOAST_MARKED]: { gridColumn: '4' } },
         },
     },
     variants: {
@@ -2990,11 +3046,79 @@ export const toast: RecipeInput = {
             },
         },
     },
+    keyframes: { 'zero-basic-toast-spin': 'to { transform: rotate(360deg); }' },
     // The corner placements' physical anchors: logical inset spellings
     // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
     // the emitter refuses them. Physical is the lynx target's norm — no RTL
     // flow there, so `start` IS left and `end` IS right.
     targets: {
+        // The deck (see the note above the recipe). Web only: it leans on
+        // the popover's grid cell, `:has`-free sibling selectors and the
+        // runtime's measured heights, none of which the lynx outlet has —
+        // there the toasts stay the plain column.
+        web: {
+            parts: {
+                viewport: {
+                    base: {
+                        // Every card in one grid cell, pinned to the edge the
+                        // placement names; `--toast-lift` is which way "behind"
+                        // is — up from a bottom edge, down from a top one.
+                        alignItems: 'end',
+                        '--toast-lift': '-1',
+                    },
+                    selectors: {
+                        '&:popover-open': { display: 'grid' },
+                        '&[data-placement^="top"]': { alignItems: 'start', '--toast-lift': '1' },
+                    },
+                },
+                root: {
+                    base: {
+                        gridArea: '1 / 1',
+                        position: 'relative',
+                        zIndex: 'var(--toast-index)',
+                        // How many newer toasts stand in front of this one.
+                        '--toast-depth': 'calc(var(--toast-count) - var(--toast-index) - 1)',
+                        translate: '0 calc(var(--toast-lift) * var(--toast-depth) * var(--space-sm))',
+                        scale: 'calc(1 - var(--toast-depth) * 0.04)',
+                        transition: 'opacity var(--duration-fast) var(--ease-exit), '
+                            + 'transform var(--duration-fast) step-end, '
+                            + 'translate var(--duration-normal) var(--ease-standard), '
+                            + 'scale var(--duration-normal) var(--ease-standard)',
+                    },
+                    selectors: {
+                        // Fanned: a column, each card lifted past the ones in
+                        // front of it plus one gap per card.
+                        [TOAST_FANNED]: {
+                            translate: '0 calc(var(--toast-lift) * (var(--toast-offset) + var(--toast-depth) * var(--space-sm)))',
+                            scale: '1',
+                        },
+                        // The gap between fanned cards is still the stack: a
+                        // bridge on the far side of each card keeps the pointer
+                        // "in" while it crosses, or the column would fold
+                        // under it.
+                        '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            insetInline: '0',
+                            blockSize: 'var(--space-sm)',
+                            insetBlockEnd: '100%',
+                        },
+                        '&[data-placement^="top"]::after': { insetBlockEnd: 'auto', insetBlockStart: '100%' },
+                        // Resting, only the front card is read; the ones
+                        // behind are edges.
+                        [`${TOAST_STACKED}:not(:last-child) > *`]: { opacity: '0' },
+                    },
+                    states: {
+                        open: {
+                            transition: 'opacity var(--duration-slow) var(--ease-standard), '
+                                + 'transform var(--duration-slow) var(--ease-standard), '
+                                + 'translate var(--duration-normal) var(--ease-standard), '
+                                + 'scale var(--duration-normal) var(--ease-standard)',
+                        },
+                    },
+                },
+            },
+        },
         lynx: {
             parts: {
                 viewport: {

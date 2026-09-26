@@ -2540,6 +2540,15 @@ export const avatar: RecipeInput = {
 
 // ── Toast ─────────────────────────────────────────────────────────────────
 /**
+ * A toast whose indicator is rendered (#292): the grid grows a leading column
+ * for the mark, and the text, action and close step one column along.
+ */
+const TOAST_MARKED = '[data-scope="toast"][data-part="root"]:has(> [data-scope="toast"][data-part="indicator"]) > &';
+/** The indicator's marks, cut from its fill — not mirrored in RTL (a tick is not a direction). */
+const TOAST_CHECK = 'polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%)';
+const TOAST_CROSS = 'polygon(20% 8%, 50% 38%, 80% 8%, 92% 20%, 62% 50%, 92% 80%, 80% 92%, 50% 62%, 20% 92%, 8% 80%, 38% 50%, 8% 20%)';
+
+/**
  * ── WHY CARBON'S ANSWER TO #225 IS NOT MATERIAL'S ──────────────────────────
  * Material's `toast({ color })` was a WEAK axis — every role reached the
  * stylesheet and landed somewhere almost nobody could see. Carbon's is a
@@ -2579,6 +2588,7 @@ export const toast: RecipeInput = {
         // The notification kind's colour, as one rebindable channel — the
         // shape every other accent in this package uses.
         '--toast-accent': 'var(--carbon-interactive)',
+        '--toast-mark': '1rem',
     },
     parts: {
         viewport: {
@@ -2648,6 +2658,7 @@ export const toast: RecipeInput = {
                 // carries one of these two, always.
                 '&[role="alert"]': { '--toast-accent': 'var(--carbon-danger)' },
                 '&[data-placement^="top"]': { '--toast-from': '-8px' },
+                '&:has(> [data-scope="toast"][data-part="indicator"])': { gridTemplateColumns: 'auto 1fr auto auto' },
             },
             states: {
                 open: { opacity: '1', transform: 'none' },
@@ -2662,8 +2673,40 @@ export const toast: RecipeInput = {
                 'forced-colors': { base: { borderInlineStartColor: 'CanvasText' } },
             },
         },
+        // Carbon's inline loading, at the notification's leading edge: the
+        // interactive ring while pending, then the finished tick or the
+        // error cross in the kind's colours.
+        indicator: {
+            base: {
+                gridColumn: '1',
+                gridRow: '1 / span 2',
+                inlineSize: 'var(--toast-mark)',
+                blockSize: 'var(--toast-mark)',
+                boxSizing: 'border-box',
+            },
+            states: {
+                loading: {
+                    borderRadius: '50%',
+                    border: 'calc(var(--border) * 2) solid var(--carbon-line)',
+                    borderBlockStartColor: 'var(--carbon-interactive)',
+                    animation: 'zero-carbon-toast-spin 0.7s linear infinite',
+                },
+                complete: { background: 'var(--carbon-interactive)', clipPath: TOAST_CHECK },
+                error: { background: 'var(--carbon-danger)', clipPath: TOAST_CROSS },
+            },
+            at: {
+                'reduced-motion': { states: { loading: { animation: 'none' } } },
+                'forced-colors': {
+                    states: {
+                        complete: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                        error: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                    },
+                },
+            },
+        },
         title: {
             base: { gridColumn: '1', fontWeight: 'var(--weight-semibold)' },
+            selectors: { [TOAST_MARKED]: { gridColumn: '2' } },
         },
         description: {
             base: {
@@ -2671,6 +2714,7 @@ export const toast: RecipeInput = {
                 fontSize: 'var(--text-sm)',
                 color: 'color-mix(in oklab, var(--color-base-content) 78%, transparent)',
             },
+            selectors: { [TOAST_MARKED]: { gridColumn: '2' } },
         },
         action: {
             base: {
@@ -2698,6 +2742,7 @@ export const toast: RecipeInput = {
                     background: layerActive,
                     color: pressedInteractiveInk,
                 },
+                [TOAST_MARKED]: { gridColumn: '3' },
             },
         },
         close: {
@@ -2721,6 +2766,7 @@ export const toast: RecipeInput = {
             },
             selectors: {
                 '&[data-pressed]:not([data-disabled])': { background: layerActive },
+                [TOAST_MARKED]: { gridColumn: '4' },
             },
         },
     },
@@ -2747,6 +2793,11 @@ export const toast: RecipeInput = {
             },
         },
     },
+    keyframes: { 'zero-carbon-toast-spin': 'to { transform: rotate(360deg); }' },
+    // The viewport's `open` (the stack expanded) is a fact this skin has no
+    // use for: its toasts are always a plain column, so both states look the
+    // same by design (#292).
+    skipStates: { viewport: ['open', 'closed'] },
 };
 
 // ── Combobox ──────────────────────────────────────────────────────────────
