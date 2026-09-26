@@ -336,7 +336,7 @@ would render it as an element.
 
 **The registry is typed closed.** `anatomies` in
 `packages/zero/src/anatomy.ts` is declared `as const satisfies
-Record<string, Anatomy>` — 60 components — so `ZeroScope` is a closed literal
+Record<string, Anatomy>` — 61 components — so `ZeroScope` is a closed literal
 union. That closure is load-bearing: the generated register artifact asserts
 its scope keys against it at compile time ([§3.5](#35-the-register-artifact)),
 which is what makes a typo'd or version-skewed scope a compile error instead
@@ -1314,7 +1314,7 @@ Node-only bin with no runtime dependencies, templates embedded at build time
 with the lockstep ranges — lockstep is what makes embedding and reading the
 installed packages content-identical, and neither source file is reachable
 through an `exports` map anyway). The generated package is the brief's tokens
-and worked Button over **zero-basic's 54 recipes as the baseline**, composed
+and worked Button over **zero-basic's 55 recipes as the baseline**, composed
 in `src/recipes.ts` through `fitRecipesToVocabulary` — the kit's one
 non-`define*` export on `/define`, a pure function that keeps exactly what
 the tokens declare (roles, the size ramp, the variant vocabulary, custom
