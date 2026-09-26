@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
+import { component, signal } from 'sigx';
 import { Toast, createToaster, toastAnatomy } from '@sigx/zero';
 import type { ToastData } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
@@ -134,7 +135,12 @@ describe('Toast (component)', () => {
         expect(root.tagName).toBe('LI');
         expect(root.getAttribute('data-color')).toBe('success');
         expect(root.getAttribute('data-placement')).toBe('top-end');
-        expect(root.getAttribute('role')).toBe('status');
+        // A focusable named group inside the viewport's live region — not a
+        // live region of its own.
+        expect(root.getAttribute('role')).toBe('group');
+        expect(root.getAttribute('tabindex')).toBe('-1');
+        expect(root.hasAttribute('aria-live')).toBe(false);
+        expect(root.hasAttribute('aria-atomic')).toBe(false);
         expect(container.querySelector('[data-part="title"]')!.textContent).toBe('Saved');
         expect(container.querySelector('[data-part="description"]')!.textContent).toBe('Your changes are safe.');
         expect(container.querySelector('[data-part="action"]')!.textContent).toBe('Undo');
@@ -143,6 +149,10 @@ describe('Toast (component)', () => {
         expect(viewport.tagName).toBe('OL');
         expect(viewport.getAttribute('popover')).toBe('manual');
         expect(viewport.getAttribute('role')).toBe('region');
+        expect(viewport.getAttribute('aria-live')).toBe('polite');
+        expect(viewport.getAttribute('aria-relevant')).toBe('additions text');
+        expect(viewport.getAttribute('aria-atomic')).toBe('false');
+        expect(viewport.getAttribute('aria-label')).toBe('Notifications (F8)');
     });
 
     it('routes colour through variantAttrs — an explicit root prop wins over the queue toast colour', async () => {
@@ -238,11 +248,44 @@ describe('Toast (component)', () => {
         expect(container.querySelector('[data-part="root"]')).toBeNull();
     });
 
-    it('role=alert opts into assertive announcement', async () => {
+    it('role=alert speaks once, through the assertive channel only', async () => {
         const t = mount();
-        t.create({ title: 'Failure', role: 'alert' });
+        const assertive = () => container.querySelector<HTMLElement>('[aria-live="assertive"]')!;
+        // The channel exists before any alert does, empty and outside the
+        // popover (so it is in the accessibility tree before it is filled).
+        expect(assertive()).not.toBeNull();
+        expect(assertive().textContent).toBe('');
+        expect(assertive().hasAttribute('data-visually-hidden')).toBe(true);
+        expect(assertive().getAttribute('aria-atomic')).toBe('true');
+        expect(assertive().closest('[data-part="viewport"]')).toBeNull();
+
+        t.create({ title: 'Saved', role: 'status' });
+        t.create({ title: 'Failure', description: 'Retrying.', role: 'alert' });
         await settle();
-        expect(container.querySelector('[data-part="root"]')!.getAttribute('role')).toBe('alert');
+        await settle();
+        const [status, alert] = container.querySelectorAll<HTMLElement>('[data-part="root"]');
+        // No double announcement, by structure: the alert's root opts out of
+        // the polite region it sits in, and only the alert reaches the
+        // assertive channel.
+        expect(status!.hasAttribute('aria-live')).toBe(false);
+        expect(status!.closest('[aria-live]')!.getAttribute('aria-live')).toBe('polite');
+        expect(alert!.getAttribute('aria-live')).toBe('off');
+        expect(alert!.getAttribute('role')).toBe('group');
+        expect(assertive().textContent).toBe('Failure. Retrying.');
+        expect(assertive().contains(alert!)).toBe(false);
+    });
+
+    it('an updated alert is announced again', async () => {
+        const t = mount();
+        const id = t.create({ title: 'Upload failed', role: 'alert' });
+        await settle();
+        await settle();
+        const assertive = container.querySelector<HTMLElement>('[aria-live="assertive"]')!;
+        expect(assertive.textContent).toBe('Upload failed');
+        t.update(id, { title: 'Upload failed again' });
+        await settle();
+        await settle();
+        expect(assertive.textContent).toBe('Upload failed again');
     });
 
     it('hovering the viewport pauses auto-dismiss; leaving resumes it', async () => {
@@ -291,7 +334,7 @@ describe('Toast (component)', () => {
         expect(container.querySelector('[data-part="root"]')).toBeNull();
     });
 
-    it('closing one of two toasts keeps the pause while focus stays inside', async () => {
+    it('closing one of two toasts hands focus to the other, keeping the pause', async () => {
         const t = mount(createToaster({ duration: 50 }));
         t.create({ title: 'A', duration: Infinity });
         t.create({ title: 'B' });
@@ -301,16 +344,23 @@ describe('Toast (component)', () => {
         closeB!.focus(); // focus moves within the viewport: still paused
         await new Promise((r) => setTimeout(r, 120));
         expect(t.toasts().find((x) => x.title === 'B')?.open).toBe(true);
-        closeB!.blur();
         closeA!.focus();
-        closeA!.click(); // A leaves; focus falls to body, B's timer resumes
+        closeA!.click(); // A leaves; focus moves on to B, never to body
         await settle();
+        const rootB = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        expect(rootB.textContent).toContain('B');
+        expect(document.activeElement).toBe(rootB);
+        await new Promise((r) => setTimeout(r, 120));
+        expect(t.toasts().find((x) => x.title === 'B')?.open).toBe(true);
+        rootB.blur(); // focus leaves: B's timer resumes
         await new Promise((r) => setTimeout(r, 200));
         expect(container.querySelector('[data-part="root"]')).toBeNull();
     });
 
-    it('closing the focused toast at the cap releases the pause too', async () => {
-        // A removal at `max` promotes a queued toast, so the count holds.
+    it('closing the focused toast at the cap keeps focus in the viewport until it leaves', async () => {
+        // A removal at `max` promotes a queued toast, so the viewport stays
+        // shown — and with no other toast rendered yet and nowhere focus came
+        // from, the viewport itself takes focus (and holds the pause).
         const t = mount(createToaster({ duration: 50, max: 1 }));
         t.create({ title: 'A', duration: Infinity });
         t.create({ title: 'B' });
@@ -319,8 +369,205 @@ describe('Toast (component)', () => {
         close.focus();
         close.click();
         await settle();
+        const viewport = container.querySelector<HTMLElement>('[data-part="viewport"]')!;
+        expect(document.activeElement).toBe(viewport);
+        await new Promise((r) => setTimeout(r, 120));
+        expect(t.count()).toBe(1);
+        viewport.blur();
         await new Promise((r) => setTimeout(r, 200));
         expect(t.count()).toBe(0);
+    });
+
+    it('closing the last toast after the previous one closes focuses the previous toast', async () => {
+        const t = mount();
+        t.create({ title: 'A' });
+        t.create({ title: 'B' });
+        await settle();
+        const [rootA, rootB] = container.querySelectorAll<HTMLElement>('[data-part="root"]');
+        rootB!.querySelector<HTMLElement>('[data-part="close"]')!.focus();
+        rootB!.querySelector<HTMLElement>('[data-part="close"]')!.click();
+        await settle();
+        expect(document.activeElement).toBe(rootA);
+    });
+
+    it('closing the only toast returns focus to where it came from', async () => {
+        const t = mount();
+        const opener = document.createElement('button');
+        document.body.appendChild(opener);
+        try {
+            t.create({ title: 'Only' });
+            await settle();
+            opener.focus();
+            const close = container.querySelector<HTMLElement>('[data-part="close"]')!;
+            // Focus enters the viewport from the opener.
+            close.dispatchEvent(new FocusEvent('focusin', { bubbles: true, relatedTarget: opener }));
+            close.focus();
+            close.click();
+            await settle();
+            expect(document.activeElement).toBe(opener);
+        } finally {
+            opener.remove();
+        }
+    });
+
+    it('the hotkey (F8 by default) focuses the first toast', async () => {
+        const t = mount();
+        t.create({ title: 'First' });
+        t.create({ title: 'Second' });
+        await settle();
+        const event = new KeyboardEvent('keydown', { key: 'F8', code: 'F8', bubbles: true, cancelable: true });
+        document.body.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(container.querySelector('[data-part="root"]'));
+    });
+
+    it('a custom hotkey names itself in the label; hotkey={false} turns it off', async () => {
+        const t = createToaster({ duration: Infinity });
+        render(<Toast.Viewport toaster={t} hotkey={['altKey', 'KeyT']} />, container);
+        t.create({ title: 'x' });
+        await settle();
+        const viewport = () => container.querySelector<HTMLElement>('[data-part="viewport"]')!;
+        expect(viewport().getAttribute('aria-label')).toBe('Notifications (alt+T)');
+        document.body.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyT', key: 't', bubbles: true }));
+        expect(document.activeElement).not.toBe(container.querySelector('[data-part="root"]'));
+        document.body.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyT', key: 't', altKey: true, bubbles: true }));
+        expect(document.activeElement).toBe(container.querySelector('[data-part="root"]'));
+        (document.activeElement as HTMLElement).blur();
+
+        render(<Toast.Viewport toaster={t} hotkey={false} label="Alerts ({hotkey})" />, container);
+        await settle();
+        expect(viewport().getAttribute('aria-label')).toBe('Alerts');
+        const f8 = new KeyboardEvent('keydown', { key: 'F8', code: 'F8', bubbles: true, cancelable: true });
+        document.body.dispatchEvent(f8);
+        expect(f8.defaultPrevented).toBe(false);
+    });
+
+    it('with no toasts the hotkey does nothing', async () => {
+        mount();
+        await settle();
+        const f8 = new KeyboardEvent('keydown', { key: 'F8', code: 'F8', bubbles: true, cancelable: true });
+        document.body.dispatchEvent(f8);
+        expect(f8.defaultPrevented).toBe(false);
+    });
+
+    it('Escape inside a toast dismisses it', async () => {
+        const t = mount();
+        t.create({ title: 'Esc me' });
+        await settle();
+        const close = container.querySelector<HTMLElement>('[data-part="close"]')!;
+        const esc = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+        close.dispatchEvent(esc);
+        expect(esc.defaultPrevented).toBe(true);
+        await settle();
+        expect(t.count()).toBe(0);
+    });
+
+    it('an Escape an inner widget already handled does not dismiss', async () => {
+        const t = mount();
+        t.create({ title: 'Stay' });
+        await settle();
+        const close = container.querySelector<HTMLElement>('[data-part="close"]')!;
+        const esc = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+        esc.preventDefault();
+        close.dispatchEvent(esc);
+        await settle();
+        expect(t.count()).toBe(1);
+    });
+
+    it('re-shows the popover when a toast arrives while showing, so it tops the top layer', async () => {
+        const t = mount();
+        const viewport = container.querySelector<HTMLElement>('[data-part="viewport"]')! as HTMLElement & {
+            showPopover(): void; hidePopover(): void;
+        };
+        let open = false;
+        const calls: string[] = [];
+        viewport.showPopover = () => { open = true; calls.push('show'); };
+        viewport.hidePopover = () => { open = false; calls.push('hide'); };
+        const matches = viewport.matches.bind(viewport);
+        Object.defineProperty(viewport, 'matches', {
+            value: (s: string) => (s === ':popover-open' ? open : matches(s)),
+        });
+        t.create({ title: 'first' });
+        await settle();
+        expect(calls).toEqual(['show']);
+        const focusTarget = container.querySelector<HTMLElement>('[data-part="close"]')!;
+        focusTarget.focus();
+        t.create({ title: 'second' });
+        await settle();
+        expect(calls).toEqual(['show', 'hide', 'show']);
+        // Focus inside survives the re-show.
+        expect(document.activeElement).toBe(focusTarget);
+    });
+
+    it('a hidden document pauses auto-dismiss; visible again resumes it', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+        const state = { value: 'visible' as DocumentVisibilityState };
+        const spy = vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => state.value);
+        try {
+            const t = mount(createToaster({ duration: 1000 }));
+            await Promise.resolve(); // the viewport's mount hook
+            t.create({ title: 'Background' });
+            // No frame runs in this synchronous test, so the toast never
+            // opens: its dismissal is a hard removal.
+            const gone = () => t.count() === 0;
+            state.value = 'hidden';
+            document.dispatchEvent(new Event('visibilitychange'));
+            vi.advanceTimersByTime(10_000);
+            expect(gone()).toBe(false);
+            state.value = 'visible';
+            document.dispatchEvent(new Event('visibilitychange'));
+            vi.advanceTimersByTime(1100);
+            expect(gone()).toBe(true);
+        } finally {
+            spy.mockRestore();
+            vi.useRealTimers();
+        }
+    });
+
+    it('an unfocused window pauses auto-dismiss; focusing it resumes', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+        try {
+            const t = mount(createToaster({ duration: 1000 }));
+            await Promise.resolve(); // the viewport's mount hook
+            t.create({ title: 'Elsewhere' });
+            const gone = () => t.count() === 0;
+            window.dispatchEvent(new Event('blur'));
+            vi.advanceTimersByTime(10_000);
+            expect(gone()).toBe(false);
+            window.dispatchEvent(new Event('focus'));
+            vi.advanceTimersByTime(1100);
+            expect(gone()).toBe(true);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it('a toaster swap mid-hold releases the old toaster and holds the new one', async () => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+        try {
+            const a = createToaster({ duration: 1000 });
+            const b = createToaster({ duration: 1000 });
+            const state = signal({ which: 'a' as 'a' | 'b' });
+            const App = component(() => () => (
+                <Toast.Viewport toaster={state.which === 'a' ? a : b} />
+            ));
+            render(<App />, container);
+            await Promise.resolve(); // the viewport's mount hook
+            a.create({ title: 'A' });
+            b.create({ title: 'B' });
+            window.dispatchEvent(new Event('blur'));
+            state.which = 'b';
+            await Promise.resolve();
+            vi.advanceTimersByTime(1100);
+            expect(a.count()).toBe(0); // released: its timer ran out
+            expect(b.count()).toBe(1); // held now
+            window.dispatchEvent(new Event('focus'));
+            vi.advanceTimersByTime(1100);
+            expect(b.count()).toBe(0);
+        } finally {
+            window.dispatchEvent(new Event('focus'));
+            vi.useRealTimers();
+        }
     });
 
     it('a custom slot composes per toast and the aria wiring holds', async () => {
@@ -342,7 +589,6 @@ describe('Toast (component)', () => {
         const title = container.querySelector<HTMLElement>('[data-part="title"]')!;
         expect(title.textContent).toBe('custom body');
         expect(root.getAttribute('aria-labelledby')).toBe(title.id);
-        expect(root.getAttribute('aria-atomic')).toBe('true');
     });
 
     it('the close button carries an accessible name; label overrides it', async () => {
@@ -380,6 +626,44 @@ describe('Toast (component)', () => {
         expect(root.getAttribute('aria-labelledby')).toBe(container.querySelector('[data-part="title"]')!.id);
         expect(container.querySelector('[data-part="description"]')).toBeNull();
         expect(root.hasAttribute('aria-describedby')).toBe(false);
+    });
+
+    it('a focusable root with no Title is labelled by its Description', async () => {
+        const t = mount();
+        t.create({ description: 'Only a description' });
+        await settle();
+        const root = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        const description = container.querySelector<HTMLElement>('[data-part="description"]')!;
+        expect(root.getAttribute('aria-labelledby')).toBe(description.id);
+        expect(root.hasAttribute('aria-describedby')).toBe(false);
+        expect(root.hasAttribute('aria-label')).toBe(false);
+    });
+
+    it('a composed root with no Title or Description falls back to a generic name; an app name wins', async () => {
+        const u = createToaster({ duration: Infinity });
+        let root: HTMLElement;
+        render(
+            <Toast.Viewport toaster={u}>
+                {(data: ToastData) => (
+                    data.data === 'named'
+                        ? <Toast.Root toast={data} key={data.id} aria-label="Upload"><Toast.Description>Done</Toast.Description></Toast.Root>
+                        : <Toast.Root toast={data} key={data.id}><Toast.Close>✕</Toast.Close></Toast.Root>
+                )}
+            </Toast.Viewport>,
+            container,
+        );
+        u.create({});
+        await settle();
+        root = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        expect(root.getAttribute('aria-label')).toBe('Notification');
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+
+        u.create({ data: 'named' });
+        await settle();
+        root = Array.from(container.querySelectorAll<HTMLElement>('[data-part="root"]')).at(-1)!;
+        expect(root.getAttribute('aria-label')).toBe('Upload');
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+        expect(root.getAttribute('aria-describedby')).toBe(container.querySelectorAll('[data-part="description"]')[0]!.id);
     });
 
     it('the stock action runs its callback', async () => {

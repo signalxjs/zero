@@ -670,12 +670,21 @@ component renders; the root is called out separately where it carries props.
   recipes must not set `display` on those parts unconditionally — style
   `&:not([hidden])` instead. Server markup always renders `loading`; the
   status resolves on mount. `statusChange` event.
-- Toast: Viewport(placement, toaster)/Root(toast)/Title/Description/Action/
-  Close, over an imperative queue: `toast({ title, color, duration, role })`
-  (browser-only), `createToaster()` for apps/tests, `useToaster` injectable.
-  Viewport is a popover="manual" top layer, `role=region`; each root is
-  `role=status` (or `alert`), carries `data-color` + `data-placement`, and
-  publishes `--toast-index`/`--toast-count`. PRESENCE IS RUNTIME-MANAGED —
+- Toast: Viewport(placement, toaster, label, hotkey)/Root(toast)/Title/
+  Description/Action/Close, over an imperative queue:
+  `toast({ title, color, duration, role })` (browser-only), `createToaster()`
+  for apps/tests, `useToaster` injectable. Viewport is a popover="manual" top
+  layer, `role=region`, and the one polite live region (`aria-live=polite`);
+  `role: 'alert'` toasts speak through a sibling visually-hidden assertive
+  span instead (their root is `aria-live=off`). Each root is a focusable
+  (`tabindex=-1`) named `role=group`, carries `data-color` +
+  `data-placement`, and publishes `--toast-index`/`--toast-count`. F8
+  (`hotkey`, `false` to disable; the label template's `{hotkey}` names it)
+  focuses the first toast, Escape dismisses the focused one, and closing a
+  focused toast hands focus to the next/previous toast or back to where it
+  came from. Timers pause on hover, focus, a hidden tab or a blurred
+  window; a toast arriving while shown re-stacks the viewport to the top of
+  the top layer (inert under a modal dialog, by spec). PRESENCE IS RUNTIME-MANAGED —
   the one exception to the declarative presence rule: roots mount `closed`,
   flip `open` a frame later, and stay mounted after dismissal until their
   longest transition/animation ends. Style the plain two-state transition;

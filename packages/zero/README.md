@@ -643,7 +643,7 @@ The part's own attributes win where both set one, with three refinements:
   "Pagination" and every icon trigger's default (`Alert.Close`, the
   Carousel triggers and dots, `Diff.Handle`, the NumberInput steppers,
   `FileUpload.ItemRemove`, a Carousel slide's "n of m", `Toast.Close`,
-  the toast viewport's "Notifications", `Combobox.Trigger`/`TagRemove`,
+  the toast viewport's "Notifications (F8)", `Combobox.Trigger`/`TagRemove`,
   `Select.Trigger`) — the `label` prop
   still beats both — and names `Status` (a named dot is an `img`) and
   `Countdown` (a named countdown is a `timer`) the way `label` does. An app
@@ -875,14 +875,49 @@ ways:
 `base.css` deliberately does not name an app layer. It would not remove the
 load-order dependency described above, and the layer's name belongs to you.
 
-**Toast timing.** Auto-dismiss pauses while the pointer or focus is in
-`Toast.Viewport`, and resumes only when both have left, so moving the
-mouse out does not restart timers while a keyboard user is on a toast.
-Closing the focused toast releases its hold even though the removed button
-fires no `focusout`: the viewport re-reads focus after every removal. The
-queue's pause is one shared flag, not a count: the viewport's `resume()`
-also clears a `toaster.pause()` of your own, and your `resume()` clears
-the viewport's hold.
+**Toast timing.** Auto-dismiss pauses while anything holds the viewport:
+the pointer or focus in `Toast.Viewport`, a hidden document
+(`visibilitychange`), or an unfocused window (`blur`/`focus`). It resumes
+only once every hold has gone, so moving the mouse out does not restart
+timers while a keyboard user is on a toast, and a toast raised in a
+background tab waits to be seen. Closing the focused toast releases its hold
+even though the removed button fires no `focusout`: the viewport re-reads
+focus after every removal. The queue's pause is one shared flag, not a
+count: the viewport's `resume()` also clears a `toaster.pause()` of your
+own, and your `resume()` clears the viewport's hold.
+
+**Toast keyboard and focus.** `F8` moves focus to the first toast from
+anywhere in the document (`hotkey`: keys that must all be down, modifiers
+named by their event flag — `['altKey', 'KeyT']` — the rest by
+`KeyboardEvent.code` or `key`; `hotkey={false}` turns it off). The listener
+is attached only while there are toasts. The viewport's name is a template:
+`label` defaults to `"Notifications ({hotkey})"`, which reads
+"Notifications (F8)", and with the hotkey off the ` ({hotkey})` suffix is
+dropped. `Escape` inside a toast dismisses it (an `Escape` a widget inside
+already handled with `preventDefault()` does not). Each root is focusable
+(`tabindex="-1"`), and before a focused toast is removed, focus moves to the
+next toast, else the previous one, else the element focus came from when it
+entered the viewport, else the viewport — never to `<body>`.
+
+**Toast announcements.** The viewport — always mounted, so it exists before
+any toast does — is the polite live region (`aria-live="polite"`,
+`aria-relevant="additions text"`, `aria-atomic="false"`), and each root is
+a named `group` inside it rather than a `status` of its own: a live region
+inserted together with its content is announced unreliably. The root is
+focusable, so it is always named — by its Title, else (when the app names
+it neither with `aria-label` nor `aria-labelledby`) by its Description,
+else `aria-label="Notification"`. A
+`role: 'alert'` toast opts its root out (`aria-live="off"`) and is spoken
+through a visually-hidden `aria-live="assertive"` span the viewport renders
+beside the region, filled a frame after the toast mounts (and again when an
+alert's text changes), so nothing is announced twice.
+
+**Toasts over a modal dialog.** A toast raised while the viewport is
+already showing re-shows it (`hidePopover()` + `showPopover()`), the only
+way to the top of the top layer, so a toast raised during a modal dialog
+paints above the dialog. Its actions and Close stay inert until the dialog
+closes — a modal dialog makes everything outside it inert, by spec — so
+anything a user must act on during a modal belongs in the dialog.
 
 ## Patterns
 

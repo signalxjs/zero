@@ -1,5 +1,5 @@
 import { component } from 'sigx';
-import { Button, toast } from '@sigx/zero';
+import { Button, Dialog, toast } from '@sigx/zero';
 import { pickRole, pickVariant } from '../design-systems';
 import { DemoRow } from '../demo/Section';
 import type { PageEntry } from './registry';
@@ -10,7 +10,11 @@ const ToastDemos = component(() => () => (
             An imperative queue behind a <code>popover="manual"</code> top
             layer. Presence is runtime-managed — the enter/exit transition
             is plain two-state CSS, and the node unmounts once the exit
-            finishes. Hover the stack to pause auto-dismiss.
+            finishes. Hover the stack to pause auto-dismiss; it also pauses
+            while the tab is hidden or the window unfocused. <code>F8</code>
+            moves focus to the first toast, <code>Escape</code> on a toast
+            dismisses it, and closing a focused toast hands focus to the
+            next one (or back to where it came from).
         </p>
         {/*
           * Picked, not named — including inside the click
@@ -42,6 +46,30 @@ const ToastDemos = component(() => () => (
             })}>
                 With action
             </Button.Root>
+        </DemoRow>
+        {/*
+          * A toast raised while a modal dialog is open re-stacks the
+          * viewport above it (hide + show is the only way to the top of
+          * the top layer). It is seen, but — by spec — inert until the
+          * dialog closes.
+          */}
+        <DemoRow>
+            <Dialog.Root>
+                <Dialog.Trigger>Toast over a dialog</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Title>Raise a toast from here</Dialog.Title>
+                    <Dialog.Description>
+                        The toast shows above this modal; its buttons stay
+                        inert until the dialog closes.
+                    </Dialog.Description>
+                    <Dialog.Footer>
+                        <Button.Root onClick={() => toast({ title: 'Raised over the dialog', duration: 10_000 })}>
+                            Raise a toast
+                        </Button.Root>
+                        <Dialog.Close>Close</Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Popup>
+            </Dialog.Root>
         </DemoRow>
     </>
 ), { name: 'ToastDemos' });

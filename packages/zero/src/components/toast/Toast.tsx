@@ -31,7 +31,7 @@
  * (`data-placement` on viewport and root); stacking is data too —
  * `--toast-index` / `--toast-count` on each root.
  */
-import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
 import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -53,6 +53,13 @@ export type ToastPlacement =
 interface ToastViewportContext {
     toaster(): Toaster;
     placement(): ToastPlacement;
+    /** Before a root leaves: move focus out of it, if it holds focus. */
+    handOffFocus(root: HTMLElement): void;
+    /**
+     * Speak through the viewport's assertive live channel. The text is read
+     * a frame later, once the re-render it follows has reached the DOM.
+     */
+    announce(read: () => string): void;
 }
 
 function makeInertViewport(): ToastViewportContext {
@@ -60,8 +67,15 @@ function makeInertViewport(): ToastViewportContext {
     return {
         toaster: () => (inert ??= createToaster()),
         placement: () => 'bottom-end',
+        handOffFocus: () => {},
+        announce: () => {},
     };
 }
+
+const nextFrame: (cb: () => void) => void =
+    typeof requestAnimationFrame === 'function'
+        ? (cb) => requestAnimationFrame(() => cb())
+        : (cb) => void setTimeout(cb, 16);
 
 interface ToastItemContext {
     toast(): ToastData;
@@ -122,55 +136,152 @@ function renderToastSlot(slot: (data: ToastData) => unknown, data: ToastData): u
 
 // ── Viewport ──
 
+const ROOT_SELECTOR = `[data-scope="${SCOPE}"][data-part="root"]`;
+const DEFAULT_HOTKEY: readonly string[] = ['F8'];
+const DEFAULT_LABEL = 'Notifications ({hotkey})';
+const MODIFIER_KEYS = new Set(['altKey', 'ctrlKey', 'metaKey', 'shiftKey']);
+
+/** `['altKey', 'KeyT']` reads "alt+T"; `['F8']` reads "F8". */
+function hotkeyText(keys: readonly string[]): string {
+    return keys.join('+').replace(/Key|Digit/g, '');
+}
+
+/**
+ * The viewport's accessible name. `{hotkey}` in the template is replaced by
+ * the hotkey; with the hotkey off, a ` ({hotkey})` suffix is dropped
+ * (and any bare placeholder with it), so the default reads "Notifications".
+ */
+function viewportLabel(template: string, keys: readonly string[] | null): string {
+    if (keys) return template.replace(/\{hotkey\}/g, hotkeyText(keys));
+    return template.replace(/\s*\(\{hotkey\}\)/g, '').replace(/\{hotkey\}/g, '').trim();
+}
+
+/** Every key in the combination is down: modifiers by flag, the rest by `code` or `key`. */
+function matchesHotkey(e: KeyboardEvent, keys: readonly string[]): boolean {
+    return keys.every((k) =>
+        MODIFIER_KEYS.has(k) ? !!(e as unknown as Record<string, boolean>)[k] : e.code === k || e.key === k);
+}
+
 export type ToastViewportProps =
     & Define.Prop<'placement', ToastPlacement, false>
+    /**
+     * The region's accessible name, as a template: `{hotkey}` becomes the
+     * hotkey ("Notifications ({hotkey})" by default, which reads
+     * "Notifications (F8)"). With `hotkey={false}` a ` ({hotkey})` suffix
+     * is dropped.
+     */
     & Define.Prop<'label', string, false>
+    /**
+     * Keys that move focus to the first toast from anywhere in the document
+     * — all down at once, modifiers named by their event flag
+     * (`['altKey', 'KeyT']`), others by `KeyboardEvent.code` or `key`.
+     * `['F8']` by default; `false` turns it off.
+     */
+    & Define.Prop<'hotkey', readonly string[] | false, false>
     & Define.Prop<'toaster', Toaster, false>
     & WithClass
     /** Not `role`: the viewport is a named `region` landmark. */
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default', ToastData>;
 
-const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted, onUnmounted }) => {
+/** What holds the queue's timers: any one of them keeps it paused. */
+type Hold = 'hover' | 'focus' | 'visibility' | 'blur';
+
+type PopoverElement = HTMLElement & { showPopover?(): void; hidePopover?(): void };
+
+const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
     const injected = useToaster();
     const manager = (): Toaster => props.toaster ?? injected;
     const placement = (): ToastPlacement => props.placement ?? 'bottom-end';
-
-    const ctx: ToastViewportContext = { toaster: manager, placement };
-    defineProvide(useToastViewportContext, () => ctx);
+    const hotkeys = (): readonly string[] | null => {
+        if (props.hotkey === false) return null;
+        const keys = props.hotkey ?? DEFAULT_HOTKEY;
+        return keys.length > 0 ? keys : null;
+    };
 
     let el: HTMLElement | null = null;
+    // The element focus came from when it entered the viewport — where it
+    // goes back to when the last toast holding it leaves.
+    let returnFocus: HTMLElement | null = null;
+    // The assertive channel for `role: 'alert'` toasts. It lives outside the
+    // popover, so it is in the accessibility tree before it is filled.
+    const live = signal({ text: '' });
 
-    // The viewport holds the queue's pause while the pointer or focus is in
-    // it. `pause()`/`resume()` are one shared flag, not a count: the
-    // viewport only avoids resuming when it never paused, so an app's own
-    // `pause()` is still released by the viewport's `resume()`.
-    let hovering = false;
-    let focused = false;
+    const handOffFocus = (root: HTMLElement): void => {
+        if (typeof document === 'undefined') return;
+        const active = document.activeElement;
+        if (!active || !root.contains(active)) return;
+        const roots = el ? Array.from(el.querySelectorAll<HTMLElement>(ROOT_SELECTOR)) : [];
+        const at = roots.indexOf(root);
+        const staying = (r: HTMLElement): boolean => r !== root && r.getAttribute('data-state') === 'open';
+        const next = (at === -1 ? [] : roots.slice(at + 1)).find(staying)
+            ?? (at === -1 ? roots : roots.slice(0, at)).reverse().find(staying);
+        const back = returnFocus?.isConnected && !el?.contains(returnFocus) ? returnFocus : null;
+        for (const target of [next, back, el]) {
+            if (!target) continue;
+            target.focus({ preventScroll: true });
+            if (!root.contains(document.activeElement)) return;
+        }
+    };
+
+    const announce = (read: () => string): void => {
+        // Cleared first and filled a frame later, so the same message twice
+        // in a row is still a change the live region reports. The one frame
+        // also lets a text change reach the DOM before it is read.
+        live.text = '';
+        nextFrame(() => {
+            const text = read();
+            if (text) live.text = text;
+        });
+    };
+
+    const ctx: ToastViewportContext = { toaster: manager, placement, handOffFocus, announce };
+    defineProvide(useToastViewportContext, () => ctx);
+
+    // The viewport pauses the queue while anything holds it: the pointer or
+    // focus in it, a hidden document, an unfocused window. `pause()` /
+    // `resume()` are one shared flag, not a count: the viewport only avoids
+    // resuming when it never paused, so an app's own `pause()` is still
+    // released by the viewport's `resume()`.
+    const holds = new Set<Hold>();
     // The toaster the hold was taken on, so a `toaster` prop swap mid-hold
     // releases the one that was paused.
     let heldBy: Toaster | null = null;
     let recheck: ReturnType<typeof setTimeout> | null = null;
+    // Re-run on a `toaster` swap too, so a live hold moves to the new one.
     const sync = (): void => {
-        const want = hovering || focused;
-        if (want === (heldBy != null)) return;
-        if (want) {
-            heldBy = manager();
-            heldBy.pause();
-        } else {
-            const held = heldBy!;
-            heldBy = null;
-            held.resume();
-        }
+        const target = holds.size > 0 ? manager() : null;
+        if (target === heldBy) return;
+        const released = heldBy;
+        heldBy = target;
+        released?.resume();
+        target?.pause();
     };
+    const hold = (reason: Hold, on: boolean): void => {
+        if (on) holds.add(reason);
+        else holds.delete(reason);
+        sync();
+    };
+
+    const onVisibility = (): void => hold('visibility', document.visibilityState === 'hidden');
+    const onWindowBlur = (): void => hold('blur', true);
+    const onWindowFocus = (): void => hold('blur', false);
 
     const scoped = mountScope();
     onMounted(() => scoped(() => {
+        watch(manager, sync);
+        if (typeof document !== 'undefined') {
+            document.addEventListener('visibilitychange', onVisibility);
+            if (document.visibilityState === 'hidden') hold('visibility', true);
+        }
+        if (typeof window !== 'undefined') {
+            window.addEventListener('blur', onWindowBlur);
+            window.addEventListener('focus', onWindowFocus);
+        }
         // Removing the focused node (closing a toast from its Close button)
         // fires no focusout in Firefox/WebKit/the spec, and Chromium's goes to
         // the detached node, so it never bubbles here: re-read focus after
-        // every removal instead (#168). An emptied viewport is hidden, so
-        // nothing can be hovering it either.
+        // every removal instead (#168).
         // By id, not length: at the cap a removal promotes a queued toast.
         let lastIds = new Set(manager().toasts().map((t) => t.id));
         effect(() => {
@@ -182,60 +293,131 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted, 
             // After the re-render has detached the removed toast.
             recheck = setTimeout(() => {
                 recheck = null;
-                if (manager().count() === 0) hovering = false;
+                // An emptied viewport is hidden: neither the pointer nor
+                // focus (handed to the viewport by the last toast) is in it.
+                if (manager().count() === 0) {
+                    holds.delete('hover');
+                    holds.delete('focus');
+                }
                 const active = typeof document === 'undefined' ? null : document.activeElement;
-                if (focused && !(el && active && el.contains(active))) focused = false;
+                if (!(el && active && el.contains(active))) holds.delete('focus');
                 sync();
             }, 0);
         });
+        // Show while there are toasts, hide when there are none — and when a
+        // toast arrives while already showing, re-show: a popover shown
+        // earlier sits BELOW a modal dialog opened since, and hide + show is
+        // the only way to the top of the top layer. (Its actions stay inert
+        // under the modal by spec; the toast is at least seen.)
+        let shownIds = new Set<string>();
         effect(() => {
+            const ids = manager().toasts().map((t) => t.id);
+            const arrived = ids.some((id) => !shownIds.has(id));
+            shownIds = new Set(ids);
             const showing = manager().count() > 0;
-            const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
+            const node = el as PopoverElement | null;
             if (!node || typeof node.showPopover !== 'function') return;
-            const isShowing = node.matches(':popover-open');
+            let isShowing: boolean;
+            try {
+                isShowing = node.matches(':popover-open');
+            } catch {
+                return; // an engine without the pseudo-class: nothing to stack
+            }
             if (showing && !isShowing) node.showPopover();
             else if (!showing && isShowing) node.hidePopover!();
+            else if (showing && arrived) {
+                // Hiding drops focus from inside the popover; put it back.
+                const active = document.activeElement as HTMLElement | null;
+                const keep = active && node.contains(active) ? active : null;
+                try {
+                    node.hidePopover!();
+                    node.showPopover();
+                } catch { /* already in the requested state */ }
+                if (keep && document.activeElement !== keep) keep.focus({ preventScroll: true });
+            }
         });
+        // The hotkey listens only while there is a toast to reach.
+        watch(
+            () => manager().count() > 0 && hotkeys() != null,
+            (on, _prev, onCleanup) => {
+                if (!on || typeof document === 'undefined') return;
+                const onKeydown = (e: KeyboardEvent): void => {
+                    const keys = hotkeys();
+                    if (!keys || e.defaultPrevented || !matchesHotkey(e, keys)) return;
+                    const first = el?.querySelector<HTMLElement>(ROOT_SELECTOR);
+                    if (!first) return;
+                    e.preventDefault();
+                    const active = document.activeElement as HTMLElement | null;
+                    if (active && active !== document.body && !el!.contains(active)) returnFocus = active;
+                    first.focus({ preventScroll: true });
+                };
+                document.addEventListener('keydown', onKeydown);
+                onCleanup(() => document.removeEventListener('keydown', onKeydown));
+            },
+            { immediate: true },
+        );
     }));
     onUnmounted(() => {
         if (recheck != null) clearTimeout(recheck);
-        hovering = focused = false;
+        if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisibility);
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('blur', onWindowBlur);
+            window.removeEventListener('focus', onWindowFocus);
+        }
+        holds.clear();
         sync();
     });
 
     return () => {
         const attrs = htmlAttrs(props);
         return (
-            <ol
-                {...attrs}
-                data-scope={SCOPE}
-                data-part="viewport"
-                data-placement={placement()}
-                popover="manual"
-                role="region"
-                aria-label={props.label ?? attrs['aria-label'] ?? 'Notifications'}
-                tabIndex={-1}
-                class={props.class}
-                ref={(node: HTMLElement | null) => { el = node; }}
-                onPointerenter={() => { hovering = true; sync(); }}
-                onPointerleave={() => { hovering = false; sync(); }}
-                onFocusin={() => { focused = true; sync(); }}
-                onFocusout={(e: FocusEvent) => {
-                    if (!el?.contains(e.relatedTarget as Node | null)) { focused = false; sync(); }
-                }}
-            >
-                {manager().toasts().map((t) =>
-                    slots.default
-                        ? renderToastSlot(slots.default, t)
-                        : (
-                            <ToastRoot toast={t} key={t.id}>
-                                {t.title ? <ToastTitle>{t.title}</ToastTitle> : null}
-                                {t.description ? <ToastDescription>{t.description}</ToastDescription> : null}
-                                {t.action ? <ToastAction onClick={() => t.action?.onClick?.()}>{t.action.label}</ToastAction> : null}
-                                <ToastClose>✕</ToastClose>
-                            </ToastRoot>
-                        ))}
-            </ol>
+            <>
+                <ol
+                    {...attrs}
+                    data-scope={SCOPE}
+                    data-part="viewport"
+                    data-placement={placement()}
+                    popover="manual"
+                    role="region"
+                    aria-label={viewportLabel(props.label ?? (attrs['aria-label'] != null ? String(attrs['aria-label']) : DEFAULT_LABEL), hotkeys())}
+                    // One polite live region for every toast: it exists before
+                    // any toast does, so additions to it are announced — a
+                    // live region inserted together with its content is not,
+                    // reliably. Alert toasts opt out (`aria-live="off"` on
+                    // their root) and speak through the assertive channel.
+                    aria-live="polite"
+                    aria-relevant="additions text"
+                    aria-atomic="false"
+                    tabIndex={-1}
+                    class={props.class}
+                    ref={(node: HTMLElement | null) => { el = node; }}
+                    onPointerenter={() => hold('hover', true)}
+                    onPointerleave={() => hold('hover', false)}
+                    onFocusin={(e: FocusEvent) => {
+                        if (!holds.has('focus')) {
+                            const from = e.relatedTarget as HTMLElement | null;
+                            if (from && !el?.contains(from)) returnFocus = from;
+                        }
+                        hold('focus', true);
+                    }}
+                    onFocusout={(e: FocusEvent) => {
+                        if (!el?.contains(e.relatedTarget as Node | null)) hold('focus', false);
+                    }}
+                >
+                    {manager().toasts().map((t) =>
+                        slots.default
+                            ? renderToastSlot(slots.default, t)
+                            : (
+                                <ToastRoot toast={t} key={t.id}>
+                                    {t.title ? <ToastTitle>{t.title}</ToastTitle> : null}
+                                    {t.description ? <ToastDescription>{t.description}</ToastDescription> : null}
+                                    {t.action ? <ToastAction onClick={() => t.action?.onClick?.()}>{t.action.label}</ToastAction> : null}
+                                    <ToastClose>✕</ToastClose>
+                                </ToastRoot>
+                            ))}
+                </ol>
+                <span data-visually-hidden="" aria-live="assertive" aria-atomic="true">{live.text}</span>
+            </>
         );
     };
 }, { name: 'Toast.Viewport' });
@@ -247,9 +429,11 @@ export type ToastRootProps =
     & WithVariantAxes<'toast'>
     & WithClass
     /**
-     * Not `role`: a toast is a `status` or an `alert` (`toast({ role })`).
+     * Not `role`: a toast is a named `group` inside the viewport's live
+     * region; `toast({ role: 'alert' })` routes it to the assertive channel.
      * An app `aria-labelledby`/`aria-describedby` joins the Title's and
-     * Description's.
+     * Description's. The root is focusable, so it is always named: by the
+     * Title, else (with no app name) the Description, else "Notification".
      */
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
@@ -273,6 +457,9 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
         fallbackHandle = null;
         el?.removeEventListener('transitionend', onEnd);
         el?.removeEventListener('animationend', onEnd);
+        // Before the node goes: a focused toast hands focus on, or the
+        // removal drops it on <body>.
+        if (el) viewport.handOffFocus(el);
         viewport.toaster().remove(props.toast.id);
     };
     // Child transitions bubble the same events — only the root's own count.
@@ -292,6 +479,17 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
         fallbackHandle = setTimeout(finish, total + 50);
     };
 
+    /** What an alert says: its rendered Title and Description, else the queue's text. */
+    const alertText = (): string => {
+        const text = (part: string): string =>
+            el?.querySelector(`[data-scope="${SCOPE}"][data-part="${part}"]`)?.textContent?.trim() ?? '';
+        const [title, description] = [text('title'), text('description')].some(Boolean)
+            ? [text('title'), text('description')]
+            : [props.toast.title?.trim() ?? '', props.toast.description?.trim() ?? ''];
+        if (!title || !description) return title || description;
+        return `${title}${/[.!?…:]$/.test(title) ? ' ' : '. '}${description}`;
+    };
+
     const scoped = mountScope();
     onMounted(() => scoped(() => {
         effect(() => {
@@ -300,6 +498,17 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
                 return;
             }
             if (seenOpen) beginExit();
+        });
+        // An alert is not announced by the polite region its root sits in
+        // (`aria-live="off"`); it speaks through the viewport's assertive
+        // channel instead — once rendered, and again when its text changes.
+        effect(() => {
+            const t = props.toast;
+            if (t.role !== 'alert') return;
+            void t.title;
+            void t.description;
+            void t.data;
+            viewport.announce(() => (exiting ? '' : alertText()));
         });
     }));
     onUnmounted(() => {
@@ -322,6 +531,10 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
     // the shared `variantAttrs` guard rather than a hand-rolled attribute.
     return () => {
         const attrs = htmlAttrs(props);
+        // Focusable (the hotkey lands here), so always named: the Title, or
+        // — with none and no app name — the Description, or a generic label.
+        const appNamed = attrs['aria-label'] != null || attrs['aria-labelledby'] != null;
+        const labelByDescription = !present.title && !appNamed && present.description;
         return (
             <li
                 {...attrs}
@@ -336,14 +549,20 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
                     mods: props.mods,
                 })}
                 data-placement={viewport.placement()}
-                role={props.toast.role === 'alert' ? 'alert' : 'status'}
-                aria-atomic="true"
+                // A named group, focusable for the hotkey and the focus
+                // hand-off. Not `status`/`alert`: a live region inserted with
+                // its content is announced unreliably, so the always-present
+                // viewport is the live region instead.
+                role="group"
+                aria-live={props.toast.role === 'alert' ? 'off' : undefined}
+                tabIndex={-1}
+                aria-label={attrs['aria-label'] ?? (!present.title && !appNamed && !present.description ? 'Notification' : undefined)}
                 aria-labelledby={[
-                    present.title ? ids.title : undefined,
+                    present.title ? ids.title : labelByDescription ? ids.description : undefined,
                     attrs['aria-labelledby'],
                 ].filter(Boolean).join(' ') || undefined}
                 aria-describedby={[
-                    present.description ? ids.description : undefined,
+                    present.description && !labelByDescription ? ids.description : undefined,
                     attrs['aria-describedby'],
                 ].filter(Boolean).join(' ') || undefined}
                 style={{
@@ -352,6 +571,11 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
                 }}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; }}
+                onKeydown={(e: KeyboardEvent) => {
+                    if (e.key !== 'Escape' || e.defaultPrevented) return;
+                    e.preventDefault();
+                    ctx.dismiss();
+                }}
             >
                 {slots.default?.()}
             </li>
