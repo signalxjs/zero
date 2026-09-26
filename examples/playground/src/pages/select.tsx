@@ -101,6 +101,35 @@ const SelectDemos = component(() => {
                 <Field.Label>Station by line (40 groups)</Field.Label>
                 <Select.Root items={STATIONS_BY_LINE} virtual={virtualListbox} name="station-by-line" placeholder="Pick a station…" />
             </Field.Root>
+            <h2>Popup geometry</h2>
+            <p>
+                <small>
+                    The position strategy publishes the geometry a stylesheet
+                    cannot know on every popup it places (#278):{' '}
+                    <code>--anchor-width</code>/<code>-height</code>,{' '}
+                    <code>--available-width</code>/<code>-height</code> and{' '}
+                    <code>--transform-origin</code>. Every skin sizes its
+                    listbox from them — at least as wide as this wide trigger,
+                    and never taller than the room on the side it opened to,
+                    so sixty options scroll instead of running off screen.{' '}
+                    <code>collisionPadding={'{16}'}</code> keeps it that far
+                    from the viewport edge (default 8).
+                </small>
+            </p>
+            <Field.Root>
+                <Field.Label>Station (wide trigger, 60 options)</Field.Label>
+                {/*
+                  * Wide by its placeholder rather than by CSS: skins lay the
+                  * root out differently (a column that stretches, a row that
+                  * does not), but every trigger grows with its text.
+                  */}
+                <Select.Root
+                    items={STATIONS.slice(0, 60)}
+                    name="wide-station"
+                    placeholder="Pick a station anywhere on the network…"
+                    collisionPadding={16}
+                />
+            </Field.Root>
             <h2>Option groups</h2>
             <p>
                 <small>
