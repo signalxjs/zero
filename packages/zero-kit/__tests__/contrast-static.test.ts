@@ -130,8 +130,10 @@ describe('the cell product is the browser spec\'s', () => {
             'carousel/indicator': ['root', 'indicator-group'],
             'diff/handle': ['root'],
             'radial-progress/root': [],
+            'pagination/first-trigger': ['root'],
             'pagination/prev-trigger': ['root'],
             'pagination/next-trigger': ['root'],
+            'pagination/last-trigger': ['root'],
             'tabs/indicator': ['root', 'list'],
             'table/sort-indicator': ['root', 'table', 'row', 'header-cell', 'sort-trigger'],
         };
@@ -152,8 +154,10 @@ describe('the cell product is the browser spec\'s', () => {
             'tree-view/branch-indicator': { glyph: '›' },
             'tree-view/node-checkbox': { host: 'item' },
             'rating-group/item': { glyph: '★' },
+            'pagination/first-trigger': { glyph: '«' },
             'pagination/prev-trigger': { glyph: '‹' },
             'pagination/next-trigger': { glyph: '›' },
+            'pagination/last-trigger': { glyph: '»' },
             'table/sort-indicator': { glyph: '▲' },
         });
     });
