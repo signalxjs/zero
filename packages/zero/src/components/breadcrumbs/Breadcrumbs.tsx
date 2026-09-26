@@ -170,8 +170,9 @@ const BreadcrumbsRoot = component<BreadcrumbsRootProps>(({ props, slots, emit, o
         const hidden = hiddenIndices();
         if (hidden.length === 0) return;
         // Not `isConnected`: a root can mount inside a subtree that is
-        // attached to the document only afterwards, and document position
-        // within that subtree is still well defined.
+        // attached to the document only afterwards, and tree order within
+        // that subtree is still well defined (the DISCONNECTED guard below
+        // covers the case where it is not).
         if (!ellipsisEl) {
             console.warn(
                 '[zero] Breadcrumbs.Root collapses its trail (maxItems) but renders no Breadcrumbs.Ellipsis: '
@@ -179,10 +180,12 @@ const BreadcrumbsRoot = component<BreadcrumbsRootProps>(({ props, slots, emit, o
             );
             return;
         }
-        const leading = items().filter((i) => {
-            const el = i.el();
-            return !!el && !!(el.compareDocumentPosition(ellipsisEl!) & Node.DOCUMENT_POSITION_FOLLOWING);
-        }).length;
+        // Order is only defined within one tree: two nodes in different
+        // trees compare as DISCONNECTED with an implementation-defined
+        // direction, so a check that cannot be made is skipped, not guessed.
+        const positions = items().map((i) => i.el()?.compareDocumentPosition(ellipsisEl!) ?? 0);
+        if (positions.some((p) => p & Node.DOCUMENT_POSITION_DISCONNECTED)) return;
+        const leading = positions.filter((p) => p & Node.DOCUMENT_POSITION_FOLLOWING).length;
         if (leading !== hidden[0]) {
             console.warn(
                 `[zero] Breadcrumbs.Ellipsis is misplaced: it follows ${leading} item(s), but the collapse keeps `

@@ -581,6 +581,17 @@ describe('Breadcrumbs collapse (#295)', () => {
         expect(warn).toHaveBeenCalledWith(expect.stringContaining('renders no Breadcrumbs.Ellipsis'));
         warn.mockRestore();
     });
+
+    it('judges placement in tree order inside a detached subtree', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        // Never attached: items and ellipsis still share one tree, so a
+        // correct placement stays quiet and a wrong one is still caught.
+        render(trail({ maxItems: 3 }, 1), document.createElement('div'));
+        expect(warn).not.toHaveBeenCalled();
+        render(trail({ maxItems: 3 }, 2), document.createElement('div'));
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('Breadcrumbs.Ellipsis is misplaced'));
+        warn.mockRestore();
+    });
 });
 
 describe('Pagination', () => {
