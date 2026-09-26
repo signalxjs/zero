@@ -171,7 +171,8 @@ close PLAYS — sampled per frame, the panel shrinks inside a still-open
 #170, a vertical slider: bottom-to-top drags on both projections, and a
 rail every skin stands upright, measured in boxes), tree-view
 keyboard (expand/descend/collapse/climb, typeahead against the accessible
-text), carousel (real scroll-snap: buttons and dots move the scroll, and a
+text, and since #287 `multiple`: the APG multi-select keys and the
+modifier clicks, whose Shift+click must select rows rather than text), carousel (real scroll-snap: buttons and dots move the scroll, and a
 REAL scroll drives the model back through the IntersectionObserver),
 diff (the divider handle's captured drag moves the painted reveal, APG
 keyboard steps, and an RTL check measured in boxes — the reveal is a
