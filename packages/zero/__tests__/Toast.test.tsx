@@ -132,6 +132,36 @@ describe('toaster (store)', () => {
         expect(item.duration).toBe(8000);
     });
 
+    it('promise: a throwing stage mapper settles the error stage, never an unhandled rejection (#292)', async () => {
+        const unhandled = vi.fn();
+        process.on('unhandledRejection', unhandled);
+        try {
+            const t = createToaster({ duration: Infinity });
+            const ok = t.promise(Promise.resolve(1), {
+                loading: 'Saving…',
+                success: () => { throw new Error('bad mapper'); },
+                error: (e) => ({ title: 'Save failed', description: (e as Error).message }),
+            });
+            const bad = t.promise(Promise.reject(new Error('io')), {
+                loading: 'Loading…',
+                success: 'Loaded',
+                error: () => { throw new Error('bad mapper'); },
+            });
+            await vi.advanceTimersByTimeAsync(0);
+            await vi.advanceTimersByTimeAsync(0);
+            const find = (id: string) => t.toasts().find((x) => x.id === id)!;
+            expect(find(ok).status).toBe('error');
+            expect(find(ok).title).toBe('Save failed');
+            expect(find(ok).description).toBe('bad mapper');
+            // Nothing left to map: the status moves, the loading copy stays.
+            expect(find(bad).status).toBe('error');
+            expect(find(bad).title).toBe('Loading…');
+            expect(unhandled).not.toHaveBeenCalled();
+        } finally {
+            process.off('unhandledRejection', unhandled);
+        }
+    });
+
     it('promise: a toast removed before the promise settles stays gone (#292)', async () => {
         const t = createToaster();
         let resolve!: () => void;
