@@ -419,7 +419,8 @@ const TreeViewRootImpl = component<TreeViewRootProps>(({ props, slots, emit, onM
                     // typo, a removed node, #165) and falls back like a
                     // registered-but-hidden (collapsed ancestor) or disabled
                     // one.
-                    const stop = tree.enabledItems().find((n) => sel.includes(n.value));
+                    const chosen = new Set(sel);
+                    const stop = tree.enabledItems().find((n) => chosen.has(n.value));
                     if (stop) return stop.value === value;
                 }
             }
