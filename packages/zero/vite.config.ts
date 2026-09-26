@@ -23,6 +23,7 @@ export default defineLibConfig({
         'components/dialog/index': 'src/components/dialog/index.ts',
         'components/popover/index': 'src/components/popover/index.ts',
         'components/tooltip/index': 'src/components/tooltip/index.ts',
+        'components/hover-card/index': 'src/components/hover-card/index.ts',
         'components/menu/index': 'src/components/menu/index.ts',
         'components/field/index': 'src/components/field/index.ts',
         'components/fieldset/index': 'src/components/fieldset/index.ts',

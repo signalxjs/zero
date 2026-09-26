@@ -15,7 +15,7 @@ import { anatomies } from '@sigx/zero/anatomy';
 import {
     Accordion, Alert, Avatar, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, Checkbox, CheckboxGroup,
     Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, EmptyState, Field, Fieldset, FileUpload, Grid,
-    Indicator, Input, Join, Kbd, Menu, Navbar, NavList, NumberInput, Pagination, Popover, Progress,
+    HoverCard, Indicator, Input, Join, Kbd, Menu, Navbar, NavList, NumberInput, Pagination, Popover, Progress,
     RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spacer, Spinner, Stack, Stats,
     Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
     TreeView, createToaster,
@@ -662,6 +662,12 @@ describe('the pass-through reaches every part', () => {
                     </Toast.Root>
                 )}
             </Toast.Viewport>
+        ),
+        'hover-card': () => (
+            <HoverCard.Root defaultOpen>
+                <HoverCard.Trigger {...p('trigger')} href="/users/ada">@ada</HoverCard.Trigger>
+                <HoverCard.Popup {...p('popup')}><HoverCard.Arrow {...p('arrow')} />Ada Lovelace</HoverCard.Popup>
+            </HoverCard.Root>
         ),
         tooltip: () => (
             <Tooltip.Root defaultOpen>

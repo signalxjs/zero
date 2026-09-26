@@ -35,6 +35,7 @@ import { createControllableState, createInertState, type ControllableState } fro
 import { createId } from '../../behaviors/create-id.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createHoverIntent } from '../../behaviors/hover-intent.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -167,19 +168,14 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
     let anchor: HTMLElement | null = null;
     let popup: HTMLElement | null = null;
     let arrow: HTMLElement | null = null;
-    let openTimer: ReturnType<typeof setTimeout> | undefined;
-    let closeTimer: ReturnType<typeof setTimeout> | undefined;
+    // The open/close delays, shared with HoverCard.
+    const intent = createHoverIntent((open) => { state.value = open; });
     onUnmounted(() => {
-        clearTimeout(openTimer);
-        clearTimeout(closeTimer);
+        intent.cancel();
         if (group?.open?.id === baseId) group.open = null;
     });
 
-    const closeNow = () => {
-        clearTimeout(openTimer);
-        clearTimeout(closeTimer);
-        state.value = false;
-    };
+    const closeNow = () => intent.close(0);
     const closeDelay = () => props.closeDelay ?? group?.closeDelay;
 
     // Group membership: one member open at a time, and the close time the
@@ -206,33 +202,22 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
         state,
         ids: { popup: `${baseId}-popup` },
         show(immediate = false) {
-            clearTimeout(closeTimer);
             if (immediate) {
-                state.value = true;
+                intent.open(0);
                 return;
             }
-            clearTimeout(openTimer);
             // In a group, a hover while a sibling is open — or within
             // `skipDelay` of one closing — skips the intent delay.
             const skip = !!group && (
                 (group.open !== null && group.open.id !== baseId)
                 || Date.now() - group.lastClosedAt < group.skipDelay
             );
-            const delay = skip ? 0 : props.openDelay ?? group?.openDelay ?? TOOLTIP_OPEN_DELAY;
-            if (delay === 0) {
-                state.value = true;
-                return;
-            }
-            openTimer = setTimeout(() => { state.value = true; }, delay);
+            intent.open(skip ? 0 : props.openDelay ?? group?.openDelay ?? TOOLTIP_OPEN_DELAY);
         },
         hide(pointer = false) {
-            clearTimeout(openTimer);
-            clearTimeout(closeTimer);
             // Blur keeps closing immediately by default — focus has left for
             // good; only a pointer can be on its way to the popup.
-            const delay = closeDelay() ?? (pointer ? TOOLTIP_CLOSE_GRACE : 0);
-            if (delay === 0) state.value = false;
-            else closeTimer = setTimeout(() => { state.value = false; }, delay);
+            intent.close(closeDelay() ?? (pointer ? TOOLTIP_CLOSE_GRACE : 0));
         },
         dismiss: closeNow,
         setAnchor: (el) => { anchor = el; },

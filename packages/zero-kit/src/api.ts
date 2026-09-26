@@ -275,6 +275,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     field: ['id', 'invalid', 'readonly', 'required', 'role', 'title', 'validate', 'validateOn'],
     fieldset: ['id', 'invalid', 'readonly', 'role', 'title'],
     grid: ['align', 'cols', 'gap', 'gapX', 'gapY', 'id', 'justify', 'pad', 'padX', 'padY', 'role', 'title', 'track'],
+    'hover-card': ['alignOffset', 'arrowPadding', 'closeDelay', 'collisionPadding', 'defaultOpen', 'offset', 'openDelay', 'openOnFocus', 'placement', 'positionStrategy', 'value'],
     'file-upload': ['accept', 'capture', 'defaultFiles', 'directory', 'form', 'id', 'invalid', 'maxFileSize', 'maxFiles', 'minFileSize', 'multiple', 'name', 'required', 'role', 'title', 'validate', 'value'],
     indicator: ['id', 'role', 'title'],
     input: ['autocapitalize', 'autocomplete', 'autocorrect', 'autofocus', 'defaultValue', 'defaultVisible', 'enterkeyhint', 'form', 'id', 'inputmode', 'invalid', 'maxlength', 'minlength', 'name', 'pattern', 'readonly', 'required', 'role', 'spellcheck', 'title', 'type', 'value'],

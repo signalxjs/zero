@@ -18,7 +18,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
 import type { EffectFn, EffectOptions } from 'sigx';
-import { Checkbox, Dialog, Drawer, Menu, Popover, Select, Tabs, Toast, Tooltip, createToaster, syncPopover } from '@sigx/zero';
+import { Checkbox, Dialog, Drawer, HoverCard, Menu, Popover, Select, Tabs, Toast, Tooltip, createToaster, syncPopover } from '@sigx/zero';
 
 type Rec = { n: number; runner?: () => void };
 const probe = vi.hoisted(() => ({ tracking: false, runs: [] as Rec[] }));
@@ -170,6 +170,12 @@ describe('effects created in onMounted stop on unmount (#163)', () => {
                 <Popover.Trigger>Open</Popover.Trigger>
                 {show.on ? <Popover.Popup>Body</Popover.Popup> : null}
             </Popover.Root>
+        )],
+        ['HoverCard.Popup', (state, show) => (
+            <HoverCard.Root model={[state, 'open']}>
+                <HoverCard.Trigger href="#">@ada</HoverCard.Trigger>
+                {show.on ? <HoverCard.Popup>Card</HoverCard.Popup> : null}
+            </HoverCard.Root>
         )],
         ['Dialog.Popup', (state, show) => (
             <Dialog.Root model={[state, 'open']}>

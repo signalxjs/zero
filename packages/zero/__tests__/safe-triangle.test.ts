@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createPointerGrace, pointInTriangle, safeTriangle } from '../src/behaviors/safe-triangle.js';
+import { createPointerGrace, pointInTriangle, safeTriangle, safeTriangleTo } from '../src/behaviors/safe-triangle.js';
 
 // A submenu to the right of the trigger: its near (left) edge at x=200,
 // spanning y 100..300. The pointer leaves the trigger at (180, 120).
@@ -29,6 +29,44 @@ describe('safeTriangle (#19)', () => {
 
     it('has no triangle for an unmeasured popup (no layout)', () => {
         expect(safeTriangle({ x: 0, y: 0 }, { left: 0, top: 0, right: 0, bottom: 0 })).toBeNull();
+    });
+});
+
+describe('safeTriangleTo (HoverCard, #290)', () => {
+    // A card below its trigger: top edge at y=200, spanning x 100..400.
+    const card = { left: 100, top: 200, right: 400, bottom: 320 };
+
+    it('aims at the top edge of a card below the exit point', () => {
+        expect(safeTriangleTo({ x: 150, y: 180 }, card)).toEqual([
+            { x: 150, y: 176 },
+            { x: 100, y: 200 },
+            { x: 400, y: 200 },
+        ]);
+    });
+
+    it('aims at the bottom edge of a card above the exit point', () => {
+        const above = { left: 100, top: 0, right: 400, bottom: 80 };
+        expect(safeTriangleTo({ x: 150, y: 100 }, above, 2)).toEqual([
+            { x: 150, y: 102 },
+            { x: 100, y: 80 },
+            { x: 400, y: 80 },
+        ]);
+    });
+
+    it('falls back to the side triangle for a card beside the exit point', () => {
+        expect(safeTriangleTo({ x: 180, y: 120 }, popup)).toEqual(safeTriangle({ x: 180, y: 120 }, popup));
+    });
+
+    it('has no triangle inside the card or for an unmeasured one', () => {
+        expect(safeTriangleTo({ x: 150, y: 250 }, card)).toBeNull();
+        expect(safeTriangleTo({ x: 0, y: 0 }, { left: 0, top: 0, right: 0, bottom: 0 })).toBeNull();
+    });
+
+    it('accepts the path down to the card and rejects one heading away', () => {
+        const tri = safeTriangleTo({ x: 150, y: 180 }, card)!;
+        expect(pointInTriangle({ x: 200, y: 195 }, tri)).toBe(true);
+        expect(pointInTriangle({ x: 150, y: 170 }, tri)).toBe(false);
+        expect(pointInTriangle({ x: 60, y: 195 }, tri)).toBe(false);
     });
 });
 
