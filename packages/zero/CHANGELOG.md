@@ -11,7 +11,8 @@
 - **`largeStep`** on Slider and NumberInput (default `10 * step`) is what
   PageUp/PageDown and now Shift+Arrow move by — on a Slider thumb and on the
   native `Slider.Control`, whose own PageUp is engine-defined.
-- **Slider `minStepsBetweenThumbs`** (default 0) keeps neighbouring thumbs
+- **Slider `minStepsBetweenThumbs`** (default 0; a fraction rounds up to
+  whole steps, keeping the bounds on the grid) keeps neighbouring thumbs
   that many steps apart; each thumb announces the gap in its
   `aria-valuemin`/`aria-valuemax`. A gap the neighbours leave no room for
   degrades to plain no-crossing, so the bounds never invert or leave
