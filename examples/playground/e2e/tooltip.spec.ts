@@ -17,7 +17,7 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { settledBox } from './demo';
+import { arrowGeometry, settledBox } from './demo';
 
 test.beforeEach(async ({ page }) => {
     await bootPage(page, 'tooltip', 'basic');
@@ -148,4 +148,19 @@ test('in a Tooltip.Group, moving to a sibling opens it well inside the intent de
     await expect(italicPopup).toHaveAttribute('data-state', 'open', { timeout: 200 });
     await expect(italicPopup).toBeVisible();
     await expect(boldPopup).toHaveAttribute('data-state', 'closed');
+});
+
+test('the arrow points at the trigger from the edge facing it (#279)', async ({ page }) => {
+    const t = page.getByRole('button', { name: 'With arrow', exact: true });
+    await t.hover();
+    const tip = page.locator('[data-scope="tooltip"][data-part="popup"]', { hasText: 'Points at what it describes' });
+    await expect(tip).toHaveAttribute('data-state', 'open');
+    const { placement, popup, arrow, target: trigger } = await arrowGeometry(tip, t, 'the tooltip');
+    expect(['top', 'bottom']).toContain(placement);
+    expect(Math.abs(arrow.x + arrow.width / 2 - (trigger.x + trigger.width / 2))).toBeLessThanOrEqual(2);
+    const edge = placement === 'top' ? popup.y + popup.height : popup.y;
+    expect(arrow.y).toBeLessThan(edge);
+    expect(arrow.y + arrow.height).toBeGreaterThan(edge);
+    // Decoration only: the trigger's description is the text alone.
+    await expect(t).toHaveAccessibleDescription('Points at what it describes');
 });

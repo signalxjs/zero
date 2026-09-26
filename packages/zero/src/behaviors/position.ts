@@ -10,7 +10,7 @@
  */
 import { watch } from 'sigx';
 import type { PlacementName } from '../contract/data-attrs.js';
-import { POSITION_PROPERTIES } from '../contract/position-properties.js';
+import { ARROW_PROPERTIES, POSITION_PROPERTIES } from '../contract/position-properties.js';
 import { isRtl } from './direction.js';
 
 // The strategy writes `data-placement` verbatim, so the type IS the
@@ -37,10 +37,27 @@ export interface PositionOptions {
      * centred placement. Default 0.
      */
     alignOffset?: number;
+    /**
+     * The popup's arrow part, when one is rendered. Read on every update, so
+     * an arrow that mounts while the popup is open is picked up by the next
+     * one. The strategy writes `--arrow-x` (a `top*`/`bottom*` popup) or
+     * `--arrow-y` (a side popup) on it — `ARROW_PROPERTIES` — and removes
+     * the other.
+     */
+    getArrow?: () => HTMLElement | null;
+    /**
+     * The minimum distance, px, between the arrow and either end of the
+     * popup edge it runs along — keeps it clear of a rounded corner.
+     * Default 8.
+     */
+    arrowPadding?: number;
 }
 
 /** `PositionOptions.collisionPadding` when a caller leaves it out. */
 export const DEFAULT_COLLISION_PADDING = 8;
+
+/** `PositionOptions.arrowPadding` when a caller leaves it out. */
+export const DEFAULT_ARROW_PADDING = 8;
 
 /** `value` when it is a finite number (raised to `min`, if given), else `fallback`. */
 function finiteOr(value: number | undefined, fallback: number, min = -Infinity): number {
@@ -217,6 +234,48 @@ function transformOrigin(side: Side, align: string, rtl: boolean): string {
 
 const px = (n: number): string => `${n}px`;
 
+/**
+ * The arrow's offset along an edge `room` px long: `ideal` (the anchor's
+ * centre, less half the arrow) clamped to `[pad, room - size - pad]`. A popup
+ * too short to hold the arrow and both paddings centres it instead — no
+ * clamp can satisfy both ends, and the middle is the least wrong.
+ */
+function arrowOffset(ideal: number, size: number, room: number, pad: number): number {
+    const max = room - size - pad;
+    if (max < pad) return (room - size) / 2;
+    return Math.min(Math.max(ideal, pad), max);
+}
+
+/**
+ * Point the arrow at the anchor's centre, from the popup's FINAL, rounded
+ * coordinates — after the flip and the shift, which is exactly what a
+ * stylesheet cannot know. Offsets are from the popup's padding edge (what an
+ * absolutely positioned child's `left`/`top` measure from), so the popup's
+ * border (`clientLeft`/`clientTop`) is subtracted, and the edge's length is
+ * its padding box (`clientWidth`/`clientHeight`).
+ */
+function placeArrow(
+    arrow: HTMLElement,
+    side: Side,
+    anchor: DOMRectReadOnly,
+    floating: HTMLElement,
+    at: { top: number; left: number },
+    pad: number,
+): void {
+    const [arrowX, arrowY] = ARROW_PROPERTIES;
+    if (side === 'top' || side === 'bottom') {
+        const size = arrow.offsetWidth;
+        const centre = anchor.left + anchor.width / 2 - (at.left + floating.clientLeft);
+        arrow.style.setProperty(arrowX, px(arrowOffset(centre - size / 2, size, floating.clientWidth, pad)));
+        arrow.style.removeProperty(arrowY);
+    } else {
+        const size = arrow.offsetHeight;
+        const centre = anchor.top + anchor.height / 2 - (at.top + floating.clientTop);
+        arrow.style.setProperty(arrowY, px(arrowOffset(centre - size / 2, size, floating.clientHeight, pad)));
+        arrow.style.removeProperty(arrowX);
+    }
+}
+
 function isElement(anchor: PositionAnchor): anchor is HTMLElement {
     return typeof Element !== 'undefined' && anchor instanceof Element;
 }
@@ -263,9 +322,10 @@ export const fixedPositionStrategy: PositionStrategy = {
             if (blockSide || !fits) coords.left = clamp(coords.left, size.width, window.innerWidth, pad);
             if (!blockSide || !fits) coords.top = clamp(coords.top, size.height, window.innerHeight, pad);
 
+            const at = { top: Math.round(coords.top), left: Math.round(coords.left) };
             floating.style.position = 'fixed';
-            floating.style.top = `${Math.round(coords.top)}px`;
-            floating.style.left = `${Math.round(coords.left)}px`;
+            floating.style.top = `${at.top}px`;
+            floating.style.left = `${at.left}px`;
             // The UA's `[popover] { inset: 0 }` leaves `right`/`bottom` set,
             // which over-constrains the box — and under RTL an
             // over-constrained fixed box honours `right` and drops `left`,
@@ -287,6 +347,8 @@ export const fixedPositionStrategy: PositionStrategy = {
             floating.style.setProperty(availW, px(room.width));
             floating.style.setProperty(availH, px(room.height));
             floating.style.setProperty(origin, transformOrigin(side, resolveSide(placement, rtl).align, rtl));
+            const arrow = opts.getArrow?.();
+            if (arrow) placeArrow(arrow, side, anchorRect, floating, at, finiteOr(opts.arrowPadding, DEFAULT_ARROW_PADDING, 0));
         };
 
         update();
@@ -327,11 +389,12 @@ export const fixedPositionStrategy: PositionStrategy = {
             if (raf != null) cancelAnimationFrame(raf);
             raf = null;
             observer?.disconnect();
-            // The published properties are NOT cleared here, like the
-            // coordinates and `data-placement` beside them: this runs on
-            // close, while an exit transition may still be painting the
-            // popup, and falling back mid-fade would jump its width and its
-            // origin. The next open rewrites all of them before it paints.
+            // The published properties — the arrow's too — are NOT cleared
+            // here, like the coordinates and `data-placement` beside them:
+            // this runs on close, while an exit transition may still be
+            // painting the popup, and falling back mid-fade would jump its
+            // width, its origin and its arrow. The next open rewrites all of
+            // them before it paints.
             window.removeEventListener('scroll', update, { capture: true });
             window.removeEventListener('resize', update);
         };
@@ -349,6 +412,10 @@ export interface AnchorPositionInput {
     collisionPadding?: () => number | undefined;
     /** `PositionOptions.alignOffset` — default 0. */
     alignOffset?: () => number | undefined;
+    /** `PositionOptions.getArrow` — the popup's arrow part, when rendered. */
+    getArrow?: () => HTMLElement | null;
+    /** `PositionOptions.arrowPadding` — default 8. */
+    arrowPadding?: () => number | undefined;
     strategy?: PositionStrategy;
 }
 
@@ -386,6 +453,8 @@ export function createAnchorPosition(input: AnchorPositionInput): AnchorPosition
                     flip: input.flip?.() ?? true,
                     collisionPadding: input.collisionPadding?.() ?? DEFAULT_COLLISION_PADDING,
                     alignOffset: input.alignOffset?.() ?? 0,
+                    getArrow: input.getArrow,
+                    arrowPadding: input.arrowPadding?.() ?? DEFAULT_ARROW_PADDING,
                 });
             };
             let cleanup = apply();

@@ -63,6 +63,8 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // writes exactly these names, the kit admits them as runtime properties
     // (web-only) a recipe may read.
     POSITION_PROPERTIES: [zero.POSITION_PROPERTIES, kit.POSITION_PROPERTIES],
+    // The arrow offsets the same strategy writes on a popup's arrow part.
+    ARROW_PROPERTIES: [zero.ARROW_PROPERTIES, kit.ARROW_PROPERTIES],
     // The named-prop axes and the attributes they render. Zero's copy guards
     // the runtime `axes` bag; the kit's drives selector emission.
     VARIANT_AXES: [zero.VARIANT_AXES, kit.VARIANT_AXES],

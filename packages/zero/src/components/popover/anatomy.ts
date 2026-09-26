@@ -23,6 +23,29 @@ export const popoverAnatomy = defineAnatomy('popover', {
         parent: 'popup',
         tokens: ['color', 'text'],
     },
+    description: {
+        element: 'p',
+        parent: 'popup',
+        tokens: ['color', 'text'],
+    },
+    // The mark on the popup edge facing the anchor, rendered only when the
+    // app renders Popover.Arrow. Decorative (`aria-hidden`), and not a paint
+    // part: it is the popup's own surface continued, never a mark a reader
+    // must see. The strategy writes ARROW_PROPERTIES on it — `--arrow-x` on
+    // a `top*`/`bottom*` popup, `--arrow-y` beside — and the recipe picks
+    // the edge from the popup's `data-placement`.
+    arrow: {
+        element: 'span',
+        parent: 'popup',
+        tokens: ['color'],
+    },
+    // What the popup is positioned against in the trigger's place, while
+    // rendered. Top-level: it sits wherever the app puts it, never inside
+    // the popup.
+    anchor: {
+        element: 'div',
+        asChild: true,
+    },
     close: {
         element: 'button',
         parent: 'popup',

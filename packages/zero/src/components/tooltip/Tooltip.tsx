@@ -25,6 +25,9 @@
  * `Tooltip.Group` (no element, no anatomy part) shares the delays across a
  * set of tooltips — a toolbar: once one has opened, moving to a sibling
  * opens it at once and closes the first.
+ *
+ * `Tooltip.Arrow`, rendered inside the popup, is pointed at the trigger's
+ * centre by the position strategy (`--arrow-x`/`--arrow-y`).
  */
 import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define } from 'sigx';
@@ -113,6 +116,8 @@ interface TooltipContext {
     getAnchor(): HTMLElement | null;
     setPopup(el: HTMLElement | null): void;
     getPopup(): HTMLElement | null;
+    /** The rendered `Tooltip.Arrow`, which the position strategy points at the trigger. */
+    setArrow(el: HTMLElement | null): void;
 }
 
 function makeInert(): TooltipContext {
@@ -126,6 +131,7 @@ function makeInert(): TooltipContext {
         getAnchor: () => null,
         setPopup: () => {},
         getPopup: () => null,
+        setArrow: () => {},
     };
 }
 
@@ -145,6 +151,8 @@ export type TooltipRootProps =
     & Define.Prop<'collisionPadding', number, false>
     /** Cross-axis offset, px, from a `-start`/`-end` alignment (default 0). */
     & Define.Prop<'alignOffset', number, false>
+    /** Minimum distance, px, between a `Tooltip.Arrow` and the popup's corners (default 8). */
+    & Define.Prop<'arrowPadding', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & Define.Slot<'default'>;
 
@@ -158,6 +166,7 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
     const group = useTooltipGroup();
     let anchor: HTMLElement | null = null;
     let popup: HTMLElement | null = null;
+    let arrow: HTMLElement | null = null;
     let openTimer: ReturnType<typeof setTimeout> | undefined;
     let closeTimer: ReturnType<typeof setTimeout> | undefined;
     onUnmounted(() => {
@@ -230,6 +239,7 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
         getAnchor: () => anchor,
         setPopup: (el) => { popup = el; },
         getPopup: () => popup,
+        setArrow: (el) => { arrow = el; },
     };
     defineProvide(useTooltipContext, () => ctx);
 
@@ -241,6 +251,8 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
         offset: () => props.offset ?? 6,
         collisionPadding: () => props.collisionPadding,
         alignOffset: () => props.alignOffset,
+        getArrow: () => arrow,
+        arrowPadding: () => props.arrowPadding,
         strategy: props.positionStrategy,
     });
 
@@ -377,9 +389,40 @@ const TooltipPopup = component<TooltipPopupProps>(({ props, slots, onMounted }) 
     );
 }, { name: 'Tooltip.Popup' });
 
+// ── Arrow ──
+
+/** The arrow is decoration: it renders `aria-hidden="true"` whatever the app passes. */
+export type TooltipArrowProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
+
+/**
+ * A mark on the popup edge facing the trigger, pointed at the trigger's
+ * centre through `--arrow-x`/`--arrow-y` (see `Popover.Arrow`). Empty by
+ * default — the recipe draws it; children (an SVG) replace the drawing.
+ */
+const TooltipArrow = component<TooltipArrowProps>(({ props, slots, onUnmounted }) => {
+    const tooltip = useTooltipContext();
+    let el: HTMLElement | null = null;
+    onUnmounted(() => {
+        if (el) tooltip.setArrow(null);
+    });
+    return () => (
+        <span
+            {...htmlAttrs(props)}
+            data-scope={SCOPE}
+            data-part="arrow"
+            aria-hidden="true"
+            class={props.class}
+            ref={(node: HTMLElement | null) => { el = node; tooltip.setArrow(node); }}
+        >
+            {slots.default?.()}
+        </span>
+    );
+}, { name: 'Tooltip.Arrow' });
+
 export const Tooltip = compound(TooltipRoot, {
     Root: TooltipRoot,
     Group: TooltipGroup,
     Trigger: TooltipTrigger,
     Popup: TooltipPopup,
+    Arrow: TooltipArrow,
 });

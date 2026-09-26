@@ -42,11 +42,20 @@ export type {
     PopoverTriggerProps,
     PopoverPopupProps,
     PopoverTitleProps,
+    PopoverDescriptionProps,
+    PopoverAnchorProps,
+    PopoverArrowProps,
     PopoverCloseProps,
 } from './components/popover/index.js';
 
 export { Tooltip, tooltipAnatomy, useTooltipContext } from './components/tooltip/index.js';
-export type { TooltipRootProps, TooltipGroupProps, TooltipTriggerProps, TooltipPopupProps } from './components/tooltip/index.js';
+export type {
+    TooltipRootProps,
+    TooltipGroupProps,
+    TooltipTriggerProps,
+    TooltipPopupProps,
+    TooltipArrowProps,
+} from './components/tooltip/index.js';
 
 export { Menu, menuAnatomy, useMenuContext, useMenuRadioGroupContext } from './components/menu/index.js';
 export type {
@@ -64,6 +73,7 @@ export type {
     MenuGroupProps,
     MenuGroupLabelProps,
     MenuSeparatorProps,
+    MenuArrowProps,
 } from './components/menu/index.js';
 
 export { Field, fieldAnatomy } from './components/field/index.js';

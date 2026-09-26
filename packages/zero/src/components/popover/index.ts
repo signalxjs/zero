@@ -4,6 +4,9 @@ export type {
     PopoverTriggerProps,
     PopoverPopupProps,
     PopoverTitleProps,
+    PopoverDescriptionProps,
+    PopoverAnchorProps,
+    PopoverArrowProps,
     PopoverCloseProps,
 } from './Popover.js';
 export { popoverAnatomy } from './anatomy.js';

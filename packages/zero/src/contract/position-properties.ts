@@ -35,3 +35,26 @@ export const POSITION_PROPERTIES = [
     '--available-height',
     '--transform-origin',
 ] as const;
+
+/**
+ * The custom properties the built-in strategy publishes on a popup's ARROW
+ * part (`Popover.Arrow`, `Tooltip.Arrow`, `Menu.Arrow`) when one is
+ * rendered — the arrow's offset along the popup edge that faces the anchor,
+ * px, from the popup's padding edge:
+ *
+ * - `--arrow-x` — on a `top*`/`bottom*` popup (the arrow runs along the
+ *   top or bottom edge): the arrow's left offset.
+ * - `--arrow-y` — on a side popup (`left*`/`right*`/`start*`/`end*`): the
+ *   arrow's top offset.
+ *
+ * Exactly one is set at a time; the other is removed. The value centres the
+ * arrow on the anchor's centre AFTER the flip and the shift, clamped to
+ * `[arrowPadding, popupSize - arrowSize - arrowPadding]` so the arrow never
+ * leaves the popup's straight edge. Which EDGE it sits on is the recipe's
+ * to say, from the popup's `data-placement`. Physical for the same reason as
+ * `POSITION_PROPERTIES`, and written by the built-in strategy only.
+ */
+export const ARROW_PROPERTIES = [
+    '--arrow-x',
+    '--arrow-y',
+] as const;

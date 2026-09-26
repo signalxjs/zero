@@ -11,7 +11,7 @@
  * tokens; the seven `kind` members each rebind the fill/ink/line channel.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
-import { tableStackAt } from '@sigx/zero-kit/define';
+import { popupArrow, popupArrowHost, tableStackAt } from '@sigx/zero-kit/define';
 import { tokens } from './tokens.js';
 
 const motion = (props: string): string =>
@@ -836,6 +836,16 @@ export const dialog: RecipeInput = {
 };
 
 // ── Popover ───────────────────────────────────────────────────────────────
+/**
+ * Carbon's popover `caret` (#279): a small wedge of the surface it hangs
+ * from — 0.5rem, so the tip stands about 6px proud, Carbon's caret height.
+ * Popover and tooltip take it, as Carbon's do. Carbon's menus have no
+ * caret, so this skin paints no `Menu.Arrow`: the part renders, empty and
+ * unstyled, and the menu keeps its flush surface.
+ */
+const caret = (scope: string, paint: CssProps): PartStyles =>
+    popupArrow(scope, { size: '0.5rem', paint });
+
 export const popover: RecipeInput = {
     component: 'popover',
     parts: {
@@ -858,6 +868,7 @@ export const popover: RecipeInput = {
                 lineHeight: 'var(--leading-normal)',
             },
             states: { open: {}, closed: {} },
+            selectors: popupArrowHost('popover'),
         }),
         title: {
             base: {
@@ -866,6 +877,18 @@ export const popover: RecipeInput = {
                 fontWeight: 'var(--weight-semibold)',
             },
         },
+        // helper-text: the secondary ink, body-compact.
+        description: {
+            base: {
+                margin: '0 0 var(--space-sm)',
+                fontSize: 'var(--text-sm)',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        arrow: caret('popover', {
+            background: 'var(--color-base-100)',
+            border: 'var(--border) solid var(--carbon-line)',
+        }),
         close: ghostIconButton('2rem'),
     },
     // Trigger-carried size — see `overlayTriggerSizes`.
@@ -903,7 +926,9 @@ export const tooltip: RecipeInput = {
                 lineHeight: 'var(--leading-normal)',
             },
             states: { open: {}, closed: {} },
+            selectors: popupArrowHost('tooltip'),
         }),
+        arrow: caret('tooltip', { background: 'var(--color-base-content)', border: 'none' }),
     },
     // Trigger-carried size — see `overlayTriggerSizes`.
     variants: { size: overlayTriggerSizes },

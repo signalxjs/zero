@@ -855,12 +855,85 @@
         transform: none;
     }
 
+    [data-scope="popover"][data-part="popup"]:has(> [data-scope="popover"][data-part="arrow"]) {
+        overflow: visible;
+    }
+
     [data-scope="popover"][data-part="title"] {
         margin: 0 0 var(--space-xs);
         font-family: var(--font-sans);
         font-size: var(--text-md);
         font-weight: var(--weight-semibold);
         color: var(--color-base-content);
+    }
+
+    [data-scope="popover"][data-part="description"] {
+        margin: 0 0 var(--space-sm);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        color: var(--hero-muted);
+    }
+
+    [data-scope="popover"][data-part="arrow"] {
+        display: none;
+        position: absolute;
+        box-sizing: border-box;
+        width: 0.625rem;
+        height: 0.625rem;
+        rotate: 45deg;
+        pointer-events: none;
+        background: var(--color-base-100);
+        border: var(--border) solid var(--hero-line);
+    }
+
+    [data-scope="popover"][data-part="popup"][data-placement^="top"] > [data-scope="popover"][data-part="arrow"] {
+        display: block;
+        top: calc(100% - 0.625rem / 2);
+        left: var(--arrow-x, calc(50% - 0.625rem / 2));
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="popover"][data-part="popup"][data-placement^="bottom"] > [data-scope="popover"][data-part="arrow"] {
+        display: block;
+        top: calc(0.625rem / -2);
+        left: var(--arrow-x, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    [data-scope="popover"][data-part="popup"][data-placement^="left"] > [data-scope="popover"][data-part="arrow"] {
+        display: block;
+        left: calc(100% - 0.625rem / 2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="popover"][data-part="popup"][data-placement^="right"] > [data-scope="popover"][data-part="arrow"] {
+        display: block;
+        left: calc(0.625rem / -2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="popover"][data-part="popup"][data-placement^="start"] > [data-scope="popover"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(100% - 0.625rem / 2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="popover"][data-part="popup"][data-placement^="end"] > [data-scope="popover"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(0.625rem / -2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="popover"][data-part="popup"][data-placement^="start"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="popover"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="popover"][data-part="popup"][data-placement^="end"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="popover"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
     }
 
     [data-scope="popover"][data-part="close"] {
@@ -990,6 +1063,72 @@
         transform: none;
     }
 
+    [data-scope="tooltip"][data-part="popup"]:has(> [data-scope="tooltip"][data-part="arrow"]) {
+        overflow: visible;
+    }
+
+    [data-scope="tooltip"][data-part="arrow"] {
+        display: none;
+        position: absolute;
+        box-sizing: border-box;
+        width: 0.625rem;
+        height: 0.625rem;
+        rotate: 45deg;
+        pointer-events: none;
+        background: var(--color-base-content);
+        border: none;
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="top"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        top: calc(100% - 0.625rem / 2);
+        left: var(--arrow-x, calc(50% - 0.625rem / 2));
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="bottom"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        top: calc(0.625rem / -2);
+        left: var(--arrow-x, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="left"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        left: calc(100% - 0.625rem / 2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="right"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        left: calc(0.625rem / -2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="start"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(100% - 0.625rem / 2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="end"] > [data-scope="tooltip"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(0.625rem / -2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="start"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="tooltip"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-placement^="end"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="tooltip"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
     [data-scope="tooltip"][data-part="trigger"][data-size="sm"] {
         padding: var(--space-xs) var(--space-md);
         font-size: var(--text-xs);
@@ -1077,6 +1216,72 @@
     [data-scope="menu"][data-part="popup"][data-state="open"] {
         opacity: 1;
         transform: none;
+    }
+
+    [data-scope="menu"][data-part="popup"]:has(> [data-scope="menu"][data-part="arrow"]) {
+        overflow: visible;
+    }
+
+    [data-scope="menu"][data-part="arrow"] {
+        display: none;
+        position: absolute;
+        box-sizing: border-box;
+        width: 0.625rem;
+        height: 0.625rem;
+        rotate: 45deg;
+        pointer-events: none;
+        background: var(--color-base-100);
+        border: var(--border) solid var(--hero-line);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="top"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        top: calc(100% - 0.625rem / 2);
+        left: var(--arrow-x, calc(50% - 0.625rem / 2));
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="bottom"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        top: calc(0.625rem / -2);
+        left: var(--arrow-x, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="left"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        left: calc(100% - 0.625rem / 2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="right"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        left: calc(0.625rem / -2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="start"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(100% - 0.625rem / 2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="end"] > [data-scope="menu"][data-part="arrow"] {
+        display: block;
+        inset-inline-start: calc(0.625rem / -2);
+        top: var(--arrow-y, calc(50% - 0.625rem / 2));
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="start"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="menu"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    [data-scope="menu"][data-part="popup"][data-placement^="end"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="menu"][data-part="arrow"] {
+        clip-path: polygon(0 0, 100% 0, 100% 100%);
     }
 
     [data-scope="menu"][data-part="item"] {

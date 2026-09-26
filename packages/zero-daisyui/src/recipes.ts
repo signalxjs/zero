@@ -5,7 +5,7 @@
  * value of that data.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
-import { axisRoles, tableStackAt } from '@sigx/zero-kit/define';
+import { axisRoles, popupArrow, popupArrowHost, tableStackAt } from '@sigx/zero-kit/define';
 import { roles, tokens } from './tokens.js';
 
 /**
@@ -1197,6 +1197,22 @@ const floatingPanel: NonNullable<PartStyles['base']> = {
 };
 
 /**
+ * The arrow a floating surface grows toward its anchor (#279), in the
+ * surface's own paint: the dropdown's base-100 and border for popover and
+ * menu, the tooltip's borderless neutral for the tooltip — daisy's
+ * `tooltip` draws exactly that tail under its bubble. Web-only (placed by
+ * the runtime's `--arrow-x`/`--arrow-y`), so it rides `targets.web` with
+ * the popup's permission to let it out.
+ */
+const floatingArrow = (scope: string, paint: CssProps, size = '0.625rem'): NonNullable<NonNullable<RecipeInput['targets']>['web']> => ({
+    parts: {
+        popup: { selectors: popupArrowHost(scope) },
+        arrow: popupArrow(scope, { size, paint }),
+    },
+});
+const panelArrowPaint: CssProps = { background: 'var(--color-base-100)', border: 'var(--border) solid var(--color-base-300)' };
+
+/**
  * daisy's dropdown menu for a listbox, sized by the geometry the
  * anchored-position strategy publishes (#278): at least the width of the
  * control that opened it (`--anchor-width`, daisy's 13rem floor otherwise)
@@ -1233,6 +1249,14 @@ export const popover: RecipeInput = {
         title: {
             base: { margin: '0 0 var(--space-md)', fontSize: 'var(--text-md)', fontWeight: 'var(--weight-bold)' },
         },
+        // The modal's muted body line, at the dropdown's tighter rhythm.
+        description: {
+            base: {
+                margin: '0 0 var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                color: 'color-mix(in oklab, var(--color-base-content) 75%, transparent)',
+            },
+        },
         close: {
             base: { ...btn, height: 'calc(var(--size-field) * 8)', paddingInline: 'calc(var(--size-field) * 3)', fontSize: 'var(--text-xs)' },
             states: {
@@ -1247,6 +1271,7 @@ export const popover: RecipeInput = {
     // The btn paddings, restated physically — see `lynxBtnPad` (#1084) —
     // and the btns' press rendering (`lynxBtnPressed`).
     targets: {
+        web: floatingArrow('popover', panelArrowPaint),
         lynx: {
             parts: {
                 trigger: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed } },
@@ -1293,6 +1318,7 @@ export const tooltip: RecipeInput = {
     variants: { color: btnColors(), size: btnSizes },
     // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
     targets: {
+        web: floatingArrow('tooltip', { background: 'var(--color-neutral)' }, '0.5rem'),
         lynx: {
             parts: { trigger: { base: lynxBtnPad(4) } },
             variants: { size: lynxBtnSizes('trigger') },
@@ -1446,6 +1472,7 @@ export const menu: RecipeInput = {
     variants: { color: btnColors(), size: btnSizes },
     // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
     targets: {
+        web: floatingArrow('menu', panelArrowPaint),
         lynx: {
             parts: { trigger: { base: lynxBtnPad(4) } },
             variants: { size: lynxBtnSizes('trigger') },

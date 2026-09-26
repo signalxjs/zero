@@ -16,7 +16,7 @@
  * `isPending`) and of a `compoundVariants` entry that matches one.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
-import { tableStackAt } from '@sigx/zero-kit/define';
+import { popupArrow, popupArrowHost, tableStackAt } from '@sigx/zero-kit/define';
 import { tokens } from './tokens.js';
 
 const motion = (props: string): string =>
@@ -606,6 +606,18 @@ export const dialog: RecipeInput = {
 };
 
 // ── Popover ───────────────────────────────────────────────────────────────
+/**
+ * HeroUI's `showArrow` (#279): a 10px square of the surface it hangs from,
+ * turned 45°, its hairline continuing the surface's. Popover, tooltip and
+ * menu (HeroUI's dropdown takes the same prop) share it.
+ */
+const heroArrow = (scope: string, paint: CssProps): PartStyles =>
+    popupArrow(scope, { size: '0.625rem', paint });
+const surfaceArrowPaint: CssProps = {
+    background: 'var(--color-base-100)',
+    border: 'var(--border) solid var(--hero-line)',
+};
+
 export const popover: RecipeInput = {
     component: 'popover',
     parts: {
@@ -624,6 +636,7 @@ export const popover: RecipeInput = {
                 color: 'var(--color-base-content)',
                 boxShadow: 'var(--shadow-lg)',
             },
+            selectors: popupArrowHost('popover'),
         }),
         title: {
             base: {
@@ -634,6 +647,16 @@ export const popover: RecipeInput = {
                 color: 'var(--color-base-content)',
             },
         },
+        // Dialog's muted small print, at the popover's tighter step.
+        description: {
+            base: {
+                margin: '0 0 var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        arrow: heroArrow('popover', surfaceArrowPaint),
         close: dismissAction,
     },
     // Trigger-carried size — see `overlayTriggerSizes`.
@@ -666,7 +689,9 @@ export const tooltip: RecipeInput = {
                 lineHeight: 'var(--leading-tight)',
                 boxShadow: 'var(--shadow-sm)',
             },
+            selectors: popupArrowHost('tooltip'),
         }),
+        arrow: heroArrow('tooltip', { background: 'var(--color-base-content)', border: 'none' }),
     },
     // Trigger-carried size — see `overlayTriggerSizes`.
     variants: { size: overlayTriggerSizes },
@@ -688,7 +713,9 @@ export const menu: RecipeInput = {
                 boxShadow: 'var(--shadow-lg)',
                 minWidth: '12rem',
             },
+            selectors: popupArrowHost('menu'),
         }),
+        arrow: heroArrow('menu', surfaceArrowPaint),
         item: {
             base: {
                 display: 'flex',

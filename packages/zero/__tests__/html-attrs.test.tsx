@@ -594,6 +594,7 @@ describe('the pass-through reaches every part', () => {
                 <Menu.Root defaultOpen>
                     <Menu.Trigger {...p('trigger')}>Actions</Menu.Trigger>
                     <Menu.Popup {...p('popup')}>
+                        <Menu.Arrow {...p('arrow')} />
                         <Menu.Group {...p('group')}>
                             <Menu.GroupLabel {...p('group-label')}>File</Menu.GroupLabel>
                             <Menu.Item {...p('item')} value="rename">Rename</Menu.Item>
@@ -617,9 +618,12 @@ describe('the pass-through reaches every part', () => {
         ),
         popover: () => (
             <Popover.Root defaultOpen>
+                <Popover.Anchor {...p('anchor')}>Field</Popover.Anchor>
                 <Popover.Trigger {...p('trigger')}>Open</Popover.Trigger>
                 <Popover.Popup {...p('popup')}>
+                    <Popover.Arrow {...p('arrow')} />
                     <Popover.Title {...p('title')}>T</Popover.Title>
+                    <Popover.Description {...p('description')}>D</Popover.Description>
                     <Popover.Close {...p('close')}>Close</Popover.Close>
                 </Popover.Popup>
             </Popover.Root>
@@ -657,7 +661,7 @@ describe('the pass-through reaches every part', () => {
         tooltip: () => (
             <Tooltip.Root defaultOpen>
                 <Tooltip.Trigger {...p('trigger')}>Save</Tooltip.Trigger>
-                <Tooltip.Popup {...p('popup')}>Save the document</Tooltip.Popup>
+                <Tooltip.Popup {...p('popup')}>Save the document<Tooltip.Arrow {...p('arrow')} /></Tooltip.Popup>
             </Tooltip.Root>
         ),
     };

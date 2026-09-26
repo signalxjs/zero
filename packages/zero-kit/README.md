@@ -523,6 +523,35 @@ The rule keeps the part's own specificity (its containment chain sits in
 Style `cell-label` unconditionally: zero shows it only while the table
 stacks. On lynx the conditions are dropped and reported, like any `at`.
 
+### `popupArrow` — the arrow on an anchored popup
+
+`Popover.Arrow`, `Tooltip.Arrow` and `Menu.Arrow` (zero#279) render an empty
+`aria-hidden` span inside the popup, and zero's position strategy writes
+where the anchor's centre falls along the edge that faces it — after the
+flip and the shift — as `--arrow-x` (a popup above or below) or `--arrow-y`
+(one beside). Which edge that is comes from the popup's `data-placement`.
+`popupArrow(scope, { size, paint })` returns the arrow part's styles for
+every placement: a `size` square of `paint` (the popup's own background and
+border), rotated 45° and clipped to the half that sticks out, centred on the
+facing edge at the published offset — the inline-start/-end edge for
+`start`/`end`, with the tip turned under RTL. `popupArrowHost(scope)` is the
+popup's half, spread into its `selectors`: `overflow: visible` while an arrow
+is rendered, since `[popover]` clips by default.
+
+```ts
+import { popupArrow, popupArrowHost } from '@sigx/zero-kit/define';
+
+popup: { base: panel, selectors: popupArrowHost('popover') },
+arrow: popupArrow('popover', { size: '0.625rem', paint: { background: surface, border: hairline } }),
+```
+
+Only a root `popup` places its arrow; anywhere else (a menu `sub-popup`) the
+arrow keeps `display: none`. The two properties are `ARROW_PROPERTIES` in
+the contract and part of `RUNTIME_PROPERTIES`, so in a design system that
+also builds lynx both halves go in `targets.web`. `left: var(--arrow-x)` is
+exempt from the physical-direction lint, like `--press-x`: it measures the
+glass.
+
 ## Extending a design system
 
 A design system derived from another — a product skin on top of

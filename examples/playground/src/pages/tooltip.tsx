@@ -16,6 +16,16 @@ const TooltipDemos = component(() => () => (
           */}
         <button type="button">Elsewhere</button>
         {/*
+          * With an arrow: the strategy points it at the trigger's centre
+          * (`--arrow-x` here, the tooltip sitting above).
+          */}
+        <div style="margin-top: 1rem;">
+            <Tooltip.Root>
+                <Tooltip.Trigger>With arrow</Tooltip.Trigger>
+                <Tooltip.Popup>Points at what it describes<Tooltip.Arrow /></Tooltip.Popup>
+            </Tooltip.Root>
+        </div>
+        {/*
           * A delay group — a toolbar's worth of tooltips. Once one is open,
           * moving to a neighbour opens it at once (and closes the first);
           * within `skipDelay` of a close, likewise. The e2e spec measures
