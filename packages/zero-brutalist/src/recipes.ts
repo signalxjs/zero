@@ -4801,6 +4801,22 @@ export const pagination: RecipeInput = {
     },
 };
 
+/** A Steps root holding wizard parts (#296) — the panel or the triggers. */
+const STEPS_WIZARD = '&:has(> [data-scope="steps"]:is([data-part="content"], [data-part="prev-trigger"], [data-part="next-trigger"]))';
+
+/** Steps' Back/Next (#296): the overlay slab — shoved on hover, stamped on press. */
+const stepsTrigger: PartStyles = {
+    base: { ...overlayTrigger.base, flex: '0 0 auto', alignSelf: 'flex-start' },
+    states: {
+        hover: shift('1px'),
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        '&[data-pressed]:not([data-disabled])': { transform: 'translate(2px, 2px)', boxShadow: 'none' },
+    },
+};
+
 /**
  * Steps — stamped squares on a hard rule: double-weight ink borders, the
  * current square refilled with the accent pair (ink by default), the
@@ -4823,6 +4839,10 @@ export const steps: RecipeInput = {
             },
             selectors: {
                 '&[data-orientation="vertical"]': { flexDirection: 'column' },
+                // A wizard (#296): the rail keeps its own line and the panel
+                // and triggers wrap below it. Only then — a bare rail never
+                // wraps, so its steps stay one row at any width.
+                [STEPS_WIZARD]: { flexWrap: 'wrap', rowGap: 'var(--space-md)' },
             },
         },
         /**
@@ -4861,6 +4881,9 @@ export const steps: RecipeInput = {
                 active: { color: 'var(--color-base-content)', fontWeight: 'var(--weight-semibold)' },
                 complete: { color: 'var(--color-base-content)' },
                 inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                // A step with errors shouts in the error ink whatever its
+                // phase: after the phases, so it wins at equal weight.
+                invalid: { color: 'var(--color-error)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
@@ -4886,6 +4909,8 @@ export const steps: RecipeInput = {
                 active: { background: 'var(--steps-accent)', color: 'var(--steps-accent-content)' },
                 complete: { background: 'var(--color-base-200)', color: 'var(--color-base-content)', textDecoration: 'line-through' },
                 inactive: { background: 'var(--color-base-100)', color: 'var(--color-base-content)' },
+                // The slab keeps its black border; the fill turns error.
+                invalid: { background: 'var(--color-error)', color: 'var(--color-error-content)', textDecoration: 'none' },
             },
         },
         /**
@@ -4917,6 +4942,7 @@ export const steps: RecipeInput = {
             states: {
                 complete: { background: 'var(--color-base-content)' },
                 inactive: { background: 'var(--color-base-300)' },
+                invalid: { background: 'var(--color-error)' },
             },
         },
         title: {
@@ -4930,6 +4956,27 @@ export const steps: RecipeInput = {
                 color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
                 fontWeight: 'var(--weight-normal)',
             },
+        },
+        /**
+         * The active step's panel: a full-width slab under the rail (the
+         * wizard wrap above), ruled off by the house's black line. Inactive
+         * panels are `hidden`, so they need no rule.
+         */
+        content: {
+            base: {
+                flex: '1 0 100%',
+                fontSize: 'var(--text-md)',
+                color: 'var(--color-base-content)',
+                paddingBlockStart: 'var(--space-md)',
+                borderBlockStart: 'var(--border) solid var(--color-base-content)',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        // Back/Next are the overlay slab; Next takes the far end of their line.
+        'prev-trigger': stepsTrigger,
+        'next-trigger': {
+            ...stepsTrigger,
+            base: { ...stepsTrigger.base, marginInlineStart: 'auto' },
         },
     },
     variants: {

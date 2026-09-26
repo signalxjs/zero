@@ -11,6 +11,7 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
+import { signal } from 'sigx';
 import { Steps, stepsAnatomy } from '@sigx/zero';
 import type { PartProps } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
@@ -260,5 +261,286 @@ describe('Steps', () => {
         expect(items(container)[0]!.tagName).toBe('A');
         expect(items(container)[0]!.getAttribute('data-color')).toBe('success');
         expectAnatomy(container, stepsAnatomy);
+    });
+});
+
+/**
+ * The wizard half (#296): content panels, Prev/Next, `linear` and
+ * `invalid` — Steps as a wizard with no app plumbing.
+ */
+describe('Steps wizard', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+    const one = (name: string) => container.querySelector<HTMLElement>(selector(name))!;
+    const all = (name: string) => [...container.querySelectorAll<HTMLElement>(selector(name))];
+    const phases = () => items(container).map((el) => el.getAttribute('data-state'));
+    const key = (el: HTMLElement, k: string) => {
+        const e = new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+        el.dispatchEvent(e);
+        return e;
+    };
+
+    function mountWizard(opts: {
+        defaultStep?: string;
+        linear?: boolean;
+        lazyMount?: boolean;
+        disabled?: string[];
+        invalid?: string[];
+        rootDisabled?: boolean;
+        state?: { step: string };
+    } = {}) {
+        const values = ['cart', 'details', 'pay', 'done'];
+        render(
+            <Steps.Root
+                {...(opts.state ? { model: [opts.state, 'step'] } : { defaultStep: opts.defaultStep ?? 'cart' })}
+                linear={opts.linear}
+                lazyMount={opts.lazyMount}
+                disabled={opts.rootDisabled}
+                label="Checkout"
+            >
+                {values.map((v, i) => (
+                    <Steps.Item value={v} disabled={opts.disabled?.includes(v)} invalid={opts.invalid?.includes(v)}>
+                        <Steps.Indicator>{i + 1}</Steps.Indicator>
+                        <Steps.Title>{v}</Steps.Title>
+                        {i < values.length - 1 ? <Steps.Separator /> : null}
+                    </Steps.Item>
+                ))}
+                {values.map((v) => (
+                    <Steps.Content value={v}><p data-body={v}>{v} body</p></Steps.Content>
+                ))}
+                <Steps.PrevTrigger>Back</Steps.PrevTrigger>
+                <Steps.NextTrigger>Next</Steps.NextTrigger>
+            </Steps.Root>,
+            container,
+        );
+    }
+
+    it('renders a valid anatomy with content panels and both triggers', async () => {
+        mountWizard();
+        await tick();
+        expectAnatomy(container, stepsAnatomy);
+        for (const name of ['prev-trigger', 'next-trigger'] as const) {
+            expect(one(name).tagName).toBe('BUTTON');
+            expect(one(name).getAttribute('type')).toBe('button');
+        }
+        const panels = all('content');
+        expect(panels.map((el) => el.getAttribute('data-state'))).toEqual(['active', 'inactive', 'inactive', 'inactive']);
+        expect(panels.map((el) => el.hidden)).toEqual([false, true, true, true]);
+    });
+
+    it('wires item ↔ content: aria-controls, a region labelled by the step title', async () => {
+        mountWizard();
+        await tick();
+        const [cart] = items(container);
+        const panel = all('content')[0]!;
+        const title = all('title')[0]!;
+        expect(panel.getAttribute('role')).toBe('region');
+        expect(cart!.getAttribute('aria-controls')).toBe(panel.id);
+        expect(panel.getAttribute('aria-labelledby')).toBe(title.id);
+        expect(title.id).not.toBe('');
+        // Every IDREF resolves inside the rendered tree.
+        for (const el of container.querySelectorAll<HTMLElement>('[aria-controls], [aria-labelledby]')) {
+            for (const attr of ['aria-controls', 'aria-labelledby']) {
+                for (const id of (el.getAttribute(attr) ?? '').split(' ').filter(Boolean)) {
+                    expect(document.getElementById(id), `${attr}=${id}`).not.toBeNull();
+                }
+            }
+        }
+    });
+
+    it('an item without a content panel carries no aria-controls; a title-less step labels its panel by the item', async () => {
+        render(
+            <Steps.Root defaultStep="a" label="Steps">
+                <Steps.Item value="a"><Steps.Indicator>1</Steps.Indicator></Steps.Item>
+                <Steps.Item value="b"><Steps.Title>B</Steps.Title></Steps.Item>
+                <Steps.Content value="a">A body</Steps.Content>
+            </Steps.Root>,
+            container,
+        );
+        await tick();
+        const [a, b] = items(container);
+        expect(a!.getAttribute('aria-controls')).toBe(one('content').id);
+        expect(b!.hasAttribute('aria-controls')).toBe(false);
+        expect(one('content').getAttribute('aria-labelledby')).toBe(a!.id);
+    });
+
+    it('Next/Prev step through the items in DOM order and move every panel with them', async () => {
+        mountWizard();
+        await tick();
+        const next = one('next-trigger');
+        const prev = one('prev-trigger');
+        next.click();
+        expect(phases()).toEqual(['complete', 'active', 'inactive', 'inactive']);
+        expect(all('content').map((el) => el.hidden)).toEqual([true, false, true, true]);
+        next.click();
+        next.click();
+        expect(phases()).toEqual(['complete', 'complete', 'complete', 'active']);
+        prev.click();
+        expect(phases()).toEqual(['complete', 'complete', 'active', 'inactive']);
+    });
+
+    it('the triggers skip disabled items', async () => {
+        mountWizard({ disabled: ['details'] });
+        await tick();
+        one('next-trigger').click();
+        expect(phases()).toEqual(['complete', 'complete', 'active', 'inactive']);
+        one('prev-trigger').click();
+        expect(phases()[0]).toBe('active');
+    });
+
+    it('at a bound a trigger stays focusable, aria-disabled, and does nothing', async () => {
+        mountWizard();
+        await tick();
+        const prev = one('prev-trigger');
+        const next = one('next-trigger');
+        expect(prev.getAttribute('aria-disabled')).toBe('true');
+        expect(prev.getAttribute('data-disabled')).toBe('');
+        // Not natively disabled: that would drop focus to <body> on the very
+        // press that reaches the bound.
+        expect((prev as HTMLButtonElement).disabled).toBe(false);
+        expect(next.hasAttribute('aria-disabled')).toBe(false);
+        prev.click();
+        expect(phases()[0]).toBe('active');
+        for (let i = 0; i < 3; i++) next.click();
+        next.focus();
+        expect(next.getAttribute('aria-disabled')).toBe('true');
+        next.click();
+        expect(phases()).toEqual(['complete', 'complete', 'complete', 'active']);
+        expect(document.activeElement).toBe(next);
+        expectAnatomy(container, stepsAnatomy);
+    });
+
+    it('a disabled root disables the triggers natively', async () => {
+        mountWizard({ rootDisabled: true, defaultStep: 'details' });
+        await tick();
+        for (const name of ['prev-trigger', 'next-trigger'] as const) {
+            expect((one(name) as HTMLButtonElement).disabled).toBe(true);
+            expect(one(name).getAttribute('data-disabled')).toBe('');
+            expect(one(name).hasAttribute('aria-disabled')).toBe(false);
+        }
+    });
+
+    it('drives a controlled model and follows it', async () => {
+        const state = signal({ step: 'cart' });
+        mountWizard({ state });
+        await tick();
+        one('next-trigger').click();
+        expect(state.step).toBe('details');
+        state.step = 'done';
+        await tick();
+        expect(all('content').map((el) => el.hidden)).toEqual([true, true, true, false]);
+        expect(one('next-trigger').getAttribute('aria-disabled')).toBe('true');
+    });
+
+    it('lazyMount defers a panel\'s content until its step has been active, then keeps it', async () => {
+        mountWizard({ lazyMount: true });
+        await tick();
+        const bodies = () => [...container.querySelectorAll('[data-body]')].map((el) => el.getAttribute('data-body'));
+        expect(bodies()).toEqual(['cart']);
+        // Every panel element still renders, so aria-controls never dangles.
+        expect(all('content')).toHaveLength(4);
+        one('next-trigger').click();
+        expect(bodies()).toEqual(['cart', 'details']);
+        one('prev-trigger').click();
+        expect(bodies()).toEqual(['cart', 'details']);
+    });
+
+    it('without lazyMount every panel renders its content (hidden)', async () => {
+        mountWizard();
+        await tick();
+        expect(container.querySelectorAll('[data-body]')).toHaveLength(4);
+    });
+
+    describe('linear', () => {
+        it('locks every item past the next reachable step: data-disabled + aria-disabled, never natively', async () => {
+            mountWizard({ linear: true });
+            await tick();
+            const [cart, details, pay, done] = items(container);
+            expect(cart!.hasAttribute('data-disabled')).toBe(false);
+            expect(details!.hasAttribute('data-disabled')).toBe(false);
+            for (const el of [pay!, done!]) {
+                expect(el.getAttribute('data-disabled')).toBe('');
+                expect(el.getAttribute('aria-disabled')).toBe('true');
+                expect((el as HTMLButtonElement).disabled).toBe(false);
+            }
+            expectAnatomy(container, stepsAnatomy);
+        });
+
+        it('a locked item ignores click and Enter; the next step and earlier ones activate', async () => {
+            mountWizard({ linear: true });
+            await tick();
+            const [, details, pay] = items(container);
+            pay!.click();
+            expect(phases()[0]).toBe('active');
+            key(pay!, 'Enter');
+            expect(phases()[0]).toBe('active');
+            details!.click();
+            expect(phases()).toEqual(['complete', 'active', 'inactive', 'inactive']);
+            // The lock moves with the walk: `pay` is now the next step.
+            expect(pay!.hasAttribute('data-disabled')).toBe(false);
+            expect(items(container)[3]!.getAttribute('data-disabled')).toBe('');
+            // Going back is never gated.
+            items(container)[0]!.click();
+            expect(phases()[0]).toBe('active');
+        });
+
+        it('locked items stay reachable by the arrow keys', async () => {
+            mountWizard({ linear: true });
+            await tick();
+            const [cart, details, pay, done] = items(container);
+            cart!.focus();
+            key(cart!, 'ArrowRight');
+            expect(document.activeElement).toBe(details);
+            key(details!, 'ArrowRight');
+            expect(document.activeElement).toBe(pay);
+            key(pay!, 'End');
+            expect(document.activeElement).toBe(done);
+        });
+
+        it('Next moves one step at a time, past a disabled item to the next enabled one', async () => {
+            mountWizard({ linear: true, disabled: ['details'] });
+            await tick();
+            // `details` is disabled, so `pay` is the next reachable step.
+            expect(items(container)[2]!.hasAttribute('data-disabled')).toBe(false);
+            expect(items(container)[3]!.getAttribute('data-disabled')).toBe('');
+            one('next-trigger').click();
+            expect(phases()).toEqual(['complete', 'complete', 'active', 'inactive']);
+        });
+    });
+
+    describe('invalid', () => {
+        it('flags the item, its indicator and its separator, and names the error', async () => {
+            mountWizard({ invalid: ['details'] });
+            await tick();
+            const details = items(container)[1]!;
+            expect(details.getAttribute('data-invalid')).toBe('');
+            expect(all('indicator')[1]!.getAttribute('data-invalid')).toBe('');
+            expect(all('separator')[1]!.getAttribute('data-invalid')).toBe('');
+            // `aria-invalid` is not allowed on a button: the error is in the name.
+            expect(details.hasAttribute('aria-invalid')).toBe(false);
+            const hidden = details.querySelector<HTMLElement>('[data-visually-hidden]')!;
+            expect(hidden.textContent).toBe(', has errors');
+            expect(details.textContent).toContain('details, has errors');
+            // No other step carries any of it.
+            expect(items(container)[0]!.hasAttribute('data-invalid')).toBe(false);
+            expect(items(container)[0]!.querySelector('[data-visually-hidden]')).toBeNull();
+            expectAnatomy(container, stepsAnatomy);
+        });
+
+        it('the hidden text is the root\'s invalidLabel', async () => {
+            render(
+                <Steps.Root defaultStep="a" label="Steps" invalidLabel=", fehlerhaft">
+                    <Steps.Item value="a" invalid><Steps.Title>A</Steps.Title></Steps.Item>
+                </Steps.Root>,
+                container,
+            );
+            await tick();
+            expect(items(container)[0]!.querySelector('[data-visually-hidden]')!.textContent).toBe(', fehlerhaft');
+        });
     });
 });
