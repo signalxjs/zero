@@ -242,6 +242,48 @@ describe('TreeView', () => {
         expect(document.activeElement).toBe(branch);
     });
 
+    it('expandOnClick=false: an indicator outside any Branch toggles nothing', () => {
+        const onExpandedValuesChange = vi.fn();
+        render(
+            <TreeView.Root expandOnClick={false} onExpandedValuesChange={onExpandedValuesChange}>
+                <TreeView.Tree>
+                    <TreeView.Item value="leaf">
+                        <TreeView.BranchIndicator />
+                        leaf
+                    </TreeView.Item>
+                </TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-part="branch-indicator"]')!.click();
+        expect(onExpandedValuesChange).not.toHaveBeenCalled();
+    });
+
+    it("'*' on a closed branch expands it along with its level", () => {
+        const onExpandedValuesChange = vi.fn();
+        render(
+            <TreeView.Root onExpandedValuesChange={onExpandedValuesChange}>
+                <TreeView.Tree>
+                    {['a', 'b'].map((v) => (
+                        <TreeView.Branch value={v}>
+                            <TreeView.BranchTrigger>{v}</TreeView.BranchTrigger>
+                            <TreeView.BranchContent>
+                                <TreeView.Item value={`${v}/x`}>x</TreeView.Item>
+                            </TreeView.BranchContent>
+                        </TreeView.Branch>
+                    ))}
+                </TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+        const a = byValue(container, 'a');
+        a.focus();
+        a.dispatchEvent(key('*'));
+        // APG's reference tree expands the current node with its siblings.
+        expect(onExpandedValuesChange).toHaveBeenCalledWith(['a', 'b']);
+        expect(document.activeElement).toBe(a);
+    });
+
     it("'*' expands every enabled sibling branch and emits once", () => {
         const onExpandedValuesChange = vi.fn();
         render(

@@ -100,8 +100,9 @@ Home/End rove to the enabled steps beside it, and it never activates.
 selects the branch, as Enter does, and — while `TreeView.Root`'s
 `expandOnClick` is on (the default) — toggles it too. With
 `expandOnClick={false}` the row only selects, and a click on the
-`BranchIndicator` only toggles. `*` expands every enabled sibling branch of
-the focused node (one `expandedValuesChange`). A `TreeView.Branch` marked
+`BranchIndicator` only toggles. `*` expands every enabled branch at the
+focused node's level, the focused node included, as APG's reference tree does
+(one `expandedValuesChange`). A `TreeView.Branch` marked
 `loading` (its children are being fetched) is `aria-busy="true"`; its
 `branch-indicator` reads `data-state="loading"`, and so does its
 `branch-content` while open — closed content stays `closed` and `hidden`.

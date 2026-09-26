@@ -29,7 +29,7 @@
  * closed branch, then steps to the first child; ArrowLeft collapses an
  * open branch, else climbs to the parent; Enter/Space select (selection
  * and expansion are separate acts on the keyboard); `*` expands every
- * enabled sibling branch of the focused node. Collapsed content stays
+ * enabled branch at the focused node's level, itself included (APG). Collapsed content stays
  * mounted and `hidden` — nodes keep their registration, they just stop
  * being visible to navigation.
  *
@@ -295,9 +295,10 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit, onMount
                 }
                 return;
             }
-            // `*` expands every enabled branch among the focused node's
-            // siblings (APG) — the focused node's own disabledness is beside
-            // the point, it expands nothing of its own. Handled before
+            // `*` expands every enabled branch at the focused node's level,
+            // the focused node included — APG's "all siblings at the same
+            // level", whose reference tree expands the current node too. A
+            // disabled focused node is skipped like any disabled sibling. Handled before
             // typeahead, which would otherwise search for a `*`.
             if (e.key === '*') {
                 e.preventDefault();
@@ -668,9 +669,11 @@ const TreeViewBranchIndicator = component<TreeViewBranchIndicatorProps>(({ props
                 // it toggles alone and keeps the row from selecting.
                 if (ctx.expandOnClick()) return;
                 e.stopPropagation();
-                if (ctx.disabled() || ctx.tree.findNode(value())?.disabled()) return;
-                ctx.toggleBranch(value());
-                ctx.tree.findNode(value())?.el()?.focus();
+                // Outside a registered Branch there is nothing to toggle.
+                const node = ctx.tree.findNode(value());
+                if (!node || ctx.disabled() || node.disabled()) return;
+                ctx.toggleBranch(node.value);
+                node.el()?.focus();
             }}
         >
             {slots.default ? slots.default() : '›'}
