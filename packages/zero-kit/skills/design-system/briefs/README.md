@@ -7,7 +7,7 @@ judged on and the only one where all three variant axes matter at once.
 
 **Pass the closest file as `--brief` to `pnpm create @sigx/zero-ds`, then
 diverge.** The scaffold splits it into `src/tokens.ts` and `src/button.ts`
-and lays `@sigx/zero-basic`'s 52 recipes under it as the baseline, fitted to
+and lays `@sigx/zero-basic`'s 53 recipes under it as the baseline, fitted to
 the brief's vocabulary (`fitRecipesToVocabulary`).
 
 | File | The look | Teaches |

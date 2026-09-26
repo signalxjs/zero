@@ -35,7 +35,7 @@ vendor spelling never reaches the DOM.
 
 ## Coverage
 
-Full — all 52 authored recipes (every component but the six layout
+Full — all 53 authored recipes (every component but the six layout
 primitives, which the kit's layout tier styles) speak Carbon's language (square corners,
 layer-ramp feedback, the inset 2px focus ring, field-01 text surfaces). The
 `kind` axis, the values remap and the renamed boolean modifiers stay

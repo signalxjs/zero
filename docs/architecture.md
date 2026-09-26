@@ -316,7 +316,7 @@ would render it as an element.
 
 **The registry is typed closed.** `anatomies` in
 `packages/zero/src/anatomy.ts` is declared `as const satisfies
-Record<string, Anatomy>` — 58 components — so `ZeroScope` is a closed literal
+Record<string, Anatomy>` — 59 components — so `ZeroScope` is a closed literal
 union. That closure is load-bearing: the generated register artifact asserts
 its scope keys against it at compile time ([§3.5](#35-the-register-artifact)),
 which is what makes a typo'd or version-skewed scope a compile error instead
@@ -1293,7 +1293,7 @@ Node-only bin with no runtime dependencies, templates embedded at build time
 with the lockstep ranges — lockstep is what makes embedding and reading the
 installed packages content-identical, and neither source file is reachable
 through an `exports` map anyway). The generated package is the brief's tokens
-and worked Button over **zero-basic's 52 recipes as the baseline**, composed
+and worked Button over **zero-basic's 53 recipes as the baseline**, composed
 in `src/recipes.ts` through `fitRecipesToVocabulary` — the kit's one
 non-`define*` export on `/define`, a pure function that keeps exactly what
 the tokens declare (roles, the size ramp, the variant vocabulary, custom
@@ -1625,7 +1625,7 @@ Honesty section. These are the edges the tree knows about today:
 - **The dual-controller theme desync** ([§6](#6-the-theme-model)) is known
   and deliberately unfixed; consumers that swap design systems at runtime
   carry the playground's capture/re-apply pattern.
-- **The component surface is finite.** Fifty-eight components, skewed to
+- **The component surface is finite.** Fifty-nine components, skewed to
   primitives plus the content, navigation, layout and behavior tiers; there
   is no DatePicker and no data grid (Table ships the semantic anatomy, not
   sorting or virtualization). The ecosystem path

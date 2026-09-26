@@ -139,7 +139,11 @@ whole chain while focus moves on to the neighbouring tab stop, #263), toast
 F8/Escape, and the re-stack above a modal dialog measured in pixels), select
 (and since #278, per design system on chromium, the popup geometry: a listbox
 at least as wide as its trigger, and in a viewport too short for it capped
-inside the collision padding and scrolling), form-readonly (#267: readonly checkbox, switch, radio group, select and
+inside the collision padding and scrolling),
+checkbox-group (#282: the derived tri-state parent box toggles all or none
+and keeps the native `indeterminate` in step, and a real click on an
+indeterminate box — which clears the property — leaves it asserted),
+form-readonly (#267: readonly checkbox, switch, radio group, select and
 slider refuse every click, key, press and drag — a cancelled radio
 activation re-checks the previous radio, which happy-dom does not run,
 and arrow-key roving still moves focus), select-clear (#280: chromium,
@@ -445,7 +449,7 @@ slides, is fine).
   (`danger-soft` is one member), a declared three-step size ramp, and
   HeroUI's `isIconOnly`/`isPending` as `data-mod-*` modifiers. Where
   zero-material proves vocabularies can be *extended*, this proves they can be
-  a different *shape*. Full component coverage (52 recipes, plus the kit's layout tier), with `variant`
+  a different *shape*. Full component coverage (53 recipes, plus the kit's layout tier), with `variant`
   wired on button only (the repo-wide decision, #175) — it exercises the axis
   surface, not a product. Private.
 - `packages/zero-carbon` → `@sigx/zero-carbon` — Carbon-flavoured skin, and
@@ -475,7 +479,7 @@ slides, is fine).
 - `packages/create-zero-ds` → `@sigx/create-zero-ds` — the scaffold behind
   `pnpm create @sigx/zero-ds <name> --brief <id>` (#401): a Node-only bin with
   zero runtime deps that lays down a design-system package from nothing —
-  the brief's tokens + Button, `@sigx/zero-basic`'s 52 recipes as
+  the brief's tokens + Button, `@sigx/zero-basic`'s 53 recipes as
   `src/baseline.ts`, and a `src/recipes.ts` composing them through the kit's
   `fitRecipesToVocabulary` (on `/define`) so any axis shape compiles on the
   first build. Templates are embedded at build time
