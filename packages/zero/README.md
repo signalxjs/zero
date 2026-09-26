@@ -246,7 +246,9 @@ PageUp/PageDown and Shift+Arrow (default ten steps; Diff's `step` 1 and
 `largeStep` 10, in percent) — a native `Slider.Control` included, whose own
 PageUp is engine-defined. Slider's `minStepsBetweenThumbs` (default 0) keeps
 neighbouring thumbs that many steps apart, and each thumb announces the gap
-in its `aria-valuemin`/`aria-valuemax`. Slider's `valueCommit` fires with
+in its `aria-valuemin`/`aria-valuemax`; a gap its neighbours leave no room
+for degrades to plain no-crossing, so the bounds never invert or leave
+`[min, max]`. Slider's `valueCommit` fires with
 the model's shape once a drag is released, after each keyboard step, and on
 the native control's `change` — each only when the value moved. It is an
 event, not a model: there is no `valueChange` pair to bind, and `valueChange`

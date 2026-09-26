@@ -377,12 +377,21 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
         const vals = values();
         const raw = props.minStepsBetweenThumbs;
         const steps = typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : 0;
-        const gap = steps * step();
         const p = precision();
-        return {
-            lo: index > 0 ? Number((vals[index - 1]! + gap).toFixed(p)) : min(),
-            hi: index < vals.length - 1 ? Number((vals[index + 1]! - gap).toFixed(p)) : max(),
+        const lower = min();
+        const upper = Math.max(lower, max());
+        const within = (v: number): number => Math.min(upper, Math.max(lower, v));
+        // The unclamped window, or null when it holds no value in [min, max].
+        const window = (gap: number): { lo: number; hi: number } | null => {
+            const lo = index > 0 ? Number((vals[index - 1]! + gap).toFixed(p)) : lower;
+            const hi = index < vals.length - 1 ? Number((vals[index + 1]! - gap).toFixed(p)) : upper;
+            return lo <= hi && hi >= lower && lo <= upper ? { lo: within(lo), hi: within(hi) } : null;
         };
+        // Bounds always sit inside [min, max] with lo <= hi. A gap the
+        // neighbors leave no room for degrades to plain no-crossing; values
+        // that already arrive out of order pin the thumb where it is.
+        const here = within(vals[index] ?? lower);
+        return window(steps * step()) ?? window(0) ?? { lo: here, hi: here };
     };
 
     const setValueAt = (index: number, raw: number): void => {

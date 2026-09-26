@@ -580,4 +580,31 @@ describe('Slider minStepsBetweenThumbs (#272)', () => {
         expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('0.5');
         expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('0.3');
     });
+
+    it('degrades an impossible gap to no-crossing, never inverting the bounds', () => {
+        const state = signal({ price: [40, 50] });
+        const { thumbs } = mountRange(state, { minStepsBetweenThumbs: 80 });
+        for (const t of thumbs) {
+            expect(Number(t.getAttribute('aria-valuemin'))).toBeGreaterThanOrEqual(0);
+            expect(Number(t.getAttribute('aria-valuemax'))).toBeLessThanOrEqual(100);
+            expect(Number(t.getAttribute('aria-valuemin')))
+                .toBeLessThanOrEqual(Number(t.getAttribute('aria-valuemax')));
+        }
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('50');
+        expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('40');
+        key(thumbs[0]!, 'End');
+        expect(state.price).toEqual([50, 50]);
+        key(thumbs[1]!, 'Home');
+        expect(state.price).toEqual([50, 50]);
+    });
+
+    it('pins a thumb whose incoming values are out of order', () => {
+        const state = signal({ price: [70, 30] });
+        const { thumbs } = mountRange(state);
+        expect(Number(thumbs[0]!.getAttribute('aria-valuemin')))
+            .toBeLessThanOrEqual(Number(thumbs[0]!.getAttribute('aria-valuemax')));
+        key(thumbs[0]!, 'ArrowRight');
+        expect(state.price[0]).toBeGreaterThanOrEqual(0);
+        expect(state.price[0]).toBeLessThanOrEqual(100);
+    });
 });
