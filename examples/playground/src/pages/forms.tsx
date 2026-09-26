@@ -25,7 +25,7 @@ const COUNTRIES = [
  * six claims per scope in happy-dom.
  */
 const FormsDemos = component(() => {
-    const state = signal({ posted: '' });
+    const state = signal({ posted: '', validPosted: '' });
 
     const onSubmit = (e: Event): void => {
         e.preventDefault();
@@ -161,6 +161,68 @@ const FormsDemos = component(() => {
             </Field.Root>
             <p><small>Posted (FormData on submit):</small></p>
             <pre data-testid="posted">{state.posted || '—'}</pre>
+            <h2>Validation</h2>
+            <p>
+                <small>
+                    <code>Field.Root</code> surfaces the platform's constraint API
+                    (#284): each <code>Field.Error</code> below names the{' '}
+                    <code>ValidityState</code> key it speaks for
+                    (<code>match="valueMissing"</code>,{' '}
+                    <code>"patternMismatch"</code>, <code>"typeMismatch"</code>) or <code>"custom"</code> for the
+                    Field's own <code>validate</code>, whose message blocks the
+                    native submit through <code>setCustomValidity</code>. Nothing
+                    shows until a failed submit — then every change revalidates —
+                    except the email, which validates on leaving it
+                    (<code>validateOn="blur"</code>). Focus goes to the first
+                    invalid control; Reset forgets it all.
+                </small>
+            </p>
+            <form
+                id="validated-form"
+                data-demo="validated-form"
+                onSubmit={(e: Event) => {
+                    e.preventDefault();
+                    const data = new FormData(e.target as HTMLFormElement);
+                    state.validPosted = JSON.stringify(Object.fromEntries(
+                        [...data.entries()].filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+                    ));
+                }}
+                onReset={() => { state.validPosted = ''; }}
+            >
+                <Field.Root validate={(v) => (v === 'admin' ? 'That username is reserved.' : null)}>
+                    <Field.Label>Username</Field.Label>
+                    <Input.Root name="val-user" required pattern="[a-z]{3,}">
+                        <Input.Control><Input.Input /></Input.Control>
+                    </Input.Root>
+                    <Field.Description>Three or more lowercase letters.</Field.Description>
+                    <Field.Error match="valueMissing">Choose a username.</Field.Error>
+                    <Field.Error match="patternMismatch">Three or more lowercase letters.</Field.Error>
+                    <Field.Error match="custom" />
+                </Field.Root>
+                <Field.Root validateOn="blur">
+                    <Field.Label>Contact email</Field.Label>
+                    <Input.Root name="val-email" type="email" required>
+                        <Input.Control><Input.Input /></Input.Control>
+                    </Input.Root>
+                    <Field.Error match="valueMissing">Enter an email address.</Field.Error>
+                    <Field.Error match="typeMismatch">That is not an email address.</Field.Error>
+                </Field.Root>
+                <Field.Root required>
+                    <Field.Label>Favourite fruit</Field.Label>
+                    <Select.Root name="val-fruit" placeholder="Pick a fruit…" items={FRUITS} itemKey={(f) => f.value} itemValue={(f) => f.value} />
+                    <Field.Error match="valueMissing">Pick a fruit.</Field.Error>
+                </Field.Root>
+                <Field.Root required>
+                    <Checkbox.Root name="val-terms" value="yes">I accept the terms</Checkbox.Root>
+                    <Field.Error match="valueMissing">Accept the terms to continue.</Field.Error>
+                </Field.Root>
+                <p>
+                    <Button.Root type="submit">Create account</Button.Root>
+                    {' '}
+                    <Button.Root type="reset">Reset</Button.Root>
+                </p>
+            </form>
+            <pre data-testid="validated-posted">{state.validPosted || '—'}</pre>
             <h2>Readonly</h2>
             <p>
                 <small>

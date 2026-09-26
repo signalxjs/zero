@@ -181,6 +181,16 @@ const SCANS: Record<string, Scan[]> = {
     forms: [
         { name: 'form select', open: openSelect('select', 'form-fruit') },
         { name: 'form combobox', open: openSelect('combobox', 'form-country') },
+        {
+            // Every matched Field.Error rendered, each control naming its
+            // own (#284) — the state a failed submit leaves behind.
+            name: 'validated form after a failed submit',
+            open: async (page) => {
+                const form = page.locator('[data-demo="validated-form"]');
+                await form.locator('button[type="submit"]').click();
+                await expect(form.locator('[data-scope="field"][data-part="error"]')).toHaveCount(4);
+            },
+        },
     ],
     'app-shell': [
         { name: 'docked sidebar', open: async () => {} },
