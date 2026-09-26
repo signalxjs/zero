@@ -317,7 +317,8 @@ const TreeViewRootImpl = component<TreeViewRootProps>(({ props, slots, emit, onM
             // Adds: a select-all never drops a selection the user has
             // collapsed out of sight.
             const all = selectedValues();
-            for (const n of tree.enabledItems()) if (!all.includes(n.value)) all.push(n.value);
+            const seen = new Set(all);
+            for (const n of tree.enabledItems()) if (!seen.has(n.value)) all.push(n.value);
             setMany(all);
             return true;
         }
