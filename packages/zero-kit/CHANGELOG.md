@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-26
+
 ### Added — The sort state family (zero#286)
 
 - `STATE_VOCABULARY` gains `sort: ['ascending', 'descending', 'none']` and
