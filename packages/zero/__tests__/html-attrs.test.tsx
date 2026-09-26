@@ -655,6 +655,7 @@ describe('the pass-through reaches every part', () => {
                     // `key` before the spread: after one, the automatic JSX
                     // runtime falls back to `createElement`, which sigx has not.
                     <Toast.Root key={td.id} {...p('root')} toast={td}>
+                        <Toast.Indicator {...p('indicator')} />
                         <Toast.Title {...p('title')}>{td.title}</Toast.Title>
                         <Toast.Description {...p('description')}>D</Toast.Description>
                         <Toast.Action {...p('action')}>Undo</Toast.Action>
@@ -717,7 +718,8 @@ describe('the pass-through reaches every part', () => {
         document.body.appendChild(container);
         render(SWEEP[scope]!() as never, container);
         if (scope === 'toast') {
-            sweepToaster.create({ title: 'Saved' });
+            // With a status, so the indicator renders too.
+            sweepToaster.create({ title: 'Saved', status: 'loading' });
             // A toast mounts a frame after it is queued.
             await new Promise<void>((resolve) =>
                 requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0))));

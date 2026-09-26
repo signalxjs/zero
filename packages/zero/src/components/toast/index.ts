@@ -5,6 +5,7 @@ export type {
     ToastRootProps,
     ToastTitleProps,
     ToastDescriptionProps,
+    ToastIndicatorProps,
     ToastActionProps,
     ToastCloseProps,
 } from './Toast.js';
@@ -16,5 +17,8 @@ export type {
     ToastOptions,
     ToastActionData,
     ToastRole,
+    ToastStatus,
+    ToastInput,
+    ToastPromiseOptions,
 } from './toaster.js';
 export { toastAnatomy } from './anatomy.js';

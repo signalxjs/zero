@@ -29,7 +29,11 @@
  * The viewport is a `popover="manual"` top layer: no z-index, no portal, no
  * light dismiss, and it stays out of the way when empty. Placement is data
  * (`data-placement` on viewport and root); stacking is data too —
- * `--toast-index` / `--toast-count` on each root.
+ * `--toast-index` / `--toast-count` on each root, plus its measured
+ * `--toast-height` and `--toast-offset` (the heights of the newer toasts in
+ * front of it), and the viewport's `data-state`: `open` while the stack is
+ * expanded (hovered or holding focus, or always), `closed` at rest. Whether a
+ * resting stack collapses into cards is the recipe's call.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
@@ -60,6 +64,12 @@ interface ToastViewportContext {
      * a frame later, once the re-render it follows has reached the DOM.
      */
     announce(read: () => string): void;
+    /** A root reports its measured height (`undefined` when it leaves). */
+    setHeight(id: string, px: number | undefined): void;
+    /** A root's last measured height (0 before its first measure). */
+    heightOf(id: string): number;
+    /** The summed heights of the toasts in front of this one (the newer ones). */
+    offsetOf(id: string): number;
 }
 
 function makeInertViewport(): ToastViewportContext {
@@ -69,6 +79,9 @@ function makeInertViewport(): ToastViewportContext {
         placement: () => 'bottom-end',
         handOffFocus: () => {},
         announce: () => {},
+        setHeight: () => {},
+        heightOf: () => 0,
+        offsetOf: () => 0,
     };
 }
 
@@ -178,6 +191,12 @@ export type ToastViewportProps =
      * `['F8']` by default; `false` turns it off.
      */
     & Define.Prop<'hotkey', readonly string[] | false, false>
+    /**
+     * When the stack is expanded (`data-state="open"` on the viewport):
+     * `'hover'` (default) while the pointer is over it or focus is inside
+     * it, `'always'` for good. What expanded looks like is the recipe's.
+     */
+    & Define.Prop<'expand', 'hover' | 'always', false>
     & Define.Prop<'toaster', Toaster, false>
     & WithClass
     /** Not `role`: the viewport is a named `region` landmark. */
@@ -206,6 +225,9 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
     // The assertive channel for `role: 'alert'` toasts. It lives outside the
     // popover, so it is in the accessibility tree before it is filled.
     const live = signal({ text: '' });
+    // `held`: the pointer or focus is in the stack — what expands it.
+    // `heights`: each mounted root's measured height, by toast id.
+    const stack = signal({ held: false, heights: {} as Record<string, number> });
 
     const handOffFocus = (root: HTMLElement): void => {
         if (typeof document === 'undefined') return;
@@ -235,7 +257,24 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
         });
     };
 
-    const ctx: ToastViewportContext = { toaster: manager, placement, handOffFocus, announce };
+    const setHeight = (id: string, px: number | undefined): void => {
+        if (stack.heights[id] === px) return;
+        const next = { ...stack.heights };
+        if (px === undefined) delete next[id];
+        else next[id] = px;
+        stack.heights = next;
+    };
+    const heightOf = (id: string): number => stack.heights[id] ?? 0;
+    const offsetOf = (id: string): number => {
+        const toasts = manager().toasts();
+        const at = toasts.findIndex((t) => t.id === id);
+        if (at === -1) return 0;
+        let sum = 0;
+        for (const t of toasts.slice(at + 1)) sum += heightOf(t.id);
+        return sum;
+    };
+
+    const ctx: ToastViewportContext = { toaster: manager, placement, handOffFocus, announce, setHeight, heightOf, offsetOf };
     defineProvide(useToastViewportContext, () => ctx);
 
     // The viewport pauses the queue while anything holds it: the pointer or
@@ -250,6 +289,7 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
     let recheck: ReturnType<typeof setTimeout> | null = null;
     // Re-run on a `toaster` swap too, so a live hold moves to the new one.
     const sync = (): void => {
+        stack.held = holds.has('hover') || holds.has('focus');
         const target = holds.size > 0 ? manager() : null;
         if (target === heldBy) return;
         const released = heldBy;
@@ -376,6 +416,7 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
                     {...attrs}
                     data-scope={SCOPE}
                     data-part="viewport"
+                    data-state={stateAttr(props.expand === 'always' || stack.held, 'open', 'closed')}
                     data-placement={placement()}
                     popover="manual"
                     role="region"
@@ -409,6 +450,7 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
                             ? renderToastSlot(slots.default, t)
                             : (
                                 <ToastRoot toast={t} key={t.id}>
+                                    <ToastIndicator />
                                     {t.title ? <ToastTitle>{t.title}</ToastTitle> : null}
                                     {t.description ? <ToastDescription>{t.description}</ToastDescription> : null}
                                     {t.action ? <ToastAction onClick={() => t.action?.onClick?.()}>{t.action.label}</ToastAction> : null}
@@ -448,6 +490,7 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
     const present = signal({ title: false, description: false });
 
     let el: HTMLElement | null = null;
+    let resize: ResizeObserver | null = null;
     let seenOpen = false;
     let exiting = false;
     let fallbackHandle: ReturnType<typeof setTimeout> | null = null;
@@ -490,8 +533,19 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
         return `${title}${/[.!?…:]$/.test(title) ? ' ' : '. '}${description}`;
     };
 
+    // The layout height (`offsetHeight` ignores transforms, so a card the
+    // recipe scales down behind the front one still reports its real size).
+    const measure = (): void => {
+        if (el) viewport.setHeight(props.toast.id, el.offsetHeight);
+    };
+
     const scoped = mountScope();
     onMounted(() => scoped(() => {
+        measure();
+        if (el && typeof ResizeObserver === 'function') {
+            resize = new ResizeObserver(measure);
+            resize.observe(el);
+        }
         effect(() => {
             if (props.toast.open) {
                 seenOpen = true;
@@ -513,6 +567,9 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
     }));
     onUnmounted(() => {
         if (fallbackHandle != null) clearTimeout(fallbackHandle);
+        resize?.disconnect();
+        resize = null;
+        viewport.setHeight(props.toast.id, undefined);
     });
 
     const ctx: ToastItemContext = {
@@ -568,6 +625,8 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
                 style={{
                     '--toast-index': String(Math.max(0, index())),
                     '--toast-count': String(viewport.toaster().toasts().length),
+                    '--toast-height': `${viewport.heightOf(props.toast.id)}px`,
+                    '--toast-offset': `${viewport.offsetOf(props.toast.id)}px`,
                 }}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; }}
@@ -612,6 +671,37 @@ const ToastDescription = component<ToastDescriptionProps>(({ props, slots, onUnm
         </div>
     );
 }, { name: 'Toast.Description' });
+
+// ── Indicator ──
+
+/** Decorative: always `aria-hidden` — the title carries the status in words. */
+export type ToastIndicatorProps = WithClass & Omit<WithHtmlAttrs, 'aria-hidden'> & Define.Slot<'default'>;
+
+/**
+ * The toast's work status as a mark — `data-state` is `ToastData.status`
+ * (`loading` | `complete` | `error`, which `toaster.promise()` drives). Not
+ * rendered while the toast has no status. The recipe draws the mark; children
+ * (an icon) are the app's own.
+ */
+const ToastIndicator = component<ToastIndicatorProps>(({ props, slots }) => {
+    const item = useToastItemContext();
+    return () => {
+        const status = item.toast().status;
+        if (!status) return null;
+        return (
+            <span
+                {...htmlAttrs(props)}
+                data-scope={SCOPE}
+                data-part="indicator"
+                data-state={status}
+                aria-hidden="true"
+                class={props.class}
+            >
+                {slots.default?.()}
+            </span>
+        );
+    };
+}, { name: 'Toast.Indicator' });
 
 // ── Action ──
 
@@ -731,6 +821,7 @@ export const Toast = compound(ToastViewport, {
     Root: ToastRoot,
     Title: ToastTitle,
     Description: ToastDescription,
+    Indicator: ToastIndicator,
     Action: ToastAction,
     Close: ToastClose,
 });
