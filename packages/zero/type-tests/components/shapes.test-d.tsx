@@ -1,10 +1,10 @@
 /**
  * The value shapes of #455, pinned against the REAL roots: ToggleGroup's
- * model follows `multiple` (`string`, or `string[]`), and RadioGroup's
+ * and TreeView's (#287) model follows `multiple` (`string`, or `string[]`), and RadioGroup's
  * `items` infer `T` while the model stays the posted string.
  */
 import { signal } from 'sigx';
-import { Combobox, RadioGroup, Select, ToggleGroup } from '@sigx/zero';
+import { Combobox, RadioGroup, Select, ToggleGroup, TreeView } from '@sigx/zero';
 
 interface Plan { id: string; name: string }
 const plans: Plan[] = [];
@@ -20,6 +20,8 @@ export const comboboxLoading = <Combobox.Root items={loading} multiple model={()
 export const radioLoading = <RadioGroup.Root items={loading} itemKey={(p) => p.id} model={() => state.plan} />;
 export const single = <ToggleGroup.Root model={() => state.align} defaultValue="left" onValueChange={(v) => v.toUpperCase()} />;
 export const multiple = <ToggleGroup.Root multiple model={() => state.marks} defaultValue={['b']} onValueChange={(v) => v.length} />;
+export const treeSingle = <TreeView.Root model={() => state.align} defaultValue="src" onValueChange={(v) => v.toUpperCase()} />;
+export const treeMultiple = <TreeView.Root multiple model={() => state.marks} defaultValue={['src']} onValueChange={(v) => v.length} />;
 export const radioItems = <RadioGroup.Root items={plans} itemKey={(p) => p.id} itemLabel={(p) => p.name} model={() => state.plan} slots={{ item: ({ item }) => <b>{item.name}</b> }} />;
 export const radioPrimitives = <RadioGroup.Root items={['a', 'b']} model={() => state.plan} />;
 
@@ -56,6 +58,12 @@ export const e1 = <ToggleGroup.Root model={() => state.marks} />;
 export const e2 = <ToggleGroup.Root multiple model={() => state.align} />;
 // @ts-expect-error — the seed follows the shape
 export const e3 = <ToggleGroup.Root defaultValue={['a']} />;
+// @ts-expect-error — a single-select tree holds a string, not an array
+export const e14 = <TreeView.Root model={() => state.marks} />;
+// @ts-expect-error — a multiple tree holds an array, not a string
+export const e15 = <TreeView.Root multiple model={() => state.align} />;
+// @ts-expect-error — and its seed is an array too
+export const e16 = <TreeView.Root multiple defaultValue="src" />;
 // @ts-expect-error — the model is the posted string, never the item
 export const e4 = <RadioGroup.Root items={plans} model={() => state.n} />;
 // @ts-expect-error — a loading list is still data mode: the model is the item, not the key string

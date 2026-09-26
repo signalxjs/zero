@@ -14,6 +14,10 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * `loading` (a Branch whose children are being fetched): the indicator
  * reads it whatever the expansion, the content only while open — closed
  * content is hidden, so it stays `closed`.
+ *
+ * `multiple` (the model becomes `string[]`) adds no part and no state: the
+ * tree carries `aria-multiselectable`, and each selected node the same
+ * `selected` flag single mode sets.
  */
 export const treeViewAnatomy = defineAnatomy('tree-view', {
     root: {
@@ -70,7 +74,7 @@ export const treeViewAnatomy = defineAnatomy('tree-view', {
     },
 }, {
     models: [
-        { concept: 'value', type: 'string' },
+        { concept: 'value', type: 'string', multiple: true },
         { name: 'expandedValues', concept: 'expandedValues', type: 'string[]' },
     ],
 });

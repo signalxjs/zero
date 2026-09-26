@@ -64,6 +64,22 @@ describe('createTreeController', () => {
         expect(tree.childrenOf(null).length).toBe(3);
         expect(tree.enabledItems().map((i) => i.value)).toEqual(['a', 'c']);
     });
+
+    it('range() spans visible nodes in DOM order, either way round; empty when an end is hidden', () => {
+        const tree = createTreeController({ isExpanded: (v) => v === 'a' });
+        tree.registerNode(fakeNode('a', null, true));
+        tree.registerNode(fakeNode('a.1', 'a'));
+        tree.registerNode(fakeNode('b', null, true));
+        tree.registerNode(fakeNode('b.1', 'b'));
+        tree.registerNode(fakeNode('c', null, false, true));
+        tree.registerNode(fakeNode('d', null));
+        expect(tree.range('a.1', 'd').map((i) => i.value)).toEqual(['a.1', 'b', 'c', 'd']);
+        expect(tree.range('d', 'a.1').map((i) => i.value)).toEqual(['a.1', 'b', 'c', 'd']);
+        expect(tree.range('b', 'b').map((i) => i.value)).toEqual(['b']);
+        // b.1 sits under the collapsed b.
+        expect(tree.range('a', 'b.1')).toEqual([]);
+        expect(tree.range('a', 'nope')).toEqual([]);
+    });
 });
 
 // ── Component ──
@@ -595,5 +611,285 @@ describe('TreeView', () => {
         byValue(container, 'src').dispatchEvent(key('ArrowLeft'));
         expect(state.file).toBe('src/index.ts');
         expect(byValue(container, 'src').getAttribute('data-state')).toBe('closed');
+    });
+});
+
+// ── Multiple selection (#287) ──
+
+describe('TreeView multiple', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    /**
+     * Visible with `a` open: a, a/1, a/2 (disabled), a/3, b, c (closed), d.
+     * `c/1` is registered but hidden.
+     */
+    function mountMulti(extra: {
+        model?: unknown;
+        defaultValue?: string[];
+        onValueChange?: (v: string[]) => void;
+        expandOnClick?: boolean;
+    } = {}) {
+        render(
+            <TreeView.Root
+                multiple
+                model={extra.model as never}
+                defaultValue={extra.defaultValue}
+                onValueChange={extra.onValueChange}
+                defaultExpandedValues={['a']}
+                expandOnClick={extra.expandOnClick}
+            >
+                <TreeView.Label>Files</TreeView.Label>
+                <TreeView.Tree>
+                    <TreeView.Branch value="a">
+                        <TreeView.BranchTrigger>a</TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Item value="a/1">a1</TreeView.Item>
+                            <TreeView.Item value="a/2" disabled>a2</TreeView.Item>
+                            <TreeView.Item value="a/3">a3</TreeView.Item>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                    <TreeView.Item value="b">bee</TreeView.Item>
+                    <TreeView.Branch value="c">
+                        <TreeView.BranchTrigger>c</TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Item value="c/1">c1</TreeView.Item>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                    <TreeView.Item value="d">dee</TreeView.Item>
+                </TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+    }
+
+    const LABEL: Record<string, string> = { a: 'a', 'a/1': 'a1', 'a/2': 'a2', 'a/3': 'a3', b: 'bee', c: 'c', 'c/1': 'c1', d: 'dee' };
+    const labelOf = (el: HTMLElement): string => (el.getAttribute('data-part') === 'branch'
+        ? el.querySelector('[data-part="branch-trigger"]')!.textContent!
+        : el.textContent!).trim();
+    const node = (value: string): HTMLElement =>
+        [...container.querySelectorAll<HTMLElement>('[role="treeitem"]')].find((el) => labelOf(el) === LABEL[value])!;
+    const press = (el: HTMLElement, k: string, init: KeyboardEventInit = {}) => {
+        el.focus();
+        const e = new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...init });
+        el.dispatchEvent(e);
+        return e;
+    };
+    const click = (el: HTMLElement, init: MouseEventInit = {}) =>
+        el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ...init }));
+    const row = (value: string) => node(value).querySelector<HTMLElement>(':scope > [data-part="branch-trigger"]')!;
+    const selectedNow = () => [...container.querySelectorAll<HTMLElement>('[role="treeitem"][aria-selected="true"]')]
+        .map(labelOf);
+
+    it('the tree is aria-multiselectable, every node reads aria-selected, and the seed is []', () => {
+        const state = signal({ files: [] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        expectAnatomy(container, treeViewAnatomy);
+        expect(container.querySelector('[data-part="tree"]')!.getAttribute('aria-multiselectable')).toBe('true');
+        for (const el of container.querySelectorAll('[role="treeitem"]')) {
+            expect(el.getAttribute('aria-selected')).toBe('false');
+        }
+    });
+
+    it('single mode renders no aria-multiselectable', () => {
+        render(
+            <TreeView.Root>
+                <TreeView.Tree><TreeView.Item value="x">x</TreeView.Item></TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+        expect(container.querySelector('[data-part="tree"]')!.hasAttribute('aria-multiselectable')).toBe(false);
+    });
+
+    it('Space toggles the focused node in and out; the model is an array', () => {
+        const state = signal({ files: [] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        press(node('a/1'), ' ');
+        press(node('b'), ' ');
+        expect(state.files).toEqual(['a/1', 'b']);
+        expect(node('b').getAttribute('data-selected')).toBe('');
+        expect(node('b').getAttribute('aria-selected')).toBe('true');
+        press(node('a/1'), ' ');
+        expect(state.files).toEqual(['b']);
+        expect(node('a/1').getAttribute('aria-selected')).toBe('false');
+        expect(node('a/1').hasAttribute('data-selected')).toBe(false);
+    });
+
+    it('Space on a branch selects it without toggling expansion', () => {
+        const state = signal({ files: [] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        press(node('c'), ' ');
+        expect(state.files).toEqual(['c']);
+        expect(node('c').getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('Shift+ArrowDown/Up move focus and select anchor→focus, skipping disabled nodes', () => {
+        const state = signal({ files: [] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        press(node('a/1'), ' '); // anchor
+        press(node('a/1'), 'ArrowDown', { shiftKey: true });
+        expect(document.activeElement).toBe(node('a/3'));
+        expect(state.files).toEqual(['a/1', 'a/3']);
+        press(node('a/3'), 'ArrowDown', { shiftKey: true });
+        expect(document.activeElement).toBe(node('b'));
+        expect(state.files).toEqual(['a/1', 'a/3', 'b']);
+        // Back past the anchor: the range flips to the other side.
+        press(node('b'), 'ArrowUp', { shiftKey: true });
+        press(node('a/3'), 'ArrowUp', { shiftKey: true });
+        press(node('a/1'), 'ArrowUp', { shiftKey: true });
+        expect(document.activeElement).toBe(node('a'));
+        expect(state.files).toEqual(['a', 'a/1']);
+    });
+
+    it('Shift+ArrowDown without an anchor starts the range at the focused node', () => {
+        const state = signal({ files: [] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        press(node('b'), 'ArrowDown', { shiftKey: true });
+        expect(document.activeElement).toBe(node('c'));
+        expect(state.files).toEqual(['b', 'c']);
+    });
+
+    it('plain arrows move focus only', () => {
+        const state = signal({ files: ['b'] });
+        mountMulti({ model: [state, 'files'] });
+        press(node('b'), 'ArrowDown');
+        expect(document.activeElement).toBe(node('c'));
+        expect(state.files).toEqual(['b']);
+    });
+
+    it('Shift+Space selects the anchor→focused range, replacing the selection', () => {
+        const state = signal({ files: ['d'] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        press(node('a/1'), ' '); // anchor, toggled in: [d, a/1]
+        press(node('b'), ' ', { shiftKey: true });
+        expect(state.files).toEqual(['a/1', 'a/3', 'b']);
+    });
+
+    it('Ctrl+Shift+End / Home extend to the last / first visible enabled node', () => {
+        const state = signal({ files: [] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        press(node('b'), ' ');
+        press(node('b'), 'End', { ctrlKey: true, shiftKey: true });
+        expect(document.activeElement).toBe(node('d'));
+        expect(state.files).toEqual(['b', 'c', 'd']);
+        press(node('d'), 'Home', { metaKey: true, shiftKey: true });
+        expect(document.activeElement).toBe(node('a'));
+        expect(state.files).toEqual(['a', 'a/1', 'a/3', 'b']);
+    });
+
+    it('Ctrl/Cmd+A selects every visible enabled node, keeping hidden selections, before typeahead', () => {
+        const state = signal({ files: ['c/1'] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        const e = press(node('b'), 'a', { ctrlKey: true });
+        expect(e.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(node('b'));
+        expect([...state.files].sort()).toEqual(['a', 'a/1', 'a/3', 'b', 'c', 'c/1', 'd']);
+        state.files = [];
+        press(node('d'), 'A', { metaKey: true });
+        expect(state.files).toEqual(['a', 'a/1', 'a/3', 'b', 'c', 'd']);
+    });
+
+    it('Enter keeps its activation: the focused node alone', () => {
+        const state = signal({ files: ['a/1', 'b'] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        press(node('d'), 'Enter');
+        expect(state.files).toEqual(['d']);
+    });
+
+    it('a plain click replaces, Ctrl/Cmd+click toggles, Shift+click selects the visible range', () => {
+        const onValueChange = vi.fn();
+        mountMulti({ onValueChange });
+        click(node('a/1'));
+        expect(onValueChange).toHaveBeenLastCalledWith(['a/1']);
+        click(node('b'), { ctrlKey: true });
+        expect(onValueChange).toHaveBeenLastCalledWith(['a/1', 'b']);
+        click(node('a/1'), { metaKey: true });
+        expect(onValueChange).toHaveBeenLastCalledWith(['b']);
+        // The anchor is the last toggled node (a/1), the range runs to d.
+        click(node('d'), { shiftKey: true });
+        expect(onValueChange).toHaveBeenLastCalledWith(['a/1', 'a/3', 'b', 'c', 'd']);
+        expect(document.activeElement).toBe(node('d'));
+        click(node('a/3'));
+        expect(onValueChange).toHaveBeenLastCalledWith(['a/3']);
+        expect(selectedNow()).toEqual(['a3']);
+    });
+
+    it('Shift+click on an item keeps its mousedown from selecting text', () => {
+        mountMulti();
+        const down = new MouseEvent('mousedown', { bubbles: true, cancelable: true, shiftKey: true });
+        node('b').dispatchEvent(down);
+        expect(down.defaultPrevented).toBe(true);
+        const plain = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+        node('b').dispatchEvent(plain);
+        expect(plain.defaultPrevented).toBe(false);
+    });
+
+    it('a branch row: a plain click replaces and toggles; a modified click only selects', () => {
+        const state = signal({ files: [] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        click(row('c'));
+        expect(state.files).toEqual(['c']);
+        expect(node('c').getAttribute('aria-expanded')).toBe('true');
+        click(row('a'), { ctrlKey: true });
+        expect(state.files).toEqual(['c', 'a']);
+        expect(node('a').getAttribute('aria-expanded')).toBe('true');
+        click(row('a'), { shiftKey: true });
+        expect(node('a').getAttribute('aria-expanded')).toBe('true');
+        expect(document.activeElement).toBe(node('a'));
+    });
+
+    it('disabled nodes never enter the selection', () => {
+        const state = signal({ files: [] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        click(node('a/2'));
+        click(node('a/2'), { ctrlKey: true });
+        expect(state.files).toEqual([]);
+        press(node('a/2'), ' ');
+        expect(state.files).toEqual([]);
+        // A range across it skips it.
+        click(node('a/1'));
+        click(node('b'), { shiftKey: true });
+        expect(state.files).toEqual(['a/1', 'a/3', 'b']);
+        // Ctrl+A too.
+        press(node('b'), 'a', { ctrlKey: true });
+        expect(state.files).not.toContain('a/2');
+    });
+
+    it('a Shift range from a disabled focused node anchors on its target', () => {
+        const state = signal({ files: [] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        press(node('a/2'), 'ArrowDown', { shiftKey: true });
+        expect(document.activeElement).toBe(node('a/3'));
+        expect(state.files).toEqual(['a/3']);
+    });
+
+    it('a range whose anchor has collapsed out of sight selects its far end alone', () => {
+        const state = signal({ files: [] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        click(node('a/1')); // anchor
+        press(node('a'), 'ArrowLeft'); // collapse a
+        click(node('d'), { shiftKey: true });
+        expect(state.files).toEqual(['d']);
+        // …and d is the anchor now.
+        click(node('b'), { shiftKey: true });
+        expect(state.files).toEqual(['b', 'c', 'd']);
+    });
+
+    it('one tab stop: the first selected visible node in DOM order', () => {
+        const state = signal({ files: ['d', 'b'] as string[] });
+        mountMulti({ model: [state, 'files'] });
+        const stops = [...container.querySelectorAll<HTMLElement>('[role="treeitem"]')].filter((el) => el.tabIndex === 0);
+        expect(stops).toEqual([node('b')]);
+        state.files = ['c/1'];
+        const fallback = [...container.querySelectorAll<HTMLElement>('[role="treeitem"]')].filter((el) => el.tabIndex === 0);
+        expect(fallback).toEqual([node('a')]);
+    });
+
+    it('defaultValue seeds an uncontrolled selection', () => {
+        mountMulti({ defaultValue: ['b', 'd'] });
+        expect(selectedNow()).toEqual(['bee', 'dee']);
     });
 });
