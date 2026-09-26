@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.breadcrumbs` reserves `defaultExpanded`, `itemsAfterCollapse`, `itemsBeforeCollapse` and `maxItems` (zero#295)
+
+- Breadcrumbs' new root props are reserved, so a vendor-named api cannot
+  claim them as axis props.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE.divider` (zero#298)
 
 - Reserves divider's new `decorative` root prop, so a generated
