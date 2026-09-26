@@ -21,7 +21,14 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *
  * `item` renders one accepted file from the model (`File[]`); `item-name`/
  * `item-size` are its text bands (size formatted human-readable) and
- * `item-remove` the per-file button, labelled "Remove <name>".
+ * `item-remove` the per-file button, labelled "Remove <name>". An item also
+ * carries the shared `invalid` flag when the app renders a REJECTED file
+ * through it (the `filesReject` event reports those; they never join the
+ * model).
+ *
+ * `clear-trigger` empties the whole model. It renders nothing while the
+ * model is empty — a button that can do nothing is noise, not a disabled
+ * state — so it needs no state and no `hiddenIn`.
  */
 export const fileUploadAnatomy = defineAnatomy('file-upload', {
     root: {
@@ -45,6 +52,12 @@ export const fileUploadAnatomy = defineAnatomy('file-upload', {
         flags: ['disabled', 'invalid', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
     },
+    'clear-trigger': {
+        element: 'button',
+        parent: 'root',
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        tokens: ['color', 'radius-selector', 'text'],
+    },
     dropzone: {
         element: 'div',
         parent: 'root',
@@ -58,7 +71,7 @@ export const fileUploadAnatomy = defineAnatomy('file-upload', {
     item: {
         element: 'li',
         parent: 'item-group',
-        flags: ['disabled'],
+        flags: ['disabled', 'invalid'],
         tokens: ['color', 'radius-field'],
     },
     'item-name': {

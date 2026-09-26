@@ -162,7 +162,12 @@ text), carousel (real scroll-snap: buttons and dots move the scroll, and a
 REAL scroll drives the model back through the IntersectionObserver),
 diff (the divider handle's captured drag moves the painted reveal, APG
 keyboard steps, and an RTL check measured in boxes — the reveal is a
-logical inline-size, which the physical-direction lint cannot see), and
+logical inline-size, which the physical-direction lint cannot see),
+file-upload (#273: an empty `required` upload's real submit lands focus
+on the trigger and reads invalid until a file arrives, a refused picker
+selection never stays in the input's own FileList, a removal hands focus
+to the next remove button and a clear to the trigger, and a `dragleave`
+into a real child keeps the dropzone lit), and
 the `createVirtualList` behavior (#56: measured rows tile with no gap
 under real layout, stick-to-bottom follows the tail and lets go on a
 wheel scroll up, a prepend leaves the row being read in place, and no

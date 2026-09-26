@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "57.44 kB",
+        "limit": "58.03 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -480,7 +480,7 @@
     {
         "name": "@sigx/zero/file-upload",
         "path": "packages/zero/dist/components/file-upload/index.js",
-        "limit": "4.65 kB",
+        "limit": "5.18 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

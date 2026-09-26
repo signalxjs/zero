@@ -4858,7 +4858,12 @@ export const fileUpload: RecipeInput = {
                 border: 'var(--border) solid var(--color-base-content)',
                 background: 'var(--color-base-100)',
             },
-            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                // A rejected file the app renders through Item: the frame
+                // turns error and dashes — a changed stroke, not only a hue.
+                invalid: { borderColor: 'var(--color-error)', borderStyle: 'dashed' },
+            },
         },
         'item-name': {
             base: {
@@ -4885,6 +4890,25 @@ export const fileUpload: RecipeInput = {
                 background: 'var(--color-base-100)',
                 color: 'var(--color-base-content)',
                 padding: 'var(--space-2xs) var(--space-xs)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        // The remove button's framed label, at text size.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'var(--border) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                padding: 'var(--space-2xs) var(--space-sm)',
                 ...label,
                 fontSize: 'var(--text-xs)',
                 lineHeight: 'var(--leading-none)',

@@ -508,8 +508,9 @@ component renders; the root is called out separately where it carries props.
   paint part graded by the contrast audit's indicator matrix. Root disabled
   → data-disabled on root and handle, aria-disabled, no tab stop, no keys,
   no drag; recipes treat the handle, never the content panes.
-- FileUpload: Root(model=File[], defaultFiles)/Label/Trigger/Input/Dropzone/ItemGroup/
-  Item(file)/ItemName/ItemSize/ItemRemove. The INPUT IS THE CONTROL — a
+- FileUpload: Root(model=File[], defaultFiles, maxFiles, minFileSize, maxFileSize,
+  validate, directory, capture, onFilesReject)/Label/Trigger/ClearTrigger/Input/
+  Dropzone/ItemGroup/Item(file, invalid)/ItemName/ItemSize/ItemRemove. The INPUT IS THE CONTROL — a
   real <input type=file> holding name/accept/multiple/required and posting
   its FileList natively — visually hidden and out of the tab order; the
   TRIGGER (a real <button>) is the one keyboard path to the picker. The
@@ -522,7 +523,19 @@ component renders; the root is called out separately where it carries props.
   DataTransfer best-effort. Field-context aware exactly like Input (the
   trigger owns the field's control id). ItemName/ItemSize default to the
   file's name and human-readable size; ItemRemove is labelled
-  "Remove <name>".
+  "Remove <name>" and hands focus to the next file's remove button (else
+  the previous one, else the trigger). CONSTRAINTS run over both paths:
+  each candidate is checked for accept ('invalid-type'), maxFileSize
+  ('too-large'), minFileSize ('too-small') and the app's validate (any
+  string codes); otherwise-valid files past maxFiles (or past the one slot
+  in single mode) get 'too-many'. Accepted files join the model; the rest
+  are reported through the filesReject EVENT as { file, errors }[] — never
+  a model — and the input's FileList is re-synced so a refused file never
+  posts. Render a refused file through Item invalid for data-invalid.
+  ClearTrigger (default aria-label "Clear files") empties the model, renders
+  nothing while it is empty, and focuses the trigger. A required upload
+  left empty cancels the platform's bubble (it would anchor to the 1px
+  input), focuses the trigger and reads invalid until the files change.
 - Countdown: Root(label -> role=timer)/Value(value, digits)/digits —
   display-only numbers; the APP OWNS TIME. No internal timer, deliberately:
   a timer is app logic (which clock, paused when, what at zero) and an SSR

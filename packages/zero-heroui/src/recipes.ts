@@ -4734,7 +4734,15 @@ export const fileUpload: RecipeInput = {
                 borderRadius: 'var(--radius-field)',
                 background: 'var(--color-base-100)',
             },
-            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                // A rejected file the app renders through Item: HeroUI's
+                // danger border over a soft danger wash.
+                invalid: {
+                    borderColor: 'var(--hero-danger)',
+                    background: 'color-mix(in oklch, var(--hero-danger) 8%, var(--color-base-100))',
+                },
+            },
         },
         'item-name': {
             base: {
@@ -4755,6 +4763,16 @@ export const fileUpload: RecipeInput = {
         },
         'item-remove': {
             ...iconClose,
+        },
+        // The remove button's quiet chrome, at text size.
+        'clear-trigger': {
+            ...iconClose,
+            base: {
+                ...iconClose.base,
+                padding: 'var(--space-2xs) var(--space-sm)',
+                fontSize: 'var(--fu-font)',
+                fontWeight: 'var(--weight-medium)',
+            },
         },
     },
     variants: {

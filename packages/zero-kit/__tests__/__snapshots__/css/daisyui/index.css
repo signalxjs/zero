@@ -9464,6 +9464,11 @@
         opacity: var(--disabled-opacity);
     }
 
+    [data-scope="file-upload"][data-part="item"][data-invalid] {
+        border-color: var(--color-error);
+        background: color-mix(in oklab, var(--color-error) 8%, var(--color-base-100));
+    }
+
     [data-scope="file-upload"][data-part="item-name"] {
         flex: 1 1 auto;
         min-width: 0;
@@ -9500,6 +9505,33 @@
     }
 
     [data-scope="file-upload"][data-part="item-remove"][data-focus-visible] {
+        outline: 2px solid var(--color-base-content);
+        outline-offset: 2px;
+    }
+
+    [data-scope="file-upload"][data-part="clear-trigger"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: inherit;
+        border-radius: 9999px;
+        padding: var(--space-2xs) var(--space-sm);
+        font-size: var(--fu-font);
+        font-weight: var(--weight-semibold);
+        line-height: var(--leading-none);
+        cursor: pointer;
+    }
+
+    [data-scope="file-upload"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="file-upload"][data-part="clear-trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="file-upload"][data-part="clear-trigger"][data-focus-visible] {
         outline: 2px solid var(--color-base-content);
         outline-offset: 2px;
     }

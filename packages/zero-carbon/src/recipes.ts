@@ -5209,7 +5209,12 @@ export const fileUpload: RecipeInput = {
                 padding: 'var(--space-xs) var(--space-md)',
                 background: 'var(--color-base-200)',
             },
-            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                // A rejected file the app renders through Item: Carbon's
+                // invalid file row is a 2px danger outline drawn inside.
+                invalid: { outline: '2px solid var(--carbon-danger)', outlineOffset: '-2px' },
+            },
         },
         'item-name': {
             base: {
@@ -5236,6 +5241,25 @@ export const fileUpload: RecipeInput = {
                 color: 'inherit',
                 borderRadius: '0',
                 padding: 'var(--space-2xs) var(--space-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        // Carbon's ghost button, small: square, layer hover, at text size.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--carbon-interactive)',
+                borderRadius: '0',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                fontSize: 'var(--fu-font)',
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
             },

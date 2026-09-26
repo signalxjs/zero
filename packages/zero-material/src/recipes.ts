@@ -5381,7 +5381,16 @@ export const fileUpload: RecipeInput = {
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
             },
-            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                // A rejected file the app renders through Item: an error
+                // outline (the text field's error idiom) over a faint error
+                // tint of the container.
+                invalid: {
+                    boxShadow: 'inset 0 0 0 1px var(--color-error)',
+                    background: 'color-mix(in oklch, var(--color-error) 8%, var(--color-surface-container))',
+                },
+            },
         },
         'item-name': {
             base: {
@@ -5414,6 +5423,28 @@ export const fileUpload: RecipeInput = {
             },
             states: {
                 hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        // A text button (M3 "text" variant): the remove button's state
+        // layer, primary ink, at label size.
+        'clear-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--color-primary)',
+                borderRadius: '9999px',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                fontSize: 'var(--fu-font)',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--color-primary) 8%, transparent)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },

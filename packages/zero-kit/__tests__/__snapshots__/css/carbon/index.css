@@ -6427,6 +6427,11 @@
         opacity: var(--disabled-opacity);
     }
 
+    [data-scope="file-upload"][data-part="item"][data-invalid] {
+        outline: 2px solid var(--carbon-danger);
+        outline-offset: -2px;
+    }
+
     [data-scope="file-upload"][data-part="item-name"] {
         flex: 1 1 auto;
         min-width: 0;
@@ -6463,6 +6468,32 @@
     }
 
     [data-scope="file-upload"][data-part="item-remove"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="file-upload"][data-part="clear-trigger"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--carbon-interactive);
+        border-radius: 0;
+        padding: var(--space-2xs) var(--space-sm);
+        font-size: var(--fu-font);
+        line-height: var(--leading-none);
+        cursor: pointer;
+    }
+
+    [data-scope="file-upload"][data-part="clear-trigger"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="file-upload"][data-part="clear-trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="file-upload"][data-part="clear-trigger"][data-focus-visible] {
         outline: 2px solid var(--carbon-focus);
         outline-offset: -2px;
     }

@@ -125,6 +125,35 @@ radiogroup carries `aria-required`. The runtime
 half is `createFormControl` + `onFormReset` (`@sigx/zero/behaviors`), the
 one `VISUALLY_HIDDEN_STYLE` beside them.
 
+**FileUpload checks its files, and reports what it refused (#273).**
+`FileUpload.Root` takes `maxFiles`, `minFileSize` and `maxFileSize`
+(bytes) and `validate(file) => code | code[] | null`, beside `accept`. Both
+paths — the picker and a drop — check every candidate: `'invalid-type'`,
+`'too-large'`, `'too-small'`, any string `validate` returns, and
+`'too-many'` for an otherwise-valid file past `maxFiles` (single mode has
+room for one). Accepted files join the model; the rest arrive once per
+selection through the `filesReject` event as `{ file, errors }[]` (an
+event, not a model: a refusal is news, not state), and the input's own
+FileList is re-synced so a refused file never posts. Render a refused
+file through `<FileUpload.Item file={f} invalid>` for `data-invalid`.
+`FileUpload.ClearTrigger` empties the model and hands focus to the
+trigger; it renders nothing while there is nothing to clear, and its name
+defaults to "Clear files". `ItemRemove` hands focus to the next file's
+remove button, else the previous one, else the trigger. A `required`
+upload left empty cancels the platform's bubble (it would point at a 1px
+input), focuses the trigger and reads invalid until the files change.
+`directory` sets `webkitdirectory`; `capture` (`'user' | 'environment'`)
+reaches the input.
+
+```tsx
+<FileUpload.Root name="docs" multiple accept="image/*,.pdf" maxFiles={3} maxFileSize={5_000_000}
+    onFilesReject={(rejected) => { state.rejected = rejected; }}>
+    <FileUpload.Trigger>Add files…</FileUpload.Trigger>
+    <FileUpload.ClearTrigger>Clear</FileUpload.ClearTrigger>
+    …
+</FileUpload.Root>
+```
+
 **Native constraints and keyboard hints are typed props.** `Input.Root`
 takes `minlength`, `pattern`, `inputmode`, `enterkeyhint`, `spellcheck`,
 `autocapitalize`, `autocorrect` (`'on' | 'off'`) and `autofocus`
@@ -684,7 +713,7 @@ The part's own attributes win where both set one, with three refinements:
   the live region), Breadcrumbs' "Breadcrumb", Pagination's
   "Pagination" and every icon trigger's default (`Alert.Close`, the
   Carousel triggers and dots, `Diff.Handle`, the NumberInput steppers,
-  `FileUpload.ItemRemove`, a Carousel slide's "n of m", `Toast.Close`,
+  `FileUpload.ItemRemove`/`ClearTrigger`, a Carousel slide's "n of m", `Toast.Close`,
   the toast viewport's "Notifications (F8)", `Combobox.Trigger`/`TagRemove`,
   `Select.Trigger`) — the `label` prop
   still beats both — and names `Status` (a named dot is an `img`) and
