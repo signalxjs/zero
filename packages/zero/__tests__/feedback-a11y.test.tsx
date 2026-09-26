@@ -183,6 +183,13 @@ describe('Alert', () => {
         expect(document.activeElement).toBe(container.querySelector('[data-probe="before"]'));
     });
 
+    it('a finalFocus target inside the closing alert falls back to the sibling', () => {
+        const { before, close } = mountWithSiblings(() => part(container, 'alert', 'close'));
+        close.focus();
+        close.click();
+        expect(document.activeElement).toBe(before);
+    });
+
     it('finalFocus wins over the sibling fallback', () => {
         const { elsewhere, close } = mountWithSiblings(() => container.querySelector<HTMLElement>('[data-probe="elsewhere"]'));
         close.focus();

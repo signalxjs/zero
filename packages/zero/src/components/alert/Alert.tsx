@@ -145,7 +145,8 @@ const AlertRoot = component<AlertRootProps>(({ props, slots, emit, signal, onMou
                 if (open || !wasOpen || !el) return;
                 if (!el.contains(document.activeElement)) return;
                 const requested = props.finalFocus?.() ?? null;
-                const target = isFocusable(requested) ? requested : previousFocusable(el);
+                // A target inside the closing root is about to be hidden with it.
+                const target = isFocusable(requested) && !el.contains(requested) ? requested : previousFocusable(el);
                 target?.focus();
             },
         );

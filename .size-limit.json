@@ -240,7 +240,7 @@
     {
         "name": "@sigx/zero/alert",
         "path": "packages/zero/dist/components/alert/index.js",
-        "limit": "3.92 kB",
+        "limit": "3.93 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
