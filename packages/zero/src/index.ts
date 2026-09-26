@@ -366,6 +366,9 @@ export type {
     StepsRootProps,
     StepsItemProps,
     StepsPartProps,
+    StepsTitleProps,
+    StepsContentProps,
+    StepsTriggerProps,
     StepsPhase,
 } from './components/steps/index.js';
 

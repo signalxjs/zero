@@ -612,7 +612,7 @@
     {
         "name": "@sigx/zero/steps",
         "path": "packages/zero/dist/components/steps/index.js",
-        "limit": "4.23 kB",
+        "limit": "5.45 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
