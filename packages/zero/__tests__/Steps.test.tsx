@@ -174,6 +174,43 @@ describe('Steps', () => {
         expect(a!.getAttribute('data-state')).toBe('active');
     });
 
+    it('a disabled asChild step at either edge never strands its arrows', () => {
+        const mount = (loop: boolean) => render(
+            <Steps.Root defaultStep="b" label="Steps" loop={loop}>
+                {['a', 'b', 'c', 'd'].map((v) => (
+                    <Steps.Item value={v} disabled={v === 'a' || v === 'd'} asChild>
+                        {(p: PartProps) => <div {...p}>{v.toUpperCase()}</div>}
+                    </Steps.Item>
+                ))}
+            </Steps.Root>,
+            container,
+        );
+        const press = (el: HTMLElement, k: string) => {
+            const e = new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+            el.dispatchEvent(e);
+            return e;
+        };
+        mount(false);
+        let [a, b, c, d] = items(container);
+        // Nothing past the edge and no loop: the nearest enabled step behind.
+        a!.focus();
+        expect(press(a!, 'ArrowLeft').defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(b);
+        d!.focus();
+        press(d!, 'ArrowRight');
+        expect(document.activeElement).toBe(c);
+        render(null, container);
+        mount(true);
+        [a, b, c, d] = items(container);
+        // With loop, past the edge wraps.
+        a!.focus();
+        press(a!, 'ArrowLeft');
+        expect(document.activeElement).toBe(c);
+        d!.focus();
+        press(d!, 'ArrowRight');
+        expect(document.activeElement).toBe(b);
+    });
+
     it('passes the variant axes through on the root', () => {
         render(
             <Steps.Root defaultStep="a" color="primary" size="lg" label="Steps">

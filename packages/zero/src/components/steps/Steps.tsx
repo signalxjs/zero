@@ -118,10 +118,11 @@ const StepsRoot = component<StepsRootProps>(({ props, slots, emit, onMounted }) 
     /**
      * Roving indexes the ENABLED items, where a disabled one is absent — an
      * arrow from it would jump to the first or last step. A disabled asChild
-     * item still takes a pointer's focus (tabindex=-1), so its arrows rove
-     * from its nearest enabled neighbour on the side the key moves AWAY
-     * from, landing on the step next to it (TreeView's #177 precedent).
-     * Home/End ignore where they start.
+     * item still takes a pointer's focus (tabindex=-1), so its arrows move
+     * to the nearest enabled step in the key's direction; past the end they
+     * wrap when `loop` is on, else settle on the nearest enabled step
+     * behind — never staying on the disabled one. Home/End ignore where
+     * they start.
      */
     const keydown = (e: KeyboardEvent, value: string): void => {
         const item = list.items().find((i) => i.value === value);
@@ -137,10 +138,17 @@ const StepsRoot = component<StepsRootProps>(({ props, slots, emit, onMounted }) 
             roving(e, value);
             return;
         }
+        const enabled = list.enabledItems();
+        if (enabled.length === 0) return;
+        e.preventDefault();
         const all = list.items();
         const at = all.indexOf(item);
-        const side = e.key === forth ? all.slice(0, at).reverse() : all.slice(at + 1);
-        roving(e, side.find((i) => !i.disabled())?.value ?? value);
+        const ahead = e.key === forth ? all.slice(at + 1) : all.slice(0, at).reverse();
+        const behind = e.key === forth ? all.slice(0, at).reverse() : all.slice(at + 1);
+        const wrap = e.key === forth ? enabled[0] : enabled[enabled.length - 1];
+        const target = ahead.find((i) => !i.disabled())
+            ?? (props.loop ? wrap : behind.find((i) => !i.disabled()));
+        target?.el()?.focus();
     };
 
     const ctx: StepsContext = {
