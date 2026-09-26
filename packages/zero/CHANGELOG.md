@@ -57,8 +57,9 @@
   pointer could not. Toggling on click is kept (see `expandOnClick` below).
 - **A disabled `asChild` Steps item roves.** A pointer can focus it
   (`tabindex="-1"`), and its keydown used to return before roving — a
-  keyboard dead end. Its arrows now move to the enabled step beside it and
-  Home/End to the edges; press, click and Enter/Space activation stay
+  keyboard dead end. Its arrows now move to the nearest enabled step in the
+  key's direction (past an edge they wrap under `loop`, else settle on the
+  nearest enabled step behind) and Home/End to the edges; press, click and Enter/Space activation stay
   gated (TreeView's #177 precedent).
 
 ### Added — TreeView `expandOnClick`, `*` and loading branches (#271)
