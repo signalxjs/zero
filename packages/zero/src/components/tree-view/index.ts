@@ -8,5 +8,6 @@ export type {
     TreeViewBranchTriggerProps,
     TreeViewBranchIndicatorProps,
     TreeViewBranchContentProps,
+    TreeViewNodeCheckboxProps,
 } from './TreeView.js';
 export { treeViewAnatomy } from './anatomy.js';

@@ -216,7 +216,7 @@ export interface PartProps {
     'aria-describedby'?: string;
     'aria-expanded'?: boolean | 'true' | 'false';
     'aria-disabled'?: boolean | 'true' | 'false';
-    'aria-checked'?: boolean | 'true' | 'false';
+    'aria-checked'?: boolean | 'true' | 'false' | 'mixed';
     'aria-haspopup'?: string;
     onClick?: (e: MouseEvent) => void;
     onKeydown?: (e: KeyboardEvent) => void;

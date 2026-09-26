@@ -5,6 +5,9 @@ import type { PageEntry } from './registry';
 const TreeViewDemos = component(({ onUnmounted }) => {
     const state = signal({ file: '' });
     const multi = signal({ files: [] as string[] });
+    // Leaf values only: `ui/legacy` is disabled and stays checked whatever
+    // its branch does; `core/runtime` alone leaves `core` mixed.
+    const checks = signal({ values: ['core/runtime', 'ui/legacy'] as string[] });
     // The lazy tree: `remote` has no children until it is first opened,
     // and is `loading` while they are "fetched".
     const lazy = signal({ file: '', loading: false, loaded: [] as string[] });
@@ -117,6 +120,54 @@ const TreeViewDemos = component(({ onUnmounted }) => {
                 </TreeView.Tree>
             </TreeView.Root>
             <p><small>Selected: <code data-testid="tree-multi-selection">{multi.files.length > 0 ? multi.files.join(', ') : '—'}</code></small></p>
+            <p>
+                Checkable: <code>model:checkedValues</code> holds the checked
+                {' '}<em>leaf</em> values, and a branch derives its state from its
+                enabled leaves — checked when all are, mixed when some are. Space
+                (or a click on the box) toggles the check; on a branch it checks or
+                unchecks every enabled leaf beneath it, and a disabled leaf keeps
+                its value. With no selection model, a click on a leaf row checks it
+                too.
+            </p>
+            <TreeView.Root model:checkedValues={() => checks.values} defaultExpandedValues={['packages', 'core', 'ui']}>
+                <TreeView.Label>Build targets</TreeView.Label>
+                <TreeView.Tree>
+                    <TreeView.Branch value="packages">
+                        <TreeView.BranchTrigger>
+                            <TreeView.BranchIndicator />
+                            <TreeView.NodeCheckbox />
+                            packages
+                        </TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Branch value="core">
+                                <TreeView.BranchTrigger>
+                                    <TreeView.BranchIndicator />
+                                    <TreeView.NodeCheckbox />
+                                    core
+                                </TreeView.BranchTrigger>
+                                <TreeView.BranchContent>
+                                    <TreeView.Item value="core/runtime"><TreeView.NodeCheckbox />runtime</TreeView.Item>
+                                    <TreeView.Item value="core/reactivity"><TreeView.NodeCheckbox />reactivity</TreeView.Item>
+                                </TreeView.BranchContent>
+                            </TreeView.Branch>
+                            <TreeView.Branch value="ui">
+                                <TreeView.BranchTrigger>
+                                    <TreeView.BranchIndicator />
+                                    <TreeView.NodeCheckbox />
+                                    ui
+                                </TreeView.BranchTrigger>
+                                <TreeView.BranchContent>
+                                    <TreeView.Item value="ui/button"><TreeView.NodeCheckbox />button</TreeView.Item>
+                                    <TreeView.Item value="ui/dialog"><TreeView.NodeCheckbox />dialog</TreeView.Item>
+                                    <TreeView.Item value="ui/legacy" disabled><TreeView.NodeCheckbox />legacy</TreeView.Item>
+                                </TreeView.BranchContent>
+                            </TreeView.Branch>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                    <TreeView.Item value="docs"><TreeView.NodeCheckbox />docs</TreeView.Item>
+                </TreeView.Tree>
+            </TreeView.Root>
+            <p><small>Checked: <code data-testid="tree-checked-values">{checks.values.length > 0 ? checks.values.join(', ') : '—'}</code></small></p>
         </>
     );
 }, { name: 'TreeViewDemos' });

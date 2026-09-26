@@ -3,6 +3,9 @@
         --tree-accent: var(--color-primary);
         --tree-text: var(--text-sm);
         --tree-soft: var(--color-primary-soft);
+        --tree-check: var(--color-primary);
+        --tree-on-check: var(--color-primary-content);
+        --tree-mark: polygon(36.6% 63.5%, 37.6% 92.8%, 37.6% 92.8%, 37.6% 92.8%, 36.6% 63.5%, 36.6% 63.5%);
     }
 
     [data-scope="tree-view"][data-part="root"] {
@@ -129,6 +132,53 @@
         scale: -1 1;
     }
 
+    [data-scope="tree-view"][data-part="node-checkbox"] {
+        display: inline-block;
+        position: relative;
+        flex-shrink: 0;
+        width: 1em;
+        height: 1em;
+        border: var(--border) solid color-mix(in oklab, var(--color-base-content) 60%, var(--color-base-100));
+        border-radius: var(--radius-selector);
+        background: var(--color-base-100);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"] {
+        background: var(--tree-check);
+        border-color: var(--tree-check);
+        --tree-mark: polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"] {
+        background: var(--tree-check);
+        border-color: var(--tree-check);
+        --tree-mark: polygon(8% 40.1%, 8% 59.9%, 37.6% 59.9%, 92% 59.9%, 92% 40.1%, 37.6% 40.1%);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"]::after {
+        content: "";
+        position: absolute;
+        inset: 17%;
+        background: var(--tree-on-check);
+        clip-path: var(--tree-mark);
+        opacity: 0;
+        transition: clip-path var(--duration-fast) var(--ease-exit), opacity var(--duration-fast) var(--ease-exit);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"]::after {
+        opacity: 1;
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"]::after {
+        opacity: 1;
+    }
+
     [data-scope="tree-view"][data-part="branch-content"] {
         display: flex;
         flex-direction: column;
@@ -140,41 +190,57 @@
     [data-scope="tree-view"][data-part="root"][data-color="primary"] {
         --tree-accent: var(--color-primary);
         --tree-soft: var(--color-primary-soft);
+        --tree-check: var(--color-primary);
+        --tree-on-check: var(--color-primary-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="secondary"] {
         --tree-accent: var(--color-secondary);
         --tree-soft: var(--color-secondary-soft);
+        --tree-check: var(--color-secondary);
+        --tree-on-check: var(--color-secondary-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="accent"] {
         --tree-accent: var(--color-accent);
         --tree-soft: var(--color-accent-soft);
+        --tree-check: var(--color-accent);
+        --tree-on-check: var(--color-accent-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="neutral"] {
         --tree-accent: var(--color-neutral);
         --tree-soft: var(--color-neutral-soft);
+        --tree-check: var(--color-neutral);
+        --tree-on-check: var(--color-neutral-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="info"] {
         --tree-accent: var(--color-info);
         --tree-soft: var(--color-info-soft);
+        --tree-check: var(--color-info);
+        --tree-on-check: var(--color-info-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="success"] {
         --tree-accent: var(--color-success);
         --tree-soft: var(--color-success-soft);
+        --tree-check: var(--color-success);
+        --tree-on-check: var(--color-success-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="warning"] {
         --tree-accent: var(--color-warning);
         --tree-soft: var(--color-warning-soft);
+        --tree-check: var(--color-warning);
+        --tree-on-check: var(--color-warning-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-color="error"] {
         --tree-accent: var(--color-error);
         --tree-soft: var(--color-error-soft);
+        --tree-check: var(--color-error);
+        --tree-on-check: var(--color-error-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-size="xs"] {
@@ -193,8 +259,58 @@
         --tree-text: var(--text-lg);
     }
 
+    @media (forced-colors: active) {
+        [data-scope="tree-view"][data-part="node-checkbox"]::after {
+            clip-path: none;
+            background: transparent;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: CanvasText;
+            font-size: 0.8em;
+            line-height: var(--leading-none);
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"]::after {
+            content: "\2714";
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"]::after {
+            content: "\2212";
+        }
+    }
+
+    @media print {
+        [data-scope="tree-view"][data-part="node-checkbox"]::after {
+            clip-path: none;
+            background: transparent;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: var(--print-ink);
+            font-size: 0.8em;
+            line-height: var(--leading-none);
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"]::after {
+            content: "\2714";
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"]::after {
+            content: "\2212";
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="tree-view"][data-part="branch-indicator"] {
+            transition: none;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"] {
+            transition: none;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"]::after {
             transition: none;
         }
     }

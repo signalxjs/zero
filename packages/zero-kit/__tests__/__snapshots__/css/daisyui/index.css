@@ -5737,6 +5737,8 @@
         --tree-accent: var(--color-primary);
         --tree-text: var(--text-sm);
         --tree-on-accent: var(--color-primary-content);
+        --tree-check: var(--tree-accent);
+        --tree-on-check: var(--tree-on-accent);
     }
 
     [data-scope="tree-view"][data-part="root"] {
@@ -5865,6 +5867,60 @@
         scale: -1 1;
     }
 
+    [data-scope="tree-view"][data-part="node-checkbox"] {
+        display: inline-block;
+        position: relative;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        width: 1.25em;
+        height: 1.25em;
+        border: var(--border) solid var(--tree-check);
+        border-radius: var(--radius-selector);
+        box-shadow: 0 1px var(--depth-shade) inset;
+        cursor: pointer;
+        transition: background-color var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"] {
+        background-color: var(--tree-check);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"] {
+        background-color: var(--tree-check);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"]::after {
+        content: "";
+        position: absolute;
+        inset: 15%;
+        opacity: 0;
+        rotate: 45deg;
+        background-color: var(--tree-on-check);
+        clip-path: polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 70% 80%, 70% 100%);
+        transition: clip-path var(--duration-slow) var(--ease-standard) var(--duration-instant), opacity var(--duration-instant) var(--ease-standard) var(--duration-instant), rotate var(--duration-slow) var(--ease-standard) var(--duration-instant), translate var(--duration-slow) var(--ease-standard) var(--duration-instant);
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"]::after {
+        clip-path: polygon(20% 100%, 20% 80%, 50% 80%, 50% 0%, 70% 0%, 70% 100%);
+        opacity: 1;
+    }
+
+    [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"]::after {
+        clip-path: polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 80% 80%, 80% 100%);
+        opacity: 1;
+        translate: 0 -35%;
+        rotate: 0deg;
+    }
+
+    [data-scope="tree-view"][data-selected] [data-scope="tree-view"][data-part="node-checkbox"] {
+        --tree-check: var(--tree-on-accent);
+        --tree-on-check: var(--tree-accent);
+    }
+
     [data-scope="tree-view"][data-part="branch-content"] {
         display: flex;
         flex-direction: column;
@@ -5927,8 +5983,70 @@
         --tree-text: var(--text-lg);
     }
 
+    @media (forced-colors: active) {
+        [data-scope="tree-view"][data-part="node-checkbox"]::after {
+            clip-path: none;
+            background-color: #0000;
+            rotate: 0deg;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: CanvasText;
+            font-size: 0.85em;
+            line-height: 1;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"]::after {
+            content: "✔︎";
+            clip-path: none;
+            rotate: 0deg;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"]::after {
+            content: "−";
+            clip-path: none;
+            rotate: 0deg;
+            translate: none;
+        }
+    }
+
+    @media print {
+        [data-scope="tree-view"][data-part="node-checkbox"]::after {
+            clip-path: none;
+            background-color: #0000;
+            rotate: 0deg;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: var(--print-ink);
+            font-size: 0.85em;
+            line-height: 1;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"]::after {
+            content: "✔︎";
+            clip-path: none;
+            rotate: 0deg;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"][data-state="indeterminate"]::after {
+            content: "−";
+            clip-path: none;
+            rotate: 0deg;
+            translate: none;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="tree-view"][data-part="branch-indicator"] {
+            transition: none;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"] {
+            transition: none;
+        }
+
+        [data-scope="tree-view"][data-part="node-checkbox"]::after {
             transition: none;
         }
     }

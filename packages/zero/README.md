@@ -128,6 +128,29 @@ selected visible node. Because `''` is single mode's "nothing selected", an
 item or branch valued `''` throws there (as a ToggleGroup item does); under
 `multiple` it is an ordinary value.
 
+**TreeView: checkable.** Bind `model:checkedValues` (a `string[]` of checked
+LEAF values; `defaultCheckedValues` / `checkedValuesChange` follow), or set
+`checkable`, and every treeitem carries `aria-checked`. A branch's state is
+derived, never stored: `true` when every enabled descendant leaf is checked,
+`mixed` when some are, `false` otherwise — the rule `Checkbox.Root parent`
+uses, now shared as `triState` / `toggleTriState` in `@sigx/zero/behaviors`
+(and `createTreeController`'s new `leavesOf(value)` lists a branch's leaves).
+A branch whose every leaf is disabled shows what they hold and cannot be
+toggled. Space toggles the focused node's check (on a branch: every enabled
+leaf beneath it, all or none; a disabled leaf keeps its value); Enter keeps
+the selection, and under `multiple` Shift+Space keeps its range.
+`TreeView.NodeCheckbox` — part `node-checkbox`, an `aria-hidden` span with
+`data-state="checked|unchecked|indeterminate"` and `data-disabled` when
+nothing can toggle it (the tree, the node, or a branch whose every leaf is
+disabled) — is the paint hook: put it in an `Item` or a `BranchTrigger` row; a click on it
+toggles the check and changes neither selection nor expansion. The selection
+stays in use under `multiple`, a bound `model` or a `defaultValue`; without
+any of them a checkable tree renders no `aria-selected`, and a click on (or
+Enter at) a leaf row toggles its check — the row is the box's label. The
+leaves a branch derives from are the ones REGISTERED, so a lazily loaded
+branch with no children yet reads unchecked and toggles nothing, and a
+server render shows branches unchecked until the tree mounts.
+
 **The form contract.** Every posting control takes the same five props
 (`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus
 `readonly` on every value control — see below) and answers to a `Field.Root` for all

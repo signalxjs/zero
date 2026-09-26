@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+### Added — TreeView checkbox selection (#288)
+
+- **Checkable trees**: bind `model:checkedValues` (a `string[]` of checked
+  LEAF values; `defaultCheckedValues` / `checkedValuesChange`), or set
+  `checkable`, and every treeitem carries `aria-checked`. A branch's state
+  is derived from its enabled descendant leaves — `true` when all are
+  checked, `mixed` when some are — and never stored; a branch whose every
+  leaf is disabled shows what they hold and cannot be toggled.
+- Space toggles the focused node's check (on a branch, all of its enabled
+  leaves or none; a disabled leaf keeps its value). Enter keeps the
+  selection; under `multiple`, Shift+Space keeps its range.
+- **`TreeView.NodeCheckbox`** (part `node-checkbox`, inside an item or
+  branch-trigger row): an `aria-hidden` span with
+  `data-state="checked|unchecked|indeterminate"` and `data-disabled`,
+  declared `paint: { host: 'item' }`. Its click toggles the check and
+  changes neither selection nor expansion.
+- The selection stays in use under `multiple`, a bound `model` or a
+  `defaultValue`; without any of them a checkable tree renders no
+  `aria-selected`, and a click on (or Enter at) a leaf row toggles its
+  check.
+- `triState` / `toggleTriState` in `@sigx/zero/behaviors` (and `/core`):
+  the tri-state rule `Checkbox.Root parent` used, now shared.
+  `createTreeController` gains `leavesOf(value)`.
+- `PartProps['aria-checked']` admits `'mixed'`.
+
 ## [0.7.0] - 2026-09-26
 
 ### Added — Table sorting: `model:sort`, `sort-trigger` / `sort-indicator` and `aria-sort` (#286)

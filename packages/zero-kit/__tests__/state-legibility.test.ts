@@ -513,6 +513,9 @@ describe('the in-flow disclosure control', () => {
         const elsewhere = caseFor(treeView, {
             branch: { states: { open: { background: 'gainsboro' }, closed: {} } },
             'branch-trigger': { base: { display: 'flex' }, states: { open: {}, closed: {} } },
+            // The check box's own states, told apart so only the disclosure
+            // finding is left to assert.
+            'node-checkbox': { states: { checked: { background: 'black' }, indeterminate: { background: 'gray' }, unchecked: {} } },
         });
         expect(componentFindings(elsewhere)).toEqual([]);
         expect(disclosureFindings(elsewhere)).toHaveLength(1);

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE['tree-view']` reserves `checkable` and `defaultCheckedValues` (zero#288)
+
+- TreeView's new root props are reserved, so a vendor-named api cannot
+  claim them as axis props.
+
 ## [0.7.0] - 2026-09-26
 
 ### Added — The sort state family (zero#286)

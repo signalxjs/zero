@@ -2762,9 +2762,31 @@ export const ratingGroup: RecipeInput = {
 };
 
 // ── Tree view ─────────────────────────────────────────────────────────────
+/**
+ * `drawnMarkFallback` for the node check box, whose marks are its own two
+ * pseudos: the bar goes, the tick becomes a centred glyph in the medium's
+ * ink. Sized off the row's text, since there is no `--checkbox-size` here.
+ */
+const nodeMarkFallback = (ink: string): PartStyles => {
+    const fallback = drawnMarkFallback(ink);
+    return {
+        base: fallback.base,
+        selectors: {
+            ...fallback.selectors,
+            '&::after': { ...fallback.selectors!['&::after'], fontSize: '0.85em' },
+        },
+    };
+};
+
 export const treeView: RecipeInput = {
     component: 'tree-view',
-    tokens: { '--tree-text': 'var(--text-sm)' },
+    tokens: {
+        '--tree-text': 'var(--text-sm)',
+        // The node check box's mark drivers — checkbox's `--checkbox-tick` /
+        // `--checkbox-dash`, one 0|1 length each.
+        '--tree-tick': '0',
+        '--tree-dash': '0',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
@@ -2845,6 +2867,72 @@ export const treeView: RecipeInput = {
             // closed glyph flips to point at the reading end while the open one,
             // already rotated to point down, is unaffected by a horizontal flip.
             selectors: { [`&${rtl}`]: { scale: '-1 1' } },
+        },
+        // The checkbox at row scale, drawn the checkbox's way: the box on the
+        // span, the tick as two borders of its `::after` rotated about their
+        // shared elbow and grown by `--tree-tick`, the bar a pill on its
+        // `::before` grown by `--tree-dash` — the same solved elbow, so the
+        // mark sits where the checkbox's does. Rows take no fill when
+        // selected, so the box needs no second pairing. The ring is the muted
+        // ink rather than `--hero-line`: here it is the whole unchecked mark.
+        'node-checkbox': {
+            base: {
+                position: 'relative',
+                display: 'inline-block',
+                flex: 'none',
+                boxSizing: 'border-box',
+                width: '1.15em',
+                height: '1.15em',
+                border: 'var(--border) solid var(--hero-muted)',
+                borderRadius: 'var(--radius-selector)',
+                background: 'var(--color-base-100)',
+                color: 'var(--hero-primary-ink)',
+                cursor: 'pointer',
+                transition: motion('background, border-color'),
+            },
+            states: {
+                checked: { background: 'var(--hero-primary)', borderColor: 'var(--hero-primary)', '--tree-tick': '1', '--tree-dash': '0' },
+                indeterminate: { background: 'var(--hero-primary)', borderColor: 'var(--hero-primary)', '--tree-tick': '0', '--tree-dash': '1' },
+                unchecked: { '--tree-tick': '0', '--tree-dash': '0' },
+                disabled: { cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    left: '40%',
+                    top: '79%',
+                    width: 'calc(30% * var(--tree-tick))',
+                    height: 'calc(58% * var(--tree-tick))',
+                    borderRight: 'max(1.5px, 0.12em) solid currentColor',
+                    borderBottom: 'max(1.5px, 0.12em) solid currentColor',
+                    borderBottomRightRadius: '0.1em',
+                    opacity: 'var(--tree-tick)',
+                    transformOrigin: '100% 100%',
+                    transform: 'translate(-100%, -100%) rotate(45deg)',
+                    transition: 'width var(--duration-fast) var(--ease-decelerate), '
+                        + 'height var(--duration-normal) var(--ease-decelerate), '
+                        + 'opacity var(--duration-fast) var(--ease-standard)',
+                },
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetInline: '24%',
+                    top: '50%',
+                    height: 'max(1.5px, 0.12em)',
+                    borderRadius: '9999px',
+                    background: 'currentColor',
+                    opacity: 'var(--tree-dash)',
+                    transform: 'translateY(-50%) scaleX(var(--tree-dash))',
+                    transition: 'transform var(--duration-normal) var(--ease-decelerate), '
+                        + 'opacity var(--duration-fast) var(--ease-standard)',
+                },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, selectors: { '&::after': { transition: 'none' }, '&::before': { transition: 'none' } } },
+                'forced-colors': nodeMarkFallback('CanvasText'),
+                print: nodeMarkFallback('var(--print-ink)'),
+            },
         },
         // Depth is the DOM nesting; a hairline guide traces each level.
         'branch-content': {

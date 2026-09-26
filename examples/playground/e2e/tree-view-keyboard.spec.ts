@@ -12,7 +12,10 @@
  * `*` expanding siblings, and the `expandOnClick={false}` + `loading` demo.
  * Since #287 it holds `multiple` too: the APG multi-select keys (Space,
  * Shift+Arrow, Ctrl/Cmd+Shift+End, Ctrl/Cmd+A) and the modifier clicks,
- * through real modifier state and a real text-selection pipeline.
+ * through real modifier state and a real text-selection pipeline. Since #288
+ * it holds the checkable tree: Space on a branch checks every enabled leaf
+ * under it, a partial child set reads `mixed` up the chain, and a click on a
+ * node's box checks without selecting or folding.
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { bootPage } from './nav';
@@ -257,4 +260,72 @@ test('multiple: click replaces, Ctrl/Cmd+click toggles, Shift+click selects the 
     await assets.locator('> [data-part="branch-trigger"]').click({ modifiers: ['ControlOrMeta'] });
     await expect(assets).toHaveAttribute('aria-selected', 'true');
     await expect(assets).toHaveAttribute('aria-expanded', 'true');
+});
+
+// ── Checkable (#288) ──
+
+const checkable = (page: Page) => demoLabelled(page, 'tree-view', 'Build targets');
+const checkLeaf = (page: Page, name: string): Locator => checkable(page)('item').filter({ hasText: name });
+/** A branch of the checkable tree, pinned by its row text and level (see `branch`). */
+const checkBranch = (page: Page, name: string, level: number): Locator =>
+    checkable(page)('branch')
+        .filter({ has: page.locator('[data-scope="tree-view"][data-part="branch-trigger"]', { hasText: name }) })
+        .and(page.locator(`[aria-level="${level}"]`));
+/** A branch's own box — the one in its row, not its descendants'. */
+const branchBox = (b: Locator): Locator => b.locator('> [data-part="branch-trigger"] [data-part="node-checkbox"]');
+const checkedValues = (page: Page): Locator => page.getByTestId('tree-checked-values');
+
+test('checkable: Space on a branch checks every enabled leaf; a partial set reads mixed (#288)', async ({ page }) => {
+    const packages = checkBranch(page, 'packages', 1);
+    const core = checkBranch(page, 'core', 2);
+    const ui = checkBranch(page, 'ui', 2);
+
+    // Seeded with runtime (one of core's two) and the disabled legacy.
+    await expect(core).toHaveAttribute('aria-checked', 'mixed');
+    await expect(branchBox(core)).toHaveAttribute('data-state', 'indeterminate');
+    await expect(packages).toHaveAttribute('aria-checked', 'mixed');
+    // A disabled leaf does not count toward its branch: ui has none of its
+    // enabled leaves checked.
+    await expect(ui).toHaveAttribute('aria-checked', 'false');
+    // No selection model: no aria-selected at all.
+    await expect(core).not.toHaveAttribute('aria-selected', /.*/);
+
+    await core.focus();
+    await page.keyboard.press(' ');
+    await expect(core).toHaveAttribute('aria-checked', 'true');
+    await expect(checkLeaf(page, 'reactivity')).toHaveAttribute('aria-checked', 'true');
+    await expect(branchBox(core)).toHaveAttribute('data-state', 'checked');
+    await expect(packages).toHaveAttribute('aria-checked', 'mixed');
+    // Space checks; it does not fold.
+    await expect(core).toHaveAttribute('aria-expanded', 'true');
+
+    await packages.focus();
+    await page.keyboard.press(' ');
+    await expect(packages).toHaveAttribute('aria-checked', 'true');
+    await expect(ui).toHaveAttribute('aria-checked', 'true');
+    await expect(checkedValues(page)).toHaveText('core/runtime, ui/legacy, core/reactivity, ui/button, ui/dialog');
+
+    // Unchecking the whole branch leaves the disabled leaf's value alone.
+    await page.keyboard.press(' ');
+    await expect(packages).toHaveAttribute('aria-checked', 'false');
+    await expect(checkedValues(page)).toHaveText('ui/legacy');
+    await expect(checkLeaf(page, 'legacy')).toHaveAttribute('aria-checked', 'true');
+});
+
+test('checkable: a click on a box checks without folding; a leaf row is its box\'s label (#288)', async ({ page }) => {
+    const ui = checkBranch(page, 'ui', 2);
+    await branchBox(ui).click();
+    await expect(ui).toHaveAttribute('aria-checked', 'true');
+    await expect(ui).toHaveAttribute('aria-expanded', 'true');
+    await expect(ui).toBeFocused();
+
+    // A partial child set: one leaf out makes the branch mixed.
+    await checkLeaf(page, 'dialog').locator('[data-part="node-checkbox"]').click();
+    await expect(checkLeaf(page, 'dialog')).toHaveAttribute('aria-checked', 'false');
+    await expect(ui).toHaveAttribute('aria-checked', 'mixed');
+
+    // With no selection in use, the leaf row checks too.
+    await checkLeaf(page, 'docs').click();
+    await expect(checkLeaf(page, 'docs')).toHaveAttribute('aria-checked', 'true');
+    await expect(checkLeaf(page, 'docs')).not.toHaveAttribute('data-selected', /.*/);
 });

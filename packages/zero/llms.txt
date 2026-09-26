@@ -893,7 +893,15 @@ component renders; the root is called out separately where it carries props.
   climbs to the parent (RTL-mirrored), Enter/Space select — selection
   and expansion are separate acts. One tab stop: selected, else first
   visible enabled. No aria-posinset/setsize — the full tree is in the
-  DOM, AT computes them. Single selection v1.
+  DOM, AT computes them. `multiple` → string[] selection (APG
+  multi-select keys). Checkable: model:checkedValues=string[] of LEAF
+  values (defaultCheckedValues + checkedValuesChange) or `checkable` →
+  aria-checked on every treeitem; a branch is DERIVED (all enabled
+  leaves → true, some → mixed; disabled leaves keep their value); Space
+  toggles check, Enter keeps selection. NodeCheckbox (part node-checkbox,
+  aria-hidden, checked|unchecked|indeterminate + disabled) is the paint
+  hook in an Item or BranchTrigger row; its click checks only. No
+  model/defaultValue/multiple → no aria-selected, a leaf row click checks.
 - Toggle: Root(model=pressed, defaultPressed, label, asChild) — one
   two-state <button> (aria-pressed, data-state on|off; `label` →
   aria-label for icon-only toggles). A mode you flip, not a form value

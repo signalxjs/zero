@@ -3,6 +3,7 @@ import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
 import { TreeView, treeViewAnatomy, createTreeController } from '@sigx/zero';
 import type { TreeItem } from '@sigx/zero';
+import { triState, toggleTriState } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 // ── Controller math (DOM-free) ──
@@ -911,5 +912,318 @@ describe('TreeView multiple', () => {
     it('defaultValue seeds an uncontrolled selection', () => {
         mountMulti({ defaultValue: ['b', 'd'] });
         expect(selectedNow()).toEqual(['bee', 'dee']);
+    });
+});
+
+describe('triState / toggleTriState', () => {
+    it('derives checked / indeterminate / unchecked from how many members are selected', () => {
+        expect(triState(['a', 'b'], ['a', 'b', 'x'])).toBe('checked');
+        expect(triState(['a', 'b'], ['b'])).toBe('indeterminate');
+        expect(triState(['a', 'b'], ['x'])).toBe('unchecked');
+        // Nothing to have checked.
+        expect(triState([], ['x'])).toBe('unchecked');
+    });
+
+    it('toggles the members together and leaves every other value alone', () => {
+        expect(toggleTriState(['a', 'b'], ['x', 'b'])).toEqual(['x', 'b', 'a']);
+        expect(toggleTriState(['a', 'b'], ['a', 'x', 'b'])).toEqual(['x']);
+        expect(toggleTriState(['a', 'b'], [])).toEqual(['a', 'b']);
+    });
+});
+
+describe('createTreeController leavesOf', () => {
+    it('lists every registered leaf under a branch, at any depth, collapsed or not', () => {
+        const tree = createTreeController({ isExpanded: () => false });
+        tree.registerNode(fakeNode('a', null, true));
+        tree.registerNode(fakeNode('a.1', 'a'));
+        tree.registerNode(fakeNode('a.b', 'a', true));
+        tree.registerNode(fakeNode('a.b.1', 'a.b'));
+        tree.registerNode(fakeNode('a.c', 'a', true)); // an empty branch
+        tree.registerNode(fakeNode('d', null));
+        expect(tree.leavesOf('a').map((i) => i.value)).toEqual(['a.1', 'a.b.1']);
+        expect(tree.leavesOf('a.b').map((i) => i.value)).toEqual(['a.b.1']);
+        expect(tree.leavesOf('a.c')).toEqual([]);
+        expect(tree.leavesOf('d')).toEqual([]);
+        expect(tree.leavesOf('nope')).toEqual([]);
+    });
+});
+
+describe('TreeView checkable', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    /**
+     * a (open)
+     *   a/1
+     *   a/2 (disabled)
+     *   a/b (open)
+     *     a/b/1
+     *     a/b/2
+     * d
+     */
+    function mountCheckable(extra: {
+        checked?: unknown;
+        defaultCheckedValues?: string[];
+        onCheckedValuesChange?: (v: string[]) => void;
+        model?: unknown;
+        multiple?: boolean;
+        checkable?: boolean;
+    } = {}) {
+        render(
+            <TreeView.Root
+                multiple={extra.multiple as never}
+                model={extra.model as never}
+                {...(extra.checked ? { 'model:checkedValues': extra.checked as never } : {})}
+                defaultCheckedValues={extra.defaultCheckedValues}
+                onCheckedValuesChange={extra.onCheckedValuesChange}
+                checkable={extra.checkable}
+                defaultExpandedValues={['a', 'a/b']}
+            >
+                <TreeView.Label>Files</TreeView.Label>
+                <TreeView.Tree>
+                    <TreeView.Branch value="a">
+                        <TreeView.BranchTrigger><TreeView.NodeCheckbox />a</TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Item value="a/1"><TreeView.NodeCheckbox />a1</TreeView.Item>
+                            <TreeView.Item value="a/2" disabled><TreeView.NodeCheckbox />a2</TreeView.Item>
+                            <TreeView.Branch value="a/b">
+                                <TreeView.BranchTrigger><TreeView.NodeCheckbox />ab</TreeView.BranchTrigger>
+                                <TreeView.BranchContent>
+                                    <TreeView.Item value="a/b/1"><TreeView.NodeCheckbox />ab1</TreeView.Item>
+                                    <TreeView.Item value="a/b/2"><TreeView.NodeCheckbox />ab2</TreeView.Item>
+                                </TreeView.BranchContent>
+                            </TreeView.Branch>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                    <TreeView.Item value="d"><TreeView.NodeCheckbox />dee</TreeView.Item>
+                </TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+    }
+
+    const LABEL: Record<string, string> = { a: 'a', 'a/1': 'a1', 'a/2': 'a2', 'a/b': 'ab', 'a/b/1': 'ab1', 'a/b/2': 'ab2', d: 'dee' };
+    const labelOf = (el: HTMLElement): string => (el.getAttribute('data-part') === 'branch'
+        ? el.querySelector('[data-part="branch-trigger"]')!.textContent!
+        : el.textContent!).trim();
+    const node = (value: string): HTMLElement =>
+        [...container.querySelectorAll<HTMLElement>('[role="treeitem"]')].find((el) => labelOf(el) === LABEL[value])!;
+    /** The node's own box: the item's, or the branch row's. */
+    const box = (value: string): HTMLElement => (node(value).getAttribute('data-part') === 'branch'
+        ? node(value).querySelector<HTMLElement>(':scope > [data-part="branch-trigger"] [data-part="node-checkbox"]')!
+        : node(value).querySelector<HTMLElement>('[data-part="node-checkbox"]')!);
+    const press = (el: HTMLElement, k: string, init: KeyboardEventInit = {}) => {
+        el.focus();
+        const e = new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...init });
+        el.dispatchEvent(e);
+        return e;
+    };
+    const click = (el: HTMLElement) => el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    const checkedOf = (value: string) => node(value).getAttribute('aria-checked');
+
+    it('matches the anatomy; every treeitem carries aria-checked and, with no selection in use, no aria-selected', () => {
+        const state = signal({ checked: [] as string[] });
+        mountCheckable({ checked: [state, 'checked'] });
+        expectAnatomy(container, treeViewAnatomy);
+        for (const el of container.querySelectorAll('[role="treeitem"]')) {
+            expect(el.getAttribute('aria-checked')).toBe('false');
+            expect(el.hasAttribute('aria-selected')).toBe(false);
+        }
+        for (const el of container.querySelectorAll('[data-part="node-checkbox"]')) {
+            expect(el.getAttribute('aria-hidden')).toBe('true');
+            expect(el.getAttribute('data-state')).toBe('unchecked');
+        }
+        expect(box('a/2').hasAttribute('data-disabled')).toBe(true);
+        expect(box('a/1').hasAttribute('data-disabled')).toBe(false);
+    });
+
+    it('a tree that is not checkable renders no aria-checked', () => {
+        render(
+            <TreeView.Root>
+                <TreeView.Tree><TreeView.Item value="x">x</TreeView.Item></TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+        const item = container.querySelector('[role="treeitem"]')!;
+        expect(item.hasAttribute('aria-checked')).toBe(false);
+        expect(item.getAttribute('aria-selected')).toBe('false');
+    });
+
+    it('Space on a branch checks every enabled descendant leaf; the branches derive checked', () => {
+        const state = signal({ checked: [] as string[] });
+        mountCheckable({ checked: [state, 'checked'] });
+        press(node('a'), ' ');
+        expect(state.checked).toEqual(['a/1', 'a/b/1', 'a/b/2']);
+        // The disabled leaf is left out, and does not hold the branch back.
+        expect(checkedOf('a/2')).toBe('false');
+        expect(checkedOf('a')).toBe('true');
+        expect(checkedOf('a/b')).toBe('true');
+        expect(box('a').getAttribute('data-state')).toBe('checked');
+        expect(box('a/b/1').getAttribute('data-state')).toBe('checked');
+        // Space checks; it does not expand, collapse or select.
+        expect(node('a').getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('a partial child set reads mixed all the way up', () => {
+        const state = signal({ checked: [] as string[] });
+        mountCheckable({ checked: [state, 'checked'] });
+        press(node('a/b/1'), ' ');
+        expect(state.checked).toEqual(['a/b/1']);
+        expect(checkedOf('a/b')).toBe('mixed');
+        expect(checkedOf('a')).toBe('mixed');
+        expect(box('a/b').getAttribute('data-state')).toBe('indeterminate');
+        expect(box('a').getAttribute('data-state')).toBe('indeterminate');
+        // Space on a mixed branch completes it.
+        press(node('a/b'), ' ');
+        expect(state.checked).toEqual(['a/b/1', 'a/b/2']);
+        expect(checkedOf('a/b')).toBe('true');
+        expect(checkedOf('a')).toBe('mixed');
+    });
+
+    it('unchecking a branch keeps a disabled leaf\'s value', () => {
+        const state = signal({ checked: ['a/1', 'a/2', 'a/b/1', 'a/b/2', 'd'] as string[] });
+        mountCheckable({ checked: [state, 'checked'] });
+        expect(checkedOf('a')).toBe('true');
+        press(node('a'), ' ');
+        expect(state.checked).toEqual(['a/2', 'd']);
+        expect(checkedOf('a/2')).toBe('true');
+        // Only the disabled leaf is checked, and it is not one the branch
+        // answers to while it has enabled ones.
+        expect(checkedOf('a')).toBe('false');
+    });
+
+    it('a branch whose every leaf is disabled paints its box disabled; a lazy branch with no leaves yet does not', () => {
+        const state = signal({ checked: ['x/1'] as string[] });
+        render(
+            <TreeView.Root model:checkedValues={[state, 'checked'] as never} defaultExpandedValues={['x']}>
+                <TreeView.Tree>
+                    <TreeView.Branch value="x">
+                        <TreeView.BranchTrigger><TreeView.NodeCheckbox />x</TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Item value="x/1" disabled><TreeView.NodeCheckbox />x1</TreeView.Item>
+                            <TreeView.Item value="x/2" disabled><TreeView.NodeCheckbox />x2</TreeView.Item>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                    <TreeView.Branch value="lazy">
+                        <TreeView.BranchTrigger><TreeView.NodeCheckbox />lazy</TreeView.BranchTrigger>
+                        <TreeView.BranchContent />
+                    </TreeView.Branch>
+                </TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+        const boxes = [...container.querySelectorAll<HTMLElement>('[data-part="branch-trigger"] > [data-part="node-checkbox"]')];
+        const [x, lazy] = boxes;
+        expect(x.getAttribute('data-state')).toBe('indeterminate');
+        expect(x.hasAttribute('data-disabled')).toBe(true);
+        click(x);
+        expect(state.checked).toEqual(['x/1']);
+        expect(lazy.hasAttribute('data-disabled')).toBe(false);
+    });
+
+    it('a click on the box toggles the check and nothing else', () => {
+        const checked = signal({ v: [] as string[] });
+        const selected = signal({ v: '' });
+        mountCheckable({ checked: [checked, 'v'], model: [selected, 'v'] });
+        click(box('a/b'));
+        expect(checked.v).toEqual(['a/b/1', 'a/b/2']);
+        expect(selected.v).toBe('');
+        expect(node('a/b').getAttribute('aria-expanded')).toBe('true');
+        expect(document.activeElement).toBe(node('a/b'));
+        click(box('d'));
+        expect(checked.v).toEqual(['a/b/1', 'a/b/2', 'd']);
+        expect(selected.v).toBe('');
+        // A disabled leaf's box does nothing.
+        click(box('a/2'));
+        expect(checked.v).toEqual(['a/b/1', 'a/b/2', 'd']);
+    });
+
+    it('with the selection in use too: Enter selects, Space checks, and aria-selected renders', () => {
+        const checked = signal({ v: [] as string[] });
+        const selected = signal({ v: '' });
+        mountCheckable({ checked: [checked, 'v'], model: [selected, 'v'] });
+        expect(node('d').getAttribute('aria-selected')).toBe('false');
+        press(node('d'), 'Enter');
+        expect(selected.v).toBe('d');
+        expect(checked.v).toEqual([]);
+        press(node('a/1'), ' ');
+        expect(checked.v).toEqual(['a/1']);
+        expect(selected.v).toBe('d');
+        // A row click still selects.
+        click(node('a/1'));
+        expect(selected.v).toBe('a/1');
+        expect(checked.v).toEqual(['a/1']);
+    });
+
+    it('with no selection in use a leaf row is the box\'s label: a click or Enter toggles its check', () => {
+        const state = signal({ checked: [] as string[] });
+        mountCheckable({ checked: [state, 'checked'] });
+        const rowClick = new MouseEvent('click', { bubbles: true, cancelable: true });
+        node('d').dispatchEvent(rowClick);
+        expect(state.checked).toEqual(['d']);
+        // Like the box: an asChild link or button row does not also navigate or submit.
+        expect(rowClick.defaultPrevented).toBe(true);
+        expect(node('d').hasAttribute('data-selected')).toBe(false);
+        press(node('d'), 'Enter');
+        expect(state.checked).toEqual([]);
+        // A branch row still folds, and never checks.
+        click(node('a/b').querySelector<HTMLElement>('[data-part="branch-trigger"]')!);
+        expect(node('a/b').getAttribute('aria-expanded')).toBe('false');
+        expect(state.checked).toEqual([]);
+    });
+
+    it('under multiple: Space checks, Shift+Space still selects the range', () => {
+        const checked = signal({ v: [] as string[] });
+        const selected = signal({ v: [] as string[] });
+        mountCheckable({ checked: [checked, 'v'], model: [selected, 'v'], multiple: true });
+        press(node('a/1'), ' ');
+        expect(checked.v).toEqual(['a/1']);
+        expect(selected.v).toEqual([]);
+        press(node('a/1'), 'Enter');
+        expect(selected.v).toEqual(['a/1']);
+        press(node('a/b'), ' ', { shiftKey: true });
+        expect(selected.v).toEqual(['a/1', 'a/b']);
+        expect(checked.v).toEqual(['a/1']);
+    });
+
+    it('checkable alone, or a defaultCheckedValues seed, makes an uncontrolled checkable tree', () => {
+        const changes: string[][] = [];
+        mountCheckable({ defaultCheckedValues: ['a/b/2'], onCheckedValuesChange: (v) => changes.push(v) });
+        expect(checkedOf('a/b/2')).toBe('true');
+        expect(checkedOf('a/b')).toBe('mixed');
+        press(node('a/b/1'), ' ');
+        expect(changes).toEqual([['a/b/2', 'a/b/1']]);
+        expect(checkedOf('a/b')).toBe('true');
+        container = document.createElement('div');
+        document.body.appendChild(container);
+        mountCheckable({ checkable: true });
+        expect(checkedOf('d')).toBe('false');
+        press(node('d'), ' ');
+        expect(checkedOf('d')).toBe('true');
+    });
+
+    it('a branch whose every leaf is disabled shows what its leaves hold, and cannot be toggled', () => {
+        const state = signal({ checked: ['x/1'] as string[] });
+        render(
+            <TreeView.Root model:checkedValues={[state, 'checked']} defaultExpandedValues={['x']}>
+                <TreeView.Tree>
+                    <TreeView.Branch value="x">
+                        <TreeView.BranchTrigger><TreeView.NodeCheckbox />x</TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Item value="x/1" disabled>x1</TreeView.Item>
+                            <TreeView.Item value="x/2" disabled>x2</TreeView.Item>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                </TreeView.Tree>
+            </TreeView.Root>,
+            container,
+        );
+        const branch = container.querySelector<HTMLElement>('[data-part="branch"]')!;
+        expect(branch.getAttribute('aria-checked')).toBe('mixed');
+        press(branch, ' ');
+        expect(state.checked).toEqual(['x/1']);
     });
 });

@@ -39,6 +39,7 @@ import { htmlAttrs } from '../../contract/props.js';
 import type { HtmlAttrValue, WithClass, WithFormControl, WithHtmlAttrs, WithModelModifiers, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { checkboxAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
+import { toggleTriState, triState, type TriState } from '../../behaviors/tri-state.js';
 
 const SCOPE = checkboxAnatomy.scope;
 
@@ -115,12 +116,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
     }
 
     /** A parent box's view of the group: how many of `allValues` are selected. */
-    const parentState = (): 'checked' | 'unchecked' | 'indeterminate' => {
-        const all = group.allValues();
-        const selected = group.state.value;
-        const count = all.filter((v) => selected.includes(v)).length;
-        return count === 0 ? 'unchecked' : count === all.length ? 'checked' : 'indeterminate';
-    };
+    const parentState = (): TriState => triState(group.allValues(), group.state.value);
     const checkedState = (): string => {
         if (isParent()) return parentState();
         if (props.indeterminate) return 'indeterminate';
@@ -199,11 +195,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
 
     /** A parent box toggles all or none of the group's `allValues`. */
     const toggleAll = (): void => {
-        const all = group.allValues();
-        const current = group.state.value;
-        group.state.value = parentState() === 'checked'
-            ? current.filter((v) => !all.includes(v))
-            : [...current, ...all.filter((v) => !current.includes(v))];
+        group.state.value = toggleTriState(group.allValues(), group.state.value);
     };
 
     let controlEl: HTMLElement | null = null;
