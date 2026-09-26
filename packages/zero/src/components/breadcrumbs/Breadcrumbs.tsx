@@ -237,7 +237,10 @@ const BreadcrumbsRoot = component<BreadcrumbsRootProps>(({ props, slots, emit, o
         return (
             <nav
                 {...attrs}
-                aria-label={props.label ?? attrs['aria-label'] ?? 'Breadcrumb'}
+                // An app-provided aria-labelledby names the landmark: the
+                // default label steps aside rather than sit beside it.
+                aria-label={props.label ?? attrs['aria-label']
+                    ?? (attrs['aria-labelledby'] ? undefined : 'Breadcrumb')}
                 data-scope={SCOPE}
                 data-part="root"
                 {...variantAttrs(props)}
@@ -363,7 +366,8 @@ const BreadcrumbsEllipsisTrigger = component<BreadcrumbsEllipsisTriggerProps>(({
             'data-scope': SCOPE,
             'data-part': 'ellipsis-trigger',
             'data-focus-visible': dataAttr(focus.visible),
-            'aria-label': props.label ? props.label(n) : attrs['aria-label'] ?? `Show ${n} more breadcrumbs`,
+            'aria-label': props.label ? props.label(n) : attrs['aria-label']
+                ?? (attrs['aria-labelledby'] ? undefined : `Show ${n} more breadcrumbs`),
             'aria-expanded': 'false',
             ref: (node: HTMLElement | null) => { el = node; },
             onClick: () => ctx.expand(),
