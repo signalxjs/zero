@@ -5559,6 +5559,9 @@ export const diff: RecipeInput = {
                 overflow: 'hidden',
                 background: 'var(--color-base-100)',
             },
+            // The root holds the images, which are content: disabled is the
+            // handle's to show (#272).
+            states: { disabled: {} },
         },
         before: {
             base: { gridArea: '1 / 1', minWidth: '0' },
@@ -5590,6 +5593,9 @@ export const diff: RecipeInput = {
             },
             states: {
                 ...focusRing,
+                // Carbon's disabled fade and not-allowed cursor (#272), as on
+                // every other control; the images are content, unfaded.
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 pressed: { '--diff-accent': 'color-mix(in oklab, var(--carbon-interactive) 85%, var(--color-base-content))' },
             },
             selectors: {

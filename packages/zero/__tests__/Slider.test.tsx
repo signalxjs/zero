@@ -21,13 +21,20 @@ function mountRange(state: { price: number[] }, extra: {
     marks?: readonly (number | { value: number; label?: string })[];
     disabled?: boolean;
     onValueChange?: (v: number | number[]) => void;
+    onValueCommit?: (v: number | number[]) => void;
+    largeStep?: number;
+    minStepsBetweenThumbs?: number;
+    step?: number;
 } = {}) {
     render(
         <Slider.Root
             model={[state, 'price']}
             min={0}
             max={100}
-            step={1}
+            step={extra.step ?? 1}
+            largeStep={extra.largeStep}
+            minStepsBetweenThumbs={extra.minStepsBetweenThumbs}
+            onValueCommit={extra.onValueCommit}
             name="price"
             disabled={extra.disabled}
             getValueText={extra.getValueText}
@@ -51,8 +58,13 @@ function mountRange(state: { price: number[] }, extra: {
     };
 }
 
-const key = (el: HTMLElement, k: string) =>
-    el.dispatchEvent(new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true }));
+const key = (el: HTMLElement, k: string, init: KeyboardEventInit = {}) =>
+    el.dispatchEvent(new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true, ...init }));
+
+const trackBox = (track: HTMLElement) => {
+    track.getBoundingClientRect = () =>
+        ({ left: 0, top: 0, right: 100, bottom: 10, width: 100, height: 10, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
+};
 
 describe('Slider range', () => {
     it('renders one APG slider thumb per value, with a valid anatomy', () => {
@@ -392,5 +404,263 @@ describe('Slider in a Field (#266)', () => {
         const control = container.querySelector('[data-scope="slider"][data-part="control"]')!;
         expect(control.hasAttribute('aria-describedby')).toBe(false);
         expect(control.hasAttribute('aria-valuetext')).toBe(false);
+    });
+});
+
+describe('Slider valueCommit (#272)', () => {
+    it('fires once when a drag ends, with the array shape', () => {
+        const commits: (number | number[])[] = [];
+        const changes: (number | number[])[] = [];
+        const state = signal({ price: [20, 60] });
+        const { track } = mountRange(state, {
+            onValueCommit: (v) => commits.push(v),
+            onValueChange: (v) => changes.push(v),
+        });
+        trackBox(track);
+        track.dispatchEvent(new PointerEvent('pointerdown', { button: 0, clientX: 30, bubbles: true }));
+        window.dispatchEvent(new PointerEvent('pointermove', { clientX: 35 }));
+        window.dispatchEvent(new PointerEvent('pointermove', { clientX: 40 }));
+        expect(commits).toEqual([]);
+        window.dispatchEvent(new PointerEvent('pointerup', {}));
+        expect(changes.length).toBe(3);
+        expect(commits).toEqual([[40, 60]]);
+    });
+
+    it('a drag that ends where it began commits nothing', () => {
+        const onValueCommit = vi.fn();
+        const state = signal({ price: [20, 60] });
+        const { thumbs } = mountRange(state, { onValueCommit });
+        thumbs[0]!.dispatchEvent(new PointerEvent('pointerdown', { button: 0, clientX: 20, bubbles: true }));
+        window.dispatchEvent(new PointerEvent('pointerup', {}));
+        expect(onValueCommit).not.toHaveBeenCalled();
+    });
+
+    it('a track press that moves a thumb commits on release, even without a move', () => {
+        const onValueCommit = vi.fn();
+        const state = signal({ price: [20, 60] });
+        const { track } = mountRange(state, { onValueCommit });
+        trackBox(track);
+        track.dispatchEvent(new PointerEvent('pointerdown', { button: 0, clientX: 30, bubbles: true }));
+        window.dispatchEvent(new PointerEvent('pointerup', {}));
+        expect(onValueCommit).toHaveBeenCalledTimes(1);
+        expect(onValueCommit).toHaveBeenCalledWith([30, 60]);
+    });
+
+    it('fires after each keyboard step that moves the value', () => {
+        const commits: (number | number[])[] = [];
+        const state = signal({ price: [20, 60] });
+        const { thumbs } = mountRange(state, { onValueCommit: (v) => commits.push(v) });
+        key(thumbs[1]!, 'ArrowRight');
+        key(thumbs[1]!, 'End');
+        // Already at the end: nothing moved, nothing committed.
+        key(thumbs[1]!, 'ArrowRight');
+        expect(commits).toEqual([[20, 61], [20, 100]]);
+    });
+
+    it('a scalar model commits a scalar, and the native control commits on change', () => {
+        const commits: (number | number[])[] = [];
+        const state = signal({ volume: 40 });
+        render(
+            <Slider.Root model={[state, 'volume']} min={0} max={100} onValueCommit={(v: number | number[]) => commits.push(v)}>
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        const control = container.querySelector<HTMLInputElement>('[data-part="control"]')!;
+        control.value = '55';
+        control.dispatchEvent(new Event('input', { bubbles: true }));
+        expect(commits).toEqual([]);
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(state.volume).toBe(55);
+        expect(commits).toEqual([55]);
+    });
+
+    it('the native control commits only when the value moved', () => {
+        const commits: (number | number[])[] = [];
+        const state = signal({ volume: 40 });
+        render(
+            <Slider.Root model={[state, 'volume']} min={0} max={100} onValueCommit={(v: number | number[]) => commits.push(v)}>
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        const control = container.querySelector<HTMLInputElement>('[data-part="control"]')!;
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(commits).toEqual([]);
+        control.value = '60';
+        control.dispatchEvent(new Event('input', { bubbles: true }));
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(commits).toEqual([60]);
+    });
+
+    it('a readonly native control commits nothing', () => {
+        const onValueCommit = vi.fn();
+        render(
+            <Slider.Root readonly defaultValue={40} onValueCommit={onValueCommit}>
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        const control = container.querySelector<HTMLInputElement>('[data-part="control"]')!;
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(onValueCommit).not.toHaveBeenCalled();
+    });
+
+    it('a disabled native control commits nothing', () => {
+        const onValueCommit = vi.fn();
+        render(
+            <Slider.Root disabled defaultValue={40} onValueCommit={onValueCommit}>
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        const control = container.querySelector<HTMLInputElement>('[data-part="control"]')!;
+        control.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(onValueCommit).not.toHaveBeenCalled();
+    });
+});
+
+describe('Slider largeStep (#272)', () => {
+    it('drives PageUp/PageDown and Shift+Arrow on a thumb', () => {
+        const state = signal({ price: [20, 90] });
+        const { thumbs } = mountRange(state, { largeStep: 5 });
+        key(thumbs[0]!, 'PageUp');
+        expect(state.price).toEqual([25, 90]);
+        key(thumbs[0]!, 'PageDown');
+        expect(state.price).toEqual([20, 90]);
+        key(thumbs[0]!, 'ArrowRight', { shiftKey: true });
+        expect(state.price).toEqual([25, 90]);
+        key(thumbs[0]!, 'ArrowDown', { shiftKey: true });
+        expect(state.price).toEqual([20, 90]);
+        key(thumbs[0]!, 'ArrowUp');
+        expect(state.price).toEqual([21, 90]);
+    });
+
+    it('defaults to ten steps', () => {
+        const state = signal({ price: [20, 90] });
+        const { thumbs } = mountRange(state, { step: 2 });
+        key(thumbs[0]!, 'ArrowUp', { shiftKey: true });
+        expect(state.price).toEqual([40, 90]);
+        key(thumbs[0]!, 'PageDown');
+        expect(state.price).toEqual([20, 90]);
+    });
+
+    it('the native control takes the large steps too, and commits them', () => {
+        const commits: (number | number[])[] = [];
+        const state = signal({ volume: 40 });
+        render(
+            <Slider.Root model={[state, 'volume']} largeStep={25} onValueCommit={(v: number | number[]) => commits.push(v)}>
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        const control = container.querySelector<HTMLInputElement>('[data-part="control"]')!;
+        const e = new KeyboardEvent('keydown', { key: 'PageUp', cancelable: true, bubbles: true });
+        control.dispatchEvent(e);
+        expect(e.defaultPrevented).toBe(true);
+        expect(state.volume).toBe(65);
+        key(control, 'ArrowDown', { shiftKey: true });
+        expect(state.volume).toBe(40);
+        expect(commits).toEqual([65, 40]);
+        // A plain arrow is the platform's own step.
+        const plain = new KeyboardEvent('keydown', { key: 'ArrowUp', cancelable: true, bubbles: true });
+        control.dispatchEvent(plain);
+        expect(plain.defaultPrevented).toBe(false);
+    });
+});
+
+describe('Slider minStepsBetweenThumbs (#272)', () => {
+    it('keeps the gap on keys and announces it as the thumbs\' bounds', () => {
+        const state = signal({ price: [20, 30] });
+        const { thumbs } = mountRange(state, { minStepsBetweenThumbs: 5, step: 2 });
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('20');
+        expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('30');
+        key(thumbs[0]!, 'ArrowRight');
+        expect(state.price).toEqual([20, 30]);
+        key(thumbs[1]!, 'Home');
+        expect(state.price).toEqual([20, 30]);
+        key(thumbs[1]!, 'ArrowRight');
+        expect(state.price).toEqual([20, 32]);
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('22');
+        key(thumbs[0]!, 'End');
+        expect(state.price).toEqual([22, 32]);
+    });
+
+    it('keeps the gap on a drag', () => {
+        const state = signal({ price: [20, 60] });
+        const { track } = mountRange(state, { minStepsBetweenThumbs: 10 });
+        trackBox(track);
+        track.dispatchEvent(new PointerEvent('pointerdown', { button: 0, clientX: 30, bubbles: true }));
+        window.dispatchEvent(new PointerEvent('pointermove', { clientX: 90 }));
+        window.dispatchEvent(new PointerEvent('pointerup', {}));
+        expect(state.price).toEqual([50, 60]);
+    });
+
+    it('holds a fractional gap without float drift', () => {
+        const state = signal({ price: [0.2, 0.6] });
+        render(
+            <Slider.Root model={[state, 'price']} min={0} max={1} step={0.1} minStepsBetweenThumbs={1}>
+                <Slider.Track>
+                    <Slider.Thumb />
+                    <Slider.Thumb />
+                </Slider.Track>
+            </Slider.Root>,
+            container,
+        );
+        const thumbs = container.querySelectorAll<HTMLElement>('[data-part="thumb"]');
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('0.5');
+        expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('0.3');
+    });
+
+    it('rounds a fractional step count up, keeping the bounds on the grid', () => {
+        const state = signal({ price: [20, 40] });
+        const { thumbs } = mountRange(state, { minStepsBetweenThumbs: 1.5, step: 2 });
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('36');
+        expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('24');
+    });
+
+    it('degrades an impossible gap to no-crossing, never inverting the bounds', () => {
+        const state = signal({ price: [40, 50] });
+        const { thumbs } = mountRange(state, { minStepsBetweenThumbs: 80 });
+        for (const t of thumbs) {
+            expect(Number(t.getAttribute('aria-valuemin'))).toBeGreaterThanOrEqual(0);
+            expect(Number(t.getAttribute('aria-valuemax'))).toBeLessThanOrEqual(100);
+            expect(Number(t.getAttribute('aria-valuemin')))
+                .toBeLessThanOrEqual(Number(t.getAttribute('aria-valuemax')));
+        }
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('50');
+        expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('40');
+        key(thumbs[0]!, 'End');
+        expect(state.price).toEqual([50, 50]);
+        key(thumbs[1]!, 'Home');
+        expect(state.price).toEqual([50, 50]);
+    });
+
+    it('keeps out-of-order values inside their own bounds and moves them only back toward order', () => {
+        const state = signal({ price: [70, 30] });
+        const { thumbs } = mountRange(state);
+        for (const t of thumbs) {
+            const now = Number(t.getAttribute('aria-valuenow'));
+            expect(Number(t.getAttribute('aria-valuemin'))).toBeLessThanOrEqual(now);
+            expect(Number(t.getAttribute('aria-valuemax'))).toBeGreaterThanOrEqual(now);
+        }
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('70');
+        expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('30');
+        key(thumbs[0]!, 'ArrowRight');
+        expect(state.price).toEqual([70, 30]);
+        key(thumbs[0]!, 'ArrowLeft');
+        expect(state.price).toEqual([69, 30]);
+    });
+
+    it('keeps a thumb that already breaks the gap inside its own bounds', () => {
+        const state = signal({ price: [40, 50] });
+        const { thumbs } = mountRange(state, { minStepsBetweenThumbs: 20 });
+        expect(thumbs[0]!.getAttribute('aria-valuemax')).toBe('40');
+        expect(thumbs[1]!.getAttribute('aria-valuemin')).toBe('50');
+        key(thumbs[0]!, 'ArrowRight');
+        expect(state.price).toEqual([40, 50]);
+        key(thumbs[0]!, 'ArrowLeft');
+        expect(state.price).toEqual([39, 50]);
     });
 });

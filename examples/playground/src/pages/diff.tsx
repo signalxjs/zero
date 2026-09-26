@@ -21,8 +21,8 @@ const DiffDemos = component(() => () => (
     <>
         <p>
             A before/after reveal. The divider handle is an APG slider —
-            focus it and use the arrow keys (RTL-aware), PageUp/PageDown, or
-            Home/End — and a pointer drag keeps working after the pointer
+            focus it and use the arrow keys (RTL-aware), PageUp/PageDown or
+            Shift+Arrow for a large step, or Home/End — and a pointer drag keeps working after the pointer
             leaves the box. The panes are content: clicks on them do nothing.
         </p>
         <Diff.Root defaultValue={50}>
@@ -35,6 +35,15 @@ const DiffDemos = component(() => () => (
             <Diff.Before>{pane('color-mix(in oklch, currentColor 8%, transparent)', 'Draft')}</Diff.Before>
             <Diff.After>{pane('color-mix(in oklch, currentColor 22%, transparent)', 'Final')}</Diff.After>
             <Diff.Handle label="Reveal final version" />
+        </Diff.Root>
+        <p>
+            <code>disabled</code> freezes the divider — no tab stop, no keys,
+            no drag — and <code>getValueText</code> speaks the value:
+        </p>
+        <Diff.Root defaultValue={60} disabled>
+            <Diff.Before>{pane('color-mix(in oklch, currentColor 8%, transparent)', 'Original')}</Diff.Before>
+            <Diff.After>{pane('color-mix(in oklch, currentColor 22%, transparent)', 'Retouched')}</Diff.After>
+            <Diff.Handle label="Locked comparison" getValueText={(v) => `${v} percent revealed`} />
         </Diff.Root>
     </>
 ), { name: 'DiffDemos' });

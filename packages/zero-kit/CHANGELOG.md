@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE` gains the range-stepping props (zero#272)
+
+- `slider` reserves `largeStep` and `minStepsBetweenThumbs`, and
+  `number-input` reserves `largeStep`, so a vendor-named api cannot claim
+  them as axis props.
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE.menu` gains `loop` (zero#263)
 
 - Menu's new root prop is reserved, so a vendor-named api cannot claim it

@@ -5230,6 +5230,9 @@ export const diff: RecipeInput = {
                 background: 'var(--color-base-100)',
                 border: 'calc(var(--border) * 2) solid var(--color-base-content)',
             },
+            // The root holds the images, which are content: disabled is the
+            // handle's to show (#272).
+            states: { disabled: {} },
         },
         before: {
             base: { gridArea: '1 / 1', minWidth: '0' },
@@ -5261,6 +5264,9 @@ export const diff: RecipeInput = {
             },
             states: {
                 ...focusRing,
+                // A frozen divider (#272) lies faded under a refusing cursor;
+                // the images are content and stay at full strength.
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 pressed: { '--diff-accent': 'var(--color-primary)' },
             },
             selectors: {

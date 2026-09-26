@@ -3,7 +3,7 @@ import { Field, Progress, Slider } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const SliderDemos = component(() => {
-    const state = signal({ volume: 40, price: [120, 350], level: 30, gain: 60 });
+    const state = signal({ volume: 40, price: [120, 350], level: 30, gain: 60, window: [20, 60], committed: '—' });
 
     return () => (
         <>
@@ -37,6 +37,31 @@ const SliderDemos = component(() => {
                 </Slider.Track>
                 <Slider.ValueText />
             </Slider.Root>
+            <p>
+                <code>minStepsBetweenThumbs</code> keeps a gap the thumbs
+                announce as their bounds, <code>largeStep</code> is what
+                PageUp/PageDown and Shift+Arrow move by, and{' '}
+                <code>valueCommit</code> fires once per finished drag or key
+                step.
+            </p>
+            <Slider.Root
+                model={() => state.window}
+                min={0}
+                max={100}
+                step={5}
+                largeStep={25}
+                minStepsBetweenThumbs={2}
+                onValueCommit={(v) => { state.committed = Array.isArray(v) ? v.join(' – ') : String(v); }}
+            >
+                <Slider.Label>Time window</Slider.Label>
+                <Slider.Track>
+                    <Slider.Range />
+                    <Slider.Thumb label="Window start" />
+                    <Slider.Thumb label="Window end" />
+                </Slider.Track>
+                <Slider.ValueText />
+            </Slider.Root>
+            <p><small>Last committed: <code data-demo="slider-committed">{state.committed}</code></small></p>
             <h2>Vertical</h2>
             <p>
                 <code>orientation="vertical"</code> runs the rail bottom-to-top,

@@ -86,3 +86,31 @@ test('RTL mirrors the reveal and the keys, measured in boxes', async ({ page }) 
     const moved = await settledBox(handle, 'the handle after the keys (RTL)');
     expect(moved.x).toBeGreaterThan(before.x + 5);
 });
+
+test('a disabled handle does not move under a real drag or the keyboard (#272)', async ({ page }) => {
+    const locked = demoLabelled(page, 'diff', 'Retouched');
+    const handle = locked('handle');
+    await handle.scrollIntoViewIfNeeded();
+    await expect(handle).toHaveAttribute('aria-disabled', 'true');
+    await expect(handle).toHaveAttribute('aria-valuetext', '60 percent revealed');
+    const root = await settledBox(rootLabelled(page, 'diff', 'Retouched'), 'the disabled diff root');
+    const widthOf = () => locked('after').evaluate((el) => el.getBoundingClientRect().width);
+    const start = await widthOf();
+
+    const box = await settledBox(handle, 'the disabled diff handle');
+    const cy = box.y + box.height / 2;
+    await page.mouse.move(box.x + box.width / 2, cy);
+    await page.mouse.down();
+    await page.mouse.move(root.x + root.width * 0.1, cy, { steps: 6 });
+    await page.mouse.up();
+    await expect(handle).toHaveAttribute('aria-valuenow', '60');
+    expect(Math.abs((await widthOf()) - start)).toBeLessThan(1);
+
+    // Out of the tab order, so it cannot take keyboard focus either; a
+    // forced focus still refuses the keys.
+    await expect(handle).not.toHaveAttribute('tabindex', /.*/);
+    await handle.evaluate((el) => (el as HTMLElement).focus());
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('Home');
+    await expect(handle).toHaveAttribute('aria-valuenow', '60');
+});

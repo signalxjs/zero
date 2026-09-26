@@ -6632,6 +6632,9 @@ export const diff: RecipeInput = {
                 background: 'var(--color-base-100)',
                 borderRadius: 'var(--radius-box)',
             },
+            // The root holds the images, which are content: disabled is the
+            // handle's to show (#272).
+            states: { disabled: {} },
         },
         before: {
             base: { gridArea: '1 / 1', minWidth: '0' },
@@ -6661,6 +6664,9 @@ export const diff: RecipeInput = {
             },
             states: {
                 ...focusRing,
+                // daisy's disabled look (#272): the uniform fade, and no grab
+                // cursor — the images are content and stay unfaded.
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 pressed: { '--diff-accent': 'color-mix(in oklab, var(--color-base-content) 85%, var(--color-base-100))' },
             },
             selectors: {

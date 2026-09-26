@@ -31,7 +31,9 @@
  * registration order; an explicit `index` prop pins one). Each thumb is an
  * APG `role="slider"` tab stop: arrows/PageUp/PageDown step it (RTL-aware),
  * Home/End go to its ALLOWED bounds — thumbs cannot cross, so a thumb clamps
- * at its neighbor and announces that clamp as `aria-valuemin`/`aria-valuemax`.
+ * at its neighbor (plus `minStepsBetweenThumbs` steps of gap) and announces
+ * that clamp as `aria-valuemin`/`aria-valuemax`. PageUp/PageDown and
+ * Shift+Arrow move by `largeStep` (default ten steps).
  * `Slider.Range` spans lowest → highest (min → value when single). Pointer
  * presses on the track move the nearest thumb and start a drag. `marks`
  * renders one positioned `mark` part per entry inside the track.
@@ -54,6 +56,11 @@
  * announced (`aria-readonly`) but refuses every user write: no key steps a
  * thumb, no press moves or drags one, and the native range's own input is
  * put back — it has no `readonly` of its own.
+ *
+ * `valueCommit` is the end-of-interaction event (not a model — it has no
+ * `<n>Change` twin): it fires once when a drag ends, after each keyboard
+ * step, and on the native control's `change`, each time only when the value
+ * actually moved, with the model's shape.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -99,6 +106,21 @@ interface SliderContext {
     min(): number;
     max(): number;
     step(): number;
+    /** The PageUp/PageDown/Shift+Arrow delta — `largeStep`, default ten steps. */
+    largeStep(): number;
+    /**
+     * The value `index` may take: the rail's ends, tightened at each
+     * neighbor by `minStepsBetweenThumbs` steps. What a write clamps to and
+     * what a thumb announces as `aria-valuemin`/`aria-valuemax`.
+     */
+    boundsAt(index: number): { lo: number; hi: number };
+    /**
+     * A keyboard write: `setValueAt`, then `valueCommit` when the value
+     * moved — every key step is its own finished interaction.
+     */
+    stepAt(index: number, value: number): void;
+    /** Emit `valueCommit` with the current model shape. */
+    commit(): void;
     disabled(): boolean;
     invalid(): boolean;
     /** The enclosing Field's description/error ids, when there is one. */
@@ -133,8 +155,12 @@ interface SliderContext {
      * start → end when horizontal (RTL-aware), bottom → top when vertical.
      */
     trackToValue(e: { clientX: number; clientY: number }): number;
-    /** Start dragging one thumb; window listeners follow the pointer out. */
-    beginDrag(index: number): void;
+    /**
+     * Start dragging one thumb; window listeners follow the pointer out.
+     * `before` is the model as it stood when the press began (a track press
+     * has already moved the thumb) — the drag's end commits against it.
+     */
+    beginDrag(index: number, before?: readonly number[]): void;
     setTrack(el: HTMLElement | null): void;
 }
 
@@ -147,6 +173,10 @@ function makeInert(): SliderContext {
         min: () => 0,
         max: () => 100,
         step: () => 1,
+        largeStep: () => 10,
+        boundsAt: () => ({ lo: 0, hi: 100 }),
+        stepAt: () => {},
+        commit: () => {},
         disabled: () => false,
         invalid: () => false,
         describedBy: () => undefined,
@@ -223,6 +253,25 @@ function positionStyle(orientation: Orientation, percent: number): Record<string
 /** The keys a native range steps its value on — cancelled while readonly. */
 const VALUE_KEYS = new Set(['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);
 
+/**
+ * The signed delta a stepping key moves the value by, or null for any other
+ * key. APG: Right/Up increase, Left/Down decrease; only a horizontal rail
+ * mirrors Left/Right in RTL — a vertical one's axis is not the reading one.
+ * PageUp/PageDown and Shift+Arrow move by the large step.
+ */
+function keyDelta(e: KeyboardEvent, rtl: boolean, step: number, large: number): number | null {
+    const s = e.shiftKey ? large : step;
+    switch (e.key) {
+        case 'ArrowRight': return rtl ? -s : s;
+        case 'ArrowLeft': return rtl ? s : -s;
+        case 'ArrowUp': return s;
+        case 'ArrowDown': return -s;
+        case 'PageUp': return large;
+        case 'PageDown': return -large;
+        default: return null;
+    }
+}
+
 /** Digits after the decimal point — what `quantize` rounds float drift to. */
 function decimalsOf(n: number): number {
     const s = String(n);
@@ -234,9 +283,22 @@ export type SliderRootProps =
     & Define.Model<number | number[]>
     & Define.Prop<'defaultValue', number | number[], false>
     & Define.Event<'valueChange', number | number[]>
+    /**
+     * The end of an interaction — a drag's release, a keyboard step, the
+     * native control's `change` — with the model's shape, fired only when
+     * the value moved. An event, not a model: there is no `<n>Change` pair.
+     */
+    & Define.Event<'valueCommit', number | number[]>
     & Define.Prop<'min', number, false>
     & Define.Prop<'max', number, false>
     & Define.Prop<'step', number, false>
+    /** PageUp/PageDown and Shift+Arrow delta (default `10 * step`). */
+    & Define.Prop<'largeStep', number, false>
+    /**
+     * Steps two neighboring thumbs must keep between them (default 0 —
+     * they may meet, never cross).
+     */
+    & Define.Prop<'minStepsBetweenThumbs', number, false>
     & WithName
     & WithForm
     & WithInvalid
@@ -262,6 +324,10 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
     const min = () => props.min ?? 0;
     const max = () => props.max ?? 100;
     const step = () => props.step ?? 1;
+    const largeStep = (): number => {
+        const l = props.largeStep;
+        return typeof l === 'number' && Number.isFinite(l) && l > 0 ? l : step() * 10;
+    };
     const state = createControllableState<number | number[]>(
         () => props.model,
         props.defaultValue ?? min(),
@@ -297,14 +363,41 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
 
     const values = (): number[] => (Array.isArray(state.value) ? state.value : [state.value]);
 
+    // `0.2 + 0.1` is 0.30000000000000004 — round to the step's own
+    // precision so keyboard steps stay presentable.
+    const precision = (): number => Math.min(20, Math.max(decimalsOf(step()), decimalsOf(min())));
     const quantize = (raw: number): number => {
         const s = step();
         const snapped = Math.round((raw - min()) / s) * s + min();
-        // `0.2 + 0.1` is 0.30000000000000004 — round to the step's own
-        // precision so keyboard steps stay presentable.
-        const precision = Math.min(20, Math.max(decimalsOf(s), decimalsOf(min())));
-        const clean = Number(snapped.toFixed(precision));
+        const clean = Number(snapped.toFixed(precision()));
         return Math.min(max(), Math.max(min(), clean));
+    };
+
+    const boundsAt = (index: number): { lo: number; hi: number } => {
+        const vals = values();
+        const raw = props.minStepsBetweenThumbs;
+        // Whole steps only, so the bounds stay on the grid: a fractional
+        // count rounds up to the gap that honours it.
+        const steps = typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? Math.ceil(raw) : 0;
+        const p = precision();
+        const lower = min();
+        const upper = Math.max(lower, max());
+        const within = (v: number): number => Math.min(upper, Math.max(lower, v));
+        // The unclamped window, or null when it holds no value in [min, max].
+        const window = (gap: number): { lo: number; hi: number } | null => {
+            const lo = index > 0 ? Number((vals[index - 1]! + gap).toFixed(p)) : lower;
+            const hi = index < vals.length - 1 ? Number((vals[index + 1]! - gap).toFixed(p)) : upper;
+            return lo <= hi && hi >= lower && lo <= upper ? { lo: within(lo), hi: within(hi) } : null;
+        };
+        // Bounds always sit inside [min, max] with lo <= hi, and always hold
+        // the thumb's own value (so aria-valuenow never falls outside them).
+        // A gap the neighbors leave no room for degrades to plain
+        // no-crossing; values that already break the gap or arrive out of
+        // order widen the window to the thumb, which can then only move
+        // back toward order, never further from it.
+        const here = within(vals[index] ?? lower);
+        const b = window(steps * step()) ?? window(0) ?? { lo: here, hi: here };
+        return { lo: Math.min(b.lo, here), hi: Math.max(b.hi, here) };
     };
 
     const setValueAt = (index: number, raw: number): void => {
@@ -312,9 +405,9 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
         const vals = values();
         if (index < 0 || index >= vals.length) return;
         let v = quantize(raw);
-        // Thumbs cannot cross: clamp at the neighbors.
-        const lo = index > 0 ? vals[index - 1]! : min();
-        const hi = index < vals.length - 1 ? vals[index + 1]! : max();
+        // Thumbs cannot cross (nor close the declared gap): clamp at the
+        // neighbors.
+        const { lo, hi } = boundsAt(index);
         v = Math.min(hi, Math.max(lo, v));
         if (v === vals[index]) return;
         if (Array.isArray(state.value)) {
@@ -332,9 +425,17 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
         return Math.min(100, Math.max(0, ((v - min()) / span) * 100));
     };
 
+    const commit = (): void => { emit('valueCommit', state.value); };
+    const sameValues = (a: readonly number[], b: readonly number[]): boolean =>
+        a.length === b.length && a.every((v, i) => v === b[i]);
+
+    let dragBefore: readonly number[] | null = null;
     const endDrag = (): void => {
         dragIndex = null;
         detachDrag?.();
+        const before = dragBefore;
+        dragBefore = null;
+        if (before && !sameValues(before, values())) commit();
     };
     onUnmounted(() => detachDrag?.());
 
@@ -346,6 +447,14 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
         min,
         max,
         step,
+        largeStep,
+        boundsAt,
+        stepAt(index, value) {
+            const before = values()[index];
+            setValueAt(index, value);
+            if (values()[index] !== before) commit();
+        },
+        commit,
         disabled: fc.disabled,
         invalid: fc.invalid,
         describedBy: fc.describedBy,
@@ -393,10 +502,11 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             ratio = Math.min(1, Math.max(0, ratio));
             return min() + ratio * (max() - min());
         },
-        beginDrag(index) {
+        beginDrag(index, before) {
             if (ctx.disabled() || ctx.readonly()) return;
             detachDrag?.();
             dragIndex = index;
+            dragBefore = [...(before ?? values())];
             const onMove = (e: PointerEvent): void => {
                 if (dragIndex != null) setValueAt(dragIndex, ctx.trackToValue(e));
             };
@@ -507,6 +617,11 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
         isDisabled: () => slider.disabled() || slider.readonly(),
         oneShot: false,
     });
+    // The value the last commit (or the interaction's start) saw: `change`
+    // commits only when the value moved from it, as a thumb's release does.
+    const current = (): number => slider.values()[0] ?? slider.min();
+    let committed = current();
+    const baseline = (): void => { committed = current(); };
 
     return () => {
         const attrs = htmlAttrs(props);
@@ -548,7 +663,10 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
                 aria-valuetext={slider.valueTextFor(slider.values()[0] ?? slider.min(), 0) ?? attrs['aria-valuetext']}
                 class={props.class}
                 ref={(node: HTMLInputElement | null) => { el = node; }}
-                onPointerdown={press.onPointerdown}
+                onPointerdown={(e: PointerEvent) => {
+                    baseline();
+                    press.onPointerdown(e);
+                }}
                 onPointerup={press.onPointerup}
                 onPointercancel={press.onPointercancel}
                 // A native range has no `readonly`: the value keys are cancelled
@@ -556,12 +674,38 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
                 // it — a press or a drag — is put back on its `input`. The model
                 // never sees it, since `setValueAt` refuses the write.
                 onKeydown={(e: KeyboardEvent) => {
-                    if (slider.readonly() && VALUE_KEYS.has(e.key)) e.preventDefault();
+                    if (slider.readonly() && VALUE_KEYS.has(e.key)) {
+                        e.preventDefault();
+                        return;
+                    }
+                    if (slider.disabled() || slider.readonly()) return;
+                    // The platform owns the single steps; the large ones
+                    // (PageUp/PageDown, Shift+Arrow) are `largeStep`, which
+                    // the native range has no attribute for.
+                    if (!e.shiftKey && e.key !== 'PageUp' && e.key !== 'PageDown') return;
+                    const rtl = slider.orientation() === 'horizontal' && isRtl(el);
+                    const delta = keyDelta(e, rtl, slider.step(), slider.largeStep());
+                    if (delta === null) return;
+                    e.preventDefault();
+                    slider.stepAt(0, (slider.values()[0] ?? slider.min()) + delta);
                 }}
                 onInput={() => {
                     if (slider.readonly() && el) el.value = String(slider.values()[0]);
                 }}
-                onFocus={() => { slider.focusVisible.visible = isFocusVisible(el); }}
+                // A native range fires `change` when a drag is released and
+                // after each keyboard step — the platform's own commit. A
+                // disabled or readonly control commits nothing, whatever
+                // dispatches a `change` at it.
+                onChange={() => {
+                    if (slider.disabled() || slider.readonly()) return;
+                    if (current() === committed) return;
+                    baseline();
+                    slider.commit();
+                }}
+                onFocus={() => {
+                    baseline();
+                    slider.focusVisible.visible = isFocusVisible(el);
+                }}
                 onBlur={(e: FocusEvent) => {
                     press.onBlur(e);
                     slider.focusVisible.visible = false;
@@ -601,6 +745,7 @@ const SliderTrack = component<SliderTrackProps>(({ props, slots }) => {
                 e.preventDefault();
                 const v = slider.trackToValue(e);
                 const vals = slider.values();
+                const before = [...vals];
                 let index = 0;
                 let best = Infinity;
                 vals.forEach((val, i) => {
@@ -612,7 +757,7 @@ const SliderTrack = component<SliderTrackProps>(({ props, slots }) => {
                 });
                 slider.setValueAt(index, v);
                 slider.focusThumb(index);
-                slider.beginDrag(index);
+                slider.beginDrag(index, before);
             }}
         >
             {slider.marks().map((mark) => {
@@ -694,19 +839,11 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
     });
 
     const index = (): number => props.index ?? slider.thumbIndex(entry);
-    const bounds = (): { lo: number; hi: number } => {
-        const vals = slider.values();
-        const i = index();
-        return {
-            lo: i > 0 ? vals[i - 1]! : slider.min(),
-            hi: i < vals.length - 1 ? vals[i + 1]! : slider.max(),
-        };
-    };
 
     return () => {
         const i = index();
         const value = slider.values()[i] ?? slider.min();
-        const { lo, hi } = bounds();
+        const { lo, hi } = slider.boundsAt(i);
         const disabled = slider.disabled();
         const readonly = slider.readonly();
         const attrs = htmlAttrs(props);
@@ -746,31 +883,16 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
                 onKeydown={(e: KeyboardEvent) => {
                     // Readonly swallows nothing: the keys are the page's.
                     if (disabled || readonly) return;
-                    const s = slider.step();
-                    // APG: Right/Up increase, Left/Down decrease. Only a
-                    // horizontal rail mirrors Left/Right in RTL — a vertical
-                    // one's axis is not the reading one.
-                    const rtl = orientation === 'horizontal' && isRtl(el);
-                    let delta: number | null = null;
-                    switch (e.key) {
-                        case 'ArrowRight': delta = rtl ? -s : s; break;
-                        case 'ArrowLeft': delta = rtl ? s : -s; break;
-                        case 'ArrowUp': delta = s; break;
-                        case 'ArrowDown': delta = -s; break;
-                        case 'PageUp': delta = s * 10; break;
-                        case 'PageDown': delta = -s * 10; break;
-                        case 'Home':
-                            e.preventDefault();
-                            slider.setValueAt(i, slider.min());
-                            return;
-                        case 'End':
-                            e.preventDefault();
-                            slider.setValueAt(i, slider.max());
-                            return;
-                        default: return;
+                    if (e.key === 'Home' || e.key === 'End') {
+                        e.preventDefault();
+                        slider.stepAt(i, e.key === 'Home' ? slider.min() : slider.max());
+                        return;
                     }
+                    const rtl = orientation === 'horizontal' && isRtl(el);
+                    const delta = keyDelta(e, rtl, slider.step(), slider.largeStep());
+                    if (delta === null) return;
                     e.preventDefault();
-                    slider.setValueAt(i, value + delta);
+                    slider.stepAt(i, value + delta);
                 }}
                 onPointerdown={(e: PointerEvent) => {
                     // Readonly: the press focuses the thumb natively (it is a

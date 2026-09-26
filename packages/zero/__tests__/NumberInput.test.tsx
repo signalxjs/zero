@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { NumberInput, numberInputAnatomy } from '@sigx/zero';
-import { clamp, precisionOf, snapToStep } from '../src/components/number-input/number.js';
+import { clamp, precisionOf, snapToStep, stepToward } from '../src/components/number-input/number.js';
 import { expectAnatomy } from './helpers';
 
 function mount(container: HTMLElement, extra: {
@@ -11,6 +11,7 @@ function mount(container: HTMLElement, extra: {
     min?: number;
     max?: number;
     step?: number;
+    largeStep?: number;
     clampOnBlur?: boolean;
     allowWheel?: boolean;
     name?: string;
@@ -25,6 +26,7 @@ function mount(container: HTMLElement, extra: {
             min={extra.min}
             max={extra.max}
             step={extra.step}
+            largeStep={extra.largeStep}
             clampOnBlur={extra.clampOnBlur}
             allowWheel={extra.allowWheel}
             name={extra.name}
@@ -51,7 +53,7 @@ function type(el: HTMLInputElement, text: string) {
     el.value = text;
     el.dispatchEvent(new Event('input', { bubbles: true }));
 }
-const key = (k: string) => new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+const key = (k: string, init: KeyboardEventInit = {}) => new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...init });
 const pointerDown = () => new PointerEvent('pointerdown', { button: 0, bubbles: true, cancelable: true });
 const pointerUp = () => new PointerEvent('pointerup', { bubbles: true });
 
@@ -72,6 +74,31 @@ describe('number math', () => {
         expect(snapToStep(4, 2, 1)).toBe(5);
         expect(snapToStep(0.30000000000000004, 0.1)).toBe(0.3);
         expect(snapToStep(0.35, 0.1)).toBe(0.4);
+    });
+});
+
+describe('stepToward (#272)', () => {
+    it('an on-grid value moves by the amount', () => {
+        expect(stepToward(4, 1, 2, 0)).toBe(6);
+        expect(stepToward(4, -1, 2, 0)).toBe(2);
+        expect(stepToward(0.3, 1, 0.1)).toBe(0.4);
+        expect(stepToward(4, 1, 2, 0, 20)).toBe(24);
+    });
+
+    it('an off-grid value lands on the neighbouring grid value in the direction of travel', () => {
+        // Round-to-nearest would make Up from 5 skip 6 and land on 8.
+        expect(stepToward(5, 1, 2, 0)).toBe(6);
+        expect(stepToward(5, -1, 2, 0)).toBe(4);
+        // The grid anchors at min: 1, 3, 5, …
+        expect(stepToward(4, 1, 2, 1)).toBe(5);
+        expect(stepToward(4, -1, 2, 1)).toBe(3);
+        expect(stepToward(0.25, 1, 0.1)).toBe(0.3);
+        expect(stepToward(0.25, -1, 0.1)).toBe(0.2);
+    });
+
+    it('the landing counts as the first step of a large amount', () => {
+        expect(stepToward(5, 1, 2, 0, 20)).toBe(24);
+        expect(stepToward(5, -1, 2, 0, 20)).toBe(-14);
     });
 });
 
@@ -180,6 +207,50 @@ describe('NumberInput', () => {
         expect(state.qty).toBe(0);
         el.dispatchEvent(key('End'));
         expect(state.qty).toBe(100);
+    });
+
+    it('an off-grid value steps to the next grid value in the direction of travel (#272)', () => {
+        const state = signal({ qty: 5 as number | null });
+        mount(container, { model: [state, 'qty'], min: 0, step: 2 });
+        const el = input(container);
+        el.dispatchEvent(key('ArrowUp'));
+        expect(state.qty).toBe(6);
+        state.qty = 5;
+        el.dispatchEvent(key('ArrowDown'));
+        expect(state.qty).toBe(4);
+        // On-grid values keep plain ±step.
+        el.dispatchEvent(key('ArrowDown'));
+        expect(state.qty).toBe(2);
+    });
+
+    it('an off-grid max steps down to the grid below it, not a full step past', () => {
+        const state = signal({ qty: 5 as number | null });
+        mount(container, { model: [state, 'qty'], min: 0, max: 5, step: 4 });
+        input(container).dispatchEvent(key('ArrowDown'));
+        expect(state.qty).toBe(4);
+    });
+
+    it('largeStep drives PageUp/PageDown and Shift+Arrow (#272)', () => {
+        const state = signal({ qty: 50 as number | null });
+        mount(container, { model: [state, 'qty'], min: 0, max: 100, largeStep: 25 });
+        const el = input(container);
+        el.dispatchEvent(key('PageUp'));
+        expect(state.qty).toBe(75);
+        el.dispatchEvent(key('PageDown'));
+        expect(state.qty).toBe(50);
+        el.dispatchEvent(key('ArrowUp', { shiftKey: true }));
+        expect(state.qty).toBe(75);
+        el.dispatchEvent(key('ArrowDown', { shiftKey: true }));
+        expect(state.qty).toBe(50);
+        el.dispatchEvent(key('ArrowUp'));
+        expect(state.qty).toBe(51);
+    });
+
+    it('largeStep defaults to ten steps, Shift+Arrow included', () => {
+        const state = signal({ qty: 10 as number | null });
+        mount(container, { model: [state, 'qty'], step: 2 });
+        input(container).dispatchEvent(key('ArrowUp', { shiftKey: true }));
+        expect(state.qty).toBe(30);
     });
 
     it('repeated decimal stepping stays precise', () => {

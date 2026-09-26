@@ -17,6 +17,9 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * structurally at `inset-inline-start: <value>%`, so RTL mirrors for free
  * and e2e/diff.spec.ts measures the physical result.
  *
+ * `disabled` on the root (and the handle) freezes the divider: the handle
+ * leaves the tab order, carries `aria-disabled`, and ignores keys and drags.
+ *
  * `handle` is a PAINT part (no text hint), opted into the contrast
  * audit's indicator matrix by hand — its grab affordance must clear the
  * 3:1 non-text floor over the images it straddles is not measurable, so
@@ -25,6 +28,7 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const diffAnatomy = defineAnatomy('diff', {
     root: {
         element: 'div',
+        flags: ['disabled'],
         tokens: ['color', 'radius-box', 'size'],
     },
     before: {
@@ -43,7 +47,7 @@ export const diffAnatomy = defineAnatomy('diff', {
         // resting surface.
         paint: true,
         parent: 'root',
-        flags: ['focus-visible', 'pressed', 'press-animating'],
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'size'],
     },
 }, {
