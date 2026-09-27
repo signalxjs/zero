@@ -142,9 +142,9 @@ export type NumberInputRootProps =
     & Define.Prop<'locale', string, false>
     /** `Intl.NumberFormat` options (`style: 'currency' | 'percent' | 'unit'`, digit counts, …). */
     & Define.Prop<'formatOptions', Intl.NumberFormatOptions, false>
-    /** Display formatting for the committed value (default `String`, or Intl with `locale`/`formatOptions`). Wins over `locale`. */
+    /** Display formatting for the committed value (default `String`, or Intl with `locale`/`formatOptions`). Wins over both `locale` and `formatOptions`. */
     & Define.Prop<'format', (value: number) => string, false>
-    /** Parse typed text; return null for "not a number" (default lenient decimal, or Intl with `locale`/`formatOptions`). Wins over `locale`. */
+    /** Parse typed text; return null for "not a number" (default lenient decimal, or Intl with `locale`/`formatOptions`). Wins over both `locale` and `formatOptions`; with it, a percent format no longer defaults `step` to `0.01`. */
     & Define.Prop<'parse', (text: string) => number | null, false>
     & WithFormControl
     & WithReadonly
@@ -187,11 +187,13 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
     // Coerced, not trusted: snapToStep divides by this, so step={0} (or a
     // non-finite value) would poison the model and ARIA with NaN/Infinity.
     // A percent format's model is a fraction (0.25 shows as 25%), so its
-    // default step is one percent — a step of 1 would snap 0.25 to 0.
+    // default step is one percent — a step of 1 would snap 0.25 to 0. Only
+    // while the Intl parse is in effect: a custom `parse` owns the model's
+    // meaning, so it keeps the plain default.
     const step = (): number => {
         const s = props.step;
         if (typeof s === 'number' && Number.isFinite(s) && s > 0) return s;
-        return props.formatOptions?.style === 'percent' ? 0.01 : 1;
+        return !props.parse && props.formatOptions?.style === 'percent' ? 0.01 : 1;
     };
     // One Intl formatter (and its derived symbols) per (locale, options) —
     // keyed by value, so an inline `formatOptions={{ … }}` literal that is a

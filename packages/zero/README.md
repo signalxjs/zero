@@ -610,7 +610,8 @@ literals are optional, and anything else — letters, another currency, a
 `.` in a comma-decimal locale that does not group with it, exponents,
 accounting parentheses — is rejected, so the draft reverts. `style:
 'percent'` divides by 100 (the model is the fraction, `0.15` shows as
-`15%`) and defaults `step` to `0.01`. `inputmode` is `numeric` when the
+`15%`) and defaults `step` to `0.01` (unless a custom `parse` owns the
+model). `inputmode` is `numeric` when the
 format allows no fraction digits and `min >= 0`, `decimal` otherwise. A
 custom `format` or `parse` still wins over its locale counterpart, and the
 hidden input keeps posting the canonical `String(value)`. `formatOptions`

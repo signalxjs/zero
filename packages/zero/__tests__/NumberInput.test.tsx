@@ -594,6 +594,18 @@ describe('NumberInput', () => {
             expect(state.v).toBe(7);
         });
 
+        it('a custom parse keeps the plain step default under a percent format', () => {
+            const state = signal({ v: 25 as number | null });
+            mount(container, {
+                model: [state, 'v'],
+                locale: 'en-US',
+                formatOptions: { style: 'percent' },
+                parse: (t) => Number(t.replace('%', '')),
+            });
+            input(container).dispatchEvent(key('ArrowUp'));
+            expect(state.v).toBe(26);
+        });
+
         it('derives inputmode: numeric only for whole, non-negative fields', () => {
             mount(container, { defaultValue: 1, min: 0, locale: 'en-US', formatOptions: { maximumFractionDigits: 0 } });
             expect(input(container).getAttribute('inputmode')).toBe('numeric');
