@@ -67,17 +67,19 @@ jobs:
   e2e-shard:
     # The suite outgrew one job (#352): at ~2,800 tests it ran ~29 min against
     # the 30 min cap, and every run was cancelled with nothing failing.
-    # Playwright's --shard splits the tests evenly, so each shard runs about a
-    # third of the suite. The timeout still keeps a hung browser from holding
-    # the queue for hours. The required check is the `e2e` job below, not
-    # these shards, so the shard count can change without a ruleset edit.
-    name: e2e (shard ${{ matrix.shard }}/3)
+    # Playwright's --shard splits the tests by count. The sweeping specs make
+    # some tests far longer than others, so three shards were uneven and the
+    # slowest still took ~14 min (#363); six keep the slowest short. The
+    # timeout still keeps a hung browser from holding the queue for hours.
+    # The required check is the `e2e` job below, not these shards, so the
+    # shard count can change without a ruleset edit.
+    name: e2e (shard ${{ matrix.shard }}/6)
     timeout-minutes: 30
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v7
 
@@ -131,7 +133,7 @@ jobs:
       # `exec`, not the `e2e` script: `pnpm --filter … e2e -- <args>` drops
       # the arguments (AGENTS.md).
       - name: Real-browser interaction suite
-        run: pnpm --filter zero-playground exec playwright test --shard=${{ matrix.shard }}/3
+        run: pnpm --filter zero-playground exec playwright test --shard=${{ matrix.shard }}/6
 
       # A failure used to leave only the github-reporter annotations (#196).
       # The HTML report plus test-results/ carry the traces recorded on the
