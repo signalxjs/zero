@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-27
+
 ### Added — Overlay focus targets, modal scroll lock, preventable dismissal (#277)
 
 - **`initialFocus` / `finalFocus`** on `Dialog.Root`, `Drawer.Root` and
