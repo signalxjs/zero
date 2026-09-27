@@ -783,6 +783,26 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         expect(css).toMatch(/\.zx-timeline__connector\.zx-o-vertical \{[^}]*flex-basis: 100%;[^}]*border-left-width: var\(--border\);[^}]*margin-left: calc\(/);
     });
 
+    // signalxjs/lynx#1166/#1168: the select's popup renders in lynx's
+    // overlay outlet, outside the root — so it restates the root's accent
+    // per colour step — and the width bounds sit on the root the
+    // clear-trigger is positioned against, with the trigger filling it.
+    it('zero-daisyui select: root carries the width, the portalled popup restates the accent', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const css = componentCss['select']!;
+        // Order-agnostic: collect every declaration a selector's blocks carry.
+        const decls = (selector: string): string[] => [...css.matchAll(new RegExp(`(?:^|\\n)${selector.replace(/[.]/g, '\\.')} \\{([^}]*)\\}`, 'g'))]
+            .flatMap((m) => m[1]!.split(';').map((d) => d.trim()).filter(Boolean));
+        const root = decls('.zx-select__root');
+        expect(root).toEqual(expect.arrayContaining(['width: 20rem', 'max-width: 100%', 'min-width: 3rem']));
+        const trigger = decls('.zx-select__trigger');
+        expect(trigger).toContain('width: 100%');
+        expect(trigger).not.toContain('width: 20rem');
+        expect(decls('.zx-select__popup')).toContain('--select-accent: var(--color-primary)');
+        expect(decls('.zx-select__popup.zx-a-color-secondary')).toContain('--select-accent: var(--color-secondary)');
+        expect(decls('.zx-select__popup.zx-a-color-error')).toContain('--select-accent: var(--color-error)');
+    });
+
     it('zero-daisyui tabs/accordion: the held part takes daisy\'s hover style', () => {
         const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
         expect(componentCss['tabs']).toMatch(/\.zx-tabs__tab\.zx-f-pressed \{\n\s+color: var\(--color-base-content\);/);
