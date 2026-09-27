@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Fixed — zero-daisyui select clear-trigger on lynx (#382)
+
+- **Lynx target only.** The clear-trigger (×) stretched to the field's full
+  height, at an offset fixed to the md trigger, so its focus ring was a tall
+  pill that covered half the chevron at `lg`/`xl` (signalxjs/lynx#1184). It
+  is now a 1.5rem square chip, centred in the field and placed per size one
+  `--space-xs` short of the chevron, whose box is pinned to `1em` so the
+  × ↔ ▾ spacing no longer depends on the glyph. Its focus ring is drawn
+  inset, inside the chip.
+- The web CSS is unchanged.
+
 ### Added — Drawer top and bottom placement (#291)
 
 - **`Drawer.Root placement="top" | "bottom"`** — the block edges, beside
