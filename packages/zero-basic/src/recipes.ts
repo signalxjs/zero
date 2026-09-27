@@ -6926,19 +6926,6 @@ export const drawer: RecipeInput = {
                  * INLINE render. Logical insets pin the edge, so RTL mirrors
                  * free.
                  */
-                /**
-                 * Swipe to dismiss (#293): the sheet wears the drag offset
-                 * (`SWIPE`) in every state — so a swiped sheet leaves from
-                 * where it was let go — at a weight above the presence's own
-                 * open `transform`. Mid-swipe no transition runs. A touch pan
-                 * across the dismiss axis stays the page's; along it is the
-                 * gesture's, so content taller than a block-edge sheet
-                 * scrolls in a box of its own inside the panel.
-                 */
-                '&[data-l-dock="sheet"][data-state]': { transform: SWIPE },
-                '&[data-l-dock="sheet"][data-state="open"][data-swiping]': { transition: 'none', userSelect: 'none' },
-                '&[data-l-dock="sheet"]:where([data-placement="start"], [data-placement="end"])': { touchAction: 'pan-y' },
-                '&[data-l-dock="sheet"]:where([data-placement="top"], [data-placement="bottom"])': { touchAction: 'pan-x' },
                 '&[data-l-dock="sheet"]': {
                     position: 'fixed',
                     insetBlockStart: '0',
@@ -7003,6 +6990,27 @@ export const drawer: RecipeInput = {
     // Trigger-carried axes — see `quietTriggerColors` for why the panel is
     // out of reach and the trigger is the whole colour story here.
     variants: { color: quietTriggerColors(), size: quietTriggerSizes },
+    targets: {
+        // Swipe to dismiss (#293) — web only, since the runtime's `--swipe-*`
+        // offset is: the sheet wears the drag offset (`SWIPE`) in every
+        // state — so a swiped sheet leaves from where it was let go — at a
+        // weight above the presence's own open `transform`. Mid-swipe no
+        // transition runs. A touch pan across the dismiss axis stays the
+        // page's; along it is the gesture's, so content taller than a
+        // block-edge sheet scrolls in a box of its own inside the panel.
+        web: {
+            parts: {
+                panel: {
+                    selectors: {
+                        '&[data-l-dock="sheet"][data-state]': { transform: SWIPE },
+                        '&[data-l-dock="sheet"][data-state="open"][data-swiping]': { transition: 'none', userSelect: 'none' },
+                        '&[data-l-dock="sheet"]:where([data-placement="start"], [data-placement="end"])': { touchAction: 'pan-y' },
+                        '&[data-l-dock="sheet"]:where([data-placement="top"], [data-placement="bottom"])': { touchAction: 'pan-x' },
+                    },
+                },
+            },
+        },
+    },
 };
 
 /**

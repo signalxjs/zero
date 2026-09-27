@@ -10409,23 +10409,6 @@
         transition: translate var(--duration-slow) var(--ease-standard), transform var(--duration-slow) var(--ease-standard), display var(--duration-slow) allow-discrete, overlay var(--duration-slow) allow-discrete;
     }
 
-    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"][data-state] {
-        transform: translate(var(--swipe-x, 0px), var(--swipe-y, 0px));
-    }
-
-    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"][data-state="open"][data-swiping] {
-        transition: none;
-        user-select: none;
-    }
-
-    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"]:where([data-placement="start"], [data-placement="end"]) {
-        touch-action: pan-y;
-    }
-
-    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"]:where([data-placement="top"], [data-placement="bottom"]) {
-        touch-action: pan-x;
-    }
-
     [data-scope="drawer"][data-part="panel"][data-placement="start"][data-l-dock="sheet"] {
         inset-inline-start: 0;
         inset-inline-end: auto;
@@ -10462,6 +10445,23 @@
         max-block-size: 85dvh;
         border-start-start-radius: var(--radius-box);
         border-start-end-radius: var(--radius-box);
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"][data-state] {
+        transform: translate(var(--swipe-x, 0px), var(--swipe-y, 0px));
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"][data-state="open"][data-swiping] {
+        transition: none;
+        user-select: none;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"]:where([data-placement="start"], [data-placement="end"]) {
+        touch-action: pan-y;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"]:where([data-placement="top"], [data-placement="bottom"]) {
+        touch-action: pan-x;
     }
 
     [data-scope="drawer"][data-part="panel"]::backdrop {
