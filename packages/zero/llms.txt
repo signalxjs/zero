@@ -192,7 +192,8 @@ component renders; the root is called out separately where it carries props.
   role=region labelled by their trigger (`regions={false}` drops the role).
   Same size properties and deferred close as Collapsible, named
   --accordion-panel-height/--accordion-panel-width.
-- Dialog: Root(model=open, modal, dismissible, role — renders no element)
+- Dialog: Root(model=open, modal, dismissible, role, initialFocus,
+  finalFocus, preventScroll — renders no element)
   then Trigger/Popup/Title/Description/Footer/Close/Cancel on native <dialog>
   + top layer (no Portal). The backdrop is a `backdrop` part that renders no
   element on the web — recipes style `parts.backdrop` and the compiler
@@ -204,7 +205,20 @@ component renders; the root is called out separately where it carries props.
   least-destructive action — mark it with Dialog.Cancel, which closes like
   Close and carries `autofocus` in alertdialog mode so `showModal()`'s
   focusing steps land on it.
-- Popover: Root(model=open, placement, offset, positionStrategy — renders no
+  Focus, scroll, dismissal (#277; Dialog, Drawer, and Popover's focus pair):
+  `initialFocus()` names the element focused on open (over autofocus);
+  `finalFocus()` the one focused after close — default: the element focused
+  before opening, else the trigger of the closed popup it sat in (found by
+  aria-controls: a Menu.Item that opened the dialog hands back to the menu
+  trigger), else the Trigger. `preventScroll` (default true, modal only)
+  ref-counts overflow:hidden on <html> with the scrollbar width padded back
+  (skipped under scrollbar-gutter: stable). `escapeKeyDown(KeyboardEvent)`
+  and `interactOutside(PointerEvent|MouseEvent|FocusEvent)` events fire
+  before a dismissal (Dialog/Drawer/Popover/Menu Root); `preventDefault()`
+  keeps it open. A prevented Escape never becomes a close request; a
+  prevented popover light dismiss is re-shown from `toggle`, model untouched.
+- Popover: Root(model=open, placement, offset, positionStrategy,
+  initialFocus, finalFocus; escapeKeyDown/interactOutside — renders no
   element) then Trigger/Popup/Title/Close, on the popover attribute + anchor
   positioning.
 - Tooltip: Root(model=open, defaultOpen, openDelay, closeDelay, placement — renders no
@@ -219,7 +233,8 @@ component renders; the root is called out separately where it carries props.
   inside the safe triangle toward the card keeps pushing the close back);
   focus inside the card keeps it open; Escape closes and returns focus to the
   trigger when it was inside the card.
-- Menu: Root(model=open, defaultOpen, closeOnSelect, placement, value — renders no element) then
+- Menu: Root(model=open, defaultOpen, closeOnSelect, placement, value;
+  escapeKeyDown/interactOutside, the latter also for focus leaving — renders no element) then
   Trigger/Popup/Item(asChild)/CheckboxItem/RadioGroup/RadioItem/Group/
   GroupLabel/Separator/Shortcut; `select` event. Shortcut is a decorative
   (aria-hidden) `shortcut` part for the visible hint (`Ctrl+S`); the item's
@@ -724,7 +739,8 @@ component renders; the root is called out separately where it carries props.
   expands and focuses the first revealed link. useBreadcrumbsContext()
   exposes hiddenIndices()/hiddenCount() for a menu of the hidden crumbs.
 - Drawer: Root(model=open, modal: boolean | { below: bp }, dismissible,
-  placement start|end, label — renders no element) then Trigger/Panel/Title/Close on native <dialog>
+  placement start|end, label, initialFocus, finalFocus, preventScroll
+  (sheet regime only) — renders no element) then Trigger/Panel/Title/Close on native <dialog>
   + top layer, Dialog's machinery inherited (backdrop = ::backdrop pseudo
   part; presence-tracked aria-labelledby, with the label prop as the
   aria-label fallback when no Title renders — a nav drawer often has no

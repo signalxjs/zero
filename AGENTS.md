@@ -161,7 +161,11 @@ the geometric backdrop-vs-padding click from #324, a press dragged from
 text inside out to the backdrop that must not dismiss and Escape pressed
 again and again on a non-dismissible dialog — browsers let a page cancel
 only the first close request without a fresh user activation (#260) — the
-non-modal dismiss-layer fallback), popover (`focusFirst` on open, light dismiss, focus
+non-modal dismiss-layer fallback, and #277's scroll lock — a wheel over the
+backdrop moves nothing behind it — plus a dialog opened from a menu item
+handing focus back to that menu's trigger), popover (`focusFirst` on open,
+`initialFocus` and a vetoed light dismiss shown again from `toggle` (#277),
+light dismiss, focus
 restore — the restore tests open by KEYBOARD, because WebKit does not focus
 buttons on click, so a click-open leaves the restore target as body and the
 assertion would prove nothing; since #279 the arrow, per design system on

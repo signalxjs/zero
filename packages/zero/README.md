@@ -577,6 +577,33 @@ bottom-to-top (`data-orientation` on the root and every positioned part,
 spelled `writing-mode: vertical-lr; direction: rtl`); Select and Combobox group options
 (`Group`/`GroupLabel`, the optgroup equivalent).
 
+**Overlays: focus targets, scroll lock, asking before dismissal** (#277).
+`Dialog.Root` and `Drawer.Root` take `initialFocus` and `finalFocus`, each a
+function returning the element to focus (or null for the default).
+`initialFocus()` is focused once the popup opens, over `autofocus` and the
+platform's first-focusable rule. `finalFocus()` is focused after it closes;
+the default is the element focused before it opened, then — when that
+element sits in a popup that has since closed, like the `Menu.Item` that
+opened a dialog — the trigger that controls that popup (followed through
+`aria-controls`, outwards through submenus), then the component's own
+Trigger. `Popover.Root` takes the same pair: `initialFocus` replaces the
+first-tabbable move on open, `finalFocus` the return to the trigger. A modal
+Dialog or Drawer sheet locks the document's scroll while it shows
+(`preventScroll`, default `true`; a non-modal dialog, an inline or a docked
+drawer never locks): `overflow: hidden` on `<html>` with the scrollbar's
+width padded back on `padding-inline-end` (not under `scrollbar-gutter:
+stable`), ref-counted across overlays, released once the exit has played and
+on unmount. And the dismissals ask first: `Dialog.Root`, `Drawer.Root`,
+`Popover.Root` and `Menu.Root` emit `escapeKeyDown` (the `KeyboardEvent`)
+before Escape dismisses and `interactOutside` (the backdrop `click`, the
+outside `pointerdown`, or — Menu — the `focusin` that left it) before an
+outside interaction does; a handler that calls `preventDefault()` keeps the
+overlay open. A prevented Escape never becomes a close request. A popover's
+light dismiss cannot be cancelled, so a prevented outside press lets it
+close and shows it again from its `toggle` event — the model never changes
+and no `openChange` fires. Menu's `escapeKeyDown` is the root's: an Escape
+that closes an open submenu is the submenu's own.
+
 **Range stepping shares one vocabulary** (#272). Slider, NumberInput and
 Diff's handle all move by `step` on the arrows and by `largeStep` on
 PageUp/PageDown and Shift+Arrow (default ten steps; Diff's `step` 1 and
@@ -2215,11 +2242,16 @@ same behaviors, held to the same conformance assertion:
   `getTabbables`, `isFocusable`: tabbable detection skips anything
   disabled — a disabled `<fieldset>` included, bar its first legend —
   inert, hidden or unrendered, and a radio group is one stop;
-  `createFocusRestore(isOpen, { getSurface, fallback, skip })` hands focus back
+  `createFocusRestore(isOpen, { getSurface, fallback, skip, target })` hands focus back
   on close only while it is still on the surface or on nothing (and never
   when `skip()` answers true — a close that sent focus onward on purpose, like
   Menu's Tab), and falls back — to the trigger, in Popover, Menu, Dialog and Drawer — when the
-  element focused before opening can no longer take it), list/tree registration with listbox-highlight stepping
+  element focused before opening can no longer take it — first, when that
+  element sat in a popup that has since closed, to the trigger controlling
+  that popup; `target()` names an explicit destination, a component's
+  `finalFocus`), `createDismissable`'s `onEscapeKeyDown` / `onInteractOutside`
+  hooks run before its dismissals and veto them with `preventDefault()`,
+  list/tree registration with listbox-highlight stepping
   (`moveHighlight`, `optionText`), typeahead (`createTypeahead`: a
   multi-character search refines the current match instead of stepping past
   it, and its `searching()` tells a caller that routes Space to activation to

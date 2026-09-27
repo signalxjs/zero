@@ -20,28 +20,21 @@
  * Android back gesture), a non-cancelable `cancel` is remembered, and the
  * `close` it causes reopens the dialog if the model still says open.
  *
+ * **Preventable Escape** (#277). An Escape that would dismiss goes to
+ * `onEscapeKeyDown` first, on the keydown: prevented there, it never becomes
+ * a close request, so no `cancel` fires at all. A `cancel` that arrives with
+ * no keydown seen (focus on `<body>`, the Android back gesture) asks the
+ * handler with a synthesized Escape keydown instead — `escapeAllowed()`.
+ *
  * Internal: not exported from the behaviors barrel.
  */
+import { askToPrevent, hasInnerCloseWatcher } from './dismiss.js';
+
 
 /** Whether a viewport point lies outside the element's border box. */
 export function pointOutside(el: Element, x: number, y: number): boolean {
     const rect = el.getBoundingClientRect();
     return x < rect.left || x > rect.right || y < rect.top || y > rect.bottom;
-}
-
-/**
- * Whether something inside the dialog owns Escape before it does: an open
- * nested `<dialog>` or a light-dismiss popover (Menu, Select, Popover), each
- * the platform's topmost close watcher. Preventing the keydown then would
- * strand them open.
- */
-function innerCloseWatcher(el: Element): boolean {
-    try {
-        return el.querySelector('dialog[open], [popover]:not([popover="manual"]):popover-open') !== null;
-    } catch {
-        // An engine without `:popover-open` has no light-dismiss popovers.
-        return el.querySelector('dialog[open]') !== null;
-    }
 }
 
 export interface ModalDismissOptions {
@@ -54,7 +47,13 @@ export interface ModalDismissOptions {
     escapeDismisses(): boolean;
     /** The model still says open — a forced native close must be undone. */
     shouldStayOpen(): boolean;
-    dismissBackdrop(): void;
+    /** Dismiss for a backdrop click — the `click` itself, for `interactOutside`. */
+    dismissBackdrop(e: MouseEvent): void;
+    /**
+     * Called for an Escape that would dismiss; `preventDefault()` on it keeps
+     * the dialog open.
+     */
+    onEscapeKeyDown?(e: KeyboardEvent): void;
 }
 
 export interface ModalDismissHandlers {
@@ -65,6 +64,12 @@ export interface ModalDismissHandlers {
     /** Call from the `cancel` handler with the event, before routing Escape. */
     noteCancel(e: Event): void;
     /**
+     * Call from the `cancel` handler of a dismissible modal: whether this
+     * close request may dismiss. True for one whose keydown already passed
+     * `onEscapeKeyDown`; otherwise asks it with a synthesized Escape.
+     */
+    escapeAllowed(): boolean;
+    /**
      * Call first thing in the `close` handler: true when it reopened a modal
      * a forced close request took down, and the handler must stop there.
      */
@@ -74,6 +79,11 @@ export interface ModalDismissHandlers {
 export function createModalDismiss(opts: ModalDismissOptions): ModalDismissHandlers {
     let pressStartedOutside = false;
     let forced = false;
+    // An Escape keydown `onEscapeKeyDown` let through: the `cancel` it
+    // becomes is already answered. Cleared a task later — the close request
+    // follows the keydown within its own task, or not at all.
+    let escapeSeen = false;
+    let escapeTimer: ReturnType<typeof setTimeout> | undefined;
 
     return {
         onPointerdown(e) {
@@ -91,17 +101,33 @@ export function createModalDismiss(opts: ModalDismissOptions): ModalDismissHandl
             if (!opts.isModalOpen() || !opts.backdropDismisses()) return;
             // A keyboard-synthesized click carries no geometry.
             if (e.detail === 0) return;
-            if (started && pointOutside(el, e.clientX, e.clientY)) opts.dismissBackdrop();
+            if (started && pointOutside(el, e.clientX, e.clientY)) opts.dismissBackdrop(e);
         },
         onKeydown(e) {
             if (e.key !== 'Escape' || e.defaultPrevented) return;
             const el = opts.getElement();
-            if (!el || !opts.isModalOpen() || opts.escapeDismisses()) return;
-            if (innerCloseWatcher(el)) return;
-            e.preventDefault();
+            if (!el || !opts.isModalOpen()) return;
+            if (hasInnerCloseWatcher(el)) return;
+            if (!opts.escapeDismisses()) {
+                e.preventDefault();
+                return;
+            }
+            if (askToPrevent(e, opts.onEscapeKeyDown)) return;
+            escapeSeen = true;
+            clearTimeout(escapeTimer);
+            escapeTimer = setTimeout(() => { escapeSeen = false; }, 0);
         },
         noteCancel(e) {
             forced = !e.cancelable;
+        },
+        escapeAllowed() {
+            if (escapeSeen) {
+                escapeSeen = false;
+                clearTimeout(escapeTimer);
+                return true;
+            }
+            const synthetic = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+            return !askToPrevent(synthetic, opts.onEscapeKeyDown);
         },
         reopenIfForced() {
             const wasForced = forced;

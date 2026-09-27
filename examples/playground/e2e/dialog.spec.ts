@@ -20,7 +20,12 @@
  *   is zero's own document-level dismiss layer, and focus restore is zero's
  *   `createFocusRestore` rather than the platform's. That layer yields
  *   Escape to a native popup nested inside it (#261): a Menu open in the
- *   find bar closes on its own, and only the next Escape closes the bar.
+ *   find bar closes on its own, and only the next Escape closes the bar;
+ * - #277: the modal scroll lock (a wheel over the backdrop moves nothing
+ *   behind it — only real layout scrolls), the focus hand-off when the
+ *   native restore target sits in a menu that has since closed, and
+ *   `escapeKeyDown` / `interactOutside` vetoes on the real close request and
+ *   the real backdrop.
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
@@ -349,4 +354,86 @@ test('a dialog whose model is already open at mount opens, and throws nothing (#
     // And it is a working dialog: Close takes it down and unmounts the demo.
     await popup.getByRole('button', { name: 'Close', exact: true }).click();
     await expect(page.locator('[data-demo="restored"]')).toHaveCount(0);
+});
+
+test('a modal locks the document scroll: a wheel over the backdrop moves nothing behind it (#277)', async ({ page }) => {
+    // Short enough that the page genuinely scrolls — without that the
+    // assertion below would hold for a lock that does nothing.
+    await page.setViewportSize({ width: 1280, height: 480 });
+    const scrollable = await page.evaluate(() => document.documentElement.scrollHeight > innerHeight + 200);
+    expect(scrollable).toBe(true);
+    await page.evaluate(() => window.scrollTo(0, 120));
+    const trigger = modalTrigger(page);
+    await trigger.click();
+    const popup = await controlledPopup(page, trigger, 'the modal dialog trigger');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe('hidden');
+    const before = await page.evaluate(() => scrollY);
+    // The backdrop beside the popup — over the page's main column, not the
+    // sidebar (a scroller of its own), so once the lock is gone the same
+    // point scrolls the document.
+    const box = await settledBox(popup, 'the modal dialog popup');
+    const point = { x: box.x + box.width + 40, y: 240 };
+    expect(point.x).toBeLessThan(1100);
+    await page.mouse.move(point.x, point.y);
+    await page.mouse.wheel(0, 400);
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => scrollY)).toBe(before);
+    await expect(popup).toHaveAttribute('data-state', 'open');
+
+    // Released with the close: the same wheel scrolls the page again.
+    await page.keyboard.press('Escape');
+    await expect(popup).not.toBeVisible();
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).not.toBe('hidden');
+    await page.mouse.move(point.x, point.y);
+    await page.mouse.wheel(0, 200);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before);
+});
+
+test('a dialog opened from a menu item: initialFocus on open, focus back on the menu trigger after (#277)', async ({ page }) => {
+    const menuTrigger = page.getByRole('button', { name: 'File actions', exact: true });
+    // Keyboard all the way — WebKit does not focus a clicked button, and
+    // the point is where FOCUS goes.
+    await menuTrigger.focus();
+    await page.keyboard.press('Enter');
+    const menu = await controlledPopup(page, menuTrigger, 'the File actions menu trigger');
+    const rename = menu.getByRole('menuitem', { name: 'Rename…', exact: true });
+    await expect(rename).toBeFocused();
+    await page.keyboard.press('Enter');
+
+    const dialog = page.locator('[data-scope="dialog"][data-part="popup"]', { has: page.getByRole('heading', { name: 'Rename file', exact: true }) });
+    await expect(dialog).toHaveAttribute('data-state', 'open');
+    expect(await dialog.evaluate((el) => el.matches(':modal'))).toBe(true);
+    // initialFocus: the name field, past the Cancel button that comes first.
+    await expect(dialog.getByRole('textbox', { name: 'File name', exact: true })).toBeFocused();
+    await expect(menu).not.toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+    // The native restore aims at the item, hidden with its menu; zero hands
+    // off to the trigger that controls that menu.
+    await expect(menuTrigger).toBeFocused();
+});
+
+test('escapeKeyDown / interactOutside vetoes keep the dialog open until the app allows it (#277)', async ({ page }) => {
+    const trigger = page.getByRole('button', { name: 'Edit draft', exact: true });
+    await trigger.click();
+    const popup = await controlledPopup(page, trigger, 'the Edit draft trigger');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    // Twice, as #260's test does: Chromium lets a page prevent only the
+    // first close request without fresh activation — the veto acts on the
+    // keydown, before any close request exists.
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');
+    const box = await settledBox(popup, 'the Edit draft popup');
+    expect(box.x).toBeGreaterThan(20);
+    await page.mouse.click(8, 8);
+    await page.waitForTimeout(300);
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await expect(popup).toBeVisible();
+    await expect(popup.getByText(/refused \(3 so far\)/)).toBeVisible();
+
+    await popup.getByRole('checkbox', { name: 'Unsaved changes' }).uncheck();
+    await page.keyboard.press('Escape');
+    await expect(popup).toHaveAttribute('data-state', 'closed');
 });

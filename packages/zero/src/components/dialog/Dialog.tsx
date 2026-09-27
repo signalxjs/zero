@@ -23,14 +23,25 @@
  * pair in model form. A confirm dialog reads `value` off the `Dialog.Close`
  * that closed it (`<Dialog.Close value="confirm">`) instead of keeping a
  * flag beside the model.
+ *
+ * Focus and scroll (#277): `initialFocus` names the element focused once the
+ * popup opens (over `autofocus` and the platform's first-focusable rule),
+ * `finalFocus` the one focused after it closes (over the element focused
+ * before it opened — or, when that sat in a popup that has since closed,
+ * such as the `Menu.Item` that opened the dialog, that popup's trigger — and
+ * the Trigger last). A modal locks the document's scroll while it shows
+ * (`preventScroll`, default true). Escape and a backdrop press ask first:
+ * `escapeKeyDown` and `interactOutside` fire before the dismissal, and a
+ * handler that calls `preventDefault()` keeps the dialog open.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
-import { createDismissable } from '../../behaviors/dismiss.js';
-import { createFocusRestore } from '../../behaviors/focus.js';
+import { askToPrevent, createDismissable, type InteractOutsideEvent } from '../../behaviors/dismiss.js';
+import { createFocusRestore, restoreFocus } from '../../behaviors/focus.js';
 import { createModalDismiss } from '../../behaviors/modal-dismiss.js';
+import { createScrollLockHold } from '../../behaviors/scroll-lock.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
@@ -79,6 +90,16 @@ interface DialogContext {
     descriptionPresent(): boolean;
     setTitlePresent(present: boolean): void;
     setDescriptionPresent(present: boolean): void;
+    /** The element to focus once the popup opens; null leaves the platform's choice. */
+    initialFocus(): HTMLElement | null;
+    /** The element to focus once the popup closes; null leaves the default. */
+    finalFocus(): HTMLElement | null;
+    /** Lock the document's scroll while the modal shows. */
+    preventScroll(): boolean;
+    /** Emit `escapeKeyDown`; true when the app prevented the dismissal. */
+    escapeKeyDown(e: KeyboardEvent): boolean;
+    /** Emit `interactOutside`; true when the app prevented the dismissal. */
+    interactOutside(e: InteractOutsideEvent): boolean;
 }
 
 function makeInert(): DialogContext {
@@ -95,6 +116,11 @@ function makeInert(): DialogContext {
         descriptionPresent: () => false,
         setTitlePresent: () => {},
         setDescriptionPresent: () => {},
+        initialFocus: () => null,
+        finalFocus: () => null,
+        preventScroll: () => true,
+        escapeKeyDown: () => false,
+        interactOutside: () => false,
     };
 }
 
@@ -120,6 +146,35 @@ export type DialogRootProps =
      * goes to the least-destructive action — mark it with `Dialog.Cancel`.
      */
     & Define.Prop<'role', 'dialog' | 'alertdialog', false>
+    /**
+     * The element to focus when the popup opens, over `autofocus` (and
+     * `Dialog.Cancel`'s in `alertdialog` mode) and the platform's
+     * first-focusable rule. Returning null keeps the native choice.
+     */
+    & Define.Prop<'initialFocus', () => HTMLElement | null | undefined, false>
+    /**
+     * The element to focus when the popup closes. Returning null (or an
+     * element that cannot take focus) keeps the default: the element focused
+     * before it opened, the trigger of the closed popup that element sat in
+     * (a `Menu.Item`'s menu), then `Dialog.Trigger`.
+     */
+    & Define.Prop<'finalFocus', () => HTMLElement | null | undefined, false>
+    /**
+     * Lock the document's scroll while a modal dialog shows — `overflow:
+     * hidden` on the root, the scrollbar's width compensated. Default true;
+     * a non-modal dialog never locks.
+     */
+    & Define.Prop<'preventScroll', boolean, false>
+    /**
+     * Fires before Escape dismisses the dialog (only when it would —
+     * `dismissible`). `preventDefault()` keeps it open.
+     */
+    & Define.Event<'escapeKeyDown', KeyboardEvent>
+    /**
+     * Fires before a backdrop press dismisses a modal dialog, with the
+     * `click`. `preventDefault()` keeps it open.
+     */
+    & Define.Event<'interactOutside', InteractOutsideEvent>
     & Define.Slot<'default'>;
 
 const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) => {
@@ -179,6 +234,11 @@ const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) =
         descriptionPresent: () => present.description,
         setTitlePresent: (p) => { present.title = p; },
         setDescriptionPresent: (p) => { present.description = p; },
+        initialFocus: () => props.initialFocus?.() ?? null,
+        finalFocus: () => props.finalFocus?.() ?? null,
+        preventScroll: () => props.preventScroll ?? true,
+        escapeKeyDown: (e) => askToPrevent(e, (ev) => emit('escapeKeyDown', ev)),
+        interactOutside: (e) => askToPrevent(e, (ev) => emit('interactOutside', ev)),
     };
     defineProvide(useDialogContext, () => ctx);
 
@@ -188,6 +248,7 @@ const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) =
     createFocusRestore(() => state.value && !(props.modal ?? true), {
         getSurface: () => document.getElementById(ctx.ids.popup),
         fallback: () => ctx.trigger.el,
+        target: ctx.finalFocus,
     });
 
     return () => <>{slots.default?.()}</>;
@@ -259,9 +320,15 @@ export type DialogPopupProps =
     & Omit<WithHtmlAttrs, 'id' | 'role'>
     & Define.Slot<'default'>;
 
-const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) => {
+const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted, onUnmounted }) => {
     const dialog = useDialogContext();
     let el: HTMLDialogElement | null = null;
+    // Focused before `showModal()` — where the native restore aims, and what
+    // `finalFocus`'s default hands off from. Null outside a modal opening.
+    let previous: HTMLElement | null = null;
+    let modalOpen = false;
+    const scrollLock = createScrollLockHold();
+    onUnmounted(() => scrollLock.release());
 
     // A non-modal <dialog> fires no cancel event, so `dismissible` would be
     // a silent no-op without this fallback. Escape only — a non-modal dialog
@@ -272,6 +339,7 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
         isOpen: () => dialog.state.value && !dialog.modal() && dialog.dismissible(),
         dismiss: () => dialog.requestClose('escape'),
         outsidePress: false,
+        onEscapeKeyDown: (e) => { dialog.escapeKeyDown(e); },
     });
 
     // A non-modal dialog open on first render is plain markup: emit `open`
@@ -295,8 +363,33 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
         backdropDismisses: () => dialog.dismissible() && dialog.role() !== 'alertdialog',
         escapeDismisses: () => dialog.dismissible(),
         shouldStayOpen: () => dialog.modal() && dialog.state.value,
-        dismissBackdrop: () => dialog.requestClose('backdrop'),
+        dismissBackdrop: (e) => {
+            if (!dialog.interactOutside(e)) dialog.requestClose('backdrop');
+        },
+        onEscapeKeyDown: (e) => { dialog.escapeKeyDown(e); },
     });
+
+    /**
+     * After the element closed, by any path: release the scroll lock, and
+     * for a modal hand focus on — the native restore has already run, so
+     * this only moves it on when `finalFocus` names somewhere else or the
+     * restore found nothing to focus (#277).
+     */
+    const afterClose = (): void => {
+        // A close event that lands after a reopen is stale: the dialog showing
+        // now keeps its lock and its focus.
+        if (el?.open) return;
+        scrollLock.release();
+        if (!modalOpen) return;
+        modalOpen = false;
+        const remembered = previous;
+        previous = null;
+        restoreFocus(remembered, {
+            getSurface: () => el,
+            target: dialog.finalFocus,
+            fallback: () => dialog.trigger.el,
+        });
+    };
 
     const scoped = mountScope();
     onMounted(() => scoped(() => {
@@ -317,8 +410,18 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
                 // A stale result from the last close must not read as this
                 // one's (`close` reports a non-empty returnValue).
                 node.returnValue = '';
-                if (dialog.modal()) node.showModal();
-                else node.show();
+                if (dialog.modal()) {
+                    const active = document.activeElement;
+                    previous = active instanceof HTMLElement ? active : null;
+                    node.showModal();
+                    modalOpen = true;
+                    if (dialog.preventScroll()) scrollLock.hold();
+                } else {
+                    node.show();
+                }
+                // Over autofocus and the dialog focusing steps, which have
+                // just run; null keeps their choice.
+                dialog.initialFocus()?.focus();
             } else if (!open && node.open) {
                 exit.close(node, () => {
                     if (!dialog.state.value && node.open) node.close();
@@ -354,6 +457,7 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
                     // A close request the platform would not let zero cancel
                     // (see `modal-dismiss`) reopens while the model says open.
                     if (guard.reopenIfForced()) return;
+                    afterClose();
                     // Still open in the model means zero did not start this
                     // close: a native close() or a <form method="dialog">.
                     dialog.requestClose('programmatic', el?.returnValue || undefined);
@@ -364,7 +468,10 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
                     // stay open and controlled parents stay authoritative.
                     guard.noteCancel(e);
                     e.preventDefault();
-                    if (dialog.dismissible()) dialog.requestClose('escape');
+                    // `escapeKeyDown` answered on the keydown, or — for a
+                    // close request with none (focus on <body>, a back
+                    // gesture) — is asked now.
+                    if (dialog.dismissible() && guard.escapeAllowed()) dialog.requestClose('escape');
                 }}
                 // Escape on a non-dismissible modal never becomes a close
                 // request: Chromium stops letting `cancel` be prevented after

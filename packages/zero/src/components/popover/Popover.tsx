@@ -23,6 +23,17 @@
  * natively; the model mirrors into `showPopover()`/`hidePopover()` and
  * native `toggle` events sync back. Positioning comes from the pluggable
  * anchor-position behavior (fixed-coordinates strategy by default).
+ *
+ * Focus (#277): on open, focus goes to `initialFocus()` when it names an
+ * element, else the popup's first tabbable (or the popup itself); on close,
+ * to `finalFocus()` when it names one, else back where it was before
+ * opening, else the trigger. Dismissal asks first: `escapeKeyDown` fires
+ * before Escape closes the popup and `interactOutside` before a press
+ * outside it light-dismisses it, and a handler that calls
+ * `preventDefault()` keeps it open. The platform's light dismiss cannot be
+ * cancelled, so a prevented outside press lets the native close happen and
+ * shows the popup again from its `toggle` — the model never changes, and no
+ * `openChange` fires.
  */
 import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define } from 'sigx';
@@ -30,6 +41,7 @@ import { createControllableState, createInertState, type ControllableState } fro
 import { createId } from '../../behaviors/create-id.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { createFocusRestore, focusFirst } from '../../behaviors/focus.js';
+import { createLightDismissGuard, type InteractOutsideEvent, type LightDismissGuard } from '../../behaviors/dismiss.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
@@ -65,6 +77,10 @@ interface PopoverContext {
     getPopup(): HTMLElement | null;
     /** The rendered `Popover.Arrow`, which the position strategy points at the anchor. */
     setArrow(el: HTMLElement | null): void;
+    /** The element to focus once the popup opens; null means the first tabbable. */
+    initialFocus(): HTMLElement | null;
+    /** The app's veto on a native Escape / light dismiss (#277). */
+    dismissGuard: LightDismissGuard;
 }
 
 function makeInert(): PopoverContext {
@@ -81,6 +97,8 @@ function makeInert(): PopoverContext {
         setPopup: () => {},
         getPopup: () => null,
         setArrow: () => {},
+        initialFocus: () => null,
+        dismissGuard: { keepOpen: () => false },
     };
 }
 
@@ -101,6 +119,24 @@ export type PopoverRootProps =
     /** Minimum distance, px, between a `Popover.Arrow` and the popup's corners (default 8). */
     & Define.Prop<'arrowPadding', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
+    /**
+     * The element to focus when the popup opens, instead of its first
+     * tabbable. Returning null keeps the default.
+     */
+    & Define.Prop<'initialFocus', () => HTMLElement | null | undefined, false>
+    /**
+     * The element to focus when the popup closes. Returning null (or an
+     * element that cannot take focus) keeps the default: the element focused
+     * before it opened, then the Trigger.
+     */
+    & Define.Prop<'finalFocus', () => HTMLElement | null | undefined, false>
+    /** Fires before Escape closes the popup. `preventDefault()` keeps it open. */
+    & Define.Event<'escapeKeyDown', KeyboardEvent>
+    /**
+     * Fires before a press outside the popup (and its trigger) light-dismisses
+     * it, with the `pointerdown`. `preventDefault()` keeps it open.
+     */
+    & Define.Event<'interactOutside', InteractOutsideEvent>
     & Define.Slot<'default'>;
 
 const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal }) => {
@@ -139,6 +175,14 @@ const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal })
         setPopup: (el) => { popup = el; },
         getPopup: () => popup,
         setArrow: (el) => { if (arrow === el) return; arrow = el; reposition(); },
+        initialFocus: () => props.initialFocus?.() ?? null,
+        dismissGuard: createLightDismissGuard({
+            getElement: () => popup,
+            isOpen: () => state.value,
+            getExtraTargets: () => [trigger],
+            onEscapeKeyDown: (e) => emit('escapeKeyDown', e),
+            onInteractOutside: (e) => emit('interactOutside', e),
+        }),
     };
     defineProvide(usePopoverContext, () => ctx);
 
@@ -161,6 +205,7 @@ const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal })
     createFocusRestore(() => state.value, {
         getSurface: () => popup,
         fallback: () => trigger,
+        target: () => props.finalFocus?.() ?? null,
     });
 
     return () => <>{slots.default?.()}</>;
@@ -261,8 +306,9 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
                     });
                 }
             }
-            // A dialog-role popup receives focus on open (APG): the first
-            // tabbable, or the popup itself (tabIndex -1 below). After
+            // A dialog-role popup receives focus on open (APG): the
+            // `initialFocus` element, else the first tabbable, or the popup
+            // itself (tabIndex -1 below). After
             // showPopover(), never before — an unshown popover cannot take
             // focus. Deferred a task: createFocusRestore's watch captures
             // the previously focused element on a microtask, and moving
@@ -270,7 +316,10 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
             // popup itself on close.
             if (open) {
                 setTimeout(() => {
-                    if (popover.state.value && node.isConnected) focusFirst(node);
+                    if (!popover.state.value || !node.isConnected) return;
+                    const initial = popover.initialFocus();
+                    if (initial) initial.focus();
+                    else focusFirst(node);
                 }, 0);
             }
         };
@@ -303,6 +352,14 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
                 onToggle={(e: Event) => {
                     // Native light dismiss / Escape → model.
                     const open = (e as ToggleEvent).newState === 'open';
+                    // …unless the app prevented it: show again, model untouched.
+                    if (!open && popover.dismissGuard.keepOpen()) {
+                        const node = el as (HTMLElement & { showPopover?(): void }) | null;
+                        if (node?.isConnected && typeof node.showPopover === 'function' && !node.matches(':popover-open')) {
+                            node.showPopover();
+                            return;
+                        }
+                    }
                     if (popover.state.value !== open) popover.state.value = open;
                 }}
             >

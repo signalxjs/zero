@@ -108,8 +108,48 @@ const PopoverDemos = component(() => () => (
                 <Popover.Close>Done</Popover.Close>
             </Popover.Popup>
         </Popover.Root>
+
+        <h2>Focus targets and a pinned popup</h2>
+        <p>
+            <code>initialFocus</code> picks the element focused on open in
+            place of the first tabbable — here the note field, past the
+            switch. And both dismissals ask first: this popup's{' '}
+            <code>escapeKeyDown</code> and <code>interactOutside</code>{' '}
+            handlers call <code>preventDefault()</code>, so neither Escape nor
+            a click elsewhere closes it — only its own Done does. The
+            platform's light dismiss cannot be cancelled, so a prevented
+            outside press lets it close and shows the popup again at once;
+            the model never changes (#277).
+        </p>
+        <PinnedPopover />
     </>
 ), { name: 'PopoverDemos' });
+
+const PinnedPopover = component(() => {
+    let note: HTMLElement | null = null;
+    return () => (
+        <Popover.Root
+            placement="bottom-start"
+            initialFocus={() => note}
+            onEscapeKeyDown={(e: KeyboardEvent) => e.preventDefault()}
+            onInteractOutside={(e: Event) => e.preventDefault()}
+        >
+            <Popover.Trigger>Pinned note</Popover.Trigger>
+            <Popover.Popup>
+                <Popover.Title>Pinned note</Popover.Title>
+                <Switch.Root>Remind me</Switch.Root>
+                <br />
+                <textarea
+                    aria-label="Note"
+                    rows={2}
+                    ref={(el: HTMLElement | null) => { note = el; }}
+                />
+                <br />
+                <Popover.Close>Done</Popover.Close>
+            </Popover.Popup>
+        </Popover.Root>
+    );
+}, { name: 'PinnedPopover' });
 
 export const popoverPage: PageEntry = {
     id: 'popover',
