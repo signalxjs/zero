@@ -289,7 +289,11 @@ describe('the pass-through reaches every part', () => {
                 <Countdown.Value {...p('value')} value={7} />
             </Countdown.Root>
         ),
-        divider: () => <Divider {...p('root')} />,
+        divider: () => (
+            <Divider.Root {...p('root')}>
+                <Divider.Label {...p('label')}>or</Divider.Label>
+            </Divider.Root>
+        ),
         grid: () => (
             <Grid.Root {...p('root')}>
                 <Grid.Cell {...p('cell')}>x</Grid.Cell>

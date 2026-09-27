@@ -273,7 +273,7 @@ export { Badge, badgeAnatomy } from './components/badge/index.js';
 export type { BadgeRootProps, BadgeDotProps } from './components/badge/index.js';
 
 export { Divider, dividerAnatomy } from './components/divider/index.js';
-export type { DividerRootProps } from './components/divider/index.js';
+export type { DividerLabelPlacement, DividerLabelProps, DividerRootProps } from './components/divider/index.js';
 
 export { Skeleton, skeletonAnatomy } from './components/skeleton/index.js';
 export type { SkeletonRootProps } from './components/skeleton/index.js';

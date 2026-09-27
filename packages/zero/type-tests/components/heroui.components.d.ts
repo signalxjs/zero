@@ -342,7 +342,7 @@ type DividerProps = {
     size?: 'sm' | 'md' | 'lg';
 };
 type DividerAdapted = Adapted<typeof ZDivider, ZeroAxisProp, DividerProps>;
-export declare const Divider: DividerAdapted & { Root: DividerAdapted };
+export declare const Divider: DividerAdapted & AdaptedStatics<typeof ZDivider> & { Root: DividerAdapted };
 
 /** skeleton — no vendor route; the wired surface keeps zero's names. */
 type SkeletonProps = {

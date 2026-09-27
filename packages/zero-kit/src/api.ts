@@ -269,7 +269,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     countdown: ['id', 'label', 'title'],
     dialog: ['defaultOpen', 'dismissible', 'modal', 'role', 'value'],
     diff: ['defaultValue', 'id', 'role', 'title', 'value'],
-    divider: ['id', 'orientation', 'title'],
+    divider: ['decorative', 'id', 'orientation', 'title'],
     'empty-state': ['id', 'role', 'title'],
     drawer: ['defaultOpen', 'dismissible', 'label', 'modal', 'placement', 'value'],
     field: ['id', 'invalid', 'readonly', 'required', 'role', 'title', 'validate', 'validateOn'],

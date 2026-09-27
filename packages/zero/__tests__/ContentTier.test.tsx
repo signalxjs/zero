@@ -220,6 +220,102 @@ describe('Divider', () => {
         render(<Divider />, container);
         expect(part(container, 'divider', 'root').hasAttribute('tabindex')).toBe(false);
     });
+
+    // #298: a separator's children are presentational, so the Label's words
+    // are only ever read as the root's NAME.
+    const settle = () => new Promise((r) => setTimeout(r, 0));
+
+    it('a bare divider references no label, before or after mount', async () => {
+        render(<Divider />, container);
+        const root = part(container, 'divider', 'root');
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+        await settle();
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+        expect(root.childElementCount).toBe(0);
+    });
+
+    it('is named by its Label, which is centred unless it names an edge', async () => {
+        render(
+            <Divider.Root>
+                <Divider.Label>or</Divider.Label>
+            </Divider.Root>,
+            container,
+        );
+        expectAnatomy(container, dividerAnatomy);
+        await settle();
+        const root = part(container, 'divider', 'root');
+        const label = part(container, 'divider', 'label');
+        expect(label.tagName).toBe('SPAN');
+        expect(label.id).not.toBe('');
+        expect(root.getAttribute('role')).toBe('separator');
+        expect(root.getAttribute('aria-labelledby')).toBe(label.id);
+        expect(label.hasAttribute('data-placement')).toBe(false);
+    });
+
+    it('renders the placement a Label names, from the declared set', () => {
+        render(
+            <div>
+                <Divider.Root><Divider.Label placement="start">A</Divider.Label></Divider.Root>
+                <Divider.Root><Divider.Label placement="end">B</Divider.Label></Divider.Root>
+            </div>,
+            container,
+        );
+        expectAnatomy(container, dividerAnatomy);
+        const labels = container.querySelectorAll<HTMLElement>('[data-scope="divider"][data-part="label"]');
+        expect([...labels].map((l) => l.getAttribute('data-placement'))).toEqual(['start', 'end']);
+        // Two dividers, two names: the ids are per instance.
+        expect(labels[0]!.id).not.toBe(labels[1]!.id);
+    });
+
+    it('drops the reference when the Label unmounts, and an app aria-labelledby joins it', async () => {
+        const state = signal({ show: true });
+        render(
+            <Divider.Root aria-labelledby="heading">
+                {() => (state.show ? <Divider.Label>or</Divider.Label> : null)}
+            </Divider.Root>,
+            container,
+        );
+        await settle();
+        const root = part(container, 'divider', 'root');
+        const id = part(container, 'divider', 'label').id;
+        expect(root.getAttribute('aria-labelledby')).toBe(`${id} heading`);
+        state.show = false;
+        await settle();
+        expect(maybePart(container, 'divider', 'label')).toBeNull();
+        expect(root.getAttribute('aria-labelledby')).toBe('heading');
+    });
+
+    it('labels a vertical divider too, keeping its orientation', async () => {
+        render(
+            <Divider.Root orientation="vertical">
+                <Divider.Label>or</Divider.Label>
+            </Divider.Root>,
+            container,
+        );
+        await settle();
+        const root = part(container, 'divider', 'root');
+        expect(root.getAttribute('aria-orientation')).toBe('vertical');
+        expect(root.getAttribute('aria-labelledby')).toBe(part(container, 'divider', 'label').id);
+    });
+
+    it('decorative: role none, no orientation and no name — a Label is plain text', async () => {
+        render(
+            <Divider.Root decorative orientation="vertical" aria-labelledby="heading" aria-label="Rule">
+                <Divider.Label>or</Divider.Label>
+            </Divider.Root>,
+            container,
+        );
+        expectAnatomy(container, dividerAnatomy);
+        await settle();
+        const root = part(container, 'divider', 'root');
+        expect(root.getAttribute('role')).toBe('none');
+        expect(root.hasAttribute('aria-orientation')).toBe(false);
+        // Naming is prohibited on role=none — even an app's reference.
+        expect(root.hasAttribute('aria-labelledby')).toBe(false);
+        expect(root.hasAttribute('aria-label')).toBe(false);
+        // The orientation is still layout, so the styling hook stays.
+        expect(root.getAttribute('data-orientation')).toBe('vertical');
+    });
 });
 
 describe('EmptyState (#131)', () => {

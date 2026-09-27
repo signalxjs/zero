@@ -287,6 +287,33 @@ const DividerDemos = component(() => () => (
             <Divider orientation="vertical" color={pickRole('primary')} />
             <span>right</span>
         </DemoRow>
+        <p>
+            A captioned break (#298): a separator's children are presentational,
+            so <code>Divider.Label</code> becomes the root's name through{' '}
+            <code>aria-labelledby</code> rather than text nobody reads. It is
+            centred unless <code>placement</code> names a logical edge, so RTL
+            mirrors it. <code>decorative</code> is the purely visual rule:{' '}
+            <code>role="none"</code>, no orientation, no name.
+        </p>
+        <div style="max-width: 28rem; display: flex; flex-direction: column; gap: 1rem">
+            <Divider.Root>
+                <Divider.Label>or continue with</Divider.Label>
+            </Divider.Root>
+            <Divider.Root color={pickRole('primary')}>
+                <Divider.Label placement="start">Billing</Divider.Label>
+            </Divider.Root>
+            <Divider.Root>
+                <Divider.Label placement="end">End of results</Divider.Label>
+            </Divider.Root>
+            <Divider decorative />
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center; block-size: 6rem">
+            <span>sign in</span>
+            <Divider.Root orientation="vertical">
+                <Divider.Label>or</Divider.Label>
+            </Divider.Root>
+            <span>sign up</span>
+        </div>
     </>
 ), { name: 'DividerDemos' });
 

@@ -5028,27 +5028,54 @@ export const badge: RecipeInput = {
 
 /**
  * Divider — the hairline, standing alone. `size` is the one axis that means
- * something here: a divider has no type and no padding, so the ramp moves the
- * only dimension it has, its thickness.
+ * something here: the rule has no padding of its own, so the ramp moves the
+ * only dimension it has, its thickness. A label (#298) is a caption set into
+ * the rule, in the muted description tone; the colour axis inks the line, not
+ * the words, so every role stays legible.
  */
 export const divider: RecipeInput = {
     component: 'divider',
     tokens: { '--divider-ink': 'var(--color-base-300)', '--divider-thickness': 'var(--border)' },
     parts: {
         root: {
+            // The rule is two flex segments (#298), drawn as borders: with no
+            // label they meet and read as one line, and a label sits between
+            // them. Borders rather than a background, so forced colours keep
+            // the line instead of revaluing it to Canvas.
             base: {
+                display: 'flex',
+                alignItems: 'center',
                 border: 'none',
-                background: 'var(--divider-ink)',
                 alignSelf: 'stretch',
             },
             selectors: {
-                '&[data-orientation="horizontal"]': {
-                    inlineSize: '100%',
-                    blockSize: 'var(--divider-thickness)',
-                },
-                '&[data-orientation="vertical"]': {
-                    inlineSize: 'var(--divider-thickness)',
-                    minBlockSize: '1em',
+                '&::before': { content: '""', flex: '1 1 0', minInlineSize: '0' },
+                '&::after': { content: '""', flex: '1 1 0', minInlineSize: '0' },
+                '&[data-orientation="horizontal"]': { inlineSize: '100%' },
+                '&[data-orientation="horizontal"]::before': { borderBlockStart: 'var(--divider-thickness) solid var(--divider-ink)' },
+                '&[data-orientation="horizontal"]::after': { borderBlockStart: 'var(--divider-thickness) solid var(--divider-ink)' },
+                '&[data-orientation="vertical"]': { flexDirection: 'column', minBlockSize: '1em' },
+                '&[data-orientation="vertical"]::before': { borderInlineStart: 'var(--divider-thickness) solid var(--divider-ink)' },
+                '&[data-orientation="vertical"]::after': { borderInlineStart: 'var(--divider-thickness) solid var(--divider-ink)' },
+                // A placed label keeps a short lead of rule before it at
+                // its own edge — Mantine's shape, not a flush start.
+                '&:has(> [data-scope="divider"][data-part="label"][data-placement="start"])::before': { flexGrow: '0', flexBasis: 'var(--space-xl)' },
+                '&:has(> [data-scope="divider"][data-part="label"][data-placement="end"])::after': { flexGrow: '0', flexBasis: 'var(--space-xl)' },
+            },
+        },
+        label: {
+            base: {
+                flex: 'none',
+                paddingInline: 'var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-tight)',
+                whiteSpace: 'nowrap',
+                color: 'color-mix(in oklch, var(--color-base-content) 72%, transparent)',
+            },
+            selectors: {
+                '[data-scope="divider"][data-part="root"][data-orientation="vertical"] > &': {
+                    paddingInline: '0',
+                    paddingBlock: 'var(--space-sm)',
                 },
             },
         },

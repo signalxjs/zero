@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added — `Divider.Label`, the labelled separator, and `decorative` (#298)
+
+- **`Divider.Label`**: a new `label` part (`span`, parent `root`) for a
+  captioned break ("or continue with"). A separator's children are
+  presentational, so the words are the root's NAME: while a Label is
+  rendered the root carries `aria-labelledby` pointing at its id (joined
+  with an app `aria-labelledby`; a bare divider references nothing).
+  `placement` (`start` | `end`) renders `data-placement`, a declared
+  placement set on the part — absent, the label is centred. Vertical
+  dividers take a Label too. `Divider.Root` now accepts children.
+- **`decorative`** on `Divider.Root`: a purely visual rule renders
+  `role="none"`, with no `aria-orientation` and no name (neither
+  `aria-labelledby` nor an app `aria-label`); a Label inside it is ordinary
+  text.
+- New types: `DividerLabelProps`, `DividerLabelPlacement`.
+- Every shipped skin now draws the rule as two border-painted flex segments
+  that part around a label (and keep the line under forced colours).
+
 ### Added — Combobox inline autocomplete (#301)
 
 - **`inlineComplete`** on `Combobox.Root` (single mode, not trigger mode)

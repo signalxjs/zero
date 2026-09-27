@@ -1568,6 +1568,27 @@ timeline marker's construction, and what keeps a dot that follows a solid
 pill visible on that pill's own fill — and the contrast audit measures it
 per colour. The dot is `aria-hidden`: the pill's text is the label.
 
+**The captioned break.** A divider with words on it (#298). A
+separator's children are presentational — text put inside one is never
+read — so `Divider.Label` is the root's NAME: while it is rendered the
+root carries `aria-labelledby` pointing at it (joined with any app
+reference), and a bare divider references nothing. The label is centred
+on the rule unless `placement` names a logical edge (`start` | `end`,
+rendered as `data-placement`), so RTL mirrors it; vertical dividers take
+one too. `decorative` is the purely visual rule: `role="none"`, no
+`aria-orientation` and no name, with any Label left as ordinary text.
+
+```tsx
+<Divider.Root><Divider.Label>or continue with</Divider.Label></Divider.Root>
+<Divider.Root><Divider.Label placement="start">Billing</Divider.Label></Divider.Root>
+<Divider decorative />
+```
+
+Every shipped skin draws the rule as two flex segments (border-painted
+`::before`/`::after`, so forced colours keep the line) that meet when there
+is no label and part around one when there is; the colour axis inks the
+line, never the words.
+
 **The app shell.** A composition, not a component (#133): `Navbar` for the
 top bar, a responsive `Drawer` for the sidebar with a `NavList` inside it,
 and a `Container` for `<main>`. `Drawer.Root` renders no element, so it

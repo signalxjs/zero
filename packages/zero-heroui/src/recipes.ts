@@ -3773,16 +3773,50 @@ export const divider: RecipeInput = {
     tokens: { '--divider-thickness': 'var(--border)' },
     parts: {
         root: {
-            base: { border: 'none', background: 'var(--hero-line)', alignSelf: 'stretch' },
+            // The rule is two flex segments (#298), drawn as borders: with no
+            // label they meet and read as one line, and a label sits between
+            // them. Borders rather than a background, so forced colours keep
+            // the line instead of revaluing it to Canvas.
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                border: 'none',
+                alignSelf: 'stretch',
+            },
             selectors: {
-                '&[data-orientation="horizontal"]': {
-                    inlineSize: '100%',
-                    blockSize: 'var(--divider-thickness)',
+                '&::before': { content: '""', flex: '1 1 0', minInlineSize: '0' },
+                '&::after': { content: '""', flex: '1 1 0', minInlineSize: '0' },
+                '&[data-orientation="horizontal"]': { inlineSize: '100%' },
+                '&[data-orientation="horizontal"]::before': { borderBlockStart: 'var(--divider-thickness) solid var(--hero-line)' },
+                '&[data-orientation="horizontal"]::after': { borderBlockStart: 'var(--divider-thickness) solid var(--hero-line)' },
+                '&[data-orientation="vertical"]': { flexDirection: 'column', minBlockSize: '1em' },
+                '&[data-orientation="vertical"]::before': { borderInlineStart: 'var(--divider-thickness) solid var(--hero-line)' },
+                '&[data-orientation="vertical"]::after': { borderInlineStart: 'var(--divider-thickness) solid var(--hero-line)' },
+                // A placed label sits flush at its edge: the segment on
+                // that side goes, and the other one takes the whole run.
+                '&:has(> [data-scope="divider"][data-part="label"][data-placement="start"])::before': { display: 'none' },
+                '&:has(> [data-scope="divider"][data-part="label"][data-placement="end"])::after': { display: 'none' },
+            },
+        },
+        label: {
+            base: {
+                flex: 'none',
+                paddingInline: 'var(--space-md)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                whiteSpace: 'nowrap',
+                color: 'var(--hero-muted)',
+            },
+            selectors: {
+                '[data-scope="divider"][data-part="root"][data-orientation="vertical"] > &': {
+                    paddingInline: '0',
+                    paddingBlock: 'var(--space-sm)',
                 },
-                '&[data-orientation="vertical"]': {
-                    inlineSize: 'var(--divider-thickness)',
-                    minBlockSize: '1em',
-                },
+                // Flush means flush: no inset on the side the rule gave up.
+                '&[data-placement="start"]': { paddingInlineStart: '0' },
+                '&[data-placement="end"]': { paddingInlineEnd: '0' },
+                '[data-scope="divider"][data-part="root"][data-orientation="vertical"] > &[data-placement="start"]': { paddingBlockStart: '0' },
+                '[data-scope="divider"][data-part="root"][data-orientation="vertical"] > &[data-placement="end"]': { paddingBlockEnd: '0' },
             },
         },
     },

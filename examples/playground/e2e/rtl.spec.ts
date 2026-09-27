@@ -54,7 +54,7 @@ const SLIDES: ReadonlySet<string> = new Set(['daisyui', 'material', 'heroui', 'c
  * Boot with one design system pinned, then turn the document around.
  *
  * On the kitchen-sink route: this file measures switch, toast, tree-view,
- * progress and menu boxes in one visit, and `#/all` is the one document that
+ * progress, menu and divider boxes in one visit, and `#/all` is the one document that
  * renders them all — which is what keeps the documented one-page-load-per-DS
  * cost model true.
  */
@@ -319,6 +319,37 @@ for (const ds of DESIGN_SYSTEMS) {
                 content,
                 `${ds}: › points right in every writing direction, so RTL needs its mirror ‹`,
             ).toContain('‹');
+        });
+
+        /**
+         * A placed divider label (#298) is set at a LOGICAL edge: `start` is
+         * the reading start, the right edge here, and `end` the left. The
+         * skins get there with flex order and logical padding alone — a flush
+         * edge in four, a short lead of rule in two — so the claim is halves
+         * of the root, not exact offsets.
+         */
+        test('a start divider label sits at the reading edge, an end one opposite', async ({ page }) => {
+            for (const [text, placement] of [['Billing', 'start'], ['End of results', 'end']] as const) {
+                const parts = demoLabelled(page, 'divider', text);
+                const root = await settledBox(rootLabelled(page, 'divider', text), `${ds}: the "${text}" divider`);
+                const label = await settledBox(parts('label'), `${ds}: the "${text}" divider label`);
+                await expect(parts('label')).toHaveAttribute('data-placement', placement);
+                // Inside its own rule, either way round.
+                expect(label.x, `${ds}: the ${placement} label leaves its divider`).toBeGreaterThanOrEqual(root.x - 1);
+                expect(label.x + label.width, `${ds}: the ${placement} label leaves its divider`)
+                    .toBeLessThanOrEqual(root.x + root.width + 1);
+                if (placement === 'start') {
+                    expect(
+                        centre(label),
+                        `${ds}: a start label belongs at the reading start, the right half in RTL`,
+                    ).toBeGreaterThan(centre(root));
+                } else {
+                    expect(
+                        centre(label),
+                        `${ds}: an end label belongs at the reading end, the left half in RTL`,
+                    ).toBeLessThan(centre(root));
+                }
+            }
         });
 
         /**

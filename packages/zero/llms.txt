@@ -668,8 +668,13 @@ component renders; the root is called out separately where it carries props.
   <button>, with the aria-hidden `sort-indicator` (▲) inside it. The
   runtime never re-orders rows — the app sorts its data from the model.
   Write a Caption — it is the table's accessible name.
-- Divider: Root only, role=separator, orientation. Non-focusable;
-  aria-orientation emitted only for `vertical`.
+- Divider: Root/Label (#298), role=separator, orientation. Non-focusable;
+  aria-orientation emitted only for `vertical`. Label (span, id) is the
+  root's NAME — a separator's children are presentational — so while it
+  renders the root carries aria-labelledby → label id (joined with an app
+  reference). Label `placement` 'start'|'end' → data-placement (logical
+  edge; absent = centred). `decorative` renders role=none with no
+  aria-orientation and no aria-labelledby.
 - Navbar: Root/Start/Center/End — the landmark header bar, pure
   composition (no states, no behavior). Root is a <header> (the banner
   landmark at document scope), NOT a <nav>: the bar holds non-navigation

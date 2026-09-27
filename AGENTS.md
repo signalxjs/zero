@@ -268,9 +268,11 @@ the side its `data-placement` names, a collapsed branch indicator and a submenu
 chevron point at the reading end, the indeterminate progress sweep travels
 the reading way (seeked through `getAnimations()`, since the loop makes
 wall-clock sampling straddle a wrap), a sliding skin's modal drawer
-sheet enters from its reading edge, measured early in the entry (#83), and a
+sheet enters from its reading edge, measured early in the entry (#83), a
 `bottom-start` menu popup's inline-start (right) edge meets its trigger's
-while `data-placement` stays the logical `bottom-start` (#264), and in the
+while `data-placement` stays the logical `bottom-start` (#264), a divider
+label placed at `start` sits in the reading-start half of its rule and one
+at `end` in the other (#298), and in the
 skins that draw it, the tabs indicator lands on the active tab (#283). It
 exists because a `transform` has no logical spelling, so the kit's
 physical-direction lint cannot see it — the two checks are complementary, not
