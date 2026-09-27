@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-27
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE.breadcrumbs` reserves `defaultExpanded`, `itemsAfterCollapse`, `itemsBeforeCollapse` and `maxItems` (zero#295)
 
 - Breadcrumbs' new root props are reserved, so a vendor-named api cannot

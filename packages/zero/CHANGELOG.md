@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-27
+
 ### Added — Breadcrumbs maxItems collapse with an ellipsis part (#295)
 
 - **`maxItems`** on `Breadcrumbs.Root` collapses a longer trail: the items
