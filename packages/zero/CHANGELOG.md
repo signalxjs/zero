@@ -17,7 +17,8 @@
 - Keys: Backspace/Delete remove just the completion. The first Escape
   reverts it, and the next follows the existing rules. Enter and Tab commit
   the highlighted option, and Tab still moves focus. ArrowLeft/ArrowRight/
-  Home/End accept the completed text without choosing a value.
+  Home/End, or a click in the input, accept the completed text without
+  choosing a value.
   ArrowUp/ArrowDown drop the completion and walk the list. A blur resyncs as
   in #265, so an unaccepted completion never posts.
 
