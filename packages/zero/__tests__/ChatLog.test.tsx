@@ -10,7 +10,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { component, defineApp, signal } from 'sigx';
 import { render } from '@sigx/runtime-dom';
 import { renderToString } from '@sigx/server-renderer';
-import { ChatLog, chatLogAnatomy, createStickToBottom, zeroPlugin } from '@sigx/zero';
+import { ChatLog, chatLogAnatomy, createStickToBottom, useChatLogContext, zeroPlugin } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 const VIEWPORT = 100;
@@ -290,6 +290,30 @@ describe('ChatLog — following the tail', () => {
         expect(t.root.scrollTop).toBe(400 - VIEWPORT);
         expect(t.trigger.hidden).toBe(true);
         expect(document.activeElement).toBe(t.root);
+    });
+
+    it('jump() leaves focus it did not take from the trigger where it is', async () => {
+        let jump: (() => void) | undefined;
+        const Probe = component(() => {
+            const ctx = useChatLogContext();
+            jump = () => ctx.jump();
+            return () => <button type="button" data-probe="">reply</button>;
+        });
+        const host = document.createElement('div');
+        document.body.appendChild(host);
+        render(
+            <ChatLog.Root label="Conversation">
+                <ChatLog.Content><Probe /></ChatLog.Content>
+                <ChatLog.JumpTrigger />
+            </ChatLog.Root>,
+            host,
+        );
+        await flush();
+        const probe = host.querySelector<HTMLButtonElement>('[data-probe]')!;
+        probe.focus();
+        jump!();
+        await flush();
+        expect(document.activeElement).toBe(probe);
     });
 });
 

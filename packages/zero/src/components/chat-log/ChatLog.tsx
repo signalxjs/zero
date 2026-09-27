@@ -2,16 +2,20 @@
  * ChatLog — the transcript container around `Chat` rows.
  *
  * ```tsx
- * <ChatLog.Root label="Conversation with Ada" style="block-size: 24rem">
- *     <ChatLog.Content>
- *         {state.messages.map((m) => (
- *             <Chat.Root key={m.id} placement={m.mine ? 'end' : 'start'}>
- *                 <Chat.Bubble>{m.text}</Chat.Bubble>
- *             </Chat.Root>
- *         ))}
- *     </ChatLog.Content>
- *     <ChatLog.JumpTrigger />
- * </ChatLog.Root>
+ * // A scroll box needs a definite height: size it through its container
+ * // (a sized grid cell, as here) or a `class` — no zero part takes `style`.
+ * <div style="display: grid; block-size: 24rem">
+ *     <ChatLog.Root label="Conversation with Ada">
+ *         <ChatLog.Content>
+ *             {state.messages.map((m) => (
+ *                 <Chat.Root key={m.id} placement={m.mine ? 'end' : 'start'}>
+ *                     <Chat.Bubble>{m.text}</Chat.Bubble>
+ *                 </Chat.Root>
+ *             ))}
+ *         </ChatLog.Content>
+ *         <ChatLog.JumpTrigger />
+ *     </ChatLog.Root>
+ * </div>
  * ```
  *
  * The root is a `role="log"` scroll box (`aria-live="polite"`,
@@ -105,11 +109,16 @@ const ChatLogRoot = component<ChatLogRootProps>(({ props, slots, emit, signal, o
     const ctx: ChatLogContext = {
         following: () => tail.following(),
         jump: () => {
-            const hadFocus = typeof document !== 'undefined' && !!el && el.contains(document.activeElement) && document.activeElement !== el;
+            // Only the trigger's own focus moves: it is about to be hidden,
+            // and focus it held would drop to <body>. The log itself is the
+            // nearest stop that stays. Focus anywhere else — a link in a row,
+            // an app calling jump() — is left where it is.
+            const active = typeof document !== 'undefined' ? document.activeElement : null;
+            const triggerHadFocus = !!el && !!active
+                && active.matches(`[data-scope="${SCOPE}"][data-part="jump-trigger"]`)
+                && active.closest(`[data-scope="${SCOPE}"][data-part="root"]`) === el;
             tail.scrollToEnd();
-            // The trigger is about to be hidden: focus it held would drop
-            // to <body>. The log itself is the nearest stop that stays.
-            if (hadFocus) el?.focus({ preventScroll: true });
+            if (triggerHadFocus) el?.focus({ preventScroll: true });
         },
         contentRef: tail.contentRef,
     };
