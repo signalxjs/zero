@@ -2012,11 +2012,25 @@ export const checkbox: RecipeInput = {
     targets: {
         lynx: {
             parts: {
+                // The box/label row, pinned: `inline-flex` is rewritten to
+                // `flex`, and the row must not depend on the engine's
+                // default direction (signalxjs/lynx#1203).
+                root: { base: { display: 'flex', flexDirection: 'row' } },
                 control: {
                     // The web fallback (`color-mix(in oklab, … currentColor …)`)
                     // exists for consumers that unset the accent; this package
                     // always defines it, so the plain accent IS the ring.
-                    base: { border: 'var(--border) solid var(--checkbox-accent)' },
+                    //
+                    // `inline-block` is not a lynx display value (no inline
+                    // formatting context); a flex box keeps daisy's geometry —
+                    // the padding insets the 100%-sized indicator either way.
+                    base: { display: 'flex', border: 'var(--border) solid var(--checkbox-accent)' },
+                    // The ring as spread shadows that follow the box's radius
+                    // (signalxjs/lynx#1163 — lynx's `outline` ignores it and
+                    // has no offset), keeping the box's inset depth line.
+                    states: {
+                        'focus-visible': lynxFocusRing('var(--checkbox-accent)', { under: '0 1px var(--depth-shade) inset' }),
+                    },
                 },
                 indicator: {
                     // The tick's fill: the control's `color:` names
@@ -2064,6 +2078,11 @@ export const radioGroup: RecipeInput = {
             // `invalid` paints on each `item-control`, which carries the flag
             // itself (#267) — the root only groups the items.
             states: { invalid: {}, required: {} },
+            // `orientation="horizontal"` lays the items in a wrapping row —
+            // checkbox-group's rule (signalxjs/zero#393).
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row', flexWrap: 'wrap', columnGap: 'var(--space-lg)' },
+            },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
@@ -2171,9 +2190,20 @@ export const radioGroup: RecipeInput = {
     targets: {
         lynx: {
             parts: {
+                // The control/label row, pinned — as checkbox's root
+                // (signalxjs/lynx#1203).
+                item: { base: { display: 'flex', flexDirection: 'row' } },
                 'item-control': {
-                    base: { border: 'var(--border) solid var(--radio-accent)' },
-                    states: { checked: { borderColor: 'var(--radio-accent)' } },
+                    // `display: flex` in place of `inline-block`, which lynx
+                    // does not have — the padding still insets the dot.
+                    base: { display: 'flex', border: 'var(--border) solid var(--radio-accent)' },
+                    states: {
+                        checked: { borderColor: 'var(--radio-accent)' },
+                        // The round ring (signalxjs/lynx#1163): spread
+                        // shadows follow the 9999px radius where `outline`
+                        // drew a square.
+                        'focus-visible': lynxFocusRing('var(--radio-accent)', { under: '0 1px var(--depth-shade) inset' }),
+                    },
                 },
                 'item-indicator': {
                     states: { checked: { backgroundColor: 'var(--radio-accent)' } },

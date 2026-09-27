@@ -30,6 +30,11 @@ each is geometry that interpolates between states, so it rides the size ramp and
 animates. Under `forced-colors` and `print` the checkbox swaps to a `✔`/`−`
 glyph; the rating keeps its geometry, since no glyph can say "half".
 
+Daisy has no group component for radios or checkboxes; its forms stack rows. The
+`radio-group` and `checkbox-group` roots stack their items the same way, and
+`orientation="horizontal"` lays them in a wrapping row with a `--space-lg` gap
+(#393).
+
 The slider is **rebuilt** with `appearance: none` (#26), like every other skin,
 instead of a stock native range behind `accent-color`: daisy's `range.css` track
 (half the thumb's height, `--radius-selector`) and its real thumb — a `base-100`
