@@ -1043,7 +1043,7 @@ describe('assertNoCalcVarChains', () => {
             expect(body).toContain('border-radius: calc(var(--radius-box) - var(--border));');
         });
 
-        // signalxjs/lynx#1184: the clear-trigger is a 1.5rem chip beside the
+        // signalxjs/lynx#1184: the clear-trigger is a 1.5rem (24px on lynx) chip beside the
         // chevron's 1em box at every size — not a full-height box at the md
         // offset whose outer ring covered the ▾ at lg/xl.
         it('the select clear-trigger is a chip beside the chevron, ringed inside', () => {
@@ -1054,7 +1054,7 @@ describe('assertNoCalcVarChains', () => {
             const ring = focusRules(css).find((r) => r.selector === '.zx-select__clear-trigger.zx-f-focus-visible')!.body;
             expect(ring).toContain('box-shadow: inset 0 0 0 2px var(--color-base-content);');
             const base = decls('.zx-select__clear-trigger');
-            expect(base).toEqual(expect.arrayContaining(['width: 1.5rem', 'height: 1.5rem', 'box-sizing: border-box']));
+            expect(base).toEqual(expect.arrayContaining(['width: 24px', 'height: 24px', 'box-sizing: border-box']));
             expect(base.some((d) => d.startsWith('bottom:'))).toBe(false);
             expect(decls('.zx-select__indicator')).toEqual(expect.arrayContaining(['width: 1em', 'text-align: right']));
             const steps = { xs: [8, 2, 'xs'], sm: [10, 3, 'sm'], md: [12, 4, 'sm'], lg: [14, 5, 'md'], xl: [16, 6, 'lg'] } as const;
@@ -1067,7 +1067,7 @@ describe('assertNoCalcVarChains', () => {
                     `font-size: var(--text-${text})`,
                 ]));
                 expect(decls(`.zx-select__clear-trigger.zx-a-size-${size}`), size).toEqual([
-                    `top: calc(var(--size-field) * ${field / 2} - 0.75rem)`,
+                    `top: calc(var(--size-field) * ${field / 2} - 12px)`,
                     `right: calc(var(--border) + var(--size-field) * ${pad} + var(--text-${text}) + var(--space-xs))`,
                 ]);
             }
