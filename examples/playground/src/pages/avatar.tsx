@@ -108,8 +108,8 @@ const AvatarDemos = component(() => {
                 <code>size</code> (an avatar's own <code>size</code> wins),
                 and decides the overlap and the ring. There is no
                 registration — slice the list and pass what you left out to{' '}
-                <code>AvatarGroup.Overflow count</code>, which shows "+N" and
-                says "N more" to assistive technology.
+                the <code>count</code> of <code>AvatarGroup.Overflow</code>,
+                which shows "+N" and says "N more" to assistive technology.
             </p>
             <DemoRow gap="1.5rem">
                 <AvatarGroup.Root label="Project members">

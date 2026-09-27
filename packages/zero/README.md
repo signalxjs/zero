@@ -1012,8 +1012,8 @@ group's `size` (its recipe borrows the avatar's own size step through
 `composes`), and an avatar's own `size` still wins. The overlap and the ring
 between faces are the skin's choice. There is no registration — the avatars
 are another scope's roots — so slice your list and pass what you left out to
-`AvatarGroup.Overflow count`: it renders "+N" for sight (`aria-hidden`) and a
-visually hidden "N more" for assistive technology (`label` replaces those
+the `count` prop of `AvatarGroup.Overflow`: it renders "+N" for sight
+(`aria-hidden`) and a visually hidden "N more" for assistive technology (`label` replaces those
 words — translate them there), and nothing at all for a count of zero or
 less. Display-only: no model, no state.
 
