@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Fixed — The lynx target rewrites `rem` to `px` at 16px/rem (zero#381)
+
+- Lynx resolves `rem` against its 14px default page font size, so every
+  rem-based size drew 12.5% small on device. Daisy's button ramp measured
+  21/28/35/42/49 instead of 24/32/40/48/56 (signalxjs/lynx#1183).
+- The lynx emitters now rewrite every `rem` length to `px` at 16px/rem as
+  their last pass. That covers token values, recipe declarations, `calc()`
+  operands, raw `targets.lynx.css` and keyframes. `url()` and quoted
+  strings are left alone. Each rewrite records one `translated` report
+  entry per stylesheet.
+- New exports on the lynx target: `remToPx` and `LYNX_REM_PX`.
+- The web output is unchanged byte for byte.
+
 ## [0.8.0] - 2026-09-27
 
 ### Changed — `RESERVED_PROPS_BY_SCOPE.breadcrumbs` reserves `defaultExpanded`, `itemsAfterCollapse`, `itemsBeforeCollapse` and `maxItems` (zero#295)
