@@ -56,6 +56,7 @@ import { indicatorAnatomy } from './components/indicator/anatomy.js';
 import { statsAnatomy } from './components/stats/anatomy.js';
 import { timelineAnatomy } from './components/timeline/anatomy.js';
 import { chatAnatomy } from './components/chat/anatomy.js';
+import { chatLogAnatomy } from './components/chat-log/anatomy.js';
 import { radialProgressAnatomy } from './components/radial-progress/anatomy.js';
 import { joinAnatomy } from './components/join/anatomy.js';
 import { navbarAnatomy } from './components/navbar/anatomy.js';
@@ -79,7 +80,7 @@ export {
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
     stackAnatomy, spacerAnatomy, gridAnatomy, centerAnatomy, boxAnatomy, containerAnatomy,
-    kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy, emptyStateAnatomy,
+    kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy, chatLogAnatomy, emptyStateAnatomy,
     radialProgressAnatomy, joinAnatomy,
     navbarAnatomy, navListAnatomy, breadcrumbsAnatomy, paginationAnatomy, stepsAnatomy, drawerAnatomy,
     tableAnatomy, fileUploadAnatomy, carouselAnatomy, swapAnatomy, countdownAnatomy, diffAnatomy,
@@ -134,6 +135,7 @@ export const anatomies = {
     stats: statsAnatomy,
     timeline: timelineAnatomy,
     chat: chatAnatomy,
+    'chat-log': chatLogAnatomy,
     'radial-progress': radialProgressAnatomy,
     join: joinAnatomy,
     navbar: navbarAnatomy,

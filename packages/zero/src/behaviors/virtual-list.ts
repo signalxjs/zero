@@ -39,9 +39,12 @@
  * - **Stick to bottom.** With `stickToBottom`, the list follows the tail —
  *   every appended row or growing last row keeps the end in view — until the
  *   reader scrolls UP; scrolling back to the end (within `threshold`) or
- *   `scrollToEnd()` resumes it. Only an upward scroll unfollows, so content
- *   growing faster than the scroll event fires can never be mistaken for the
- *   reader leaving.
+ *   `scrollToEnd()` resumes it. Only an upward scroll (or the wheel / touch
+ *   gesture about to cause one) unfollows, so content growing faster than
+ *   the scroll event fires can never be mistaken for the reader leaving. The
+ *   rules are `createStickToBottom`'s core (`followTail`, `stick-to-bottom.ts`), shared with
+ *   `ChatLog`; the pinning and the anchor are this module's own, computed
+ *   from the layout model rather than read from the DOM.
  * - **A pinned row.** `pinned` names one row that stays rendered wherever
  *   the viewport is (a listbox's highlighted option, which its
  *   `aria-activedescendant` must be able to name). Outside the window it
@@ -55,6 +58,7 @@
  * that component's mount and unmount.
  */
 import { batch, computed, getCurrentInstance, onMounted, onUnmounted, signal, watch } from 'sigx';
+import { followTail } from './stick-to-bottom.js';
 
 export interface VirtualListOptions {
     /** How many rows the list has, read reactively. */
@@ -179,7 +183,6 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
         height: 0,
         /** Bumped when a measurement changes — the measured sizes live outside the signal. */
         version: 0,
-        following: stick,
     });
 
     // Measured heights by key. Outside the signal on purpose: a Map in a
@@ -248,8 +251,6 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
     let observer: ResizeObserver | null = null;
     /** The list's offset inside the scrolled content. */
     let listOffset = 0;
-    /** The last scrollTop seen — an upward move is what unfollows. */
-    let lastScrollTop = 0;
     /** The row the reader is looking at, and how far into it: what a layout change must keep still. */
     let anchor: { key: string; offset: number } | null = null;
     const elementKeys = new WeakMap<Element, string>();
@@ -331,7 +332,7 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
         measureFresh();
         readOffset();
         let target: number | null = null;
-        if (st.following) {
+        if (tail.following()) {
             target = viewport.scrollHeight - viewport.clientHeight;
         } else if (anchor) {
             const i = layout.value.indexOf(anchor.key);
@@ -340,8 +341,8 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
         if (target !== null && Math.abs(viewport.scrollTop - target) >= 1) {
             viewport.scrollTop = target;
         }
-        lastScrollTop = viewport.scrollTop;
-        if (!st.following) captureAnchor(viewport.scrollTop);
+        tail.settle();
+        if (!tail.following()) captureAnchor(viewport.scrollTop);
         publish();
     };
 
@@ -357,26 +358,18 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
         });
     };
 
-    const onScroll = (): void => {
-        if (!viewport) return;
-        const scrollTop = viewport.scrollTop;
-        if (stick) {
-            const gap = viewport.scrollHeight - viewport.clientHeight - scrollTop;
-            // An upward move lets go FIRST, even inside `threshold`: a smooth
-            // wheel scroll (WebKit) moves a few px in its first frame, and
-            // still counting that as "at the end" snapped the reader back on
-            // the next layout pass, cancelling the scroll (#134). Only a
-            // position AT the end — the browser clamping a shrinking list —
-            // is not the reader leaving.
-            if (scrollTop < lastScrollTop - 1 && gap > 1) st.following = false;
-            else if (gap <= threshold()) st.following = true;
-        }
-        lastScrollTop = scrollTop;
-        // Capture BEFORE publishing: the re-render the publish causes must
-        // restore THIS position, not the one before the reader scrolled.
-        captureAnchor(scrollTop);
-        publish();
-    };
+    // Following, and the gestures that let go of it. The scroll handler
+    // runs once `following` is up to date for this position.
+    const tail = followTail({
+        enabled: stick,
+        threshold,
+        onScroll: (scrollTop) => {
+            // Capture BEFORE publishing: the re-render the publish causes must
+            // restore THIS position, not the one before the reader scrolled.
+            captureAnchor(scrollTop);
+            publish();
+        },
+    });
 
     const onResize = (entries: ResizeObserverEntry[]): void => {
         let changed = false;
@@ -431,16 +424,12 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
 
     const viewportRef = (el: HTMLElement | null): void => {
         if (viewport === el) return;
-        if (viewport) {
-            viewport.removeEventListener('scroll', onScroll);
-            observer?.unobserve(viewport);
-        }
+        if (viewport) observer?.unobserve(viewport);
         viewport = el;
-        if (el) {
-            el.style.overflowAnchor = 'none';
-            el.addEventListener('scroll', onScroll, { passive: true });
-            observe(el);
-        }
+        // Listens for scrolls and gestures, and switches the browser's own
+        // scroll anchoring off (`overflow-anchor: none`).
+        tail.viewportRef(el);
+        if (el) observe(el);
     };
 
     const listRef = (el: HTMLElement | null): void => {
@@ -523,18 +512,18 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
         else if (start + size > current + height) target = start + size - height;
         const max = viewport.scrollHeight - height;
         target = Math.min(Math.max(0, target), Math.max(0, max));
-        if (stick) st.following = max - target <= threshold();
+        if (stick) tail.setFollowing(max - target <= threshold());
         // Anchor on the TARGET row, so its measurement landing keeps it where
         // it was asked to be rather than wherever its estimate put it.
         anchor = { key: l.keys[i]!, offset: target - start };
         viewport.scrollTop = target;
-        lastScrollTop = viewport.scrollTop;
+        tail.settle();
         publish();
     };
 
     const scrollToEnd = (): void => {
         if (stick) {
-            st.following = true;
+            tail.setFollowing(true);
             sync();
         } else {
             scrollToIndex(layout.value.keys.length - 1, 'end');
@@ -577,7 +566,7 @@ export function createVirtualList(options: VirtualListOptions): VirtualList {
         },
         totalSize: () => layout.value.total,
         count: () => layout.value.keys.length,
-        following: () => st.following,
+        following: () => tail.following(),
         viewportRef,
         listRef,
         measureRef,

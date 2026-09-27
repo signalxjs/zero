@@ -69,4 +69,6 @@ export { syncPopover } from './popover-sync.js';
 export { useMediaQuery, breakpointQuery } from './media-query.js';
 export { createVirtualList } from './virtual-list.js';
 export type { VirtualList, VirtualListOptions, VirtualRow } from './virtual-list.js';
+export { createStickToBottom } from './stick-to-bottom.js';
+export type { StickToBottom, StickToBottomOptions } from './stick-to-bottom.js';
 export type { BreakpointRange, MediaQueryInput, MediaQueryMatch, MediaQueryOptions } from './media-query.js';

@@ -6064,6 +6064,96 @@ export const chat: RecipeInput = {
     },
 };
 
+/**
+ * ChatLog — daisy's `bg-base-200 rounded-box` well that the chat bubbles
+ * already sit in, scrolling; the jump trigger is a `btn btn-sm` pill in the
+ * role's solid pair with daisy's `shadow-xs` and its 1px press sink, floated
+ * over the rows by `position: sticky` at the box's foot. Its negative block
+ * margin gives back the line it would take, so appearing moves no row.
+ */
+export const chatLog: RecipeInput = {
+    component: 'chat-log',
+    tokens: {
+        '--chat-log-fill': 'var(--color-primary)',
+        '--chat-log-on-fill': 'var(--color-primary-content)',
+        '--chat-log-jump-size': 'calc(var(--size-field) * 8)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                overflowY: 'auto',
+                overscrollBehaviorY: 'contain',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-base-300)',
+                padding: 'var(--space-sm) var(--space-md)',
+            },
+            // Drawn inside the box (negative offset): an outward ring would
+            // be clipped by whatever scrolls around the transcript.
+            states: { 'focus-visible': { outline: '2px solid var(--color-base-content)', outlineOffset: '-2px' } },
+        },
+        content: {
+            base: {
+                // `auto` gathers a short transcript at the foot; a long one
+                // overflows and the margin resolves to nothing.
+                marginBlockStart: 'auto',
+                flex: 'none',
+                display: 'grid',
+                rowGap: 'var(--space-xs)',
+            },
+        },
+        'jump-trigger': {
+            base: {
+                position: 'sticky',
+                insetBlockEnd: 'var(--space-sm)',
+                alignSelf: 'center',
+                flex: 'none',
+                marginBlockStart: 'calc(var(--chat-log-jump-size) * -1)',
+                blockSize: 'var(--chat-log-jump-size)',
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                paddingInline: 'var(--space-md)',
+                border: 'var(--border) solid transparent',
+                borderRadius: '9999px',
+                background: 'var(--chat-log-fill)',
+                color: 'var(--chat-log-on-fill)',
+                boxShadow: 'var(--shadow-xs)',
+                fontFamily: 'inherit',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                open: {},
+                closed: {},
+                hover: { background: 'color-mix(in oklab, var(--chat-log-fill) 90%, black)' },
+                'focus-visible': { outline: '2px solid var(--color-base-content)', outlineOffset: '2px' },
+            },
+            selectors: { '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)', boxShadow: 'none' } },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { 'jump-trigger': { base: {
+            '--chat-log-fill': `var(--color-${c})`,
+            '--chat-log-on-fill': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { content: { base: { rowGap: 'var(--space-2xs)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 6)', fontSize: 'var(--text-xs)' } } },
+            sm: { content: { base: { rowGap: 'var(--space-2xs)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 7)', fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { content: { base: { rowGap: 'var(--space-sm)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 9)', fontSize: 'var(--text-sm)' } } },
+            xl: { content: { base: { rowGap: 'var(--space-md)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 10)', fontSize: 'var(--text-sm)' } } },
+        },
+    },
+};
+
 /** daisy radial-progress: --value became --progress-percent; same ring. */
 export const radialProgress: RecipeInput = {
     component: 'radial-progress',
@@ -7778,7 +7868,7 @@ export const recipes: RecipeInput[] = [
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,

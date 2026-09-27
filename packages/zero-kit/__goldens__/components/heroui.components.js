@@ -67,6 +67,7 @@ export { Indicator } from '@sigx/zero/indicator';
 export { Stats } from '@sigx/zero/stats';
 export { Timeline } from '@sigx/zero/timeline';
 export { Chat } from '@sigx/zero/chat';
+export { ChatLog } from '@sigx/zero/chat-log';
 export { RadialProgress } from '@sigx/zero/radial-progress';
 export { Join } from '@sigx/zero/join';
 export { Navbar } from '@sigx/zero/navbar';

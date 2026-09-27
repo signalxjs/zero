@@ -16,8 +16,12 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * wired to the BUBBLE's fill by recipes — the row itself never paints.
  *
  * `root` supports `asChild` (#275): a transcript is a list, so a row inside
- * the consumer's `<ol role="log">` wants to be an `<li>`, or an `<article>`
- * where each message stands alone.
+ * the consumer's own list wants to be an `<li>`, or an `<article>` where
+ * each message stands alone.
+ *
+ * The row owns no transcript semantics. The container around the rows —
+ * `role="log"`, following the tail, the way back to it — is `ChatLog`
+ * (`chat-log`, #299), opt-in: a row renders the same inside one or not.
  */
 export const chatAnatomy = defineAnatomy('chat', {
     root: {

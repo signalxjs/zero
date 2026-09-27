@@ -5798,6 +5798,97 @@ export const chat: RecipeInput = {
 };
 
 /**
+ * ChatLog — the transcript as a sheet of the same quiet paper the rows sit
+ * on: a hairline box that scrolls, rows gathered at its foot the way a
+ * messenger stacks them, the skin's inset ring when the box itself has
+ * focus. The jump trigger is an overlay pill — the overlay costume
+ * (hairline, the one `lg` shadow) on paper, with role ink — floated over the
+ * rows by `position: sticky` at the box's foot; its negative block margin
+ * gives back the line it would take, so appearing moves no row.
+ */
+export const chatLog: RecipeInput = {
+    component: 'chat-log',
+    tokens: {
+        '--chat-log-ink': softInk('primary'),
+        '--chat-log-jump-size': 'calc(var(--size-field) * 8)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                overflowY: 'auto',
+                overscrollBehaviorY: 'contain',
+                border: hairline,
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                padding: 'var(--space-sm) var(--space-md)',
+            },
+            // Drawn inside the box (negative offset): an outward ring would
+            // be clipped by whatever scrolls around the transcript.
+            states: { 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '-2px' } },
+        },
+        content: {
+            base: {
+                // `auto` gathers a short transcript at the foot; a long one
+                // overflows and the margin resolves to nothing.
+                marginBlockStart: 'auto',
+                flex: 'none',
+                display: 'grid',
+                rowGap: 'var(--space-xs)',
+            },
+        },
+        'jump-trigger': {
+            base: {
+                ...overlayPanel,
+                // Paper, not the overlay's lifted step: the pill sits over the
+                // log's own paper, and its hover and press mix ink into it.
+                background: 'var(--color-base-100)',
+                position: 'sticky',
+                insetBlockEnd: 'var(--space-sm)',
+                alignSelf: 'center',
+                flex: 'none',
+                marginBlockStart: 'calc(var(--chat-log-jump-size) * -1)',
+                blockSize: 'var(--chat-log-jump-size)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                paddingInline: 'var(--space-md)',
+                borderRadius: '9999px',
+                appearance: 'none',
+                fontFamily: 'inherit',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--chat-log-ink)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                open: {},
+                closed: {},
+                hover: { background: 'color-mix(in oklch, var(--color-base-content) 6%, var(--color-base-100))' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'color-mix(in oklch, var(--color-base-content) 12%, var(--color-base-100))', transition: 'none' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { 'jump-trigger': { base: { '--chat-log-ink': softInk(c) } } }])),
+        size: {
+            xs: { content: { base: { rowGap: 'var(--space-2xs)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 6)', fontSize: 'var(--text-xs)' } } },
+            sm: { content: { base: { rowGap: 'var(--space-2xs)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 7)', fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { content: { base: { rowGap: 'var(--space-sm)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 9)', fontSize: 'var(--text-sm)' } } },
+            xl: { content: { base: { rowGap: 'var(--space-md)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 10)', fontSize: 'var(--text-sm)' } } },
+        },
+    },
+};
+
+/**
  * RadialProgress — the ring drawn as ink under masks (see the ::after
  * comment), the channel a base-200 annulus with no hairline: at ring
  * thickness a border would read as a second ring.
@@ -7484,7 +7575,7 @@ export const recipes: RecipeInput[] = [
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,

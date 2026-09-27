@@ -4376,6 +4376,88 @@ export const chat: RecipeInput = {
 };
 
 /**
+ * ChatLog — HeroUI's bordered surface (base-100 inside the hairline, the box
+ * radius), scrolling. No colour axis (`roles: {}`), so the jump trigger is
+ * the one identity HeroUI gives a floating call to action: the `primary`
+ * button — `--hero-primary` fill, pill-rounded, `shadow-sm`, v3's inward
+ * press — floated over the rows by `position: sticky` at the box's foot.
+ * Its negative block margin gives back the line it would take, so
+ * appearing moves no row.
+ */
+export const chatLog: RecipeInput = {
+    component: 'chat-log',
+    tokens: { '--chat-log-jump-size': 'calc(var(--size-field) * 8)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                overflowY: 'auto',
+                overscrollBehaviorY: 'contain',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                padding: 'var(--space-sm) var(--space-md)',
+            },
+            // Drawn inside the box (negative offset): an outward ring would
+            // be clipped by whatever scrolls around the transcript.
+            states: { 'focus-visible': { outline: '2px solid var(--hero-focus)', outlineOffset: '-2px' } },
+        },
+        content: {
+            base: {
+                // `auto` gathers a short transcript at the foot; a long one
+                // overflows and the margin resolves to nothing.
+                marginBlockStart: 'auto',
+                flex: 'none',
+                display: 'grid',
+                rowGap: 'var(--space-xs)',
+            },
+        },
+        'jump-trigger': {
+            base: {
+                position: 'sticky',
+                insetBlockEnd: 'var(--space-sm)',
+                alignSelf: 'center',
+                flex: 'none',
+                marginBlockStart: 'calc(var(--chat-log-jump-size) * -1)',
+                blockSize: 'var(--chat-log-jump-size)',
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                paddingInline: 'var(--space-md)',
+                border: 'none',
+                borderRadius: '9999px',
+                background: 'var(--hero-primary)',
+                color: 'var(--hero-primary-ink)',
+                boxShadow: 'var(--shadow-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('opacity, transform'),
+            },
+            states: {
+                open: {},
+                closed: {},
+                hover: { filter: 'brightness(0.95)' },
+                ...focusRing,
+            },
+            selectors: { ...pressScale },
+        },
+    },
+    variants: {
+        size: {
+            sm: { content: { base: { rowGap: 'var(--space-2xs)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 7)' } } },
+            md: {},
+            lg: { content: { base: { rowGap: 'var(--space-sm)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 10)', fontSize: 'var(--text-sm)' } } },
+        },
+    },
+};
+
+/**
  * HeroUI radial: primary arc in the one costume. Complete drops the channel
  * — a full ring needs no track — which is also what keeps the three states
  * distinct for the legibility guard in a design system with no success role.
@@ -5816,7 +5898,7 @@ export const recipes: RecipeInput[] = [
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,

@@ -8287,6 +8287,178 @@
 }
 
 @layer zero.recipes {
+    [data-scope="chat-log"][data-part="root"] {
+        --chat-log-fill: var(--color-primary);
+        --chat-log-on-fill: var(--color-primary-content);
+        --chat-log-jump-size: calc(var(--size-field) * 9);
+    }
+
+    [data-scope="chat-log"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    [data-scope="chat-log"][data-part="root"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: calc(var(--border) * -3);
+    }
+
+    [data-scope="chat-log"][data-part="content"] {
+        margin-block-start: auto;
+        flex: none;
+        display: grid;
+        row-gap: var(--space-sm);
+    }
+
+    [data-scope="chat-log"][data-part="jump-trigger"] {
+        position: sticky;
+        inset-block-end: var(--space-md);
+        align-self: center;
+        flex: none;
+        margin-block-start: calc(var(--chat-log-jump-size) * -1);
+        block-size: var(--chat-log-jump-size);
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding-inline: var(--space-md);
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--chat-log-fill);
+        color: var(--chat-log-on-fill);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        line-height: var(--leading-none);
+        box-shadow: var(--shadow-sm);
+        cursor: pointer;
+        transition: box-shadow var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="chat-log"][data-part="jump-trigger"]:hover:not([data-disabled]) {
+        box-shadow: var(--shadow-xs);
+        transform: translate(1px, 1px);
+    }
+
+    [data-scope="chat-log"][data-part="jump-trigger"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
+    [data-scope="chat-log"][data-part="jump-trigger"][data-pressed]:not([data-disabled]) {
+        box-shadow: none;
+        transform: translate(3px, 3px);
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="primary"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-primary);
+            --chat-log-on-fill: var(--color-primary-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="secondary"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-secondary);
+            --chat-log-on-fill: var(--color-secondary-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="accent"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-accent);
+            --chat-log-on-fill: var(--color-accent-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="neutral"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-neutral);
+            --chat-log-on-fill: var(--color-neutral-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="info"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-info);
+            --chat-log-on-fill: var(--color-info-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="success"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-success);
+            --chat-log-on-fill: var(--color-success-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="warning"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-warning);
+            --chat-log-on-fill: var(--color-warning-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="error"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-error);
+            --chat-log-on-fill: var(--color-error-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-size="xs"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="content"] {
+            row-gap: var(--space-2xs);
+        }
+
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-jump-size: calc(var(--size-field) * 7);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-size="sm"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="content"] {
+            row-gap: var(--space-xs);
+        }
+
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-jump-size: calc(var(--size-field) * 8);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-size="lg"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="content"] {
+            row-gap: var(--space-md);
+        }
+
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-jump-size: calc(var(--size-field) * 11);
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-size="xl"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="content"] {
+            row-gap: var(--space-lg);
+        }
+
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-jump-size: calc(var(--size-field) * 12);
+            font-size: var(--text-sm);
+        }
+    }
+}
+
+@layer zero.recipes {
     [data-scope="radial-progress"][data-part="root"] {
         --radial-size: calc(var(--size-selector) * 16);
         --radial-thickness: calc(var(--size-selector) * 1.5);

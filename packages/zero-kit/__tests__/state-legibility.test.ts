@@ -139,7 +139,7 @@ describe('state legibility', () => {
             .filter((c) => !isOverlayComponent(c))
             .filter((c) => c.parts.some((p) => isTriggerPart(p.name) && p.states?.length))
             .map((c) => c.scope);
-        expect(inFlow.sort()).toEqual(['accordion', 'collapsible', 'input', 'table', 'tree-view']);
+        expect(inFlow.sort()).toEqual(['accordion', 'chat-log', 'collapsible', 'input', 'table', 'tree-view']);
         // …and the escape hatch is load-bearing for exactly one of them: every
         // design system differentiates tree-view on `branch-indicator` and none
         // on `branch-trigger`, while collapsible and accordion have no
