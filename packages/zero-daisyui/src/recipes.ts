@@ -4394,6 +4394,45 @@ export const toggle: RecipeInput = {
         },
     },
     defaultVariants: { color: 'primary', size: 'md' },
+    // signalxjs/lynx#1204 — the lynx replacements for what this recipe's
+    // shared sections cannot say there.
+    targets: {
+        lynx: {
+            parts: {
+                root: {
+                    // daisy's content-sized, never-squeezed btn (lynx#1165):
+                    // a lynx view has no inline formatting context, so the
+                    // toggle stretched to its column and a squeezed label
+                    // wrapped per character. The glyph + label sit in a row.
+                    // The hairline as longhands: a var-bearing `border`
+                    // shorthand expands after the cascade and would beat
+                    // any edge a later rule restates (lynx#1161/#1162).
+                    base: {
+                        ...lynxBtnFit,
+                        flexDirection: 'row',
+                        border: '0 solid transparent',
+                        ...lynxSides('border{}Width', 'var(--border)'),
+                        ...lynxSides('border{}Color', 'var(--color-base-300)'),
+                    },
+                    states: {
+                        // No hover on a touch platform: the held toggle
+                        // takes the wash daisy's hover gives it. The shared
+                        // pressed rule adds the btn's 1px sink.
+                        pressed: { background: 'var(--color-base-300)' },
+                        on: lynxSides('border{}Color', 'var(--toggle-accent)'),
+                        // lynx's `outline` ignores the radius and has no
+                        // offset (lynx#1163): the ring as spread shadows.
+                        'focus-visible': lynxFocusRing('var(--toggle-accent)'),
+                    },
+                    selectors: {
+                        // A held on toggle keeps its fill (the web's
+                        // `[data-state=on]:hover` stays on the accent too).
+                        '&[data-state="on"][data-pressed]': { background: 'var(--toggle-accent)' },
+                    },
+                },
+            },
+        },
+    },
 };
 
 // daisy "join" of btns: one bordered capsule, hairline seams between items,
@@ -4505,6 +4544,65 @@ export const toggleGroup: RecipeInput = {
         ),
     },
     defaultVariants: { color: 'primary' },
+    // signalxjs/lynx#1204 — the lynx replacements for what this recipe's
+    // shared sections cannot say there.
+    targets: {
+        lynx: {
+            parts: {
+                root: {
+                    // Content-sized like the web's inline-flex capsule (a
+                    // lynx view stretches to its column otherwise), a row
+                    // unless vertical, and the frame as longhands so the
+                    // orientation rules below can drop one edge by
+                    // specificity (a var-bearing `border` shorthand would
+                    // expand over them, lynx#1161/#1162).
+                    base: {
+                        width: 'max-content',
+                        flexShrink: '0',
+                        flexDirection: 'row',
+                        border: '0 solid transparent',
+                        ...lynxSides('border{}Width', 'var(--border)'),
+                        ...lynxSides('border{}Color', 'var(--color-base-300)'),
+                    },
+                    selectors: {
+                        // The join seams: lynx has no sibling combinator, so
+                        // the web's `item + item` edge cannot be selected.
+                        // Every item draws its leading seam instead (below),
+                        // and the frame gives up that edge — the first item's
+                        // seam stands in for it, inside the frame's clip.
+                        '&[data-orientation="horizontal"]': { borderLeftWidth: '0' },
+                        '&[data-orientation="vertical"]': { borderTopWidth: '0' },
+                    },
+                },
+                item: {
+                    base: { flexShrink: '0', flexWrap: 'nowrap' },
+                    states: {
+                        // No hover on a touch platform: a held item takes the
+                        // wash daisy's hover gives it; an on item keeps its
+                        // fill (the selector below).
+                        pressed: { background: 'var(--color-base-300)' },
+                        // The frame clips its items, so the ring is drawn
+                        // inside the item (lynx's `outline` has no offset
+                        // and ignores the radius, lynx#1163).
+                        'focus-visible': lynxFocusRing('var(--toggle-group-accent)', { inset: true }),
+                    },
+                    selectors: {
+                        '&[data-state="on"][data-pressed]': { background: 'var(--toggle-group-accent)' },
+                        '&[data-orientation="horizontal"]': {
+                            borderLeftWidth: 'var(--border)',
+                            borderLeftStyle: 'solid',
+                            borderLeftColor: 'var(--color-base-300)',
+                        },
+                        '&[data-orientation="vertical"]': {
+                            borderTopWidth: 'var(--border)',
+                            borderTopStyle: 'solid',
+                            borderTopColor: 'var(--color-base-300)',
+                        },
+                    },
+                },
+            },
+        },
+    },
 };
 
 // daisy "join" of an input and two btns: one bordered capsule (the control),
