@@ -259,6 +259,9 @@ describe('the pass-through reaches every part', () => {
                         <Breadcrumbs.Link {...p('link')} href="/">Home</Breadcrumbs.Link>
                     </Breadcrumbs.Item>
                     <Breadcrumbs.Separator {...p('separator')} />
+                    <Breadcrumbs.Ellipsis {...p('ellipsis')}>
+                        <Breadcrumbs.EllipsisTrigger {...p('ellipsis-trigger')} />
+                    </Breadcrumbs.Ellipsis>
                 </Breadcrumbs.List>
             </Breadcrumbs.Root>
         ),
