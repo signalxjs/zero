@@ -62,7 +62,7 @@
     {
         "name": "@sigx/zero/select",
         "path": "packages/zero/dist/components/select/index.js",
-        "limit": "10.5 kB",
+        "limit": "10.64 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -84,7 +84,7 @@
     {
         "name": "@sigx/zero/button",
         "path": "packages/zero/dist/components/button/index.js",
-        "limit": "2.84 kB",
+        "limit": "2.85 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -96,7 +96,7 @@
     {
         "name": "@sigx/zero/avatar",
         "path": "packages/zero/dist/components/avatar/index.js",
-        "limit": "2.17 kB",
+        "limit": "2.18 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -108,7 +108,7 @@
     {
         "name": "@sigx/zero/toast",
         "path": "packages/zero/dist/components/toast/index.js",
-        "limit": "7.91 kB",
+        "limit": "7.93 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -120,7 +120,7 @@
     {
         "name": "@sigx/zero/combobox",
         "path": "packages/zero/dist/components/combobox/index.js",
-        "limit": "13.93 kB",
+        "limit": "13.95 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -192,7 +192,7 @@
     {
         "name": "@sigx/zero/tree-view",
         "path": "packages/zero/dist/components/tree-view/index.js",
-        "limit": "6.79 kB",
+        "limit": "6.82 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -204,7 +204,7 @@
     {
         "name": "@sigx/zero/input",
         "path": "packages/zero/dist/components/input/index.js",
-        "limit": "4.90 kB",
+        "limit": "4.91 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -312,7 +312,7 @@
     {
         "name": "@sigx/zero/spacer",
         "path": "packages/zero/dist/components/spacer/index.js",
-        "limit": "2 kB",
+        "limit": "2.01 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -324,7 +324,7 @@
     {
         "name": "@sigx/zero/stack",
         "path": "packages/zero/dist/components/stack/index.js",
-        "limit": "2.31 kB",
+        "limit": "2.32 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -336,7 +336,7 @@
     {
         "name": "@sigx/zero/container",
         "path": "packages/zero/dist/components/container/index.js",
-        "limit": "2.13 kB",
+        "limit": "2.14 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -360,7 +360,7 @@
     {
         "name": "@sigx/zero/center",
         "path": "packages/zero/dist/components/center/index.js",
-        "limit": "2.13 kB",
+        "limit": "2.14 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -468,7 +468,7 @@
     {
         "name": "@sigx/zero/table",
         "path": "packages/zero/dist/components/table/index.js",
-        "limit": "4.18 kB",
+        "limit": "4.19 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -492,7 +492,7 @@
     {
         "name": "@sigx/zero/carousel",
         "path": "packages/zero/dist/components/carousel/index.js",
-        "limit": "4.00 kB",
+        "limit": "4.01 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -504,7 +504,7 @@
     {
         "name": "@sigx/zero/swap",
         "path": "packages/zero/dist/components/swap/index.js",
-        "limit": "2880 B",
+        "limit": "2.89 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -528,7 +528,7 @@
     {
         "name": "@sigx/zero/diff",
         "path": "packages/zero/dist/components/diff/index.js",
-        "limit": "3.31 kB",
+        "limit": "3.32 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -588,7 +588,7 @@
     {
         "name": "@sigx/zero/breadcrumbs",
         "path": "packages/zero/dist/components/breadcrumbs/index.js",
-        "limit": "4.11 kB",
+        "limit": "4.12 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -600,7 +600,7 @@
     {
         "name": "@sigx/zero/pagination",
         "path": "packages/zero/dist/components/pagination/index.js",
-        "limit": "3.5 kB",
+        "limit": "3.51 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
