@@ -206,6 +206,7 @@ function page() {
                 </Table.Body>
             </Table.Root>
             <Divider />
+            <Divider.Root><Divider.Label placement="start">Section</Divider.Label></Divider.Root>
             <Skeleton.Root>Article title</Skeleton.Root>
             <Spinner label="Loading results" />
             <RadialProgress.Root value={62}>
