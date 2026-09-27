@@ -15,6 +15,16 @@
 - New exports on the lynx target: `remToPx` and `LYNX_REM_PX`.
 - The web output is unchanged byte for byte.
 
+### Added — the `swiping` flag and the `--swipe-*` runtime properties (zero#293)
+
+- `FLAG_VOCABULARY` gains `swiping` (mirroring `@sigx/zero`), so ecosystem
+  fragments may declare it and recipes may key on `[data-swiping]`.
+- `RUNTIME_PROPERTIES` gains `--swipe-x` / `--swipe-y`, the swipe gesture's
+  drag offset: referenced without a declaration, web-only (the lynx target
+  rejects them outside `targets.web`).
+- The contrast matrices skip `swiping` as they skip `press-animating`: a
+  gesture frame that moves the part, not a resting style.
+
 ## [0.8.0] - 2026-09-27
 
 ### Changed — `RESERVED_PROPS_BY_SCOPE.breadcrumbs` reserves `defaultExpanded`, `itemsAfterCollapse`, `itemsBeforeCollapse` and `maxItems` (zero#295)
