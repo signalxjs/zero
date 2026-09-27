@@ -194,3 +194,74 @@ test('loading: the listbox is busy and says so until the list arrives (#280)', a
     await expect(city('popup')).toHaveAttribute('data-state', 'open');
     await expect(city('item')).toHaveCount(8);
 });
+
+/**
+ * Inline autocomplete (#301), on the inline Combobox — named by the field it
+ * posts. What a real engine adds over the unit suite: the `inputType` a real
+ * keystroke carries, the selection the completion leaves, and that typing
+ * over it replaces it.
+ */
+const inlineDemo = (page: Page) => demoPosting(page, 'combobox', 'inline-country');
+const selection = (loc: ReturnType<ReturnType<typeof inlineDemo>>) =>
+    loc.evaluate((el) => {
+        const i = el as HTMLInputElement;
+        return i.value.slice(i.selectionStart ?? 0, i.selectionEnd ?? 0);
+    });
+
+test('inline: typing completes with the rest selected; typing on refines, Backspace drops it, Enter picks (#301)', async ({ page }) => {
+    const c = inlineDemo(page);
+    await expect(c('input')).toHaveAttribute('aria-autocomplete', 'both');
+    await c('input').click();
+    await page.keyboard.type('S');
+    await expect(c('input')).toHaveValue('Sweden');
+    expect(await selection(c('input'))).toBe('weden');
+    const sweden = c('item').filter({ hasText: 'Sweden' });
+    await expect(c('input')).toHaveAttribute('aria-activedescendant', (await sweden.getAttribute('id'))!);
+    // Backspace removes only the selected completion.
+    await page.keyboard.press('Backspace');
+    await expect(c('input')).toHaveValue('S');
+    await expect(c('input')).not.toHaveAttribute('aria-activedescendant', /.+/);
+    // Typing over a completion replaces it and completes again.
+    await page.keyboard.type('w');
+    await expect(c('input')).toHaveValue('Sweden');
+    await page.keyboard.press('Enter');
+    await expect(c('popup')).toHaveAttribute('data-state', 'closed');
+    await expect(c('input')).toHaveValue('Sweden');
+    await expect(c('hidden-input')).toHaveValue('Sweden');
+});
+
+test('inline: Escape takes the completion back first; a caret move accepts it as text (#301)', async ({ page }) => {
+    const c = inlineDemo(page);
+    await c('input').click();
+    await page.keyboard.type('Ic');
+    await expect(c('input')).toHaveValue('Iceland');
+    await page.keyboard.press('Escape');
+    await expect(c('input')).toHaveValue('Ic');
+    await expect(c('popup')).toHaveAttribute('data-state', 'open');
+    await page.keyboard.type('e');
+    await expect(c('input')).toHaveValue('Iceland');
+    // A caret move along the text (End, Home and ArrowLeft do the same;
+    // End is no caret key in a macOS text field).
+    await page.keyboard.press('ArrowRight');
+    await expect(c('input')).toHaveValue('Iceland');
+    expect(await selection(c('input'))).toBe('');
+    // Accepted text, not a value: nothing posts until it is picked.
+    await expect(c('hidden-input')).toHaveValue('');
+    await page.keyboard.press('Tab');
+    await expect(c('hidden-input')).toHaveValue('Iceland');
+});
+
+test('inline: an IME composition is never completed (#301)', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'IME composition is driven over CDP');
+    const c = inlineDemo(page);
+    await c('input').click();
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.imeSetComposition', { text: 'Ja', selectionStart: 2, selectionEnd: 2 });
+    await expect(c('input')).toHaveValue('Ja');
+    await cdp.send('Input.insertText', { text: 'Ja' });
+    await expect(c('input')).toHaveValue('Ja');
+    expect(await selection(c('input'))).toBe('');
+    // The next plain keystroke completes again.
+    await page.keyboard.type('p');
+    await expect(c('input')).toHaveValue('Japan');
+});
