@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Fixed — zero-daisyui focus rings follow the part's radius on lynx (#365)
+
+- **Lynx target only.** Lynx's `outline` ignores `border-radius` and lynx
+  has no `outline-offset`, so every focus ring painted as a square box flush
+  on the part (signalxjs/lynx#1163). The lynx sections of button, switch,
+  slider, toast, tabs, dialog, popover and select now draw the ring as two
+  spread box-shadows, which follow the radius: a 2px gap in the surface the
+  part sits on (base-100, base-200 for the `box` tabs, the toast's own fill),
+  then 2px of the web ring's ink. The switch track and the slider knob keep
+  their depth shading under the ring.
+- **Accordion, lynx target:** the trigger's ring was clipped away by the
+  item card (signalxjs/lynx#1164). It is drawn inset, rounded to the card's
+  inner corners.
+- **Slider, lynx target:** the composed control no longer draws a ring; the
+  thumb carries it, as on the web's composed slider.
+- The web CSS is unchanged.
+
 ### Added — `Divider.Label`, the labelled separator, and `decorative` (#298)
 
 - **`Divider.Label`**: a new `label` part (`span`, parent `root`) for a
