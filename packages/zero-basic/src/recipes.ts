@@ -2323,12 +2323,6 @@ export const accordion: RecipeInput = {
     },
 };
 
-/**
- * A select whose clear-trigger is rendered (#280) — anchored on the root, so
- * a part inside the trigger can make room for the button laid over it.
- */
-const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
-
 export const select: RecipeInput = {
     component: 'select',
     // The accent pair: the marker ink and its soft wash — no solid selected
@@ -2400,9 +2394,10 @@ export const select: RecipeInput = {
             base: {},
             states: {
                 placeholder: { color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)' },
+                // Room for the clear-trigger laid over the well (#280) — the
+                // `clearable` flag the runtime stamps while it renders (#387).
+                clearable: { marginInlineEnd: 'calc(var(--space-2xl) + var(--space-sm))' },
             },
-            // Room for the clear-trigger laid over the well (#280).
-            selectors: { [SELECT_CLEARABLE]: { marginInlineEnd: 'calc(var(--space-2xl) + var(--space-sm))' } },
         },
         indicator: {
             base: { opacity: '0.55', transition: 'transform var(--duration-fast) var(--ease-standard)' },

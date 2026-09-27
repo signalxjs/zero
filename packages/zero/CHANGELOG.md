@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Added — a governed `clearable` flag for the select (#387)
+
+- **Contract.** `clearable` joins `FLAG_VOCABULARY` (and the zero-kit copy).
+  `select.trigger`, `select.value` and `select.indicator` declare it.
+- **Runtime.** `Select.ClearTrigger` announces itself to the root while it is
+  mounted. The trigger, value and indicator carry `data-clearable` exactly
+  while it renders: one is mounted, something is selected and the select is
+  editable. This holds wherever the button is composed, not only as a direct
+  child of the root.
+- **Skins.** All six skins made room for the button with
+  `[data-part="root"]:has(> [data-part="clear-trigger"]) &`. That rule is now
+  a `clearable` state on the same part, with the same declarations. The web
+  CSS changes only in that selector.
+- **zero-daisyui, lynx target.** lynx has no `:has()`, so the room was
+  dropped there and at `lg`/`xl` the value ran under the × chip and its focus
+  ring (signalxjs/lynx#1191). The chevron's clearable room is now restated
+  physically (`margin-left: calc(1.5rem + var(--space-xs))`: the chip plus the
+  gap it keeps from the chevron, the same at every size). The value clips to
+  one line with an ellipsis instead of running on.
+
 ## [0.10.0] - 2026-09-27
 
 ### Fixed — zero-daisyui select clear-trigger on lynx (#382)

@@ -1289,12 +1289,6 @@ export const menubar: RecipeInput = {
     },
 };
 
-/**
- * A select whose clear-trigger is rendered (#280) — anchored on the root, so
- * a part inside the trigger can make room for the button laid over it.
- */
-const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
-
 export const select: RecipeInput = {
     component: 'select',
     // Accent defaults in `tokens:` — the un-attributed render IS the primary
@@ -1338,9 +1332,13 @@ export const select: RecipeInput = {
         value: { base: { flex: '1', textAlign: 'start' } },
         indicator: {
             base: { opacity: '0.7', transition: motion('transform') },
-            states: { open: { transform: 'rotate(180deg)' }, closed: {} },
-            // Room for the clear-trigger laid over the field (#280).
-            selectors: { [SELECT_CLEARABLE]: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' } },
+            states: {
+                open: { transform: 'rotate(180deg)' },
+                closed: {},
+                // Room for the clear-trigger laid over the field (#280) — the
+                // `clearable` flag the runtime stamps while it renders (#387).
+                clearable: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' },
+            },
         },
         // Clears the selection (#280): an icon button in the filled field's
         // trailing slot, before the dropdown arrow — on-surface ink with the

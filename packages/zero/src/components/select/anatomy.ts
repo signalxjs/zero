@@ -11,14 +11,17 @@ export const selectAnatomy = defineAnatomy('select', {
         element: 'button',
         parent: 'root',
         states: ['open', 'closed'],
-        flags: ['disabled', 'invalid', 'readonly', 'focus-visible', 'placeholder', 'pressed', 'press-animating'],
+        // `clearable` (#387): stamped on the trigger, value and indicator
+        // exactly while the clear-trigger renders, so a skin can reserve its
+        // width without reaching up with `:has()`.
+        flags: ['disabled', 'invalid', 'readonly', 'focus-visible', 'placeholder', 'pressed', 'press-animating', 'clearable'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },
     value: {
         element: 'span',
         parent: 'trigger',
-        flags: ['placeholder'],
+        flags: ['placeholder', 'clearable'],
         tokens: ['color', 'text'],
     },
     indicator: {
@@ -26,6 +29,7 @@ export const selectAnatomy = defineAnatomy('select', {
         paint: { glyph: '▾' },
         parent: 'trigger',
         states: ['open', 'closed'],
+        flags: ['clearable'],
         tokens: ['color'],
     },
     // Clears the selection (#280): a real button in the tab order, a SIBLING

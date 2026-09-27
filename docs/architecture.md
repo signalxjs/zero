@@ -109,8 +109,13 @@ says the same thing to ecosystem fragments.
 
 **Flags are a closed shared vocabulary.** `FLAG_VOCABULARY`: `disabled`,
 `highlighted`, `selected`, `invalid`, `required`, `readonly`, `placeholder`,
-`focus-visible`, `pressed`, `press-animating`, `swiping`. Components never
-invent synonyms; a new flag is a contract change. The press pair is produced by
+`focus-visible`, `pressed`, `press-animating`, `swiping`, `clearable`.
+Components never invent synonyms; a new flag is a contract change.
+`clearable` (#387) marks the parts that make room for a rendered
+clear-trigger — the select's trigger, value and indicator — exactly while it
+renders (one is mounted, something is selected, the control is editable), so
+a skin reserves the button's width off the part itself instead of reaching up
+with `:has()`, which lynx's class grammar cannot express. The press pair is produced by
 `createPressFeedback`: `pressed` while the pointer/key is physically down,
 `press-animating` from press-start until the design system's press animation
 *finishes* — not until release, so a one-shot ripple always plays out — with
