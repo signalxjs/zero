@@ -193,6 +193,58 @@ describe('compileLynxRecipeCss', () => {
         expect(componentCss.button).toMatch(/\.zx-button__root\.zx-f-pressed[.a-z0-9-]* \{/);
     });
 
+    // Lynx stores a var()-bearing declaration under its own property id and
+    // expands it after the cascade, in style-map insertion order — so a
+    // var-bearing shorthand beats a static longhand of the same edge whatever
+    // the specificity (signalxjs/lynx#1161 closed spinner ring, #1162 disabled
+    // outline keeping its ink border). The daisy button spells every such
+    // edge as longhands, and is content-sized like daisy's btn (#1165).
+    describe('daisy button on lynx (signalxjs/lynx#1161, #1162, #1165)', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const rules = (css: string) => [...css.matchAll(/^([^\n{@]+) \{\n([\s\S]*?)\n\}/gm)]
+            .map(([, selector, body]) => ({ selector: selector!.trim(), decls: body!.split('\n').map((d) => d.trim().replace(/;$/, '')) }));
+        const button = rules(componentCss.button ?? '');
+        // A selector can own several rules (the token block, then the paint): read them all.
+        const decls = (selector: string) => button.filter((r) => r.selector === selector).flatMap((r) => r.decls);
+
+        it('ships no var()-bearing border or padding shorthand', () => {
+            const shorthand = /^(border|border-color|border-width|border-style|padding)\s*:.*var\(/;
+            const offenders = button.flatMap((r) => r.decls.filter((d) => shorthand.test(d)).map((d) => `${r.selector} { ${d} }`));
+            expect(offenders).toEqual([]);
+        });
+
+        it('keeps the spinner arc open: only the top edge is transparent', () => {
+            const spinner = decls('.zx-button__spinner');
+            expect(spinner).toContain('border-top-color: transparent');
+            for (const side of ['right', 'bottom', 'left']) expect(spinner).toContain(`border-${side}-color: var(--btn-ink)`);
+            const solid = decls('.zx-button__spinner.zx-a-variant-solid');
+            for (const side of ['right', 'bottom', 'left']) expect(solid).toContain(`border-${side}-color: var(--btn-on-accent)`);
+            expect(solid.some((d) => d.startsWith('border-top-color') || d.startsWith('border-color'))).toBe(false);
+        });
+
+        it('draws the outline/dash ink edge as longhands the disabled rule overrides', () => {
+            for (const variant of ['outline', 'dash']) {
+                const base = decls(`.zx-button__root.zx-a-variant-${variant}`);
+                for (const side of ['top', 'right', 'bottom', 'left']) expect(base).toContain(`border-${side}-color: var(--btn-ink)`);
+                expect(decls(`.zx-button__root.zx-a-variant-${variant}.zx-f-disabled`)).toContain('border-color: transparent');
+            }
+        });
+
+        it('sizes the root to its content and never squeezes it', () => {
+            const root = decls('.zx-button__root');
+            expect(root).toEqual(expect.arrayContaining(['width: max-content', 'flex-shrink: 0', 'flex-wrap: nowrap']));
+            // The icon chips give the width back to aspect-ratio; block/wide restate it physically.
+            expect(decls('.zx-button__root.zx-m-square')).toContain('width: auto');
+            expect(decls('.zx-button__root.zx-m-circle')).toContain('width: auto');
+            expect(decls('.zx-button__root.zx-m-block')).toContain('width: 100%');
+            expect(decls('.zx-button__root.zx-m-wide')).toEqual(expect.arrayContaining(['width: 100%', 'max-width: 16rem']));
+            for (const scope of ['dialog', 'popover']) {
+                const trigger = rules(componentCss[scope] ?? '').filter((r) => r.selector === `.zx-${scope}__trigger`).flatMap((r) => r.decls);
+                expect(trigger).toEqual(expect.arrayContaining(['width: max-content', 'flex-shrink: 0', 'flex-wrap: nowrap']));
+            }
+        });
+    });
+
     it('projects layout attribute selectors onto the class grammar', () => {
         // The branch exists so the `zx-l-` grammar is not dead code: without
         // it every layout rule would be dropped and the layout tier would
