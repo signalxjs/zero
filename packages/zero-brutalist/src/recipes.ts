@@ -5421,6 +5421,36 @@ export const drawer: RecipeInput = {
                     insetInlineEnd: '0',
                     borderInlineStart: 'calc(var(--border) * 2) solid var(--color-base-content)',
                 },
+                /**
+                 * The block edges (#291): a sheet across the viewport's width,
+                 * pinned with `inset-block-*` — nothing here mirrors in RTL. Its
+                 * height is this recipe's: content-sized up to most of the
+                 * viewport, so the scrim stays in reach. Full width by default —
+                 * `measure` still caps the INLINE size (centred by the auto
+                 * margins), which the `:where()` keeps below the layout step
+                 * table's specificity whatever order the files load in.
+                 */
+                '&:where([data-placement="top"], [data-placement="bottom"])': { '--l-measure': 'none' },
+                '&[data-placement="top"][data-l-dock="sheet"]': {
+                    insetBlockStart: '0',
+                    insetBlockEnd: 'auto',
+                    insetInlineStart: '0',
+                    insetInlineEnd: '0',
+                    marginInline: 'auto',
+                    blockSize: 'auto',
+                    maxBlockSize: '85dvh',
+                    borderBlockEnd: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                },
+                '&[data-placement="bottom"][data-l-dock="sheet"]': {
+                    insetBlockStart: 'auto',
+                    insetBlockEnd: '0',
+                    insetInlineStart: '0',
+                    insetInlineEnd: '0',
+                    marginInline: 'auto',
+                    blockSize: 'auto',
+                    maxBlockSize: '85dvh',
+                    borderBlockStart: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                },
             },
         }),
         backdrop: {

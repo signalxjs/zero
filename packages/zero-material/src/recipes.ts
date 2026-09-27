@@ -5908,9 +5908,11 @@ export const steps: RecipeInput = {
 /**
  * The modal sheet's slide (#83): in from its edge, back out to it.
  *
- * `translate` is physical, so the travel is a custom property that flips with
- * the placement AND the direction — off the reading start is leftward in LTR
- * and rightward in RTL (the `rtl` hedge, as everywhere here). Keyed on
+ * `translate` is physical, so the travel is a custom property — the whole
+ * `x y` pair — that flips with the placement AND the direction: off the
+ * reading start is leftward in LTR and rightward in RTL (the `rtl` hedge, as
+ * everywhere here), while a `top` / `bottom` sheet travels on Y and mirrors
+ * in neither (#291). Keyed on
  * `data-l-dock="sheet"`, the regime, which holds through the exit where
  * `:modal` does not, so the slide-out leaves from the sheet's own box.
  * Opacity stays at 1: the travel is the transition. Each direction rides the
@@ -5924,16 +5926,19 @@ const sheetSlide = (enter: string, exit: string): PartStyles => {
         return `translate ${tempo}, display ${duration} allow-discrete, overlay ${duration} allow-discrete`;
     };
     return {
-        base: { '--drawer-travel': '-100%' },
+        base: { '--drawer-travel': '-100% 0' },
         selectors: {
-            '&[data-placement="end"]': { '--drawer-travel': '100%' },
-            [`&[data-placement="start"]${rtl}`]: { '--drawer-travel': '100%' },
-            [`&[data-placement="end"]${rtl}`]: { '--drawer-travel': '-100%' },
-            [sheet]: { opacity: '1', translate: 'var(--drawer-travel) 0', transition: travel(exit) },
+            '&[data-placement="end"]': { '--drawer-travel': '100% 0' },
+            [`&[data-placement="start"]${rtl}`]: { '--drawer-travel': '100% 0' },
+            [`&[data-placement="end"]${rtl}`]: { '--drawer-travel': '-100% 0' },
+            // The block edges travel on Y, and no direction mirrors them (#291).
+            '&[data-placement="top"]': { '--drawer-travel': '0 -100%' },
+            '&[data-placement="bottom"]': { '--drawer-travel': '0 100%' },
+            [sheet]: { opacity: '1', translate: 'var(--drawer-travel)', transition: travel(exit) },
             [open]: { translate: 'none', transition: travel(enter) },
         },
         at: {
-            'starting-style': { selectors: { [open]: { opacity: '1', translate: 'var(--drawer-travel) 0' } } },
+            'starting-style': { selectors: { [open]: { opacity: '1', translate: 'var(--drawer-travel)' } } },
             'reduced-motion': { selectors: { [sheet]: { transition: 'none' }, [open]: { transition: 'none' } } },
         },
     };
@@ -5998,6 +6003,38 @@ export const drawer: RecipeInput = {
                 },
                 '&[data-placement="start"][data-l-dock="sheet"]': { insetInlineStart: '0', insetInlineEnd: 'auto' },
                 '&[data-placement="end"][data-l-dock="sheet"]': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+                /**
+                 * The block edges (#291): a sheet across the viewport's width,
+                 * pinned with `inset-block-*` — nothing here mirrors in RTL. Its
+                 * height is this recipe's: content-sized up to most of the
+                 * viewport, so the scrim stays in reach. Full width by default —
+                 * `measure` still caps the INLINE size (centred by the auto
+                 * margins), which the `:where()` keeps below the layout step
+                 * table's specificity whatever order the files load in.
+                 */
+                '&:where([data-placement="top"], [data-placement="bottom"])': { '--l-measure': 'none' },
+                '&[data-placement="top"][data-l-dock="sheet"]': {
+                    insetBlockStart: '0',
+                    insetBlockEnd: 'auto',
+                    insetInlineStart: '0',
+                    insetInlineEnd: '0',
+                    marginInline: 'auto',
+                    blockSize: 'auto',
+                    maxBlockSize: '85dvh',
+                    borderEndStartRadius: 'var(--radius-box)',
+                    borderEndEndRadius: 'var(--radius-box)',
+                },
+                '&[data-placement="bottom"][data-l-dock="sheet"]': {
+                    insetBlockStart: 'auto',
+                    insetBlockEnd: '0',
+                    insetInlineStart: '0',
+                    insetInlineEnd: '0',
+                    marginInline: 'auto',
+                    blockSize: 'auto',
+                    maxBlockSize: '85dvh',
+                    borderStartStartRadius: 'var(--radius-box)',
+                    borderStartEndRadius: 'var(--radius-box)',
+                },
             },
         }),
         backdrop: {

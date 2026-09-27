@@ -3,16 +3,17 @@
  * inherited deliberately (presence-tracked labelling, model-driven
  * showModal/show, cancel routed through the model). What is Drawer's OWN:
  * `data-placement="start|end"` on the panel (the logical pair — an edge
- * panel anchors to the reading direction, not to the glass), the `label`
+ * panel anchors to the reading direction, not to the glass) plus the
+ * sheet-only block edges `top|bottom` (#291), the `label`
  * prop (a navigation drawer often has no visible title), and the inline
  * non-modal mode. The real-browser half (scrim geometry, Escape via
  * cancel, focus restore) lives in e2e/drawer.spec.ts.
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { Drawer, clearThemes, drawerAnatomy, registerThemes } from '@sigx/zero';
-import type { DrawerCloseDetail } from '@sigx/zero';
+import type { DrawerCloseDetail, DrawerPlacement } from '@sigx/zero';
 import { expectAnatomy, pressDialog } from './helpers';
 
 /** Presence flags land one microtask after the render pass; settle them. */
@@ -21,7 +22,7 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
 const part = (c: HTMLElement, name: string) =>
     c.querySelector<HTMLElement>(`[data-scope="drawer"][data-part="${name}"]`)!;
 
-function mount(container: HTMLElement, state: { open: boolean }, extra: { placement?: 'start' | 'end' } = {}) {
+function mount(container: HTMLElement, state: { open: boolean }, extra: { placement?: DrawerPlacement } = {}) {
     render(
         <Drawer.Root model={[state, 'open']} placement={extra.placement}>
             <Drawer.Trigger>Menu</Drawer.Trigger>
@@ -58,6 +59,22 @@ describe('Drawer', () => {
         mount(end, signal({ open: false }), { placement: 'end' });
         expect(part(end, 'panel').getAttribute('data-placement')).toBe('end');
         expectAnatomy(end, drawerAnatomy);
+    });
+
+    it('stamps the block edges (#291), declared in the anatomy', () => {
+        expect(drawerAnatomy.parts.panel.placements).toEqual(['start', 'end', 'top', 'bottom']);
+        for (const placement of ['top', 'bottom'] as const) {
+            const host = document.createElement('div');
+            document.body.appendChild(host);
+            const state = signal({ open: false });
+            mount(host, state, { placement });
+            const panel = part(host, 'panel') as HTMLDialogElement;
+            expect(panel.getAttribute('data-placement')).toBe(placement);
+            expect(panel.getAttribute('data-l-dock')).toBe('sheet');
+            expectAnatomy(host, drawerAnatomy);
+            part(host, 'trigger').click();
+            expect(panel.open).toBe(true);
+        }
     });
 
     it('trigger opens, close closes, state stays in the model', () => {
@@ -476,6 +493,42 @@ describe('Drawer responsive regime (#82) — modal={{ below }}', () => {
         const panel = part(container, 'panel') as HTMLDialogElement;
         expect(panel.open).toBe(true);
         expect(panel.getAttribute('data-state')).toBe('open');
+    });
+
+    it('a block-edge drawer does not dock: it warns and stays a modal sheet at every width (#291)', async () => {
+        viewport(true);
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        try {
+            const state = signal({ open: false });
+            render(
+                <Drawer.Root model={[state, 'open']} modal={{ below: 'md' }} placement="bottom">
+                    <Drawer.Trigger>Filters</Drawer.Trigger>
+                    <Drawer.Panel>
+                        <Drawer.Title>Filters</Drawer.Title>
+                        <Drawer.Close>Close</Drawer.Close>
+                    </Drawer.Panel>
+                </Drawer.Root>,
+                container,
+            );
+            await tick();
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(String(warn.mock.calls[0][0])).toMatch(/placement="bottom" cannot dock/);
+            // No breakpoint reaches the markup or the viewport: nothing docks.
+            expect(queries).toEqual([]);
+            for (const name of ['trigger', 'panel', 'close']) {
+                expect(part(container, name).hasAttribute('data-l-dock-above')).toBe(false);
+            }
+            const panel = part(container, 'panel') as HTMLDialogElement;
+            // Wide viewport, yet closed and a sheet — the model decides.
+            expect(panel.open).toBe(false);
+            expect(panel.getAttribute('data-l-dock')).toBe('sheet');
+            part(container, 'trigger').click();
+            await tick();
+            expect(panel.open).toBe(true);
+            expectAnatomy(container, drawerAnatomy);
+        } finally {
+            warn.mockRestore();
+        }
     });
 
     it('an undeclared breakpoint throws at setup rather than never matching', () => {

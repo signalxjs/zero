@@ -118,6 +118,9 @@ const SCANS: Record<string, Scan[]> = {
     }, {
         name: 'non-dismissible drawer',
         open: openDialog('Open pinned drawer'),
+    }, {
+        name: 'bottom sheet',
+        open: openDialog('Open bottom sheet'),
     }],
     popover: [{
         name: 'popover',

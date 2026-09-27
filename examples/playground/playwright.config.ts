@@ -40,7 +40,7 @@ const baseURL = `http://localhost:${port}`;
 /**
  * Every phone-width spec is the `narrow` project's, and only its own
  * (#45): the page sweep (`narrow-viewport`) plus the per-component
- * geometric claims it grew out of (`narrow-dialog`, `narrow-pagination`,
+ * geometric claims it grew out of (`narrow-dialog`, `narrow-drawer`, `narrow-pagination`,
  * `narrow-stats`). They are claims about our own cascade at a width, not
  * about engine behaviour, so one Chromium project is the coverage; running
  * them again in each engine and preference project would multiply the

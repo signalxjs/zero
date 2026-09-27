@@ -739,19 +739,24 @@ component renders; the root is called out separately where it carries props.
   expands and focuses the first revealed link. useBreadcrumbsContext()
   exposes hiddenIndices()/hiddenCount() for a menu of the hidden crumbs.
 - Drawer: Root(model=open, modal: boolean | { below: bp }, dismissible,
-  placement start|end, label, initialFocus, finalFocus, preventScroll
+  placement start|end|top|bottom, label, initialFocus, finalFocus, preventScroll
   (sheet regime only) — renders no element) then Trigger/Panel/Title/Close on native <dialog>
   + top layer, Dialog's machinery inherited (backdrop = ::backdrop pseudo
   part; presence-tracked aria-labelledby, with the label prop as the
   aria-label fallback when no Title renders — a nav drawer often has no
   visible heading). The panel stamps data-placement="start|end" from the
   LOGICAL pair (an edge panel anchors to the reading direction); recipes
-  pin it with inset-inline-* so RTL mirrors free, and distinguish modal
+  pin it with inset-inline-* so RTL mirrors free. top|bottom (#291) are
+  the block edges — a full-width sheet pinned with inset-block-*, never
+  mirrored, height recipe-owned (content-sized up to a cap), measure still
+  an inline-size cap; sheet-only: with modal={{ below }} it console.warns
+  and stays a modal sheet (no data-l-dock-above). Recipes distinguish modal
   from inline with data-l-dock="sheet|inline" on the panel (#83) — the
   regime, not the open state, so unlike :modal it holds through a sheet's
   exit and the sheet keeps its box while it leaves. material, daisyui,
-  heroui and carbon slide the sheet (translate over --drawer-travel, flipped
-  by placement and :dir(rtl), dropped under reduced motion); basic and
+  heroui and carbon slide the sheet (translate over --drawer-travel, an
+  x y pair flipped by placement and :dir(rtl) — on Y for top|bottom, which
+  never flips — dropped under reduced motion); basic and
   brutalist fade. modal (default)
   = showModal(): focus trap, Escape via cancel, scrim click dismisses by
   Dialog's click geometry. modal={false} = INLINE: renders in flow via

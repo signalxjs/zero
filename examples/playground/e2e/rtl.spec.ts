@@ -276,6 +276,48 @@ for (const ds of DESIGN_SYSTEMS) {
         }
 
         /**
+         * The block edges do NOT mirror (#291): a bottom sheet under RTL is
+         * the same full-width sheet on the same block edge, and a sliding
+         * skin's travel stays on Y — the travel pair has no direction-flipped
+         * form for `top|bottom`, and this is the box that proves no rule
+         * gave it one. Seeked to 5% of the entry, as above; a fading skin
+         * has no translate transition, so its box is the resting one.
+         */
+        test('the bottom drawer sheet does not mirror: full width, rising on Y', async ({ page }) => {
+            const trigger = page.getByRole('button', { name: 'Open bottom sheet', exact: true });
+            const mid = await trigger.evaluate(async (btn: HTMLElement) => {
+                btn.click();
+                await new Promise((r) => setTimeout(r, 0));
+                const panel = document.getElementById(btn.getAttribute('aria-controls')!)!;
+                const running = panel.getAnimations();
+                const slide = running.find((a) => (a as CSSTransition).transitionProperty === 'translate');
+                if (slide) {
+                    for (const a of running) a.pause();
+                    slide.currentTime = (slide.effect!.getComputedTiming().duration as number) * 0.05;
+                }
+                const r = panel.getBoundingClientRect();
+                return {
+                    slid: !!slide,
+                    left: r.left,
+                    right: r.right,
+                    bottom: r.bottom,
+                    height: r.height,
+                    vw: document.documentElement.clientWidth,
+                    vh: window.innerHeight,
+                };
+            });
+            expect(mid.slid, `${ds}: slides iff the skin slides its sheets (#83)`).toBe(SLIDES.has(ds));
+            expect(Math.abs(mid.left), `${ds}: the sheet's inline start`).toBeLessThanOrEqual(1);
+            expect(Math.abs(mid.right - mid.vw), `${ds}: the sheet's inline end`).toBeLessThanOrEqual(1);
+            if (mid.slid) {
+                // Early in, it still hangs below the block end.
+                expect(mid.bottom).toBeGreaterThan(mid.vh + mid.height / 4);
+            } else {
+                expect(Math.abs(mid.bottom - mid.vh)).toBeLessThanOrEqual(1);
+            }
+        });
+
+        /**
          * A `bottom-start` menu aligns its inline-start edge with its
          * trigger's (#264) — the RIGHT edges under RTL, so the popup opens
          * leftwards, towards the reading end. The positioner writes physical

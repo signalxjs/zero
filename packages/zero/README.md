@@ -1057,13 +1057,30 @@ less. Display-only: no model, no state.
 </AvatarGroup.Root>
 ```
 
+**Drawer placement is an edge** — `placement="start"` (default) or `"end"`,
+the reading edges, which RTL mirrors; or `"top"` / `"bottom"`, the block
+edges (#291): a sheet across the viewport's width, pinned with
+`inset-block-*`, which no direction mirrors — the bottom sheet. The block
+edges are sheet-only: the docked regime below is for the reading edges, and
+a `top`/`bottom` drawer given `modal={{ below }}` warns in the console and
+stays a modal sheet at every width. A block-edge sheet's height is the
+design system's (content-sized up to a cap, so the scrim stays in reach).
+
+```tsx
+<Drawer.Root placement="bottom" label="Share">
+    <Drawer.Trigger>Share</Drawer.Trigger>
+    <Drawer.Panel>…targets…<Drawer.Close>Done</Drawer.Close></Drawer.Panel>
+</Drawer.Root>
+```
+
 **Drawer width is `measure`.** `Drawer.Panel measure="md"` sizes the panel
 from the design system's `--measure-*` ramp — Container's layout attribute,
 not the `size` axis, which rides the trigger and cannot reach a panel that
 is not inside it. The measure is a cap: the panel fills the space it is given
 up to it — its container inline, the viewport as a modal sheet — so
 `measure="full"` is a full-screen sheet. Unset, each design system keeps its
-own drawer width.
+own drawer width. It stays an inline-size cap at the block edges: a
+top or bottom sheet is full width unless `measure` narrows it (centred).
 
 **The regime is `data-l-dock` on the panel** (#83): `sheet` for a modal
 drawer, `inline` for `modal={false}`, and for a responsive one whichever side
@@ -1072,7 +1089,8 @@ the moment `close()` runs, it holds through a sheet's exit, so a design
 system keys the sheet's geometry on `[data-l-dock="sheet"]` and the sheet
 keeps its box while it leaves. That is what lets material, daisyUI, HeroUI
 and Carbon slide the sheet in from its edge and back out to it (the travel
-flips with the placement and with `dir="rtl"`; reduced motion drops it), while
+flips with the placement and with `dir="rtl"`, and a top or bottom sheet
+travels on the block axis instead; reduced motion drops it), while
 basic and brutalist keep the fade. Outside Chromium the exit plays through
 zero's deferred close (#17).
 

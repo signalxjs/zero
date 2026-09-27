@@ -50,7 +50,9 @@ it is private.
 The modal drawer sheet slides in from its edge on Carbon's productive entrance
 curve (`moderate-02`, 240ms) and out on the exit curve, instead of fading
 (#83). The travel flips with the placement and with `dir="rtl"`, and reduced
-motion drops it.
+motion drops it. A `top`/`bottom` sheet (#291) spans the viewport's width,
+content-high up to 85% of it, with the single line on its inner block edge,
+and travels on the block axis, which never mirrors.
 
 ### The primary button keeps blue 60 on g100
 
