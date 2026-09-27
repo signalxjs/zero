@@ -33,6 +33,12 @@
 - NumberInput's new root props are reserved, so a vendor-named api cannot
   claim them as axis props.
 
+### Added — the `chat-log` scope (zero#299)
+
+- **`RESERVED_PROPS_BY_SCOPE`** reserves `chat-log`'s root props
+  (`defaultFollowing`, `id`, `label`, `threshold`, `title`), so a
+  vendor-named api cannot claim them as axis props.
+
 ### Added — the `menubar` scope (zero#289)
 
 - **`RESERVED_PROPS_BY_SCOPE`** reserves `menubar`'s root props

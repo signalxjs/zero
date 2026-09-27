@@ -117,6 +117,36 @@
 - A custom `format` / `parse` still wins; the hidden input still posts
   `String(value)`. No anatomy change.
 
+### Added — `ChatLog`: a `role="log"` transcript container that follows its tail (#299)
+
+- **`ChatLog`** (`@sigx/zero/chat-log` and the barrel), scope `chat-log`:
+  `root` is the scroll box and live region (`role="log"`,
+  `aria-live="polite"`, `aria-relevant="additions"`, `tabIndex=0` with the
+  `focus-visible` flag, named by `label`); `content` (parent `root`) holds
+  the rows; `jump-trigger` (a `<button>`, parent `root`, `asChild`) is
+  `open` while the log is not following and `closed` + `hidden` while it
+  is (`hiddenIn: ['closed']`), named "Jump to latest" unless `label` says
+  otherwise. The root's named model `model:following` (`defaultFollowing`
+  true, `followingChange`) says whether it follows; writing true jumps to
+  the end. `threshold` (24px) is how near the end still counts as at it.
+- **Behavior.** Appends and a growing last row keep the end in view; an
+  upward scroll — or a wheel moving up, a touch dragging down — lets go;
+  reaching the end or the trigger follows again, and the trigger hands its
+  focus to the log. While not following, rows prepended above leave the
+  row being read in place.
+- **Opt-in.** `Chat` rows are unchanged, and render the same inside a
+  ChatLog or not.
+- **`createStickToBottom`** (behaviors): the same rules without the
+  anatomy — `viewportRef`, an optional `contentRef`, `following()`,
+  `setFollowing()`, `scrollToEnd()`, `pin()`.
+- All six design systems style `chat-log`.
+
+### Changed — `createVirtualList` follows its tail through `createStickToBottom`'s rules (#299)
+
+- Under `stickToBottom`, a wheel moving up or a touch dragging the content
+  down now lets go of the tail before the scroll lands, as well as the
+  upward scroll itself. Everything else is unchanged.
+
 ### Added — `Menubar`, the APG menubar over Menu; `Menu.Shortcut` and `keyshortcuts` (#289)
 
 - **`Menubar.Root`** (`@sigx/zero/menubar` and the barrel): a new `menubar`
