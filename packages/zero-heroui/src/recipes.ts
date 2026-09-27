@@ -1778,11 +1778,6 @@ export const accordion: RecipeInput = {
 };
 
 // ── Select ────────────────────────────────────────────────────────────────
-/**
- * A select whose clear-trigger is rendered (#280) — anchored on the root, so
- * a part inside the trigger can make room for the button laid over it.
- */
-const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
 
 /**
  * HeroUI's listbox popover, sized by the geometry the anchored-position
@@ -1848,9 +1843,13 @@ export const select: RecipeInput = {
         },
         indicator: {
             base: { flex: 'none', color: 'var(--hero-muted)', transition: motion('rotate') },
-            states: { open: { rotate: '180deg' }, closed: {} },
-            // Room for the clear-trigger laid over the field (#280).
-            selectors: { [SELECT_CLEARABLE]: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' } },
+            states: {
+                open: { rotate: '180deg' },
+                closed: {},
+                // Room for the clear-trigger laid over the field (#280) — the
+                // `clearable` flag the runtime stamps while it renders (#387).
+                clearable: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' },
+            },
         },
         // Clears the selection (#280): HeroUI's clear button in the field's
         // end content, before the chevron — muted ink that firms up on a

@@ -2942,12 +2942,6 @@ const fieldControl: NonNullable<PartStyles['base']> = {
 };
 
 /**
- * A select whose clear-trigger is rendered (#280) — anchored on the root, so
- * a part inside the trigger can make room for the button laid over it.
- */
-const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
-
-/**
  * The select trigger's lynx steps — `[inline padding in --size-field units,
  * font-size step]` — as the size variants set them (`lynxBtnPad` and the
  * web ramp's `fontSize`). One table, so the clear-trigger's offset below
@@ -3037,9 +3031,13 @@ export const select: RecipeInput = {
         },
         indicator: {
             base: { opacity: '0.6', transition: 'transform var(--duration-normal) var(--ease-standard)' },
-            states: { open: { transform: 'rotate(180deg)' }, closed: {} },
-            // Room for the clear-trigger laid over the field (#280).
-            selectors: { [SELECT_CLEARABLE]: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' } },
+            states: {
+                open: { transform: 'rotate(180deg)' },
+                closed: {},
+                // Room for the clear-trigger laid over the field (#280) — the
+                // `clearable` flag the runtime stamps while it renders (#387).
+                clearable: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' },
+            },
         },
         // Clears the selection (#280): daisy's ghost-btn over the field's
         // inline end, just before the chevron — muted like it, the base-200
@@ -3197,7 +3195,25 @@ export const select: RecipeInput = {
                 // focus ring was a tall pill. The ring is inset, so it hugs
                 // the chip and can never reach the chevron, and no gap shadow
                 // paints past the chip's rounded corners.
-                indicator: { base: { width: '1em', textAlign: 'right' } },
+                indicator: {
+                    base: { width: '1em', textAlign: 'right' },
+                    // The web's room for the chip (`margin-inline-start`) is a
+                    // logical spelling Android never resolves, and it is
+                    // sized off the web's own offset. Here the chip is a
+                    // 1.5rem square one `--space-xs` short of the chevron
+                    // at every size, so the room is exactly that — and the
+                    // trigger's `gap` stays between the value and the chip.
+                    // Before the `clearable` flag the web reached this with
+                    // `:has()`, which lynx cannot express: at lg/xl the value
+                    // ran under the chip and its focus ring
+                    // (signalxjs/lynx#1191).
+                    states: { clearable: { marginLeft: 'calc(1.5rem + var(--space-xs))' } },
+                },
+                // The value gives way to the chip instead of running under
+                // it: one line, clipped with an ellipsis — the web's
+                // `nowrap` button text, with a flex item's `min-width: auto`
+                // lifted so it can shrink below its content at all.
+                value: { base: { flexShrink: '1', minWidth: '0', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' } },
                 'clear-trigger': {
                     base: { ...lynxSelectClear('md'), width: '1.5rem', height: '1.5rem', minWidth: '1.5rem', boxSizing: 'border-box' },
                     states: lynxFocus({ inset: true }),
@@ -3217,7 +3233,6 @@ export const select: RecipeInput = {
         },
     },
 };
-
 
 /**
  * daisy's BUTTON ramp — `.btn`'s fixed height per size step, in `--size-field`

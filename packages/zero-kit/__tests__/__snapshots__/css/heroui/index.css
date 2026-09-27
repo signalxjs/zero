@@ -2660,7 +2660,7 @@
         rotate: 180deg;
     }
 
-    [data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) [data-scope="select"][data-part="indicator"] {
+    [data-scope="select"][data-part="indicator"][data-clearable] {
         margin-inline-start: calc(var(--space-2xl) + var(--space-sm));
     }
 

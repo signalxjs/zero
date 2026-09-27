@@ -1073,6 +1073,25 @@ describe('assertNoCalcVarChains', () => {
             }
         });
 
+        // signalxjs/lynx#1191 via zero#387: the web made room for the chip with
+        // `:has(> clear-trigger)`, which the class grammar cannot express, so
+        // at lg/xl the value ran under the chip. The `clearable` flag the
+        // runtime stamps carries it: the chevron's margin is the chip plus
+        // the one `--space-xs` it sits short of the chevron — size-free, as
+        // the chip is placed beside the chevron at every size — and the
+        // value clips with an ellipsis instead of running on.
+        it('a clearable select reserves the chip beside the chevron, and the value gives way', () => {
+            const css = lynxCss()['select']!;
+            const decls = (selector: string) => [...css.matchAll(/^([^\n{@]+) \{\n([\s\S]*?)\n\}/gm)]
+                .filter(([, sel]) => sel!.trim() === selector)
+                .flatMap(([, , body]) => body!.split('\n').map((d) => d.trim().replace(/;$/, '')));
+            expect(decls('.zx-select__indicator.zx-f-clearable')).toEqual(['margin-left: calc(24px + var(--space-xs))']);
+            expect(css).not.toContain(':has(');
+            expect(decls('.zx-select__value')).toEqual(expect.arrayContaining([
+                'flex-shrink: 1', 'min-width: 0', 'overflow: hidden', 'white-space: nowrap', 'text-overflow: ellipsis',
+            ]));
+        });
+
         it('the ring outlasts every later box-shadow rule at equal or lower specificity', () => {
             const css = lynxCss();
             // A variant/modifier that zeroes or sets the part's box-shadow

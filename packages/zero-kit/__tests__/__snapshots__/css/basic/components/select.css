@@ -72,7 +72,7 @@
         color: color-mix(in oklch, var(--color-base-content) 55%, transparent);
     }
 
-    [data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) [data-scope="select"][data-part="value"] {
+    [data-scope="select"][data-part="value"][data-clearable] {
         margin-inline-end: calc(var(--space-2xl) + var(--space-sm));
     }
 
