@@ -452,6 +452,13 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     const clearInline = (): void => {
         if (inline.typed !== null) inline.typed = null;
     };
+    // Any write that moves the text off what the completion completed — a
+    // consumer's controlled update, a clear, a reset — retires it for good,
+    // so it cannot resurface if the text later comes back to `typed`.
+    watch(
+        () => inputValue.value,
+        (v) => { if (inline.typed !== null && v !== inline.typed) untrack(clearInline); },
+    );
     /** Put `text` in the input with `[start, end)` selected — and again after a re-render writes the value back. */
     const showText = (text: string, start: number, end: number): void => {
         const el = input as HTMLInputElement | null;

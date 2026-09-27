@@ -1203,6 +1203,17 @@ describe('Combobox inline autocomplete (#301)', () => {
         expect(highlighted()).toBe('Finland');
     });
 
+    it('a controlled write away from the typed text retires the completion for good', async () => {
+        const { input, state } = inline();
+        typeKey(input, 'Fi');
+        expect(input.value).toBe('Finland');
+        state.query = 'Sp';
+        await Promise.resolve();
+        state.query = 'Fi';
+        await Promise.resolve();
+        expect(input.value).toBe('Fi');
+    });
+
     it('ArrowDown leaves the completion behind and walks the list', () => {
         const { input, highlighted } = inline();
         typeKey(input, 'F');
