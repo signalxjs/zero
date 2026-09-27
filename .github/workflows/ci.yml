@@ -64,12 +64,20 @@ jobs:
       - name: Test
         run: pnpm test
 
-  e2e:
-    # A required check, so it also runs in the merge queue: a PR's own run
-    # predates whatever landed ahead of it (#159). The suite takes ~17 min;
-    # the timeout keeps a hung browser from holding the queue for hours.
+  e2e-shard:
+    # The suite outgrew one job (#352): at ~2,800 tests it ran ~29 min against
+    # the 30 min cap, and every run was cancelled with nothing failing.
+    # Playwright's --shard splits the tests evenly, so each shard runs about a
+    # third of the suite. The timeout still keeps a hung browser from holding
+    # the queue for hours. The required check is the `e2e` job below, not
+    # these shards, so the shard count can change without a ruleset edit.
+    name: e2e (shard ${{ matrix.shard }}/3)
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
 
@@ -120,8 +128,10 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm --filter zero-playground exec playwright install-deps chromium firefox webkit
 
+      # `exec`, not the `e2e` script: `pnpm --filter … e2e -- <args>` drops
+      # the arguments (AGENTS.md).
       - name: Real-browser interaction suite
-        run: pnpm --filter zero-playground e2e
+        run: pnpm --filter zero-playground exec playwright test --shard=${{ matrix.shard }}/3
 
       # A failure used to leave only the github-reporter annotations (#196).
       # The HTML report plus test-results/ carry the traces recorded on the
@@ -131,11 +141,28 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-shard-${{ matrix.shard }}
           path: |
             examples/playground/playwright-report/
             examples/playground/test-results/
           retention-days: 14
+
+  e2e:
+    # The required check, and it also runs in the merge queue: a PR's own run
+    # predates whatever landed ahead of it (#159). It passes only when every
+    # shard passed. `always()` makes a failed or cancelled shard report as a
+    # failure here rather than a skip, because a skipped required check would
+    # not block the merge.
+    if: always()
+    needs: e2e-shard
+    runs-on: ubuntu-latest
+    steps:
+      - name: All shards passed
+        run: |
+          if [ "${{ needs.e2e-shard.result }}" != "success" ]; then
+            echo "e2e shards: ${{ needs.e2e-shard.result }}"
+            exit 1
+          fi
 
   verify-pack:
     runs-on: ubuntu-latest
