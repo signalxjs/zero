@@ -790,13 +790,17 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
     it('zero-daisyui select: root carries the width, the portalled popup restates the accent', () => {
         const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
         const css = componentCss['select']!;
-        expect(css).toMatch(/\.zx-select__root \{[^}]*width: 20rem;[^}]*max-width: 100%;[^}]*min-width: 3rem;/);
-        const trigger = css.match(/\.zx-select__trigger \{[^}]*\}/)?.[0];
-        expect(trigger).toContain('width: 100%;');
-        expect(trigger).not.toContain('width: 20rem;');
-        expect(css).toMatch(/\.zx-select__popup \{[^}]*--select-accent: var\(--color-primary\);/);
-        expect(css).toMatch(/\.zx-select__popup\.zx-a-color-secondary \{\s*--select-accent: var\(--color-secondary\);/);
-        expect(css).toMatch(/\.zx-select__popup\.zx-a-color-error \{\s*--select-accent: var\(--color-error\);/);
+        // Order-agnostic: collect every declaration a selector's blocks carry.
+        const decls = (selector: string): string[] => [...css.matchAll(new RegExp(`(?:^|\\n)${selector.replace(/[.]/g, '\\.')} \\{([^}]*)\\}`, 'g'))]
+            .flatMap((m) => m[1]!.split(';').map((d) => d.trim()).filter(Boolean));
+        const root = decls('.zx-select__root');
+        expect(root).toEqual(expect.arrayContaining(['width: 20rem', 'max-width: 100%', 'min-width: 3rem']));
+        const trigger = decls('.zx-select__trigger');
+        expect(trigger).toContain('width: 100%');
+        expect(trigger).not.toContain('width: 20rem');
+        expect(decls('.zx-select__popup')).toContain('--select-accent: var(--color-primary)');
+        expect(decls('.zx-select__popup.zx-a-color-secondary')).toContain('--select-accent: var(--color-secondary)');
+        expect(decls('.zx-select__popup.zx-a-color-error')).toContain('--select-accent: var(--color-error)');
     });
 
     it('zero-daisyui tabs/accordion: the held part takes daisy\'s hover style', () => {
