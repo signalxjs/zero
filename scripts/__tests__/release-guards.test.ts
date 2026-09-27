@@ -118,11 +118,21 @@ describe('e2e debuggability', () => {
 
     it('uploads the report and results on failure and caches the browsers', () => {
         const ci = read('.github/workflows/ci.yml');
+        // The suite runs sharded (#352): the shard job does the work.
+        const shard = ci.slice(ci.indexOf('\n  e2e-shard:'), ci.indexOf('\n  e2e:'));
+        expect(shard).toMatch(/--shard=\$\{\{\s*matrix\.shard\s*\}\}/);
+        expect(shard).toMatch(/actions\/upload-artifact@/);
+        expect(shard).toMatch(/if:\s*failure\(\)/);
+        expect(shard).toMatch(/playwright-report/);
+        expect(shard).toMatch(/test-results/);
+        expect(shard).toMatch(/actions\/cache@[\s\S]*ms-playwright/);
+    });
+
+    it('keeps one required e2e check that fails unless every shard passed', () => {
+        const ci = read('.github/workflows/ci.yml');
         const e2e = ci.slice(ci.indexOf('\n  e2e:'), ci.indexOf('\n  verify-pack:'));
-        expect(e2e).toMatch(/actions\/upload-artifact@/);
-        expect(e2e).toMatch(/if:\s*failure\(\)/);
-        expect(e2e).toMatch(/playwright-report/);
-        expect(e2e).toMatch(/test-results/);
-        expect(e2e).toMatch(/actions\/cache@[\s\S]*ms-playwright/);
+        expect(e2e).toMatch(/if:\s*always\(\)/);
+        expect(e2e).toMatch(/needs:\s*e2e-shard/);
+        expect(e2e).toMatch(/needs\.e2e-shard\.result\s*\}\}"\s*!=\s*"success"/);
     });
 });
