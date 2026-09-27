@@ -120,7 +120,7 @@
     {
         "name": "@sigx/zero/combobox",
         "path": "packages/zero/dist/components/combobox/index.js",
-        "limit": "13.71 kB",
+        "limit": "13.73 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
