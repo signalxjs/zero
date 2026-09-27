@@ -1690,6 +1690,10 @@ export const field: RecipeInput = {
         label: {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--field-accent)' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            // lynx has no pseudo-elements and the anatomy no part to carry
+            // the asterisk, so it stays a web-only mark: on lynx a required
+            // field still stamps `required` on the label and its control
+            // (signalxjs/lynx#1205).
             selectors: {
                 '&[data-required]::after': { content: '" *"', color: roleInk('error') },
             },
@@ -5071,6 +5075,15 @@ const affixSize = (fontSize: string) => ({
 });
 
 /**
+ * A text field's placeholder ink on lynx (signalxjs/lynx#1205): the web's
+ * `::placeholder` mix, for lynx's `-x-placeholder-color` property — the
+ * emitter bakes the `color-mix()` to one literal per theme.
+ */
+const textFieldPlaceholder = 'color-mix(in oklab, var(--color-base-content) 60%, transparent)';
+/** The ghost field button's held look on lynx — the web's hover wash, on a press. */
+const fieldButtonHeld: CssProps = { color: 'var(--color-base-content)', background: 'var(--color-base-200)' };
+
+/**
  * daisy "input" flavor: the shared field box with nothing in it but the text.
  * Same `fieldControl` metrics as select's trigger, combobox's control and the
  * number input's — the whole point of that helper is that a row of mixed
@@ -5191,6 +5204,53 @@ export const input: RecipeInput = {
             xl: { control: { base: { height: fieldHeight('xl') } }, input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)' } }, ...affixSize('var(--text-lg)') },
         },
     },
+    // lynx (signalxjs/lynx#1205). The field is a native text widget inside
+    // a view `control`, so what the web gets from the cascade is restated:
+    targets: {
+        lynx: {
+            parts: {
+                // The web control is an `inline-flex` row; the emitter's
+                // `flex` rewrite keeps no direction, so the row is explicit.
+                // No `:hover` border on a touch platform — the ring below
+                // (box-shadow spread, signalxjs/lynx#1163) is the focus cue,
+                // in the root's accent like the web outline.
+                control: {
+                    base: { flexDirection: 'row' },
+                    states: { 'focus-visible': lynxFocusRing('var(--input-accent)') },
+                },
+                // `color: inherit` never reaches a native text field, and
+                // `::placeholder` does not exist: the ink is explicit and the
+                // placeholder takes lynx's own `-x-placeholder-color`, the
+                // web's 60% mix baked per theme.
+                input: {
+                    base: {
+                        color: 'var(--color-base-content)',
+                        '-x-placeholder-color': textFieldPlaceholder,
+                        flexGrow: '1',
+                        flexShrink: '1',
+                    },
+                },
+                // The adornment's edge padding, physical: Android never
+                // resolves the logical spellings (signalxjs/lynx#1084).
+                adornment: {
+                    selectors: {
+                        '&[data-placement="start"]': { paddingLeft: 'var(--space-md)' },
+                        '&[data-placement="end"]': { paddingRight: 'var(--space-md)' },
+                    },
+                },
+                // Same for the ghost buttons' end margin; the web's `:hover`
+                // wash answers a press instead.
+                'clear-trigger': {
+                    base: { marginRight: 'var(--space-xs)' },
+                    states: { pressed: fieldButtonHeld },
+                },
+                'visibility-trigger': {
+                    base: { marginRight: 'var(--space-xs)' },
+                    states: { pressed: fieldButtonHeld },
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -5257,6 +5317,22 @@ export const textarea: RecipeInput = {
             md: {},
             lg: { textarea: { base: { fontSize: 'var(--text-md)', minHeight: `calc(${fieldHeight('lg')} * 2)`, padding: 'var(--space-md) var(--space-lg)' } } },
             xl: { textarea: { base: { fontSize: 'var(--text-lg)', minHeight: `calc(${fieldHeight('xl')} * 2)`, padding: 'var(--space-lg) var(--space-xl)' } } },
+        },
+    },
+    // lynx (signalxjs/lynx#1205): lynx-zero renders the part as a view (the
+    // box, whose state classes repaint) around the native field, which wears
+    // the part's base class as its text face. So the ink and the placeholder
+    // are explicit here — `color: inherit` and `::placeholder` never reach a
+    // native widget — and the web's `:hover` border and outline ring become
+    // the lynx focus ring in the root's accent (signalxjs/lynx#1163).
+    targets: {
+        lynx: {
+            parts: {
+                textarea: {
+                    base: { color: 'var(--color-base-content)', '-x-placeholder-color': textFieldPlaceholder },
+                    states: { 'focus-visible': lynxFocusRing('var(--textarea-accent)') },
+                },
+            },
         },
     },
 };
