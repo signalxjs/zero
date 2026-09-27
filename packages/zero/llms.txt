@@ -744,10 +744,10 @@ component renders; the root is called out separately where it carries props.
   + top layer, Dialog's machinery inherited (backdrop = ::backdrop pseudo
   part; presence-tracked aria-labelledby, with the label prop as the
   aria-label fallback when no Title renders — a nav drawer often has no
-  visible heading). The panel stamps data-placement="start|end" from the
-  LOGICAL pair (an edge panel anchors to the reading direction); recipes
-  pin it with inset-inline-* so RTL mirrors free. top|bottom (#291) are
-  the block edges — a full-width sheet pinned with inset-block-*, never
+  visible heading). The panel stamps data-placement from the placement
+  prop: start|end are the LOGICAL pair (an edge panel anchors to the
+  reading direction; recipes pin it with inset-inline-* so RTL mirrors
+  free), and top|bottom (#291) are the block edges — a full-width sheet pinned with inset-block-*, never
   mirrored, height recipe-owned (content-sized up to a cap), measure still
   an inline-size cap; sheet-only: with modal={{ below }} it console.warns
   and stays a modal sheet (no data-l-dock-above). Recipes distinguish modal
