@@ -1692,8 +1692,8 @@ export const field: RecipeInput = {
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
             // lynx has no pseudo-elements and the anatomy no part to carry
             // the asterisk, so it stays a web-only mark: on lynx a required
-            // field still stamps `required` on the label and its control
-            // (signalxjs/lynx#1205).
+            // field still stamps `required` on its root and label, and the
+            // control inside adopts it (signalxjs/lynx#1205).
             selectors: {
                 '&[data-required]::after': { content: '" *"', color: roleInk('error') },
             },
