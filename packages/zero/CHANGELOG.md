@@ -22,6 +22,25 @@
   ArrowUp/ArrowDown drop the completion and walk the list. A blur resyncs as
   in #265, so an unaccepted completion never posts.
 
+### Added — `Card.Media`, and `Timeline.Title` / `Timeline.Description` (#302)
+
+- **New part `card.media`** (`div`, parent `root`, `asChild`):
+  `Card.Media` is the full-bleed band — a cover image, a video, a map.
+  Through `asChild` it renders the `<figure>` with a caption or the `<img>`
+  itself. The other bands pad themselves and media does not, so all six
+  design systems run it edge to edge, cancel a figure's UA margin, fill it
+  with its image and round the corners it shares with the card. It can
+  open the card or close it. `CardMediaProps` is exported.
+- **New parts `timeline.title` and `timeline.description`** (`div`s,
+  parent `content`): the event and its detail inside `Timeline.Content`.
+  Neither is a heading by default; `Timeline.Title` takes `asChild` for the
+  heading level the outline wants. Every skin sets them apart in its own
+  idiom and lets them follow the content's size ramp.
+  `TimelineTitleProps` is exported.
+- All three are optional: a card or an event without them renders as
+  before. No new state values. The per-item Stats colour this issue also
+  listed shipped with #161.
+
 ### Added — Promise toasts with `Toast.Indicator`, and an expanded toast stack (#292)
 
 - **`toaster.promise(p, { id?, loading, success, error })`** shows one toast
