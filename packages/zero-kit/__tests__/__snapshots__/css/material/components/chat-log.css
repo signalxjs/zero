@@ -1,0 +1,184 @@
+@layer zero.recipes {
+    [data-scope="chat-log"][data-part="root"] {
+        --chat-log-fill: var(--color-primary);
+        --chat-log-on-fill: var(--color-primary-content);
+        --chat-log-jump-size: calc(var(--size-field) * 10);
+    }
+
+    [data-scope="chat-log"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        border-radius: var(--radius-box);
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        padding: var(--space-md);
+    }
+
+    [data-scope="chat-log"][data-part="root"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: -3px;
+    }
+
+    [data-scope="chat-log"][data-part="content"] {
+        margin-block-start: auto;
+        flex: none;
+        display: grid;
+        row-gap: var(--space-sm);
+    }
+
+    [data-scope="chat-log"][data-part="jump-trigger"] {
+        position: sticky;
+        inset-block-end: var(--space-md);
+        align-self: center;
+        flex: none;
+        margin-block-start: calc(var(--chat-log-jump-size) * -1);
+        block-size: var(--chat-log-jump-size);
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding-inline: var(--space-lg);
+        border: none;
+        border-radius: var(--radius-field);
+        background: var(--chat-log-fill);
+        color: var(--chat-log-on-fill);
+        box-shadow: var(--shadow-level3);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-none);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: background var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="chat-log"][data-part="jump-trigger"]:hover:not([data-disabled]) {
+        background: color-mix(in oklch, var(--chat-log-fill), var(--chat-log-on-fill) 8%);
+    }
+
+    [data-scope="chat-log"][data-part="jump-trigger"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="chat-log"][data-part="jump-trigger"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--chat-log-fill), var(--chat-log-on-fill) 12%);
+        box-shadow: var(--shadow-level2);
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="primary"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-primary);
+            --chat-log-on-fill: var(--color-primary-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="secondary"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-secondary);
+            --chat-log-on-fill: var(--color-secondary-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="tertiary"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-tertiary);
+            --chat-log-on-fill: var(--color-tertiary-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="error"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-error);
+            --chat-log-on-fill: var(--color-error-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="neutral"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-neutral);
+            --chat-log-on-fill: var(--color-neutral-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="info"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-info);
+            --chat-log-on-fill: var(--color-info-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="success"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-success);
+            --chat-log-on-fill: var(--color-success-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="warning"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-warning);
+            --chat-log-on-fill: var(--color-warning-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-color="accent"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-fill: var(--color-accent);
+            --chat-log-on-fill: var(--color-accent-content);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-size="xs"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="content"] {
+            row-gap: var(--space-2xs);
+        }
+
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-jump-size: calc(var(--size-field) * 8);
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-size="sm"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="content"] {
+            row-gap: var(--space-xs);
+        }
+
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-jump-size: calc(var(--size-field) * 9);
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-size="lg"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="content"] {
+            row-gap: var(--space-md);
+        }
+
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-jump-size: calc(var(--size-field) * 12);
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="chat-log"][data-part="root"][data-size="xl"]) to ([data-scope="chat-log"][data-part="root"]) {
+        [data-scope="chat-log"][data-part="content"] {
+            row-gap: var(--space-lg);
+        }
+
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            --chat-log-jump-size: calc(var(--size-field) * 14);
+            font-size: var(--text-md);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="chat-log"][data-part="jump-trigger"] {
+            transition: none;
+        }
+    }
+}

@@ -213,6 +213,9 @@ const NO_VARIANT: Record<string, string> = {
     menubar: 'no surveyed system varies a menubar — Radix Menubar and '
         + 'React Aria style the bar through its triggers, like the menu (#289).',
     popover: 'no surveyed system varies a popover surface.',
+    'chat-log': 'no surveyed system varies a transcript container — '
+        + 'assistant-ui\'s Thread and Stream Chat\'s MessageList style the '
+        + 'rows, not the scroll box; colour (the jump trigger\'s ink) IS wired.',
     'hover-card': 'no surveyed system varies a hover card — Radix HoverCard, '
         + 'Ark HoverCard, Base UI PreviewCard and Mantine HoverCard style the '
         + 'surface singular; the trigger is a link, coloured by the color axis.',

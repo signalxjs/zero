@@ -4925,6 +4925,103 @@ export const chat: RecipeInput = {
     },
 };
 
+/**
+ * ChatLog — a tonal surface that scrolls (no outline: M3 separates with
+ * tone, not hairlines), bubbles on `surface-container` inside it. The jump
+ * trigger is M3's small extended FAB: the role's solid pair at `level3`,
+ * the field radius, an 8%/12% state layer of its own ink for hover and
+ * press — floated over the rows by `position: sticky` at the box's foot.
+ * Its negative block margin gives back the line it would take, so
+ * appearing moves no row.
+ */
+export const chatLog: RecipeInput = {
+    component: 'chat-log',
+    tokens: {
+        '--chat-log-fill': 'var(--color-primary)',
+        '--chat-log-on-fill': 'var(--color-primary-content)',
+        '--chat-log-jump-size': 'calc(var(--size-field) * 10)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                overflowY: 'auto',
+                overscrollBehaviorY: 'contain',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                padding: 'var(--space-md)',
+            },
+            // Drawn inside the box (negative offset): an outward ring would
+            // be clipped by whatever scrolls around the transcript.
+            states: { 'focus-visible': { outline: '3px solid var(--color-secondary)', outlineOffset: '-3px' } },
+        },
+        content: {
+            base: {
+                // `auto` gathers a short transcript at the foot; a long one
+                // overflows and the margin resolves to nothing.
+                marginBlockStart: 'auto',
+                flex: 'none',
+                display: 'grid',
+                rowGap: 'var(--space-sm)',
+            },
+        },
+        'jump-trigger': {
+            base: {
+                position: 'sticky',
+                insetBlockEnd: 'var(--space-md)',
+                alignSelf: 'center',
+                flex: 'none',
+                marginBlockStart: 'calc(var(--chat-log-jump-size) * -1)',
+                blockSize: 'var(--chat-log-jump-size)',
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                paddingInline: 'var(--space-lg)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--chat-log-fill)',
+                color: 'var(--chat-log-on-fill)',
+                boxShadow: 'var(--shadow-level3)',
+                ...label,
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                transition: motion('background, box-shadow'),
+            },
+            states: {
+                open: {},
+                closed: {},
+                // MD3 state layers, folded into the fill: hover 8%, pressed 12%.
+                hover: { background: 'color-mix(in oklch, var(--chat-log-fill), var(--chat-log-on-fill) 8%)' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--chat-log-fill), var(--chat-log-on-fill) 12%)',
+                    boxShadow: 'var(--shadow-level2)',
+                },
+            },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { 'jump-trigger': { base: {
+            '--chat-log-fill': `var(--color-${c})`,
+            '--chat-log-on-fill': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { content: { base: { rowGap: 'var(--space-2xs)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 8)', fontSize: 'var(--text-xs)' } } },
+            sm: { content: { base: { rowGap: 'var(--space-xs)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 9)', fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { content: { base: { rowGap: 'var(--space-md)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 12)', fontSize: 'var(--text-md)' } } },
+            xl: { content: { base: { rowGap: 'var(--space-lg)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 14)', fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 /** Material radial: the M3 circular indicator, with a visible channel. */
 export const radialProgress: RecipeInput = {
     component: 'radial-progress',
@@ -6562,7 +6659,7 @@ export const recipes: RecipeInput[] = [
     switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,

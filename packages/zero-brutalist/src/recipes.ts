@@ -4396,6 +4396,92 @@ export const chat: RecipeInput = {
     },
 };
 
+/**
+ * ChatLog — an inked slab that scrolls, rows stacked at its foot. The jump
+ * trigger is a stamped button in the role's pair: the heavy border, the
+ * hard offset shadow, the shove into it on hover and the full sink on
+ * press — floated over the rows by `position: sticky` at the slab's foot.
+ * Its negative block margin gives back the line it would take, so
+ * appearing moves no row.
+ */
+export const chatLog: RecipeInput = {
+    component: 'chat-log',
+    tokens: {
+        '--chat-log-fill': 'var(--color-primary)',
+        '--chat-log-on-fill': 'var(--color-primary-content)',
+        '--chat-log-jump-size': 'calc(var(--size-field) * 9)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                overflowY: 'auto',
+                overscrollBehaviorY: 'contain',
+                ...inked,
+                padding: 'var(--space-sm) var(--space-md)',
+            },
+            // Drawn inside the box (negative offset): an outward ring would
+            // be clipped by whatever scrolls around the transcript.
+            states: { 'focus-visible': { outline: 'var(--border) solid var(--color-primary)', outlineOffset: 'calc(var(--border) * -3)' } },
+        },
+        content: {
+            base: {
+                // `auto` gathers a short transcript at the foot; a long one
+                // overflows and the margin resolves to nothing.
+                marginBlockStart: 'auto',
+                flex: 'none',
+                display: 'grid',
+                rowGap: 'var(--space-sm)',
+            },
+        },
+        'jump-trigger': {
+            base: {
+                position: 'sticky',
+                insetBlockEnd: 'var(--space-md)',
+                alignSelf: 'center',
+                flex: 'none',
+                marginBlockStart: 'calc(var(--chat-log-jump-size) * -1)',
+                blockSize: 'var(--chat-log-jump-size)',
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                paddingInline: 'var(--space-md)',
+                ...inked,
+                background: 'var(--chat-log-fill)',
+                color: 'var(--chat-log-on-fill)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                boxShadow: 'var(--shadow-sm)',
+                cursor: 'pointer',
+                transition: motion('box-shadow, transform'),
+            },
+            states: {
+                open: {},
+                closed: {},
+                hover: shift('1px'),
+                ...focusRing,
+            },
+            selectors: { '&[data-pressed]:not([data-disabled])': { boxShadow: 'none', transform: 'translate(3px, 3px)' } },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { 'jump-trigger': { base: {
+            '--chat-log-fill': `var(--color-${c})`,
+            '--chat-log-on-fill': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { content: { base: { rowGap: 'var(--space-2xs)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 7)' } } },
+            sm: { content: { base: { rowGap: 'var(--space-xs)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 8)' } } },
+            md: {},
+            lg: { content: { base: { rowGap: 'var(--space-md)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 11)', fontSize: 'var(--text-sm)' } } },
+            xl: { content: { base: { rowGap: 'var(--space-lg)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 12)', fontSize: 'var(--text-sm)' } } },
+        },
+    },
+};
+
 /** Radial — the gauge: thick arc, slab channel. */
 export const radialProgress: RecipeInput = {
     component: 'radial-progress',
@@ -5958,7 +6044,7 @@ export const recipes: RecipeInput[] = [
     switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,

@@ -4861,6 +4861,88 @@ export const chat: RecipeInput = {
     },
 };
 
+/**
+ * ChatLog — a flush layer that scrolls (Carbon draws regions with layers,
+ * not boxes: square corners, no outline, the inset 2px focus ring). No
+ * colour axis (`roles: {}`), so the jump trigger is Carbon's small primary
+ * button — `$button-primary` fill, square, its own hover and active steps —
+ * floated over the rows by `position: sticky` at the layer's foot. Its
+ * negative block margin gives back the line it would take, so appearing
+ * moves no row.
+ */
+export const chatLog: RecipeInput = {
+    component: 'chat-log',
+    tokens: { '--chat-log-jump-size': '2rem' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                overflowY: 'auto',
+                overscrollBehaviorY: 'contain',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                padding: 'var(--space-sm) var(--space-md)',
+            },
+            // Drawn inside the box (negative offset): an outward ring would
+            // be clipped by whatever scrolls around the transcript.
+            states: { 'focus-visible': { outline: '2px solid var(--carbon-focus)', outlineOffset: '-2px' } },
+        },
+        content: {
+            base: {
+                // `auto` gathers a short transcript at the foot; a long one
+                // overflows and the margin resolves to nothing.
+                marginBlockStart: 'auto',
+                flex: 'none',
+                display: 'grid',
+                rowGap: 'var(--space-xs)',
+            },
+        },
+        'jump-trigger': {
+            base: {
+                position: 'sticky',
+                insetBlockEnd: 'var(--space-md)',
+                alignSelf: 'center',
+                flex: 'none',
+                marginBlockStart: 'calc(var(--chat-log-jump-size) * -1)',
+                blockSize: 'var(--chat-log-jump-size)',
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+                paddingInline: 'var(--space-md)',
+                border: 'var(--border) solid transparent',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--carbon-button-primary)',
+                color: 'var(--carbon-interactive-ink)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-tight)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                open: {},
+                closed: {},
+                hover: { background: 'color-mix(in oklab, var(--carbon-button-primary) 90%, black)' },
+                ...focusRing,
+            },
+            selectors: { '&[data-pressed]:not([data-disabled])': { background: 'color-mix(in oklab, var(--carbon-button-primary) 78%, black)' } },
+        },
+    },
+    variants: {
+        size: {
+            sm: { content: { base: { rowGap: 'var(--space-2xs)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': '1.5rem', fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { content: { base: { rowGap: 'var(--space-sm)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': '2.5rem' } } },
+            xl: { content: { base: { rowGap: 'var(--space-md)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': '3rem' } } },
+            '2xl': { content: { base: { rowGap: 'var(--space-md)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': '4rem', fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 /** Carbon radial: interactive-blue arc; complete goes the toggle green. */
 export const radialProgress: RecipeInput = {
     component: 'radial-progress',
@@ -6377,7 +6459,7 @@ export const recipes: RecipeInput[] = [
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,

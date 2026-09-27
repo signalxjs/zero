@@ -54,6 +54,7 @@ import type { Indicator as ZIndicator } from '@sigx/zero/indicator';
 import type { Stats as ZStats } from '@sigx/zero/stats';
 import type { Timeline as ZTimeline } from '@sigx/zero/timeline';
 import type { Chat as ZChat } from '@sigx/zero/chat';
+import type { ChatLog as ZChatLog } from '@sigx/zero/chat-log';
 import type { RadialProgress as ZRadialProgress } from '@sigx/zero/radial-progress';
 import type { Join as ZJoin } from '@sigx/zero/join';
 import type { Navbar as ZNavbar } from '@sigx/zero/navbar';
@@ -455,6 +456,14 @@ type ChatProps = {
 };
 type ChatAdapted = Adapted<typeof ZChat, ZeroAxisProp, ChatProps>;
 export declare const Chat: ChatAdapted & AdaptedStatics<typeof ZChat> & { Root: ChatAdapted };
+
+/** chat-log — no vendor route; the wired surface keeps zero's names. */
+type ChatLogProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type ChatLogAdapted = Adapted<typeof ZChatLog, ZeroAxisProp, ChatLogProps>;
+export declare const ChatLog: ChatLogAdapted & AdaptedStatics<typeof ZChatLog> & { Root: ChatLogAdapted };
 
 /** radial-progress — no vendor route; the wired surface keeps zero's names. */
 type RadialProgressProps = {
