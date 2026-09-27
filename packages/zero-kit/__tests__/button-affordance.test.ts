@@ -61,7 +61,7 @@ describe('button affordance', () => {
         expect(names).toContain('tooltip.trigger');
         expect(names).toContain('button.root');
         expect(names).toContain('toggle-group.item');
-        expect(names.length).toBe(39);
+        expect(names.length).toBe(41);
     });
 
     // No allowlist. #213 shipped with three exemptions — heroui's dialog,

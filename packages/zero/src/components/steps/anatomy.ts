@@ -33,6 +33,19 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * per-step `step-error`. Everything inside the item (indicator,
  * separator, title) follows the item's value; an item without one
  * follows the root.
+ *
+ * The wizard half (#296): `content` is one panel per step (`value`
+ * matches an item's), `role="region"` labelled by its step's title and
+ * `hidden` unless its step is active — hence `hiddenIn: ['inactive']`,
+ * the Tabs.Panel shape. `prev-trigger`/`next-trigger` step through the
+ * enabled items in DOM order; at a bound they stay focusable and render
+ * `aria-disabled` + `data-disabled` (the carousel/pagination convention,
+ * #270), so the press that reaches the last step keeps keyboard focus.
+ * A root `linear` renders every item past the next reachable one
+ * `data-disabled`/`aria-disabled` — still focusable and still roved, so
+ * its title is read, but not activatable. An item's `invalid` renders the
+ * shared `data-invalid` flag on the item, its indicator and its
+ * separator, so a design system paints the whole step as erroneous.
  */
 export const stepsAnatomy = defineAnatomy('steps', {
     root: {
@@ -44,7 +57,7 @@ export const stepsAnatomy = defineAnatomy('steps', {
         element: 'button',
         parent: 'root',
         states: ['active', 'complete', 'inactive'],
-        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating', 'invalid'],
         // Per-step colour (#112): the item re-carries `color`, so one step's
         // disc and bridge can paint a tone of their own.
         carries: ['color'],
@@ -55,12 +68,14 @@ export const stepsAnatomy = defineAnatomy('steps', {
         element: 'span',
         parent: 'item',
         states: ['active', 'complete', 'inactive'],
+        flags: ['invalid'],
         tokens: ['color', 'radius-selector', 'size', 'text'],
     },
     separator: {
         element: 'span',
         parent: 'item',
         states: ['complete', 'inactive'],
+        flags: ['invalid'],
         tokens: ['color'],
     },
     title: {
@@ -72,6 +87,27 @@ export const stepsAnatomy = defineAnatomy('steps', {
         element: 'span',
         parent: 'item',
         tokens: ['color', 'text'],
+    },
+    content: {
+        element: 'div',
+        parent: 'root',
+        states: ['active', 'inactive'],
+        // The runtime sets `hidden` on every panel but the active step's, so
+        // `[data-state="inactive"]` on a content panel can never paint.
+        hiddenIn: ['inactive'],
+        tokens: ['color', 'radius-box', 'text'],
+    },
+    'prev-trigger': {
+        element: 'button',
+        parent: 'root',
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        tokens: ['color', 'radius-field', 'size', 'text'],
+    },
+    'next-trigger': {
+        element: 'button',
+        parent: 'root',
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        tokens: ['color', 'radius-field', 'size', 'text'],
     },
 }, {
     orientation: true,

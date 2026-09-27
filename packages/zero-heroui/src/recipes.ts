@@ -4961,6 +4961,20 @@ export const pagination: RecipeInput = {
     },
 };
 
+/** A Steps root holding wizard parts (#296) — the panel or the triggers. */
+const STEPS_WIZARD = '&:has(> [data-scope="steps"]:is([data-part="content"], [data-part="prev-trigger"], [data-part="next-trigger"]))';
+
+/** Steps' Back/Next (#296): the secondary button box, pressing inward. */
+const stepsTrigger: PartStyles = {
+    base: { ...secondaryButton, transition: motion('background, border-color, opacity, transform'), flex: '0 0 auto', alignSelf: 'flex-start' },
+    states: {
+        hover: { background: 'var(--color-base-200)' },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: pressScale,
+};
+
 /**
  * Steps — HeroUI's wizard rail without a colour axis: the inversion is the
  * accent (current disc = full foreground on its content), the walked disc
@@ -4982,6 +4996,10 @@ export const steps: RecipeInput = {
             },
             selectors: {
                 '&[data-orientation="vertical"]': { flexDirection: 'column' },
+                // A wizard (#296): the rail keeps its own line and the panel
+                // and triggers wrap below it. Only then — a bare rail never
+                // wraps, so its steps stay one row at any width.
+                [STEPS_WIZARD]: { flexWrap: 'wrap', rowGap: 'var(--space-lg)' },
             },
         },
         /**
@@ -5020,6 +5038,9 @@ export const steps: RecipeInput = {
                 active: { color: 'var(--color-base-content)', fontWeight: 'var(--weight-semibold)' },
                 complete: { color: 'var(--color-base-content)' },
                 inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                // A step with errors writes in the danger ink whatever its
+                // phase: after the phases, so it wins at equal weight.
+                invalid: { color: 'var(--hero-danger)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
@@ -5047,6 +5068,7 @@ export const steps: RecipeInput = {
                 // an `in oklch` mix swings toward.
                 complete: { background: 'color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-100))', color: 'var(--color-base-content)' },
                 inactive: { background: 'var(--color-base-200)', color: 'var(--hero-muted)' },
+                invalid: { background: 'var(--hero-danger)', color: 'var(--hero-danger-ink)' },
             },
         },
         /**
@@ -5078,6 +5100,7 @@ export const steps: RecipeInput = {
             states: {
                 complete: { background: 'var(--color-base-content)' },
                 inactive: { background: 'var(--color-base-300)' },
+                invalid: { background: 'var(--hero-danger)' },
             },
         },
         title: {
@@ -5091,6 +5114,26 @@ export const steps: RecipeInput = {
                 color: 'var(--hero-muted)',
                 fontWeight: 'var(--weight-normal)',
             },
+        },
+        /**
+         * The active step's panel: a full-width line under the rail (the
+         * wizard wrap above). Inactive panels are `hidden`, so they need no
+         * rule.
+         */
+        content: {
+            base: {
+                flex: '1 0 100%',
+                fontSize: 'var(--text-md)',
+                color: 'var(--color-base-content)',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        // Back/Next are v3's secondary button; Next takes the far end of
+        // their line.
+        'prev-trigger': stepsTrigger,
+        'next-trigger': {
+            ...stepsTrigger,
+            base: { ...stepsTrigger.base, marginInlineStart: 'auto' },
         },
     },
     variants: {
