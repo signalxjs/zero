@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-27
+
 ### Fixed — zero-daisyui select clear-trigger on lynx (#382)
 
 - **Lynx target only.** The clear-trigger (×) stretched to the field's full
