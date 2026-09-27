@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+### Added — Overlay focus targets, modal scroll lock, preventable dismissal (#277)
+
+- **`initialFocus` / `finalFocus`** on `Dialog.Root`, `Drawer.Root` and
+  `Popover.Root`: functions returning the element to focus once the popup
+  opens (over `autofocus` and the platform's first-focusable rule — for
+  Popover, in place of the first tabbable) and once it closes. Returning
+  null keeps the default.
+- **Focus hand-off out of a closed popup.** When the element focused before
+  an overlay opened can no longer take focus because it sits in a popup
+  that has since closed — a `Menu.Item` that opened a dialog — focus goes to
+  the trigger that controls that popup (followed through `aria-controls`,
+  outwards through submenus), before the overlay's own Trigger. A modal
+  Dialog or Drawer applies it after the native restore finds nothing to
+  focus. `createFocusRestore` gains a `target` option.
+- **Modal scroll lock.** `preventScroll` on `Dialog.Root` and `Drawer.Root`
+  (default `true`, modal only — never a non-modal dialog, an inline or a
+  docked drawer) sets `overflow: hidden` on `<html>` while the modal shows
+  and pads `padding-inline-end` by the scrollbar's width (not under
+  `scrollbar-gutter: stable`). Ref-counted across overlays; released after
+  the exit completes and on unmount.
+- **Preventable dismissal.** `escapeKeyDown` (the `KeyboardEvent`) and
+  `interactOutside` (the backdrop `click`, the outside `pointerdown`, or —
+  Menu — the `focusin` that left it; the `InteractOutsideEvent` type) on
+  `Dialog.Root`, `Drawer.Root`, `Popover.Root` and `Menu.Root` fire before
+  the dismissal, and `preventDefault()` keeps the overlay open. A prevented
+  Escape never becomes a close request; a prevented popover light dismiss is
+  shown again from its `toggle`, with the model untouched.
+  `createDismissable` gains `onEscapeKeyDown` / `onInteractOutside` hooks.
+
 ## [0.8.0] - 2026-09-27
 
 ### Added — Breadcrumbs maxItems collapse with an ellipsis part (#295)
