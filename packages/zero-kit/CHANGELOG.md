@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.divider` (zero#298)
+
+- Reserves divider's new `decorative` root prop, so a generated
+  `./components` module never lets an api axis shadow it. A design system's
+  generated `Divider` now also carries zero's statics (`Divider.Label`).
+
 ### Changed — `RESERVED_PROPS_BY_SCOPE.combobox` gains `inlineComplete` (zero#301)
 
 - Combobox's new root prop is reserved, so a vendor-named api cannot claim
