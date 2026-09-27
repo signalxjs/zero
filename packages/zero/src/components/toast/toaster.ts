@@ -19,6 +19,13 @@ import type { ColorValueFor } from '../../contract/vocabulary.js';
 
 export type ToastRole = 'status' | 'alert';
 
+/**
+ * Where a toast's work stands — rendered as `data-state` on `Toast.Indicator`.
+ * `toaster.promise()` drives it (`loading`, then `complete` or `error`); a
+ * plain toast has none, and its indicator renders nothing.
+ */
+export type ToastStatus = 'loading' | 'complete' | 'error';
+
 export interface ToastActionData {
     label: string;
     onClick?: () => void;
@@ -37,8 +44,34 @@ export interface ToastOptions {
     duration?: number;
     /** Data for the stock composition's action button. */
     action?: ToastActionData;
+    /** Work status, shown by `Toast.Indicator`; `toaster.promise()` sets it for you. */
+    status?: ToastStatus;
     /** App payload for custom viewport slots. */
     data?: unknown;
+}
+
+/**
+ * One stage of a promise toast: a title alone, or the options of an
+ * ordinary toast (its `id` and `status` are the promise's to set).
+ */
+export type ToastInput = string | Omit<ToastOptions, 'id' | 'status'>;
+
+export interface ToastPromiseOptions<T> {
+    /** Stable identity, as for `create()`. */
+    id?: string;
+    /** Shown while the promise is pending — sticky, with `status: 'loading'`. */
+    loading: ToastInput;
+    /**
+     * Replaces the loading content when the promise resolves (`status: 'complete'`).
+     * A mapper that throws settles the error stage instead: what it threw is
+     * the reason passed to `error` (when `error` is a function).
+     */
+    success: ToastInput | ((value: T) => ToastInput);
+    /**
+     * Replaces the loading content when the promise rejects (`status: 'error'`).
+     * A mapper that throws still settles the error stage, keeping the loading copy.
+     */
+    error: ToastInput | ((error: unknown) => ToastInput);
 }
 
 export interface ToastData {
@@ -51,6 +84,7 @@ export interface ToastData {
     role: ToastRole;
     duration: number;
     action?: ToastActionData;
+    status?: ToastStatus;
     data?: unknown;
 }
 
@@ -68,6 +102,14 @@ export interface Toaster {
     count(): number;
     create(options?: ToastOptions): string;
     update(id: string, options: Partial<ToastOptions>): void;
+    /**
+     * One toast for the life of a promise: `loading` while it is pending
+     * (sticky — no auto-dismiss), then updated in place with `success` or
+     * `error` and the default duration restored (unless that stage sets its
+     * own). Returns the toast's id; the promise itself is not changed, and
+     * a rejection is handled here rather than surfacing as unhandled.
+     */
+    promise<T>(promise: PromiseLike<T>, options: ToastPromiseOptions<T>): string;
     /** Begin a toast's exit (all toasts when no id). Removal follows the exit animation. */
     dismiss(id?: string): void;
     /** Drop immediately, no exit — `<Toast.Root>` calls this after the exit plays. */
@@ -180,6 +222,7 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
         if (patch.color !== undefined) item.color = patch.color;
         if (patch.role !== undefined) item.role = patch.role;
         if (patch.action !== undefined) item.action = patch.action;
+        if (patch.status !== undefined) item.status = patch.status;
         if (patch.data !== undefined) item.data = patch.data;
         if (patch.duration !== undefined) {
             item.duration = patch.duration;
@@ -201,6 +244,7 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
             role: options.role ?? 'status',
             duration: options.duration ?? defaultDuration,
             action: options.action,
+            status: options.status,
             data: options.data,
         };
         if (state.items.length >= max) {
@@ -212,11 +256,54 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
         return item.id;
     };
 
+    const stage = (input: ToastInput): Omit<ToastOptions, 'id' | 'status'> =>
+        typeof input === 'string' ? { title: input } : input;
+
+    const promise = <T>(pending: PromiseLike<T>, options: ToastPromiseOptions<T>): string => {
+        const id = create({ ...stage(options.loading), id: options.id, status: 'loading', duration: Infinity });
+        // Gone before it settled (dismissed, or cleared): nothing to update.
+        const settle = (status: ToastStatus, input: ToastInput): void => {
+            if (!find(id)) return;
+            const next = stage(input);
+            update(id, { ...next, duration: next.duration ?? defaultDuration, status });
+        };
+        // The stage mappers are user code: one that throws must not turn the
+        // handled rejection back into an unhandled one. A throwing `success`
+        // mapper settles the error stage, handing what it threw to `error` as
+        // the reason; a throwing
+        // `error` mapper still settles the error stage, keeping the loading
+        // copy, since there is nothing left to map.
+        const fail = (reason: unknown): void => {
+            let input: ToastInput = {};
+            try {
+                input = typeof options.error === 'function' ? options.error(reason) : options.error;
+            } catch {
+                // Nothing to map: the status alone moves to error.
+            }
+            settle('error', input);
+        };
+        pending.then(
+            (value) => {
+                let input: ToastInput;
+                try {
+                    input = typeof options.success === 'function' ? options.success(value) : options.success;
+                } catch (thrown) {
+                    fail(thrown);
+                    return;
+                }
+                settle('complete', input);
+            },
+            fail,
+        );
+        return id;
+    };
+
     return {
         toasts: () => state.items,
         count: () => state.items.length + state.queued,
         create,
         update,
+        promise,
         dismiss,
         remove: (id?: string) => {
             if (id === undefined) {

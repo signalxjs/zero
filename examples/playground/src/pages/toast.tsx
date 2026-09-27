@@ -1,5 +1,5 @@
 import { component } from 'sigx';
-import { Button, Dialog, toast } from '@sigx/zero';
+import { Button, Dialog, toast, toaster } from '@sigx/zero';
 import { pickRole, pickVariant } from '../design-systems';
 import { DemoRow } from '../demo/Section';
 import type { PageEntry } from './registry';
@@ -15,6 +15,17 @@ const ToastDemos = component(() => () => (
             moves focus to the first toast, <code>Escape</code> on a toast
             dismisses it, and closing a focused toast hands focus to the
             next one (or back to where it came from).
+        </p>
+        <p>
+            Several toasts at once form a stack: at rest some design systems
+            deal them as a deck of cards (basic, heroui), and hovering or
+            focusing the stack fans them out — the viewport is{' '}
+            <code>data-state="open"</code> then, and each toast carries its
+            measured <code>--toast-height</code> and{' '}
+            <code>--toast-offset</code>. A promise toast
+            (<code>toaster().promise(p, {'{ loading, success, error }'})</code>)
+            stays up while the work runs and is updated in place when it
+            settles; <code>Toast.Indicator</code> shows its status.
         </p>
         {/*
           * Picked, not named — including inside the click
@@ -45,6 +56,40 @@ const ToastDemos = component(() => () => (
                 duration: 8000,
             })}>
                 With action
+            </Button.Root>
+        </DemoRow>
+        {/*
+          * The promise toasts settle after a beat, so the loading stage is
+          * seen. Titles are the only ink: the indicator's colour is the
+          * recipe's, per design system.
+          */}
+        <DemoRow>
+            <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => toaster().promise(
+                new Promise<string>((resolve) => setTimeout(() => resolve('report.pdf'), 1500)),
+                {
+                    loading: { title: 'Uploading report…' },
+                    success: (name) => ({ title: 'Report uploaded', description: `${name} is safe.` }),
+                    error: 'Upload failed',
+                },
+            )}>
+                Promise → resolves
+            </Button.Root>
+            <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => toaster().promise(
+                new Promise<never>((_, reject) => setTimeout(() => reject(new Error('The server is busy.')), 1500)),
+                {
+                    loading: 'Syncing…',
+                    success: 'Synced',
+                    error: (e) => ({ title: 'Sync stopped', description: (e as Error).message }),
+                },
+            )}>
+                Promise → rejects
+            </Button.Root>
+            <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => {
+                toast({ title: 'First of three', description: 'The oldest, at the back.', duration: 10_000 });
+                toast({ title: 'Second of three', duration: 10_000 });
+                toast({ title: 'Third of three', description: 'The newest, in front — hover to fan the stack.', duration: 10_000 });
+            }}>
+                Stack three
             </Button.Root>
         </DemoRow>
         {/*

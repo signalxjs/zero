@@ -186,6 +186,15 @@ never positions, stays inert), and the popup `overflow: visible` while it
 holds one. The pair is listed in both contracts (parity-tested) and joins
 `RUNTIME_PROPERTIES`, so it is web-only like the geometry above.
 
+Toast writes the same kind of data on every root (#292): `--toast-index`
+and `--toast-count` (its place in the stack, oldest first) and, measured by
+a `ResizeObserver` in the root's mount scope, `--toast-height` and
+`--toast-offset` — the summed heights of the newer toasts in front of it.
+With the viewport's `open`/`closed` state (the stack expanded while hovered
+or holding focus) that is everything a recipe needs to deal a resting stack
+as cards and fan it into a column; whether it does is the recipe's call.
+The four join `RUNTIME_PROPERTIES`, web-only.
+
 **Layout attributes are a namespaced family.** `LAYOUT_VOCABULARY` closes a
 seventeen-attribute set (`gap`, `pad`, `align`, `justify`, `cols`, `span`, …)
 rendered under a `data-l-` prefix, and a part that can carry one declares
@@ -322,7 +331,11 @@ renders without children (`▾`, `✓`, `›`, `★`), the flag the part cannot
 exist without (`select.item-indicator` mounts only while `selected`), and
 the part the mark is measured on when `parent` names only the containing
 one (menu's `item-indicator` sits in a checkbox or radio row; `parent` is
-the popup, `host` the checkbox row). It replaced a hand table in the kit,
+the popup, `host` the checkbox row). A mark's chain is derived from the part tree, with
+every presence surface above it pinned `open`: a popup, or a part that
+declares `placements` (toast's `viewport` and `root`, whose `closed` is an
+enter/exit frame, never a resting look). A trigger's `open` is not pinned —
+the resting trigger is the one a reader sees. It replaced a hand table in the kit,
 so an ecosystem component declares its own mark. The part-name vocabulary
 (`indicator`, `<thing>-indicator`, `thumb`, `range`) survives as a guard:
 such a part with no `text` hint and no `paint` fails zero's anatomy suite

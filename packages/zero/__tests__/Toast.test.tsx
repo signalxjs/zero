@@ -85,6 +85,95 @@ describe('toaster (store)', () => {
         expect(t.toasts()).toHaveLength(1);
     });
 
+    it('promise: a sticky loading toast, updated in place when it resolves (#292)', async () => {
+        const t = createToaster({ duration: 1000 });
+        let resolve!: (v: string) => void;
+        const id = t.promise(new Promise<string>((r) => { resolve = r; }), {
+            loading: 'Uploading…',
+            success: (name) => ({ title: `Uploaded ${name}`, description: 'All done.' }),
+            error: 'Upload failed',
+        });
+        const item = () => t.toasts().find((x) => x.id === id)!;
+        expect(item().title).toBe('Uploading…');
+        expect(item().status).toBe('loading');
+        expect(item().duration).toBe(Infinity);
+        item().open = true; // the component's enter flip, simulated
+        // Pending: never auto-dismissed.
+        vi.advanceTimersByTime(60_000);
+        expect(item().open).toBe(true);
+        resolve('report.pdf');
+        await vi.advanceTimersByTimeAsync(0);
+        expect(t.toasts()).toHaveLength(1);
+        expect(item().title).toBe('Uploaded report.pdf');
+        expect(item().description).toBe('All done.');
+        expect(item().status).toBe('complete');
+        // The default duration is restored and armed.
+        expect(item().duration).toBe(1000);
+        vi.advanceTimersByTime(1100);
+        expect(item().open).toBe(false);
+    });
+
+    it('promise: a rejection becomes the error stage, handled here (#292)', async () => {
+        const t = createToaster({ duration: 1000 });
+        const id = t.promise(Promise.reject(new Error('disk full')), {
+            id: 'upload',
+            loading: { title: 'Uploading…', description: 'report.pdf' },
+            success: 'Uploaded',
+            error: (e) => ({ title: 'Upload failed', description: (e as Error).message, role: 'alert', duration: 8000 }),
+        });
+        expect(id).toBe('upload');
+        await vi.advanceTimersByTimeAsync(0);
+        const item = t.toasts()[0]!;
+        expect(item.status).toBe('error');
+        expect(item.title).toBe('Upload failed');
+        expect(item.description).toBe('disk full');
+        expect(item.role).toBe('alert');
+        // A stage's own duration wins over the restored default.
+        expect(item.duration).toBe(8000);
+    });
+
+    it('promise: a throwing stage mapper settles the error stage, never an unhandled rejection (#292)', async () => {
+        const unhandled = vi.fn();
+        process.on('unhandledRejection', unhandled);
+        try {
+            const t = createToaster({ duration: Infinity });
+            const ok = t.promise(Promise.resolve(1), {
+                loading: 'Saving…',
+                success: () => { throw new Error('bad mapper'); },
+                error: (e) => ({ title: 'Save failed', description: (e as Error).message }),
+            });
+            const bad = t.promise(Promise.reject(new Error('io')), {
+                loading: 'Loading…',
+                success: 'Loaded',
+                error: () => { throw new Error('bad mapper'); },
+            });
+            await vi.advanceTimersByTimeAsync(0);
+            await vi.advanceTimersByTimeAsync(0);
+            const find = (id: string) => t.toasts().find((x) => x.id === id)!;
+            expect(find(ok).status).toBe('error');
+            expect(find(ok).title).toBe('Save failed');
+            expect(find(ok).description).toBe('bad mapper');
+            // Nothing left to map: the status moves, the loading copy stays.
+            expect(find(bad).status).toBe('error');
+            expect(find(bad).title).toBe('Loading…');
+            expect(unhandled).not.toHaveBeenCalled();
+        } finally {
+            process.off('unhandledRejection', unhandled);
+        }
+    });
+
+    it('promise: a toast removed before the promise settles stays gone (#292)', async () => {
+        const t = createToaster();
+        let resolve!: () => void;
+        const id = t.promise(new Promise<void>((r) => { resolve = r; }), {
+            loading: 'Working…', success: 'Done', error: 'Failed',
+        });
+        t.remove(id);
+        resolve();
+        await vi.advanceTimersByTimeAsync(0);
+        expect(t.count()).toBe(0);
+    });
+
     it('dismiss with no id clears the queue and exits everything', () => {
         const t = createToaster({ max: 1, duration: Infinity });
         t.create({ title: 'a' });
@@ -184,6 +273,100 @@ describe('Toast (component)', () => {
         expect(root().getAttribute('data-state')).toBe('open');
         expect(root().style.getPropertyValue('--toast-index')).toBe('0');
         expect(root().style.getPropertyValue('--toast-count')).toBe('1');
+    });
+
+    it('Toast.Indicator shows the status, and is absent without one (#292)', async () => {
+        const t = mount();
+        const plain = t.create({ title: 'Plain' });
+        const job = t.create({ title: 'Working…', status: 'loading' });
+        await settle();
+        expectAnatomy(container, toastAnatomy);
+        const indicatorOf = (id: string) => {
+            const title = t.toasts().find((x) => x.id === id)!.title!;
+            const root = [...container.querySelectorAll<HTMLElement>('[data-part="root"]')]
+                .find((r) => r.querySelector('[data-part="title"]')!.textContent === title)!;
+            return root.querySelector<HTMLElement>('[data-part="indicator"]');
+        };
+        expect(indicatorOf(plain)).toBeNull();
+        const indicator = indicatorOf(job)!;
+        expect(indicator.tagName).toBe('SPAN');
+        expect(indicator.getAttribute('data-state')).toBe('loading');
+        expect(indicator.getAttribute('aria-hidden')).toBe('true');
+        t.update(job, { title: 'Done', status: 'complete' });
+        await settle();
+        expect(indicatorOf(job)!.getAttribute('data-state')).toBe('complete');
+        t.update(job, { status: 'error' });
+        await settle();
+        expect(indicatorOf(job)!.getAttribute('data-state')).toBe('error');
+        expectAnatomy(container, toastAnatomy);
+    });
+
+    it('a promise toast walks the indicator from loading to complete (#292)', async () => {
+        const t = mount();
+        let resolve!: () => void;
+        t.promise(new Promise<void>((r) => { resolve = r; }), { loading: 'Saving…', success: 'Saved', error: 'Failed' });
+        await settle();
+        const indicator = () => container.querySelector<HTMLElement>('[data-part="indicator"]')!;
+        expect(indicator().getAttribute('data-state')).toBe('loading');
+        resolve();
+        await settle();
+        expect(indicator().getAttribute('data-state')).toBe('complete');
+        expect(container.querySelector('[data-part="title"]')!.textContent).toBe('Saved');
+    });
+
+    it('the viewport is closed at rest and open while hovered or holding focus (#292)', async () => {
+        const t = mount();
+        t.create({ title: 'Stacked' });
+        await settle();
+        const viewport = container.querySelector<HTMLElement>('[data-part="viewport"]')!;
+        expect(viewport.getAttribute('data-state')).toBe('closed');
+        viewport.dispatchEvent(new PointerEvent('pointerenter'));
+        await settle();
+        expect(viewport.getAttribute('data-state')).toBe('open');
+        viewport.dispatchEvent(new PointerEvent('pointerleave'));
+        await settle();
+        expect(viewport.getAttribute('data-state')).toBe('closed');
+        const close = container.querySelector<HTMLElement>('[data-part="close"]')!;
+        close.focus();
+        await settle();
+        expect(viewport.getAttribute('data-state')).toBe('open');
+        close.blur();
+        await settle();
+        expect(viewport.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('expand="always" keeps the stack open (#292)', async () => {
+        const t = createToaster({ duration: Infinity });
+        render(<Toast.Viewport toaster={t} expand="always" />, container);
+        t.create({ title: 'Fanned' });
+        await settle();
+        expect(container.querySelector('[data-part="viewport"]')!.getAttribute('data-state')).toBe('open');
+    });
+
+    it('each root publishes its measured height and the heights in front of it (#292)', async () => {
+        // happy-dom lays nothing out: give every root a height by its title.
+        const heights: Record<string, number> = { a: 40, b: 60, c: 50 };
+        const spy = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
+            return heights[this.querySelector('[data-part="title"]')?.textContent ?? ''] ?? 0;
+        });
+        try {
+            const t = mount();
+            t.create({ title: 'a' });
+            t.create({ title: 'b' });
+            t.create({ title: 'c' });
+            await settle();
+            const vars = () => [...container.querySelectorAll<HTMLElement>('[data-part="root"]')].map((r) => [
+                r.style.getPropertyValue('--toast-height'),
+                r.style.getPropertyValue('--toast-offset'),
+            ]);
+            // Oldest first; the offset sums the NEWER toasts, which stand in front.
+            expect(vars()).toEqual([['40px', '110px'], ['60px', '50px'], ['50px', '0px']]);
+            t.remove(t.toasts()[2]!.id);
+            await settle();
+            expect(vars()).toEqual([['40px', '60px'], ['60px', '0px']]);
+        } finally {
+            spy.mockRestore();
+        }
     });
 
     it('with no transition, dismissal removes immediately', async () => {

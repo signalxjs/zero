@@ -136,6 +136,9 @@ describe('the cell product is the browser spec\'s', () => {
             'pagination/last-trigger': ['root'],
             'tabs/indicator': ['root', 'list'],
             'table/sort-indicator': ['root', 'table', 'row', 'header-cell', 'sort-trigger'],
+            // Positioned presence surfaces pin open like popups (#292): a
+            // toast's `closed` is its enter/exit frame, never a resting look.
+            'toast/indicator': ['viewport=open', 'root=open'],
         };
         const derived = Object.fromEntries(indicatorChains(manifest.components).map(({ spec, ancestors }) => [`${spec.scope}/${spec.part}`, ancestors]));
         expect(derived).toEqual(hand);
