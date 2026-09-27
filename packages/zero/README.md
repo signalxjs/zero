@@ -1681,6 +1681,29 @@ the axes itself:
 <Card.Title asChild>{(p) => <h2 {...p}>Monthly report</h2>}</Card.Title>
 ```
 
+**Card media, timeline title and description** (#302). Three parts that
+were layout a skin could not reach. `Card.Media` is the full-bleed band — a
+cover image, a video, a map — directly under `root`: a `div` by default, and
+through `asChild` the `<figure>` with a caption or the `<img>` itself. The
+other bands pad themselves and media does not, so the shipped skins run it
+edge to edge and round the corners it shares with the card; it can open the
+card or close it. `Timeline.Title` and `Timeline.Description` are the two
+text bands inside `Timeline.Content` — the event and its detail. Both render
+a `div`, because an event is not a heading unless the page says so;
+`Timeline.Title` takes `asChild` for the outline that wants one. All three
+are optional, and a card or an event without them renders as before:
+
+```tsx
+<Card.Root>
+    <Card.Media asChild>{(p) => <img {...p} src="cover.jpg" alt="" />}</Card.Media>
+    <Card.Header><Card.Title>Ridge walk</Card.Title></Card.Header>
+</Card.Root>
+<Timeline.Content>
+    <Timeline.Title asChild>{(p) => <h3 {...p}>v2.0 released</h3>}</Timeline.Title>
+    <Timeline.Description>Every component moved onto the anatomy contract.</Timeline.Description>
+</Timeline.Content>
+```
+
 **The confirm dialog.** A destructive confirm is `Dialog.Root
 role="alertdialog"` — no backdrop dismiss, initial focus on the
 least-destructive action — with the dependents as the description's own

@@ -4896,6 +4896,36 @@ export const card: RecipeInput = {
                 overflow: 'hidden',
             },
         },
+        /**
+         * Media (#302) — daisy's `card > figure`: a centred flex box, flush
+         * to the card's edges, the image filling it.
+         */
+        media: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0',
+                inlineSize: '100%',
+                objectFit: 'cover',
+            },
+            selectors: {
+                // The media's own image, when the band wraps one (a div or a
+                // figure): block-level, the band's full width, cropped rather
+                // than stretched when the band is given a height.
+                '& > :is(img, picture, video, svg, canvas)': {
+                    display: 'block',
+                    inlineSize: '100%',
+                    blockSize: '100%',
+                    objectFit: 'cover',
+                },
+                // The corners it shares with the card (#302): the root clips
+                // too, but an asChild <img> is the band itself and rounds on
+                // its own.
+                '&:first-child': { borderStartStartRadius: 'var(--radius-box)', borderStartEndRadius: 'var(--radius-box)' },
+                '&:last-child': { borderEndStartRadius: 'var(--radius-box)', borderEndEndRadius: 'var(--radius-box)' },
+            },
+        },
         header: {
             base: {
                 display: 'flex',
@@ -5789,6 +5819,10 @@ export const timeline: RecipeInput = {
                 },
             },
         },
+        // Title and description (#302): daisy's timeline-box leads with a
+        // bold line; the detail under it in the card description's ink.
+        title: { base: { display: 'block', margin: '0', fontWeight: 'var(--weight-semibold)', lineHeight: 'var(--leading-tight)' } },
+        description: { base: { display: 'block', margin: '0', marginBlockStart: 'var(--space-2xs)', color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)' } },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { marker: { base: {

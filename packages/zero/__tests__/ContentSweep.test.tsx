@@ -337,6 +337,54 @@ describe('Timeline', () => {
         expect(markers[1]!.hasAttribute('data-color')).toBe(false);
         expect(part(container, 'timeline', 'root').getAttribute('data-color')).toBe('neutral');
     });
+
+    it('content takes a title and a description, divs by default (#302)', () => {
+        render(
+            <Timeline.Root>
+                <Timeline.Item>
+                    <Timeline.Marker />
+                    <Timeline.Content>
+                        <Timeline.Title class="t">v2.0 shipped</Timeline.Title>
+                        <Timeline.Description>The design-system rewrite.</Timeline.Description>
+                    </Timeline.Content>
+                </Timeline.Item>
+            </Timeline.Root>,
+            container,
+        );
+        expectAnatomy(container, timelineAnatomy);
+        const content = part(container, 'timeline', 'content');
+        const title = part(container, 'timeline', 'title');
+        const description = part(container, 'timeline', 'description');
+        // An event is not a heading unless the page says so.
+        expect(title.tagName).toBe('DIV');
+        expect(title.className).toBe('t');
+        expect(description.tagName).toBe('DIV');
+        expect(title.parentElement).toBe(content);
+        expect(description.parentElement).toBe(content);
+        expect(timelineAnatomy.parts.title.parent).toBe('content');
+        expect(timelineAnatomy.parts.description.parent).toBe('content');
+    });
+
+    it('title takes asChild for the heading level the outline wants (#302)', () => {
+        render(
+            <Timeline.Root>
+                <Timeline.Item>
+                    <Timeline.Marker />
+                    <Timeline.Content>
+                        <Timeline.Title asChild id="release-2">
+                            {(p: PartProps) => <h3 {...p}>v2.0 shipped</h3>}
+                        </Timeline.Title>
+                    </Timeline.Content>
+                </Timeline.Item>
+            </Timeline.Root>,
+            container,
+        );
+        expectAnatomy(container, timelineAnatomy);
+        const title = part(container, 'timeline', 'title');
+        expect(title.tagName).toBe('H3');
+        expect(title.id).toBe('release-2');
+        expect(title.textContent).toBe('v2.0 shipped');
+    });
 });
 
 describe('Chat', () => {

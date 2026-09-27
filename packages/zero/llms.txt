@@ -420,9 +420,12 @@ component renders; the root is called out separately where it carries props.
   renders type=text; slot gets { visible }). In a type=search field Escape
   clears a non-empty value and is preventDefault-ed so dismiss layers
   yield; an empty field lets it through.
-- Card: Root/Header/Title/Description/Body/Footer. No state, no context, no
-  ids — a styling container. Title renders <h3> so a page of cards is
-  navigable from a heading list. Every part below Root is optional.
+- Card: Root/Media/Header/Title/Description/Body/Footer. No state, no
+  context, no ids — a styling container. Title renders <h3> so a page of
+  cards is navigable from a heading list. Every part below Root is optional.
+  Media (#302) is the full-bleed band directly under Root (div; asChild for
+  a <figure> or the <img> itself): skins draw it edge to edge — the other
+  bands pad, media does not — and round the corners it shares with the card.
 - Alert: Root(model=open, default TRUE)/Icon/Title/Description/Close.
   role=alert on Root; a live region announces CHANGES, so a server-rendered
   alert is silent at load and one inserted later is announced. Close sets the
@@ -476,20 +479,24 @@ component renders; the root is called out separately where it carries props.
   follows the root. The bands (Title/Value/Desc/Figure) take no colour.
   Key the colour values on `item` in the recipe.
 - Timeline: Root(orientation, default VERTICAL — a feed grows downward)/
-  Item/Marker/Connector/Content(placement start|end). A real <ul>/<li> list
-  so AT announces and walks it. Marker (the dot/icon on the axis — a paint
-  part, graded by the contrast audit's indicator matrix) and Connector (the
-  line toward the next item) are aria-hidden decoration; Content declares
-  which SIDE of the axis it sits on as data-placement from the logical
-  start|end pair, so alternating layouts are per-item markup and RTL
-  mirrors free. Content and connector also carry data-orientation — a
-  recipe composes side × axis on the element that has both. A timeline
-  with no start-placed content should reserve no start track: the shipped
-  skins collapse it with a `:has()` rule on the root (#57), no prop.
+  Item/Marker/Connector/Content(placement start|end)/Title/Description. A
+  real <ul>/<li> list so AT announces and walks it. Marker (the dot/icon
+  on the axis — a paint part, graded by the contrast audit's indicator
+  matrix) and Connector (the line toward the next item) are aria-hidden
+  decoration; Content declares which SIDE of the axis it sits on as
+  data-placement from the logical start|end pair, so alternating layouts
+  are per-item markup and RTL mirrors free. Content and connector also
+  carry data-orientation — a recipe composes side × axis on the element
+  that has both. A timeline with no start-placed content should reserve no
+  start track: the shipped skins collapse it with a `:has()` rule on the
+  root (#57), no prop.
   Marker RE-CARRIES the colour axis (anatomy `carries: ['color']`, #94):
   Marker(color) renders data-color on the marker and outranks the root's,
   so each entry paints its own tone; a marker without one follows the
   root. Key the colour values on `marker` in the recipe.
+  Title/Description (#302) are the text bands inside Content, both optional
+  divs — an event is not a heading by default; Title takes asChild for the
+  heading level the outline wants.
 - Chat: Root(placement start|end, default START — the reading edge is the
   other party in every messenger; your own rows opt into end)/Avatar/Header/
   Bubble/Footer. One message row, pure content: no state, no ids, no ARIA —

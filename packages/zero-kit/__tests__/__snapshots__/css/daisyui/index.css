@@ -6805,6 +6805,32 @@
         overflow: hidden;
     }
 
+    [data-scope="card"][data-part="media"] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        inline-size: 100%;
+        object-fit: cover;
+    }
+
+    [data-scope="card"][data-part="media"] > :is(img, picture, video, svg, canvas) {
+        display: block;
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+    }
+
+    [data-scope="card"][data-part="media"]:first-child {
+        border-start-start-radius: var(--radius-box);
+        border-start-end-radius: var(--radius-box);
+    }
+
+    [data-scope="card"][data-part="media"]:last-child {
+        border-end-start-radius: var(--radius-box);
+        border-end-end-radius: var(--radius-box);
+    }
+
     [data-scope="card"][data-part="header"] {
         display: flex;
         flex-direction: column;
@@ -8223,6 +8249,20 @@
         grid-row: 3;
         grid-column: 1;
         align-self: start;
+    }
+
+    [data-scope="timeline"][data-part="title"] {
+        display: block;
+        margin: 0;
+        font-weight: var(--weight-semibold);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="timeline"][data-part="description"] {
+        display: block;
+        margin: 0;
+        margin-block-start: var(--space-2xs);
+        color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
     }
 
     [data-scope="timeline"][data-part="marker"][data-color="primary"] {

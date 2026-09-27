@@ -1,5 +1,6 @@
 import { component } from 'sigx';
 import { Timeline } from '@sigx/zero';
+import type { PartProps } from '@sigx/zero';
 import { pickRole } from '../design-systems';
 import type { PageEntry } from './registry';
 
@@ -78,6 +79,38 @@ const TimelineDemos = component(() => () => (
             <Timeline.Item>
                 <Timeline.Marker />
                 <Timeline.Content>Rollback pending</Timeline.Content>
+            </Timeline.Item>
+        </Timeline.Root>
+        {/*
+          * #302: `title` and `description` are the two text bands inside the
+          * content box. Title is a div by default — an event is not a
+          * heading — and takes asChild for a page whose outline wants one.
+          */}
+        <p>Title and description — the event and its detail:</p>
+        <Timeline.Root color={pickRole('primary')}>
+            <Timeline.Item>
+                <Timeline.Marker />
+                <Timeline.Content>
+                    <Timeline.Title asChild>
+                        {(p: PartProps) => <h3 {...p}>v2.0 released</h3>}
+                    </Timeline.Title>
+                    <Timeline.Description>Every component moved onto the anatomy contract.</Timeline.Description>
+                </Timeline.Content>
+                <Timeline.Connector />
+            </Timeline.Item>
+            <Timeline.Item>
+                <Timeline.Marker />
+                <Timeline.Content placement="start">
+                    <Timeline.Title>Beta opened</Timeline.Title>
+                    <Timeline.Description>Six design systems, one runtime.</Timeline.Description>
+                </Timeline.Content>
+                <Timeline.Connector />
+            </Timeline.Item>
+            <Timeline.Item>
+                <Timeline.Marker />
+                <Timeline.Content>
+                    <Timeline.Title>Project started</Timeline.Title>
+                </Timeline.Content>
             </Timeline.Item>
         </Timeline.Root>
         <p>Horizontal — the process strip:</p>

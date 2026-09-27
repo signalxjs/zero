@@ -4614,6 +4614,36 @@ export const card: RecipeInput = {
                 overflow: 'hidden',
             },
         },
+        /**
+         * Media (#302) — the full-bleed band. The other bands pad themselves,
+         * so this one simply does not: edge to edge inside the hairline, on a
+         * quiet base-200 while the image loads.
+         */
+        media: {
+            base: {
+                display: 'block',
+                margin: '0',
+                inlineSize: '100%',
+                objectFit: 'cover',
+                background: 'var(--color-base-200)',
+            },
+            selectors: {
+                // The media's own image, when the band wraps one (a div or a
+                // figure): block-level, the band's full width, cropped rather
+                // than stretched when the band is given a height.
+                '& > :is(img, picture, video, svg, canvas)': {
+                    display: 'block',
+                    inlineSize: '100%',
+                    blockSize: '100%',
+                    objectFit: 'cover',
+                },
+                // The corners it shares with the card (#302): the root clips
+                // too, but an asChild <img> is the band itself and rounds on
+                // its own.
+                '&:first-child': { borderStartStartRadius: 'calc(var(--radius-box) - var(--border))', borderStartEndRadius: 'calc(var(--radius-box) - var(--border))' },
+                '&:last-child': { borderEndStartRadius: 'calc(var(--radius-box) - var(--border))', borderEndEndRadius: 'calc(var(--radius-box) - var(--border))' },
+            },
+        },
         header: {
             base: {
                 display: 'flex',
@@ -5604,6 +5634,12 @@ export const timeline: RecipeInput = {
                 },
             },
         },
+        // Title and description (#302): the event and its detail inside the
+        // content box. The title takes the weight; the description the
+        // quieter ink the card's description uses. Both follow the content's
+        // size, so the ramp moves them together.
+        title: { base: { display: 'block', margin: '0', fontWeight: 'var(--weight-semibold)', lineHeight: 'var(--leading-tight)' } },
+        description: { base: { display: 'block', margin: '0', marginBlockStart: 'var(--space-2xs)', color: 'color-mix(in oklch, var(--color-base-content) 72%, transparent)' } },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { marker: { base: {

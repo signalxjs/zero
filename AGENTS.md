@@ -308,6 +308,13 @@ inside its column while genuinely overflowing; there and at the project's
 phone width in every skin, every value stays inside its own item and the
 last one is reachable scrolled to the end (the sweep below already holds
 the phone-width containment, so the spec does not repeat it);
+the **card-media spec** (`e2e/card-media.spec.ts`, #302) — chromium, all
+six design systems, measured in boxes: a `card.media` band sits on the
+root's padding box on both inline edges and on the block edge it shares, in
+all three shapes the Card page renders (a wrapper `div`, an asChild
+`<figure>` whose UA margin must be gone, an asChild `<img>` that is the band
+itself), and rounds a shared corner to the root's inner radius — the
+goldens record the declarations, not whether they add up to a flush band;
 the **switch forced-colors spec** (`e2e/switch-forced-colors.spec.ts`, #189)
 — forced-colors project only, all six design systems, measured in decoded
 pixels: the control differs strongly from the same box with it hidden, and

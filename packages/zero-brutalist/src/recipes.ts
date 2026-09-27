@@ -3399,6 +3399,32 @@ export const card: RecipeInput = {
                 borderBlockStartColor: 'var(--card-accent)',
             },
         },
+        /**
+         * Media (#302) — flush to the ink border, square, and cut off from
+         * what follows by a heavy ink rule: the image is a slab, not a
+         * soft band.
+         */
+        media: {
+            base: {
+                display: 'block',
+                margin: '0',
+                inlineSize: '100%',
+                objectFit: 'cover',
+                background: 'var(--color-base-200)',
+            },
+            selectors: {
+                // The media's own image, when the band wraps one (a div or a
+                // figure): block-level, the band's full width, cropped rather
+                // than stretched when the band is given a height.
+                '& > :is(img, picture, video, svg, canvas)': {
+                    display: 'block',
+                    inlineSize: '100%',
+                    blockSize: '100%',
+                    objectFit: 'cover',
+                },
+                '&:not(:last-child)': { borderBlockEnd: 'calc(var(--border) * 2) solid var(--color-base-content)' },
+            },
+        },
         header: {
             base: {
                 display: 'flex',
@@ -4217,6 +4243,11 @@ export const timeline: RecipeInput = {
                 },
             },
         },
+        // Title and description (#302): the event as a mono uppercase label,
+        // the detail in plain mono under it — full ink both, the hierarchy
+        // is type, never a fade.
+        title: { base: { display: 'block', margin: '0', ...label, lineHeight: 'var(--leading-tight)' } },
+        description: { base: { display: 'block', margin: '0', marginBlockStart: 'var(--space-2xs)', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' } },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { marker: { base: {

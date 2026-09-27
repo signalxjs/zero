@@ -122,6 +122,21 @@
         align-self: start;
     }
 
+    [data-scope="timeline"][data-part="title"] {
+        display: block;
+        margin: 0;
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="timeline"][data-part="description"] {
+        display: block;
+        margin: 0;
+        margin-block-start: var(--space-2xs);
+        color: color-mix(in oklab, var(--color-surface-container-content) 78%, transparent);
+    }
+
     [data-scope="timeline"][data-part="marker"][data-color="primary"] {
         --timeline-accent: var(--color-primary);
     }

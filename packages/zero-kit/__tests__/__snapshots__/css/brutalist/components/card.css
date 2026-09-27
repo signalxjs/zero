@@ -16,6 +16,25 @@
         border-block-start-color: var(--card-accent);
     }
 
+    [data-scope="card"][data-part="media"] {
+        display: block;
+        margin: 0;
+        inline-size: 100%;
+        object-fit: cover;
+        background: var(--color-base-200);
+    }
+
+    [data-scope="card"][data-part="media"] > :is(img, picture, video, svg, canvas) {
+        display: block;
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+    }
+
+    [data-scope="card"][data-part="media"]:not(:last-child) {
+        border-block-end: calc(var(--border) * 2) solid var(--color-base-content);
+    }
+
     [data-scope="card"][data-part="header"] {
         display: flex;
         flex-direction: column;

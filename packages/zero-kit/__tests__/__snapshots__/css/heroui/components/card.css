@@ -14,6 +14,31 @@
         overflow: hidden;
     }
 
+    [data-scope="card"][data-part="media"] {
+        display: block;
+        margin: 0;
+        inline-size: 100%;
+        object-fit: cover;
+        background: var(--color-base-200);
+    }
+
+    [data-scope="card"][data-part="media"] > :is(img, picture, video, svg, canvas) {
+        display: block;
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+    }
+
+    [data-scope="card"][data-part="media"]:first-child {
+        border-start-start-radius: calc(var(--radius-box) - var(--border));
+        border-start-end-radius: calc(var(--radius-box) - var(--border));
+    }
+
+    [data-scope="card"][data-part="media"]:last-child {
+        border-end-start-radius: calc(var(--radius-box) - var(--border));
+        border-end-end-radius: calc(var(--radius-box) - var(--border));
+    }
+
     [data-scope="card"][data-part="header"] {
         display: flex;
         flex-direction: column;
