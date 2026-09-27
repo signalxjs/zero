@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed — `RESERVED_PROPS_BY_SCOPE.combobox` gains `inlineComplete` (zero#301)
+
+- Combobox's new root prop is reserved, so a vendor-named api cannot claim
+  it as an axis prop.
+
 ### Added — Toast's stack properties are runtime properties (zero#292)
 
 - `RUNTIME_PROPERTIES` gains `--toast-index`, `--toast-count`,

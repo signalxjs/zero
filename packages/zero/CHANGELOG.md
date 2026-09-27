@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Added — Combobox inline autocomplete (#301)
+
+- **`inlineComplete`** on `Combobox.Root` (single mode, not trigger mode)
+  follows the APG list-with-inline-autocomplete pattern. The input renders
+  `aria-autocomplete="both"`. When typing (`insertText`) or a paste
+  (`insertFromPaste`) inserts text at the end of the input, the text
+  completes to the first enabled visible option whose label starts with it.
+  The match is case-insensitive, the default filter's rule. The remainder
+  is inserted selected and that option is highlighted. Deletions, IME
+  compositions and text inserted before the end never complete.
+- `model:inputValue` keeps the typed text, so the list and a server search
+  still filter on it. The completion is only what the input shows.
+- Keys: Backspace/Delete remove just the completion. The first Escape
+  reverts it, and the next follows the existing rules. Enter and Tab commit
+  the highlighted option, and Tab still moves focus. ArrowLeft/ArrowRight/
+  Home/End accept the completed text without choosing a value.
+  ArrowUp/ArrowDown drop the completion and walk the list. A blur resyncs as
+  in #265, so an unaccepted completion never posts.
+
 ### Added — Promise toasts with `Toast.Indicator`, and an expanded toast stack (#292)
 
 - **`toaster.promise(p, { id?, loading, success, error })`** shows one toast
