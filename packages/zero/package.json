@@ -247,6 +247,10 @@
             "types": "./dist/components/chat/index.d.ts",
             "import": "./dist/components/chat/index.js"
         },
+        "./chat-log": {
+            "types": "./dist/components/chat-log/index.d.ts",
+            "import": "./dist/components/chat-log/index.js"
+        },
         "./radial-progress": {
             "types": "./dist/components/radial-progress/index.d.ts",
             "import": "./dist/components/radial-progress/index.js"

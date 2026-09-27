@@ -261,6 +261,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     carousel: ['defaultIndex', 'id', 'label', 'title', 'value'],
     center: ['axis', 'gap', 'id', 'pad', 'padX', 'padY', 'role', 'title'],
     chat: ['id', 'placement', 'role', 'title'],
+    'chat-log': ['defaultFollowing', 'id', 'label', 'threshold', 'title'],
     checkbox: ['defaultChecked', 'form', 'hideLabel', 'id', 'indeterminate', 'invalid', 'name', 'parent', 'readonly', 'required', 'title', 'value'],
     'checkbox-group': ['allValues', 'defaultValue', 'form', 'id', 'invalid', 'name', 'readonly', 'required', 'title', 'value'],
     collapsible: ['defaultOpen', 'id', 'role', 'title', 'value'],

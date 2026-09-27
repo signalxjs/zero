@@ -54,7 +54,7 @@ describe('defineAnatomy', () => {
 describe('anatomy registry', () => {
     it('contains every component', () => {
         expect(Object.keys(anatomies).sort()).toEqual([
-            'accordion', 'alert', 'avatar', 'badge', 'box', 'breadcrumbs', 'button', 'card', 'carousel', 'center', 'chat', 'checkbox', 'checkbox-group', 'collapsible',
+            'accordion', 'alert', 'avatar', 'badge', 'box', 'breadcrumbs', 'button', 'card', 'carousel', 'center', 'chat', 'chat-log', 'checkbox', 'checkbox-group', 'collapsible',
             'combobox', 'container', 'countdown', 'dialog', 'diff', 'divider', 'drawer', 'empty-state', 'field', 'fieldset', 'file-upload', 'grid', 'hover-card', 'indicator', 'input', 'join', 'kbd', 'menu', 'menubar',
             'nav-list', 'navbar', 'number-input', 'pagination', 'popover', 'progress', 'radial-progress', 'radio-group',
             'rating-group', 'select', 'skeleton', 'slider', 'spacer', 'spinner', 'stack', 'stats', 'status', 'steps', 'swap', 'switch', 'table', 'tabs',
@@ -112,7 +112,7 @@ describe('anatomy registry', () => {
         // Adding one to the runtime without declaring it here is the drift
         // this pins: the DOM half is asserted by `expectAnatomy`.
         expect([...new Set(declared)].sort()).toEqual([
-            'alert.root', 'avatar.fallback', 'avatar.image', 'tabs.panel', 'tree-view.branch-content',
+            'alert.root', 'avatar.fallback', 'avatar.image', 'chat-log.jump-trigger', 'tabs.panel', 'tree-view.branch-content',
         ]);
     });
 

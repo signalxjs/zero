@@ -329,6 +329,8 @@ export type {
 
 export { Chat, chatAnatomy } from './components/chat/index.js';
 export type { ChatRootProps, ChatPartProps, ChatPlacement } from './components/chat/index.js';
+export { ChatLog, chatLogAnatomy, useChatLogContext } from './components/chat-log/index.js';
+export type { ChatLogRootProps, ChatLogContentProps, ChatLogJumpTriggerProps } from './components/chat-log/index.js';
 
 export {
     RadialProgress,

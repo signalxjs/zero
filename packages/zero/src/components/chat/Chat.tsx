@@ -14,8 +14,8 @@
  * ```
  *
  * Pure content — no state, no ids, no ARIA of its own: a transcript that
- * needs log semantics is a `role="log"` container the consumer writes
- * AROUND the rows. See `anatomy.ts` for the placement reasoning.
+ * needs log semantics puts the rows in a `ChatLog` (`role="log"`, following
+ * its tail). See `anatomy.ts` for the placement reasoning.
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
