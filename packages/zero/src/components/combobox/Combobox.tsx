@@ -157,7 +157,12 @@ interface ComboboxContext {
     setPopup(el: HTMLElement | null): void;
     focusInput(): void;
     inputKeydown(e: KeyboardEvent): void;
-    onInput(value: string): void;
+    /** The input's `input` event — the event itself, so inline completion can read its `inputType`. */
+    onInput(value: string, e?: Event): void;
+    /** What the input shows: the text, or while an inline completion stands, the text plus the completed remainder. */
+    inputText(): string;
+    /** `inlineComplete` is on and applies (single, non-trigger mode) — `aria-autocomplete="both"`. */
+    inlineComplete(): boolean;
     /** A pointer click on the input — opens under `openOnClick`. */
     inputClick(): void;
     /** The input lost focus — resyncs the text unless focus stayed in the combobox. */
@@ -204,6 +209,8 @@ function makeInert(): ComboboxContext {
         focusInput: () => {},
         inputKeydown: () => {},
         onInput: () => {},
+        inputText: () => '',
+        inlineComplete: () => false,
         inputClick: () => {},
         inputBlur: () => {},
         triggerMode: () => false,
@@ -262,6 +269,14 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     & Define.Prop<'placeholder', string, false>
     /** A pointer click on the input opens the popup (default false: typing and the arrows do). */
     & Define.Prop<'openOnClick', boolean, false>
+    /**
+     * Inline autocomplete (#301, APG list with inline autocomplete): typing
+     * or pasting at the end of the text completes it to the first enabled
+     * visible option whose label starts with it — the remainder inserted
+     * selected, that option highlighted — and the input is
+     * `aria-autocomplete="both"`. Single mode, not trigger mode.
+     */
+    & Define.Prop<'inlineComplete', boolean, false>
     /**
      * Window the options (#96): only those near the popup's scroll position
      * are rendered. Takes the strategy from its own entry, so only a list
@@ -426,6 +441,56 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         if (openState.value !== v) openState.value = v;
     };
 
+    // ── Inline completion (#301) ──
+    // `model:inputValue` stays the TYPED text — the query the list filters
+    // on and a server search reads — while the input shows it plus the
+    // completed remainder, selected. The completion stands only while the
+    // text is still what it completed (`typed`); any other write retires it.
+    const inlineOn = (): boolean => !!props.inlineComplete && !triggerMode && !multiple();
+    const inline = signal({ typed: null as string | null, text: '' });
+    const completing = (): boolean => inline.typed !== null && inline.typed === inputValue.value;
+    const clearInline = (): void => {
+        if (inline.typed !== null) inline.typed = null;
+    };
+    /** Put `text` in the input with `[start, end)` selected — and again after a re-render writes the value back. */
+    const showText = (text: string, start: number, end: number): void => {
+        const el = input as HTMLInputElement | null;
+        if (!el) return;
+        if (el.value !== text) el.value = text;
+        el.setSelectionRange(start, end);
+        queueMicrotask(() => {
+            if (input === el && el.value === text && el.ownerDocument.activeElement === el) el.setSelectionRange(start, end);
+        });
+    };
+    /**
+     * Complete `typed` to the first enabled visible option whose label
+     * starts with it (case-insensitively — the default filter's rule). Only
+     * for text inserted by typing or a paste, never a deletion or an IME
+     * composition, and only with the caret at the end. Returns whether an
+     * option matched (it is then highlighted).
+     */
+    const complete = (typed: string, e: Event | undefined): boolean => {
+        const ie = e as InputEvent | undefined;
+        if (!ie || ie.isComposing || (ie.inputType !== 'insertText' && ie.inputType !== 'insertFromPaste')) return false;
+        const el = input as HTMLInputElement | null;
+        if (!el || typed === '' || el.selectionStart !== typed.length || el.selectionEnd !== typed.length) return false;
+        // The first option that STARTS with the text, not the first visible
+        // one: the default filter is a contains-match, so the head of the
+        // list is often an option that merely contains it.
+        const lower = typed.toLowerCase();
+        const key = listbox.visibleKeys().find((k) => !collection.isDisabled(k)
+            && collection.label(k).slice(0, typed.length).toLowerCase() === lower);
+        if (key === undefined) return false;
+        const label = collection.label(key);
+        listbox.highlighted.value = key;
+        if (label.length === typed.length) return true;
+        const text = typed + label.slice(typed.length);
+        inline.text = text;
+        inline.typed = typed;
+        showText(text, typed.length, text.length);
+        return true;
+    };
+
     // Trigger mode commits text, not a selection: an option is never
     // `selected`, and the model is never written.
     const noSelection = { get value(): unknown { return ''; }, set value(_: unknown) {} };
@@ -446,6 +511,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         onSelect: (key) => {
             if (triggerMode) { commit(key); return; }
             if (multiple()) { inputValue.value = ''; return; }
+            clearInline();
             // Remembered: a consumer-filtered item may unmount before the
             // text is next resynced from the value.
             inputValue.value = tagLabel(key);
@@ -569,6 +635,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
      * Multiple mode: the typed query is dropped (the tags are the value).
      */
     const commitInputText = (): void => {
+        // An unaccepted completion is not text the user wrote.
+        clearInline();
         if (triggerMode || fc.disabled() || fc.readonly()) return;
         const text = inputValue.value;
         if (multiple()) {
@@ -840,6 +908,43 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             if (ctx.disabled() || ctx.readonly()) return;
             if (pageKey(e)) return;
             const key = e.key;
+            if (completing() && !e.isComposing) {
+                const typed = inline.typed!;
+                if (key === 'Escape') {
+                    // The first Escape takes back only the completion.
+                    e.preventDefault();
+                    clearInline();
+                    listbox.highlighted.value = null;
+                    showText(typed, typed.length, typed.length);
+                    return;
+                }
+                if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Home' || key === 'End') {
+                    // A caret move accepts the completed text — as text, not
+                    // a value; the caret itself moves natively. The text is
+                    // written first, so the input never shows `typed` between.
+                    inputValue.value = inline.text;
+                    clearInline();
+                    return;
+                }
+                if ((key === 'ArrowDown' || key === 'ArrowUp') && !e.altKey) {
+                    // Walking the list leaves the completion behind: the
+                    // highlight is no longer the option it spelled.
+                    clearInline();
+                    showText(typed, typed.length, typed.length);
+                }
+                // Backspace/Delete remove the selected remainder natively;
+                // the `input` that follows retires the completion.
+            }
+            if (key === 'Tab' && inlineOn() && openState.value && !e.shiftKey) {
+                // Inline autocomplete: Tab commits the highlight, like Enter,
+                // and focus moves on.
+                const h = listbox.highlighted.value;
+                if (h != null) {
+                    listbox.select(h);
+                    if (openState.value) setOpen(false);
+                    return;
+                }
+            }
             if (e.altKey && (key === 'ArrowDown' || key === 'ArrowUp')) {
                 // APG: Alt+Down opens without moving the highlight — onto
                 // the chosen option if it is listed, else none; Alt+Up
@@ -922,10 +1027,17 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             // Home/End & the rest stay with the text caret (APG editable
             // combobox) — no typeahead: typing IS the filter.
         },
-        onInput(value) {
+        onInput(value, e) {
+            // The text first: retiring the completion before it would render
+            // the old text back over what was just typed.
             inputValue.value = value;
+            clearInline();
             if (!openState.value && !ctx.disabled() && !ctx.readonly()) setOpen(true);
+            // The highlight is the completion: none when nothing completes.
+            if (inlineOn() && !complete(value, e)) listbox.highlighted.value = null;
         },
+        inputText: () => (completing() ? inline.text : inputValue.value),
+        inlineComplete: inlineOn,
         inputClick() {
             if (props.openOnClick && !openState.value && !ctx.disabled() && !ctx.readonly()) setOpen(true);
         },
@@ -1328,18 +1440,18 @@ const ComboboxInput = component<ComboboxInputProps>(({ props }) => {
                 role="combobox"
                 aria-expanded={combobox.open.value ? 'true' : 'false'}
                 aria-controls={combobox.ids.popup}
-                aria-autocomplete="list"
+                aria-autocomplete={combobox.inlineComplete() ? 'both' : 'list'}
                 aria-activedescendant={combobox.listbox.activeDescendant(combobox.open.value)}
                 aria-invalid={combobox.invalid() ? 'true' : undefined}
                 aria-describedby={[combobox.describedBy(), attrs['aria-describedby']].filter(Boolean).join(' ') || undefined}
                 placeholder={props.placeholder ?? combobox.placeholder()}
-                value={combobox.inputValue.value}
+                value={combobox.inputText()}
                 disabled={combobox.disabled()}
                 readOnly={combobox.readonly()}
                 required={combobox.required()}
                 class={props.class}
                 ref={(node: HTMLElement | null) => { el = node; combobox.setInput(node); }}
-                onInput={(e: Event) => { combobox.onInput((e.target as HTMLInputElement).value); }}
+                onInput={(e: Event) => { combobox.onInput((e.target as HTMLInputElement).value, e); }}
                 onKeydown={(e: KeyboardEvent) => { combobox.inputKeydown(e); }}
                 onFocus={() => { combobox.inputFocusVisible.value = isFocusVisible(el); }}
                 onClick={() => { combobox.inputClick(); }}

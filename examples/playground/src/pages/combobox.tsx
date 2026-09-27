@@ -147,6 +147,27 @@ const ComboboxDemos = component(() => {
                     placeholder="Search cities…"
                 />
             </Field.Root>
+            <h2>Inline autocomplete</h2>
+            <p>
+                <small>
+                    <code>inlineComplete</code> completes the text to the first
+                    option that starts with it, with the rest selected
+                    (<code>aria-autocomplete="both"</code>). Keep typing to
+                    refine it. Backspace removes the completion, Escape takes it
+                    back, Enter or Tab picks the option, and End or an arrow
+                    along the text keeps the completed text.
+                </small>
+            </p>
+            <Field.Root>
+                <Field.Label>Country (inline)</Field.Label>
+                <Combobox.Root
+                    items={COUNTRIES}
+                    inlineComplete
+                    name="inline-country"
+                    placeholder="Type a country…"
+                    emptyText="No countries match"
+                />
+            </Field.Root>
             <h2>Long lists</h2>
             <p>
                 <small>

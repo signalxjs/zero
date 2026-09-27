@@ -1001,3 +1001,220 @@ describe('Combobox text resync, APG keys and openOnClick (#265)', () => {
         expect(state.value).toBe('cherry');
     });
 });
+
+describe('Combobox inline autocomplete (#301)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    const COUNTRIES = ['Finland', 'France', 'Germany', 'Greece', 'Spain', 'Estonia'];
+
+    function inline(opts: { disabledFirst?: boolean; allowCustom?: boolean } = {}) {
+        const state = signal({ value: null as string | null, query: '', open: false });
+        render(
+            <>
+                <Combobox.Root
+                    items={COUNTRIES}
+                    itemDisabled={(c) => !!opts.disabledFirst && c === 'Finland'}
+                    model={[state, 'value']}
+                    model:inputValue={[state, 'query']}
+                    model:open={[state, 'open']}
+                    allowCustom={opts.allowCustom}
+                    inlineComplete
+                    name="country"
+                />
+                <button type="button" id="out">out</button>
+            </>,
+            container,
+        );
+        const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+        input.focus();
+        return {
+            state,
+            input,
+            out: container.querySelector<HTMLElement>('#out')!,
+            hidden: container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!,
+            highlighted: () => container.querySelector<HTMLElement>('[data-part="item"][data-highlighted]')?.textContent ?? null,
+        };
+    }
+    /** What a browser does for a keystroke: replace the selection with `text`, caret after it, then `input`. */
+    function typeKey(input: HTMLInputElement, text: string, init: InputEventInit = {}) {
+        const start = input.selectionStart ?? input.value.length;
+        const end = input.selectionEnd ?? input.value.length;
+        input.value = input.value.slice(0, start) + text + input.value.slice(end);
+        input.setSelectionRange(start + text.length, start + text.length);
+        input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text, ...init }));
+    }
+    function backspace(input: HTMLInputElement) {
+        const start = input.selectionStart ?? 0;
+        const end = input.selectionEnd ?? 0;
+        const from = start === end ? Math.max(0, start - 1) : start;
+        input.value = input.value.slice(0, from) + input.value.slice(end);
+        input.setSelectionRange(from, from);
+        input.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'deleteContentBackward' }));
+    }
+    function key(el: HTMLElement, k: string, init: KeyboardEventInit = {}) {
+        const e = new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true, ...init });
+        el.dispatchEvent(e);
+        return e;
+    }
+    const selected = (input: HTMLInputElement) => input.value.slice(input.selectionStart ?? 0, input.selectionEnd ?? 0);
+
+    it('marks the input aria-autocomplete="both" — and only when it applies', () => {
+        const { input } = inline();
+        expect(input.getAttribute('aria-autocomplete')).toBe('both');
+        container.innerHTML = '';
+        render(<Combobox.Root items={COUNTRIES} multiple inlineComplete />, container);
+        expect(container.querySelector('[data-part="input"]')!.getAttribute('aria-autocomplete')).toBe('list');
+    });
+
+    it('typing completes to the first matching option: remainder selected, option highlighted, the query stays typed', () => {
+        const { input, state, highlighted } = inline();
+        typeKey(input, 'F');
+        expect(input.value).toBe('Finland');
+        expect(selected(input)).toBe('inland');
+        expect(highlighted()).toBe('Finland');
+        expect(state.query).toBe('F');
+        expect(state.open).toBe(true);
+        // Typing over the selection re-completes from the new text.
+        typeKey(input, 'r');
+        expect(input.value).toBe('France');
+        expect(selected(input)).toBe('ance');
+        expect(highlighted()).toBe('France');
+        expect(state.query).toBe('Fr');
+        expect(state.value).toBeNull();
+    });
+
+    it('the match is case-insensitive and the typed text keeps its case until a commit', () => {
+        const { input, state } = inline();
+        typeKey(input, 'fr');
+        expect(input.value).toBe('france');
+        expect(selected(input)).toBe('ance');
+        key(input, 'Enter');
+        expect(input.value).toBe('France');
+        expect(state.value).toBe('France');
+    });
+
+    it('completes to the first option that starts with the text, past ones that only contain it', () => {
+        const { input, highlighted } = inline();
+        // The contains-filter lists Germany and Greece first; Estonia starts with it.
+        typeKey(input, 'E');
+        expect(input.value).toBe('Estonia');
+        expect(highlighted()).toBe('Estonia');
+    });
+
+    it('text no option starts with completes nothing and highlights nothing', () => {
+        const { input, highlighted } = inline();
+        typeKey(input, 'r'); // France, Germany, Greece contain it; none starts with it
+        expect(input.value).toBe('r');
+        expect(highlighted()).toBeNull();
+    });
+
+    it('skips a disabled first option', () => {
+        const { input, highlighted } = inline({ disabledFirst: true });
+        typeKey(input, 'F');
+        expect(input.value).toBe('France');
+        expect(highlighted()).toBe('France');
+    });
+
+    it('never completes a deletion, an IME composition, or text typed before the end', () => {
+        const { input, highlighted } = inline();
+        typeKey(input, 'Fr');
+        expect(input.value).toBe('France');
+        backspace(input); // removes only the selected completion
+        expect(input.value).toBe('Fr');
+        expect(highlighted()).toBeNull();
+        backspace(input);
+        expect(input.value).toBe('F');
+        typeKey(input, 'r', { isComposing: true });
+        expect(input.value).toBe('Fr');
+        expect(highlighted()).toBeNull();
+        // A caret in the middle: an insert there is not completed.
+        input.setSelectionRange(0, 0);
+        typeKey(input, 'G');
+        expect(input.value).toBe('GFr');
+    });
+
+    it('a paste completes like typing', () => {
+        const { input } = inline();
+        typeKey(input, 'Ger', { inputType: 'insertFromPaste' });
+        expect(input.value).toBe('Germany');
+        expect(selected(input)).toBe('many');
+    });
+
+    it('Escape first reverts the completion, then follows the usual rules', () => {
+        const { input, state, highlighted } = inline();
+        typeKey(input, 'Gr');
+        expect(input.value).toBe('Greece');
+        const first = key(input, 'Escape');
+        expect(first.defaultPrevented).toBe(true);
+        expect(input.value).toBe('Gr');
+        expect(highlighted()).toBeNull();
+        expect(state.open).toBe(true);
+        key(input, 'Escape');
+        expect(state.open).toBe(false);
+        expect(input.value).toBe('');
+    });
+
+    it('Enter commits the completed option', () => {
+        const { input, state, hidden } = inline();
+        typeKey(input, 'sp');
+        key(input, 'Enter');
+        expect(state.value).toBe('Spain');
+        expect(input.value).toBe('Spain');
+        expect(state.open).toBe(false);
+        expect(hidden.value).toBe('Spain');
+    });
+
+    it('Tab commits the highlighted option and is not swallowed', () => {
+        const { input, state } = inline();
+        typeKey(input, 'ger');
+        const tab = key(input, 'Tab');
+        expect(tab.defaultPrevented).toBe(false);
+        expect(state.value).toBe('Germany');
+        expect(input.value).toBe('Germany');
+        expect(state.open).toBe(false);
+    });
+
+    it('a caret move accepts the completed text without committing a value', () => {
+        const { input, state, highlighted } = inline();
+        typeKey(input, 'Fi');
+        key(input, 'End');
+        expect(state.query).toBe('Finland');
+        expect(input.value).toBe('Finland');
+        expect(state.value).toBeNull();
+        expect(highlighted()).toBe('Finland');
+        // Accepted text is plain text now: Escape closes and reverts it.
+        key(input, 'Escape');
+        expect(state.open).toBe(false);
+    });
+
+    it('ArrowDown leaves the completion behind and walks the list', () => {
+        const { input, highlighted } = inline();
+        typeKey(input, 'F');
+        key(input, 'ArrowDown');
+        expect(input.value).toBe('F');
+        expect(highlighted()).toBe('France');
+    });
+
+    it('a blur resyncs: an unaccepted completion is dropped with the typed text', async () => {
+        const { input, state, out } = inline();
+        typeKey(input, 'gr');
+        input.dispatchEvent(new FocusEvent('blur', { relatedTarget: out }));
+        await tick();
+        expect(state.open).toBe(false);
+        expect(input.value).toBe('');
+        expect(state.value).toBeNull();
+    });
+
+    it('allowCustom: a blur commits the typed text, not the completion', async () => {
+        const { input, state, out } = inline({ allowCustom: true });
+        typeKey(input, 'Fr');
+        input.dispatchEvent(new FocusEvent('blur', { relatedTarget: out }));
+        await tick();
+        expect(state.value).toBe('Fr');
+        expect(input.value).toBe('Fr');
+    });
+});

@@ -642,6 +642,24 @@ something, so on an empty combobox it still reaches an enclosing dialog.
 `openOnClick` (default `false`) opens the list on a pointer click in the
 input as well.
 
+**Inline autocomplete (#301).** `inlineComplete` on `Combobox.Root` (single
+mode, not trigger mode) follows the APG list-with-inline-autocomplete
+pattern, and the input says so with `aria-autocomplete="both"`. When
+typing or a paste inserts text at the end of the input, and the first
+enabled visible option's label starts with that text, the input completes
+to it. The match is case-insensitive, the same rule as the default filter.
+The remainder is inserted selected, and that option is highlighted.
+Deletions and IME compositions never complete, and neither does text
+inserted before the end. `model:inputValue` keeps the *typed* text, so the
+list filters on it and a server search reads it. The completion is only
+what the input shows. Backspace or Delete removes just the selected
+remainder. The first Escape takes the completion back, and the next one
+follows the usual rules. Enter and Tab commit the highlighted option (Tab
+still moves focus on). ArrowLeft, ArrowRight, Home and End accept the
+completed text as text without choosing a value. ArrowUp and ArrowDown drop
+the completion and walk the list. A blur resyncs as described above, so an
+unaccepted completion never posts.
+
 **Clearing, separators and loading (#280).** `Select.ClearTrigger` is a real
 button in the tab order, a *sibling* of `Select.Trigger` inside the root
 (never inside it — a button cannot hold a button, and the trigger's name
