@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-27
+
 ### Fixed — The lynx target rewrites `rem` to `px` at 16px/rem (zero#381)
 
 - Lynx resolves `rem` against its 14px default page font size, so every
