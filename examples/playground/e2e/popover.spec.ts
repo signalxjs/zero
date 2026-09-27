@@ -12,7 +12,10 @@
  * over the trigger (and inside the popup) once the popup has been shifted
  * back from the viewport edge, which is the case a stylesheet alone cannot
  * get right. Plus `Popover.Anchor`: the popup lines up with it while the
- * trigger keeps focus restore.
+ * trigger keeps focus restore. And #277: `initialFocus` in place of the
+ * first tabbable, and a popup whose `escapeKeyDown` / `interactOutside`
+ * veto both dismissals — the light dismiss re-shown, since the platform
+ * cannot cancel it.
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
@@ -144,6 +147,35 @@ test.describe('basic', () => {
             await expect(popup).toHaveAttribute('data-state', 'closed');
             await expect(t).toBeFocused();
         });
+    });
+
+    test('initialFocus takes focus on open; vetoed Escape and outside press keep it open (#277)', async ({ page }) => {
+        const t = page.getByRole('button', { name: 'Pinned note', exact: true });
+        await t.focus();
+        await page.keyboard.press('Enter');
+        const popup = await controlledPopup(page, t, 'the Pinned note trigger');
+        await expect(popup).toHaveAttribute('data-state', 'open');
+        // Past the switch, which is the first tabbable.
+        await expect(popup.getByRole('textbox', { name: 'Note', exact: true })).toBeFocused();
+
+        // Escape: the keydown is prevented, so no close request is sent.
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(150);
+        await expect(popup).toHaveAttribute('data-state', 'open');
+        await expect(popup).toBeVisible();
+
+        // Light dismiss: the platform closes it anyway, and the toggle shows
+        // it again — settled, it is showing, and the model never moved.
+        const box = await settledBox(popup, 'the Pinned note popup');
+        await page.mouse.click(box.x + box.width + 200, box.y + box.height + 40);
+        await page.waitForTimeout(300);
+        expect(await popup.evaluate((el) => el.matches(':popover-open'))).toBe(true);
+        await expect(popup).toHaveAttribute('data-state', 'open');
+        await expect(t).toHaveAttribute('aria-expanded', 'true');
+
+        // Its own action still closes it.
+        await popup.getByRole('button', { name: 'Done', exact: true }).click();
+        await expect(popup).toHaveAttribute('data-state', 'closed');
     });
 });
 

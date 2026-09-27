@@ -26,7 +26,7 @@ export { createPressFeedback } from './press.js';
 export type { PressFeedbackOptions, PressFeedbackHandlers } from './press.js';
 
 export { createDismissable } from './dismiss.js';
-export type { DismissableOptions } from './dismiss.js';
+export type { DismissableOptions, InteractOutsideEvent } from './dismiss.js';
 export { createSpinPress } from './spin.js';
 export type { SpinPressOptions, SpinPressHandlers } from './spin.js';
 export { createTreeController } from './tree.js';

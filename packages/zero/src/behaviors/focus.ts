@@ -149,6 +149,65 @@ export interface FocusRestoreOptions {
      * Tab, whose focus the browser moves onward itself.
      */
     skip?(): boolean;
+    /**
+     * An explicit destination (a component's `finalFocus`), asked as the
+     * surface closes. A focusable answer wins over the remembered element;
+     * null (or an element that cannot take focus) falls back to the default.
+     */
+    target?(): HTMLElement | null;
+}
+
+/** Id-bearing popups whose invoker publishes `aria-controls` at them. */
+const CONTROLLED_POPUP = '[popover][id], dialog[id], [role="menu"][id], [role="listbox"][id]';
+
+function controllerOf(popup: Element): HTMLElement | null {
+    const id = popup.id;
+    const escaped = typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
+        ? CSS.escape(id)
+        : id.replace(/["\\]/g, '\\$&');
+    return popup.ownerDocument.querySelector<HTMLElement>(`[aria-controls~="${escaped}"]`);
+}
+
+/**
+ * Where focus that was on `el` can go back to (#277). `el` itself while it
+ * can take focus; otherwise, when it sits inside a popup that has since
+ * closed (a `Menu.Item` that opened a dialog, whose menu hid under it), the
+ * element that controls that popup — its trigger, found by the
+ * `aria-controls` every zero trigger publishes — and so on outwards (a
+ * submenu item hands off to its sub-trigger, which hands off to the menu
+ * trigger). Null when the chain ends in nothing focusable.
+ */
+export function focusHandOff(el: HTMLElement | null): HTMLElement | null {
+    let current: HTMLElement | null = el;
+    // Bounded: an aria-controls cycle must not spin.
+    for (let i = 0; current && i < 8; i++) {
+        // Not narrowed through the guard: a false answer leaves an HTMLElement.
+        if (isFocusable(current as Element)) return current;
+        if (!current.isConnected) return null;
+        const popup = current.closest(CONTROLLED_POPUP);
+        const controller = popup ? controllerOf(popup) : null;
+        if (!controller || controller === current || popup!.contains(controller)) return null;
+        current = controller;
+    }
+    return null;
+}
+
+/**
+ * Hand focus back after a surface closed: to `options.target()` when it
+ * names a focusable element, else to where `remembered` hands off (see
+ * {@link focusHandOff}), else `options.fallback()`. Only while focus is
+ * still the surface's to move — on nothing, inside the surface, or already
+ * on the remembered element (a native `<dialog>` restore that put it there).
+ */
+export function restoreFocus(remembered: HTMLElement | null, options: Omit<FocusRestoreOptions, 'skip'> = {}): void {
+    if (typeof document === 'undefined') return;
+    const active = document.activeElement;
+    if (active !== remembered && !focusIsOurs(options.getSurface)) return;
+    const explicit = options.target?.() ?? null;
+    const target = isFocusable(explicit)
+        ? explicit
+        : focusHandOff(remembered) ?? options.fallback?.() ?? null;
+    if (isFocusable(target) && target !== active) target.focus();
 }
 
 /**
@@ -173,8 +232,7 @@ export function createFocusRestore(isOpen: () => boolean, options: FocusRestoreO
             previous = null;
             if (options.skip?.()) return;
             if (!focusIsOurs(options.getSurface)) return;
-            const target = isFocusable(remembered) ? remembered : options.fallback?.() ?? null;
-            if (isFocusable(target)) target.focus();
+            restoreFocus(remembered, options);
         },
     );
 }

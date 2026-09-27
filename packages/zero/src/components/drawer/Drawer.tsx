@@ -35,14 +35,22 @@
  * panel renders docked (`open` in markup) and the design system's compiled
  * CSS hides whichever half the viewport disagrees with until the runtime
  * catches up on mount.
+ *
+ * Focus and scroll (#277), as Dialog: `initialFocus` / `finalFocus` name
+ * where focus goes on open and after close, a modal sheet locks the
+ * document's scroll while it shows (`preventScroll`, default true — the
+ * sheet regime only, never inline or docked), and `escapeKeyDown` /
+ * `interactOutside` fire before an Escape or scrim dismissal, which a
+ * handler's `preventDefault()` cancels.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
-import { createDismissable } from '../../behaviors/dismiss.js';
-import { createFocusRestore } from '../../behaviors/focus.js';
+import { askToPrevent, createDismissable, type InteractOutsideEvent } from '../../behaviors/dismiss.js';
+import { createFocusRestore, restoreFocus } from '../../behaviors/focus.js';
 import { createModalDismiss } from '../../behaviors/modal-dismiss.js';
+import { createScrollLockHold } from '../../behaviors/scroll-lock.js';
 import { breakpointQuery, useMediaQuery } from '../../behaviors/media-query.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
@@ -107,6 +115,16 @@ interface DrawerContext {
     /** Title reports its presence so the panel's ARIA ref never dangles. */
     titlePresent(): boolean;
     setTitlePresent(present: boolean): void;
+    /** The element to focus once the panel opens; null leaves the platform's choice. */
+    initialFocus(): HTMLElement | null;
+    /** The element to focus once the panel closes; null leaves the default. */
+    finalFocus(): HTMLElement | null;
+    /** Lock the document's scroll while the sheet shows. */
+    preventScroll(): boolean;
+    /** Emit `escapeKeyDown`; true when the app prevented the dismissal. */
+    escapeKeyDown(e: KeyboardEvent): boolean;
+    /** Emit `interactOutside`; true when the app prevented the dismissal. */
+    interactOutside(e: InteractOutsideEvent): boolean;
 }
 
 function makeInert(): DrawerContext {
@@ -125,6 +143,11 @@ function makeInert(): DrawerContext {
         ids: { panel: 'zx-drawer-inert', title: 'zx-drawer-inert-title' },
         titlePresent: () => false,
         setTitlePresent: () => {},
+        initialFocus: () => null,
+        finalFocus: () => null,
+        preventScroll: () => true,
+        escapeKeyDown: () => false,
+        interactOutside: () => false,
     };
 }
 
@@ -164,6 +187,34 @@ export type DrawerRootProps =
     & Define.Prop<'placement', DrawerPlacement, false>
     /** Accessible name of the panel when no `Drawer.Title` renders. */
     & Define.Prop<'label', string, false>
+    /**
+     * The element to focus when the panel opens (sheet or inline — never on
+     * docking), over `autofocus` and the platform's first-focusable rule.
+     * Returning null keeps the native choice.
+     */
+    & Define.Prop<'initialFocus', () => HTMLElement | null | undefined, false>
+    /**
+     * The element to focus when the panel closes. Returning null (or an
+     * element that cannot take focus) keeps the default: the element focused
+     * before it opened, the trigger of the closed popup that element sat in,
+     * then `Drawer.Trigger`.
+     */
+    & Define.Prop<'finalFocus', () => HTMLElement | null | undefined, false>
+    /**
+     * Lock the document's scroll while the modal sheet shows. Default true;
+     * an inline or docked panel never locks.
+     */
+    & Define.Prop<'preventScroll', boolean, false>
+    /**
+     * Fires before Escape dismisses the drawer (only when it would —
+     * `dismissible`). `preventDefault()` keeps it open.
+     */
+    & Define.Event<'escapeKeyDown', KeyboardEvent>
+    /**
+     * Fires before a scrim press dismisses the sheet, with the `click`.
+     * `preventDefault()` keeps it open.
+     */
+    & Define.Event<'interactOutside', InteractOutsideEvent>
     & Define.Slot<'default'>;
 
 const DrawerRoot = component<DrawerRootProps>(({ props, slots, emit, signal }) => {
@@ -246,6 +297,11 @@ const DrawerRoot = component<DrawerRootProps>(({ props, slots, emit, signal }) =
         },
         titlePresent: () => present.title,
         setTitlePresent: (p) => { present.title = p; },
+        initialFocus: () => props.initialFocus?.() ?? null,
+        finalFocus: () => props.finalFocus?.() ?? null,
+        preventScroll: () => props.preventScroll ?? true,
+        escapeKeyDown: (e) => askToPrevent(e, (ev) => emit('escapeKeyDown', ev)),
+        interactOutside: (e) => askToPrevent(e, (ev) => emit('interactOutside', ev)),
     };
     defineProvide(useDrawerContext, () => ctx);
 
@@ -256,6 +312,7 @@ const DrawerRoot = component<DrawerRootProps>(({ props, slots, emit, signal }) =
     createFocusRestore(() => state.value && !ctx.modal() && !docked(), {
         getSurface: () => document.getElementById(ctx.ids.panel),
         fallback: () => ctx.trigger.el,
+        target: ctx.finalFocus,
     });
 
     return () => <>{slots.default?.()}</>;
@@ -343,9 +400,14 @@ export type DrawerPanelProps =
     & Omit<WithHtmlAttrs, 'id'>
     & Define.Slot<'default'>;
 
-const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) => {
+const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted, onUnmounted }) => {
     const drawer = useDrawerContext();
     let el: HTMLDialogElement | null = null;
+    // Focused before the sheet's `showModal()` — Dialog's bookkeeping.
+    let previous: HTMLElement | null = null;
+    let sheetOpened = false;
+    const scrollLock = createScrollLockHold();
+    onUnmounted(() => scrollLock.release());
 
     // A non-modal <dialog> fires no cancel event, so `dismissible` would be
     // a silent no-op without this fallback. Escape only — an inline drawer
@@ -355,6 +417,7 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
         isOpen: () => drawer.state.value && !drawer.modal() && !drawer.docked() && drawer.dismissible(),
         dismiss: () => drawer.requestClose('escape'),
         outsidePress: false,
+        onEscapeKeyDown: (e) => { drawer.escapeKeyDown(e); },
     });
 
     // An inline drawer open on first render is plain markup: emit `open` so
@@ -377,8 +440,28 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
         backdropDismisses: () => drawer.dismissible(),
         escapeDismisses: () => drawer.dismissible(),
         shouldStayOpen: () => drawer.modal() && !drawer.docked() && drawer.state.value,
-        dismissBackdrop: () => drawer.requestClose('backdrop'),
+        dismissBackdrop: (e) => {
+            if (!drawer.interactOutside(e)) drawer.requestClose('backdrop');
+        },
+        onEscapeKeyDown: (e) => { drawer.escapeKeyDown(e); },
     });
+
+    /**
+     * After the sheet closed by a close (not a regime switch): release the
+     * scroll lock and hand focus on — Dialog's `afterClose`.
+     */
+    const afterClose = (): void => {
+        scrollLock.release();
+        if (!sheetOpened) return;
+        sheetOpened = false;
+        const remembered = previous;
+        previous = null;
+        restoreFocus(remembered, {
+            getSurface: () => el,
+            target: drawer.finalFocus,
+            fallback: () => drawer.trigger.el,
+        });
+    };
 
     const scoped = mountScope();
     onMounted(() => scoped(() => {
@@ -405,6 +488,11 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                     // of the native restore to a trigger that just hid.
                     const active = document.activeElement as HTMLElement | null;
                     sheet = false;
+                    // Not a close: no focus hand-off, but the lock goes with
+                    // the modal regime.
+                    sheetOpened = false;
+                    previous = null;
+                    scrollLock.release();
                     node.close();
                     node.setAttribute('open', '');
                     if (active && node.contains(active)) active.focus({ preventScroll: true });
@@ -435,11 +523,18 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                 // one's (`close` reports a non-empty returnValue).
                 node.returnValue = '';
                 if (drawer.modal()) {
+                    const active = document.activeElement;
+                    previous = active instanceof HTMLElement ? active : null;
                     node.showModal();
                     sheet = true;
+                    sheetOpened = true;
+                    if (drawer.preventScroll()) scrollLock.hold();
                 } else {
                     node.show();
                 }
+                // Over autofocus and the dialog focusing steps, which have
+                // just run; null keeps their choice.
+                drawer.initialFocus()?.focus();
             } else if (!open && node.open) {
                 exit.close(node, () => {
                     if (drawer.state.value || drawer.docked() || !node.open) return;
@@ -489,6 +584,7 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                     // A close request the platform would not let zero cancel
                     // (see `modal-dismiss`) reopens while the model says open.
                     if (guard.reopenIfForced()) return;
+                    afterClose();
                     // Still open in the model means zero did not start this
                     // close: a native close() or a <form method="dialog">.
                     drawer.requestClose('programmatic', el?.returnValue || undefined);
@@ -513,7 +609,7 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted }) =>
                     // stay open and controlled parents stay authoritative.
                     guard.noteCancel(e);
                     e.preventDefault();
-                    if (drawer.dismissible()) drawer.requestClose('escape');
+                    if (drawer.dismissible() && guard.escapeAllowed()) drawer.requestClose('escape');
                 }}
                 // Escape on a non-dismissible sheet never becomes a close
                 // request: Chromium stops letting `cancel` be prevented after

@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "72.47 kB",
+        "limit": "73.64 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -38,7 +38,7 @@
     {
         "name": "@sigx/zero/dialog",
         "path": "packages/zero/dist/components/dialog/index.js",
-        "limit": "5.27 kB",
+        "limit": "6.23 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -50,7 +50,7 @@
     {
         "name": "@sigx/zero/menu",
         "path": "packages/zero/dist/components/menu/index.js",
-        "limit": "10.39 kB",
+        "limit": "11.09 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -120,7 +120,7 @@
     {
         "name": "@sigx/zero/combobox",
         "path": "packages/zero/dist/components/combobox/index.js",
-        "limit": "13.73 kB",
+        "limit": "13.91 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -240,7 +240,7 @@
     {
         "name": "@sigx/zero/alert",
         "path": "packages/zero/dist/components/alert/index.js",
-        "limit": "3944 B",
+        "limit": "3950 B",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -624,7 +624,7 @@
     {
         "name": "@sigx/zero/drawer",
         "path": "packages/zero/dist/components/drawer/index.js",
-        "limit": "5.90 kB",
+        "limit": "6.89 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

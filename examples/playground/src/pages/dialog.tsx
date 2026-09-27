@@ -8,7 +8,9 @@ const DialogDemos = component(() => {
     const state = signal({
         dialogOpen: false, findOpen: false, lastClose: 'none yet', lastConfirm: 'none yet',
         restored: false, restoredOpen: false,
+        renameOpen: false, dirty: true, vetoed: 0,
     });
+    let renameInput: HTMLElement | null = null;
     const onAlertClose = (d: DialogCloseDetail): void => {
         state.lastClose = d.value === undefined ? d.reason : `${d.reason} · ${d.value}`;
     };
@@ -158,6 +160,77 @@ const DialogDemos = component(() => {
                 </Dialog.Popup>
             </Dialog.Root>
             <p data-demo="confirm-reason">Last confirm: {state.lastConfirm}</p>
+
+            <h2>Focus, scroll and asking first</h2>
+            <p>
+                A modal locks the page's scroll while it shows
+                (<code>preventScroll</code>, default on): a wheel over the
+                backdrop moves nothing behind it, and the scrollbar's width
+                is padded back so nothing shifts sideways. A dialog opened
+                from a menu item has no trigger of its own, and the item it
+                was opened from sits in a menu that has closed by the time
+                the dialog does — so focus goes back to that menu's trigger
+                (#277).
+            </p>
+            <Menu.Root onSelect={(v: string) => { if (v === 'rename') state.renameOpen = true; }}>
+                <Menu.Trigger>File actions</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.Item value="rename">Rename…</Menu.Item>
+                    <Menu.Item value="duplicate">Duplicate</Menu.Item>
+                </Menu.Popup>
+            </Menu.Root>
+            <Dialog.Root
+                model={() => state.renameOpen}
+                initialFocus={() => renameInput}
+            >
+                <Dialog.Popup>
+                    <Dialog.Title>Rename file</Dialog.Title>
+                    <Dialog.Description>
+                        <code>initialFocus</code> lands on the name field, past
+                        the Cancel button that comes first.
+                    </Dialog.Description>
+                    <Dialog.Footer>
+                        <Dialog.Close>Cancel</Dialog.Close>
+                        <input
+                            aria-label="File name"
+                            value="report.pdf"
+                            ref={(el: HTMLElement | null) => { renameInput = el; }}
+                        />
+                        <Dialog.Close value="rename">Rename</Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Popup>
+            </Dialog.Root>
+            <p>
+                <code>escapeKeyDown</code> and <code>interactOutside</code>{' '}
+                fire before Escape or a backdrop press dismisses, and{' '}
+                <code>preventDefault()</code> keeps the dialog open — here
+                while the draft has unsaved changes.
+            </p>
+            <Dialog.Root
+                onEscapeKeyDown={(e: KeyboardEvent) => { if (state.dirty) { e.preventDefault(); state.vetoed += 1; } }}
+                onInteractOutside={(e: Event) => { if (state.dirty) { e.preventDefault(); state.vetoed += 1; } }}
+            >
+                <Dialog.Trigger>Edit draft</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Title>Draft</Dialog.Title>
+                    <Dialog.Description>
+                        With unsaved changes, Escape and the backdrop are
+                        refused ({state.vetoed} so far); save to let them
+                        close it again.
+                    </Dialog.Description>
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={state.dirty}
+                            onChange={(e: Event) => { state.dirty = (e.target as HTMLInputElement).checked; }}
+                        />
+                        {' '}Unsaved changes
+                    </label>
+                    <Dialog.Footer>
+                        <Dialog.Close>Discard</Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Popup>
+            </Dialog.Root>
 
             <h2>Open at mount</h2>
             <p>

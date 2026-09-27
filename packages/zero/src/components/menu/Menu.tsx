@@ -76,6 +76,14 @@
  * trigger's centre by the position strategy (`--arrow-x`/`--arrow-y`).
  * Submenus take no arrow: an arrow inside a `Menu.SubPopup` renders but is
  * never positioned, and no recipe places it.
+ *
+ * Dismissal asks first (#277): `escapeKeyDown` fires before Escape closes
+ * the menu (not a submenu — Escape there closes only the submenu, which the
+ * root does not own), and `interactOutside` before a press outside it
+ * light-dismisses it or focus moving outside it closes it. A handler that
+ * calls `preventDefault()` keeps the menu open — for a press, the native
+ * close happens and the popup shows again from its `toggle`, with no
+ * `openChange`.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
@@ -86,6 +94,7 @@ import { createRovingKeydown } from '../../behaviors/roving.js';
 import { createTypeahead } from '../../behaviors/typeahead.js';
 import { createAnchorPosition, pointAnchor, type Placement, type PositionAnchor, type PositionStrategy } from '../../behaviors/position.js';
 import { createFocusRestore } from '../../behaviors/focus.js';
+import { askToPrevent, createLightDismissGuard, type InteractOutsideEvent, type LightDismissGuard } from '../../behaviors/dismiss.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { createPointerGrace, pointInTriangle, safeTriangle, type Point, type PointerGrace } from '../../behaviors/safe-triangle.js';
@@ -164,6 +173,8 @@ interface MenuContext {
      * starts it, the level's items consult it before taking hover.
      */
     grace: PointerGrace;
+    /** The root's veto on a native Escape / light dismiss (#277); a submenu level shares it. */
+    dismissGuard: LightDismissGuard;
 }
 
 const pointOf = (e: PointerEvent): Point => ({ x: e.clientX, y: e.clientY });
@@ -210,6 +221,7 @@ function makeInert(): MenuContext {
         setPopup: () => {},
         setArrow: () => {},
         grace: createPointerGrace(),
+        dismissGuard: { keepOpen: () => false },
     };
 }
 
@@ -239,6 +251,17 @@ export type MenuRootProps =
     /** Minimum distance, px, between a `Menu.Arrow` and the popup's corners (default 8). */
     & Define.Prop<'arrowPadding', number, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
+    /**
+     * Fires before Escape closes the menu (the root level — a submenu's
+     * Escape closes only the submenu). `preventDefault()` keeps it open.
+     */
+    & Define.Event<'escapeKeyDown', KeyboardEvent>
+    /**
+     * Fires before a press outside the menu light-dismisses it (the
+     * `pointerdown`) or focus moving outside it closes it (the `focusin`).
+     * `preventDefault()` keeps it open.
+     */
+    & Define.Event<'interactOutside', InteractOutsideEvent>
     & Define.Slot<'default'>;
 
 const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmounted }) => {
@@ -391,6 +414,18 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
             queueMicrotask(() => pos.update());
         },
         grace: createPointerGrace(),
+        dismissGuard: createLightDismissGuard({
+            getElement: () => popup,
+            isOpen: () => state.value,
+            // The trigger's own click toggles; a bar's other triggers are
+            // the bar's business (a switch).
+            getExtraTargets: () => [
+                triggerEl,
+                ...(inBar ? bar.list.items().map((i) => i.el()) : []),
+            ],
+            onEscapeKeyDown: (e) => emit('escapeKeyDown', e),
+            onInteractOutside: (e) => emit('interactOutside', e),
+        }),
     };
     defineProvide(useMenuContext, () => ctx);
 
@@ -440,6 +475,7 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
                 // Focus on another trigger of the same bar is the bar's
                 // business: a switch, or a pointer on its way to a click.
                 if (inBar && bar.list.items().some((i) => i.el()?.contains(target))) return;
+                if (askToPrevent(e, (ev) => emit('interactOutside', ev))) return;
                 closeWithoutRestore();
             };
             document.addEventListener('focusin', onFocusin);
@@ -803,6 +839,12 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
                 ref={(node: HTMLElement | null) => { el = node; menu.setPopup(node); }}
                 onToggle={(e: Event) => {
                     const open = (e as ToggleEvent).newState === 'open';
+                    // A light dismiss the app prevented: show again, model
+                    // untouched (#277).
+                    if (!open && menu.dismissGuard.keepOpen() && el?.isConnected && !el.matches(':popover-open')) {
+                        (el as HTMLElement & { showPopover(): void }).showPopover();
+                        return;
+                    }
                     if (menu.state.value !== open) menu.state.value = open;
                 }}
             >
@@ -1310,6 +1352,7 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
         // the strategy positions, so one rendered here stays inert.
         setArrow: () => {},
         grace: createPointerGrace(),
+        dismissGuard: parent.dismissGuard,
     };
     defineProvide(useMenuContext, () => subCtx);
 
