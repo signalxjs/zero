@@ -133,6 +133,14 @@ const dismissAction: PartStyles = {
 };
 
 /**
+ * The swipe-to-dismiss offset (#293): `createSwipe` publishes the drag as
+ * `--swipe-x` / `--swipe-y` on a toast root or a drawer sheet, and this is
+ * the one place it is read — composed first into the part's `transform`, so
+ * an enter/exit offset or a slide rides on top of it. Unset, it is nothing.
+ */
+const SWIPE = 'translate(var(--swipe-x, 0px), var(--swipe-y, 0px))';
+
+/**
  * Enter/exit for a top-layer popup — the same platform mechanism every design
  * system in this repo uses: transition `display`/`overlay` with
  * `allow-discrete` so the browser keeps the element around for the exit, and
@@ -2317,7 +2325,9 @@ export const toast: RecipeInput = {
                 // placements keep the end-side entry they already had.
                 '--toast-from': '8px',
                 '--toast-dir': '1',
-                transform: 'translateX(calc(var(--toast-dir) * var(--toast-from)))',
+                transform: `${SWIPE} translateX(calc(var(--toast-dir) * var(--toast-from)))`,
+                // The swipe is the runtime's: no pan or pinch starts on a toast.
+                touchAction: 'none',
                 // HeroUI's stacked toasts (#292): at rest a deck on the edge,
                 // newest in front, each older card a step behind and smaller
                 // with its content faded; fanned into a column while the
@@ -2336,10 +2346,12 @@ export const toast: RecipeInput = {
                     + 'scale var(--duration-normal) var(--ease-standard)',
             },
             states: {
-                open: { opacity: '1', transform: 'none' },
+                open: { opacity: '1', transform: SWIPE },
                 closed: {},
             },
             selectors: {
+                // Mid-swipe the toast tracks the pointer, not a transition.
+                '&[data-swiping]': { transition: 'none', userSelect: 'none' },
                 '&[data-placement$="-start"]': { '--toast-from': '-8px' },
                 [`&${rtl}`]: { '--toast-dir': '-1' },
                 [TOAST_FANNED]: {
@@ -2360,7 +2372,7 @@ export const toast: RecipeInput = {
                 [`${TOAST_STACKED}:not(:last-child) > *`]: { opacity: '0' },
             },
             at: {
-                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: SWIPE } } },
             },
         },
         // The promise status, leading the row: v3's spinner ring while
@@ -5278,7 +5290,8 @@ const sheetSlide = (enter: string, exit: string): PartStyles => {
     const open = `${sheet}[data-state="open"]`;
     const travel = (tempo: string): string => {
         const duration = tempo.split(' ')[0];
-        return `translate ${tempo}, display ${duration} allow-discrete, overlay ${duration} allow-discrete`;
+        // `transform` rides along for the swipe's spring back (#293).
+        return `translate ${tempo}, transform ${tempo}, display ${duration} allow-discrete, overlay ${duration} allow-discrete`;
     };
     return {
         base: { '--drawer-travel': '-100% 0' },
@@ -5342,6 +5355,19 @@ export const drawer: RecipeInput = {
                  * INLINE render. Logical insets pin the edge, so RTL mirrors
                  * free.
                  */
+                /**
+                 * Swipe to dismiss (#293): the sheet wears the drag offset
+                 * (`SWIPE`) in every state — so a swiped sheet leaves from
+                 * where it was let go — at a weight above the presence's own
+                 * open `transform`. Mid-swipe no transition runs. A touch pan
+                 * across the dismiss axis stays the page's; along it is the
+                 * gesture's, so content taller than a block-edge sheet
+                 * scrolls in a box of its own inside the panel.
+                 */
+                '&[data-l-dock="sheet"][data-state]': { transform: SWIPE },
+                '&[data-l-dock="sheet"][data-state="open"][data-swiping]': { transition: 'none', userSelect: 'none' },
+                '&[data-l-dock="sheet"]:where([data-placement="start"], [data-placement="end"])': { touchAction: 'pan-y' },
+                '&[data-l-dock="sheet"]:where([data-placement="top"], [data-placement="bottom"])': { touchAction: 'pan-x' },
                 '&[data-l-dock="sheet"]': {
                     position: 'fixed',
                     insetBlockStart: '0',

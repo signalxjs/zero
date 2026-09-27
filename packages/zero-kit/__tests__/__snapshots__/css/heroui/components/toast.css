@@ -76,7 +76,8 @@
         opacity: 0;
         --toast-from: 8px;
         --toast-dir: 1;
-        transform: translateX(calc(var(--toast-dir) * var(--toast-from)));
+        transform: translate(var(--swipe-x, 0px), var(--swipe-y, 0px)) translateX(calc(var(--toast-dir) * var(--toast-from)));
+        touch-action: none;
         grid-area: 1 / 1;
         position: relative;
         z-index: var(--toast-index);
@@ -88,7 +89,12 @@
 
     [data-scope="toast"][data-part="root"][data-state="open"] {
         opacity: 1;
-        transform: none;
+        transform: translate(var(--swipe-x, 0px), var(--swipe-y, 0px));
+    }
+
+    [data-scope="toast"][data-part="root"][data-swiping] {
+        transition: none;
+        user-select: none;
     }
 
     [data-scope="toast"][data-part="root"][data-placement$="-start"] {
@@ -266,7 +272,7 @@
         }
 
         [data-scope="toast"][data-part="root"][data-state="open"] {
-            transform: none;
+            transform: translate(var(--swipe-x, 0px), var(--swipe-y, 0px));
         }
 
         [data-scope="toast"][data-part="indicator"][data-state="loading"] {

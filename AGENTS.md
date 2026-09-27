@@ -305,6 +305,16 @@ responsive Drawer + NavList + Container composition, three engines: the
 same NavList is the docked sidebar beside `<main>` at `md` and a sheet
 below it, the trigger in the bar hides when docked, and the shell keeps one
 header and one navigation landmark either way;
+the **swipe-dismiss spec** (`e2e/swipe-dismiss.spec.ts`, #293) — chromium
+and webkit, measured in boxes: in all six skins a toast and a bottom sheet
+follow a real mouse drag along the dismiss axis (the recipe composed
+`--swipe-x`/`--swipe-y` into the transform and dropped its transition under
+`data-swiping`) and a short, slow drag springs back to the resting box; a
+drag past the threshold dismisses and the playground's outputs read the
+reported reason `swipe`; and under `dir="rtl"` the end-side toast is swiped
+leftward while a rightward drag only gives with resistance. WebKit is why the
+gesture clears any selection it made: a mouse drag there leaves one behind,
+which would otherwise block the next press;
 the **narrow-dialog spec** (`e2e/narrow-dialog.spec.ts`, #101) — in the
 `narrow` project (below), one page load per design system at a 400px
 viewport, it opens the

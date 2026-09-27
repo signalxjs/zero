@@ -34,6 +34,11 @@
  * front of it), and the viewport's `data-state`: `open` while the stack is
  * expanded (hovered or holding focus, or always), `closed` at rest. Whether a
  * resting stack collapses into cards is the recipe's call.
+ *
+ * A toast swipes away (#293) off the side its placement names — the
+ * viewport's `swipeDirection` — through `createSwipe`: `data-swiping` and
+ * `--swipe-x` / `--swipe-y` on the root while it is dragged, the queue's
+ * timers held meanwhile, and `onDismiss('swipe')` when it goes.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
@@ -45,8 +50,9 @@ import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
 import { toastAnatomy } from './anatomy.js';
-import { createToaster, useToaster, type Toaster, type ToastData } from './toaster.js';
+import { createToaster, useToaster, type Toaster, type ToastData, type ToastDismissReason } from './toaster.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
+import { createSwipe, type SwipeDirection } from '../../behaviors/swipe.js';
 
 const SCOPE = toastAnatomy.scope;
 
@@ -70,6 +76,10 @@ interface ToastViewportContext {
     heightOf(id: string): number;
     /** The summed heights of the toasts in front of this one (the newer ones). */
     offsetOf(id: string): number;
+    /** Which way a toast is swiped off; null when swiping is off. */
+    swipeDirection(): SwipeDirection | null;
+    /** A toast is being swiped: hold the queue's timers meanwhile. */
+    holdSwipe(on: boolean): void;
 }
 
 function makeInertViewport(): ToastViewportContext {
@@ -82,6 +92,8 @@ function makeInertViewport(): ToastViewportContext {
         setHeight: () => {},
         heightOf: () => 0,
         offsetOf: () => 0,
+        swipeDirection: () => null,
+        holdSwipe: () => {},
     };
 }
 
@@ -93,7 +105,7 @@ const nextFrame: (cb: () => void) => void =
 interface ToastItemContext {
     toast(): ToastData;
     ids: { title: string; description: string };
-    dismiss(): void;
+    dismiss(reason?: ToastDismissReason): void;
     /** Title/Description report their presence so the root's ARIA refs never dangle. */
     setTitlePresent(present: boolean): void;
     setDescriptionPresent(present: boolean): void;
@@ -154,6 +166,17 @@ const DEFAULT_HOTKEY: readonly string[] = ['F8'];
 const DEFAULT_LABEL = 'Notifications ({hotkey})';
 const MODIFIER_KEYS = new Set(['altKey', 'ctrlKey', 'metaKey', 'shiftKey']);
 
+/**
+ * The swipe that fits a placement: off the side a toast sits on — toward the
+ * reading end for `*-end`, the start for `*-start` (logical, so RTL mirrors)
+ * — and off the block edge for the centred pair.
+ */
+function defaultSwipeDirection(placement: ToastPlacement): SwipeDirection {
+    if (placement.endsWith('-end')) return 'end';
+    if (placement.endsWith('-start')) return 'start';
+    return placement === 'top' ? 'up' : 'down';
+}
+
 /** `['altKey', 'KeyT']` reads "alt+T"; `['F8']` reads "F8". */
 function hotkeyText(keys: readonly string[]): string {
     return keys.join('+').replace(/Key|Digit/g, '');
@@ -197,6 +220,14 @@ export type ToastViewportProps =
      * it, `'always'` for good. What expanded looks like is the recipe's.
      */
     & Define.Prop<'expand', 'hover' | 'always', false>
+    /**
+     * Which way a toast is swiped away (#293): a physical edge (`up`,
+     * `down`, `left`, `right`) or the logical `start` / `end`. By default
+     * the side the placement names — `end` for `*-end`, `start` for
+     * `*-start` — and `up` / `down` for `top` / `bottom`. `false` turns
+     * swiping off.
+     */
+    & Define.Prop<'swipeDirection', SwipeDirection | false, false>
     & Define.Prop<'toaster', Toaster, false>
     & WithClass
     /** Not `role`: the viewport is a named `region` landmark. */
@@ -204,7 +235,7 @@ export type ToastViewportProps =
     & Define.Slot<'default', ToastData>;
 
 /** What holds the queue's timers: any one of them keeps it paused. */
-type Hold = 'hover' | 'focus' | 'visibility' | 'blur';
+type Hold = 'hover' | 'focus' | 'visibility' | 'blur' | 'swipe';
 
 type PopoverElement = HTMLElement & { showPopover?(): void; hidePopover?(): void };
 
@@ -274,7 +305,13 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
         return sum;
     };
 
-    const ctx: ToastViewportContext = { toaster: manager, placement, handOffFocus, announce, setHeight, heightOf, offsetOf };
+    const swipeDirection = (): SwipeDirection | null =>
+        props.swipeDirection === false ? null : props.swipeDirection ?? defaultSwipeDirection(placement());
+
+    const ctx: ToastViewportContext = {
+        toaster: manager, placement, handOffFocus, announce, setHeight, heightOf, offsetOf, swipeDirection,
+        holdSwipe: (on) => hold('swipe', on),
+    };
     defineProvide(useToastViewportContext, () => ctx);
 
     // The viewport pauses the queue while anything holds it: the pointer or
@@ -494,6 +531,8 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
     let seenOpen = false;
     let exiting = false;
     let fallbackHandle: ReturnType<typeof setTimeout> | null = null;
+    // Mid-swipe: an unmount then must still release the viewport's hold.
+    let swiping = false;
 
     const finish = (): void => {
         if (fallbackHandle != null) clearTimeout(fallbackHandle);
@@ -553,6 +592,22 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
             }
             if (seenOpen) beginExit();
         });
+        // Swipe to dismiss (#293): an open toast, not already leaving, while
+        // the viewport has a direction. The swipe holds the queue's timers
+        // (a toast must not time out from under the finger) and dismisses
+        // with its own reason; the offset it leaves is where the exit starts.
+        if (el) {
+            createSwipe({
+                el,
+                direction: () => viewport.swipeDirection() ?? 'end',
+                enabled: () => props.toast.open && !exiting && viewport.swipeDirection() != null,
+                onDismiss: () => ctx.dismiss('swipe'),
+                onSwipingChange: (on) => {
+                    swiping = on;
+                    viewport.holdSwipe(on);
+                },
+            });
+        }
         // An alert is not announced by the polite region its root sits in
         // (`aria-live="off"`); it speaks through the viewport's assertive
         // channel instead — once rendered, and again when its text changes.
@@ -569,13 +624,14 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
         if (fallbackHandle != null) clearTimeout(fallbackHandle);
         resize?.disconnect();
         resize = null;
+        if (swiping) viewport.holdSwipe(false);
         viewport.setHeight(props.toast.id, undefined);
     });
 
     const ctx: ToastItemContext = {
         toast: () => props.toast,
         ids,
-        dismiss: () => viewport.toaster().dismiss(props.toast.id),
+        dismiss: (reason) => viewport.toaster().dismiss(props.toast.id, reason),
         setTitlePresent: (p) => { present.title = p; },
         setDescriptionPresent: (p) => { present.description = p; },
     };
@@ -633,7 +689,7 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
                 onKeydown={(e: KeyboardEvent) => {
                     if (e.key !== 'Escape' || e.defaultPrevented) return;
                     e.preventDefault();
-                    ctx.dismiss();
+                    ctx.dismiss('escape');
                 }}
             >
                 {slots.default?.()}
@@ -788,7 +844,7 @@ const ToastClose = component<ToastCloseProps>(({ props, slots, signal }) => {
             // `aria-label`) overrides it (Alert.Close's pattern).
             'aria-label': props.label ?? attrs['aria-label'] ?? 'Close',
             onClick: () => {
-                if (!props.disabled) item.dismiss();
+                if (!props.disabled) item.dismiss('close');
             },
             onFocus: () => { focus.visible = isFocusVisible(el); },
             onBlur: (e: FocusEvent) => {

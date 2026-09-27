@@ -199,6 +199,14 @@ const rippleKeyframes = (prefix: string): Record<string, string> => ({
 // The accent-pair indirection, so Material's larger role vocabulary costs one
 // rule per role rather than one per role × fill.
 /**
+ * The swipe-to-dismiss offset (#293): `createSwipe` publishes the drag as
+ * `--swipe-x` / `--swipe-y` on a toast root or a drawer sheet, and this is
+ * the one place it is read — composed first into the part's `transform`, so
+ * an enter/exit offset or a slide rides on top of it. Unset, it is nothing.
+ */
+const SWIPE = 'translate(var(--swipe-x, 0px), var(--swipe-y, 0px))';
+
+/**
  * Enter/exit presence for a top-layer popup.
  *
  * Zero never unmounts a popup; it toggles `data-state` and calls the native
@@ -2749,11 +2757,15 @@ export const toast: RecipeInput = {
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-sm)',
                 opacity: '0',
-                transform: 'translateY(var(--toast-from))',
+                transform: `${SWIPE} translateY(var(--toast-from))`,
+                // The swipe is the runtime's: no pan or pinch starts on a toast.
+                touchAction: 'none',
                 transition: 'opacity var(--duration-normal) var(--ease-emphasized), '
                     + 'transform var(--duration-normal) var(--ease-emphasized)',
             },
             selectors: {
+                // Mid-swipe the toast tracks the pointer, not a transition.
+                '&[data-swiping]': { transition: 'none', userSelect: 'none' },
                 '&[data-placement^="top"]': { '--toast-from': '-8px' },
                 // The status marker. Spans every row so it centers against
                 // the title+description block, not against the title alone.
@@ -2772,11 +2784,11 @@ export const toast: RecipeInput = {
                 '&:has(> [data-scope="toast"][data-part="indicator"])::before': { display: 'none' },
             },
             states: {
-                open: { opacity: '1', transform: 'none' },
+                open: { opacity: '1', transform: SWIPE },
                 closed: {},
             },
             at: {
-                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: SWIPE } } },
                 // A forced palette repaints backgrounds, which would erase a
                 // marker that is nothing but one — the same trade the radio
                 // dot makes. A system colour is honoured as given.
@@ -5923,7 +5935,8 @@ const sheetSlide = (enter: string, exit: string): PartStyles => {
     const open = `${sheet}[data-state="open"]`;
     const travel = (tempo: string): string => {
         const duration = tempo.split(' ')[0];
-        return `translate ${tempo}, display ${duration} allow-discrete, overlay ${duration} allow-discrete`;
+        // `transform` rides along for the swipe's spring back (#293).
+        return `translate ${tempo}, transform ${tempo}, display ${duration} allow-discrete, overlay ${duration} allow-discrete`;
     };
     return {
         base: { '--drawer-travel': '-100% 0' },
@@ -5992,6 +6005,19 @@ export const drawer: RecipeInput = {
                  * INLINE render. Logical insets pin the edge, so RTL mirrors
                  * free.
                  */
+                /**
+                 * Swipe to dismiss (#293): the sheet wears the drag offset
+                 * (`SWIPE`) in every state — so a swiped sheet leaves from
+                 * where it was let go — at a weight above the presence's own
+                 * open `transform`. Mid-swipe no transition runs. A touch pan
+                 * across the dismiss axis stays the page's; along it is the
+                 * gesture's, so content taller than a block-edge sheet
+                 * scrolls in a box of its own inside the panel.
+                 */
+                '&[data-l-dock="sheet"][data-state]': { transform: SWIPE },
+                '&[data-l-dock="sheet"][data-state="open"][data-swiping]': { transition: 'none', userSelect: 'none' },
+                '&[data-l-dock="sheet"]:where([data-placement="start"], [data-placement="end"])': { touchAction: 'pan-y' },
+                '&[data-l-dock="sheet"]:where([data-placement="top"], [data-placement="bottom"])': { touchAction: 'pan-x' },
                 '&[data-l-dock="sheet"]': {
                     position: 'fixed',
                     insetBlockStart: '0',

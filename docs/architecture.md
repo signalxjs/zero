@@ -109,16 +109,27 @@ says the same thing to ecosystem fragments.
 
 **Flags are a closed shared vocabulary.** `FLAG_VOCABULARY`: `disabled`,
 `highlighted`, `selected`, `invalid`, `required`, `readonly`, `placeholder`,
-`focus-visible`, `pressed`, `press-animating`. Components never invent
-synonyms; a new flag is a contract change. The press pair is produced by
+`focus-visible`, `pressed`, `press-animating`, `swiping`. Components never
+invent synonyms; a new flag is a contract change. The press pair is produced by
 `createPressFeedback`: `pressed` while the pointer/key is physically down,
 `press-animating` from press-start until the design system's press animation
 *finishes* — not until release, so a one-shot ripple always plays out — with
-the press point published as `--press-x`/`--press-y`/`--press-r`.
+the press point published as `--press-x`/`--press-y`/`--press-r`. `swiping`
+(#293) is produced by `createSwipe`, the one headless gesture behind a toast
+swiped away and a drawer sheet swiped back to its edge: present while the
+part is dragged toward its dismiss edge past a 10px slop, with the drag
+offset published as `--swipe-x`/`--swipe-y` (physical px, clamped to the
+dismiss axis, resisted the other way). A release past the threshold (50px)
+or the flick velocity (0.11px/ms) dismisses and *keeps* the offset, so the
+exit leaves from where the part was let go; anything shorter clears both and
+the recipe's own transition springs it back. `start`/`end` resolve against
+the reading direction at the press. Like `press-animating` it is a gesture
+frame, not a resting style, so the contrast matrices do not cross it.
 
 **Runtime-published properties are a closed list.** Beside the attributes,
 the DOM runtime writes a few custom properties that recipes may read —
-`RUNTIME_PROPERTIES` in zero-kit's contract: the press trio above,
+`RUNTIME_PROPERTIES` in zero-kit's contract: the press trio and the swipe
+pair above,
 `--progress-percent`, `--slider-percent`, `--diff-percent`,
 `--countdown-value`, and the disclosure panel sizes
 `--accordion-panel-height`/`--accordion-panel-width` and

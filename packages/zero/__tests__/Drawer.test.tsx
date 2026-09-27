@@ -283,6 +283,92 @@ describe('Drawer close reason (#52) — Dialog\'s contract, minus cancel', () =>
         expect(log).toEqual([['openChange', false], ['close', { reason: 'escape' }]]);
     });
 
+    const drag = (el: Element, from: [number, number], to: [number, number]) => {
+        const at = (type: string, [x, y]: [number, number]) => el.dispatchEvent(new PointerEvent(type, {
+            bubbles: true, cancelable: true, pointerId: 1, isPrimary: true, button: 0, clientX: x, clientY: y,
+        }));
+        at('pointerdown', from);
+        at('pointermove', [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2]);
+        at('pointermove', to);
+        at('pointerup', to);
+    };
+
+    it('a swipe toward the edge closes the sheet with `swipe` (#293)', () => {
+        expect(drawerAnatomy.parts.panel.flags).toContain('swiping');
+        const state = signal({ open: true });
+        const log = mountRecorded(state);
+        const title = part(container, 'title');
+        // `start` in a left-to-right document: leftward. The other way is not it.
+        drag(title, [100, 10], [200, 10]);
+        expect(log).toEqual([]);
+        drag(title, [200, 10], [60, 10]);
+        expect(log).toEqual([['openChange', false], ['close', { reason: 'swipe' }]]);
+        expect(part(container, 'panel').hasAttribute('data-swiping')).toBe(false);
+    });
+
+    it('the swipe clears on the next opening, and a bottom sheet swipes down (#293)', () => {
+        const state = signal({ open: true });
+        const log: unknown[] = [];
+        render(
+            <Drawer.Root model={[state, 'open']} placement="bottom" onClose={(d: DrawerCloseDetail) => log.push(d)}>
+                <Drawer.Panel>
+                    <Drawer.Title>Share</Drawer.Title>
+                </Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        const panel = part(container, 'panel');
+        drag(panel, [10, 10], [10, 120]);
+        expect(log).toEqual([{ reason: 'swipe' }]);
+        // The exit leaves from where it was let go…
+        expect(panel.style.getPropertyValue('--swipe-y')).toBe('110px');
+        state.open = true;
+        // …and the next opening starts from the edge.
+        expect(panel.style.getPropertyValue('--swipe-y')).toBe('');
+    });
+
+    it('no swipe inline, nor on a sheet that is not dismissible (#293)', () => {
+        const state = signal({ open: true });
+        const log = mountRecorded(state, { modal: false });
+        drag(part(container, 'title'), [200, 10], [20, 10]);
+        expect(log).toEqual([]);
+        expect(part(container, 'panel').hasAttribute('data-swiping')).toBe(false);
+
+        const pinned = document.createElement('div');
+        document.body.appendChild(pinned);
+        const closes: unknown[] = [];
+        render(
+            <Drawer.Root defaultOpen dismissible={false} onClose={(d: DrawerCloseDetail) => closes.push(d)}>
+                <Drawer.Panel>
+                    <Drawer.Title>Pinned</Drawer.Title>
+                </Drawer.Panel>
+            </Drawer.Root>,
+            pinned,
+        );
+        drag(part(pinned, 'title'), [200, 10], [20, 10]);
+        expect(closes).toEqual([]);
+    });
+
+    it('a controlled model that stays open puts the swiped sheet back (#293)', () => {
+        // A model that refuses the write: the close is asked for, and stays open.
+        const asked: boolean[] = [];
+        const held = { get open() { return true; }, set open(v: boolean) { asked.push(v); } };
+        render(
+            <Drawer.Root model={[held, 'open']}>
+                <Drawer.Panel>
+                    <Drawer.Title>Held</Drawer.Title>
+                </Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        const panel = part(container, 'panel');
+        expect(panel.getAttribute('data-state')).toBe('open');
+        drag(panel, [200, 10], [20, 10]);
+        expect(asked).toEqual([false]);
+        expect(panel.getAttribute('data-state')).toBe('open');
+        expect(panel.style.getPropertyValue('--swipe-x')).toBe('');
+    });
+
     it('a native close zero did not start carries the returnValue; a requested close is reported once', () => {
         const state = signal({ open: true });
         const log = mountRecorded(state);

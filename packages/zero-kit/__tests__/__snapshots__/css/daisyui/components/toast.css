@@ -73,13 +73,14 @@
         box-shadow: var(--shadow-lg);
         font-size: var(--text-sm);
         opacity: 0;
-        transform: translateY(var(--toast-from));
+        transform: translate(var(--swipe-x, 0px), var(--swipe-y, 0px)) translateY(var(--toast-from));
         transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard);
+        touch-action: none;
     }
 
     [data-scope="toast"][data-part="root"][data-state="open"] {
         opacity: 1;
-        transform: none;
+        transform: translate(var(--swipe-x, 0px), var(--swipe-y, 0px));
     }
 
     [data-scope="toast"][data-part="root"][data-placement^="top"] {
@@ -88,6 +89,11 @@
 
     [data-scope="toast"][data-part="root"]:has(> [data-scope="toast"][data-part="indicator"]) {
         grid-template-columns: auto 1fr auto auto;
+    }
+
+    [data-scope="toast"][data-part="root"][data-swiping] {
+        transition: none;
+        user-select: none;
     }
 
     [data-scope="toast"][data-part="indicator"] {
@@ -286,7 +292,7 @@
         }
 
         [data-scope="toast"][data-part="root"][data-state="open"] {
-            transform: none;
+            transform: translate(var(--swipe-x, 0px), var(--swipe-y, 0px));
         }
 
         [data-scope="toast"][data-part="indicator"][data-state="loading"] {

@@ -331,6 +331,17 @@ component's anatomy). No component code is ever written or changed.
      distinctly and cancel the loading spin under reduced motion. The toast root also carries `data-color` per toast, so a
      `variants.color` block routing roles through a component token is the
      natural shape.
+   - **Swipe to dismiss moves the part by `--swipe-x` / `--swipe-y`** (#293)
+     — on a toast root and a drawer sheet (`data-l-dock="sheet"`). Compose
+     `translate(var(--swipe-x, 0px), var(--swipe-y, 0px))` FIRST into the
+     part's `transform` in every state (a swiped part keeps its offset while
+     it exits), drop the transition while `[data-swiping]` so it tracks the
+     pointer, keep `transform` in the open transition so a short drag springs
+     back, and set `touch-action` (`none` on a toast; `pan-y` / `pan-x` on a
+     reading-edge / block-edge sheet) so a touch drag reaches the gesture.
+     Web runtime properties: `targets.web` in a design system that builds
+     lynx. On a drawer panel, key the offset at a weight above the presence's
+     open `transform` (`&[data-l-dock="sheet"][data-state]`).
    - **A disclosure panel animates through `::details-content`.** Collapsible
      and Accordion are native `<details>`, so the height animation belongs on
      the browser's own wrapper, with `interpolate-size` making `auto` a legal

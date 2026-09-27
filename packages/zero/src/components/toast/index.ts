@@ -20,5 +20,6 @@ export type {
     ToastStatus,
     ToastInput,
     ToastPromiseOptions,
+    ToastDismissReason,
 } from './toaster.js';
 export { toastAnatomy } from './anatomy.js';

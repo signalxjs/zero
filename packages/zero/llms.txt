@@ -13,7 +13,16 @@
   checked|unchecked, active|inactive).
 - Boolean flags are presence-only: `data-disabled=""`, never ="false".
   Vocabulary: disabled, highlighted, selected, invalid, required, readonly,
-  placeholder, focus-visible, pressed, press-animating.
+  placeholder, focus-visible, pressed, press-animating, swiping.
+- Swipe to dismiss (#293; toast root, drawer sheet panel — `createSwipe`):
+  `data-swiping` while the part is dragged toward its dismiss edge (past a
+  10px slop), the offset as `--swipe-x`/`--swipe-y` (px, physical, clamped
+  to the dismiss axis; resisted the other way). Released past 50px or
+  faster than 0.11px/ms it dismisses and KEEPS the offset (the exit leaves
+  from there); shorter, both clear and the part springs back. Recipes:
+  compose `translate(var(--swipe-x, 0px), var(--swipe-y, 0px))` first into
+  the part's transform, drop the transition while `[data-swiping]`, and set
+  touch-action so a touch drag reaches the gesture. Web-only properties.
 - Press feedback (parts declaring the `pressed` flag): the runtime sets
   `data-pressed` while the pointer/key is down, and `data-press-animating`
   from press-start until the part's CSS animation ends (one-shot effects
@@ -757,7 +766,9 @@ component renders; the root is called out separately where it carries props.
   heroui and carbon slide the sheet (translate over --drawer-travel, an
   x y pair flipped by placement and :dir(rtl) — on Y for top|bottom, which
   never flips — dropped under reduced motion); basic and
-  brutalist fade. modal (default)
+  brutalist fade. A modal sheet that is dismissible swipes back to its edge
+  (#293, toward its placement; the panel carries data-swiping and
+  --swipe-x/--swipe-y) and closes with reason `swipe`. modal (default)
   = showModal(): focus trap, Escape via cancel, scrim click dismisses by
   Dialog's click geometry. modal={false} = INLINE: renders in flow via
   show(), no dismiss trap (outside clicks are a non-event), Escape still
@@ -866,7 +877,7 @@ component renders; the root is called out separately where it carries props.
   your list and pass what you left out as Overflow `count`: it renders "+N"
   (aria-hidden) plus a visually hidden "N more" (`label` replaces those
   words), and nothing for a count <= 0.
-- Toast: Viewport(placement, toaster, label, hotkey, expand)/Root(toast)/
+- Toast: Viewport(placement, toaster, label, hotkey, expand, swipeDirection)/Root(toast)/
   Indicator/Title/Description/Action/Close, over an imperative queue:
   `toast({ title, color, duration, role, status })` (browser-only),
   `createToaster()` for apps/tests, `useToaster` injectable.
@@ -887,7 +898,11 @@ component renders; the root is called out separately where it carries props.
   focuses the first toast, Escape dismisses the focused one, and closing a
   focused toast hands focus to the next/previous toast or back to where it
   came from. Timers pause on hover, focus, a hidden tab or a blurred
-  window; a toast arriving while shown re-stacks the viewport to the top of
+  window, and while a toast is swiped: `swipeDirection` (up|down|left|right|
+  start|end, default from the placement — end for *-end, start for
+  *-start, up/down for top/bottom; `false` off) swipes a toast away, and
+  `toast({ onDismiss })` hears why it went (timeout|close|escape|swipe|
+  programmatic; `dismiss(id, reason)`); a toast arriving while shown re-stacks the viewport to the top of
   the top layer (inert under a modal dialog, by spec). PRESENCE IS RUNTIME-MANAGED —
   the one exception to the declarative presence rule: roots mount `closed`,
   flip `open` a frame later, and stay mounted after dismissal until their

@@ -25,6 +25,9 @@ export type { HoverIntent } from './hover-intent.js';
 export { createPressFeedback } from './press.js';
 export type { PressFeedbackOptions, PressFeedbackHandlers } from './press.js';
 
+export { createSwipe } from './swipe.js';
+export type { Swipe, SwipeDirection, SwipeOptions } from './swipe.js';
+
 export { createDismissable } from './dismiss.js';
 export type { DismissableOptions, InteractOutsideEvent } from './dismiss.js';
 export { createSpinPress } from './spin.js';

@@ -559,7 +559,7 @@ technology parses — zero binds no keys; Dialog has an alert-dialog preset
 least-destructive `Dialog.Cancel`), and every Dialog/Drawer close reports
 why on a `close` event that follows `openChange(false)` — `{ reason, value }`
 with `reason` one of `close` · `cancel` · `escape` · `backdrop` ·
-`programmatic` (Drawer has no `cancel`) and `value` from the closing
+`programmatic` (Drawer has no `cancel`, and adds `swipe`) and `value` from the closing
 `Dialog.Close value="…"`, the `<form method="dialog">` + `returnValue` pair
 in model form, so a confirm dialog needs no flag beside its model; a modal
 Dialog or Drawer dismisses on the backdrop only when the press both starts
@@ -864,6 +864,23 @@ row and surface it on the visible control. That is what makes a
 pointer-anchored effect like Material's ink ripple — or its selection-control
 halo and slider-thumb halo — expressible as pure CSS.
 
+**Swipe to dismiss** (#293) is published the same way, on a Toast root and a
+modal Drawer sheet (`createSwipe`, the one gesture behind both): once a
+drag toward the dismiss edge passes a 10px slop the part carries
+`data-swiping`, and the drag offset as `--swipe-x` / `--swipe-y` (px,
+physical, clamped to the dismiss axis — the other way it gives a little,
+with resistance). A release past 50px, or a flick faster than 0.11px/ms,
+dismisses and keeps the offset, so the exit leaves from where the part was
+let go; anything shorter clears both and the part springs back. A recipe
+composes `translate(var(--swipe-x, 0px), var(--swipe-y, 0px))` first into
+the part's `transform`, drops its transition while `[data-swiping]` so the
+part tracks the pointer, and sets `touch-action` so a touch drag reaches the
+gesture instead of panning the page (a block-edge sheet's own long content
+then scrolls in a box inside the panel). Both properties are web-only
+runtime properties (`RUNTIME_PROPERTIES`). A press on an interactive
+descendant, a secondary button, or a press while text in the part is
+selected never starts a swipe.
+
 Popup geometry is published the same way (#278). Every popup the built-in
 position strategy places — Select, Combobox, Menu and its submenus, Popover,
 Tooltip, HoverCard — carries, beside `data-placement`, the custom properties
@@ -1065,6 +1082,16 @@ edges are sheet-only: the docked regime below is for the reading edges, and
 a `top`/`bottom` drawer given `modal={{ below }}` warns in the console and
 stays a modal sheet at every width. A block-edge sheet's height is the
 design system's (content-sized up to a cap, so the scrim stays in reach).
+
+**A sheet swipes back to its edge** (#293). A modal, dismissible drawer
+sheet closes when the panel is dragged toward the edge it sits on — `start`
+/ `end` by reading direction, `top` up, `bottom` down — with `close`
+reporting `reason: 'swipe'`. The whole panel is the handle, except its
+interactive content (buttons, links, fields) and content that can still
+scroll the way the drag goes: a list scrolled away from its top keeps the
+drag until it is back at its edge. An inline or docked panel, and a sheet
+with `dismissible={false}`, never swipes. See **Swipe to dismiss** below
+for what the panel publishes.
 
 ```tsx
 <Drawer.Root placement="bottom" label="Share">
@@ -1590,7 +1617,8 @@ load-order dependency described above, and the layer's name belongs to you.
 
 **Toast timing.** Auto-dismiss pauses while anything holds the viewport:
 the pointer or focus in `Toast.Viewport`, a hidden document
-(`visibilitychange`), or an unfocused window (`blur`/`focus`). It resumes
+(`visibilitychange`), an unfocused window (`blur`/`focus`), or a toast being
+swiped. It resumes
 only once every hold has gone, so moving the mouse out does not restart
 timers while a keyboard user is on a toast, and a toast raised in a
 background tab waits to be seen. Closing the focused toast releases its hold
@@ -1611,6 +1639,22 @@ already handled with `preventDefault()` does not). Each root is focusable
 (`tabindex="-1"`), and before a focused toast is removed, focus moves to the
 next toast, else the previous one, else the element focus came from when it
 entered the viewport, else the viewport — never to `<body>`.
+
+**Toast swipe and dismissal reasons** (#293). A toast is swiped off the side
+it sits on: `Toast.Viewport swipeDirection` defaults from the placement —
+`end` for `*-end`, `start` for `*-start` (logical, so RTL mirrors), `down` for
+`bottom` and `up` for `top` — and takes any of `up` · `down` · `left` ·
+`right` · `start` · `end`, or `false` to turn swiping off. A swipe past the
+threshold dismisses it; see **Swipe to dismiss** for what the root publishes.
+`toast({ onDismiss })` hears why a toast went, once, as it begins its exit:
+`timeout` · `close` · `escape` · `swipe` · `programmatic` (any
+`dismiss()` zero did not start — `toaster().dismiss(id, reason)` names its
+own). `remove()` is the end of an exit, not a dismissal, and reports nothing.
+
+```tsx
+toast({ title: 'Archived', onDismiss: (reason) => log(reason) });
+<Toast.Viewport placement="bottom" swipeDirection="down" />
+```
 
 **Toast announcements.** The viewport — always mounted, so it exists before
 any toast does — is the polite live region (`aria-live="polite"`,
