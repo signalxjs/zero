@@ -1024,7 +1024,6 @@ describe('assertNoCalcVarChains', () => {
                 ['popover', '.zx-popover__trigger.zx-f-focus-visible'],
                 ['popover', '.zx-popover__close.zx-f-focus-visible'],
                 ['select', '.zx-select__trigger.zx-f-focus-visible'],
-                ['select', '.zx-select__clear-trigger.zx-f-focus-visible'],
             ] as const) {
                 expect(ring(scope, selector), selector).toMatch(RING);
             }
@@ -1041,6 +1040,36 @@ describe('assertNoCalcVarChains', () => {
             const body = focusRules(lynxCss()['accordion']!).find((r) => r.selector === '.zx-accordion__trigger.zx-f-focus-visible')!.body;
             expect(body).toContain('box-shadow: inset 0 0 0 2px var(--color-base-content);');
             expect(body).toContain('border-radius: calc(var(--radius-box) - var(--border));');
+        });
+
+        // signalxjs/lynx#1184: the clear-trigger is a 1.5rem chip beside the
+        // chevron's 1em box at every size — not a full-height box at the md
+        // offset whose outer ring covered the ▾ at lg/xl.
+        it('the select clear-trigger is a chip beside the chevron, ringed inside', () => {
+            const css = lynxCss()['select']!;
+            const decls = (selector: string) => [...css.matchAll(/^([^\n{@]+) \{\n([\s\S]*?)\n\}/gm)]
+                .filter(([, sel]) => sel!.trim() === selector)
+                .flatMap(([, , body]) => body!.split('\n').map((d) => d.trim().replace(/;$/, '')));
+            const ring = focusRules(css).find((r) => r.selector === '.zx-select__clear-trigger.zx-f-focus-visible')!.body;
+            expect(ring).toContain('box-shadow: inset 0 0 0 2px var(--color-base-content);');
+            const base = decls('.zx-select__clear-trigger');
+            expect(base).toEqual(expect.arrayContaining(['width: 1.5rem', 'height: 1.5rem', 'box-sizing: border-box']));
+            expect(base.some((d) => d.startsWith('bottom:'))).toBe(false);
+            expect(decls('.zx-select__indicator')).toEqual(expect.arrayContaining(['width: 1em', 'text-align: right']));
+            const steps = { xs: [8, 2, 'xs'], sm: [10, 3, 'sm'], md: [12, 4, 'sm'], lg: [14, 5, 'md'], xl: [16, 6, 'lg'] } as const;
+            for (const [size, [field, pad, text]] of Object.entries(steps)) {
+                const trigger = decls(`.zx-select__trigger.zx-a-size-${size}`);
+                // The offset reads the same padding and font step the trigger sets.
+                expect(trigger).toEqual(expect.arrayContaining([
+                    `height: calc(var(--size-field) * ${field})`,
+                    `padding-right: calc(var(--size-field) * ${pad})`,
+                    `font-size: var(--text-${text})`,
+                ]));
+                expect(decls(`.zx-select__clear-trigger.zx-a-size-${size}`), size).toEqual([
+                    `top: calc(var(--size-field) * ${field / 2} - 0.75rem)`,
+                    `right: calc(var(--border) + var(--size-field) * ${pad} + var(--text-${text}) + var(--space-xs))`,
+                ]);
+            }
         });
 
         it('the ring outlasts every later box-shadow rule at equal or lower specificity', () => {
