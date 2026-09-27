@@ -4684,11 +4684,19 @@ export const numberInput: RecipeInput = {
     //   button's content centering;
     // - the native input takes no `inherit`: its ink is spelled out;
     // - the web root is inline-flex and hugs its content; lynx's flex column
-    //   stretches, so the children align to the start instead.
+    //   stretches, so the children align to the start instead;
+    // - the focus ring is `lynxFocusRing` (lynx's outline ignores the radius
+    //   and has no offset, signalxjs/lynx#1163). A shadow must not be
+    //   clipped by the box's own `overflow: hidden`, so the control stops
+    //   clipping and the steppers round their own outer corners instead.
     targets: {
         lynx: {
             parts: {
                 root: { base: { alignItems: 'flex-start' } },
+                control: {
+                    base: { overflow: 'visible' },
+                    states: { 'focus-visible': lynxFocusRing('var(--number-input-accent)') },
+                },
                 input: { base: { color: 'var(--color-base-content)' } },
                 'increment-trigger': {
                     base: {
@@ -4698,6 +4706,8 @@ export const numberInput: RecipeInput = {
                         paddingLeft: 'var(--space-lg)',
                         paddingRight: 'var(--space-lg)',
                         borderLeft: 'var(--border) solid var(--color-base-300)',
+                        borderTopRightRadius: 'var(--radius-field)',
+                        borderBottomRightRadius: 'var(--radius-field)',
                     },
                 },
                 'decrement-trigger': {
@@ -4708,6 +4718,8 @@ export const numberInput: RecipeInput = {
                         paddingLeft: 'var(--space-lg)',
                         paddingRight: 'var(--space-lg)',
                         borderRight: 'var(--border) solid var(--color-base-300)',
+                        borderTopLeftRadius: 'var(--radius-field)',
+                        borderBottomLeftRadius: 'var(--radius-field)',
                     },
                 },
             },
