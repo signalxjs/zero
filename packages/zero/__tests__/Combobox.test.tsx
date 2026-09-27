@@ -1191,6 +1191,18 @@ describe('Combobox inline autocomplete (#301)', () => {
         expect(state.open).toBe(false);
     });
 
+    it('a click in the input accepts the completed text, keeping the query in sync', () => {
+        const { input, state, highlighted } = inline();
+        typeKey(input, 'Fi');
+        expect(state.query).toBe('Fi');
+        input.setSelectionRange(2, 2);
+        input.click();
+        expect(state.query).toBe('Finland');
+        expect(input.value).toBe('Finland');
+        expect(state.value).toBeNull();
+        expect(highlighted()).toBe('Finland');
+    });
+
     it('ArrowDown leaves the completion behind and walks the list', () => {
         const { input, highlighted } = inline();
         typeKey(input, 'F');

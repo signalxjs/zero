@@ -1039,6 +1039,13 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         inputText: () => (completing() ? inline.text : inputValue.value),
         inlineComplete: inlineOn,
         inputClick() {
+            // A click places the caret (or a selection) with no key to
+            // retire the completion: like a caret move, it accepts the
+            // completed text, so the query matches what the input shows.
+            if (completing()) {
+                inputValue.value = inline.text;
+                clearInline();
+            }
             if (props.openOnClick && !openState.value && !ctx.disabled() && !ctx.readonly()) setOpen(true);
         },
         inputBlur(e) {

@@ -655,8 +655,8 @@ list filters on it and a server search reads it. The completion is only
 what the input shows. Backspace or Delete removes just the selected
 remainder. The first Escape takes the completion back, and the next one
 follows the usual rules. Enter and Tab commit the highlighted option (Tab
-still moves focus on). ArrowLeft, ArrowRight, Home and End accept the
-completed text as text without choosing a value. ArrowUp and ArrowDown drop
+still moves focus on). ArrowLeft, ArrowRight, Home and End, or a click in
+the input, accept the completed text as text without choosing a value. ArrowUp and ArrowDown drop
 the completion and walk the list. A blur resyncs as described above, so an
 unaccepted completion never posts.
 
