@@ -894,6 +894,89 @@ describe('assertNoCalcVarChains', () => {
         // No logical spelling reaches the vertical rules either (lynx#1084).
         expect(css).not.toMatch(/inset-|margin-block|margin-inline|padding-block|padding-inline/);
     });
+
+    // Lynx's `outline` ignores `border-radius` and it has no `outline-offset`
+    // at all, so daisy's ring painted as a square box flush on every rounded
+    // part (signalxjs/lynx#1163). The lynx sections restate it as spread
+    // box-shadows — the gap in the part's surface, then the ink — which
+    // follow the radius. The accordion trigger fills a clipping card, so its
+    // ring is inset (signalxjs/lynx#1164).
+    describe('zero-daisyui focus-visible rings on lynx', () => {
+        const PILOT = ['button', 'switch', 'slider', 'toast', 'tabs', 'accordion', 'dialog', 'popover', 'select'];
+        const lynxCss = () => compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] }).componentCss;
+        const focusRules = (css: string) => [...css.matchAll(/^(\.[^\n{]*\.zx-f-focus-visible) \{([^}]*)\}/gm)].map((m) => ({ selector: m[1]!, body: m[2]! }));
+        const RING = /box-shadow: 0 0 0 2px var\(--[a-z0-9-]+\), 0 0 0 4px var\(--[a-z0-9-]+\)/;
+
+        it('no pilot scope paints an outline ring', () => {
+            const css = lynxCss();
+            for (const scope of PILOT) {
+                const rules = focusRules(css[scope]!);
+                expect(rules.length, scope).toBeGreaterThan(0);
+                for (const { selector, body } of rules) {
+                    expect(body, selector).toContain('outline: none;');
+                    expect(body, selector).not.toMatch(/outline: \d/);
+                }
+            }
+        });
+
+        it('each ring is a gap shadow then the ink, in the part\'s own ink', () => {
+            const css = lynxCss();
+            const ring = (scope: string, selector: string) =>
+                focusRules(css[scope]!).find((r) => r.selector === selector)?.body;
+            expect(ring('button', '.zx-button__root.zx-f-focus-visible')).toContain('box-shadow: 0 0 0 2px var(--color-base-100), 0 0 0 4px var(--btn-ink);');
+            expect(ring('switch', '.zx-switch__control.zx-f-focus-visible')).toContain('box-shadow: 0 0 0 2px var(--color-base-100), 0 0 0 4px var(--switch-accent), 0 1px var(--depth-shade) inset;');
+            // The thumb keeps its depth relief under the ring.
+            expect(ring('slider', '.zx-slider__thumb.zx-f-focus-visible')).toMatch(/box-shadow: 0 0 0 2px var\(--color-base-100\), 0 0 0 4px var\(--slider-accent\), 0 -1px var\(--depth-shade\) inset/);
+            // Toast parts sit on the card: the gap is its fill.
+            expect(ring('toast', '.zx-toast__action.zx-f-focus-visible')).toContain('0 0 0 2px var(--toast-bg), 0 0 0 4px var(--color-base-content)');
+            expect(ring('toast', '.zx-toast__close.zx-f-focus-visible')).toContain('0 0 0 2px var(--toast-bg)');
+            for (const [scope, selector] of [
+                ['tabs', '.zx-tabs__tab.zx-f-focus-visible'],
+                ['dialog', '.zx-dialog__trigger.zx-f-focus-visible'],
+                ['dialog', '.zx-dialog__close.zx-f-focus-visible'],
+                ['dialog', '.zx-dialog__cancel.zx-f-focus-visible'],
+                ['popover', '.zx-popover__trigger.zx-f-focus-visible'],
+                ['popover', '.zx-popover__close.zx-f-focus-visible'],
+                ['select', '.zx-select__trigger.zx-f-focus-visible'],
+                ['select', '.zx-select__clear-trigger.zx-f-focus-visible'],
+            ] as const) {
+                expect(ring(scope, selector), selector).toMatch(RING);
+            }
+        });
+
+        it('the slider thumb alone carries the ring; the composed control does not', () => {
+            const css = lynxCss()['slider']!;
+            const control = focusRules(css).find((r) => r.selector === '.zx-slider__control.zx-f-focus-visible')!.body;
+            expect(control).toContain('outline: none;');
+            expect(control).not.toContain('box-shadow');
+        });
+
+        it('the accordion trigger ring is inset, rounded to the card', () => {
+            const body = focusRules(lynxCss()['accordion']!).find((r) => r.selector === '.zx-accordion__trigger.zx-f-focus-visible')!.body;
+            expect(body).toContain('box-shadow: inset 0 0 0 2px var(--color-base-content);');
+            expect(body).toContain('border-radius: calc(var(--radius-box) - var(--border));');
+        });
+
+        it('the ring outlasts every later box-shadow rule at equal or lower specificity', () => {
+            const css = lynxCss();
+            // A variant/modifier that zeroes or sets the part's box-shadow
+            // after the ring would erase it: each restates the ring at one
+            // class more, emitted after the rule it has to beat.
+            const after = (scope: string, beaten: string, ring: string) => {
+                const text = css[scope]!;
+                const at = text.indexOf(`${beaten} {`);
+                const ringAt = text.indexOf(`${ring} {`);
+                expect(at, beaten).toBeGreaterThan(-1);
+                expect(ringAt, ring).toBeGreaterThan(at);
+                expect(focusRules(text).find((r) => r.selector === ring)!.body).toMatch(RING);
+            };
+            after('button', '.zx-button__root.zx-a-variant-link', '.zx-button__root.zx-a-variant-link.zx-f-focus-visible');
+            after('button', '.zx-button__root.zx-m-active', '.zx-button__root.zx-m-active.zx-f-focus-visible');
+            after('tabs', '.zx-tabs__tab.zx-a-variant-box.zx-s-active', '.zx-tabs__tab.zx-a-variant-box.zx-f-focus-visible');
+            expect(focusRules(css['tabs']!).find((r) => r.selector === '.zx-tabs__tab.zx-a-variant-box.zx-f-focus-visible')!.body)
+                .toContain('0 0 0 2px var(--color-base-200)');
+        });
+    });
 });
 
 describe('assertNoDanglingVars', () => {

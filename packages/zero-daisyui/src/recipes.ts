@@ -40,6 +40,41 @@ const focusRing: Record<string, NonNullable<PartStyles['base']>> = {
 };
 
 /**
+ * The focus ring on lynx, for `targets.lynx` (signalxjs/lynx#1163): the same
+ * 2px ring 2px clear of the part, spelled as spread box-shadows.
+ *
+ * The web ring is `outline` + `outline-offset`, and neither survives on
+ * lynx: its `outline` ignores `border-radius` (a square box around a
+ * rounded button, a rectangle around the switch pill) and it has no
+ * `outline-offset` property at all, so the ring sat flush on the fill. A
+ * zero-blur shadow's spread follows the element's radius. Shadows stack
+ * rather than mask, so the offset gap cannot be transparent: the inner
+ * shadow paints it in `gap` — the surface the part sits on, which is what
+ * the web's gap shows through to. `outline: none` retires the shared ring
+ * in the same merged declaration block.
+ *
+ * `under` appends the part's own lynx shadows (a knob's depth relief), which
+ * the focus rule would otherwise replace. `inset` draws the ring inside the
+ * part, flush with its edge, for a part whose parent clips an outside ring
+ * away (signalxjs/lynx#1164, the accordion trigger inside its card).
+ */
+const lynxFocusRing = (
+    ink: string,
+    { gap = 'var(--color-base-100)', under, inset = false }: { gap?: string; under?: string; inset?: boolean } = {},
+): CssProps => ({
+    outline: 'none',
+    boxShadow: [
+        ...(inset ? [`inset 0 0 0 2px ${ink}`] : [`0 0 0 2px ${gap}`, `0 0 0 4px ${ink}`]),
+        ...(under ? [under] : []),
+    ].join(', '),
+});
+
+/** `focusRing`'s lynx spelling — the base-content ring, as a states entry. */
+const lynxFocus = (opts?: Parameters<typeof lynxFocusRing>[1]): Record<string, CssProps> => ({
+    'focus-visible': lynxFocusRing('var(--color-base-content)', opts),
+});
+
+/**
  * How far each role survives in the button's INK — the colour a transparent or
  * tinted fill draws its label, border and focus ring with.
  *
@@ -524,7 +559,7 @@ export const tabs: RecipeInput = {
             parts: {
                 // No hover on a touch platform: the held tab takes the ink
                 // daisy's hover gives it.
-                tab: { states: { pressed: { color: 'var(--color-base-content)' } } },
+                tab: { states: { pressed: { color: 'var(--color-base-content)' }, ...lynxFocus() } },
                 // The list is the indicator's containing block.
                 list: { base: { position: 'relative' } },
                 // The underline's ink (read by the `border` flavor below) —
@@ -576,6 +611,14 @@ export const tabs: RecipeInput = {
                         tab: {
                             base: { '--tab-radius-limit': 'var(--radius-field)' },
                         },
+                    },
+                    // The box flavor's tabs sit on the list's base-200
+                    // surface, so the ring's gap is that surface. Stated on
+                    // the variant (one class more than the part rule) so it
+                    // also outranks the active pill's `--shadow-sm`, which
+                    // is a box-shadow too.
+                    box: {
+                        tab: { states: lynxFocus({ gap: 'var(--color-base-200)' }) },
                     },
                 },
             },
@@ -931,6 +974,9 @@ export const switchRecipe: RecipeInput = {
                             borderColor: 'var(--switch-accent)',
                             backgroundColor: 'var(--color-base-100)',
                         },
+                        // The pill ring (signalxjs/lynx#1163), keeping the
+                        // track's inset depth line under it.
+                        'focus-visible': lynxFocusRing('var(--switch-accent)', { under: '0 1px var(--depth-shade) inset' }),
                     },
                 },
                 thumb: {
@@ -1177,9 +1223,9 @@ export const dialog: RecipeInput = {
     targets: {
         lynx: {
             parts: {
-                trigger: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed } },
-                close: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed } },
-                cancel: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed } },
+                trigger: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed, ...lynxFocus() } },
+                close: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed, ...lynxFocus() } },
+                cancel: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed, ...lynxFocus() } },
                 footer: { base: { marginTop: 'var(--space-2xl)', flexDirection: 'row' } },
             },
             variants: { size: lynxBtnSizes('trigger') },
@@ -1274,8 +1320,8 @@ export const popover: RecipeInput = {
         web: floatingArrow('popover', panelArrowPaint),
         lynx: {
             parts: {
-                trigger: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed } },
-                close: { base: lynxBtnPad(3), states: { pressed: lynxBtnPressed } },
+                trigger: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed, ...lynxFocus() } },
+                close: { base: lynxBtnPad(3), states: { pressed: lynxBtnPressed, ...lynxFocus() } },
             },
             variants: { size: lynxBtnSizes('trigger') },
         },
@@ -2603,6 +2649,12 @@ export const slider: RecipeInput = {
                 control: {
                     states: {
                         invalid: { '--slider-fill': sliderFill('var(--color-error)') },
+                        // The control's ring is the NATIVE input's on the web;
+                        // lynx always renders the composed parts, where the
+                        // thumb is what takes focus and wears the ring below
+                        // (signalxjs/lynx#1163 — both at once read as two
+                        // nested boxes).
+                        'focus-visible': { outline: 'none' },
                     },
                     selectors: {
                         '&[data-orientation="vertical"]': {
@@ -2700,6 +2752,13 @@ export const slider: RecipeInput = {
                         transform: 'translateY(-50%)',
                         marginLeft: 'calc(var(--slider-thumb-size) / -2)',
                     },
+                    // The round ring (signalxjs/lynx#1163), over the knob's
+                    // depth relief.
+                    states: {
+                        'focus-visible': lynxFocusRing('var(--slider-accent)', {
+                            under: '0 -1px var(--depth-shade) inset, 0 8px 0 -4px var(--depth-sheen) inset, 0 1px var(--depth-shade)',
+                        }),
+                    },
                 },
             },
         },
@@ -2716,7 +2775,20 @@ export const accordion: RecipeInput = {
                 // hover fill. The ::after chevron has no lynx counterpart (no
                 // pseudo-elements, and the anatomy declares no part for it) —
                 // an app draws its own glyph in the trigger.
-                trigger: { states: { pressed: { background: 'var(--color-base-200)' } } },
+                //
+                // The item card clips (`overflow: hidden`) and the trigger
+                // fills it, so an outside ring is clipped away entirely
+                // (signalxjs/lynx#1164): the ring is drawn inset, rounded to
+                // the card's inner corners.
+                trigger: {
+                    states: {
+                        pressed: { background: 'var(--color-base-200)' },
+                        'focus-visible': {
+                            ...lynxFocusRing('var(--color-base-content)', { inset: true }),
+                            borderRadius: 'calc(var(--radius-box) - var(--border))',
+                        },
+                    },
+                },
             },
         },
     },
@@ -3015,12 +3087,15 @@ export const select: RecipeInput = {
                     // The web's `:hover` border is dropped on a touch
                     // platform; a press gets a wash instead — a background,
                     // so it never fights the open/invalid border inks.
-                    states: { pressed: { background: 'var(--color-base-200)' } },
+                    states: { pressed: { background: 'var(--color-base-200)' }, ...lynxFocus() },
                 },
                 // A touch list has no highlight: the pressed item takes the
                 // highlighted item's wash.
                 item: { states: { pressed: { background: 'var(--color-base-200)' } } },
-                'clear-trigger': { base: { top: 'var(--space-xs)', bottom: 'var(--space-xs)', right: 'calc(var(--size-field) * 4 + 1em + var(--space-xs))', minWidth: '1.5rem' } },
+                'clear-trigger': {
+                    base: { top: 'var(--space-xs)', bottom: 'var(--space-xs)', right: 'calc(var(--size-field) * 4 + 1em + var(--space-xs))', minWidth: '1.5rem' },
+                    states: lynxFocus(),
+                },
             },
             variants: {
                 size: { ...lynxBtnSizes('trigger'), md: { trigger: { base: lynxBtnPad(4) } } },
@@ -3294,7 +3369,8 @@ export const button: RecipeInput = {
                         borderTopColor: 'transparent',
                     },
                 },
-                root: { states: { disabled: lynxBtnDisabled } },
+                // The ring in the variant's own ink (signalxjs/lynx#1163).
+                root: { states: { disabled: lynxBtnDisabled, 'focus-visible': lynxFocusRing('var(--btn-ink)') } },
             },
             variants: {
                 // The baked disabled paint above outranks every variant's fill
@@ -3306,7 +3382,9 @@ export const button: RecipeInput = {
                     outline: { root: { states: { disabled: { borderColor: 'transparent' } } } },
                     dash: { root: { states: { disabled: { borderColor: 'transparent' } } } },
                     ghost: { root: { states: { disabled: { background: 'transparent' } } } },
-                    link: { root: { states: { disabled: { background: 'transparent' } } } },
+                    // `link` zeroes the box-shadow in a variant rule that
+                    // lands after the ring, so it restates the ring.
+                    link: { root: { states: { disabled: { background: 'transparent' }, 'focus-visible': lynxFocusRing('var(--btn-ink)') } } },
                 },
             },
             // The icon chips' zeroed inline padding, restated physically: logical
@@ -3315,6 +3393,8 @@ export const button: RecipeInput = {
             modifiers: {
                 square: { root: { base: { paddingLeft: '0', paddingRight: '0' } } },
                 circle: { root: { base: { paddingLeft: '0', paddingRight: '0' } } },
+                // `active` zeroes the box-shadow too (the held press look).
+                active: { root: { states: { 'focus-visible': lynxFocusRing('var(--btn-ink)') } } },
             },
         },
     },
@@ -3660,13 +3740,18 @@ export const toast: RecipeInput = {
                 // the same ink at 75% opacity reads the same on the soft fill.
                 description: { base: { color: 'var(--toast-ink)', opacity: '0.75' } },
                 // The 25% ink border cannot bake either: it takes the full ink.
+                // Their rings' gap is the card's own fill.
                 action: {
                     base: {
                         marginTop: 'var(--space-xs)',
                         border: 'var(--border) solid var(--toast-ink)',
                     },
+                    states: lynxFocus({ gap: 'var(--toast-bg)' }),
                 },
-                close: { base: { position: 'absolute', top: 'var(--space-xs)', right: 'var(--space-xs)' } },
+                close: {
+                    base: { position: 'absolute', top: 'var(--space-xs)', right: 'var(--space-xs)' },
+                    states: lynxFocus({ gap: 'var(--toast-bg)' }),
+                },
             },
         },
     },
