@@ -1013,8 +1013,9 @@ group's `size` (its recipe borrows the avatar's own size step through
 between faces are the skin's choice. There is no registration — the avatars
 are another scope's roots — so slice your list and pass what you left out to
 the `count` prop of `AvatarGroup.Overflow`: it renders "+N" for sight
-(`aria-hidden`) and a visually hidden "N more" for assistive technology (`label` replaces those
-words — translate them there), and nothing at all for a count of zero or
+(`aria-hidden`) and a visually hidden "N more" for assistive technology
+(`label` replaces those words — translate them there; an app `aria-label` is
+read as `label` when it is absent, as hidden text rather than an attribute), and nothing at all for a count of zero or
 less. Display-only: no model, no state.
 
 ```tsx

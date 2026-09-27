@@ -70,7 +70,9 @@ export type AvatarGroupOverflowProps =
     & Define.Prop<'count', number, true>
     /**
      * What assistive technology reads instead of the visible "+N" — defaults
-     * to "N more". The place to translate it.
+     * to "N more". The place to translate it. An app `aria-label` is read as
+     * this when it is absent; it is rendered as hidden text, never as an
+     * `aria-label` attribute.
      */
     & Define.Prop<'label', string, false>
     & WithClass
@@ -79,20 +81,19 @@ export type AvatarGroupOverflowProps =
 const AvatarGroupOverflow = component<AvatarGroupOverflowProps>(({ props }) => () => {
     const count = Math.floor(props.count);
     if (!(count > 0)) return null;
-    const attrs = htmlAttrs(props);
+    // The words are TEXT, never an `aria-label` that would override them
+    // (Spinner's rule): an app `aria-label` is read as `label` when that is
+    // absent, and `label` wins over it.
+    const { 'aria-label': appLabel, ...attrs } = htmlAttrs(props);
     return (
         <span
             {...attrs}
-            // `label` owns what assistive technology reads, as on Root: an
-            // app `aria-label` (often spread in by accident) must not
-            // override the words it replaces.
-            aria-label={props.label === undefined ? attrs['aria-label'] : undefined}
             data-scope={SCOPE}
             data-part="overflow"
             class={props.class}
         >
             <span aria-hidden="true">{`+${count}`}</span>
-            <VisuallyHidden>{props.label ?? `${count} more`}</VisuallyHidden>
+            <VisuallyHidden>{props.label ?? appLabel ?? `${count} more`}</VisuallyHidden>
         </span>
     );
 }, { name: 'AvatarGroup.Overflow' });

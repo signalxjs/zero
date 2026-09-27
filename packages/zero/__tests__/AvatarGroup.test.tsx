@@ -108,16 +108,17 @@ describe('AvatarGroup', () => {
         expect(b.getAttribute('aria-label')).toBe('Owners');
     });
 
-    it('`label` on Overflow wins over a forwarded aria-label, as on Root', () => {
+    it('Overflow reads an app aria-label as its words, never as an attribute; `label` wins', () => {
         render(
             <AvatarGroup.Root>
-                <AvatarGroup.Overflow count={2} aria-label="kept" />
+                <AvatarGroup.Overflow count={2} aria-label="2 others" />
                 <AvatarGroup.Overflow count={3} aria-label="ignored" label="3 others" />
             </AvatarGroup.Root>,
             container,
         );
         const [a, b] = Array.from(container.querySelectorAll('[data-scope="avatar-group"][data-part="overflow"]'));
-        expect(a.getAttribute('aria-label')).toBe('kept');
+        expect(a.hasAttribute('aria-label')).toBe(false);
+        expect(a.children[1].textContent).toBe('2 others');
         expect(b.hasAttribute('aria-label')).toBe(false);
         expect(b.children[1].textContent).toBe('3 others');
     });
