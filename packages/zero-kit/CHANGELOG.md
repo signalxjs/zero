@@ -22,6 +22,11 @@
   during its enter/exit frame, so the new `toast.indicator` is measured
   inside `viewport=open > root=open`. A trigger's `open` is still unpinned.
 
+### Changed — `RESERVED_PROPS_BY_SCOPE['number-input']` reserves `locale` and `formatOptions` (zero#300)
+
+- NumberInput's new root props are reserved, so a vendor-named api cannot
+  claim them as axis props.
+
 ### Added — the `menubar` scope (zero#289)
 
 - **`RESERVED_PROPS_BY_SCOPE`** reserves `menubar`'s root props

@@ -3,6 +3,7 @@ import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { NumberInput, numberInputAnatomy } from '@sigx/zero';
 import { clamp, precisionOf, snapToStep, stepToward } from '../src/components/number-input/number.js';
+import { createLocaleNumberFormat } from '../src/components/number-input/locale.js';
 import { expectAnatomy } from './helpers';
 
 function mount(container: HTMLElement, extra: {
@@ -16,6 +17,9 @@ function mount(container: HTMLElement, extra: {
     allowWheel?: boolean;
     name?: string;
     format?: (v: number) => string;
+    parse?: (t: string) => number | null;
+    locale?: string;
+    formatOptions?: Intl.NumberFormatOptions;
     disabled?: boolean;
     readonly?: boolean;
 } = {}) {
@@ -31,6 +35,9 @@ function mount(container: HTMLElement, extra: {
             allowWheel={extra.allowWheel}
             name={extra.name}
             format={extra.format}
+            parse={extra.parse}
+            locale={extra.locale}
+            formatOptions={extra.formatOptions}
             disabled={extra.disabled}
             readonly={extra.readonly}
         >
@@ -99,6 +106,69 @@ describe('stepToward (#272)', () => {
     it('the landing counts as the first step of a large amount', () => {
         expect(stepToward(5, 1, 2, 0, 20)).toBe(24);
         expect(stepToward(5, -1, 2, 0, 20)).toBe(-14);
+    });
+});
+
+describe('locale number format (#300)', () => {
+    it('en-US: strips grouping, keeps the dot decimal, rejects the rest', () => {
+        const f = createLocaleNumberFormat('en-US', undefined);
+        expect(f.format(-1234.5)).toBe('-1,234.5');
+        expect(f.parse('1,234.5')).toBe(1234.5);
+        expect(f.parse('-1,234.5')).toBe(-1234.5);
+        expect(f.parse('\u22125')).toBe(-5);
+        expect(f.parse('1 234')).toBeNull();
+        expect(f.parse('12e3')).toBeNull();
+        expect(f.parse('0x10')).toBeNull();
+        expect(f.parse('abc')).toBeNull();
+    });
+
+    it('de-DE: the dot groups and the comma is the decimal', () => {
+        const f = createLocaleNumberFormat('de-DE', undefined);
+        expect(f.format(1234.5)).toBe('1.234,5');
+        expect(f.parse('1.234,5')).toBe(1234.5);
+        expect(f.parse('-1.234,5')).toBe(-1234.5);
+        expect(f.parse('1,5')).toBe(1.5);
+        expect(f.parse('1.5')).toBe(15);
+    });
+
+    it('fr-FR: the narrow no-break space groups, and any space does', () => {
+        const f = createLocaleNumberFormat('fr-FR', undefined);
+        expect(f.format(1234.5)).toBe('1\u202f234,5');
+        expect(f.parse('1\u202f234,5')).toBe(1234.5);
+        expect(f.parse('1 234,5')).toBe(1234.5);
+        expect(f.parse('-1 234,5')).toBe(-1234.5);
+        // A dot is neither the group nor the decimal here.
+        expect(f.parse('1.5')).toBeNull();
+    });
+
+    it('percent: tolerates the sign and divides by 100 without float noise', () => {
+        const f = createLocaleNumberFormat('en-US', { style: 'percent' });
+        expect(f.format(0.25)).toBe('25%');
+        expect(f.parse('25%')).toBe(0.25);
+        expect(f.parse('25')).toBe(0.25);
+        expect(f.parse('14.1 %')).toBe(0.141);
+        expect(f.parse('-3%')).toBe(-0.03);
+        // A fraction longer than toFixed's 100-digit limit parses, not throws.
+        expect(f.parse(`0.${'0'.repeat(200)}1%`)).toBe(0);
+        expect(f.parse(`12.${'5'.repeat(200)}%`)).toBeCloseTo(0.125555555, 8);
+        expect(f.maximumFractionDigits).toBe(0);
+    });
+
+    it('currency: tolerates its own symbol, not another', () => {
+        const usd = createLocaleNumberFormat('en-US', { style: 'currency', currency: 'USD' });
+        expect(usd.format(1234.5)).toBe('$1,234.50');
+        expect(usd.parse('$1,234.50')).toBe(1234.5);
+        expect(usd.parse('-$5')).toBe(-5);
+        expect(usd.parse('1234')).toBe(1234);
+        expect(usd.parse('\u20ac5')).toBeNull();
+        const eur = createLocaleNumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+        expect(eur.parse(eur.format(-1234.56))).toBe(-1234.56);
+        expect(eur.parse('1.234,56 \u20ac')).toBe(1234.56);
+    });
+
+    it('accounting parentheses are not silently read as positive', () => {
+        const f = createLocaleNumberFormat('en-US', { style: 'currency', currency: 'USD', currencySign: 'accounting' });
+        expect(f.parse('($5.00)')).toBeNull();
     });
 });
 
@@ -459,5 +529,102 @@ describe('NumberInput', () => {
         input(c2).dispatchEvent(key('ArrowUp'));
         expect(ro.qty).toBe(5);
         expect(input(c2).hasAttribute('readonly')).toBe(true);
+    });
+
+    describe('locale and formatOptions (#300)', () => {
+        it('displays the committed value through Intl and parses the locale back', () => {
+            const state = signal({ qty: 1234.5 as number | null });
+            mount(container, { model: [state, 'qty'], step: 0.01, locale: 'de-DE', name: 'n' });
+            const el = input(container);
+            expect(el.value).toBe('1.234,5');
+            expect(el.getAttribute('aria-valuetext')).toBe('1.234,5');
+            expect(el.getAttribute('aria-valuenow')).toBe('1234.5');
+            type(el, '2.000,25');
+            el.dispatchEvent(new FocusEvent('blur'));
+            expect(state.qty).toBe(2000.25);
+            expect(el.value).toBe('2.000,25');
+            // The form still posts the canonical decimal.
+            expect(container.querySelector<HTMLInputElement>('[data-part="hidden-input"]')!.value).toBe('2000.25');
+            // Unparseable in this locale reverts.
+            type(el, '12abc');
+            el.dispatchEvent(new FocusEvent('blur'));
+            expect(state.qty).toBe(2000.25);
+            expect(el.value).toBe('2.000,25');
+        });
+
+        it('currency and percent formats round-trip through a commit', () => {
+            const price = signal({ v: 5 as number | null });
+            mount(container, { model: [price, 'v'], step: 0.01, locale: 'en-US', formatOptions: { style: 'currency', currency: 'USD' } });
+            expect(input(container).value).toBe('$5.00');
+            type(input(container), '$1,299.99');
+            input(container).dispatchEvent(new FocusEvent('blur'));
+            expect(price.v).toBe(1299.99);
+            expect(input(container).value).toBe('$1,299.99');
+
+            const c2 = document.createElement('div');
+            document.body.appendChild(c2);
+            const pct = signal({ v: 0.25 as number | null });
+            mount(c2, { model: [pct, 'v'], min: 0, max: 1, locale: 'en-US', formatOptions: { style: 'percent' } });
+            expect(input(c2).value).toBe('25%');
+            type(input(c2), '40%');
+            input(c2).dispatchEvent(new FocusEvent('blur'));
+            expect(pct.v).toBe(0.4);
+            // A percent format steps by one percent by default.
+            input(c2).dispatchEvent(key('ArrowUp'));
+            expect(pct.v).toBe(0.41);
+            expect(input(c2).getAttribute('aria-valuetext')).toBe('41%');
+        });
+
+        it('formatOptions alone uses the runtime locale', () => {
+            mount(container, { defaultValue: 3, formatOptions: { minimumFractionDigits: 2 } });
+            expect(input(container).value).toBe(new Intl.NumberFormat(undefined, { minimumFractionDigits: 2 }).format(3));
+        });
+
+        it('custom format and parse still win', () => {
+            const state = signal({ v: 2 as number | null });
+            mount(container, {
+                model: [state, 'v'],
+                locale: 'de-DE',
+                format: (v) => `#${v}`,
+                parse: (t) => Number(t.replace('#', '')),
+            });
+            expect(input(container).value).toBe('#2');
+            type(input(container), '#7');
+            input(container).dispatchEvent(new FocusEvent('blur'));
+            expect(state.v).toBe(7);
+        });
+
+        it('a custom parse keeps the plain step default under a percent format', () => {
+            const state = signal({ v: 25 as number | null });
+            mount(container, {
+                model: [state, 'v'],
+                locale: 'en-US',
+                formatOptions: { style: 'percent' },
+                parse: (t) => Number(t.replace('%', '')),
+            });
+            input(container).dispatchEvent(key('ArrowUp'));
+            expect(state.v).toBe(26);
+        });
+
+        it('derives inputmode: numeric only for whole, non-negative fields', () => {
+            mount(container, { defaultValue: 1, min: 0, locale: 'en-US', formatOptions: { maximumFractionDigits: 0 } });
+            expect(input(container).getAttribute('inputmode')).toBe('numeric');
+            const cases: Array<[number | undefined, Intl.NumberFormatOptions | undefined]> = [
+                [undefined, { maximumFractionDigits: 0 }],
+                [-5, { maximumFractionDigits: 0 }],
+                [0, undefined],
+            ];
+            for (const [min, formatOptions] of cases) {
+                const c = document.createElement('div');
+                document.body.appendChild(c);
+                mount(c, { defaultValue: 1, min, locale: 'en-US', formatOptions });
+                expect(input(c).getAttribute('inputmode')).toBe('decimal');
+            }
+            // Without a locale format the field stays decimal (#300 is opt-in).
+            const plain = document.createElement('div');
+            document.body.appendChild(plain);
+            mount(plain, { defaultValue: 1, min: 0 });
+            expect(input(plain).getAttribute('inputmode')).toBe('decimal');
+        });
     });
 });

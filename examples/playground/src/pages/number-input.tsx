@@ -4,7 +4,7 @@ import { DemoRow } from '../demo/Section';
 import type { PageEntry } from './registry';
 
 const NumberInputDemos = component(() => {
-    const state = signal({ qty: 2 as number | null });
+    const state = signal({ qty: 2 as number | null, amount: 1234.5 as number | null });
 
     return () => (
         <>
@@ -78,6 +78,48 @@ const NumberInputDemos = component(() => {
                 </NumberInput.Root>
             </DemoRow>
             <p><small>Quantity model: <code>{state.qty ?? '—'}</code></small></p>
+            <p>
+                <code>locale</code> and <code>formatOptions</code> hand display
+                and parsing to <code>Intl.NumberFormat</code>: the committed
+                value shows in the locale's own spelling (and is what
+                <code>aria-valuetext</code> reads), typed text parses back
+                through that locale's group, decimal and minus symbols with
+                its currency or percent sign optional, and the hidden input
+                still posts the canonical decimal.
+            </p>
+            <DemoRow gap="1rem" align="flex-end">
+                <NumberInput.Root model={() => state.amount} name="amount" min={0} step={0.01} locale="de-DE" formatOptions={{ style: 'currency', currency: 'EUR' }}>
+                    <NumberInput.Label>Betrag (de-DE, EUR)</NumberInput.Label>
+                    <NumberInput.Control>
+                        <NumberInput.DecrementTrigger>−</NumberInput.DecrementTrigger>
+                        <NumberInput.Input />
+                        <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
+                    </NumberInput.Control>
+                </NumberInput.Root>
+                {/* The narrow no-break space groups; any typed space does too. */}
+                <NumberInput.Root defaultValue={1234567.5} locale="fr-FR">
+                    <NumberInput.Label>Montant (fr-FR)</NumberInput.Label>
+                    <NumberInput.Control>
+                        <NumberInput.DecrementTrigger>−</NumberInput.DecrementTrigger>
+                        <NumberInput.Input />
+                        <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
+                    </NumberInput.Control>
+                </NumberInput.Root>
+                {/*
+                  * The model is the fraction (0.15 shows as 15%) and a
+                  * percent format steps by one percent unless told otherwise.
+                  * No fraction digits and min 0: the numeric keypad.
+                  */}
+                <NumberInput.Root defaultValue={0.15} min={0} max={1} locale="en-US" formatOptions={{ style: 'percent' }}>
+                    <NumberInput.Label>Discount (percent)</NumberInput.Label>
+                    <NumberInput.Control>
+                        <NumberInput.DecrementTrigger>−</NumberInput.DecrementTrigger>
+                        <NumberInput.Input />
+                        <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
+                    </NumberInput.Control>
+                </NumberInput.Root>
+            </DemoRow>
+            <p><small>Betrag model: <code>{state.amount ?? '—'}</code></small></p>
         </>
     );
 }, { name: 'NumberInputDemos' });

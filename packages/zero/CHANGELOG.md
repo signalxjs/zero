@@ -62,6 +62,24 @@
   from 67.84 to 68.31 kB and `@sigx/zero/anatomy` from 4.15 to 4.17 kB. The
   new limits are the measured values.
 
+### Added — `NumberInput` `locale` and `formatOptions` via `Intl.NumberFormat` (#300)
+
+- **`locale`** (BCP 47) and **`formatOptions`** (`Intl.NumberFormatOptions`)
+  on `NumberInput.Root`. With either set, the committed value displays
+  through `Intl.NumberFormat` (and `aria-valuetext` reads it), and typed
+  text parses through the locale's group, decimal and minus symbols, read
+  once per `(locale, formatOptions)` from `formatToParts`: grouping is
+  stripped (any space where the group is one, e.g. `fr-FR`), the decimal
+  maps to `.`, the format's currency/percent/unit literals are optional,
+  and anything else reverts the draft. No bundled parser; ASCII digits
+  only.
+- `style: 'percent'` parses `25%` as `0.25` and defaults `step` to
+  `0.01` (a custom `parse` keeps the plain default).
+- `inputmode` is `numeric` when the format allows no fraction digits and
+  `min >= 0`, else `decimal`.
+- A custom `format` / `parse` still wins; the hidden input still posts
+  `String(value)`. No anatomy change.
+
 ### Added — `Menubar`, the APG menubar over Menu; `Menu.Shortcut` and `keyshortcuts` (#289)
 
 - **`Menubar.Root`** (`@sigx/zero/menubar` and the barrel): a new `menubar`
