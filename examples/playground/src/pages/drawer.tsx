@@ -7,6 +7,8 @@ const DrawerDemos = component(({ signal }) => {
     // What the responsive drawer REPORTED — the e2e reads it to prove a
     // regime switch says nothing (#82).
     const reported = signal({ openChange: 0, close: 0 });
+    // Why the bottom sheet last closed — `swipe` after a drag to its edge (#293).
+    const sheet = signal({ reason: 'none' });
     return () => (
         <>
             <p>
@@ -47,8 +49,11 @@ const DrawerDemos = component(({ signal }) => {
                 <code>"top"</code> (#291): a sheet across the viewport's width,
                 as tall as its content up to the design system's cap. Sheet-only
                 (a block-edge drawer never docks), and it never mirrors in RTL.
+                Every modal sheet swipes back to its edge (#293): drag the panel
+                toward the side it sits on — a short drag springs back, and the
+                close reports <code>reason: 'swipe'</code>.
             </p>
-            <Drawer.Root placement="bottom">
+            <Drawer.Root placement="bottom" onClose={(d: DrawerCloseDetail) => { sheet.reason = d.reason; }}>
                 <Drawer.Trigger>Open bottom sheet</Drawer.Trigger>
                 <Drawer.Panel>
                     <Drawer.Title>Share</Drawer.Title>
@@ -56,6 +61,7 @@ const DrawerDemos = component(({ signal }) => {
                     <Drawer.Close>Close bottom sheet</Drawer.Close>
                 </Drawer.Panel>
             </Drawer.Root>
+            <output aria-label="Bottom sheet close reason">Bottom sheet closed by: {sheet.reason}</output>
             <Drawer.Root placement="top">
                 <Drawer.Trigger>Open top sheet</Drawer.Trigger>
                 <Drawer.Panel>

@@ -174,6 +174,35 @@ describe('toaster (store)', () => {
         expect(t.count()).toBe(0);
     });
 
+    it('onDismiss hears the reason once: timeout, or programmatic by default (#293)', () => {
+        const t = createToaster({ duration: 1000 });
+        const timed = vi.fn();
+        const called = vi.fn();
+        t.create({ title: 'a', onDismiss: timed });
+        const b = t.create({ title: 'b', duration: Infinity, onDismiss: called });
+        for (const item of t.toasts()) item.open = true;
+        vi.advanceTimersByTime(1100);
+        expect(timed).toHaveBeenCalledWith('timeout');
+        t.dismiss(b);
+        t.dismiss(b);
+        expect(called).toHaveBeenCalledTimes(1);
+        expect(called).toHaveBeenCalledWith('programmatic');
+        expect(timed).toHaveBeenCalledTimes(1);
+    });
+
+    it('dismiss(id, reason) passes the reason through; remove() is not a dismissal (#293)', () => {
+        const t = createToaster({ duration: Infinity });
+        const onDismiss = vi.fn();
+        const a = t.create({ title: 'a', onDismiss });
+        t.toasts()[0]!.open = true;
+        t.dismiss(a, 'swipe');
+        expect(onDismiss).toHaveBeenCalledWith('swipe');
+        const quiet = vi.fn();
+        const b = t.create({ title: 'b', onDismiss: quiet });
+        t.remove(b);
+        expect(quiet).not.toHaveBeenCalled();
+    });
+
     it('dismiss with no id clears the queue and exits everything', () => {
         const t = createToaster({ max: 1, duration: Infinity });
         t.create({ title: 'a' });
@@ -847,6 +876,81 @@ describe('Toast (component)', () => {
         expect(root.getAttribute('aria-label')).toBe('Upload');
         expect(root.hasAttribute('aria-labelledby')).toBe(false);
         expect(root.getAttribute('aria-describedby')).toBe(container.querySelectorAll('[data-part="description"]')[0]!.id);
+    });
+
+    // ── Swipe to dismiss (#293) ──
+
+    const drag = (el: Element, from: [number, number], to: [number, number]) => {
+        const at = (type: string, [x, y]: [number, number]) => el.dispatchEvent(new PointerEvent(type, {
+            bubbles: true, cancelable: true, pointerId: 1, isPrimary: true, button: 0, clientX: x, clientY: y,
+        }));
+        at('pointerdown', from);
+        at('pointermove', [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2]);
+        at('pointermove', to);
+        at('pointerup', to);
+    };
+
+    it('a swipe toward the placement\'s side dismisses with reason swipe', async () => {
+        const t = mount(); // top-end: swiped toward the end
+        const onDismiss = vi.fn();
+        t.create({ title: 'Swipe me', onDismiss });
+        await settle();
+        const root = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        expect(toastAnatomy.parts.root.flags).toContain('swiping');
+        drag(root.querySelector('[data-part="title"]')!, [100, 10], [200, 10]);
+        expect(onDismiss).toHaveBeenCalledWith('swipe');
+        await settle();
+        expect(t.count()).toBe(0);
+    });
+
+    it('a swipe the wrong way, or with swipeDirection={false}, leaves the toast', async () => {
+        const t = createToaster({ duration: Infinity });
+        render(<Toast.Viewport toaster={t} placement="bottom" />, container);
+        t.create({ title: 'Stay' });
+        await settle();
+        const root = () => container.querySelector<HTMLElement>('[data-part="root"]')!;
+        // `bottom` swipes down; sideways is not a swipe.
+        drag(root(), [100, 10], [300, 10]);
+        await settle();
+        expect(t.count()).toBe(1);
+        render(<Toast.Viewport toaster={t} placement="bottom" swipeDirection={false} />, container);
+        await settle();
+        drag(root(), [100, 10], [100, 200]);
+        await settle();
+        expect(t.count()).toBe(1);
+        expect(root().hasAttribute('data-swiping')).toBe(false);
+    });
+
+    it('swiping holds the queue\'s timers', async () => {
+        const t = mount(createToaster({ duration: 80 }));
+        t.create({ title: 'Held' });
+        await settle();
+        const root = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        const at = (type: string, x: number) => root.dispatchEvent(new PointerEvent(type, {
+            bubbles: true, pointerId: 1, isPrimary: true, button: 0, clientX: x, clientY: 0,
+        }));
+        at('pointerdown', 0);
+        at('pointermove', 20);
+        expect(root.hasAttribute('data-swiping')).toBe(true);
+        await new Promise((r) => setTimeout(r, 200));
+        expect(root.getAttribute('data-state')).toBe('open');
+        // Let go short and slow: it springs back, and the timer runs again.
+        at('pointerup', 20);
+        expect(root.hasAttribute('data-swiping')).toBe(false);
+        await new Promise((r) => setTimeout(r, 200));
+        expect(container.querySelector('[data-part="root"]')).toBeNull();
+    });
+
+    it('Close and Escape report their own reasons', async () => {
+        const t = mount();
+        const reasons: string[] = [];
+        t.create({ title: 'One', onDismiss: (r) => reasons.push(r) });
+        t.create({ title: 'Two', onDismiss: (r) => reasons.push(r) });
+        await settle();
+        const [first, second] = container.querySelectorAll<HTMLElement>('[data-part="root"]');
+        first!.querySelector<HTMLElement>('[data-part="close"]')!.click();
+        second!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+        expect(reasons).toEqual(['close', 'escape']);
     });
 
     it('the stock action runs its callback', async () => {

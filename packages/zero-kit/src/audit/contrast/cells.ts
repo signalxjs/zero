@@ -20,8 +20,9 @@ export interface Combo { state?: string; flag?: string }
 /** Every state, every flag, every state × flag pair — plus the bare part. */
 export function combosFor(part: ManifestPart): Combo[] {
     const states = part.states ?? [];
-    // `press-animating` is a one-shot animation frame, not a resting style.
-    const flags = (part.flags ?? []).filter((f) => f !== 'press-animating');
+    // `press-animating` is a one-shot animation frame and `swiping` a gesture
+    // frame (#293, a transform and no ink) — neither is a resting style.
+    const flags = (part.flags ?? []).filter((f) => f !== 'press-animating' && f !== 'swiping');
     const combos: Combo[] = [{}];
     for (const state of states) combos.push({ state });
     for (const flag of flags) combos.push({ flag });

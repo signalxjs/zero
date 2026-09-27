@@ -42,6 +42,9 @@
  * sheet regime only, never inline or docked), and `escapeKeyDown` /
  * `interactOutside` fire before an Escape or scrim dismissal, which a
  * handler's `preventDefault()` cancels.
+ *
+ * A dismissible modal sheet swipes back to its edge (#293): the panel is the
+ * handle, `createSwipe` publishes the drag, and the close reports `swipe`.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
@@ -63,6 +66,7 @@ import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, Wi
 import type { ZeroBreakpointName } from '../../contract/vocabulary.js';
 import { drawerAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
+import { createSwipe, type SwipeDirection } from '../../behaviors/swipe.js';
 
 const SCOPE = drawerAnatomy.scope;
 
@@ -88,10 +92,19 @@ export interface DrawerModalRange {
 /**
  * What closed the drawer — Dialog's reasons without `cancel`: `close` the
  * `Drawer.Close` part, `escape` the native `cancel` or the inline dismiss
- * layer, `backdrop` a scrim click, and `programmatic` every close zero did
- * not initiate (a model write, a native `close()`, a `<form method="dialog">`).
+ * layer, `backdrop` a scrim click, `swipe` the sheet dragged back to its
+ * edge (#293), and `programmatic` every close zero did not initiate (a model
+ * write, a native `close()`, a `<form method="dialog">`).
  */
-export type DrawerCloseReason = 'close' | 'escape' | 'backdrop' | 'programmatic';
+export type DrawerCloseReason = 'close' | 'escape' | 'backdrop' | 'swipe' | 'programmatic';
+
+/** The swipe that takes a sheet back to its edge: toward its placement. */
+const SWIPE_TOWARD: Record<DrawerPlacement, SwipeDirection> = {
+    start: 'start',
+    end: 'end',
+    top: 'up',
+    bottom: 'down',
+};
 
 /** The `close` event's detail — why the drawer closed, and with what value. */
 export interface DrawerCloseDetail {
@@ -489,6 +502,22 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted, onUn
 
     const scoped = mountScope();
     onMounted(() => scoped(() => {
+        // Swipe to dismiss (#293) — the modal sheet only, never inline or
+        // docked furniture, and only a dismissible one: toward the edge the
+        // panel sits on. The gesture is the whole panel; content that can
+        // still scroll the way the drag goes keeps it (see `swipe.ts`).
+        const swipe = el
+            ? createSwipe({
+                el,
+                direction: () => SWIPE_TOWARD[drawer.placement()],
+                enabled: () => drawer.modal() && !drawer.docked() && drawer.state.value && drawer.dismissible(),
+                onDismiss: () => {
+                    drawer.requestClose('swipe');
+                    // A controlled model that stayed open: back to the edge.
+                    if (drawer.state.value) swipe?.reset();
+                },
+            })
+            : null;
         // Up through showModal() — the one open state a regime switch has to
         // take down with close() rather than by the attribute.
         let sheet = false;
@@ -546,6 +575,9 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted, onUn
                 // A stale result from the last close must not read as this
                 // one's (`close` reports a non-empty returnValue).
                 node.returnValue = '';
+                // A swipe that closed the sheet left its offset for the exit
+                // to start from; the next opening starts from the edge.
+                swipe?.reset();
                 if (drawer.modal()) {
                     const active = document.activeElement;
                     previous = active instanceof HTMLElement ? active : null;

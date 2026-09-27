@@ -168,6 +168,7 @@ export type {
     ToastStatus,
     ToastInput,
     ToastPromiseOptions,
+    ToastDismissReason,
 } from './components/toast/index.js';
 
 export { Toggle, toggleAnatomy } from './components/toggle/index.js';

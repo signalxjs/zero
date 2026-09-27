@@ -56,6 +56,12 @@
  * press animation finishes — not until release, so a one-shot effect like a
  * ripple always plays to completion. The press point is published alongside
  * as `--press-x` / `--press-y` / `--press-r` custom properties.
+ *
+ * `swiping` is present while a part is being dragged toward the edge it is
+ * dismissed at (`createSwipe`, #293 — a toast, a drawer sheet), past a small
+ * slop; the drag offset rides alongside as `--swipe-x` / `--swipe-y`. It is
+ * a gesture frame, not a resting style: a recipe suppresses its transition
+ * there so the part tracks the pointer.
  */
 export const FLAG_VOCABULARY = [
     'disabled',
@@ -68,6 +74,7 @@ export const FLAG_VOCABULARY = [
     'focus-visible',
     'pressed',
     'press-animating',
+    'swiping',
 ] as const;
 
 export type FlagName = typeof FLAG_VOCABULARY[number];

@@ -90,6 +90,9 @@ they fan into a column while the viewport is `open` (hovered or holding
 focus), using the runtime's measured `--toast-offset`. A bridge on each
 fanned card's far side keeps the pointer in the stack across the gaps.
 The deck is web-only (`targets.web`); on lynx the toasts stay a column.
+Swiped (#293), a toast follows the pointer by `--swipe-x` / `--swipe-y`
+ahead of its enter offset, and a swiped-away toast fades where it was let go
+— web-only too.
 `Toast.Indicator` sits in a leading column the grid grows only while it is
 rendered: a pen ring while loading (still under reduced motion), then the
 checkbox's tick in success ink or a cross in error ink.

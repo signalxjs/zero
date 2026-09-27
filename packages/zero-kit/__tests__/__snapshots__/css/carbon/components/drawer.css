@@ -87,7 +87,7 @@
     [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"] {
         opacity: 1;
         translate: var(--drawer-travel);
-        transition: translate var(--duration-normal) var(--ease-accelerate), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
+        transition: translate var(--duration-normal) var(--ease-accelerate), transform var(--duration-normal) var(--ease-accelerate), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
         position: fixed;
         inset-block-start: 0;
         inset-block-end: 0;
@@ -101,7 +101,24 @@
 
     [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"][data-state="open"] {
         translate: none;
-        transition: translate var(--duration-slow) var(--ease-decelerate), display var(--duration-slow) allow-discrete, overlay var(--duration-slow) allow-discrete;
+        transition: translate var(--duration-slow) var(--ease-decelerate), transform var(--duration-slow) var(--ease-decelerate), display var(--duration-slow) allow-discrete, overlay var(--duration-slow) allow-discrete;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"][data-state] {
+        transform: translate(var(--swipe-x, 0px), var(--swipe-y, 0px));
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"][data-state="open"][data-swiping] {
+        transition: none;
+        user-select: none;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"]:where([data-placement="start"], [data-placement="end"]) {
+        touch-action: pan-y;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"]:where([data-placement="top"], [data-placement="bottom"]) {
+        touch-action: pan-x;
     }
 
     [data-scope="drawer"][data-part="panel"][data-placement="start"][data-l-dock="sheet"] {

@@ -19,6 +19,9 @@ export const toastAnatomy = defineAnatomy('toast', {
         element: 'li',
         parent: 'viewport',
         states: ['open', 'closed'],
+        // Present while the toast is being swiped away (#293), with the drag
+        // offset as `--swipe-x` / `--swipe-y` beside it.
+        flags: ['swiping'],
         placements: TOAST_PLACEMENTS,
         tokens: ['color', 'radius-box', 'text'],
     },

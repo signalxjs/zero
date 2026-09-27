@@ -69,6 +69,9 @@ export const drawerAnatomy = defineAnatomy('drawer', {
         element: 'dialog',
         states: ['open', 'closed'],
         placements: ['start', 'end', 'top', 'bottom'],
+        // Present while a modal sheet is being swiped back to its edge
+        // (#293), with the drag offset as `--swipe-x` / `--swipe-y`.
+        flags: ['swiping'],
         // The panel's width, from the `--measure-*` ramp — Container's
         // reasoning for a layout attribute over the `size` axis, plus one of
         // Drawer's own: `size` rides the trigger (the carrier), and the

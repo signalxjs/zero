@@ -15,6 +15,30 @@
   inset, inside the chip.
 - The web CSS is unchanged.
 
+### Added — swipe to dismiss for Toast and Drawer (#293)
+
+- **`createSwipe({ el, direction, enabled, threshold, velocity, onDismiss,
+  onSwipingChange })`** — the one headless swipe-to-dismiss gesture, on
+  `@sigx/zero/behaviors`. Directions are `up` · `down` · `left` · `right`
+  or the logical `start` · `end`, resolved against the reading direction at
+  the press. Past a 10px slop the part carries `data-swiping` and the drag
+  offset as `--swipe-x` / `--swipe-y` (clamped to the dismiss axis, resisted
+  the other way); a release past 50px or faster than 0.11px/ms dismisses and
+  keeps the offset for the exit, anything shorter clears both. Presses on
+  interactive descendants, secondary buttons, a selection in the part, and
+  content that can still scroll the way the drag goes never start one.
+  Client-only: call it in a mount hook through `mountScope()`.
+- **Contract: `swiping` joins `FLAG_VOCABULARY`**, declared by `toast.root`
+  and `drawer.panel`.
+- **Toast**: `Toast.Viewport swipeDirection` (default from the placement —
+  `end` / `start` for the side slots, `down` / `up` for the centred pair;
+  `false` turns it off). A swipe holds the queue's timers.
+  `toast({ onDismiss })` reports why a toast went — new
+  `ToastDismissReason`: `timeout` · `close` · `escape` · `swipe` ·
+  `programmatic` — and `Toaster.dismiss(id, reason?)` takes the reason.
+- **Drawer**: a modal, dismissible sheet swipes back toward its placement
+  edge; `DrawerCloseReason` gains `swipe`.
+
 ### Added — Drawer top and bottom placement (#291)
 
 - **`Drawer.Root placement="top" | "bottom"`** — the block edges, beside

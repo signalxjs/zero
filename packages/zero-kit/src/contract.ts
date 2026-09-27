@@ -365,7 +365,11 @@ export const ARROW_PROPERTIES = [
  * position in the stack (`--toast-index`, oldest first, of `--toast-count`)
  * and, measured, its own height and the summed heights of the newer toasts in
  * front of it (`--toast-height`, `--toast-offset`, px — #292), so a recipe can
- * stack the toasts as cards and fan them out. The `POSITION_PROPERTIES` five come from the anchored-position
+ * stack the toasts as cards and fan them out. The `--swipe-*` pair is the
+ * swipe-to-dismiss behavior's drag offset (px, physical, clamped to the
+ * dismiss axis — #293), written on a Toast root and a Drawer sheet while it
+ * is being swiped and kept after a swipe dismisses it, so the exit leaves from
+ * where it was let go. The `POSITION_PROPERTIES` five come from the anchored-position
  * strategy, on every floating popup it positions, and the `ARROW_PROPERTIES`
  * pair from the same strategy, on a popup's arrow part.
  *
@@ -395,6 +399,8 @@ export const RUNTIME_PROPERTIES = [
     '--toast-count',
     '--toast-height',
     '--toast-offset',
+    '--swipe-x',
+    '--swipe-y',
     ...POSITION_PROPERTIES,
     ...ARROW_PROPERTIES,
 ] as const;
@@ -490,6 +496,7 @@ export const FLAG_VOCABULARY = [
     'focus-visible',
     'pressed',
     'press-animating',
+    'swiping',
 ] as const;
 
 /**

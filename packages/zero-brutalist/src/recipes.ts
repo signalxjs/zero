@@ -65,6 +65,14 @@ const motion = (props: string): string =>
 
 // ── Button ────────────────────────────────────────────────────────────────
 /**
+ * The swipe-to-dismiss offset (#293): `createSwipe` publishes the drag as
+ * `--swipe-x` / `--swipe-y` on a toast root or a drawer sheet, and this is
+ * the one place it is read — composed first into the part's `transform`, so
+ * an enter/exit offset or a slide rides on top of it. Unset, it is nothing.
+ */
+const SWIPE = 'translate(var(--swipe-x, 0px), var(--swipe-y, 0px))';
+
+/**
  * Enter/exit presence for a top-layer popup.
  *
  * Zero never unmounts a popup; it toggles `data-state` and calls the native
@@ -2234,20 +2242,24 @@ export const toast: RecipeInput = {
                 boxShadow: 'var(--shadow-md)',
                 fontSize: 'var(--text-sm)',
                 opacity: '0',
-                transform: 'translateY(var(--toast-from))',
+                transform: `${SWIPE} translateY(var(--toast-from))`,
+                // The swipe is the runtime's: no pan or pinch starts on a toast.
+                touchAction: 'none',
                 transition: 'opacity var(--duration-fast) var(--ease-standard), '
                     + 'transform var(--duration-fast) var(--ease-standard)',
             },
             selectors: {
+                // Mid-swipe the toast tracks the pointer, not a transition.
+                '&[data-swiping]': { transition: 'none', userSelect: 'none' },
                 '&[data-placement^="top"]': { '--toast-from': '-8px' },
                 '&:has(> [data-scope="toast"][data-part="indicator"])': { gridTemplateColumns: 'auto 1fr auto auto' },
             },
             states: {
-                open: { opacity: '1', transform: 'none' },
+                open: { opacity: '1', transform: SWIPE },
                 closed: {},
             },
             at: {
-                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: SWIPE } } },
             },
         },
         // The promise status as a stamped block: the spinner's square frame
@@ -5401,6 +5413,19 @@ export const drawer: RecipeInput = {
             },
             states: { open: {}, closed: {} },
             selectors: {
+                /**
+                 * Swipe to dismiss (#293): the sheet wears the drag offset
+                 * (`SWIPE`) in every state — so a swiped sheet leaves from
+                 * where it was let go — at a weight above the presence's own
+                 * open `transform`. Mid-swipe no transition runs. A touch pan
+                 * across the dismiss axis stays the page's; along it is the
+                 * gesture's, so content taller than a block-edge sheet
+                 * scrolls in a box of its own inside the panel.
+                 */
+                '&[data-l-dock="sheet"][data-state]': { transform: SWIPE },
+                '&[data-l-dock="sheet"][data-state="open"][data-swiping]': { transition: 'none', userSelect: 'none' },
+                '&[data-l-dock="sheet"]:where([data-placement="start"], [data-placement="end"])': { touchAction: 'pan-y' },
+                '&[data-l-dock="sheet"]:where([data-placement="top"], [data-placement="bottom"])': { touchAction: 'pan-x' },
                 '&[data-l-dock="sheet"]': {
                     position: 'fixed',
                     insetBlockStart: '0',

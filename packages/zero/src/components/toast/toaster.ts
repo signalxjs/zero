@@ -26,6 +26,15 @@ export type ToastRole = 'status' | 'alert';
  */
 export type ToastStatus = 'loading' | 'complete' | 'error';
 
+/**
+ * What dismissed a toast, as `ToastOptions.onDismiss` reports it: `timeout`
+ * its duration ran out, `close` the `Toast.Close` part, `escape` Escape on
+ * the toast, `swipe` a swipe past the threshold (#293), and `programmatic`
+ * every `dismiss()` zero did not initiate — an app's own call, `dismiss()`
+ * with no id.
+ */
+export type ToastDismissReason = 'timeout' | 'close' | 'escape' | 'swipe' | 'programmatic';
+
 export interface ToastActionData {
     label: string;
     onClick?: () => void;
@@ -48,6 +57,12 @@ export interface ToastOptions {
     status?: ToastStatus;
     /** App payload for custom viewport slots. */
     data?: unknown;
+    /**
+     * Runs once when the toast is dismissed, with the reason — before its
+     * exit plays. Not for `remove()`, which is the end of an exit (or a
+     * hard drop), not a dismissal.
+     */
+    onDismiss?: (reason: ToastDismissReason) => void;
 }
 
 /**
@@ -110,8 +125,11 @@ export interface Toaster {
      * a rejection is handled here rather than surfacing as unhandled.
      */
     promise<T>(promise: PromiseLike<T>, options: ToastPromiseOptions<T>): string;
-    /** Begin a toast's exit (all toasts when no id). Removal follows the exit animation. */
-    dismiss(id?: string): void;
+    /**
+     * Begin a toast's exit (all toasts when no id). Removal follows the exit
+     * animation. `reason` is what `onDismiss` hears (`programmatic` by default).
+     */
+    dismiss(id?: string, reason?: ToastDismissReason): void;
     /** Drop immediately, no exit — `<Toast.Root>` calls this after the exit plays. */
     remove(id?: string): void;
     /** Suspend auto-dismiss timers, banking the time left on each. */
@@ -138,6 +156,15 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
     const timers = new Map<string, { handle: ReturnType<typeof setTimeout> | null; deadline: number; remaining: number }>();
     let paused = false;
     let serial = 0;
+    // `onDismiss` callbacks by id, outside the signal: a function is not state.
+    // Taken (deleted) when called, so a toast reports one dismissal.
+    const listeners = new Map<string, (reason: ToastDismissReason) => void>();
+    const report = (id: string, reason: ToastDismissReason): void => {
+        const listener = listeners.get(id);
+        if (!listener) return;
+        listeners.delete(id);
+        listener(reason);
+    };
 
     const find = (id: string): ToastData | undefined =>
         state.items.find((t) => t.id === id) ?? pending.find((t) => t.id === id);
@@ -157,7 +184,7 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
             return;
         }
         timers.set(item.id, {
-            handle: setTimeout(() => dismiss(item.id), ms),
+            handle: setTimeout(() => dismiss(item.id, 'timeout'), ms),
             deadline: Date.now() + ms,
             remaining: ms,
         });
@@ -187,6 +214,7 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
 
     const hardRemove = (id: string): void => {
         disarm(id);
+        listeners.delete(id);
         const queuedAt = pending.findIndex((t) => t.id === id);
         if (queuedAt !== -1) {
             pending.splice(queuedAt, 1);
@@ -198,17 +226,19 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
         promote();
     };
 
-    const dismiss = (id?: string): void => {
+    const dismiss = (id?: string, reason: ToastDismissReason = 'programmatic'): void => {
         if (id === undefined) {
+            for (const queued of pending) report(queued.id, reason);
             pending.length = 0;
             state.queued = 0;
             // Snapshot the ids — dismissing an unopened toast mutates the list.
-            for (const itemId of state.items.map((t) => t.id)) dismiss(itemId);
+            for (const itemId of state.items.map((t) => t.id)) dismiss(itemId, reason);
             return;
         }
         const item = find(id);
         if (!item) return;
         disarm(id);
+        report(id, reason);
         // Never shown (still entering, or still queued): nothing to animate.
         if (!item.open) hardRemove(id);
         else item.open = false;
@@ -224,6 +254,7 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
         if (patch.action !== undefined) item.action = patch.action;
         if (patch.status !== undefined) item.status = patch.status;
         if (patch.data !== undefined) item.data = patch.data;
+        if (patch.onDismiss !== undefined) listeners.set(id, patch.onDismiss);
         if (patch.duration !== undefined) {
             item.duration = patch.duration;
             if (state.items.some((t) => t.id === id)) arm(item, patch.duration);
@@ -247,6 +278,7 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
             status: options.status,
             data: options.data,
         };
+        if (options.onDismiss) listeners.set(item.id, options.onDismiss);
         if (state.items.length >= max) {
             pending.push(item);
             state.queued = pending.length;
@@ -310,6 +342,7 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
                 pending.length = 0;
                 state.queued = 0;
                 for (const t of state.items) disarm(t.id);
+                listeners.clear();
                 state.items = [];
                 return;
             }
@@ -330,7 +363,7 @@ export function createToaster(options: ToasterOptions = {}): Toaster {
             paused = false;
             for (const [id, timer] of timers) {
                 timer.deadline = Date.now() + timer.remaining;
-                timer.handle = setTimeout(() => dismiss(id), timer.remaining);
+                timer.handle = setTimeout(() => dismiss(id, 'timeout'), timer.remaining);
             }
         },
     };
