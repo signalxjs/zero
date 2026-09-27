@@ -147,6 +147,9 @@ const NO_VARIANT: Record<string, string> = {
     // #297); its native sibling deliberately does not: the surveyed vendors
     // ── The rest of bucket A: a variant exists, spelled differently again. ──
     avatar: 'Radix Themes Avatar varies as solid | soft.',
+    'avatar-group': 'no surveyed system varies an avatar group — Mantine '
+        + 'Avatar.Group, Chakra AvatarGroup and HeroUI AvatarGroup style the '
+        + 'avatars, and the group only spaces them (#297).',
     'toggle-group': 'Radix Themes SegmentedControl varies as surface | classic.',
     combobox: 'Ant Design v6 AutoComplete varies as outlined | borderless | '
         + 'filled | underlined.',

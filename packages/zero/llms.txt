@@ -128,7 +128,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-63 components ship today. Every part each renders is listed below, in
+64 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -838,6 +838,13 @@ component renders; the root is called out separately where it carries props.
   status resolves on mount; with no Image rendered it settles to error
   (#274). Fallback `delay` ms keeps it out of the DOM until the delay passes
   (client timer; SSR renders none). `statusChange` event.
+- AvatarGroup: Root(label)/Overflow(count, label). Root is a div
+  role=group named by `label` (aria-label) and carries the axes: a design
+  system sizes the Avatar.Roots inside from the group's `size` (an avatar's
+  own `size` wins); overlap and ring are the skin's. No registration — slice
+  your list and pass what you left out as Overflow `count`: it renders "+N"
+  (aria-hidden) plus a visually hidden "N more" (`label` replaces those
+  words), and nothing for a count <= 0.
 - Toast: Viewport(placement, toaster, label, hotkey, expand)/Root(toast)/
   Indicator/Title/Description/Action/Close, over an imperative queue:
   `toast({ title, color, duration, role, status })` (browser-only),
@@ -1016,7 +1023,7 @@ named model bound as `model:<stateName>` in JSX (sigx
 value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
-Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, ChatLog, Checkbox, CheckboxGroup, Collapsible, Combobox, Dialog,
+Avatar, AvatarGroup, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, ChatLog, Checkbox, CheckboxGroup, Collapsible, Combobox, Dialog,
 Divider, EmptyState, Field, Fieldset, HoverCard, Indicator, Input, Join, Kbd, Menu, Menubar, NumberInput,
 Navbar, NavList, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,

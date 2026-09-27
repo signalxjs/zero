@@ -1,0 +1,80 @@
+@layer zero.recipes {
+    [data-scope="avatar-group"][data-part="root"] {
+        --avatar-group-size: calc(var(--size-selector) * 10);
+        --avatar-group-text: var(--text-sm);
+    }
+
+    [data-scope="avatar-group"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2xs);
+        vertical-align: middle;
+    }
+
+    [data-scope="avatar-group"][data-part="overflow"] {
+        display: inline-grid;
+        place-items: center;
+        box-sizing: border-box;
+        min-width: var(--avatar-group-size);
+        height: var(--avatar-group-size);
+        padding-inline: var(--space-2xs);
+        border-radius: var(--radius-selector);
+        background: var(--color-base-300);
+        color: var(--color-base-content);
+        font-family: var(--font-sans);
+        font-size: var(--avatar-group-text);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-wide);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        user-select: none;
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="sm"] {
+        --avatar-group-size: calc(var(--size-selector) * 8);
+        --avatar-group-text: var(--text-xs);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="lg"] {
+        --avatar-group-size: calc(var(--size-selector) * 12);
+        --avatar-group-text: var(--text-md);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="xl"] {
+        --avatar-group-size: calc(var(--size-selector) * 16);
+        --avatar-group-text: var(--text-lg);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="2xl"] {
+        --avatar-group-size: calc(var(--size-selector) * 20);
+        --avatar-group-text: var(--text-xl);
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="sm"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 8);
+            --avatar-text: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="lg"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 12);
+            --avatar-text: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="xl"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 16);
+            --avatar-text: var(--text-lg);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="2xl"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 20);
+            --avatar-text: var(--text-xl);
+        }
+    }
+}

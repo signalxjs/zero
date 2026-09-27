@@ -2151,6 +2151,87 @@ export const avatar: RecipeInput = {
     },
 };
 
+// ── Avatar group ──────────────────────────────────────────────────────────
+/**
+ * HeroUI v3's `AvatarGroup` (#297): circles overlapping by a fifth, each
+ * cut out of the one before by a background ring (`ring-2 ring-background`),
+ * and the "+N" count as one more circle in the default avatar's fill. No
+ * colour axis here (`roles: {}`); the group's `size` borrows the avatar's
+ * own size step (`composes`), so a group sizes its faces without a prop on
+ * each, and an avatar's own `size` still wins.
+ */
+const avatarGroupSteps: Record<string, [string, string]> = {
+    sm: ['calc(var(--size-selector) * 8)', 'var(--text-xs)'],
+    lg: ['calc(var(--size-selector) * 12)', 'var(--text-md)'],
+};
+
+export const avatarGroup: RecipeInput = {
+    component: 'avatar-group',
+    tokens: {
+        '--avatar-group-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-group-text': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                verticalAlign: 'middle',
+                isolation: 'isolate',
+            },
+        },
+        overflow: {
+            base: {
+                // Positioned like the avatars, or it would paint under the
+                // face it overlaps.
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                boxSizing: 'border-box',
+                minWidth: 'var(--avatar-group-size)',
+                height: 'var(--avatar-group-size)',
+                paddingInline: 'var(--space-2xs)',
+                marginInlineStart: 'calc(var(--avatar-group-size) * -0.2)',
+                borderRadius: '9999px',
+                boxShadow: '0 0 0 2px var(--color-base-100)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--avatar-group-text)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap',
+                userSelect: 'none',
+            },
+        },
+    },
+    composes: {
+        avatar: {
+            parts: {
+                root: {
+                    base: { boxShadow: '0 0 0 2px var(--color-base-100)' },
+                    selectors: {
+                        '&:not(:first-child)': { marginInlineStart: 'calc(var(--avatar-group-size) * -0.2)' },
+                    },
+                },
+            },
+        },
+    },
+    compoundVariants: Object.keys(avatarGroupSteps).map((size) => ({
+        match: { size },
+        parts: {},
+        composes: { avatar: { axes: { size } } },
+    })),
+    variants: {
+        size: {
+            ...Object.fromEntries(Object.entries(avatarGroupSteps).map(([size, [box, text]]) => [size, { root: { base: {
+                '--avatar-group-size': box, '--avatar-group-text': text,
+            } } }])),
+            md: {},
+        },
+    },
+};
+
 // ── Toast ─────────────────────────────────────────────────────────────────
 const TOAST_FANNED = '[data-scope="toast"][data-part="viewport"][data-state="open"] > &';
 const TOAST_STACKED = '[data-scope="toast"][data-part="viewport"]:not([data-state="open"]) > &';
@@ -5971,7 +6052,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
-    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, avatarGroup, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,

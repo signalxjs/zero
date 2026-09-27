@@ -4748,6 +4748,173 @@
 }
 
 @layer zero.recipes {
+    [data-scope="avatar-group"][data-part="root"] {
+        --avatar-group-size: calc(var(--size-selector) * 10);
+        --avatar-group-text: var(--text-sm);
+        --avatar-group-ring: var(--color-primary);
+    }
+
+    [data-scope="avatar-group"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+        isolation: isolate;
+    }
+
+    [data-scope="avatar-group"][data-part="overflow"] {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        box-sizing: border-box;
+        min-width: var(--avatar-group-size);
+        height: var(--avatar-group-size);
+        padding-inline: var(--space-2xs);
+        margin-inline-start: calc(var(--avatar-group-size) * -0.25);
+        border-radius: 9999px;
+        box-shadow: 0 0 0 2px var(--color-base-100), 0 0 0 4px var(--avatar-group-ring);
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+        font-size: var(--avatar-group-text);
+        font-weight: var(--weight-semibold);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        user-select: none;
+    }
+
+    [data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:first-child) {
+        margin-inline-start: calc(var(--avatar-group-size) * -0.25);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="primary"] {
+        --avatar-group-ring: var(--color-primary);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="secondary"] {
+        --avatar-group-ring: var(--color-secondary);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="accent"] {
+        --avatar-group-ring: var(--color-accent);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="neutral"] {
+        --avatar-group-ring: var(--color-neutral);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="info"] {
+        --avatar-group-ring: var(--color-info);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="success"] {
+        --avatar-group-ring: var(--color-success);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="warning"] {
+        --avatar-group-ring: var(--color-warning);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="error"] {
+        --avatar-group-ring: var(--color-error);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="xs"] {
+        --avatar-group-size: calc(var(--size-selector) * 6);
+        --avatar-group-text: var(--text-xs);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="sm"] {
+        --avatar-group-size: calc(var(--size-selector) * 8);
+        --avatar-group-text: var(--text-xs);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="lg"] {
+        --avatar-group-size: calc(var(--size-selector) * 12);
+        --avatar-group-text: var(--text-md);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="xl"] {
+        --avatar-group-size: calc(var(--size-selector) * 16);
+        --avatar-group-text: var(--text-lg);
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="xs"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 6);
+            --avatar-text: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="sm"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 8);
+            --avatar-text: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="lg"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 12);
+            --avatar-text: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="xl"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 16);
+            --avatar-text: var(--text-lg);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-color="primary"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-color])) {
+            --avatar-ring: var(--color-primary);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-color="secondary"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-color])) {
+            --avatar-ring: var(--color-secondary);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-color="accent"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-color])) {
+            --avatar-ring: var(--color-accent);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-color="neutral"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-color])) {
+            --avatar-ring: var(--color-neutral);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-color="info"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-color])) {
+            --avatar-ring: var(--color-info);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-color="success"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-color])) {
+            --avatar-ring: var(--color-success);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-color="warning"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-color])) {
+            --avatar-ring: var(--color-warning);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-color="error"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-color])) {
+            --avatar-ring: var(--color-error);
+        }
+    }
+}
+
+@layer zero.recipes {
     [data-scope="toast"][data-part="root"] {
         --toast-bg: var(--color-base-200);
         --toast-ink: var(--color-base-content);

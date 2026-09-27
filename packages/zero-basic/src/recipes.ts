@@ -2881,6 +2881,100 @@ export const avatar: RecipeInput = {
 };
 
 /**
+ * Avatar group (#297) — the faces overlap by a quarter of their width, each
+ * cut out of the one before it by a page-coloured ring, and the "+N" chip
+ * is the fallback's quiet twin: base-200 paper, mono meta-text, the same
+ * selector radius. The group's `size` borrows the avatar's own size step
+ * (`composes`), so `<AvatarGroup.Root size="sm">` needs no prop on each
+ * avatar and an avatar's own `size` still wins; the chip tracks the same
+ * ramp through `--avatar-group-size`. Colour tints only the chip — the
+ * avatars keep theirs.
+ */
+const avatarGroupSteps: Record<string, [string, string]> = {
+    xs: ['calc(var(--size-selector) * 6)', 'var(--text-xs)'],
+    sm: ['calc(var(--size-selector) * 8)', 'var(--text-xs)'],
+    lg: ['calc(var(--size-selector) * 12)', 'var(--text-md)'],
+    xl: ['calc(var(--size-selector) * 16)', 'var(--text-lg)'],
+};
+
+export const avatarGroup: RecipeInput = {
+    component: 'avatar-group',
+    tokens: {
+        '--avatar-group-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-group-text': 'var(--text-sm)',
+        '--avatar-group-ring': 'var(--color-base-100)',
+        '--avatar-group-accent': 'var(--color-base-200)',
+        '--avatar-group-on-accent': 'var(--color-base-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                verticalAlign: 'middle',
+                // Later faces stack over earlier ones; the group keeps that
+                // stacking to itself.
+                isolation: 'isolate',
+            },
+        },
+        overflow: {
+            base: {
+                // Positioned like the avatars, or it would paint under the
+                // face it overlaps.
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                boxSizing: 'border-box',
+                minWidth: 'var(--avatar-group-size)',
+                height: 'var(--avatar-group-size)',
+                paddingInline: 'var(--space-2xs)',
+                marginInlineStart: 'calc(var(--avatar-group-size) * -0.25)',
+                borderRadius: 'var(--radius-selector)',
+                boxShadow: '0 0 0 2px var(--avatar-group-ring)',
+                background: 'var(--avatar-group-accent)',
+                color: 'var(--avatar-group-on-accent)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--avatar-group-text)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap',
+                userSelect: 'none',
+            },
+        },
+    },
+    composes: {
+        avatar: {
+            parts: {
+                root: {
+                    base: { boxShadow: '0 0 0 2px var(--avatar-group-ring)' },
+                    selectors: {
+                        '&:not(:first-child)': { marginInlineStart: 'calc(var(--avatar-group-size) * -0.25)' },
+                    },
+                },
+            },
+        },
+    },
+    compoundVariants: Object.keys(avatarGroupSteps).map((size) => ({
+        match: { size },
+        parts: {},
+        composes: { avatar: { axes: { size } } },
+    })),
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--avatar-group-accent': `var(--color-${c}-soft)`,
+            '--avatar-group-on-accent': softInk(c),
+        } } }])),
+        size: {
+            ...Object.fromEntries(Object.entries(avatarGroupSteps).map(([size, [box, text]]) => [size, { root: { base: {
+                '--avatar-group-size': box, '--avatar-group-text': text,
+            } } }])),
+            // `md` is the un-attributed render — the defaults in `tokens:`.
+            md: {},
+        },
+    },
+};
+
+/**
  * Toast presence is runtime-managed — the one popup-shaped component where
  * `@starting-style`/`allow-discrete` must NOT be used: zero mounts the root
  * `closed`, flips it `open` a frame later, and keeps it mounted after
@@ -7646,7 +7740,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
-    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, avatarGroup, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,

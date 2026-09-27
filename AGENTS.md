@@ -196,7 +196,12 @@ REAL scroll drives the model back through the IntersectionObserver),
 diff (the divider handle's captured drag moves the painted reveal, APG
 keyboard steps, and an RTL check measured in boxes — the reveal is a
 logical inline-size, which the physical-direction lint cannot see),
-pagination link mode (#294: every control an `<a href>`, a real click and
+avatar-group (#297, every design system: the "+N" chip stands as tall as
+the faces beside it, a small group's avatars really are smaller than a
+default group's while carrying no `data-size` of their own — the size
+arrives through the recipe's borrowed `composes`, an `@scope` block no
+simulated DOM resolves — and the stack keeps reading order however far a
+skin overlaps it), pagination link mode (#294: every control an `<a href>`, a real click and
 Enter move the model while only the demo's stand-in router prevents the
 navigation, and a bound that lost its `href` stays a tab stop),
 breadcrumbs collapse (#295: Tab steps from the leading link straight to
@@ -494,7 +499,7 @@ slides, is fine).
   (`danger-soft` is one member), a declared three-step size ramp, and
   HeroUI's `isIconOnly`/`isPending` as `data-mod-*` modifiers. Where
   zero-material proves vocabularies can be *extended*, this proves they can be
-  a different *shape*. Full component coverage (57 recipes, plus the kit's layout tier), with `variant`
+  a different *shape*. Full component coverage (58 recipes, plus the kit's layout tier), with `variant`
   wired on button only (the repo-wide decision, #175) — it exercises the axis
   surface, not a product. Private.
 - `packages/zero-carbon` → `@sigx/zero-carbon` — Carbon-flavoured skin, and
@@ -524,7 +529,7 @@ slides, is fine).
 - `packages/create-zero-ds` → `@sigx/create-zero-ds` — the scaffold behind
   `pnpm create @sigx/zero-ds <name> --brief <id>` (#401): a Node-only bin with
   zero runtime deps that lays down a design-system package from nothing —
-  the brief's tokens + Button, `@sigx/zero-basic`'s 57 recipes as
+  the brief's tokens + Button, `@sigx/zero-basic`'s 58 recipes as
   `src/baseline.ts`, and a `src/recipes.ts` composing them through the kit's
   `fitRecipesToVocabulary` (on `/define`) so any axis shape compiles on the
   first build. Templates are embedded at build time

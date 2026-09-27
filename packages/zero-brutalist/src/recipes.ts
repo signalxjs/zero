@@ -2082,6 +2082,94 @@ export const avatar: RecipeInput = {
 };
 
 /**
+ * Avatar group (#297) — slabs dealt onto the table: the faces overlap by a
+ * quarter and the ink border every avatar already wears is the only cut
+ * between them, no ring. The "+N" chip is one more slab, inked and
+ * shadowed, the count in the brief's mono label. The group's `size`
+ * borrows the avatar's own size step (`composes`), so a group sizes its
+ * faces without a prop on each, and an avatar's own `size` still wins.
+ * Colour fills the chip flat in the role, the avatar's own treatment.
+ */
+const avatarGroupSteps: Record<string, [string, string]> = {
+    xs: ['calc(var(--size-selector) * 6)', 'var(--text-xs)'],
+    sm: ['calc(var(--size-selector) * 8)', 'var(--text-xs)'],
+    lg: ['calc(var(--size-selector) * 12)', 'var(--text-md)'],
+    xl: ['calc(var(--size-selector) * 16)', 'var(--text-lg)'],
+};
+
+export const avatarGroup: RecipeInput = {
+    component: 'avatar-group',
+    tokens: {
+        '--avatar-group-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-group-text': 'var(--text-sm)',
+        '--avatar-group-accent': 'var(--color-base-100)',
+        '--avatar-group-on-accent': 'var(--color-base-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                verticalAlign: 'middle',
+                isolation: 'isolate',
+            },
+        },
+        overflow: {
+            base: {
+                // Positioned like the avatars, or it would paint under the
+                // face it overlaps.
+                position: 'relative',
+                ...inked,
+                ...label,
+                display: 'inline-grid',
+                placeItems: 'center',
+                // Content-box, like the avatar it sits beside: the ink border
+                // goes OUTSIDE the size, so chip and face stand equally tall.
+                boxSizing: 'content-box',
+                minWidth: 'var(--avatar-group-size)',
+                height: 'var(--avatar-group-size)',
+                marginInlineStart: 'calc(var(--avatar-group-size) * -0.25)',
+                boxShadow: 'var(--shadow-sm)',
+                background: 'var(--avatar-group-accent)',
+                color: 'var(--avatar-group-on-accent)',
+                fontSize: 'var(--avatar-group-text)',
+                whiteSpace: 'nowrap',
+                userSelect: 'none',
+            },
+        },
+    },
+    composes: {
+        avatar: {
+            parts: {
+                root: {
+                    selectors: {
+                        '&:not(:first-child)': { marginInlineStart: 'calc(var(--avatar-group-size) * -0.25)' },
+                    },
+                },
+            },
+        },
+    },
+    compoundVariants: Object.keys(avatarGroupSteps).map((size) => ({
+        match: { size },
+        parts: {},
+        composes: { avatar: { axes: { size } } },
+    })),
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--avatar-group-accent': `var(--color-${c})`,
+            '--avatar-group-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            ...Object.fromEntries(Object.entries(avatarGroupSteps).map(([size, [box, text]]) => [size, { root: { base: {
+                '--avatar-group-size': box, '--avatar-group-text': text,
+            } } }])),
+            // `md` is the un-attributed render — the defaults in `tokens:`.
+            md: {},
+        },
+    },
+};
+
+/**
  * A toast whose indicator is rendered (#292): the grid grows a leading column
  * for the mark, and the text, action and close step one column along.
  */
@@ -6125,7 +6213,7 @@ export const diff: RecipeInput = {
 
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, hoverCard, menu, menubar, select,
-    switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, toast, combobox,
+    switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, avatarGroup, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,

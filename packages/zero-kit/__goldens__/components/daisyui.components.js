@@ -56,6 +56,7 @@ export { Slider } from '@sigx/zero/slider';
 export { Accordion } from '@sigx/zero/accordion';
 export { Select } from '@sigx/zero/select';
 export { Avatar } from '@sigx/zero/avatar';
+export { AvatarGroup } from '@sigx/zero/avatar-group';
 export { Toast } from '@sigx/zero/toast';
 export { Combobox } from '@sigx/zero/combobox';
 export { Toggle } from '@sigx/zero/toggle';

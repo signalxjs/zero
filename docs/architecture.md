@@ -349,7 +349,7 @@ would render it as an element.
 
 **The registry is typed closed.** `anatomies` in
 `packages/zero/src/anatomy.ts` is declared `as const satisfies
-Record<string, Anatomy>` — 62 components — so `ZeroScope` is a closed literal
+Record<string, Anatomy>` — 64 components — so `ZeroScope` is a closed literal
 union. That closure is load-bearing: the generated register artifact asserts
 its scope keys against it at compile time ([§3.5](#35-the-register-artifact)),
 which is what makes a typo'd or version-skewed scope a compile error instead
@@ -744,6 +744,14 @@ Other compilation facts a reader needs:
     part is an `@scope` inside that `@scope`, whose prelude starts at the
     outer `:scope`. `e2e/composes.spec.ts` holds all of it in Chromium,
     Firefox and WebKit.
+
+  `avatar-group` (#297) is the first shipped recipe that uses it: in all
+  six skins a conditioned borrow per size step makes the avatars inside a
+  `size`d group take the avatar's own step (daisyUI borrows `color` too,
+  for its ring), and in the five skins that overlap the faces a plain
+  `composes` entry seats them (the negative inline margin; basic, Material
+  and HeroUI add a page-coloured ring).
+  `e2e/avatar-group.spec.ts` measures the result per design system.
 
   Lynx drops every form, one report entry per occurrence (the class
   grammar has no cross-scope descendant). The nested component keeps its
@@ -1327,7 +1335,7 @@ Node-only bin with no runtime dependencies, templates embedded at build time
 with the lockstep ranges — lockstep is what makes embedding and reading the
 installed packages content-identical, and neither source file is reachable
 through an `exports` map anyway). The generated package is the brief's tokens
-and worked Button over **zero-basic's 57 recipes as the baseline**, composed
+and worked Button over **zero-basic's 58 recipes as the baseline**, composed
 in `src/recipes.ts` through `fitRecipesToVocabulary` — the kit's one
 non-`define*` export on `/define`, a pure function that keeps exactly what
 the tokens declare (roles, the size ramp, the variant vocabulary, custom
@@ -1659,7 +1667,7 @@ Honesty section. These are the edges the tree knows about today:
 - **The dual-controller theme desync** ([§6](#6-the-theme-model)) is known
   and deliberately unfixed; consumers that swap design systems at runtime
   carry the playground's capture/re-apply pattern.
-- **The component surface is finite.** Sixty components, skewed to
+- **The component surface is finite.** Sixty-three components, skewed to
   primitives plus the content, navigation, layout and behavior tiers; there
   is no DatePicker and no data grid (Table ships the semantic anatomy and the
   sort contract — `model:sort`, `aria-sort`, a trigger — but never re-orders

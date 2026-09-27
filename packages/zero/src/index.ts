@@ -143,6 +143,8 @@ export type {
 
 export { Avatar, avatarAnatomy, useAvatarContext } from './components/avatar/index.js';
 export type { AvatarStatus, AvatarRootProps, AvatarImageProps, AvatarFallbackProps } from './components/avatar/index.js';
+export { AvatarGroup, avatarGroupAnatomy } from './components/avatar-group/index.js';
+export type { AvatarGroupRootProps, AvatarGroupOverflowProps } from './components/avatar-group/index.js';
 
 export {
     Toast, toastAnatomy, useToastViewportContext, useToastItemContext,

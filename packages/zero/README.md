@@ -32,7 +32,7 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 
 Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · HoverCard · Menu · Menubar ·
 Select · Switch · Checkbox · CheckboxGroup · RadioGroup · Slider · Progress ·
-Field · Fieldset · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
+Field · Fieldset · Avatar · AvatarGroup · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · EmptyState · Badge · Divider ·
 Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · ChatLog · RadialProgress · Join ·
 Navbar · NavList · Breadcrumbs · Pagination · Steps · Drawer · Table · FileUpload · Carousel · Swap · Countdown · Diff
@@ -1004,6 +1004,31 @@ the app's own `data-scope`/`data-part`.
   delay passes, so a fast image never flashes initials first — a client-only
   timer, cleared on unmount; server markup renders no fallback while a delay
   is set.
+
+**AvatarGroup: a labelled stack with an overflow count (#297).**
+`AvatarGroup.Root` is a `div` with `role="group"`, named by `label`, and
+the axis carrier: a design system sizes the `Avatar.Root`s inside from the
+group's `size` (its recipe borrows the avatar's own size step through
+`composes`), and an avatar's own `size` still wins. The overlap and the ring
+between faces are the skin's choice. There is no registration — the avatars
+are another scope's roots — so slice your list and pass what you left out to
+the `count` prop of `AvatarGroup.Overflow`: it renders "+N" for sight
+(`aria-hidden`) and a visually hidden "N more" for assistive technology
+(`label` replaces those words — translate them there; an app `aria-label` is
+read as `label` when it is absent, as hidden text rather than an attribute), and nothing at all for a count of zero or
+less. Display-only: no model, no state.
+
+```tsx
+<AvatarGroup.Root label="Project members" size="sm">
+    {members.slice(0, 4).map((m) => (
+        <Avatar.Root>
+            <Avatar.Image src={m.photo} alt={m.name} />
+            <Avatar.Fallback>{m.initials}</Avatar.Fallback>
+        </Avatar.Root>
+    ))}
+    <AvatarGroup.Overflow count={members.length - 4} />
+</AvatarGroup.Root>
+```
 
 **Drawer width is `measure`.** `Drawer.Panel measure="md"` sizes the panel
 from the design system's `--measure-*` ramp — Container's layout attribute,

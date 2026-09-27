@@ -1,0 +1,129 @@
+@layer zero.recipes {
+    [data-scope="avatar-group"][data-part="root"] {
+        --avatar-group-size: calc(var(--size-selector) * 10);
+        --avatar-group-text: var(--text-sm);
+        --avatar-group-accent: var(--color-base-100);
+        --avatar-group-on-accent: var(--color-base-content);
+    }
+
+    [data-scope="avatar-group"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+        isolation: isolate;
+    }
+
+    [data-scope="avatar-group"][data-part="overflow"] {
+        position: relative;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--avatar-group-accent);
+        color: var(--avatar-group-on-accent);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        display: inline-grid;
+        place-items: center;
+        box-sizing: content-box;
+        min-width: var(--avatar-group-size);
+        height: var(--avatar-group-size);
+        margin-inline-start: calc(var(--avatar-group-size) * -0.25);
+        box-shadow: var(--shadow-sm);
+        font-size: var(--avatar-group-text);
+        white-space: nowrap;
+        user-select: none;
+    }
+
+    [data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:first-child) {
+        margin-inline-start: calc(var(--avatar-group-size) * -0.25);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="primary"] {
+        --avatar-group-accent: var(--color-primary);
+        --avatar-group-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="secondary"] {
+        --avatar-group-accent: var(--color-secondary);
+        --avatar-group-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="accent"] {
+        --avatar-group-accent: var(--color-accent);
+        --avatar-group-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="neutral"] {
+        --avatar-group-accent: var(--color-neutral);
+        --avatar-group-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="info"] {
+        --avatar-group-accent: var(--color-info);
+        --avatar-group-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="success"] {
+        --avatar-group-accent: var(--color-success);
+        --avatar-group-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="warning"] {
+        --avatar-group-accent: var(--color-warning);
+        --avatar-group-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-color="error"] {
+        --avatar-group-accent: var(--color-error);
+        --avatar-group-on-accent: var(--color-error-content);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="xs"] {
+        --avatar-group-size: calc(var(--size-selector) * 6);
+        --avatar-group-text: var(--text-xs);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="sm"] {
+        --avatar-group-size: calc(var(--size-selector) * 8);
+        --avatar-group-text: var(--text-xs);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="lg"] {
+        --avatar-group-size: calc(var(--size-selector) * 12);
+        --avatar-group-text: var(--text-md);
+    }
+
+    [data-scope="avatar-group"][data-part="root"][data-size="xl"] {
+        --avatar-group-size: calc(var(--size-selector) * 16);
+        --avatar-group-text: var(--text-lg);
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="xs"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 6);
+            --avatar-text: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="sm"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 8);
+            --avatar-text: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="lg"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 12);
+            --avatar-text: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="avatar-group"][data-part="root"][data-size="xl"]) to ([data-scope="avatar-group"][data-part="root"]) {
+        :scope[data-scope="avatar-group"][data-part="root"] [data-scope="avatar"][data-part="root"]:not(:where([data-size])) {
+            --avatar-size: calc(var(--size-selector) * 16);
+            --avatar-text: var(--text-lg);
+        }
+    }
+}

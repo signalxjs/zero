@@ -1,9 +1,20 @@
 import { component, signal } from 'sigx';
-import { Avatar, Button } from '@sigx/zero';
-import { pickRole, pickVariant } from '../design-systems';
+import { Avatar, AvatarGroup, Button } from '@sigx/zero';
+import { pickRole, pickSize, pickVariant } from '../design-systems';
 import { DemoRow } from '../demo/Section';
 import { AVATAR_A, AVATAR_B } from './fixtures';
 import type { PageEntry } from './registry';
+
+/** Seven members; each group shows a slice and counts the rest. */
+const MEMBERS: { name: string; initials: string; src?: string }[] = [
+    { name: 'Ada Lovelace', initials: 'AL', src: AVATAR_A },
+    { name: 'Grace Hopper', initials: 'GH' },
+    { name: 'Alan Turing', initials: 'AT', src: AVATAR_B },
+    { name: 'Edsger Dijkstra', initials: 'ED' },
+    { name: 'Barbara Liskov', initials: 'BL' },
+    { name: 'Donald Knuth', initials: 'DK' },
+    { name: 'Margaret Hamilton', initials: 'MH' },
+];
 
 const AvatarDemos = component(() => {
     const state = signal({ avatarSrc: AVATAR_A });
@@ -87,6 +98,37 @@ const AvatarDemos = component(() => {
                     <Avatar.Image alt="A square identity tile" />
                     <Avatar.Fallback>AG</Avatar.Fallback>
                 </Avatar.Root>
+            </DemoRow>
+
+            <h2>Group</h2>
+            <p>
+                <code>AvatarGroup.Root</code> is a <code>role="group"</code>{' '}
+                named by <code>label</code>, and it carries the axes: the
+                design system sizes the avatars inside from the group's{' '}
+                <code>size</code> (an avatar's own <code>size</code> wins),
+                and decides the overlap and the ring. There is no
+                registration — slice the list and pass what you left out to{' '}
+                the <code>count</code> of <code>AvatarGroup.Overflow</code>,
+                which shows "+N" and says "N more" to assistive technology.
+            </p>
+            <DemoRow gap="1.5rem">
+                <AvatarGroup.Root label="Project members">
+                    {MEMBERS.slice(0, 4).map((m) => (
+                        <Avatar.Root>
+                            {m.src ? <Avatar.Image src={m.src} alt={m.name} /> : null}
+                            <Avatar.Fallback>{m.initials}</Avatar.Fallback>
+                        </Avatar.Root>
+                    ))}
+                    <AvatarGroup.Overflow count={MEMBERS.length - 4} />
+                </AvatarGroup.Root>
+                <AvatarGroup.Root label="Reviewers" size={pickSize('sm')} color={pickRole('secondary', 'primary')}>
+                    {MEMBERS.slice(1, 4).map((m) => (
+                        <Avatar.Root>
+                            <Avatar.Fallback>{m.initials}</Avatar.Fallback>
+                        </Avatar.Root>
+                    ))}
+                    <AvatarGroup.Overflow count={MEMBERS.length - 3} />
+                </AvatarGroup.Root>
             </DemoRow>
         </>
     );
