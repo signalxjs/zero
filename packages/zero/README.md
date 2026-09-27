@@ -34,7 +34,7 @@ Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · Ho
 Select · Switch · Checkbox · CheckboxGroup · RadioGroup · Slider · Progress ·
 Field · Fieldset · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · EmptyState · Badge · Divider ·
-Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · RadialProgress · Join ·
+Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · ChatLog · RadialProgress · Join ·
 Navbar · NavList · Breadcrumbs · Pagination · Steps · Drawer · Table · FileUpload · Carousel · Swap · Countdown · Diff
 Stack (Row/Col) · Spacer · Grid · Center · Box · Container
 
@@ -1886,6 +1886,63 @@ getBreakpoints();                                // { sm: '640px', md: '768px', 
 On a non-DOM platform `getBreakpoints()` (from `@sigx/zero/theme/registry`)
 is the same ramp; `useMediaQuery` is web-only.
 
+## Transcripts: `ChatLog`
+
+`Chat` is one message row, and owns no transcript semantics. The container
+around the rows is `ChatLog` (`@sigx/zero/chat-log` and the barrel, scope
+`chat-log`, #299) — opt-in: a row renders the same inside one or not.
+
+```tsx
+import { Chat, ChatLog } from '@sigx/zero';
+
+<div style="display: grid; block-size: 24rem">
+    <ChatLog.Root label="Conversation with Ada" model:following={[state, 'following']}>
+        <ChatLog.Content>
+            {state.messages.map((m) => (
+                <Chat.Root key={m.id} placement={m.mine ? 'end' : 'start'}>
+                    <Chat.Bubble>{m.text}</Chat.Bubble>
+                </Chat.Root>
+            ))}
+        </ChatLog.Content>
+        <ChatLog.JumpTrigger />
+    </ChatLog.Root>
+</div>
+```
+
+- **Anatomy.** `root` is the scroll box and the live region:
+  `role="log"`, `aria-live="polite"`, `aria-relevant="additions"`, named by
+  `label`, and a keyboard stop (`tabIndex=0`, flag `focus-visible`) so a
+  transcript taller than its box scrolls without a pointer. `content`
+  (parent `root`) is where the rows go. `jump-trigger` (a `<button>`,
+  parent `root`, `asChild`) is `open` while the log is not following and
+  `closed` — and `hidden` — while it is (`hiddenIn: ['closed']`); its name
+  and default text are `label`, "Jump to latest".
+- **Following.** An appended row, or a last row streaming text, keeps the
+  end in view — the content is watched by a `ResizeObserver`, so the tail
+  is pinned in the frame the row appears. Scrolling up lets go, and so does
+  the gesture about to scroll up (a wheel moving up, a touch dragging the
+  content down), before the scroll lands. Scrolling back to the end (within
+  `threshold`, 24px by default) or the jump trigger follows again; the
+  trigger hands its focus to the log, since it hides itself.
+- **The row being read stays put.** While not following, the first row
+  showing at the top of the box is the anchor: rows prepended above it
+  ("load earlier") or a row above it growing scroll the box by exactly the
+  distance it moved. The browser's own scroll anchoring is switched off on
+  the box — two correctors would fight, and WebKit has none.
+- **The model.** `model:following` (`defaultFollowing` true,
+  `followingChange`) is whether the log follows its tail. The reader's
+  scroll writes it; writing `true` jumps to the end.
+- **Size it by its container.** A scroll box needs a definite height: put
+  the root in a sized grid or flex cell (as above), or give it one through
+  `class`. The skins make the root the scroll box, gather a short transcript
+  at its foot, and float the trigger over the rows with `position: sticky`.
+  Colour is wired to the trigger.
+- **The behavior is public.** `createStickToBottom()` is the same rules
+  without the anatomy — `viewportRef`, an optional `contentRef`,
+  `following()`, `scrollToEnd()` — and `createVirtualList` follows its tail
+  through it. A transcript too long to keep in the document windows its
+  rows with `createVirtualList` inside a `role="log"` of its own (below).
+
 ## Long lists: `createVirtualList`
 
 A windowing behavior for a chat transcript, a log or any list too long to
@@ -1927,11 +1984,13 @@ const Transcript = component(({ props }) => {
   shorter than its estimate. The browser's own scroll anchoring is turned
   off on the viewport, because two correctors would fight.
 - **Stick to bottom.** With `stickToBottom`, appends and a growing last row
-  keep the end in view. This continues until the reader scrolls up.
+  keep the end in view. This continues until the reader scrolls up (or
+  wheels or drags up — the gesture lets go before the scroll lands).
   Scrolling back to the end (within `threshold`, 24px by default) or calling
   `scrollToEnd()` resumes it. Only an upward scroll lets go, so content
   arriving faster than scroll events can't be mistaken for the reader
-  leaving.
+  leaving. The rules are `createStickToBottom`'s, the ones `ChatLog`
+  follows by.
 - **`scrollToIndex(i, align)`** jumps to a row that may never have been
   measured, and keeps it in place while the rows around it measure.
 - **Pinned rows.** `pinned: () => index` (or an array of indices) keeps
@@ -2095,7 +2154,8 @@ same behaviors, held to the same conformance assertion:
   `typeaheadSearching()`, id-safe option ids),
   `createListboxItem` (the `role="option"` bag), `createGroupPresence`,
   `syncPopover` (returns its stopper), `useMediaQuery`, `createVirtualList`
-  for windowing, and `mountScope` — call it during setup and run a mount
+  for windowing, `createStickToBottom` for following a scroll box's tail
+  (`ChatLog`'s behavior), and `mountScope` — call it during setup and run a mount
   hook's reactive work through it (`onMounted(() => scoped(() => { effect(…) }))`)
   so effects created after setup still stop on unmount. sigx only owns the
   effects a component creates *during* setup; one created inside `onMounted`

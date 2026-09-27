@@ -128,7 +128,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-62 components ship today. Every part each renders is listed below, in
+63 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -500,10 +500,24 @@ component renders; the root is called out separately where it carries props.
 - Chat: Root(placement start|end, default START — the reading edge is the
   other party in every messenger; your own rows opt into end)/Avatar/Header/
   Bubble/Footer. One message row, pure content: no state, no ids, no ARIA —
-  a transcript needing log semantics is a role="log" container the consumer
-  writes around the rows. Avatar is a SLOT (zero's Avatar, an <img>,
-  initials). The colour axis rides the row and recipes wire it to the
-  BUBBLE's fill; placement is logical, so RTL mirrors free.
+  a transcript needing log semantics puts the rows in a ChatLog. Avatar is
+  a SLOT (zero's Avatar, an <img>, initials). The colour axis rides the row
+  and recipes wire it to the BUBBLE's fill; placement is logical, so RTL
+  mirrors free.
+- ChatLog: Root(label, threshold 24, model:following / defaultFollowing
+  TRUE / followingChange)/Content/JumpTrigger(label "Jump to latest",
+  asChild). The transcript container (#299), opt-in around Chat rows. Root
+  is a role="log" scroll box: aria-live="polite", aria-relevant="additions",
+  tabIndex=0 (flag focus-visible), named by `label`. Rows render into
+  Content. It follows its tail (createStickToBottom): an appended row or a
+  growing last row keeps the end in view; scrolling up — or the wheel/touch
+  gesture about to — lets go; reaching the end (within threshold) or the
+  JumpTrigger follows again; while not following, rows prepended above
+  leave the row being read in place. JumpTrigger is open while NOT
+  following and closed + `hidden` while following (hiddenIn closed);
+  activating it moves focus to the log. Writing following=true jumps to
+  the end. Recipes: root is the scroll box (overflow-y), the trigger floats
+  over the rows with position: sticky; colour is wired to the trigger.
 - Join: Root(orientation)/Item(asChild) — visual grouping that collapses
   the radii of adjacent children (segmented search field, button strip).
   Pure CSS composition: two attribute carriers, no state, no ARIA (a join
@@ -976,7 +990,7 @@ named model bound as `model:<stateName>` in JSX (sigx
 value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
-Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, CheckboxGroup, Collapsible, Combobox, Dialog,
+Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, ChatLog, Checkbox, CheckboxGroup, Collapsible, Combobox, Dialog,
 Divider, EmptyState, Field, Fieldset, HoverCard, Indicator, Input, Join, Kbd, Menu, Menubar, NumberInput,
 Navbar, NavList, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
@@ -1032,7 +1046,7 @@ The authoring surface is public: defineAnatomy (from @sigx/zero/anatomy;
 `toJSON()` emits the manifest component shape), every behavior
 (@sigx/zero/behaviors: controllable state, SSR-safe ids, list/tree
 registration, roving tabindex, dismissal, focus, press feedback, typeahead,
-anchor positioning, createVirtualList windowing), the contract helpers (dataAttr, stateAttr, variantAttrs,
+anchor positioning, createVirtualList windowing, createStickToBottom tail-following), the contract helpers (dataAttr, stateAttr, variantAttrs,
 renderAsChild + synthesizesClickFrom for asChild keyboard activation), and
 the conformance assertion expectAnatomy (@sigx/zero/testing — throws plain
 Error, any test runner). Convention: vendor-prefix the scope (`acme-…`),
