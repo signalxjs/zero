@@ -53,7 +53,8 @@ export type DividerRootProps =
     & Define.Prop<'orientation', Orientation, false>
     /**
      * A purely visual rule: `role="none"`, no `aria-orientation`, and no
-     * `aria-labelledby` (a Label inside it is ordinary text).
+     * name — neither `aria-labelledby` nor an app's `aria-label` is rendered
+     * (a Label inside it is ordinary text).
      */
     & Define.Prop<'decorative', boolean, false>
     & WithVariantAxes<'divider'>
@@ -90,6 +91,8 @@ const DividerRoot = component<DividerRootProps>(({ props, slots, signal, onMount
                 {...attrs}
                 role={decorative ? 'none' : 'separator'}
                 aria-orientation={!decorative && orientation() === 'vertical' ? 'vertical' : undefined}
+                // Naming is prohibited on role=none, so an app's label goes too.
+                aria-label={decorative ? undefined : attrs['aria-label']}
                 aria-labelledby={decorative ? undefined : [
                     labelled ? ctx.ids.label : undefined,
                     attrs['aria-labelledby'],

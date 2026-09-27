@@ -254,7 +254,7 @@ describe('Divider', () => {
 
     it('decorative: role none, no orientation and no name — a Label is plain text', async () => {
         render(
-            <Divider.Root decorative orientation="vertical" aria-labelledby="heading">
+            <Divider.Root decorative orientation="vertical" aria-labelledby="heading" aria-label="Rule">
                 <Divider.Label>or</Divider.Label>
             </Divider.Root>,
             container,
@@ -266,6 +266,7 @@ describe('Divider', () => {
         expect(root.hasAttribute('aria-orientation')).toBe(false);
         // Naming is prohibited on role=none — even an app's reference.
         expect(root.hasAttribute('aria-labelledby')).toBe(false);
+        expect(root.hasAttribute('aria-label')).toBe(false);
         // The orientation is still layout, so the styling hook stays.
         expect(root.getAttribute('data-orientation')).toBe('vertical');
     });
