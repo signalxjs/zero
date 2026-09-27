@@ -26,7 +26,7 @@ const button = anatomies.button.toJSON() as ManifestComponent;
 const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
 
 /** Any rem length left in lynx CSS text. */
-const REM = /(?<![\w.-])-?(?:\d+(?:\.\d*)?|\.\d+)rem(?![\w-])/i;
+const REM = /(?<![\w.+-])[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?rem(?![\w-])/i;
 
 describe('remToPx', () => {
     it('rewrites at 16px per rem', () => {
@@ -35,9 +35,9 @@ describe('remToPx', () => {
     });
 
     it('handles fractions, leading dots, negatives, zero and upper case', () => {
-        const { css, count } = remToPx('a: 0.875rem; b: .5rem; c: -0.25rem; d: 0rem; e: 1.125REM; f: 0.1rem;');
-        expect(css).toBe('a: 14px; b: 8px; c: -4px; d: 0px; e: 18px; f: 1.6px;');
-        expect(count).toBe(6);
+        const { css, count } = remToPx('a: 0.875rem; b: .5rem; c: -0.25rem; d: 0rem; e: 1.125REM; f: 0.1rem; g: +0.5rem; h: 1e1rem; i: 2.5e-1rem;');
+        expect(css).toBe('a: 14px; b: 8px; c: -4px; d: 0px; e: 18px; f: 1.6px; g: 8px; h: 160px; i: 4px;');
+        expect(count).toBe(9);
     });
 
     it('rewrites inside calc() and shorthands', () => {

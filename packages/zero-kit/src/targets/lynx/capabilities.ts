@@ -249,7 +249,7 @@ export const LYNX_REM_PX = 16;
  * not followed by more identifier characters. Case-insensitive, as CSS units
  * are.
  */
-const REM_LENGTH = /(?<![\w.-])(-?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)rem(?![\w-])/gi;
+const REM_LENGTH = /(?<![\w.+-])([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)rem(?![\w-])/gi;
 
 /**
  * `url(…)` and quoted strings: text a unit rewrite must never touch. A quoted
