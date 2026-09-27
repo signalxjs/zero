@@ -4682,7 +4682,8 @@ export const numberInput: RecipeInput = {
     //   signalxjs/lynx#1084);
     // - the steppers are views around a text glyph, with none of a
     //   button's content centering;
-    // - the native input takes no `inherit`: its ink is spelled out;
+    // - the native input takes no `inherit`: its ink is spelled out, and it
+    //   grows into any room a stretched control leaves between the steppers;
     // - the web root is inline-flex and hugs its content; lynx's flex column
     //   stretches, so the children align to the start instead;
     // - the focus ring is `lynxFocusRing` (lynx's outline ignores the radius
@@ -4697,7 +4698,7 @@ export const numberInput: RecipeInput = {
                     base: { overflow: 'visible' },
                     states: { 'focus-visible': lynxFocusRing('var(--number-input-accent)') },
                 },
-                input: { base: { color: 'var(--color-base-content)' } },
+                input: { base: { color: 'var(--color-base-content)', flexGrow: '1' } },
                 'increment-trigger': {
                     base: {
                         display: 'flex',
