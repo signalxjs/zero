@@ -393,7 +393,7 @@ runs everything; use
 The dev server's port is `ZERO_E2E_PORT` (default 5199) — set it to run the
 suite from two worktrees at once, since `reuseExistingServer` would otherwise
 let the second borrow the first's server and test the wrong code. CI runs them
-on every PR in three `--shard` jobs (`e2e (shard N/3)`, #352). The required
+on every PR in six `--shard` jobs (`e2e (shard N/6)`, #352, #363). The required
 `e2e` check is a small job that passes only when every shard passed. CI
 records a trace on each test's first retry, and a failing shard uploads
 `playwright-report/` + `test-results/` as `playwright-report-shard-<N>`
