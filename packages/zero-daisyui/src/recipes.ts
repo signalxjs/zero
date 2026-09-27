@@ -2939,6 +2939,38 @@ const fieldControl: NonNullable<PartStyles['base']> = {
  */
 const SELECT_CLEARABLE = '[data-scope="select"][data-part="root"]:has(> [data-scope="select"][data-part="clear-trigger"]) &';
 
+/**
+ * The select trigger's lynx steps — `[inline padding in --size-field units,
+ * font-size step]` — as the size variants set them (`lynxBtnPad` and the
+ * web ramp's `fontSize`). One table, so the clear-trigger's offset below
+ * cannot drift from the trigger it sits in.
+ */
+const SELECT_LYNX_STEPS = {
+    xs: [2, 'xs'],
+    sm: [3, 'sm'],
+    md: [4, 'sm'],
+    lg: [5, 'md'],
+    xl: [6, 'lg'],
+} as const satisfies Record<keyof typeof FIELD_STEPS, readonly [number, string]>;
+
+/**
+ * Where the lynx clear-trigger's 1.5rem chip sits at one size step
+ * (signalxjs/lynx#1184): centred in the field — the root is exactly the
+ * trigger's height, so half the field less half the chip, from the top —
+ * and one `--space-xs` short of the chevron's 1em box, which sits inside the
+ * trigger's border and end padding at that step's font size. Physical
+ * `top`/`right` and direct `calc(var())` only: lynx resolves no logical
+ * insets on Android and no `min()`, and drops a `var()` that holds a
+ * `calc()`.
+ */
+const lynxSelectClear = (step: keyof typeof SELECT_LYNX_STEPS): NonNullable<PartStyles['base']> => {
+    const [pad, text] = SELECT_LYNX_STEPS[step];
+    return {
+        top: `calc(var(--size-field) * ${FIELD_STEPS[step] / 2} - 0.75rem)`,
+        right: `calc(var(--border) + var(--size-field) * ${pad} + var(--text-${text}) + var(--space-xs))`,
+    };
+};
+
 export const select: RecipeInput = {
     component: 'select',
     // Accent as text/border ink only — daisy's highlighted item is a neutral
@@ -3144,9 +3176,23 @@ export const select: RecipeInput = {
                 // A touch list has no highlight: the pressed item takes the
                 // highlighted item's wash.
                 item: { states: { pressed: { background: 'var(--color-base-200)' } } },
+                // The × and the ▾ get a spacing contract (signalxjs/lynx#1184).
+                // The web offsets the clear-trigger by "the md padding + 1em",
+                // and the 1em is the clear-trigger's own text-sm: at lg/xl the
+                // trigger's padding and chevron both grow, so the × slid onto
+                // the ▾. Here the chevron is a 1em box (right-aligned, so an
+                // unclearable select looks as before) and the clear-trigger a
+                // 1.5rem square (WCAG 2.5.8's target) placed per size beside
+                // it — see `lynxSelectClear`. The web's `min()` height and
+                // `margin-block: auto` centring are dropped on lynx, which
+                // left the box stretched to the field's full height: its
+                // focus ring was a tall pill. The ring is inset, so it hugs
+                // the chip and can never reach the chevron, and no gap shadow
+                // paints past the chip's rounded corners.
+                indicator: { base: { width: '1em', textAlign: 'right' } },
                 'clear-trigger': {
-                    base: { top: 'var(--space-xs)', bottom: 'var(--space-xs)', right: 'calc(var(--size-field) * 4 + 1em + var(--space-xs))', minWidth: '1.5rem' },
-                    states: lynxFocus(),
+                    base: { ...lynxSelectClear('md'), width: '1.5rem', height: '1.5rem', minWidth: '1.5rem', boxSizing: 'border-box' },
+                    states: lynxFocus({ inset: true }),
                 },
             },
             variants: {
@@ -3155,7 +3201,10 @@ export const select: RecipeInput = {
                 color: Object.fromEntries(ROLES.map((c) => [c, { popup: { base: {
                     '--select-accent': `var(--color-${c})`,
                 } } }])),
-                size: { ...lynxBtnSizes('trigger'), md: { trigger: { base: lynxBtnPad(4) } } },
+                size: Object.fromEntries((Object.keys(SELECT_LYNX_STEPS) as (keyof typeof SELECT_LYNX_STEPS)[]).map((step) => [step, {
+                    trigger: { base: lynxBtnPad(SELECT_LYNX_STEPS[step][0]) },
+                    'clear-trigger': { base: lynxSelectClear(step) },
+                }])),
             },
         },
     },
