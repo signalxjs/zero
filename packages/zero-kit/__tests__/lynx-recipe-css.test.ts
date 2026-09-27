@@ -237,7 +237,7 @@ describe('compileLynxRecipeCss', () => {
             expect(decls('.zx-button__root.zx-m-square')).toContain('width: auto');
             expect(decls('.zx-button__root.zx-m-circle')).toContain('width: auto');
             expect(decls('.zx-button__root.zx-m-block')).toContain('width: 100%');
-            expect(decls('.zx-button__root.zx-m-wide')).toEqual(expect.arrayContaining(['width: 100%', 'max-width: 16rem']));
+            expect(decls('.zx-button__root.zx-m-wide')).toEqual(expect.arrayContaining(['width: 100%', 'max-width: 256px']));
             for (const scope of ['dialog', 'popover']) {
                 const trigger = rules(componentCss[scope] ?? '').filter((r) => r.selector === `.zx-${scope}__trigger`).flatMap((r) => r.decls);
                 expect(trigger).toEqual(expect.arrayContaining(['width: max-content', 'flex-shrink: 0', 'flex-wrap: nowrap']));
@@ -846,10 +846,10 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         const decls = (selector: string): string[] => [...css.matchAll(new RegExp(`(?:^|\\n)${selector.replace(/[.]/g, '\\.')} \\{([^}]*)\\}`, 'g'))]
             .flatMap((m) => m[1]!.split(';').map((d) => d.trim()).filter(Boolean));
         const root = decls('.zx-select__root');
-        expect(root).toEqual(expect.arrayContaining(['width: 20rem', 'max-width: 100%', 'min-width: 3rem']));
+        expect(root).toEqual(expect.arrayContaining(['width: 320px', 'max-width: 100%', 'min-width: 48px']));
         const trigger = decls('.zx-select__trigger');
         expect(trigger).toContain('width: 100%');
-        expect(trigger).not.toContain('width: 20rem');
+        expect(trigger).not.toContain('width: 320px');
         expect(decls('.zx-select__popup')).toContain('--select-accent: var(--color-primary)');
         expect(decls('.zx-select__popup.zx-a-color-secondary')).toContain('--select-accent: var(--color-secondary)');
         expect(decls('.zx-select__popup.zx-a-color-error')).toContain('--select-accent: var(--color-error)');
@@ -924,11 +924,12 @@ describe('assertNoCalcVarChains', () => {
         expect(range).toContain('background: var(--slider-fill);');
         // …the knob is daisy's real range-thumb look — a base-100 knob
         // ringed by the fill — with daisy's `--range-p` border width
-        // stated as its literal value, 0.25rem…
+        // stated as its literal value, 0.25rem (4px once rem is rewritten
+        // at 16px, signalxjs/lynx#1183)…
         const thumb = css.match(/\.zx-slider__thumb \{[^}]*\}/)?.[0];
         expect(thumb).toBeDefined();
         expect(thumb).toContain('background: var(--color-base-100);');
-        expect(thumb).toContain('border: 0.25rem solid var(--slider-fill);');
+        expect(thumb).toContain('border: 4px solid var(--slider-fill);');
         // …the knob centers PHYSICALLY: the web spelling
         // (`inset-block-start`/`translate`/`margin-inline-start`) resolves
         // on iOS but not on Android (signalxjs/lynx#1084 — the thumb sat
@@ -1042,7 +1043,7 @@ describe('assertNoCalcVarChains', () => {
             expect(body).toContain('border-radius: calc(var(--radius-box) - var(--border));');
         });
 
-        // signalxjs/lynx#1184: the clear-trigger is a 1.5rem chip beside the
+        // signalxjs/lynx#1184: the clear-trigger is a 1.5rem (24px on lynx) chip beside the
         // chevron's 1em box at every size — not a full-height box at the md
         // offset whose outer ring covered the ▾ at lg/xl.
         it('the select clear-trigger is a chip beside the chevron, ringed inside', () => {
@@ -1053,7 +1054,7 @@ describe('assertNoCalcVarChains', () => {
             const ring = focusRules(css).find((r) => r.selector === '.zx-select__clear-trigger.zx-f-focus-visible')!.body;
             expect(ring).toContain('box-shadow: inset 0 0 0 2px var(--color-base-content);');
             const base = decls('.zx-select__clear-trigger');
-            expect(base).toEqual(expect.arrayContaining(['width: 1.5rem', 'height: 1.5rem', 'box-sizing: border-box']));
+            expect(base).toEqual(expect.arrayContaining(['width: 24px', 'height: 24px', 'box-sizing: border-box']));
             expect(base.some((d) => d.startsWith('bottom:'))).toBe(false);
             expect(decls('.zx-select__indicator')).toEqual(expect.arrayContaining(['width: 1em', 'text-align: right']));
             const steps = { xs: [8, 2, 'xs'], sm: [10, 3, 'sm'], md: [12, 4, 'sm'], lg: [14, 5, 'md'], xl: [16, 6, 'lg'] } as const;
@@ -1066,7 +1067,7 @@ describe('assertNoCalcVarChains', () => {
                     `font-size: var(--text-${text})`,
                 ]));
                 expect(decls(`.zx-select__clear-trigger.zx-a-size-${size}`), size).toEqual([
-                    `top: calc(var(--size-field) * ${field / 2} - 0.75rem)`,
+                    `top: calc(var(--size-field) * ${field / 2} - 12px)`,
                     `right: calc(var(--border) + var(--size-field) * ${pad} + var(--text-${text}) + var(--space-xs))`,
                 ]);
             }

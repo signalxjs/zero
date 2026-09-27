@@ -26,7 +26,9 @@ export {
     foldConstantCalc,
     hasComparisonFunction,
     hasUnsupportedColorFunction,
+    LYNX_REM_PX,
     LynxRuntimePropertyError,
+    remToPx,
     runtimePropertyIn,
 } from './capabilities.js';
 export { STRUCTURAL_FALLBACKS, compileLynxTokensCss, lynxThemeColors } from './tokens-css.js';

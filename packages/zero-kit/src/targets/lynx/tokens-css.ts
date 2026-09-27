@@ -41,7 +41,7 @@ import { STRUCTURAL_FALLBACKS, assertTokenValue, resolveSystemTokens } from '../
  */
 export { STRUCTURAL_FALLBACKS };
 import type { LynxCapabilityReport } from './capabilities.js';
-import { bakeColor, bakeColorValue, bakeSoft, hasComparisonFunction, hasUnsupportedColorFunction, LynxRuntimePropertyError, runtimePropertyIn } from './capabilities.js';
+import { bakeColor, bakeColorValue, bakeSoft, hasComparisonFunction, hasUnsupportedColorFunction, LYNX_REM_PX, LynxRuntimePropertyError, remToPx, runtimePropertyIn } from './capabilities.js';
 import { HOST_CLASS, themeClass } from './class-names.js';
 import type { LynxThemeColors } from './recipe-css.js';
 
@@ -314,5 +314,17 @@ export function compileLynxTokensCss<R extends RolesDecl, T extends SystemTokens
         });
     }
 
-    return `${blocks.join('\n\n')}\n`;
+    // Last, over the finished text, so every token value is covered — lynx
+    // resolves 1rem = 14px (signalxjs/lynx#1183); the skin was authored at 16.
+    // The `--text-fixed-*` literals are rewritten with the ramp they copy, so
+    // the two never disagree about a size.
+    const { css, count } = remToPx(`${blocks.join('\n\n')}\n`);
+    if (count > 0) {
+        report.translated.push({
+            where: 'lynx tokens',
+            what: `rem lengths (${count})`,
+            detail: `rewritten to px at ${LYNX_REM_PX}px/rem — lynx resolves rem against its 14px default page font size (measured, signalxjs/lynx#1183), which would draw every rem-based size 12.5% small`,
+        });
+    }
+    return css;
 }

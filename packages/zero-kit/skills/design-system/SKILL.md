@@ -391,6 +391,11 @@ component's anatomy). No component code is ever written or changed.
        entry. A recipe whose geometry rides a logical spelling restates it
        physically (`top`/`left`/`margin-left`/`transform: translate…()`) in
        its `targets.lynx` section.
+     - **Keep authoring in `rem` for lynx too.** Lynx resolves `rem` against
+       its 14px default page font size, not the web's 16px, so the lynx
+       emitter rewrites every `rem` length to `px` at 16px/rem (measured,
+       signalxjs/lynx#1183). A `targets.lynx` section written in `rem` gets
+       the same size it would on the web; do not pre-scale it.
      - **`transform` has no logical form**, so it needs a shape rather than a
        rename: put the sign in a custom property and rebind it. This is the one
        case the lint cannot see, so it is on you.
