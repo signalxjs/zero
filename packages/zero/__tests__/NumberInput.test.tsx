@@ -148,6 +148,9 @@ describe('locale number format (#300)', () => {
         expect(f.parse('25')).toBe(0.25);
         expect(f.parse('14.1 %')).toBe(0.141);
         expect(f.parse('-3%')).toBe(-0.03);
+        // A fraction longer than toFixed's 100-digit limit parses, not throws.
+        expect(f.parse(`0.${'0'.repeat(200)}1%`)).toBe(0);
+        expect(f.parse(`12.${'5'.repeat(200)}%`)).toBeCloseTo(0.125555555, 8);
         expect(f.maximumFractionDigits).toBe(0);
     });
 

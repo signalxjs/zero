@@ -89,7 +89,8 @@ export function createLocaleNumberFormat(locale: string | undefined, options: In
         // 14.1 / 100 is 0.14100000000000001 — round back to the digits typed.
         const dot = t.indexOf('.');
         const places = dot === -1 ? 0 : t.length - dot - 1;
-        return Number((n / 100).toFixed(places + 2));
+        // toFixed throws past 100 digits; a double holds ~17 anyway.
+        return Number((n / 100).toFixed(Math.min(places + 2, 100)));
     };
 
     return { format: (v) => nf.format(v), parse, maximumFractionDigits };
