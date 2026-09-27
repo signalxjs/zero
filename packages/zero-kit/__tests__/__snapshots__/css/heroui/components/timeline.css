@@ -121,6 +121,20 @@
         align-self: start;
     }
 
+    [data-scope="timeline"][data-part="title"] {
+        display: block;
+        margin: 0;
+        font-weight: var(--weight-semibold);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="timeline"][data-part="description"] {
+        display: block;
+        margin: 0;
+        margin-block-start: var(--space-2xs);
+        color: var(--hero-muted);
+    }
+
     @scope ([data-scope="timeline"][data-part="root"][data-size="sm"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-marker-size: calc(var(--size-selector) * 2.5);

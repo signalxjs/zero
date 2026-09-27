@@ -74,6 +74,52 @@ describe('Card', () => {
         expect(maybePart(container, 'card', 'header')).toBeNull();
         expect(maybePart(container, 'card', 'footer')).toBeNull();
     });
+
+    it('media is a band directly under root, a div by default (#302)', () => {
+        render(
+            <Card.Root>
+                <Card.Media class="m"><img src="cover.png" alt="" /></Card.Media>
+                <Card.Body>Body copy.</Card.Body>
+            </Card.Root>,
+            container,
+        );
+        expectAnatomy(container, cardAnatomy);
+        const media = part(container, 'card', 'media');
+        expect(media.tagName).toBe('DIV');
+        expect(media.className).toBe('m');
+        expect(media.parentElement).toBe(part(container, 'card', 'root'));
+        expect(cardAnatomy.parts.media.parent).toBe('root');
+        expect(cardAnatomy.parts.media.asChild).toBe(true);
+    });
+
+    it('media takes asChild: the <figure> with a caption, or the <img> itself (#302)', () => {
+        render(
+            <div>
+                <Card.Root>
+                    <Card.Media asChild>
+                        {(p: PartProps) => (
+                            <figure {...p}>
+                                <img src="cover.png" alt="The harbour at dawn" />
+                                <figcaption>Harbour</figcaption>
+                            </figure>
+                        )}
+                    </Card.Media>
+                </Card.Root>
+                <Card.Root>
+                    <Card.Media asChild>
+                        {(p: PartProps) => <img {...p} src="cover.png" alt="" />}
+                    </Card.Media>
+                </Card.Root>
+            </div>,
+            container,
+        );
+        expectAnatomy(container, cardAnatomy);
+        const media = container.querySelectorAll<HTMLElement>(selector('card', 'media'));
+        expect(media[0]!.tagName).toBe('FIGURE');
+        expect(media[0]!.querySelector('figcaption')?.textContent).toBe('Harbour');
+        expect(media[1]!.tagName).toBe('IMG');
+        expect(media[1]!.getAttribute('alt')).toBe('');
+    });
 });
 
 describe('Badge', () => {

@@ -7,6 +7,20 @@ import type { PageEntry } from './registry';
 
 // ── Card ──────────────────────────────────────────────────────────────────
 
+/**
+ * A self-contained cover image for the media demos (#302): an inline SVG, so
+ * the playground stays offline and every engine decodes the same pixels.
+ */
+const COVER = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="160" viewBox="0 0 320 160">'
+    + '<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0" stop-color="#f6c28b"/><stop offset="1" stop-color="#e9765b"/></linearGradient></defs>'
+    + '<rect width="320" height="160" fill="url(#s)"/>'
+    + '<circle cx="232" cy="92" r="30" fill="#fff4d6"/>'
+    + '<path d="M0 118 L70 78 L130 112 L200 70 L320 124 L320 160 L0 160 Z" fill="#3d3551"/>'
+    + '</svg>',
+);
+
 const CardDemos = component(() => () => (
     <>
         <p>
@@ -49,6 +63,44 @@ const CardDemos = component(() => () => (
                         </Card.Header>
                     </article>
                 )}
+            </Card.Root>
+        </DemoRow>
+        {/*
+          * #302: `media` is the full-bleed band. The bands pad themselves and
+          * media does not, so the image runs edge to edge and rounds the
+          * corners it shares with the card. `asChild` makes it the <figure>
+          * (with a caption) or the <img> itself.
+          */}
+        <p>Media — a full-bleed band, as a wrapper, a figure, or the image itself:</p>
+        <DemoRow gap="1rem" align="start">
+            <Card.Root class="demo-media-card">
+                <Card.Media>
+                    <img src={COVER} width="320" height="160" alt="A sunset over a mountain ridge" />
+                </Card.Media>
+                <Card.Header>
+                    <Card.Title>Ridge walk</Card.Title>
+                    <Card.Description>Media first, then the bands</Card.Description>
+                </Card.Header>
+                <Card.Body>The image runs to the card's edges; the text keeps its padding.</Card.Body>
+            </Card.Root>
+            <Card.Root class="demo-media-card">
+                <Card.Header>
+                    <Card.Title>Field notes</Card.Title>
+                </Card.Header>
+                <Card.Body>Media can close the card too.</Card.Body>
+                <Card.Media asChild>
+                    {(p: PartProps) => (
+                        <figure {...p}>
+                            <img src={COVER} width="320" height="160" alt="The same ridge, from the valley" />
+                        </figure>
+                    )}
+                </Card.Media>
+            </Card.Root>
+            <Card.Root class="demo-media-card">
+                <Card.Media asChild>
+                    {(p: PartProps) => <img {...p} src={COVER} width="320" height="160" alt="" />}
+                </Card.Media>
+                <Card.Body>A decorative cover: the image is the band, with an empty alt.</Card.Body>
             </Card.Root>
         </DemoRow>
     </>

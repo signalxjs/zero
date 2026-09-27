@@ -258,7 +258,7 @@ export type {
 } from './components/textarea/index.js';
 
 export { Card, cardAnatomy } from './components/card/index.js';
-export type { CardRootProps, CardPartProps, CardTextProps } from './components/card/index.js';
+export type { CardRootProps, CardMediaProps, CardPartProps, CardTextProps } from './components/card/index.js';
 
 export { Alert, alertAnatomy, useAlertContext } from './components/alert/index.js';
 export type {
@@ -323,6 +323,7 @@ export type {
     TimelinePartProps,
     TimelineMarkerProps,
     TimelineContentProps,
+    TimelineTitleProps,
     TimelinePlacement,
 } from './components/timeline/index.js';
 

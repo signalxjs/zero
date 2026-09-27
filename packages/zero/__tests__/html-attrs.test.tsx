@@ -265,6 +265,7 @@ describe('the pass-through reaches every part', () => {
         button: () => <Button.Root {...p('root')} loading>Save</Button.Root>,
         card: () => (
             <Card.Root {...p('root')}>
+                <Card.Media {...p('media')}>M</Card.Media>
                 <Card.Header {...p('header')}>
                     <Card.Title {...p('title')}>T</Card.Title>
                     <Card.Description {...p('description')}>D</Card.Description>
@@ -367,7 +368,10 @@ describe('the pass-through reaches every part', () => {
                 <Timeline.Item {...p('item')}>
                     <Timeline.Marker {...p('marker')} />
                     <Timeline.Connector {...p('connector')} />
-                    <Timeline.Content {...p('content')}>C</Timeline.Content>
+                    <Timeline.Content {...p('content')}>
+                        <Timeline.Title {...p('title')}>T</Timeline.Title>
+                        <Timeline.Description {...p('description')}>D</Timeline.Description>
+                    </Timeline.Content>
                 </Timeline.Item>
             </Timeline.Root>
         ),

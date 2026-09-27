@@ -24,6 +24,13 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * item: "start" means the inline side of a vertical timeline and the block
  * side of a horizontal one, and a recipe can only compose side × axis on the
  * element that carries both.
+ *
+ * `title` and `description` (#302) are the two text bands inside `content`
+ * — the event and its detail, which Mantine's and Chakra's timelines name
+ * and a skin wants to set apart (weight, ink, rhythm). Both optional:
+ * content that is one line of text stays one line of text. Both are `div`s,
+ * because an event is not a heading by default; `title` takes `asChild` for
+ * the page whose outline wants one (an `h3` per release in a changelog).
  */
 export const timelineAnatomy = defineAnatomy('timeline', {
     root: {
@@ -54,5 +61,16 @@ export const timelineAnatomy = defineAnatomy('timeline', {
         parent: 'item',
         placements: ['start', 'end'],
         tokens: ['color', 'radius-box', 'text'],
+    },
+    title: {
+        element: 'div',
+        parent: 'content',
+        tokens: ['color', 'text'],
+        asChild: true,
+    },
+    description: {
+        element: 'div',
+        parent: 'content',
+        tokens: ['color', 'text'],
     },
 }, { orientation: true });

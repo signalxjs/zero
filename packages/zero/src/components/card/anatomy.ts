@@ -18,11 +18,25 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * take `asChild`, because the heading level is the page outline's call (an
  * `h2` under the page's `h1`, a `div` in a card that is not a section at
  * all) and a description may need to be more than one paragraph.
+ *
+ * `media` (#302) is the full-bleed band — the cover image, the video, the
+ * map — that daisyUI's `card > figure` and Mantine's `Card.Section` give a
+ * skin to target. It sits directly under `root` like the other bands, and a
+ * skin draws it edge to edge: the bands pad themselves, so media simply
+ * does not, and it rounds the corners it shares with the card. A `div` by
+ * default; `asChild` makes it the `<figure>` (with a caption) or the `<img>`
+ * itself.
  */
 export const cardAnatomy = defineAnatomy('card', {
     root: {
         element: 'div',
         tokens: ['color', 'radius-box', 'size'],
+        asChild: true,
+    },
+    media: {
+        element: 'div',
+        parent: 'root',
+        tokens: ['color', 'radius-box'],
         asChild: true,
     },
     header: {

@@ -3,6 +3,7 @@
  *
  * ```tsx
  * <Card.Root variant="outline">
+ *     <Card.Media asChild>{(p) => <img {...p} src="cover.jpg" alt="" />}</Card.Media>
  *     <Card.Header>
  *         <Card.Title>Monthly report</Card.Title>
  *         <Card.Description>Updated 4 minutes ago</Card.Description>
@@ -93,6 +94,28 @@ function makeText(part: 'title' | 'description', element: 'h3' | 'p', name: stri
     }, { name });
 }
 
+export type CardMediaProps =
+    & WithClass
+    & WithHtmlAttrs
+    /**
+     * Render the band as your own element — a `<figure>` with a caption, or
+     * the `<img>`/`<video>` itself. The slot receives the bag; spread it.
+     */
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
+
+/**
+ * `media` (#302): the full-bleed band. A `div` that holds the image, or —
+ * through `asChild` — the figure or the image itself. No `alt` of its own:
+ * the image carries its own text alternative, and a decorative cover is
+ * `alt=""` on the consumer's `<img>`.
+ */
+const CardMedia = component<CardMediaProps>(({ props, slots }) => () => {
+    const bag: PartProps = { ...htmlAttrs(props), 'data-scope': SCOPE, 'data-part': 'media' };
+    if (props.asChild) return renderAsChild(slots.default, bag);
+    return <div {...bag} class={props.class}>{slots.default?.(bag)}</div>;
+}, { name: 'Card.Media' });
+
 const CardHeader = makeBand('header', 'Card.Header');
 // `h3` by default: a card title is a heading in the document outline, and the
 // level is the one that sits under a page (h1) and a section (h2) without the
@@ -105,6 +128,7 @@ const CardFooter = makeBand('footer', 'Card.Footer');
 
 export const Card = compound(CardRoot, {
     Root: CardRoot,
+    Media: CardMedia,
     Header: CardHeader,
     Title: CardTitle,
     Description: CardDescription,

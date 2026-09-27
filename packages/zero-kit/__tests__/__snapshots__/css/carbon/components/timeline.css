@@ -120,6 +120,21 @@
         align-self: start;
     }
 
+    [data-scope="timeline"][data-part="title"] {
+        display: block;
+        margin: 0;
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="timeline"][data-part="description"] {
+        display: block;
+        margin: 0;
+        margin-block-start: var(--space-2xs);
+        color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+    }
+
     @scope ([data-scope="timeline"][data-part="root"][data-size="sm"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-marker-size: calc(var(--size-selector) * 2.5);

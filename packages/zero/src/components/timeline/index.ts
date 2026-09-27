@@ -4,6 +4,7 @@ export type {
     TimelinePartProps,
     TimelineMarkerProps,
     TimelineContentProps,
+    TimelineTitleProps,
     TimelinePlacement,
 } from './Timeline.js';
 export { timelineAnatomy } from './anatomy.js';
