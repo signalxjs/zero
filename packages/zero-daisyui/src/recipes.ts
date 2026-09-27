@@ -3007,22 +3007,40 @@ export const select: RecipeInput = {
                 // never wider than its container. lynx has no `clamp()`, so the
                 // same bounds are spelled out — and the base's 13rem floor
                 // comes down to daisy's 3rem, or the trigger overflowed any
-                // cell narrower than 208px (signalxjs/lynx#1146). The root
-                // caps too, so a shrink-wrapped root cannot push it back out.
-                root: { base: { maxWidth: '100%' } },
+                // cell narrower than 208px (signalxjs/lynx#1146).
+                //
+                // The bounds sit on the ROOT, the box daisy's `.select` is,
+                // and the trigger fills it. The web root is `inline-flex`, so
+                // it shrink-wraps the trigger; lynx rewrites that to `flex`,
+                // and a root stretched by its parent while the trigger stayed
+                // capped left the clear-trigger — positioned against the root
+                // — floating past the trigger's end (signalxjs/lynx#1166).
+                root: { base: { width: '20rem', maxWidth: '100%', minWidth: '3rem' } },
                 trigger: {
-                    base: { ...lynxBtnPad(4), width: '20rem', maxWidth: '100%', minWidth: '3rem' },
+                    base: { ...lynxBtnPad(4), width: '100%', maxWidth: '100%', minWidth: '3rem' },
                     // The web's `:hover` border is dropped on a touch
                     // platform; a press gets a wash instead — a background,
                     // so it never fights the open/invalid border inks.
                     states: { pressed: { background: 'var(--color-base-200)' } },
                 },
+                // The popup renders in the overlay outlet, outside the root,
+                // so it cannot inherit the root's `--select-accent`, and an
+                // unresolved `var()` on lynx has no fallback: the selected
+                // item and its tick fell back to base-content
+                // (signalxjs/lynx#1168). The popup restates the accent; its
+                // colour-axis twins are in `variants.color` below.
+                popup: { base: { '--select-accent': 'var(--color-primary)' } },
                 // A touch list has no highlight: the pressed item takes the
                 // highlighted item's wash.
                 item: { states: { pressed: { background: 'var(--color-base-200)' } } },
                 'clear-trigger': { base: { top: 'var(--space-xs)', bottom: 'var(--space-xs)', right: 'calc(var(--size-field) * 4 + 1em + var(--space-xs))', minWidth: '1.5rem' } },
             },
             variants: {
+                // The popup's accent follows the root's colour axis — the
+                // popup carries the axis class itself (lynx stamps every part).
+                color: Object.fromEntries(ROLES.map((c) => [c, { popup: { base: {
+                    '--select-accent': `var(--color-${c})`,
+                } } }])),
                 size: { ...lynxBtnSizes('trigger'), md: { trigger: { base: lynxBtnPad(4) } } },
             },
         },
