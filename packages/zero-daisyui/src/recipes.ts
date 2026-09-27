@@ -1781,6 +1781,33 @@ export const fieldset: RecipeInput = {
             xl: { legend: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
+    // Lynx has no grid: the one-column track becomes a flex column (the gap
+    // survives), and the block/inline paddings are restated physically —
+    // logical spellings resolve on iOS but not on Android (signalxjs/lynx#1084).
+    targets: {
+        lynx: {
+            parts: {
+                root: {
+                    base: {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        paddingTop: 'var(--space-xs)',
+                        paddingBottom: 'var(--space-xs)',
+                        paddingLeft: '0',
+                        paddingRight: '0',
+                    },
+                },
+                legend: {
+                    base: {
+                        paddingTop: 'var(--space-sm)',
+                        paddingBottom: 'var(--space-sm)',
+                        paddingLeft: '0',
+                        paddingRight: '0',
+                    },
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -4649,14 +4676,40 @@ export const numberInput: RecipeInput = {
             xl: { control: { base: { height: fieldHeight('xl') } }, input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)' } } },
         },
     },
-    // The steppers' inline padding, restated physically: logical spellings
-    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
-    // the emitter refuses them.
+    // Lynx restatements:
+    // - the steppers' inline padding and their seams, physically: logical
+    //   spellings resolve on iOS but not on Android (measured,
+    //   signalxjs/lynx#1084);
+    // - the steppers are views around a text glyph, with none of a
+    //   button's content centering;
+    // - the native input takes no `inherit`: its ink is spelled out;
+    // - the web root is inline-flex and hugs its content; lynx's flex column
+    //   stretches, so the children align to the start instead.
     targets: {
         lynx: {
             parts: {
-                'increment-trigger': { base: { paddingLeft: 'var(--space-lg)', paddingRight: 'var(--space-lg)' } },
-                'decrement-trigger': { base: { paddingLeft: 'var(--space-lg)', paddingRight: 'var(--space-lg)' } },
+                root: { base: { alignItems: 'flex-start' } },
+                input: { base: { color: 'var(--color-base-content)' } },
+                'increment-trigger': {
+                    base: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingLeft: 'var(--space-lg)',
+                        paddingRight: 'var(--space-lg)',
+                        borderLeft: 'var(--border) solid var(--color-base-300)',
+                    },
+                },
+                'decrement-trigger': {
+                    base: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingLeft: 'var(--space-lg)',
+                        paddingRight: 'var(--space-lg)',
+                        borderRight: 'var(--border) solid var(--color-base-300)',
+                    },
+                },
             },
         },
     },
