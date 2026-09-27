@@ -1102,6 +1102,43 @@ const lynxBtnPad = (mult: number): NonNullable<PartStyles['base']> => ({
     paddingRight: `calc(var(--size-field) * ${mult})`,
 });
 
+/**
+ * A four-side property spelled as its physical longhands, for `targets.lynx`
+ * sections that must not ship a `var()`-bearing shorthand.
+ *
+ * Lynx keeps a declaration holding `var()` under its own property id,
+ * unexpanded, and expands it only after the cascade has merged every rule
+ * into one insertion-ordered style map — in that map's order, writing over
+ * the longhands already there (`CSSVariableHandler::HandleCSSVariables`). A
+ * static shorthand, by contrast, is expanded into its longhands at parse
+ * time. So a var-bearing `border-color` and a static `border-top-color` never
+ * meet in the cascade at all: whichever key the map saw later wins, whatever
+ * the specificity (signalxjs/lynx#1161, #1162). Longhands share one key per
+ * side, and the cascade decides again.
+ */
+const lynxSides = (
+    prop: 'border{}Width' | 'border{}Color' | 'padding{}',
+    value: string,
+    sides: readonly ('Top' | 'Right' | 'Bottom' | 'Left')[] = ['Top', 'Right', 'Bottom', 'Left'],
+): NonNullable<PartStyles['base']> =>
+    Object.fromEntries(sides.map((side) => [prop.replace('{}', side), value]));
+
+/**
+ * daisy's `.btn` is content-sized and never squeezed: `display: inline-flex`
+ * with `flex-shrink: 0; flex-wrap: nowrap`, so a narrow row makes the button
+ * overflow, never break its label. A lynx view has no inline formatting
+ * context: it stretches to a linear or column parent, and a squeezed label
+ * `<text>` then wraps per character ("Bt / n", signalxjs/lynx#1165).
+ * `width: max-content` is the intrinsic keyword starlight implements (an
+ * intrinsic width is also exempt from the cross-axis stretch), so the box
+ * sizes to its content as the web's does; the other two are daisy's own.
+ */
+const lynxBtnFit: NonNullable<PartStyles['base']> = {
+    width: 'max-content',
+    flexShrink: '0',
+    flexWrap: 'nowrap',
+};
+
 /** The btn size ramp's physical inline padding, for `targets.lynx.variants`. */
 const lynxBtnSizes = (part: string): Record<string, Record<string, PartStyles>> => ({
     xs: { [part]: { base: lynxBtnPad(2) } },
@@ -1223,7 +1260,8 @@ export const dialog: RecipeInput = {
     targets: {
         lynx: {
             parts: {
-                trigger: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed, ...lynxFocus() } },
+                // Content-sized like daisy's btn, never broken mid-word (signalxjs/lynx#1165).
+                trigger: { base: { ...lynxBtnPad(4), ...lynxBtnFit }, states: { pressed: lynxBtnPressed, ...lynxFocus() } },
                 close: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed, ...lynxFocus() } },
                 cancel: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed, ...lynxFocus() } },
                 footer: { base: { marginTop: 'var(--space-2xl)', flexDirection: 'row' } },
@@ -1320,7 +1358,8 @@ export const popover: RecipeInput = {
         web: floatingArrow('popover', panelArrowPaint),
         lynx: {
             parts: {
-                trigger: { base: lynxBtnPad(4), states: { pressed: lynxBtnPressed, ...lynxFocus() } },
+                // Content-sized like daisy's btn, never broken mid-word (signalxjs/lynx#1165).
+                trigger: { base: { ...lynxBtnPad(4), ...lynxBtnFit }, states: { pressed: lynxBtnPressed, ...lynxFocus() } },
                 close: { base: lynxBtnPad(3), states: { pressed: lynxBtnPressed, ...lynxFocus() } },
             },
             variants: { size: lynxBtnSizes('trigger') },
@@ -3141,6 +3180,23 @@ const btnHeight = (step: keyof typeof BTN_STEPS): string =>
     `calc(var(--size-field) * ${BTN_STEPS[step]})`;
 
 /**
+ * The btn padding ramp — `[size, block space, inline space]` per step. One
+ * table for the web's `padding` shorthand and the lynx section's longhands,
+ * so the two spellings cannot drift apart.
+ */
+const BTN_PAD = [
+    ['xs', '2xs', 'xs'],
+    ['sm', 'xs', 'sm'],
+    ['md', 'sm', 'lg'],
+    ['lg', 'md', 'xl'],
+    ['xl', 'lg', '2xl'],
+] as const satisfies readonly (readonly [keyof typeof BTN_STEPS, string, string])[];
+const btnPadding = (step: keyof typeof BTN_STEPS): string => {
+    const [, block, inline] = BTN_PAD.find(([size]) => size === step)!;
+    return `var(--space-${block}) var(--space-${inline})`;
+};
+
+/**
  * daisy 5's disabled btn, for the lynx target (signalxjs/lynx#1143). The web
  * fades the whole button (`opacity: var(--disabled-opacity)`, 0.3 on the
  * dark themes), which on device left a solid button's label barely legible.
@@ -3337,11 +3393,11 @@ export const button: RecipeInput = {
         // The `<button>` element is UA `border-box`, so the stated height is
         // the rendered height, border included — as in daisy.
         size: {
-            xs: { root: { base: { height: btnHeight('xs'), padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
-            sm: { root: { base: { height: btnHeight('sm'), padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
-            md: { root: { base: { height: btnHeight('md'), padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-md)' } } },
-            lg: { root: { base: { height: btnHeight('lg'), padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-lg)' } } },
-            xl: { root: { base: { height: btnHeight('xl'), padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-xl)' } } },
+            xs: { root: { base: { height: btnHeight('xs'), padding: btnPadding('xs'), fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { height: btnHeight('sm'), padding: btnPadding('sm'), fontSize: 'var(--text-sm)' } } },
+            md: { root: { base: { height: btnHeight('md'), padding: btnPadding('md'), fontSize: 'var(--text-md)' } } },
+            lg: { root: { base: { height: btnHeight('lg'), padding: btnPadding('lg'), fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { height: btnHeight('xl'), padding: btnPadding('xl'), fontSize: 'var(--text-xl)' } } },
         },
     },
     /**
@@ -3378,39 +3434,88 @@ export const button: RecipeInput = {
                 // The ring, restated: `currentColor` never resolves on lynx
                 // (signalxjs/lynx#1079) and the logical sizes/edge are
                 // unproven there, so the lynx ring is physical longhands in
-                // the variant's own ink (the variants below pick it).
+                // the variant's own ink (the variants below pick it). Every
+                // var-bearing edge is a longhand (`lynxSides`): a var-bearing
+                // `border` expanded after the transparent top and closed the
+                // ring (signalxjs/lynx#1161). The shorthand stays, static, so
+                // the shared `currentColor` spelling never ships.
                 spinner: {
                     base: {
                         width: '1em',
                         height: '1em',
-                        border: 'calc(var(--border) * 2) solid var(--btn-ink)',
+                        border: '0 solid transparent',
+                        ...lynxSides('border{}Width', 'calc(var(--border) * 2)'),
+                        ...lynxSides('border{}Color', 'var(--btn-ink)', ['Right', 'Bottom', 'Left']),
                         borderTopColor: 'transparent',
                     },
                 },
-                // The ring in the variant's own ink (signalxjs/lynx#1163).
-                root: { states: { disabled: lynxBtnDisabled, 'focus-visible': lynxFocusRing('var(--btn-ink)') } },
+                root: {
+                    // daisy's content-sized, never-squeezed btn (#1165), and
+                    // the hairline as longhands: a var-bearing `border`
+                    // shorthand would expand over the variants' and the
+                    // disabled state's edge colours (see `lynxSides`).
+                    base: {
+                        ...lynxBtnFit,
+                        border: '0 solid transparent',
+                        ...lynxSides('border{}Width', 'var(--border)'),
+                    },
+                    // The ring in the variant's own ink (signalxjs/lynx#1163).
+                    states: { disabled: lynxBtnDisabled, 'focus-visible': lynxFocusRing('var(--btn-ink)') },
+                },
             },
             variants: {
                 // The baked disabled paint above outranks every variant's fill
                 // (the theme host adds a class), but its plain declarations
                 // do not: outline/dash restate the border, ghost/link drop
-                // the wash (as in daisy).
+                // the wash (as in daisy). outline/dash draw their ink edge as
+                // longhands, so that transparent restatement wins by
+                // specificity instead of losing to a var-bearing
+                // `border-color` (signalxjs/lynx#1162); the shared shorthand
+                // is neutralised to a static value.
                 variant: {
-                    solid: { spinner: { base: { borderColor: 'var(--btn-on-accent)', borderTopColor: 'transparent' } } },
-                    outline: { root: { states: { disabled: { borderColor: 'transparent' } } } },
-                    dash: { root: { states: { disabled: { borderColor: 'transparent' } } } },
+                    solid: { spinner: { base: lynxSides('border{}Color', 'var(--btn-on-accent)', ['Right', 'Bottom', 'Left']) } },
+                    outline: {
+                        root: {
+                            base: { borderColor: 'transparent', ...lynxSides('border{}Color', 'var(--btn-ink)') },
+                            states: { disabled: { borderColor: 'transparent' } },
+                        },
+                    },
+                    dash: {
+                        root: {
+                            base: { borderColor: 'transparent', ...lynxSides('border{}Color', 'var(--btn-ink)') },
+                            states: { disabled: { borderColor: 'transparent' } },
+                        },
+                    },
                     ghost: { root: { states: { disabled: { background: 'transparent' } } } },
                     // `link` zeroes the box-shadow in a variant rule that
                     // lands after the ring, so it restates the ring.
                     link: { root: { states: { disabled: { background: 'transparent' }, 'focus-visible': lynxFocusRing('var(--btn-ink)') } } },
                 },
+                // The size ramp's paddings as longhands, so square/circle's
+                // zeroed sides below win by the cascade rather than by the
+                // order lynx happens to expand a var-bearing `padding` in.
+                size: Object.fromEntries(BTN_PAD.map(([size, block, inline]) => [size, {
+                    root: {
+                        base: {
+                            padding: '0',
+                            ...lynxSides('padding{}', `var(--space-${block})`, ['Top', 'Bottom']),
+                            ...lynxSides('padding{}', `var(--space-${inline})`, ['Right', 'Left']),
+                        },
+                    },
+                }])),
             },
             // The icon chips' zeroed inline padding, restated physically: logical
             // spellings resolve on iOS but not on Android (measured,
-            // signalxjs/lynx#1084), so the emitter refuses them.
+            // signalxjs/lynx#1084), so the emitter refuses them. `width: auto`
+            // undoes the root's `max-content`, which would otherwise switch
+            // off the `aspect-ratio` that squares the chip. `wide`/`block`
+            // restate their width physically: `inline-size` and
+            // `max-inline-size` are not lynx properties at all.
             modifiers: {
-                square: { root: { base: { paddingLeft: '0', paddingRight: '0' } } },
-                circle: { root: { base: { paddingLeft: '0', paddingRight: '0' } } },
+                wide: { root: { base: { width: '100%', maxWidth: '16rem' } } },
+                block: { root: { base: { width: '100%' } } },
+                square: { root: { base: { width: 'auto', paddingLeft: '0', paddingRight: '0' } } },
+                circle: { root: { base: { width: 'auto', paddingLeft: '0', paddingRight: '0' } } },
                 // `active` zeroes the box-shadow too (the held press look).
                 active: { root: { states: { 'focus-visible': lynxFocusRing('var(--btn-ink)') } } },
             },
