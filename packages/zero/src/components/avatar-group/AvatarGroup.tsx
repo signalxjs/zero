@@ -79,9 +79,14 @@ export type AvatarGroupOverflowProps =
 const AvatarGroupOverflow = component<AvatarGroupOverflowProps>(({ props }) => () => {
     const count = Math.floor(props.count);
     if (!(count > 0)) return null;
+    const attrs = htmlAttrs(props);
     return (
         <span
-            {...htmlAttrs(props)}
+            {...attrs}
+            // `label` owns what assistive technology reads, as on Root: an
+            // app `aria-label` (often spread in by accident) must not
+            // override the words it replaces.
+            aria-label={props.label === undefined ? attrs['aria-label'] : undefined}
             data-scope={SCOPE}
             data-part="overflow"
             class={props.class}
