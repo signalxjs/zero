@@ -217,7 +217,9 @@ describe('compileLynxRecipeCss', () => {
             const spinner = decls('.zx-button__spinner');
             expect(spinner).toContain('border-top-color: transparent');
             for (const side of ['right', 'bottom', 'left']) expect(spinner).toContain(`border-${side}-color: var(--btn-ink)`);
-            expect(decls('.zx-button__spinner.zx-a-variant-solid').some((d) => d.startsWith('border-top-color'))).toBe(false);
+            const solid = decls('.zx-button__spinner.zx-a-variant-solid');
+            for (const side of ['right', 'bottom', 'left']) expect(solid).toContain(`border-${side}-color: var(--btn-on-accent)`);
+            expect(solid.some((d) => d.startsWith('border-top-color') || d.startsWith('border-color'))).toBe(false);
         });
 
         it('draws the outline/dash ink edge as longhands the disabled rule overrides', () => {
@@ -238,7 +240,7 @@ describe('compileLynxRecipeCss', () => {
             expect(decls('.zx-button__root.zx-m-wide')).toEqual(expect.arrayContaining(['width: 100%', 'max-width: 16rem']));
             for (const scope of ['dialog', 'popover']) {
                 const trigger = rules(componentCss[scope] ?? '').filter((r) => r.selector === `.zx-${scope}__trigger`).flatMap((r) => r.decls);
-                expect(trigger).toEqual(expect.arrayContaining(['width: max-content', 'flex-shrink: 0']));
+                expect(trigger).toEqual(expect.arrayContaining(['width: max-content', 'flex-shrink: 0', 'flex-wrap: nowrap']));
             }
         });
     });
