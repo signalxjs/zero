@@ -953,8 +953,8 @@ describe('assertNoCalcVarChains', () => {
         expect(css).toMatch(/\.zx-divider__root \{[^}]*background: var\(--divider-ink\);/);
         expect(css).toMatch(/\.zx-divider__root\.zx-o-horizontal \{[^}]*block-size: var\(--border\);/);
         expect(css).toMatch(/\.zx-divider__root\.zx-o-vertical \{[^}]*inline-size: var\(--border\);/);
-        expect(css).toContain('.zx-divider__root.zx-o-horizontal.zx-a-size-xl {\n    block-size: calc(var(--border) * 3);');
-        expect(css).toContain('.zx-divider__root.zx-o-vertical.zx-a-size-lg {\n    inline-size: calc(var(--border) * 2);');
+        expect(css).toMatch(/\.zx-divider__root\.zx-o-horizontal\.zx-a-size-xl \{[^}]*block-size: calc\(var\(--border\) \* 3\);/);
+        expect(css).toMatch(/\.zx-divider__root\.zx-o-vertical\.zx-a-size-lg \{[^}]*inline-size: calc\(var\(--border\) \* 2\);/);
     });
 
     it('zero-daisyui slider: the mark is its own tick on lynx, and vertical turns the channel upright', () => {
