@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-09-27
+
+### Added — the `clearable` flag (zero#387)
+
+- `FLAG_VOCABULARY` gains `clearable` (mirroring `@sigx/zero`), so ecosystem
+  fragments may declare it and recipes may key on `[data-clearable]`.
+
 ## [0.10.0] - 2026-09-27
 
 ### Fixed — The lynx target rewrites `rem` to `px` at 16px/rem (zero#381)

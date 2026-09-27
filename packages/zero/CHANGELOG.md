@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-09-27
+
 ### Added — a governed `clearable` flag for the select (#387)
 
 - **Contract.** `clearable` joins `FLAG_VOCABULARY` (and the zero-kit copy).
