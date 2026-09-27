@@ -285,7 +285,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     menu: ['alignOffset', 'arrowPadding', 'closeOnSelect', 'collisionPadding', 'defaultOpen', 'loop', 'offset', 'placement', 'positionStrategy', 'value'],
     'nav-list': ['id', 'label', 'title'],
     navbar: ['id', 'role', 'title'],
-    'number-input': ['allowWheel', 'clampOnBlur', 'defaultValue', 'form', 'format', 'id', 'invalid', 'largeStep', 'max', 'min', 'name', 'parse', 'readonly', 'required', 'role', 'step', 'title', 'value'],
+    'number-input': ['allowWheel', 'clampOnBlur', 'defaultValue', 'form', 'format', 'formatOptions', 'id', 'invalid', 'largeStep', 'locale', 'max', 'min', 'name', 'parse', 'readonly', 'required', 'role', 'step', 'title', 'value'],
     pagination: ['boundaryCount', 'count', 'defaultPage', 'firstLabel', 'getPageHref', 'id', 'label', 'lastLabel', 'nextLabel', 'pageLabel', 'prevLabel', 'role', 'siblingCount', 'title', 'value', 'withEdges'],
     popover: ['alignOffset', 'arrowPadding', 'collisionPadding', 'defaultOpen', 'offset', 'placement', 'positionStrategy', 'value'],
     progress: ['formatOptions', 'getValueText', 'id', 'locale', 'max', 'min', 'title', 'value'],

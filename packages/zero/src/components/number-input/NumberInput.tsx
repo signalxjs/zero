@@ -21,7 +21,14 @@
  * (default ten steps). An off-grid value steps to the neighbouring grid value
  * in the direction of travel (`stepToward`), never past it.
  *
- * The visible input is `type="text" inputmode="decimal"` — `type="number"`
+ * `locale` / `formatOptions` switch display and parsing to
+ * `Intl.NumberFormat` (`locale.ts`): the committed value shows formatted
+ * (`$1,234.50`, `1.234,5`, `25 %`) and typed text parses back through the
+ * locale's own group, decimal, minus and currency/percent symbols; a custom
+ * `format` / `parse` still wins. `aria-valuetext` carries the formatted text.
+ *
+ * The visible input is `type="text" inputmode="decimal"` (`numeric` for a
+ * locale format with no fraction digits and `min >= 0`) — `type="number"`
  * would fight the draft model with its own parsing, spinner chrome and
  * scroll-to-change. Form participation goes through `hidden-input`, which
  * posts the canonical `String(value)`; the visible input never carries
@@ -41,6 +48,7 @@ import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs } from '../../contract/props.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled, WithFormControl, WithHtmlAttrs, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { clamp, snapToStep, stepToward } from './number.js';
+import { createLocaleNumberFormat, type LocaleNumberFormat } from './locale.js';
 import { numberInputAnatomy } from './anatomy.js';
 
 const SCOPE = numberInputAnatomy.scope;
@@ -64,6 +72,7 @@ interface NumberInputContext {
     max(): number | undefined;
     step(): number;
     allowWheel(): boolean;
+    inputMode(): 'numeric' | 'decimal';
     displayValue(): string;
     describedBy(): string | undefined;
     labelId(): string | undefined;
@@ -92,6 +101,7 @@ function makeInert(): NumberInputContext {
         max: () => undefined,
         step: () => 1,
         allowWheel: () => false,
+        inputMode: () => 'decimal',
         displayValue: () => '',
         describedBy: () => undefined,
         labelId: () => undefined,
@@ -123,9 +133,18 @@ export type NumberInputRootProps =
     & Define.Prop<'allowWheel', boolean, false>
     /** Clamp an out-of-range commit into [min, max] (default true). */
     & Define.Prop<'clampOnBlur', boolean, false>
-    /** Display formatting for the committed value (default `String`). */
+    /**
+     * BCP 47 locale for `Intl.NumberFormat` display and parsing. Setting it
+     * (or `formatOptions`) switches the defaults of `format` and `parse` to
+     * locale-aware ones; the runtime's default locale when only
+     * `formatOptions` is given.
+     */
+    & Define.Prop<'locale', string, false>
+    /** `Intl.NumberFormat` options (`style: 'currency' | 'percent' | 'unit'`, digit counts, …). */
+    & Define.Prop<'formatOptions', Intl.NumberFormatOptions, false>
+    /** Display formatting for the committed value (default `String`, or Intl with `locale`/`formatOptions`). Wins over `locale`. */
     & Define.Prop<'format', (value: number) => string, false>
-    /** Parse typed text; return null for "not a number" (default lenient decimal). */
+    /** Parse typed text; return null for "not a number" (default lenient decimal, or Intl with `locale`/`formatOptions`). Wins over `locale`. */
     & Define.Prop<'parse', (text: string) => number | null, false>
     & WithFormControl
     & WithReadonly
@@ -167,12 +186,39 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
     const readonly = fc.readonly;
     // Coerced, not trusted: snapToStep divides by this, so step={0} (or a
     // non-finite value) would poison the model and ARIA with NaN/Infinity.
+    // A percent format's model is a fraction (0.25 shows as 25%), so its
+    // default step is one percent — a step of 1 would snap 0.25 to 0.
     const step = (): number => {
         const s = props.step;
-        return typeof s === 'number' && Number.isFinite(s) && s > 0 ? s : 1;
+        if (typeof s === 'number' && Number.isFinite(s) && s > 0) return s;
+        return props.formatOptions?.style === 'percent' ? 0.01 : 1;
     };
-    const format = (v: number): string => (props.format ? props.format(v) : String(v));
-    const parse = (t: string): number | null => (props.parse ? props.parse(t) : defaultParse(t));
+    // One Intl formatter (and its derived symbols) per (locale, options) —
+    // keyed by value, so an inline `formatOptions={{ … }}` literal that is a
+    // new object every render does not rebuild it.
+    let intl: { key: string; nf: LocaleNumberFormat } | null = null;
+    const localeFormat = (): LocaleNumberFormat | null => {
+        if (props.locale === undefined && props.formatOptions === undefined) return null;
+        const key = JSON.stringify([props.locale ?? null, props.formatOptions ?? null]);
+        if (intl?.key !== key) intl = { key, nf: createLocaleNumberFormat(props.locale, props.formatOptions) };
+        return intl.nf;
+    };
+    const format = (v: number): string => {
+        if (props.format) return props.format(v);
+        const l = localeFormat();
+        return l ? l.format(v) : String(v);
+    };
+    const parse = (t: string): number | null => {
+        if (props.parse) return props.parse(t);
+        const l = localeFormat();
+        return l ? l.parse(t) : defaultParse(t);
+    };
+    // A whole-number field that cannot go negative gets the digits-only
+    // keypad; anything else needs the decimal separator (and the minus).
+    const inputMode = (): 'numeric' | 'decimal' => {
+        const l = localeFormat();
+        return l && l.maximumFractionDigits === 0 && props.min !== undefined && props.min >= 0 ? 'numeric' : 'decimal';
+    };
 
     const invalid = fc.invalid;
 
@@ -250,6 +296,7 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
         max: () => props.max,
         step,
         allowWheel: () => props.allowWheel ?? false,
+        inputMode,
         displayValue,
         describedBy: fc.describedBy,
         labelId: fc.labelId,
@@ -408,7 +455,7 @@ const NumberInputInput = component<NumberInputInputProps>(({ props }) => {
                 {...attrs}
                 id={ctx.inputId()}
                 type="text"
-                inputMode="decimal"
+                inputMode={ctx.inputMode()}
                 autoComplete="off"
                 role="spinbutton"
                 data-scope={SCOPE}
