@@ -223,7 +223,7 @@ describe('structural fallbacks', () => {
         // `font-size: var(--text-sm)` in its recipes reads a property nothing
         // defines, and on lynx that declaration simply never applies
         // (signalxjs/lynx#1029).
-        expect(root).toContain('--text-sm: 0.875rem;');
+        expect(root).toContain('--text-sm: 14px;');
         expect(root.indexOf('--text-sm')).toBeLessThan(root.indexOf('--color-primary'));
     });
 });

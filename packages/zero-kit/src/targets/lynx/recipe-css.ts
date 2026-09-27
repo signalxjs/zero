@@ -62,7 +62,9 @@ import {
     bakeColorValue,
     hasComparisonFunction,
     hasUnsupportedColorFunction,
+    LYNX_REM_PX,
     LynxRuntimePropertyError,
+    remToPx,
     runtimePropertyIn,
 } from './capabilities.js';
 import { HOST_CLASS, axisClass, flagClass, layoutClass, modClass, orientationClass, partClass, placementClass, stateClass, themeClass } from './class-names.js';
@@ -716,5 +718,16 @@ export function compileLynxRecipeCss(
         }
         css += `@keyframes ${name} {\n    ${baked.trim()}\n}\n`;
     }
-    return css;
+    // Last, over the finished text: declarations, calc() operands, raw lynx
+    // css and keyframes all carry the author's 16px rem, which lynx would
+    // resolve at 14px (signalxjs/lynx#1183).
+    const rewritten = remToPx(css);
+    if (rewritten.count > 0) {
+        report.translated.push({
+            where: `lynx recipe for "${scope}"`,
+            what: `rem lengths (${rewritten.count})`,
+            detail: `rewritten to px at ${LYNX_REM_PX}px/rem — lynx resolves rem against its 14px default page font size (measured, signalxjs/lynx#1183), which would draw every rem-based size 12.5% small`,
+        });
+    }
+    return rewritten.css;
 }

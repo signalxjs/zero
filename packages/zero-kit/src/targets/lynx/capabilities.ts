@@ -68,7 +68,28 @@
  *   section restates the same geometry with those, which are this target's
  *   norm (lynx has no RTL flow to make the logical distinction meaningful).
  *
+ * Fifth round of on-device measurement (signalxjs/lynx#1183, iPhone 17 Pro /
+ * iOS 26 simulator + Android emulator, lynx main `96e6c678` with
+ * `@sigx/zero-daisyui` 0.9.0):
+ *
+ * - **`rem` resolves to 14px, not 16px.** Lynx resolves `rem` against the
+ *   engine's default page font size, `DEFAULT_FONT_SIZE_DP 14`
+ *   (`core/renderer/tasm/config.h`, via `LynxEnvConfig::DefaultFontSize()`),
+ *   and nothing a stylesheet can declare moves it. Every rem-based size
+ *   therefore drew 12.5% small: daisy's button ramp
+ *   (`calc(var(--size-field) * 6..14)`) measured 21/28/35/42/49 instead of
+ *   24/32/40/48/56, and a 10rem probe bar drew ~140dp instead of 160.
+ *   Design systems are authored against the web's 16px rem, so the emitter
+ *   rewrites every `rem` length to `px` at {@link LYNX_REM_PX} — in token
+ *   values, declarations, `calc()` operands, raw `targets.lynx.css` and
+ *   keyframes alike (`remToPx`). A translate, not a drop: the result is the
+ *   size the author wrote. The px it produces also takes part in the engine's
+ *   OS font scale, which scales px on font-relevant properties
+ *   (font-size, line-height) only — the same contract a px-authored skin
+ *   always had.
+ *
  * Three verdicts:
+ *
  *
  * - **translate** — silently, because the result is semantically equivalent:
  *   interaction states onto the runtime-stamped flag classes, `selectors:`
@@ -77,7 +98,8 @@
  *   declares — with `:not([data-disabled])` elided beside `pressed`, which
  *   the lynx runtime never stamps on a disabled part (zero#326) — anatomy pseudo
  *   parts onto real part classes, color functions onto culori-baked literals,
- *   `@layer` onto source order, `--text-fixed-*` onto materialized literals.
+ *   `@layer` onto source order, `--text-fixed-*` onto materialized literals,
+ *   `rem` onto `px` at 16px/rem (signalxjs/lynx#1183).
  * - **drop, with a report entry** — the declaration cannot exist on lynx and
  *   losing it is legible styling degradation an author may want to patch in
  *   a lynx recipe section: `hover` states, pseudo-element `selectors:` keys,
@@ -212,3 +234,59 @@ export const hasComparisonFunction = (value: string): boolean =>
  * so this target's consumers and tests keep their import.
  */
 export { bakeColor, bakeColorValue, bakeSoft, foldConstantCalc } from '../../resolve/color-bake.js';
+
+/**
+ * The px one `rem` is rewritten to on this target: the web's (and every
+ * design system's authoring) default root font size. Lynx's own rem is the
+ * engine's 14px default page font size (measured, signalxjs/lynx#1183).
+ */
+export const LYNX_REM_PX = 16;
+
+/**
+ * A `rem` length: an optionally signed number (integer, decimal or leading
+ * dot, optional exponent) followed by `rem`, standing alone as a token — not
+ * the tail of an identifier (`--gap-2rem`, `.zx-a-size-2rem`, `p2rem`) and
+ * not followed by more identifier characters. Case-insensitive, as CSS units
+ * are.
+ */
+const REM_LENGTH = /(?<![\w.-])(-?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)rem(?![\w-])/gi;
+
+/**
+ * `url(…)` and quoted strings: text a unit rewrite must never touch. A quoted
+ * url is consumed as its string, so a `)` inside it (a data URI's
+ * `filter='url(%23a)'`) cannot end the span early; strings stop at a newline
+ * as CSS strings do, so a stray quote cannot swallow the rest of the sheet.
+ */
+const OPAQUE_SPAN = /url\(\s*(?:"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|[^)'"]*)\s*\)|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/gi;
+
+/** A px count without binary-float noise: 0.875 × 16 is 14, not 13.999…. */
+const formatPx = (px: number): string => {
+    const rounded = Number(px.toFixed(4));
+    return `${Object.is(rounded, -0) ? 0 : rounded}px`;
+};
+
+/**
+ * Rewrite every `rem` length in emitted lynx CSS to `px` at
+ * {@link LYNX_REM_PX} (signalxjs/lynx#1183: lynx resolves 1rem = 14px).
+ *
+ * Runs over finished stylesheet text — both emitters apply it last, so
+ * token values, recipe declarations, `calc()` operands, raw lynx css and
+ * keyframes bodies are all covered by one pass and no emission path can
+ * forget it. `url()` and quoted strings are skipped. Returns the text and
+ * how many lengths it rewrote, so the caller can record the translation.
+ */
+export function remToPx(css: string): { css: string; count: number } {
+    let count = 0;
+    const rewrite = (text: string): string => text.replace(REM_LENGTH, (_whole, num: string) => {
+        count++;
+        return formatPx(Number(num) * LYNX_REM_PX);
+    });
+    let out = '';
+    let last = 0;
+    for (const match of css.matchAll(OPAQUE_SPAN)) {
+        out += rewrite(css.slice(last, match.index)) + match[0];
+        last = match.index + match[0].length;
+    }
+    out += rewrite(css.slice(last));
+    return { css: out, count };
+}
