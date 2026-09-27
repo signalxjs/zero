@@ -14,7 +14,7 @@ const DrawerDemos = component(({ signal }) => {
                 machinery (top layer, scrim, Escape via <code>cancel</code>, native
                 focus restore) with the edge as its own contract:{' '}
                 <code>data-placement="start|end"</code> from the logical pair, so
-                RTL mirrors free. <code>modal={'{false}'}</code> is the inline
+                RTL mirrors free, plus the block edges <code>top|bottom</code>. <code>modal={'{false}'}</code> is the inline
                 mode: in flow, no dismiss trap, Escape still closes.
             </p>
             <Drawer.Root>
@@ -40,6 +40,28 @@ const DrawerDemos = component(({ signal }) => {
                     <Drawer.Title>Details</Drawer.Title>
                     <p>An inspector panel sits at the reading end.</p>
                     <Drawer.Close>Close details</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>
+            <p>
+                From a block edge — <code>placement="bottom"</code> and{' '}
+                <code>"top"</code> (#291): a sheet across the viewport's width,
+                as tall as its content up to the design system's cap. Sheet-only
+                (a block-edge drawer never docks), and it never mirrors in RTL.
+            </p>
+            <Drawer.Root placement="bottom">
+                <Drawer.Trigger>Open bottom sheet</Drawer.Trigger>
+                <Drawer.Panel>
+                    <Drawer.Title>Share</Drawer.Title>
+                    <p>A bottom sheet rises from the block end of the viewport.</p>
+                    <Drawer.Close>Close bottom sheet</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>
+            <Drawer.Root placement="top">
+                <Drawer.Trigger>Open top sheet</Drawer.Trigger>
+                <Drawer.Panel>
+                    <Drawer.Title>Announcements</Drawer.Title>
+                    <p>A top sheet drops from the block start.</p>
+                    <Drawer.Close>Close top sheet</Drawer.Close>
                 </Drawer.Panel>
             </Drawer.Root>
             <p>

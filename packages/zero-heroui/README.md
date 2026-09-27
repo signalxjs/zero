@@ -59,6 +59,8 @@ playground alongside the other design systems.
 The modal drawer sheet slides in from its placement edge, as HeroUI's Drawer
 does, instead of fading (#83): decelerating in, accelerating out. The travel
 flips with the placement and with `dir="rtl"`, and reduced motion drops it.
+HeroUI's `top`/`bottom` placements (#291) are full-width sheets with rounded
+inner corners, travelling on the block axis, which never mirrors.
 
 ## Usage
 

@@ -9980,6 +9980,32 @@
         border-inline-start: calc(var(--border) * 2) solid var(--color-base-content);
     }
 
+    [data-scope="drawer"][data-part="panel"]:where([data-placement="top"], [data-placement="bottom"]) {
+        --l-measure: none;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-placement="top"][data-l-dock="sheet"] {
+        inset-block-start: 0;
+        inset-block-end: auto;
+        inset-inline-start: 0;
+        inset-inline-end: 0;
+        margin-inline: auto;
+        block-size: auto;
+        max-block-size: 85dvh;
+        border-block-end: calc(var(--border) * 2) solid var(--color-base-content);
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-placement="bottom"][data-l-dock="sheet"] {
+        inset-block-start: auto;
+        inset-block-end: 0;
+        inset-inline-start: 0;
+        inset-inline-end: 0;
+        margin-inline: auto;
+        block-size: auto;
+        max-block-size: 85dvh;
+        border-block-start: calc(var(--border) * 2) solid var(--color-base-content);
+    }
+
     [data-scope="drawer"][data-part="panel"]::backdrop {
         background: oklch(0% 0 0 / 0.55);
     }

@@ -66,8 +66,15 @@ import { mountScope } from '../../behaviors/mount-scope.js';
 
 const SCOPE = drawerAnatomy.scope;
 
-/** Which reading edge the panel sits on — the logical pair. */
-export type DrawerPlacement = 'start' | 'end';
+/**
+ * Which edge the panel sits on: `start` / `end` are the reading edges (the
+ * logical pair, so RTL mirrors them), `top` / `bottom` the block edges — a
+ * sheet across the viewport's width, which never mirrors (#291).
+ */
+export type DrawerPlacement = 'start' | 'end' | 'top' | 'bottom';
+
+/** A block-edge placement: sheet-only — it has no docked regime. */
+const isBlockPlacement = (p: DrawerPlacement | undefined): boolean => p === 'top' || p === 'bottom';
 
 /**
  * The responsive form of `modal`: a modal sheet strictly below the named
@@ -179,11 +186,15 @@ export type DrawerRootProps =
     /**
      * `true` (default) a modal sheet, `false` inline, or `{ below: bp }` —
      * a sheet below the breakpoint, docked open inline at or above it. The
-     * form is read once, at setup.
+     * form is read once, at setup. Docking is for the reading edges only: a
+     * `top` / `bottom` drawer given a breakpoint warns and stays a sheet.
      */
     & Define.Prop<'modal', boolean | DrawerModalRange, false>
     & Define.Prop<'dismissible', boolean, false>
-    /** Which reading edge the panel sits on. Default `start`. */
+    /**
+     * Which edge the panel sits on — a reading edge (`start` / `end`) or a
+     * block edge (`top` / `bottom`, a sheet only). Default `start`.
+     */
     & Define.Prop<'placement', DrawerPlacement, false>
     /** Accessible name of the panel when no `Drawer.Title` renders. */
     & Define.Prop<'label', string, false>
@@ -228,7 +239,18 @@ const DrawerRoot = component<DrawerRootProps>(({ props, slots, emit, signal }) =
     // Read once: the breakpoint names both the media query subscription and
     // the rendered attribute, and neither can be re-pointed after setup.
     const range = props.modal;
-    const dock = typeof range === 'object' && range !== null ? range.below : undefined;
+    const requestedDock = typeof range === 'object' && range !== null ? range.below : undefined;
+    // A block-edge drawer is sheet-only (#291): docking means pinned open
+    // beside the content, which a top or bottom panel has no column for. The
+    // placement is read here with the form, so the regime is fixed at setup.
+    const blockEdge = isBlockPlacement(props.placement);
+    if (requestedDock !== undefined && blockEdge) {
+        console.warn(
+            `[zero] Drawer.Root placement="${props.placement}" cannot dock: modal={{ below: '${requestedDock}' }} `
+            + 'applies to the start/end placements only. The drawer stays a modal sheet at every width.',
+        );
+    }
+    const dock = blockEdge ? undefined : requestedDock;
     // `initial: true` is the server's answer: it cannot see the viewport, so
     // it renders the docked markup and the compiled CSS covers a narrow one.
     const dockQuery = dock === undefined ? undefined : breakpointQuery({ above: dock });
@@ -283,6 +305,8 @@ const DrawerRoot = component<DrawerRootProps>(({ props, slots, emit, signal }) =
     const ctx: DrawerContext = {
         state,
         requestClose,
+        // A block-edge drawer that asked to dock is a sheet (see `dock`):
+        // with no breakpoint left, the object form is simply `!== false`.
         modal: () => (dock === undefined ? props.modal !== false : !docked()),
         dock,
         dockQuery,

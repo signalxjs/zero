@@ -9,7 +9,9 @@
  * - the EDGE: `data-placement="start|end"` is the logical pair, so the spec
  *   measures boxes rather than attributes — the start panel's inline-start
  *   edge sits on the viewport's reading edge, the end panel's on the far
- *   one (LTR here; the RTL sweep is rtl.spec.ts's jurisdiction);
+ *   one (LTR here; the RTL sweep is rtl.spec.ts's jurisdiction), and the
+ *   block edges `top|bottom` (#291) rest on the viewport's block edges,
+ *   full width;
  * - the scrim geometry (#324, inherited): a click on the panel's own
  *   padding must NOT close while a genuine scrim click must — and (#260)
  *   the press has to start on the scrim too, and Escape on a
@@ -63,6 +65,39 @@ test('placement="end" pins the panel to the far edge', async ({ page }) => {
     const viewport = page.viewportSize()!;
     expect(box.x + box.width).toBeGreaterThanOrEqual(viewport.width - 1);
 });
+
+/**
+ * The block edges (#291): a bottom sheet rests on the viewport's block end,
+ * a top sheet on its block start, each across the full inline size — and
+ * the scrim above (below) it still dismisses. Measured in boxes, like the
+ * reading edges above; the per-skin containment at phone width is
+ * narrow-drawer.spec.ts's.
+ */
+for (const [placement, label] of [['bottom', 'Open bottom sheet'], ['top', 'Open top sheet']] as const) {
+    test(`placement="${placement}" pins a full-width sheet to the block edge, and the scrim dismisses`, async ({ page }) => {
+        const trigger = page.getByRole('button', { name: label, exact: true });
+        await trigger.click();
+        const panel = await controlledPopup(page, trigger, `the ${placement} sheet trigger`);
+        await expect(panel).toHaveAttribute('data-state', 'open');
+        await expect(panel).toHaveAttribute('data-placement', placement);
+        expect(await panel.evaluate((el) => el.matches(':modal'))).toBe(true);
+        const box = await settledBox(panel, `the ${placement} sheet`);
+        const { vw, vh } = await page.evaluate(() => ({
+            vw: document.documentElement.clientWidth,
+            vh: window.innerHeight,
+        }));
+        expect(box.x, 'the sheet spans the inline axis').toBeLessThanOrEqual(1);
+        expect(box.x + box.width, 'the sheet spans the inline axis').toBeGreaterThanOrEqual(vw - 1);
+        // Content-sized, not a full-height panel: the scrim keeps a strip.
+        expect(box.height).toBeLessThan(vh - 40);
+        if (placement === 'bottom') expect(Math.abs(box.y + box.height - vh)).toBeLessThanOrEqual(1);
+        else expect(box.y).toBeLessThanOrEqual(1);
+
+        const scrimY = placement === 'bottom' ? 8 : vh - 8;
+        await page.mouse.click(Math.floor(vw / 2), scrimY);
+        await expect(panel).toHaveAttribute('data-state', 'closed');
+    });
+}
 
 test('Escape closes (native cancel routed through the model) and restores focus', async ({ page }) => {
     const trigger = startTrigger(page);

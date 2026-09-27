@@ -13,7 +13,11 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * anchors to the reading direction (a navigation drawer sits at the
  * reading start in both directions), so spelling it physically would be
  * wrong in one of them; recipes pin it with `inset-inline-*` and RTL
- * mirrors free.
+ * mirrors free. `top|bottom` are the block edges (#291) — the bottom sheet —
+ * pinned with `inset-block-*` across the full inline size, which no
+ * direction mirrors. They are sheet-only: the docked regime below is for
+ * the reading edges, and a block-edge drawer asked to dock warns and stays
+ * a sheet.
  *
  * Modal from inline is `data-l-dock="sheet|inline"` on the panel (#83), not
  * `:modal`. The platform's pseudo-class stops matching the moment `close()`
@@ -26,7 +30,9 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * `--measure-*` ramp), consumed by the recipes as `--l-measure`, a cap: the
  * panel fills its container inline, or the viewport as a modal sheet, up to
  * it — so `full` is a full-screen sheet. Unset, each design system's own
- * panel width applies.
+ * panel width applies. It stays an INLINE-size cap at the block edges too
+ * (a bottom sheet is full width unless `measure` narrows it); a block-edge
+ * sheet's height is the recipe's, content-sized up to its own cap.
  *
  * The responsive regime split (`modal={{ below: 'md' }}`, #82) is a
  * breakpoint-valued layout attribute: `data-l-dock-above="md"` on the
@@ -62,7 +68,7 @@ export const drawerAnatomy = defineAnatomy('drawer', {
     panel: {
         element: 'dialog',
         states: ['open', 'closed'],
-        placements: ['start', 'end'],
+        placements: ['start', 'end', 'top', 'bottom'],
         // The panel's width, from the `--measure-*` ramp — Container's
         // reasoning for a layout attribute over the `size` axis, plus one of
         // Drawer's own: `size` rides the trigger (the carrier), and the

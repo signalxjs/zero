@@ -276,7 +276,8 @@ all six design systems, asserting the OPPOSITE thing in two projects:
 recipe that never animated — and `animation-name` rather than duration,
 because the kit collapses `--duration-*` to ~0 under reduced motion and a
 loop at ~0s strobes rather than stops (the same both-ways check holds the
-drawer sheet's slide in the four skins that slide, #83, and the accordion
+drawer sheet's slide in the four skins that slide, #83 — the start sheet
+on X and the bottom sheet on Y, #291 — and the accordion
 panel's close in the five skins that animate it, #276 — brutalist cuts);
 and the **RTL spec** (`e2e/rtl.spec.ts`), the other
 spec that walks all six — chromium-only, one page load per design system, it
@@ -288,7 +289,9 @@ the side its `data-placement` names, a collapsed branch indicator and a submenu
 chevron point at the reading end, the indeterminate progress sweep travels
 the reading way (seeked through `getAnimations()`, since the loop makes
 wall-clock sampling straddle a wrap), a sliding skin's modal drawer
-sheet enters from its reading edge, measured early in the entry (#83), a
+sheet enters from its reading edge, measured early in the entry (#83),
+while a bottom sheet stays full width and rises on Y — the block edges do
+not mirror (#291), a
 `bottom-start` menu popup's inline-start (right) edge meets its trigger's
 while `data-placement` stays the logical `bottom-start` (#264), a divider
 label placed at `start` sits in the reading-start half of its rule and one
@@ -311,6 +314,10 @@ on both axes. Geometric on purpose: a `<dialog>` keeps the UA's
 plus padding rendered wider than it said in four skins, which neither the
 unit suite (no layout) nor the CSS goldens (the declaration, not its
 sufficiency) could see;
+the **narrow-drawer spec** (`e2e/narrow-drawer.spec.ts`, #291) — the
+same shape for the block-edge drawer sheets: at 400px in every skin the
+bottom and top sheets' border boxes sit inside the viewport, span its
+width, and rest on the block edge they name (the height is recipe-owned);
 the **narrow-pagination spec** (`e2e/narrow-pagination.spec.ts`, #44) —
 the same shape at 400px for the "wider window" Pagination: the root stays
 inside its column while genuinely overflowing (the row is constant-width,
@@ -381,7 +388,7 @@ its own page) must render somewhere, plus the standalone `VisuallyHidden`,
 since an unrendered scope is invisible to every sweeping spec at once); and
 the **narrow-viewport sweep** (`e2e/narrow-viewport.spec.ts`, #45) — the
 `narrow` project (Desktop Chrome at 420px) owns every `narrow-*.spec.ts`,
-this sweep and the dialog, pagination and stats specs above; every other
+this sweep and the dialog, drawer, pagination and stats specs above; every other
 project `testIgnore`s them and `narrow` runs nothing else. The sweep is one
 test per design system walking every registry page:
 the document must not scroll sideways, and no visible

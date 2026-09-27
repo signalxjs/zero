@@ -6917,6 +6917,38 @@ export const drawer: RecipeInput = {
                 },
                 '&[data-placement="start"][data-l-dock="sheet"]': { insetInlineStart: '0', insetInlineEnd: 'auto' },
                 '&[data-placement="end"][data-l-dock="sheet"]': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+                /**
+                 * The block edges (#291): a sheet across the viewport's width,
+                 * pinned with `inset-block-*` — nothing here mirrors in RTL. Its
+                 * height is this recipe's: content-sized up to most of the
+                 * viewport, so the scrim stays in reach. Full width by default —
+                 * `measure` still caps the INLINE size (centred by the auto
+                 * margins), which the `:where()` keeps below the layout step
+                 * table's specificity whatever order the files load in.
+                 */
+                '&:where([data-placement="top"], [data-placement="bottom"])': { '--l-measure': 'none' },
+                '&[data-placement="top"][data-l-dock="sheet"]': {
+                    insetBlockStart: '0',
+                    insetBlockEnd: 'auto',
+                    insetInlineStart: '0',
+                    insetInlineEnd: '0',
+                    marginInline: 'auto',
+                    blockSize: 'auto',
+                    maxBlockSize: '85dvh',
+                    borderEndStartRadius: 'var(--radius-box)',
+                    borderEndEndRadius: 'var(--radius-box)',
+                },
+                '&[data-placement="bottom"][data-l-dock="sheet"]': {
+                    insetBlockStart: 'auto',
+                    insetBlockEnd: '0',
+                    insetInlineStart: '0',
+                    insetInlineEnd: '0',
+                    marginInline: 'auto',
+                    blockSize: 'auto',
+                    maxBlockSize: '85dvh',
+                    borderStartStartRadius: 'var(--radius-box)',
+                    borderStartEndRadius: 'var(--radius-box)',
+                },
             },
         }),
         backdrop: {

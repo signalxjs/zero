@@ -102,7 +102,8 @@ for (const ds of DESIGN_SYSTEMS) {
 }
 
 /**
- * The modal drawer sheet's slide (#83), in the skins that slide. A one-shot
+ * The modal drawer sheet's slide (#83), in the skins that slide — the
+ * reading-edge sheet and the bottom sheet (#291). A one-shot
  * transition rather than a loop, so the question is simpler than above: under
  * reduced motion there must be no `translate` transition at all, and the
  * sheet is at rest the moment it opens. Both directions again — in `chromium`
@@ -111,31 +112,58 @@ for (const ds of DESIGN_SYSTEMS) {
  */
 const SLIDES = ['daisyui', 'material', 'heroui', 'carbon'] as const;
 
-for (const ds of SLIDES) {
-    test(`${ds}: the drawer sheet's slide answers prefers-reduced-motion`, async ({ page }, testInfo) => {
+/**
+ * The reading-edge sheet travels on X, the bottom sheet (#291) on Y — the
+ * same custom property carrying a different pair, so each is its own claim.
+ */
+const SHEETS = [['start', 'Open drawer'], ['bottom', 'Open bottom sheet']] as const;
+
+for (const ds of SLIDES) for (const [placement, label] of SHEETS) {
+    test(`${ds}: the ${placement} drawer sheet's slide answers prefers-reduced-motion`, async ({ page }, testInfo) => {
         const reduced = testInfo.project.name === 'reduced-motion';
         test.skip(
             !reduced && testInfo.project.name !== 'chromium',
             'two projects are the whole point; the other engines add nothing here',
         );
         await bootPage(page, 'drawer', ds);
-        const trigger = page.getByRole('button', { name: 'Open drawer', exact: true });
+        const trigger = page.getByRole('button', { name: label, exact: true });
         const slide = await trigger.evaluate(async (btn: HTMLElement) => {
             btn.click();
             await new Promise((r) => setTimeout(r, 0));
             const panel = document.getElementById(btn.getAttribute('aria-controls')!)!;
-            const t = panel.getAnimations().find((a) => (a as CSSTransition).transitionProperty === 'translate');
+            const running = panel.getAnimations();
+            const t = running.find((a) => (a as CSSTransition).transitionProperty === 'translate');
+            // Seek to 5% of the entry: the travel's AXIS, read from the box
+            // offset against the viewport — the entry curves decelerate, so
+            // early is where most of the travel still lies ahead.
+            let offset: { x: number; y: number } | null = null;
+            if (t) {
+                for (const a of running) a.pause();
+                t.currentTime = (t.effect!.getComputedTiming().duration as number) * 0.05;
+                const r = panel.getBoundingClientRect();
+                offset = { x: r.left, y: window.innerHeight - r.bottom };
+            }
             return {
                 duration: t ? (t.effect!.getComputedTiming().duration as number) : null,
                 translate: getComputedStyle(panel).translate,
+                offset,
             };
         });
         if (reduced) {
-            expect(slide.duration, `${ds}: the sheet still slides under reduced motion`).toBeNull();
+            expect(slide.duration, `${ds}: the ${placement} sheet still slides under reduced motion`).toBeNull();
             expect(slide.translate).toBe('none');
         } else {
-            expect(slide.duration, `${ds}: the sheet does not slide, so the reduced-motion half proves nothing`).not.toBeNull();
+            expect(slide.duration, `${ds}: the ${placement} sheet does not slide, so the reduced-motion half proves nothing`).not.toBeNull();
             expect(slide.duration!).toBeGreaterThan(100);
+            // The start sheet comes in off the left edge, level; the bottom
+            // sheet rises from below the block end, unshifted inline.
+            if (placement === 'start') {
+                expect(slide.offset!.x, `${ds}: the start sheet travels on X`).toBeLessThan(-20);
+                expect(Math.abs(slide.offset!.y)).toBeLessThanOrEqual(1);
+            } else {
+                expect(slide.offset!.y, `${ds}: the bottom sheet travels on Y`).toBeLessThan(-20);
+                expect(Math.abs(slide.offset!.x)).toBeLessThanOrEqual(1);
+            }
         }
     });
 }

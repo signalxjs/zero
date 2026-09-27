@@ -10200,6 +10200,34 @@
         inset-inline-end: 0;
     }
 
+    [data-scope="drawer"][data-part="panel"]:where([data-placement="top"], [data-placement="bottom"]) {
+        --l-measure: none;
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-placement="top"][data-l-dock="sheet"] {
+        inset-block-start: 0;
+        inset-block-end: auto;
+        inset-inline-start: 0;
+        inset-inline-end: 0;
+        margin-inline: auto;
+        block-size: auto;
+        max-block-size: 85dvh;
+        border-end-start-radius: var(--radius-box);
+        border-end-end-radius: var(--radius-box);
+    }
+
+    [data-scope="drawer"][data-part="panel"][data-placement="bottom"][data-l-dock="sheet"] {
+        inset-block-start: auto;
+        inset-block-end: 0;
+        inset-inline-start: 0;
+        inset-inline-end: 0;
+        margin-inline: auto;
+        block-size: auto;
+        max-block-size: 85dvh;
+        border-start-start-radius: var(--radius-box);
+        border-start-end-radius: var(--radius-box);
+    }
+
     [data-scope="drawer"][data-part="panel"]::backdrop {
         background: color-mix(in oklch, var(--color-neutral) 40%, transparent);
     }

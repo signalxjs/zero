@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added — Drawer top and bottom placement (#291)
+
+- **`Drawer.Root placement="top" | "bottom"`** — the block edges, beside
+  the reading edges `start` / `end`: a sheet across the viewport's width
+  (the bottom sheet), which no writing direction mirrors. `DrawerPlacement`
+  widens to `'start' | 'end' | 'top' | 'bottom'`, and the panel anatomy's
+  `placements` to match (all four already in `PLACEMENT_VOCABULARY`).
+- **Sheet-only.** The docked regime is for the reading edges: a block-edge
+  drawer given `modal={{ below }}` warns in the console and stays a modal
+  sheet at every width (no `data-l-dock-above`, no media query).
+- `measure` stays an inline-size cap — a top or bottom sheet is full width
+  unless it narrows it; the sheet's height is the design system's. All six
+  skins pin the block edges with `inset-block-*`; the four that slide
+  (daisyUI, material, HeroUI, Carbon) travel on the block axis, and reduced
+  motion drops it. `--drawer-travel` in those skins is now the whole
+  `x y` translate pair.
+
 ## [0.9.0] - 2026-09-27
 
 ### Added — Overlay focus targets, modal scroll lock, preventable dismissal (#277)
