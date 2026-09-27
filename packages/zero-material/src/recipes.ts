@@ -4236,15 +4236,48 @@ export const divider: RecipeInput = {
     tokens: { '--divider-ink': 'var(--color-outline)', '--divider-thickness': 'var(--border)' },
     parts: {
         root: {
-            base: { border: 'none', background: 'var(--divider-ink)', alignSelf: 'stretch' },
+            // The rule is two flex segments (#298), drawn as borders: with no
+            // label they meet and read as one line, and a label sits between
+            // them. Borders rather than a background, so forced colours keep
+            // the line instead of revaluing it to Canvas.
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                border: 'none',
+                alignSelf: 'stretch',
+            },
             selectors: {
-                '&[data-orientation="horizontal"]': {
-                    inlineSize: '100%',
-                    blockSize: 'var(--divider-thickness)',
-                },
-                '&[data-orientation="vertical"]': {
-                    inlineSize: 'var(--divider-thickness)',
-                    minBlockSize: '1em',
+                '&::before': { content: '""', flex: '1 1 0', minInlineSize: '0' },
+                '&::after': { content: '""', flex: '1 1 0', minInlineSize: '0' },
+                '&[data-orientation="horizontal"]': { inlineSize: '100%' },
+                '&[data-orientation="horizontal"]::before': { borderBlockStart: 'var(--divider-thickness) solid var(--divider-ink)' },
+                '&[data-orientation="horizontal"]::after': { borderBlockStart: 'var(--divider-thickness) solid var(--divider-ink)' },
+                '&[data-orientation="vertical"]': { flexDirection: 'column', minBlockSize: '1em' },
+                '&[data-orientation="vertical"]::before': { borderInlineStart: 'var(--divider-thickness) solid var(--divider-ink)' },
+                '&[data-orientation="vertical"]::after': { borderInlineStart: 'var(--divider-thickness) solid var(--divider-ink)' },
+                // A placed label keeps a short lead of rule before it at
+                // its own edge — Mantine's shape, not a flush start.
+                '&:has(> [data-scope="divider"][data-part="label"][data-placement="start"])::before': { flexGrow: '0', flexBasis: 'var(--space-lg)' },
+                '&:has(> [data-scope="divider"][data-part="label"][data-placement="end"])::after': { flexGrow: '0', flexBasis: 'var(--space-lg)' },
+            },
+        },
+        label: {
+            base: {
+                // MD3 has no labelled divider of its own; the caption is its
+                // label-medium, on-surface-variant tone.
+                flex: 'none',
+                paddingInline: 'var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                letterSpacing: 'var(--tracking-wide)',
+                whiteSpace: 'nowrap',
+                color: 'var(--color-base-content)',
+                opacity: '0.78',
+            },
+            selectors: {
+                '[data-scope="divider"][data-part="root"][data-orientation="vertical"] > &': {
+                    paddingInline: '0',
+                    paddingBlock: 'var(--space-md)',
                 },
             },
         },

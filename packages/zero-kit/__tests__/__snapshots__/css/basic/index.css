@@ -7251,19 +7251,71 @@
     }
 
     [data-scope="divider"][data-part="root"] {
+        display: flex;
+        align-items: center;
         border: none;
-        background: var(--divider-ink);
         align-self: stretch;
+    }
+
+    [data-scope="divider"][data-part="root"]::before {
+        content: "";
+        flex: 1 1 0;
+        min-inline-size: 0;
+    }
+
+    [data-scope="divider"][data-part="root"]::after {
+        content: "";
+        flex: 1 1 0;
+        min-inline-size: 0;
     }
 
     [data-scope="divider"][data-part="root"][data-orientation="horizontal"] {
         inline-size: 100%;
-        block-size: var(--divider-thickness);
+    }
+
+    [data-scope="divider"][data-part="root"][data-orientation="horizontal"]::before {
+        border-block-start: var(--divider-thickness) solid var(--divider-ink);
+    }
+
+    [data-scope="divider"][data-part="root"][data-orientation="horizontal"]::after {
+        border-block-start: var(--divider-thickness) solid var(--divider-ink);
     }
 
     [data-scope="divider"][data-part="root"][data-orientation="vertical"] {
-        inline-size: var(--divider-thickness);
+        flex-direction: column;
         min-block-size: 1em;
+    }
+
+    [data-scope="divider"][data-part="root"][data-orientation="vertical"]::before {
+        border-inline-start: var(--divider-thickness) solid var(--divider-ink);
+    }
+
+    [data-scope="divider"][data-part="root"][data-orientation="vertical"]::after {
+        border-inline-start: var(--divider-thickness) solid var(--divider-ink);
+    }
+
+    [data-scope="divider"][data-part="root"]:has(> [data-scope="divider"][data-part="label"][data-placement="start"])::before {
+        flex-grow: 0;
+        flex-basis: var(--space-xl);
+    }
+
+    [data-scope="divider"][data-part="root"]:has(> [data-scope="divider"][data-part="label"][data-placement="end"])::after {
+        flex-grow: 0;
+        flex-basis: var(--space-xl);
+    }
+
+    [data-scope="divider"][data-part="label"] {
+        flex: none;
+        padding-inline: var(--space-md);
+        font-size: var(--text-sm);
+        line-height: var(--leading-tight);
+        white-space: nowrap;
+        color: color-mix(in oklch, var(--color-base-content) 72%, transparent);
+    }
+
+    [data-scope="divider"][data-part="root"][data-orientation="vertical"] > [data-scope="divider"][data-part="label"] {
+        padding-inline: 0;
+        padding-block: var(--space-sm);
     }
 
     [data-scope="divider"][data-part="root"][data-color="primary"] {
