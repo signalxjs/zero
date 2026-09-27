@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
-import { signal } from 'sigx';
+import { component, signal } from 'sigx';
 import { Combobox, Select, comboboxAnatomy, selectAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
@@ -119,6 +119,81 @@ describe('listbox parts (#280)', () => {
             container.innerHTML = '';
             mount(signal({ fruit: 'apple' }), { readonly: true });
             expect(part('clear-trigger')).toBeNull();
+        });
+
+        // #387: the parts that make room for the button carry `data-clearable`
+        // exactly while it renders — no `:has()` reaching up from the skin.
+        describe('the `clearable` flag (#387)', () => {
+            const flagged = (): string[] => ['trigger', 'value', 'indicator']
+                .filter((name) => part(name)!.hasAttribute('data-clearable'));
+
+            it('is on the trigger, value and indicator exactly while the clear-trigger renders', async () => {
+                const state = signal({ fruit: '' });
+                mount(state);
+                await tick();
+                expect(flagged()).toEqual([]);
+                state.fruit = 'apple';
+                await tick();
+                expect(part('clear-trigger')).not.toBeNull();
+                expect(flagged()).toEqual(['trigger', 'value', 'indicator']);
+                expect(part('trigger')!.getAttribute('data-clearable')).toBe('');
+                expectAnatomy(container, selectAnatomy);
+                part('clear-trigger')!.click();
+                await tick();
+                expect(part('clear-trigger')).toBeNull();
+                expect(flagged()).toEqual([]);
+            });
+
+            it('is absent without a clear-trigger, and on a disabled or readonly select', async () => {
+                render(
+                    <Select.Root model={[signal({ fruit: 'apple' }), 'fruit']}>
+                        <Select.Trigger label="Fruit"><Select.Value /><Select.Indicator /></Select.Trigger>
+                        <Select.Popup><Select.Item value="apple">Apple</Select.Item></Select.Popup>
+                    </Select.Root>,
+                    container,
+                );
+                await tick();
+                expect(flagged()).toEqual([]);
+                for (const props of [{ disabled: true }, { readonly: true }]) {
+                    container = document.createElement('div');
+                    document.body.appendChild(container);
+                    mount(signal({ fruit: 'apple' }), props);
+                    await tick();
+                    expect(flagged(), JSON.stringify(props)).toEqual([]);
+                }
+            });
+
+            it('follows a clear-trigger that is not a direct child of the root, and one that unmounts', async () => {
+                const view = signal({ withClear: true });
+                // A consumer's own end slot, toggling the button.
+                const EndSlot = component(() => () => (
+                    <div class="end-slot">{view.withClear ? <Select.ClearTrigger /> : null}</div>
+                ));
+                render(
+                    <Select.Root model={[signal({ fruit: 'apple' }), 'fruit']}>
+                        <Select.Trigger label="Fruit"><Select.Value /><Select.Indicator /></Select.Trigger>
+                        <EndSlot />
+                        <Select.Popup><Select.Item value="apple">Apple</Select.Item></Select.Popup>
+                    </Select.Root>,
+                    container,
+                );
+                await tick();
+                expect(part('clear-trigger')!.parentElement!.className).toBe('end-slot');
+                expect(flagged()).toEqual(['trigger', 'value', 'indicator']);
+                view.withClear = false;
+                await tick();
+                expect(part('clear-trigger')).toBeNull();
+                expect(flagged()).toEqual([]);
+            });
+
+            it('the `clearable` sugar stamps it too', async () => {
+                render(
+                    <Select.Root items={['Apple', 'Banana']} defaultValue="Apple" clearable />,
+                    container,
+                );
+                await tick();
+                expect(flagged()).toEqual(['trigger', 'value', 'indicator']);
+            });
         });
     });
 

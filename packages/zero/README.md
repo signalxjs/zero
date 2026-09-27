@@ -716,7 +716,11 @@ button in the tab order, a *sibling* of `Select.Trigger` inside the root
 must not absorb it), `aria-label` "Clear selection" (`label` overrides). It
 renders only while something is selected and the select is editable, and a
 click writes the empty value (`null`, `''` for hand-written items, `[]` under
-`multiple`) and puts focus back on the trigger. `Combobox.ClearTrigger` sits
+`multiple`) and puts focus back on the trigger. While it renders — wherever
+it is composed, not only as a direct child of the root — the trigger, value
+and indicator carry `data-clearable` (#387), which a skin reads to reserve
+the button's width (`states: { clearable: { … } }` on the part), with no
+`:has()`. `Combobox.ClearTrigger` sits
 in the control beside the input and trigger, a pointer affordance like the
 trigger (`tabIndex=-1`, `aria-label` "Clear"; Escape on the closed input is
 the keyboard's clear), rendered while there is a value *or* typed text; a

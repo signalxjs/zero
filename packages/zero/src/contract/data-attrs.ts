@@ -62,6 +62,14 @@
  * slop; the drag offset rides alongside as `--swipe-x` / `--swipe-y`. It is
  * a gesture frame, not a resting style: a recipe suppresses its transition
  * there so the part tracks the pointer.
+ *
+ * `clearable` is present on the parts that must make room for a rendered
+ * clear-trigger (#387 — the select's trigger, value and indicator), exactly
+ * while that button renders: one is mounted, something is selected and the
+ * control is editable. A skin reserves the button's width off it; before
+ * the flag it had to reach up with `:has(> [data-part="clear-trigger"])`,
+ * which the lynx class grammar cannot express and which only matched a
+ * clear-trigger that was a direct child of the root.
  */
 export const FLAG_VOCABULARY = [
     'disabled',
@@ -75,6 +83,7 @@ export const FLAG_VOCABULARY = [
     'pressed',
     'press-animating',
     'swiping',
+    'clearable',
 ] as const;
 
 export type FlagName = typeof FLAG_VOCABULARY[number];

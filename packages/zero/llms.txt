@@ -13,7 +13,10 @@
   checked|unchecked, active|inactive).
 - Boolean flags are presence-only: `data-disabled=""`, never ="false".
   Vocabulary: disabled, highlighted, selected, invalid, required, readonly,
-  placeholder, focus-visible, pressed, press-animating, swiping.
+  placeholder, focus-visible, pressed, press-animating, swiping, clearable.
+- `data-clearable` (#387; select trigger, value, indicator): present exactly
+  while the Select.ClearTrigger renders — a skin reserves the button's width
+  off it (no `:has()`; lynx stamps it as `zx-f-clearable`).
 - Swipe to dismiss (#293; toast root, drawer sheet panel — `createSwipe`):
   `data-swiping` while the part is dragged toward its dismiss edge (past a
   10px slop), the offset as `--swipe-x`/`--swipe-y` (px, physical, clamped

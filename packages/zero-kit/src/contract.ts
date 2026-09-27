@@ -497,6 +497,7 @@ export const FLAG_VOCABULARY = [
     'pressed',
     'press-animating',
     'swiping',
+    'clearable',
 ] as const;
 
 /**

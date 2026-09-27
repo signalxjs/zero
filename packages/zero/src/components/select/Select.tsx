@@ -107,6 +107,15 @@ interface SelectContext {
     triggerKeydown(e: KeyboardEvent): void;
     /** Clear the selection and return focus to the trigger (the clear-trigger's click). */
     clear(): void;
+    /** Something is selected and the select is editable — when a clear-trigger renders at all. */
+    canClear(): boolean;
+    /** The clear-trigger's side of the presence count (#387): announce after the render pass; returns the unmount hook. */
+    announceClearTrigger(): () => void;
+    /**
+     * A clear-trigger is rendered — mounted, and `canClear()` — the
+     * `clearable` flag the trigger, value and indicator carry (#387).
+     */
+    clearable(): boolean;
     /** The windowed list (`virtual`), while one is rendered. */
     virtual: { current: VirtualListbox<unknown> | null };
 }
@@ -135,6 +144,9 @@ function makeInert(): SelectContext {
         setPopup: () => {},
         triggerKeydown: () => {},
         clear: () => {},
+        canClear: () => false,
+        announceClearTrigger: () => () => {},
+        clearable: () => false,
         virtual: { current: null },
     };
 }
@@ -207,7 +219,7 @@ export type SelectRootProps<T = unknown, M = unknown> =
  */
 type SelectRootImplProps = SelectRootProps & Define.Prop<'itemValue', (item: unknown) => unknown, false>;
 
-const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onMounted, onUnmounted, onUpdated }) => {
+const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, signal, onMounted, onUnmounted, onUpdated }) => {
     const multiple = (): boolean => !!props.multiple;
     // What the runtime WRITES for "nothing chosen": null for a data-driven
     // root — an item or a value model alike (V may be a number, so no member
@@ -368,6 +380,8 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     // the trigger is what the user fixes.
     fc.reportValidity({ element: () => hidden, value: () => state.value, focus: () => trigger?.focus() }, onUnmounted);
 
+    // Mounted clear-triggers (#387) — what `clearable()` reads.
+    const clearTriggers = signal({ mounted: 0 });
     const ctx: SelectContext = {
         state,
         collection,
@@ -441,6 +455,25 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
             // The button leaves with the value: focus goes back to the field.
             trigger?.focus();
         },
+        canClear: () => listbox.selectedKeys().length > 0 && !ctx.disabled() && !ctx.readonly(),
+        // A count, not a boolean: a consumer may compose more than one, and
+        // one leaving must not withdraw the flag from another. Announced a
+        // microtask after the render pass (the group-label pattern), so a
+        // clear-trigger mounting never writes state the root is rendering.
+        announceClearTrigger() {
+            let alive = true;
+            let counted = false;
+            queueMicrotask(() => {
+                if (!alive) return;
+                counted = true;
+                clearTriggers.mounted++;
+            });
+            return () => {
+                alive = false;
+                if (counted) clearTriggers.mounted--;
+            };
+        },
+        clearable: () => clearTriggers.mounted > 0 && ctx.canClear(),
         virtual,
     };
     defineProvide(useSelectContext, () => ctx);
@@ -628,6 +661,7 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
             'data-readonly': dataAttr(select.readonly()),
             'data-placeholder': dataAttr(select.listbox.selectedKeys().length === 0),
             'data-focus-visible': dataAttr(focus.visible),
+            'data-clearable': dataAttr(select.clearable()),
             role: 'combobox',
             'aria-label': props.label ?? attrs['aria-label'],
             'aria-haspopup': 'listbox',
@@ -699,6 +733,7 @@ const SelectValue = component<SelectValueProps>(({ props, slots }) => {
                 data-scope={SCOPE}
                 data-part="value"
                 data-placeholder={dataAttr(isPlaceholder)}
+                data-clearable={dataAttr(select.clearable())}
                 class={props.class}
             >
                 {slots.default?.({ value: select.state.value, items: keys.map((k) => select.collection.byKey(k) ?? select.collection.valueForKey(k)) })
@@ -720,6 +755,7 @@ const SelectIndicator = component<SelectIndicatorProps>(({ props, slots }) => {
             data-scope={SCOPE}
             data-part="indicator"
             data-state={stateAttr(select.open.value, 'open', 'closed')}
+            data-clearable={dataAttr(select.clearable())}
             aria-hidden="true"
             class={props.class}
         >
@@ -742,14 +778,19 @@ export type SelectClearTriggerProps =
  * Clears the selection — `null` (or `''` for hand-written items, `[]` under
  * `multiple`) — and puts focus back on the trigger. A sibling of
  * `Select.Trigger` inside the root, never inside it; rendered only while
- * something is selected and the select is editable.
+ * something is selected and the select is editable. While it renders, the
+ * trigger, value and indicator carry `data-clearable` (#387), so a skin can
+ * make room for it.
  */
-const SelectClearTrigger = component<SelectClearTriggerProps>(({ props, slots, signal }) => {
+const SelectClearTrigger = component<SelectClearTriggerProps>(({ props, slots, signal, onUnmounted }) => {
     const select = useSelectContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    // While mounted, the parts inside the trigger carry `data-clearable`
+    // whenever this button renders (#387).
+    onUnmounted(select.announceClearTrigger());
     return () => {
-        if (select.listbox.selectedKeys().length === 0 || select.disabled() || select.readonly()) return null;
+        if (!select.canClear()) return null;
         const attrs = htmlAttrs(props);
         return (
             <button
