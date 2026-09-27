@@ -5527,6 +5527,25 @@ export const divider: RecipeInput = {
             xl: { root: { base: { '--divider-thickness': 'calc(var(--border) * 3)' } } },
         },
     },
+    targets: {
+        lynx: {
+            parts: {
+                // Lynx drops the ::before/::after segments the rule is drawn
+                // with above, which left the lynx divider with no line and,
+                // since only those rules read `--divider-thickness`, no size
+                // ramp either (#375). There the root itself is the line, as
+                // it was before the segments (#356): filled with the ink and
+                // one thickness across.
+                root: {
+                    base: { background: 'var(--divider-ink)' },
+                    selectors: {
+                        '&[data-orientation="horizontal"]': { blockSize: 'var(--divider-thickness)' },
+                        '&[data-orientation="vertical"]': { inlineSize: 'var(--divider-thickness)' },
+                    },
+                },
+            },
+        },
+    },
 };
 
 // ── Loading (#314) ────────────────────────────────────────────────────────

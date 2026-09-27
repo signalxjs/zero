@@ -943,6 +943,20 @@ describe('assertNoCalcVarChains', () => {
         expect(thumb).not.toContain('accent-color');
     });
 
+    // The web draws the divider's rule as ::before/::after segments (#356),
+    // which lynx drops: 0.8.0's lynx divider painted no line and, with
+    // `--divider-thickness` read only there, lost its size ramp (#375).
+    it('zero-daisyui divider: the root is the line on lynx, and the size ramp thickens it', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const css = componentCss['divider']!;
+        expect(css).not.toContain('::');
+        expect(css).toMatch(/\.zx-divider__root \{[^}]*background: var\(--divider-ink\);/);
+        expect(css).toMatch(/\.zx-divider__root\.zx-o-horizontal \{[^}]*block-size: var\(--border\);/);
+        expect(css).toMatch(/\.zx-divider__root\.zx-o-vertical \{[^}]*inline-size: var\(--border\);/);
+        expect(css).toContain('.zx-divider__root.zx-o-horizontal.zx-a-size-xl {\n    block-size: calc(var(--border) * 3);');
+        expect(css).toContain('.zx-divider__root.zx-o-vertical.zx-a-size-lg {\n    inline-size: calc(var(--border) * 2);');
+    });
+
     it('zero-daisyui slider: the mark is its own tick on lynx, and vertical turns the channel upright', () => {
         const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
         const css = componentCss['slider']!;
