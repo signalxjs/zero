@@ -135,3 +135,52 @@ test.describe('layout', () => {
         }
     }
 });
+
+// #446: a search field draws zero's ClearTrigger and clears on Escape, so the
+// engine's own `::-webkit-search-cancel-button` would be a second clear beside
+// it. Chromium does not reflect that pseudo-element in getComputedStyle, so the
+// claim is made in pixels: force-hiding it must change nothing the skin paints.
+test.describe('native search cancel button', () => {
+    const forceHide = (sel: string) => `${sel}::-webkit-search-cancel-button{display:none!important}`;
+
+    for (const ds of DESIGN_SYSTEMS) {
+        test(`${ds}: a search field paints no native cancel button`, async ({ page }, testInfo) => {
+            test.skip(testInfo.project.name !== 'chromium', 'a -webkit- pseudo-element: one engine is enough');
+            await bootPage(page, 'input', ds);
+
+            // Precondition, so the comparison below cannot pass vacuously: on
+            // a bare, unstyled search input with a value, the engine does paint
+            // its button, and force-hiding it changes the pixels.
+            await page.evaluate(() => {
+                const bare = document.createElement('input');
+                bare.type = 'search';
+                bare.id = 'bare-search-446';
+                bare.value = 'abc';
+                bare.style.caretColor = 'transparent';
+                document.body.prepend(bare);
+            });
+            const bare = page.locator('#bare-search-446');
+            await bare.focus();
+            await settledBox(bare, 'bare search input');
+            const bareShown = await bare.screenshot({ animations: 'disabled' });
+            const bareStyle = await page.addStyleTag({ content: forceHide('#bare-search-446') });
+            const bareHidden = await bare.screenshot({ animations: 'disabled' });
+            expect(bareShown.equals(bareHidden), 'the engine paints a cancel button on a bare search input').toBe(false);
+            await bareStyle.evaluate((el) => (el as Element).remove());
+            await bare.evaluate((el) => el.remove());
+
+            const input = search(page)('input');
+            await input.focus();
+            await page.keyboard.press('End');
+            await page.keyboard.type(' x');
+            await expect(input).toHaveValue('anatomy x');
+            // The caret blinks; keep it out of both frames.
+            await input.evaluate((el) => { (el as HTMLElement).style.caretColor = 'transparent'; });
+            await settledBox(input, 'search input');
+            const skinned = await input.screenshot({ animations: 'disabled' });
+            await page.addStyleTag({ content: forceHide('input') });
+            const forced = await input.screenshot({ animations: 'disabled' });
+            expect(skinned.equals(forced), 'force-hiding the native cancel button changes nothing').toBe(true);
+        });
+    }
+});

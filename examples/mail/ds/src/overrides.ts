@@ -57,12 +57,7 @@ export const patches: Record<string, RecipePatch> = {
     'empty-state': {
         parts: { root: { base: { border: 'none', background: 'transparent', flex: '1 1 auto', justifyContent: 'center', minBlockSize: '16rem' } } },
     },
-    // A search field draws zero's ClearTrigger; Chromium's own cancel button
-    // beside it made two clears (#440 — the baseline skin shows both).
     select: { parts: { value: { states: { placeholder: { color: quietInk } } } } },
-    input: {
-        parts: { input: { selectors: { '&::-webkit-search-cancel-button': { appearance: 'none', display: 'none' } } } },
-    },
     tabs: { parts: { tab: { base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-xs)' } } } },
     // Docked, the drawer panel is the app's sidebar rail: flat on the app
     // ground, full height, scrolling on its own. As a sheet it keeps the

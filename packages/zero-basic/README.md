@@ -82,6 +82,15 @@ the ring still draws the whole dot.
 `axes.shape` there and nowhere else. One declaration on the root, whose
 `overflow: hidden` clips the image and the initials alike. `rounded` is the selector radius, which is also the un-attributed default here.
 
+## Search inputs
+
+An `<Input.Root type="search">` paints no native cancel button (#446): the
+`input` part hides the engine's `::-webkit-search-cancel-button` (and resets
+`::-webkit-search-decoration`), because `Input.ClearTrigger` and zero's own
+Escape-clear already cover it — and Firefox never draws one, so every engine
+now matches. The other five skins, and every skin `pnpm create @sigx/zero-ds`
+scaffolds from this baseline, do the same.
+
 ## Toast stack and promise toasts
 
 At rest the toasts lie as a deck on the viewport's edge — the newest in

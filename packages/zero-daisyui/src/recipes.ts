@@ -5633,6 +5633,10 @@ export const input: RecipeInput = {
             selectors: {
                 // Same muting, same reason as `number-input/input` (#264).
                 '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
+                // zero draws its own ClearTrigger and clears on Escape, and Firefox
+                // draws no native clear: hide the engine's cancel button everywhere (#446).
+                '&::-webkit-search-cancel-button': { appearance: 'none', display: 'none' },
+                '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
         // daisy's `label` inside `.input`: a quiet prefix/suffix at one edge,

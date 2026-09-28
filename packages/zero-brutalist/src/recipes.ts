@@ -3346,6 +3346,10 @@ export const input: RecipeInput = {
             },
             selectors: {
                 '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)', textTransform: 'uppercase' },
+                // zero draws its own ClearTrigger and clears on Escape, and Firefox
+                // draws no native clear: hide the engine's cancel button everywhere (#446).
+                '&::-webkit-search-cancel-button': { appearance: 'none', display: 'none' },
+                '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
         // A stamped cell of the slab: mono caps in full ink, cut off from the
