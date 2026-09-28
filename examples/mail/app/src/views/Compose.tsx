@@ -12,6 +12,7 @@ const Recipients = component<{ field: 'to' | 'cc'; label: string }>(({ props }) 
         <Combobox.Root
             multiple
             allowCustom
+            autoHighlight
             items={ALL_CONTACTS}
             itemKey={(c: Contact) => c.email}
             itemLabel={(c: Contact) => c.name}

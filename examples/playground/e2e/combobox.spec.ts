@@ -8,7 +8,7 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { demoPosting, rootPosting } from './demo';
+import { demoLabelled, demoPosting, rootPosting } from './demo';
 
 test.beforeEach(async ({ page }) => {
     await bootPage(page, 'combobox', 'basic');
@@ -311,4 +311,27 @@ test('inline: an IME composition is never completed (#301)', async ({ page, brow
     // The next plain keystroke completes again.
     await page.keyboard.type('p');
     await expect(c('input')).toHaveValue('Japan');
+});
+
+/**
+ * autoHighlight (#448): typing highlights the first match, so a real Enter
+ * picks it rather than committing the typed text; a query that matches
+ * nothing still commits the text under allowCustom.
+ */
+test('autoHighlight: Enter picks the first match; unmatched text is added as typed (#448)', async ({ page }) => {
+    const r = demoLabelled(page, 'combobox', 'Ada Lovelace');
+    await expect(r('tag-label')).toHaveText(['Ada Lovelace']);
+    await r('input').click();
+    await r('input').pressSequentially('maya');
+    await expect(r('item').filter({ hasText: 'Maya Chen' })).toHaveAttribute('data-highlighted', '');
+    await r('input').press('Enter');
+    await expect(r('tag-label')).toHaveText(['Ada Lovelace', 'Maya Chen']);
+    await expect(r('input')).toHaveValue('');
+
+    await r('input').pressSequentially('zed@example.com');
+    await expect(r('item').and(page.locator('[data-highlighted]'))).toHaveCount(0);
+    await r('input').press('Enter');
+    await expect(r('tag-label')).toHaveText(['Ada Lovelace', 'Maya Chen', 'zed@example.com']);
+    const posted = await r('hidden-input').evaluate((el) => Array.from((el as HTMLSelectElement).selectedOptions).map((o) => o.value));
+    expect(posted).toEqual(['ada@example.com', 'maya@example.com', 'zed@example.com']);
 });

@@ -279,9 +279,21 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     /**
      * Enter commits the typed text while no option is highlighted: the
      * option whose label it matches, else the text itself as the value
-     * (narrowed per overload to string models).
+     * (narrowed per overload to string models). With `autoHighlight`, a
+     * query that matches something highlights it, so Enter picks that
+     * option; only a query that matches nothing commits the text.
      */
     & Define.Prop<'allowCustom', boolean, false>
+    /**
+     * Typing highlights the first enabled visible option (#448), and again
+     * whenever the query changes, so Enter picks the best match. Only while
+     * the query is non-empty: an empty field or an `openOnClick` open leaves
+     * no highlight and Enter to the form. An arrow move holds until the
+     * query changes. With `allowCustom`, a query that matches nothing leaves
+     * no highlight, so Enter commits the text. `inlineComplete` takes
+     * precedence. Trigger mode always behaves this way.
+     */
+    & Define.Prop<'autoHighlight', boolean, false>
     & Define.Prop<'placeholder', string, false>
     /** A pointer click on the input opens the popup (default false: typing and the arrows do). */
     & Define.Prop<'openOnClick', boolean, false>
@@ -926,21 +938,40 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
                 && (!listbox.isEmpty() || props.emptyText !== undefined
                     || (!!props.loading && props.loadingText !== undefined)));
         });
-        // The first option is highlighted on open and whenever the query
-        // moves, so Enter commits the best match at once.
-        let lastQuery: string | null = null;
-        effect(() => {
-            const open = openState.value;
-            const query = inputValue.value;
-            const visible = listbox.visibleKeys();
-            const h = listbox.highlighted.value;
-            if (!open) { lastQuery = null; return; }
-            if (query !== lastQuery || h === null || !visible.includes(h)) {
-                lastQuery = query;
-                listbox.move('first');
-            }
-        });
     }
+
+    // Trigger mode, and `autoHighlight` (#448): the first option is
+    // highlighted on open and whenever the query moves, so Enter commits the
+    // best match at once. An arrow move sticks until the query moves again.
+    // Outside trigger mode only a non-empty query highlights — an empty
+    // field, or an `openOnClick` open, leaves Enter to the form — and
+    // `inlineComplete` keeps its own rule (the highlight IS the completion).
+    // Created in setup, so the setup scope owns it.
+    let lastQuery: string | null = null;
+    effect(() => {
+        if (!triggerMode && (!props.autoHighlight || inlineOn())) { lastQuery = null; return; }
+        const open = openState.value;
+        const query = inputValue.value;
+        const visible = listbox.visibleKeys();
+        const h = listbox.highlighted.value;
+        if (!open) { lastQuery = null; return; }
+        if (!triggerMode && query.trim() === '') {
+            // Emptied by the user: drop the auto highlight so Enter does not
+            // pick an option the text no longer names. An arrow move made
+            // while the field stays empty is left alone.
+            if (lastQuery !== null && lastQuery !== query) untrack(() => { listbox.highlighted.value = null; });
+            lastQuery = query;
+            return;
+        }
+        // A highlight that went hidden or disabled (a reactive
+        // `itemDisabled`) moves on too: Enter on it would be swallowed.
+        if (query !== lastQuery || h === null || !visible.includes(h) || collection.isDisabled(h)) {
+            lastQuery = query;
+            // Nothing visible → no highlight, so `allowCustom`'s Enter
+            // commits the text.
+            listbox.move('first');
+        }
+    });
 
     // A close clears the highlight however the open state was written (a
     // consumer's `model:open` included); an open leaves it to the arrows.
