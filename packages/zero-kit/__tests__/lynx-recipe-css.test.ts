@@ -432,6 +432,13 @@ describe('compileLynxRecipeCss', () => {
         expect(css).not.toContain('--fx-noise');
         expect(css).toContain('background-size: auto;');
         expect(report.dropped.some((f) => f.what.includes('var(--fx-noise)') && f.detail.includes('reads --fx-noise'))).toBe(true);
+        const kfReport = emptyReport();
+        compileLynxRecipeCss({
+            component: 'button',
+            parts: { root: { base: { animation: 'grain 1s' } } },
+            keyframes: { grain: 'from { background-image: var(--fx-noise); } to { opacity: 1; }' },
+        }, button, kfReport, [], new Set(['--fx-noise']));
+        expect(kfReport.dropped.some((f) => f.what === 'keyframes grain' && f.detail.includes('reads --fx-noise'))).toBe(true);
     });
 
     it('drops clip-path — lynx does not apply it', () => {

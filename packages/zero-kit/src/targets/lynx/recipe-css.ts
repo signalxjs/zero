@@ -735,9 +735,18 @@ export function compileLynxRecipeCss(
             });
             continue;
         }
-        if (hasSvgDataUri(body) || refusedImageVarIn(body, refusedImageVars)) {
+        if (hasSvgDataUri(body)) {
             // Same verdict as the declaration path (signalxjs/lynx#1215).
             report.dropped.push({ where, what: `keyframes ${name}`, detail: `the animation paints an SVG data-URI image — ${SVG_DATA_URI_DETAIL}` });
+            continue;
+        }
+        const keyframesImageVar = refusedImageVarIn(body, refusedImageVars);
+        if (keyframesImageVar) {
+            report.dropped.push({
+                where,
+                what: `keyframes ${name}`,
+                detail: `the animation reads ${keyframesImageVar}, which the lynx tokens refuse — ${SVG_DATA_URI_DETAIL}`,
+            });
             continue;
         }
         if (/(?:^|[{;\s])clip-path\s*:/i.test(body)) {
