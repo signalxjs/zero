@@ -1625,12 +1625,34 @@ export const menu: RecipeInput = {
     // Trigger-carried axes — same wiring as dialog, same reason. The dropdown
     // and its items are top-layer siblings the donut cannot reach.
     variants: { color: btnColors(), size: btnSizes },
-    // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
+    // The btn paddings, restated physically — see `lynxBtnPad` (#1084) —
+    // and the trigger's press rendering, as popover's (`lynxBtnPressed`).
     targets: {
         web: floatingArrow('menu', panelArrowPaint),
         lynx: {
             parts: {
-                trigger: { base: lynxBtnPad(4) },
+                // Content-sized like daisy's btn (signalxjs/lynx#1165), an
+                // explicit row (lynx does not default the direction the way a
+                // browser does), the held state in place of the dropped
+                // `:hover`, and the box-shadow ring (signalxjs/lynx#1163).
+                trigger: {
+                    base: { ...lynxBtnPad(4), ...lynxBtnFit, flexDirection: 'row' },
+                    states: { pressed: lynxBtnPressed, ...lynxFocus() },
+                },
+                // The popups' rows stack and span the panel: a flex column
+                // (a lynx view's default is a shrink-wrapping linear box).
+                popup: { base: { display: 'flex', flexDirection: 'column' } },
+                'sub-popup': { base: { display: 'flex', flexDirection: 'column' } },
+                // Every row kind is a mark / label / shortcut / chevron row.
+                // A touch list has no hover: lynx-zero stamps `highlighted` on
+                // the row under the finger, so the web's highlight wash is the
+                // press rendering as it stands. The ✓ (item-indicator) and ›
+                // (sub-trigger) the web draws with `::after` render as
+                // `<text>` glyphs in lynx-zero — there is no pseudo-element.
+                item: { base: { flexDirection: 'row' } },
+                'checkbox-item': { base: { flexDirection: 'row' } },
+                'radio-item': { base: { flexDirection: 'row' } },
+                'sub-trigger': { base: { flexDirection: 'row' } },
                 // The shortcut's reading-end push, restated physically (#1084).
                 shortcut: { base: { marginLeft: 'auto', paddingLeft: 'var(--space-lg)' } },
             },
@@ -7983,6 +8005,27 @@ export const navList: RecipeInput = {
             md: {},
             lg: { root: { base: { fontSize: 'var(--text-md)' } }, link: { base: { padding: 'var(--space-md) var(--space-lg)' } } },
             xl: { root: { base: { fontSize: 'var(--text-lg)' } }, link: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
+        },
+    },
+    // The web's block and inline boxes, restated for lynx (signalxjs/lynx#1259).
+    // No `:hover` on a touch platform, and the link's anatomy declares no
+    // `pressed` flag: a held link has lynx-zero's main-thread press scale.
+    targets: {
+        lynx: {
+            parts: {
+                // `display: block` has no lynx projection: a column, so the
+                // link spans the list as a block `<li>` makes it.
+                item: { base: { display: 'flex', flexDirection: 'column' } },
+                // The icon / label / meta row, explicit (lynx does not
+                // default the direction the way a browser does).
+                link: { base: { flexDirection: 'row' } },
+                // `inline-size` restated physically; the glyph centred in
+                // its column on both axes.
+                icon: { base: { width: '1.25em', flexDirection: 'row', alignItems: 'center' } },
+                // The count's push to the far edge, restated physically —
+                // `margin-inline-start` does not resolve on Android (#1084).
+                meta: { base: { marginLeft: 'auto', flexDirection: 'row' } },
+            },
         },
     },
 };
