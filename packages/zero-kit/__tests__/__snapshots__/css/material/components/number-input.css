@@ -1,70 +1,159 @@
 @layer zero.recipes {
     [data-scope="number-input"][data-part="root"] {
-        --number-input-accent: var(--color-secondary);
-    }
-
-    [data-scope="number-input"][data-part="root"] {
+        position: relative;
         display: inline-flex;
         flex-direction: column;
         gap: var(--space-2xs);
+        --tf-height: 3.5rem;
+        --tf-accent: var(--color-primary);
+        --tf-outline-color: var(--color-outline);
+        --tf-indicator-color: var(--color-surface-variant-content);
+        --tf-ring: 0px;
+        --tf-label-start: var(--tf-label-start-base);
+        --tf-fill: var(--color-surface-container-highest);
+        --tf-hover-fill: color-mix(in oklch, var(--color-surface-container-highest), var(--color-base-content) 8%);
+        --tf-disabled-fill: color-mix(in oklch, var(--color-base-content) 4%, transparent);
+        --tf-radius: var(--radius-extra-small) var(--radius-extra-small) 0 0;
+        --tf-outline-width: 0px;
+        --tf-indicator: 1px;
+        --tf-indicator-focus: 2px;
+        --tf-ring-focus: 0px;
+        --tf-label-start-base: 1rem;
+        --tf-label-start-floated: var(--tf-label-start);
+        --tf-label-pad: 0px;
+        --tf-float-y: calc((var(--tf-height) - 2.5rem) / 2);
+        --tf-notch: transparent;
+        --tf-pad-top: calc(var(--tf-height) - 2rem);
+        --tf-pad-bottom: 0.5rem;
     }
 
-    [data-scope="number-input"][data-part="label"] {
+    [data-scope="number-input"][data-part="root"]:has(> [data-part="label"]:not([data-visually-hidden])), [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])):has(> [data-part="label"]:not([data-visually-hidden])) > [data-scope="number-input"][data-part="root"] {
+        --tf-in-top: var(--tf-pad-top);
+        --tf-in-bottom: var(--tf-pad-bottom);
+    }
+
+    [data-scope="number-input"][data-part="root"]:has([data-part="adornment"][data-placement="start"]) {
+        --tf-label-start: calc(var(--tf-label-start-base) + 2.25rem);
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="number-input"][data-part="root"] {
+        margin-block-start: 0;
+    }
+
+    [data-scope="number-input"][data-part="root"] > [data-scope="number-input"][data-part="label"] {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-start: var(--tf-label-start);
+        z-index: 1;
+        max-inline-size: calc(100% - var(--tf-label-start) * 2);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        pointer-events: none;
         font-family: var(--font-sans);
-        font-size: var(--text-label-large);
-        font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-label-large);
-        color: var(--color-base-content);
+        font-size: var(--text-body-large);
+        line-height: var(--leading-body-large);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-body-large);
+        color: var(--color-surface-variant-content);
+        padding-inline: var(--tf-label-pad);
+        background: transparent;
+        transform-origin: top left;
+        transform: translateY(calc(var(--tf-height) / 2 - 0.75rem));
+        transition: transform var(--duration-short3) var(--ease-standard), inset-inline-start var(--duration-short3) var(--ease-standard), color var(--duration-short3) var(--ease-standard), background-color var(--duration-short3) var(--ease-standard);
     }
 
-    [data-scope="number-input"][data-part="label"][data-disabled] {
-        opacity: var(--disabled-opacity);
+    [data-scope="number-input"][data-part="root"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="number-input"][data-part="label"] {
+        transform-origin: top right;
     }
 
-    [data-scope="number-input"][data-part="label"][data-invalid] {
+    [data-scope="number-input"][data-part="root"]:is(:focus-within, :not([data-placeholder])) > [data-scope="number-input"][data-part="label"] {
+        transform: translateY(var(--tf-float-y)) scale(0.75);
+        inset-inline-start: var(--tf-label-start-floated);
+        background: var(--tf-notch);
+    }
+
+    [data-scope="number-input"][data-part="root"]:focus-within > [data-scope="number-input"][data-part="label"] {
+        color: var(--tf-accent);
+    }
+
+    [data-scope="number-input"][data-part="root"] > [data-scope="number-input"][data-part="label"][data-invalid] {
         color: var(--color-error);
+    }
+
+    [data-scope="number-input"][data-part="root"] > [data-scope="number-input"][data-part="label"][data-disabled] {
+        color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+        opacity: 1;
     }
 
     [data-scope="number-input"][data-part="label"][data-required]::after {
         content: " *";
-        color: var(--color-error);
     }
 
     [data-scope="number-input"][data-part="control"] {
+        box-sizing: border-box;
+        min-block-size: var(--tf-height);
+        background: var(--tf-fill);
+        color: var(--color-base-content);
+        border: var(--tf-outline-width) solid var(--tf-outline-color);
+        border-radius: var(--tf-radius);
+        box-shadow: inset 0 calc(-1 * var(--tf-indicator)) 0 var(--tf-indicator-color), inset 0 0 0 var(--tf-ring) var(--tf-outline-color);
+        cursor: text;
+        transition: background-color var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard), box-shadow var(--duration-short2) var(--ease-standard);
         display: inline-flex;
         align-items: center;
-        background: transparent;
-        color: var(--color-base-content);
-        border: var(--border) solid var(--color-outline);
-        border-radius: var(--radius-medium);
-        transition: border-color var(--duration-short2) var(--ease-standard);
-    }
-
-    [data-scope="number-input"][data-part="control"][data-invalid] {
-        border-color: var(--color-error);
-    }
-
-    [data-scope="number-input"][data-part="control"][data-disabled] {
-        opacity: var(--disabled-opacity);
+        padding-inline: var(--space-2xs);
     }
 
     [data-scope="number-input"][data-part="control"][data-focus-visible] {
-        outline: 3px solid var(--number-input-accent);
-        outline-offset: 2px;
+        --tf-indicator-color: var(--tf-accent);
+        --tf-outline-color: var(--tf-accent);
+    }
+
+    [data-scope="number-input"][data-part="control"]:hover:not([data-disabled]) {
+        background: var(--tf-hover-fill);
+        --tf-indicator-color: var(--color-base-content);
+        --tf-outline-color: var(--color-base-content);
+    }
+
+    [data-scope="number-input"][data-part="control"]:focus-within:not([data-disabled]), [data-scope="number-input"][data-part="control"][data-state="open"] {
+        --tf-indicator: var(--tf-indicator-focus);
+        --tf-ring: var(--tf-ring-focus);
+        --tf-indicator-color: var(--tf-accent);
+        --tf-outline-color: var(--tf-accent);
+    }
+
+    [data-scope="number-input"][data-part="control"][data-invalid] {
+        --tf-indicator-color: var(--color-error);
+        --tf-outline-color: var(--color-error);
+    }
+
+    [data-scope="number-input"][data-part="control"][data-disabled] {
+        background: var(--tf-disabled-fill);
+        color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+        cursor: not-allowed;
+        --tf-indicator-color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+        --tf-outline-color: color-mix(in oklch, var(--color-base-content) 12%, transparent);
     }
 
     [data-scope="number-input"][data-part="input"] {
-        width: 5rem;
-        min-width: 0;
+        box-sizing: border-box;
+        min-inline-size: 0;
         appearance: none;
         border: none;
         outline: none;
         background: transparent;
         color: inherit;
         font-family: var(--font-sans);
-        font-size: var(--text-md);
-        text-align: center;
-        padding: var(--space-sm) var(--space-xs);
+        font-size: var(--text-body-large);
+        line-height: var(--leading-body-large);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-body-large);
+        padding-inline: var(--space-md);
+        padding-block-start: var(--tf-in-top, calc((var(--tf-height) - 1.5rem) / 2));
+        padding-block-end: var(--tf-in-bottom, calc((var(--tf-height) - 1.5rem) / 2));
+        inline-size: 5rem;
+        flex: 1;
     }
 
     [data-scope="number-input"][data-part="input"][data-disabled] {
@@ -75,72 +164,8 @@
         color: var(--color-surface-variant-content);
     }
 
-    [data-scope="number-input"][data-part="increment-trigger"] {
-        position: relative;
-        overflow: hidden;
-        -webkit-tap-highlight-color: transparent;
-        appearance: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        align-self: stretch;
-        border: none;
-        background: transparent;
-        color: var(--color-primary);
-        border-radius: 624rem;
-        margin: var(--space-2xs);
-        padding: 0 var(--space-md);
-        font-family: var(--font-sans);
-        font-size: var(--text-md);
-        font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-label-large);
-        cursor: pointer;
-        user-select: none;
-    }
-
-    [data-scope="number-input"][data-part="increment-trigger"][data-disabled] {
-        opacity: var(--disabled-opacity);
-        cursor: not-allowed;
-    }
-
-    [data-scope="number-input"][data-part="increment-trigger"]::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: var(--color-primary);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity var(--duration-short2) var(--ease-standard);
-    }
-
-    [data-scope="number-input"][data-part="increment-trigger"]:hover:not([data-disabled])::before {
-        opacity: var(--state-hover);
-    }
-
-    [data-scope="number-input"][data-part="increment-trigger"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
-        opacity: var(--state-focus);
-    }
-
-    [data-scope="number-input"][data-part="increment-trigger"][data-pressed]:not([data-disabled])::before {
-        opacity: var(--state-pressed);
-    }
-
-    [data-scope="number-input"][data-part="increment-trigger"]::after {
-        content: "";
-        position: absolute;
-        left: var(--press-x, 50%);
-        top: var(--press-y, 50%);
-        width: calc(var(--press-r, 0px) * 2);
-        height: calc(var(--press-r, 0px) * 2);
-        border-radius: 50%;
-        background: var(--color-primary);
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    [data-scope="number-input"][data-part="increment-trigger"][data-press-animating]::after {
-        animation: number-input-ripple var(--duration-long2) var(--ease-standard);
+    [data-scope="number-input"][data-part="root"]:has(> [data-part="label"]:not([data-visually-hidden])):not(:focus-within) [data-scope="number-input"][data-part="input"]::placeholder, [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])):has(> [data-part="label"]:not([data-visually-hidden])):not(:focus-within) [data-scope="number-input"][data-part="input"]::placeholder {
+        color: transparent;
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"] {
@@ -151,19 +176,21 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        align-self: stretch;
+        align-self: center;
+        flex: none;
+        block-size: 2.5rem;
+        min-inline-size: 2.5rem;
         border: none;
         background: transparent;
-        color: var(--color-primary);
+        color: var(--color-surface-variant-content);
         border-radius: 624rem;
-        margin: var(--space-2xs);
-        padding: 0 var(--space-md);
+        padding: 0;
         font-family: var(--font-sans);
-        font-size: var(--text-md);
-        font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-label-large);
+        font-size: 1.25rem;
+        line-height: var(--leading-none);
         cursor: pointer;
         user-select: none;
+        order: 1;
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"][data-disabled] {
@@ -175,7 +202,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: var(--color-primary);
+        background: var(--color-surface-variant-content);
         opacity: 0;
         pointer-events: none;
         transition: opacity var(--duration-short2) var(--ease-standard);
@@ -201,7 +228,7 @@
         width: calc(var(--press-r, 0px) * 2);
         height: calc(var(--press-r, 0px) * 2);
         border-radius: 50%;
-        background: var(--color-primary);
+        background: var(--color-surface-variant-content);
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
         pointer-events: none;
@@ -211,83 +238,146 @@
         animation: number-input-ripple var(--duration-long2) var(--ease-standard);
     }
 
+    [data-scope="number-input"][data-part="increment-trigger"] {
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        align-self: center;
+        flex: none;
+        block-size: 2.5rem;
+        min-inline-size: 2.5rem;
+        border: none;
+        background: transparent;
+        color: var(--color-surface-variant-content);
+        border-radius: 624rem;
+        padding: 0;
+        font-family: var(--font-sans);
+        font-size: 1.25rem;
+        line-height: var(--leading-none);
+        cursor: pointer;
+        user-select: none;
+        order: 2;
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--color-surface-variant-content);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-short2) var(--ease-standard);
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"]:hover:not([data-disabled])::before {
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"][data-pressed]:not([data-disabled])::before {
+        opacity: var(--state-pressed);
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"]::after {
+        content: "";
+        position: absolute;
+        left: var(--press-x, 50%);
+        top: var(--press-y, 50%);
+        width: calc(var(--press-r, 0px) * 2);
+        height: calc(var(--press-r, 0px) * 2);
+        border-radius: 50%;
+        background: var(--color-surface-variant-content);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"][data-press-animating]::after {
+        animation: number-input-ripple var(--duration-long2) var(--ease-standard);
+    }
+
     [data-scope="number-input"][data-part="root"][data-color="primary"] {
-        --number-input-accent: var(--color-primary);
+        --tf-accent: var(--color-primary);
     }
 
     [data-scope="number-input"][data-part="root"][data-color="secondary"] {
-        --number-input-accent: var(--color-secondary);
+        --tf-accent: var(--color-secondary);
     }
 
     [data-scope="number-input"][data-part="root"][data-color="tertiary"] {
-        --number-input-accent: var(--color-tertiary);
+        --tf-accent: var(--color-tertiary);
     }
 
     [data-scope="number-input"][data-part="root"][data-color="error"] {
-        --number-input-accent: var(--color-error);
+        --tf-accent: var(--color-error);
     }
 
     [data-scope="number-input"][data-part="root"][data-color="neutral"] {
-        --number-input-accent: var(--color-neutral);
+        --tf-accent: var(--color-neutral);
     }
 
     [data-scope="number-input"][data-part="root"][data-color="info"] {
-        --number-input-accent: var(--color-info);
+        --tf-accent: var(--color-info);
     }
 
     [data-scope="number-input"][data-part="root"][data-color="success"] {
-        --number-input-accent: var(--color-success);
+        --tf-accent: var(--color-success);
     }
 
     [data-scope="number-input"][data-part="root"][data-color="warning"] {
-        --number-input-accent: var(--color-warning);
+        --tf-accent: var(--color-warning);
     }
 
-    @scope ([data-scope="number-input"][data-part="root"][data-size="xs"]) to ([data-scope="number-input"][data-part="root"]) {
-        [data-scope="number-input"][data-part="input"] {
-            font-size: var(--text-sm);
-            padding: var(--space-2xs) var(--space-2xs);
-        }
+    [data-scope="number-input"][data-part="root"][data-variant="outlined"] {
+        --tf-fill: transparent;
+        --tf-hover-fill: transparent;
+        --tf-disabled-fill: transparent;
+        --tf-radius: var(--radius-extra-small);
+        --tf-outline-width: 1px;
+        --tf-indicator: 0px;
+        --tf-indicator-focus: 0px;
+        --tf-ring-focus: 1px;
+        --tf-label-start-base: 0.75rem;
+        --tf-label-start-floated: 0.75rem;
+        --tf-label-pad: 0.25rem;
+        --tf-float-y: -0.5625rem;
+        --tf-notch: var(--tf-surface);
+        --tf-pad-top: calc((var(--tf-height) - 1.5rem) / 2);
+        --tf-pad-bottom: calc((var(--tf-height) - 1.5rem) / 2);
+        margin-block-start: var(--space-xs);
     }
 
-    @scope ([data-scope="number-input"][data-part="root"][data-size="sm"]) to ([data-scope="number-input"][data-part="root"]) {
-        [data-scope="number-input"][data-part="input"] {
-            font-size: var(--text-sm);
-            padding: var(--space-xs) var(--space-2xs);
-        }
+    [data-scope="number-input"][data-part="root"][data-size="xs"] {
+        --tf-height: 2.5rem;
     }
 
-    @scope ([data-scope="number-input"][data-part="root"][data-size="lg"]) to ([data-scope="number-input"][data-part="root"]) {
-        [data-scope="number-input"][data-part="input"] {
-            font-size: var(--text-lg);
-            padding: var(--space-md) var(--space-sm);
-        }
+    [data-scope="number-input"][data-part="root"][data-size="sm"] {
+        --tf-height: 3rem;
     }
 
-    @scope ([data-scope="number-input"][data-part="root"][data-size="xl"]) to ([data-scope="number-input"][data-part="root"]) {
-        [data-scope="number-input"][data-part="input"] {
-            font-size: var(--text-xl);
-            padding: var(--space-lg) var(--space-md);
-        }
+    [data-scope="number-input"][data-part="root"][data-size="lg"] {
+        --tf-height: 4rem;
     }
 
-    @media (hover: none) {
-        [data-scope="number-input"][data-part="increment-trigger"]:hover:not([data-disabled])::before {
-            opacity: 0;
-        }
-
-        [data-scope="number-input"][data-part="decrement-trigger"]:hover:not([data-disabled])::before {
-            opacity: 0;
-        }
+    [data-scope="number-input"][data-part="root"][data-size="xl"] {
+        --tf-height: 4.5rem;
     }
 
     @media (forced-colors: active) {
-        [data-scope="number-input"][data-part="increment-trigger"]::before {
-            display: none;
-        }
-
-        [data-scope="number-input"][data-part="increment-trigger"]::after {
-            display: none;
+        [data-scope="number-input"][data-part="control"] {
+            border: 1px solid CanvasText;
         }
 
         [data-scope="number-input"][data-part="decrement-trigger"]::before {
@@ -296,6 +386,34 @@
 
         [data-scope="number-input"][data-part="decrement-trigger"]::after {
             display: none;
+        }
+
+        [data-scope="number-input"][data-part="increment-trigger"]::before {
+            display: none;
+        }
+
+        [data-scope="number-input"][data-part="increment-trigger"]::after {
+            display: none;
+        }
+    }
+
+    @media (hover: none) {
+        [data-scope="number-input"][data-part="decrement-trigger"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
+
+        [data-scope="number-input"][data-part="increment-trigger"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="number-input"][data-part="root"] > [data-scope="number-input"][data-part="label"] {
+            transition: none;
+        }
+
+        [data-scope="number-input"][data-part="control"] {
+            transition: none;
         }
     }
 }

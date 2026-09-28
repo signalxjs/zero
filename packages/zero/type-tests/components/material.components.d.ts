@@ -189,12 +189,13 @@ type MenubarProps = {
 type MenubarAdapted = Adapted<typeof ZMenubar, ZeroAxisProp, MenubarProps>;
 export declare const Menubar: MenubarAdapted & { Root: MenubarAdapted };
 
-/** select — no vendor route; the wired surface keeps zero's names. */
+/** select — variant ← variant. Attributes stay zero-spelled. */
 type SelectProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
-    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    size?: 'xs' | 'sm' | 'lg' | 'xl' | 'md';
+    'variant'?: 'filled' | 'outlined';
 };
-type SelectAdapted = Adapted<typeof ZSelect, ZeroAxisProp, SelectProps>;
+type SelectAdapted = Adapted<typeof ZSelect, ZeroAxisProp | 'variant', SelectProps>;
 export declare const Select: SelectAdapted & AdaptedStatics<typeof ZSelect> & { Root: SelectAdapted };
 
 /** switch — no vendor route; the wired surface keeps zero's names. */
@@ -286,12 +287,13 @@ type ToastProps = {
 type ToastAdapted = Adapted<typeof ZToast, ZeroAxisProp, ToastProps>;
 export declare const Toast: ToastAdapted & AdaptedStatics<typeof ZToast> & { Root: ToastAdapted };
 
-/** combobox — no vendor route; the wired surface keeps zero's names. */
+/** combobox — variant ← variant. Attributes stay zero-spelled. */
 type ComboboxProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
-    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    size?: 'xs' | 'sm' | 'lg' | 'xl' | 'md';
+    'variant'?: 'filled' | 'outlined';
 };
-type ComboboxAdapted = Adapted<typeof ZCombobox, ZeroAxisProp, ComboboxProps>;
+type ComboboxAdapted = Adapted<typeof ZCombobox, ZeroAxisProp | 'variant', ComboboxProps>;
 export declare const Combobox: ComboboxAdapted & AdaptedStatics<typeof ZCombobox> & { Root: ComboboxAdapted };
 
 /** toggle — size ← size (3 respelled); variant ← variant; shape ← axes.shape; icon ← mods.icon. Attributes stay zero-spelled. */
@@ -313,12 +315,13 @@ type ToggleGroupProps = {
 type ToggleGroupAdapted = Adapted<typeof ZToggleGroup, ZeroAxisProp, ToggleGroupProps>;
 export declare const ToggleGroup: ToggleGroupAdapted & AdaptedStatics<typeof ZToggleGroup> & { Root: ToggleGroupAdapted };
 
-/** number-input — no vendor route; the wired surface keeps zero's names. */
+/** number-input — variant ← variant. Attributes stay zero-spelled. */
 type NumberInputProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
-    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    size?: 'xs' | 'sm' | 'lg' | 'xl' | 'md';
+    'variant'?: 'filled' | 'outlined';
 };
-type NumberInputAdapted = Adapted<typeof ZNumberInput, ZeroAxisProp, NumberInputProps>;
+type NumberInputAdapted = Adapted<typeof ZNumberInput, ZeroAxisProp | 'variant', NumberInputProps>;
 export declare const NumberInput: NumberInputAdapted & AdaptedStatics<typeof ZNumberInput> & { Root: NumberInputAdapted };
 
 /** rating-group — no vendor route; the wired surface keeps zero's names. */
@@ -337,20 +340,22 @@ type TreeViewProps = {
 type TreeViewAdapted = Adapted<typeof ZTreeView, ZeroAxisProp, TreeViewProps>;
 export declare const TreeView: TreeViewAdapted & AdaptedStatics<typeof ZTreeView> & { Root: TreeViewAdapted };
 
-/** input — no vendor route; the wired surface keeps zero's names. */
+/** input — variant ← variant. Attributes stay zero-spelled. */
 type InputProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
-    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    size?: 'xs' | 'sm' | 'lg' | 'xl' | 'md';
+    'variant'?: 'filled' | 'outlined';
 };
-type InputAdapted = Adapted<typeof ZInput, ZeroAxisProp, InputProps>;
+type InputAdapted = Adapted<typeof ZInput, ZeroAxisProp | 'variant', InputProps>;
 export declare const Input: InputAdapted & AdaptedStatics<typeof ZInput> & { Root: InputAdapted };
 
-/** textarea — no vendor route; the wired surface keeps zero's names. */
+/** textarea — variant ← variant. Attributes stay zero-spelled. */
 type TextareaProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
-    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    size?: 'xs' | 'sm' | 'lg' | 'xl' | 'md';
+    'variant'?: 'filled' | 'outlined';
 };
-type TextareaAdapted = Adapted<typeof ZTextarea, ZeroAxisProp, TextareaProps>;
+type TextareaAdapted = Adapted<typeof ZTextarea, ZeroAxisProp | 'variant', TextareaProps>;
 export declare const Textarea: TextareaAdapted & AdaptedStatics<typeof ZTextarea> & { Root: TextareaAdapted };
 
 /** card — no vendor route; the wired surface keeps zero's names. */

@@ -562,7 +562,10 @@ const STATIC_COVERAGE: Record<(typeof DESIGN_SYSTEMS)[number], number> = {
     // doubles the root's combos, and the 192 new unmeasured cells are all
     // `+active` × loading — the same `brightness()` filter, no new reason.
     daisyui: 86.5,
-    material: 100,
+    // 100 → 99.9 with #416: M3's floating label is a parent reading its
+    // child (`:has()`), which the matcher answers as unknown — 5 cells, the
+    // field label and the select value, not a new paint (#469).
+    material: 99.9,
     brutalist: 100,
     // The half star is a hard-stop gradient on `::before`.
     heroui: 96.6,

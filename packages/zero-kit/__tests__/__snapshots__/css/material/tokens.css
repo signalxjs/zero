@@ -254,6 +254,7 @@
         --state-pressed: 0.1;
         --state-dragged: 0.16;
         --state-disabled-container: 0.12;
+        --tf-surface: var(--color-surface);
         --text-fixed-xs: var(--text-xs);
         --text-fixed-sm: var(--text-sm);
         --text-fixed-md: var(--text-md);
@@ -368,6 +369,7 @@
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.15), 0 1px 3px 0 oklch(0% 0 0 / 0.3);
         --shadow-level4: 0 6px 10px 4px oklch(0% 0 0 / 0.15), 0 2px 3px 0 oklch(0% 0 0 / 0.3);
         --shadow-level5: 0 8px 12px 6px oklch(0% 0 0 / 0.15), 0 4px 4px 0 oklch(0% 0 0 / 0.3);
+        --tf-surface: var(--color-surface);
     }
 
     [data-theme="material-dark"] {
@@ -446,6 +448,7 @@
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.45), 0 1px 3px 0 oklch(0% 0 0 / 0.6);
         --shadow-level4: 0 6px 10px 4px oklch(0% 0 0 / 0.45), 0 2px 3px 0 oklch(0% 0 0 / 0.6);
         --shadow-level5: 0 8px 12px 6px oklch(0% 0 0 / 0.45), 0 4px 4px 0 oklch(0% 0 0 / 0.6);
+        --tf-surface: var(--color-surface);
     }
 
     [data-theme="material-medium-contrast"] {
@@ -524,6 +527,7 @@
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.15), 0 1px 3px 0 oklch(0% 0 0 / 0.3);
         --shadow-level4: 0 6px 10px 4px oklch(0% 0 0 / 0.15), 0 2px 3px 0 oklch(0% 0 0 / 0.3);
         --shadow-level5: 0 8px 12px 6px oklch(0% 0 0 / 0.15), 0 4px 4px 0 oklch(0% 0 0 / 0.3);
+        --tf-surface: var(--color-surface);
     }
 
     [data-theme="material-dark-medium-contrast"] {
@@ -602,6 +606,7 @@
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.45), 0 1px 3px 0 oklch(0% 0 0 / 0.6);
         --shadow-level4: 0 6px 10px 4px oklch(0% 0 0 / 0.45), 0 2px 3px 0 oklch(0% 0 0 / 0.6);
         --shadow-level5: 0 8px 12px 6px oklch(0% 0 0 / 0.45), 0 4px 4px 0 oklch(0% 0 0 / 0.6);
+        --tf-surface: var(--color-surface);
     }
 
     [data-theme="material-high-contrast"] {
@@ -680,6 +685,7 @@
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.15), 0 1px 3px 0 oklch(0% 0 0 / 0.3);
         --shadow-level4: 0 6px 10px 4px oklch(0% 0 0 / 0.15), 0 2px 3px 0 oklch(0% 0 0 / 0.3);
         --shadow-level5: 0 8px 12px 6px oklch(0% 0 0 / 0.15), 0 4px 4px 0 oklch(0% 0 0 / 0.3);
+        --tf-surface: var(--color-surface);
     }
 
     [data-theme="material-dark-high-contrast"] {
@@ -758,6 +764,7 @@
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.45), 0 1px 3px 0 oklch(0% 0 0 / 0.6);
         --shadow-level4: 0 6px 10px 4px oklch(0% 0 0 / 0.45), 0 2px 3px 0 oklch(0% 0 0 / 0.6);
         --shadow-level5: 0 8px 12px 6px oklch(0% 0 0 / 0.45), 0 4px 4px 0 oklch(0% 0 0 / 0.6);
+        --tf-surface: var(--color-surface);
     }
 
     @media (prefers-reduced-motion: reduce) {

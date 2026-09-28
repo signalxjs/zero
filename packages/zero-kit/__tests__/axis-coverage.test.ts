@@ -137,12 +137,9 @@ const NO_VARIANT: Record<string, string> = {
     progress: 'Radix Themes Progress varies as classic | surface | soft — so '
         + 'the issue\'s guess that a varied progress bar is meaningless is wrong; '
         + 'what is meaningless is a GHOST one.',
-    'number-input': 'Radix Themes TextField varies as classic | surface | soft.',
-    // The two the entry above was already describing: `number-input`'s cited
-    // source IS Radix's text field, so the plain one and its multi-line
-    // sibling inherit the same answer rather than a new one.
-    input: 'Radix Themes TextField varies as classic | surface | soft.',
-    textarea: 'Radix Themes TextArea varies as classic | surface | soft.',
+    // number-input, input, textarea and combobox left this ledger in #416:
+    // zero-material wires `variant` as M3's filled | outlined text field, with
+    // each scope's own `tokens.scopes` vocabulary.
     // The custom Select wires a variant (zero-basic's outline | soft | ghost,
     // #297); its native sibling deliberately does not: the surveyed vendors
     // ── The rest of bucket A: a variant exists, spelled differently again. ──
@@ -151,8 +148,6 @@ const NO_VARIANT: Record<string, string> = {
         + 'Avatar.Group, Chakra AvatarGroup and HeroUI AvatarGroup style the '
         + 'avatars, and the group only spaces them (#297).',
     'toggle-group': 'Radix Themes SegmentedControl varies as surface | classic.',
-    combobox: 'Ant Design v6 AutoComplete varies as outlined | borderless | '
-        + 'filled | underlined.',
     // tabs left this ledger in #377: zero-daisyui wires `variant` as daisy's
     // border | lift | box flavors, with its own `tokens.scopes.tabs`
     // vocabulary. (The survey rows that justified the deferral: HeroUI v3

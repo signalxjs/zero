@@ -46,7 +46,13 @@ const ALLOWED_UNMEASURED: Record<string, UnmeasuredReason[]> = {
     // `+active` is `filter: brightness(0.92)`; the control fills carry daisy's
     // noise texture as a second background layer; the star preview brightens.
     daisyui: ['filter-or-blend', 'gradient-or-image'],
-    material: [],
+    // M3's floating label (#416) is a parent reading its child: a Field.Root
+    // over a text field positions and inks its label from the child's state
+    // (`:has([data-placeholder])`, the child's variant), and a resting label
+    // hides the select's placeholder text the same way. The matcher answers
+    // `:has()` on a node with children as unknown — 5 of ~4,800 cells, the
+    // field label and the select value (#469).
+    material: ['unsupported-selector'],
     brutalist: [],
     // The half star is a hard-stop gradient on `::before`.
     heroui: ['gradient-or-image'],
