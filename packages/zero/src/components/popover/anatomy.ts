@@ -8,6 +8,7 @@ export const popoverAnatomy = defineAnatomy('popover', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
+        absorbable: true,
     },
     // Anchor-positioned: carries `data-placement` plus the published
     // POSITION_PROPERTIES — `--anchor-width`/`--anchor-height`,
@@ -52,6 +53,7 @@ export const popoverAnatomy = defineAnatomy('popover', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,
+        absorbable: true,
     },
 }, {
     models: [

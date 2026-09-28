@@ -357,6 +357,43 @@ so an ecosystem component declares its own mark. The part-name vocabulary
 such a part with no `text` hint and no `paint` fails zero's anatomy suite
 and the audit's coverage check.
 
+**Composition: the element's own anatomy wins (#452).** When one zero
+part is merged into another — a `Tooltip.Trigger` rendered as a
+`Button.Root`, a `Menu.ContextTrigger` rendered as an ecosystem list — the
+element that renders keeps its own anatomy, and the merged ("lent") part
+contributes only behaviour and ARIA. Slots stay the transport: a raw element
+takes the lender's asChild bag by spreading (`<button {...p}>`); a zero
+component takes it through `lend={p}` (`WithLend`, #492), because sigx strips
+`ref` from component props and zero's own guard rejects anatomy attributes
+in a spread. The host merges the two bags with `mergePartProps(outer, own)`:
+
+| Key | Merge |
+|---|---|
+| runtime anatomy (`data-scope`/`part`/`state`/`placement`, every flag) | the lender's is dropped — the host's element keeps its own |
+| app paint on the lender (`data-color`/`size`/`variant`, `data-mod-*`, `data-l-*`), `hidden` | throws: set it on the host |
+| handlers, `ref` | chained, lender first; the lender's activation handlers skip while the host is inert |
+| IDREF lists (`aria-describedby`, `aria-controls`, …) | joined, lender tokens first |
+| `id`, `role`, single-value `aria-*` | host's, else lender's; two different values throw |
+| everything else | host wins, `class` concatenates |
+
+A part that may lend declares **`absorbable: true`** — presence-only, like
+`visuallyHidden`: `tooltip.trigger`, `menu.trigger`, `menu.context-trigger`,
+`popover.trigger`, `popover.close`, `dialog.trigger`, `dialog.close`,
+`dialog.cancel` and `hover-card.trigger` (#493). Not the Drawer's trigger or
+close: the responsive trigger hides itself through its own layout attribute
+when docked. Absorbed, the part renders no `[data-scope][data-part]` element
+of its own, so its states and flags are never painted and **an absorbed
+part's recipe does not apply** — a skin's `menu.trigger` recipe styles a bare
+`Menu.Trigger`, never a Button it was lent to. That fixes the invariants,
+held by zero's anatomy suite and by `mergeManifests` on fragments: an
+absorbable part requires `asChild: true`, is never another part's `parent`,
+and declares no `hiddenIn`, `layout` or `pseudo` — each of those describes an
+element that is not there. **Press feedback belongs to the element's own
+part**: `createPressFeedback` takes an `owner` and does nothing on an element
+whose scope and part are someone else's, so one element never runs two press
+animations. The flag is a declaration for tooling, not an exemption:
+`expectAnatomy` never required every declared part to be present.
+
 **Pseudo parts.** A part that renders no element of its own (dialog's
 `backdrop`) declares `pseudo: { of, selector }`; selectors compose with the
 pseudo-element last, so states narrow the host — the only thing an attribute
@@ -993,7 +1030,8 @@ token grammar (`colors`, `categories`, recommended ramps), and `components`
 — an **array** of `anatomy.toJSON()` snapshots, each part with its
 `parent`, `states`, `flags`, `placements`, `layout`, `carries`, `hiddenIn`, `paint`, `pseudo`, hints, and
 ready-made per-state selector fragments (what the recipe compiler
-consumes), and — for a component whose API carries state — `models`: one
+consumes), with `absorbable: true` on a part that may lend its asChild bag
+to a host and then renders no element of its own (#452, [§2](#2-the-anatomy-contract)), and — for a component whose API carries state — `models`: one
 entry per model with what it binds (`name`, absent for the unnamed `model`
 prop), its `concept`, its value `type`, the compound `member` that carries
 it when not Root, `multiple` / `formControl`, and the two companion names
@@ -1040,7 +1078,9 @@ selector-breakout characters, and then the shared vocabularies on the
 ecosystem surface — flags against `FLAG_VOCABULARY`, states against
 `STATE_NAMES` with synonyms in the message, placements, `hiddenIn ⊆
 states`, `carries` (named axes only, non-empty and unrepeated, never on the
-carrier or a `pseudo` part), `parent` acyclicity, and `paint` (`true` or a
+carrier or a `pseudo` part), `absorbable` (presence-only, requires
+`asChild: true`, never a `parent`, never with `hiddenIn`/`layout`/`pseudo`),
+`parent` acyclicity, and `paint` (`true` or a
 non-empty `{ glyph, only, host }`, never on a `pseudo` part, `only` one of
 the part's flags, `host` a rendered part inside the declared parent, which must exist). A scope collision is a hard error naming
 the existing owner; every merged component is stamped with its owning
@@ -1482,6 +1522,12 @@ the architecture facts, briefly:
   component from the same public behaviors zero's own components use, types
   it with `WithVariantAxesOpen`, and holds itself to the contract with
   `expectAnatomy`.
+- It composes with zero's parts under the [§2](#2-the-anatomy-contract)
+  composition rule: a part that accepts a lent bag is a **host** (`WithLend`
+  on its props, and one `mergePartProps(props.lend, ownBag)` where it
+  builds its element's props), and a part that lends its own asChild bag
+  declares `absorbable` in its anatomy, which `mergeManifests` holds to the
+  same invariants as zero's own.
 - It reaches design systems as **data**: a fragment
   (`{ version, package, components }`) plus an optional recipe pack written
   against the recommended token grammar, from an entry whose module graph

@@ -711,6 +711,11 @@ reopen the PR (or push an empty commit to it) to start CI.
   state is correct — and tooling (the state-legibility guard) reads it from the
   manifest. Add `hidden` to a part in a new state and the declaration moves
   with it; `expectAnatomy` fails otherwise.
+- A part that may lend its asChild bag to a host through `lend` declares
+  `absorbable: true` (#452/#493) — then the host's element keeps its own
+  anatomy and the lent part's recipe does not apply. It requires
+  `asChild: true`, is never a `parent`, and takes no `hiddenIn`/`layout`/
+  `pseudo`; the Drawer's trigger and close are deliberately not absorbable.
 - Each component's `anatomy.ts` is the source of truth — the component imports
   part names from it, tests assert against it, and the build emits it into
   `manifest.json` for tooling/AI. Changing an anatomy is a breaking change.

@@ -205,6 +205,27 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                         throw new Error(`[zero-kit] ${at(part.name)} is a pseudo part — it renders no element to carry an attribute`);
                     }
                 }
+                if (part.absorbable !== undefined) {
+                    // A lent part (#452) renders no element of its own — the
+                    // host's anatomy wins — so everything that needs one is
+                    // out: containing another part, being hidden by the
+                    // runtime, taking layout attributes, projecting a pseudo.
+                    if (part.absorbable !== true) {
+                        throw new Error(`[zero-kit] ${at(part.name)} has an "absorbable" that is not true — it is presence-only, omit the key when the part never lends`);
+                    }
+                    if (part.asChild !== true) {
+                        throw new Error(`[zero-kit] ${at(part.name)} is absorbable without "asChild": true — a part lends its asChild bag, so it must support asChild`);
+                    }
+                    const child = component.parts.find((p) => p.parent === part.name);
+                    if (child) {
+                        throw new Error(`[zero-kit] ${at(part.name)} is absorbable but is the parent of "${child.name}" — an absorbed part renders no element to contain it`);
+                    }
+                    for (const key of ['hiddenIn', 'layout', 'pseudo'] as const) {
+                        if (part[key] !== undefined) {
+                            throw new Error(`[zero-kit] ${at(part.name)} is absorbable and declares "${key}" — an absorbed part renders no element of its own`);
+                        }
+                    }
+                }
                 for (const state of part.hiddenIn ?? []) {
                     if (!(part.states ?? []).includes(state)) {
                         throw new Error(`[zero-kit] ${at(part.name)} declares hiddenIn "${state}", which is not one of the part's own states`);

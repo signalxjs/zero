@@ -159,6 +159,12 @@ A design system writes nothing for it and cannot undo it. `VisuallyHidden`
 AUTOSIZE (#88) is the same kind of presentation request: `data-autosize` on
 a part whose anatomy declares `autosize: true` (textarea's `textarea`),
 sized by base.css in `@layer zero.structure`.
+ABSORBABLE (#452): a part whose anatomy declares `absorbable: true`
+(tooltip/menu/popover/dialog/hover-card `trigger`, menu `context-trigger`,
+popover/dialog `close`, dialog `cancel`) may be lent to another zero part
+through `lend`; the rendered element keeps the host's own anatomy, so the
+lendable part's recipe is advisory — it styles the part only when it
+renders on its own, never the host it was lent to. Style the host.
 
 THE FORM CONTRACT (#441): every posting control takes `name`, `form`,
 `disabled`, `invalid`, `required` (and `readonly` where the platform has

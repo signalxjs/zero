@@ -12,6 +12,7 @@ export const dialogAnatomy = defineAnatomy('dialog', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
+        absorbable: true,
     },
     popup: {
         element: 'dialog',
@@ -46,6 +47,7 @@ export const dialogAnatomy = defineAnatomy('dialog', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,
+        absorbable: true,
     },
     // The least-destructive action of an alert dialog — behaviorally a close
     // button, but a distinct part: recipes style it as the quiet member of
@@ -58,6 +60,7 @@ export const dialogAnatomy = defineAnatomy('dialog', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,
+        absorbable: true,
     },
 }, {
     models: [

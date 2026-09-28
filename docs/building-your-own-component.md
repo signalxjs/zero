@@ -80,6 +80,38 @@ Conventions worth copying from any component in `packages/zero/src/components`:
 - Variant pass-through is `{...variantAttrs(props)}` on the carrier part;
   zero attaches no styling to any of it.
 
+### Composing with zero's parts: hosts and lenders
+
+When a zero part is rendered *as* one of yours — a `Menu.ContextTrigger`
+over your list, a `Tooltip.Trigger` over your row button — the element that
+renders keeps **its own** anatomy, and the lent part adds only behaviour and
+ARIA ([architecture §2](./architecture.md#2-the-anatomy-contract), #452).
+Your package can sit on either end:
+
+- **Host** — a part that accepts a lent asChild bag. Add `WithLend` to its
+  props and build the element's props with one
+  `mergePartProps(props.lend, ownBag)`: the lender's anatomy attributes are
+  dropped, handlers and refs chain (lender first), IDREF lists join, and a
+  conflicting `id`, `role` or paint attribute throws. Apps then write
+  `<Menu.ContextTrigger asChild>{(p) => <AcmeList.Root lend={p} />}</Menu.ContextTrigger>`.
+  (`WithLend` and `mergePartProps` land with #492.)
+- **Lender** — a part whose asChild bag may be lent to a host. Declare
+  `absorbable: true` next to `asChild: true`:
+
+  ```ts
+  const acmeFilterAnatomy = defineAnatomy('acme-filter', {
+      'trigger': { element: 'button', states: ['open', 'closed'], asChild: true, absorbable: true },
+      'popup': { element: 'div', states: ['open', 'closed'] },
+  });
+  ```
+
+  Lent, the part renders no `[data-scope][data-part]` element of its own, so
+  your recipe for it does not apply there — style it as the bare default,
+  and treat that recipe as advisory. `mergeManifests` rejects an absorbable
+  part without `asChild: true`, one that another part names as its
+  `parent`, and one that declares `hiddenIn`, `layout` or `pseudo`: each
+  needs an element that is not there.
+
 ## 3. Hold it to the contract
 
 `@sigx/zero/testing` ships the assertion zero's own suite runs:

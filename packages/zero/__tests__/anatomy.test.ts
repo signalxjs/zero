@@ -238,6 +238,43 @@ describe('anatomy registry', () => {
         expect(carrying).toContain('stats.item');
     });
 
+    it('an absorbable part is an asChild part with no element-bound declarations, never a parent', () => {
+        // `absorbable` (#452/#493): the part may lend its asChild bag to a
+        // host through `lend`, and then renders no element of its own — so
+        // it cannot contain another part, and `hiddenIn`, `layout` and
+        // `pseudo` would each describe an element that is not there.
+        type Part = { absorbable?: unknown; asChild?: unknown; parent?: string; hiddenIn?: unknown; layout?: unknown; pseudo?: unknown };
+        const absorbable: string[] = [];
+        for (const anatomy of Object.values(anatomies)) {
+            const parts: Record<string, Part> = anatomy.parts;
+            const parents = new Set(Object.values(parts).map((p) => p.parent).filter((p) => p !== undefined));
+            for (const [name, part] of Object.entries(parts)) {
+                if (!('absorbable' in part)) continue;
+                const at = `${anatomy.scope}.${name}`;
+                absorbable.push(at);
+                expect(part.absorbable, `${at}: absorbable is presence-only — true or omitted`).toBe(true);
+                expect(part.asChild, `${at}: an absorbable part lends its asChild bag, so it must support asChild`).toBe(true);
+                expect(parents.has(name), `${at}: an absorbed part renders no element, so no part can sit inside it`).toBe(false);
+                expect(part.hiddenIn, `${at}: absorbable with hiddenIn`).toBeUndefined();
+                expect(part.layout, `${at}: absorbable with layout`).toBeUndefined();
+                expect(part.pseudo, `${at}: absorbable with pseudo`).toBeUndefined();
+            }
+        }
+        expect(absorbable.sort()).toEqual([
+            'dialog.cancel', 'dialog.close', 'dialog.trigger',
+            'hover-card.trigger',
+            'menu.context-trigger', 'menu.trigger',
+            'popover.close', 'popover.trigger',
+            'tooltip.trigger',
+        ]);
+        // The responsive Drawer's trigger hides itself through its own
+        // anatomy when docked (`data-l-dock-above`), so it cannot be lent in
+        // v1 (#452 decision F) — nor can its close.
+        for (const [name, part] of Object.entries<Part>(anatomies.drawer.parts)) {
+            expect(part.absorbable, `drawer.${name} must not be absorbable`).toBeUndefined();
+        }
+    });
+
     it('a paint declaration is consistent with its own part', () => {
         // `paint` (#31) is what the contrast audit measures as a mark. `only`
         // names one of the part's own flags; `host` names a rendered part
