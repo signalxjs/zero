@@ -12,6 +12,19 @@
   that matches nothing leaves no highlight, so `allowCustom` commits the
   text. `inlineComplete` takes precedence.
 
+- **Triggers take `onClick`/`onKeydown`/`onFocus`/`onBlur` (#486).** Button's
+  handler quartet, now the exported `WithInteractionHandlers` prop fragment,
+  is declared on `Tooltip.Trigger`, `Dialog.Trigger`, `Popover.Trigger`,
+  `Drawer.Trigger`, `Menu.Trigger` and `HoverCard.Trigger`, and on
+  `Dialog.Close`, `Dialog.Cancel`, `Popover.Close` and `Drawer.Close`.
+  Before, `<Tooltip.Trigger onClick>` was a type error and would have been
+  dropped at runtime. The part's own handling runs first, so a trigger's
+  `onClick` sees the surface already open. A closer's `onClick` runs before
+  the close, and `event.preventDefault()` in it vetoes the close. No app
+  handler runs while the part is disabled, on an asChild element too, and
+  the handlers are in the asChild bag. `Menu.ContextTrigger`,
+  `Menu.SubTrigger` and `Menu.Item` are left to #452.
+
 ### Added — `NavList.Link` navigates by state (#451)
 
 - **`onClick` on `NavList.Link`.** It is declared like Button's, and an
