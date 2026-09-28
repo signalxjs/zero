@@ -4192,6 +4192,11 @@ export const combobox: RecipeInput = {
                 flexWrap: 'wrap',
                 minWidth: '13rem',
                 ...fieldControl,
+                // The one field control that wraps: under `multiple` its tags
+                // flow onto new rows, so the field step is a floor, not a cap —
+                // a fixed height spills wrapped tags over the next field (#407).
+                height: 'auto',
+                minHeight: fieldHeight('md'),
                 transition: 'border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
