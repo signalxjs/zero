@@ -6,8 +6,10 @@
  * artifact, and a design system built on zero is zero-native — its documented
  * surface is zero's, so every declared surface grades `exact` by
  * construction. What the row states is the SHAPE the package proves
- * reachable: thirteen colour roles (four beyond the recommended eight, three
- * tonal surfaces, a hairline `outline`) and its own variant vocabulary.
+ * reachable: M3's full colour-role set (#414) — the eight action roles
+ * (`tertiary` beyond the recommended set), their containers, the seven-step
+ * surface family, the inverse pair, `outline` / `outline-variant`, `scrim` and
+ * `shadow` — and its own variant vocabulary.
  *
  * Deliberately NOT graded here: Google's component API (`elevated`/`filled`/
  * `tonal`/`outlined`/`text` on M3 Button). That would be a vendor-surface
@@ -31,9 +33,14 @@ export const source = {
 
 export const vocabulary = {
     roles: [
-        'primary', 'secondary', 'tertiary', 'error',
-        'surface', 'surface-container', 'surface-container-high', 'outline',
-        'neutral', 'info', 'success', 'warning', 'accent',
+        'primary', 'secondary', 'tertiary', 'error', 'neutral', 'info', 'success', 'warning',
+        'primary-container', 'secondary-container', 'tertiary-container', 'error-container',
+        'info-container', 'success-container', 'warning-container', 'neutral-container',
+        'surface', 'surface-dim', 'surface-bright',
+        'surface-container-lowest', 'surface-container-low', 'surface-container',
+        'surface-container-high', 'surface-container-highest',
+        'surface-variant', 'inverse-surface',
+        'inverse-primary', 'outline', 'outline-variant', 'scrim', 'shadow',
     ],
     variants: ['solid', 'outline', 'soft', 'ghost'],
 } as const;

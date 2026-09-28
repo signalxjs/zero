@@ -3,9 +3,9 @@
         color: var(--color-primary);
         text-decoration-line: underline;
         text-underline-offset: 0.15em;
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="hover-card"][data-part="trigger"]:hover:not([data-disabled]) {
@@ -24,11 +24,11 @@
     [data-scope="hover-card"][data-part="popup"] {
         opacity: 0;
         transform: scale(0.9);
-        transition: opacity var(--duration-normal) var(--ease-emphasized), transform var(--duration-normal) var(--ease-emphasized), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
+        transition: opacity var(--duration-medium2) var(--ease-emphasized), transform var(--duration-medium2) var(--ease-emphasized), display var(--duration-medium2) allow-discrete, overlay var(--duration-medium2) allow-discrete;
         background: var(--color-surface-container-high);
         color: var(--color-surface-container-high-content);
         border: none;
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
         box-shadow: var(--shadow-level2);
         padding: var(--space-md);
         transform-origin: var(--transform-origin, center);
@@ -138,10 +138,6 @@
 
     [data-scope="hover-card"][data-part="trigger"][data-color="warning"] {
         color: var(--color-warning);
-    }
-
-    [data-scope="hover-card"][data-part="trigger"][data-color="accent"] {
-        color: var(--color-accent);
     }
 
     [data-scope="hover-card"][data-part="trigger"][data-size="xs"] {

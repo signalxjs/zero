@@ -1,7 +1,6 @@
 @layer zero.recipes {
     [data-scope="select"][data-part="root"] {
         --select-accent: var(--color-primary);
-        --select-soft: var(--color-primary-soft);
     }
 
     [data-scope="select"][data-part="root"] {
@@ -23,10 +22,10 @@
         color: var(--color-surface-container-content);
         border: none;
         border-bottom: 2px solid var(--color-outline);
-        border-radius: var(--radius-selector) var(--radius-selector) 0 0;
+        border-radius: var(--radius-extra-small) var(--radius-extra-small) 0 0;
         font-size: var(--text-md);
         cursor: pointer;
-        transition: border-color var(--duration-fast) var(--ease-standard);
+        transition: border-color var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="trigger"][data-state="open"] {
@@ -58,15 +57,19 @@
         background: var(--select-accent);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="trigger"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="select"][data-part="trigger"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="select"][data-part="trigger"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="select"][data-part="trigger"]::after {
@@ -84,7 +87,7 @@
     }
 
     [data-scope="select"][data-part="trigger"][data-press-animating]::after {
-        animation: select-ripple var(--duration-slow) var(--ease-standard);
+        animation: select-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="value"] {
@@ -94,7 +97,7 @@
 
     [data-scope="select"][data-part="indicator"] {
         opacity: 0.7;
-        transition: transform var(--duration-fast) var(--ease-standard);
+        transition: transform var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="indicator"][data-state="open"] {
@@ -125,7 +128,7 @@
         line-height: var(--leading-none);
         border-radius: 50%;
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="clear-trigger"]:hover:not([data-disabled]) {
@@ -140,11 +143,11 @@
     [data-scope="select"][data-part="popup"] {
         opacity: 0;
         transform: scale(0.9);
-        transition: opacity var(--duration-normal) var(--ease-emphasized), transform var(--duration-normal) var(--ease-emphasized), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
+        transition: opacity var(--duration-medium2) var(--ease-emphasized), transform var(--duration-medium2) var(--ease-emphasized), display var(--duration-medium2) allow-discrete, overlay var(--duration-medium2) allow-discrete;
         background: var(--color-surface-container-high);
         color: var(--color-surface-container-high-content);
         border: none;
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
         box-shadow: var(--shadow-level2);
         padding: var(--space-xs);
         transform-origin: var(--transform-origin, center);
@@ -167,14 +170,14 @@
         padding: var(--space-2xs) var(--space-md);
         font-size: var(--text-xs);
         letter-spacing: var(--tracking-wide);
-        color: var(--color-outline);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="select"][data-part="group-heading"] {
         padding: var(--space-2xs) var(--space-md);
         font-size: var(--text-xs);
         letter-spacing: var(--tracking-wide);
-        color: var(--color-outline);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="select"][data-part="item"] {
@@ -185,17 +188,18 @@
         align-items: center;
         gap: var(--space-sm);
         padding: var(--space-xs) var(--space-md);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         font-size: var(--text-sm);
         cursor: pointer;
     }
 
     [data-scope="select"][data-part="item"][data-highlighted] {
-        background: var(--select-soft);
+        background: color-mix(in oklch, var(--color-surface-container-high-content) 10%, transparent);
     }
 
     [data-scope="select"][data-part="item"][data-selected] {
-        background: var(--color-secondary-soft);
+        background: var(--color-secondary-container);
+        color: var(--color-secondary-container-content);
     }
 
     [data-scope="select"][data-part="item"][data-disabled] {
@@ -214,15 +218,19 @@
         background: var(--select-accent);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="item"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="select"][data-part="item"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="select"][data-part="item"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="select"][data-part="item"]::after {
@@ -240,11 +248,11 @@
     }
 
     [data-scope="select"][data-part="item"][data-press-animating]::after {
-        animation: select-ripple var(--duration-slow) var(--ease-standard);
+        animation: select-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="item-indicator"] {
-        color: var(--select-accent);
+        color: inherit;
     }
 
     [data-scope="select"][data-part="separator"] {
@@ -263,47 +271,34 @@
 
     [data-scope="select"][data-part="root"][data-color="primary"] {
         --select-accent: var(--color-primary);
-        --select-soft: var(--color-primary-soft);
     }
 
     [data-scope="select"][data-part="root"][data-color="secondary"] {
         --select-accent: var(--color-secondary);
-        --select-soft: var(--color-secondary-soft);
     }
 
     [data-scope="select"][data-part="root"][data-color="tertiary"] {
         --select-accent: var(--color-tertiary);
-        --select-soft: var(--color-tertiary-soft);
     }
 
     [data-scope="select"][data-part="root"][data-color="error"] {
         --select-accent: var(--color-error);
-        --select-soft: var(--color-error-soft);
     }
 
     [data-scope="select"][data-part="root"][data-color="neutral"] {
         --select-accent: var(--color-neutral);
-        --select-soft: var(--color-neutral-soft);
     }
 
     [data-scope="select"][data-part="root"][data-color="info"] {
         --select-accent: var(--color-info);
-        --select-soft: var(--color-info-soft);
     }
 
     [data-scope="select"][data-part="root"][data-color="success"] {
         --select-accent: var(--color-success);
-        --select-soft: var(--color-success-soft);
     }
 
     [data-scope="select"][data-part="root"][data-color="warning"] {
         --select-accent: var(--color-warning);
-        --select-soft: var(--color-warning-soft);
-    }
-
-    [data-scope="select"][data-part="root"][data-color="accent"] {
-        --select-accent: var(--color-accent);
-        --select-soft: var(--color-accent-soft);
     }
 
     @scope ([data-scope="select"][data-part="root"][data-size="xs"]) to ([data-scope="select"][data-part="root"]) {
@@ -387,5 +382,5 @@
     }
 }
 @keyframes select-ripple {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

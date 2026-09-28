@@ -1,7 +1,7 @@
 {
     "name": "@sigx/zero-material",
     "version": "0.1.0",
-    "description": "Material-flavoured design system for SignalX Zero \u2014 the stress test that a foreign design language fits the token contract as data, with no special-casing.",
+    "description": "Material-flavoured design system for SignalX Zero — the stress test that a foreign design language fits the token contract as data, with no special-casing.",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -45,7 +45,8 @@
     "sideEffects": false,
     "scripts": {
         "build": "tsgo -p tsconfig.json && node build.mjs",
-        "typecheck": "tsgo --noEmit"
+        "typecheck": "tsgo --noEmit",
+        "gen:scheme": "node scripts/gen-scheme.mjs"
     },
     "author": "Andreas Ekdahl",
     "license": "MIT",
@@ -62,6 +63,7 @@
         "@sigx/zero": "workspace:^"
     },
     "devDependencies": {
+        "@material/material-color-utilities": "^0.3.0",
         "@sigx/zero": "workspace:^",
         "@sigx/zero-kit": "workspace:^",
         "typescript": "^7.0.2"

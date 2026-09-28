@@ -286,7 +286,8 @@ test('reduced motion: the one-shot resolves instantly and the held tint remains'
     await expect(button).not.toHaveAttribute('data-press-animating', '');
     await expect(button).toHaveAttribute('data-pressed', '');
     const tint = await button.evaluate((el) => getComputedStyle(el, '::before').opacity);
-    expect(tint).toBe('0.12');
+    // M3's pressed state layer, --state-pressed (#414)
+    expect(tint).toBe('0.1');
     await page.mouse.up();
     // the animation still STARTED (0.01ms, not 0) — the lifecycle never strands
     expect(await readLog(page)).toContain('anim:btn-ripple');

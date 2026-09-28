@@ -1,7 +1,8 @@
 @layer zero.recipes {
     [data-scope="accordion"][data-part="root"] {
         --disclosure-accent: var(--color-primary);
-        --disclosure-soft: var(--color-primary-soft);
+        --disclosure-soft: var(--color-primary-container);
+        --disclosure-on-soft: var(--color-primary-container-content);
     }
 
     [data-scope="accordion"][data-part="root"] {
@@ -19,7 +20,7 @@
         interpolate-size: allow-keywords;
         background: var(--color-surface-container);
         color: var(--color-surface-container-content);
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
         overflow: hidden;
     }
 
@@ -30,7 +31,7 @@
 
     [data-scope="accordion"][data-part="item"][open]::details-content {
         block-size: auto;
-        transition: block-size var(--duration-normal) var(--ease-emphasized), content-visibility var(--duration-normal) allow-discrete;
+        transition: block-size var(--duration-medium2) var(--ease-emphasized), content-visibility var(--duration-medium2) allow-discrete;
     }
 
     [data-scope="accordion"][data-part="root"][data-orientation="horizontal"] > [data-scope="accordion"][data-part="item"] {
@@ -49,14 +50,14 @@
         font-family: var(--font-sans);
         font-size: var(--text-md);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard), color var(--duration-short2) var(--ease-standard), box-shadow var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="accordion"][data-part="trigger"][data-state="open"] {
         background: var(--disclosure-soft);
-        color: var(--disclosure-accent);
+        color: var(--disclosure-on-soft);
         box-shadow: inset 0 -1px 0 var(--color-outline);
     }
 
@@ -76,15 +77,19 @@
         background: var(--disclosure-accent);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="accordion"][data-part="trigger"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="accordion"][data-part="trigger"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="accordion"][data-part="trigger"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="accordion"][data-part="trigger"]::after {
@@ -102,7 +107,7 @@
     }
 
     [data-scope="accordion"][data-part="trigger"][data-press-animating]::after {
-        animation: accordion-ripple var(--duration-slow) var(--ease-standard);
+        animation: accordion-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="accordion"][data-part="panel"] {
@@ -112,52 +117,55 @@
 
     [data-scope="accordion"][data-part="panel"][data-state="closed"] {
         box-sizing: border-box;
-        animation: accordion-panel-exit var(--duration-normal) var(--ease-emphasized);
+        animation: accordion-panel-exit var(--duration-medium2) var(--ease-emphasized);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="primary"] {
         --disclosure-accent: var(--color-primary);
-        --disclosure-soft: var(--color-primary-soft);
+        --disclosure-soft: var(--color-primary-container);
+        --disclosure-on-soft: var(--color-primary-container-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="secondary"] {
         --disclosure-accent: var(--color-secondary);
-        --disclosure-soft: var(--color-secondary-soft);
+        --disclosure-soft: var(--color-secondary-container);
+        --disclosure-on-soft: var(--color-secondary-container-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="tertiary"] {
         --disclosure-accent: var(--color-tertiary);
-        --disclosure-soft: var(--color-tertiary-soft);
+        --disclosure-soft: var(--color-tertiary-container);
+        --disclosure-on-soft: var(--color-tertiary-container-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="error"] {
         --disclosure-accent: var(--color-error);
-        --disclosure-soft: var(--color-error-soft);
+        --disclosure-soft: var(--color-error-container);
+        --disclosure-on-soft: var(--color-error-container-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="neutral"] {
         --disclosure-accent: var(--color-neutral);
-        --disclosure-soft: var(--color-neutral-soft);
+        --disclosure-soft: var(--color-neutral-container);
+        --disclosure-on-soft: var(--color-neutral-container-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="info"] {
         --disclosure-accent: var(--color-info);
-        --disclosure-soft: var(--color-info-soft);
+        --disclosure-soft: var(--color-info-container);
+        --disclosure-on-soft: var(--color-info-container-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="success"] {
         --disclosure-accent: var(--color-success);
-        --disclosure-soft: var(--color-success-soft);
+        --disclosure-soft: var(--color-success-container);
+        --disclosure-on-soft: var(--color-success-container-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="warning"] {
         --disclosure-accent: var(--color-warning);
-        --disclosure-soft: var(--color-warning-soft);
-    }
-
-    [data-scope="accordion"][data-part="root"][data-color="accent"] {
-        --disclosure-accent: var(--color-accent);
-        --disclosure-soft: var(--color-accent-soft);
+        --disclosure-soft: var(--color-warning-container);
+        --disclosure-on-soft: var(--color-warning-container-content);
     }
 
     @scope ([data-scope="accordion"][data-part="root"][data-size="xs"]) to ([data-scope="accordion"][data-part="root"]) {
@@ -237,7 +245,7 @@
     }
 }
 @keyframes accordion-ripple {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }
 @keyframes accordion-panel-exit {
     from { block-size: var(--accordion-panel-height); } to { block-size: 0; padding-block: 0; }

@@ -9,7 +9,7 @@
         display: grid;
         overflow: hidden;
         background: var(--color-base-100);
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
     }
 
     [data-scope="diff"][data-part="before"] {
@@ -102,10 +102,6 @@
 
     [data-scope="diff"][data-part="root"][data-color="warning"] {
         --diff-accent: var(--color-warning);
-    }
-
-    [data-scope="diff"][data-part="root"][data-color="accent"] {
-        --diff-accent: var(--color-accent);
     }
 
     [data-scope="diff"][data-part="root"][data-size="xs"] {

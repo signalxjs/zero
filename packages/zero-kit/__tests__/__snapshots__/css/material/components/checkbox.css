@@ -35,8 +35,8 @@
         height: var(--checkbox-size);
         border: 2px solid var(--color-outline);
         background: transparent;
-        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
-        border-radius: var(--radius-selector);
+        transition: background var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard);
+        border-radius: var(--radius-extra-small);
     }
 
     [data-scope="checkbox"][data-part="control"][data-state="checked"] {
@@ -72,15 +72,19 @@
         transform: translate(-50%, -50%);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="checkbox"][data-part="control"]:hover:not([data-disabled], [data-readonly])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="checkbox"][data-part="control"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="checkbox"][data-part="control"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="checkbox"][data-part="control"][data-state="unchecked"]::before {
@@ -106,7 +110,7 @@
     }
 
     [data-scope="checkbox"][data-part="control"][data-press-animating]::after {
-        animation: checkbox-ripple var(--duration-slow) var(--ease-standard);
+        animation: checkbox-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="checkbox"][data-part="indicator"] {
@@ -146,7 +150,7 @@
         translate: var(--checkbox-mark-lead-offset);
         rotate: var(--checkbox-mark-lead-angle);
         scale: var(--checkbox-mark-lead) 1;
-        transition: translate var(--duration-fast) var(--ease-emphasized-decelerate), rotate var(--duration-fast) var(--ease-emphasized-decelerate), scale var(--duration-fast) var(--ease-emphasized-decelerate);
+        transition: translate var(--duration-short2) var(--ease-emphasized-decelerate), rotate var(--duration-short2) var(--ease-emphasized-decelerate), scale var(--duration-short2) var(--ease-emphasized-decelerate);
     }
 
     [data-scope="checkbox"][data-part="indicator"]::after {
@@ -162,11 +166,11 @@
         translate: calc(var(--checkbox-mark-size) * 0.304 + var(--checkbox-mark-stroke) * 0.354) calc(var(--checkbox-mark-size) * 0.279 - var(--checkbox-mark-stroke) * 0.177);
         rotate: -45deg;
         scale: var(--checkbox-mark-trail) 1;
-        transition: scale var(--duration-fast) var(--ease-emphasized-decelerate);
+        transition: scale var(--duration-short2) var(--ease-emphasized-decelerate);
     }
 
     [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
-        transition: scale var(--duration-fast) var(--ease-emphasized-decelerate) var(--duration-fast);
+        transition: scale var(--duration-short2) var(--ease-emphasized-decelerate) var(--duration-short2);
     }
 
     [data-scope="checkbox"][data-part="label"] {
@@ -218,11 +222,6 @@
     [data-scope="checkbox"][data-part="root"][data-color="warning"] {
         --checkbox-accent: var(--color-warning);
         --checkbox-on-accent: var(--color-warning-content);
-    }
-
-    [data-scope="checkbox"][data-part="root"][data-color="accent"] {
-        --checkbox-accent: var(--color-accent);
-        --checkbox-on-accent: var(--color-accent-content);
     }
 
     [data-scope="checkbox"][data-part="root"][data-size="xs"] {
@@ -356,5 +355,5 @@
     }
 }
 @keyframes checkbox-ripple {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

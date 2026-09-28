@@ -12,13 +12,13 @@
         gap: var(--space-sm);
         padding: var(--space-2xl) var(--space-xl);
         background: var(--empty-tint);
-        color: var(--color-base-content);
-        border-radius: var(--radius-box);
+        color: var(--empty-on-tint, var(--color-base-content));
+        border-radius: var(--radius-extra-large);
     }
 
     [data-scope="empty-state"][data-part="icon"] {
         display: inline-flex;
-        color: var(--empty-accent);
+        color: var(--empty-on-tint, var(--empty-accent));
         font-size: var(--text-3xl);
         line-height: var(--leading-none);
         margin-block-end: var(--space-xs);
@@ -28,7 +28,7 @@
         font-family: var(--font-sans);
         font-size: var(--text-lg);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         margin: 0;
         line-height: var(--leading-tight);
     }
@@ -51,47 +51,50 @@
 
     [data-scope="empty-state"][data-part="root"][data-color="primary"] {
         --empty-accent: var(--color-primary);
-        --empty-tint: var(--color-primary-soft);
+        --empty-tint: var(--color-primary-container);
+        --empty-on-tint: var(--color-primary-container-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="secondary"] {
         --empty-accent: var(--color-secondary);
-        --empty-tint: var(--color-secondary-soft);
+        --empty-tint: var(--color-secondary-container);
+        --empty-on-tint: var(--color-secondary-container-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="tertiary"] {
         --empty-accent: var(--color-tertiary);
-        --empty-tint: var(--color-tertiary-soft);
+        --empty-tint: var(--color-tertiary-container);
+        --empty-on-tint: var(--color-tertiary-container-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="error"] {
         --empty-accent: var(--color-error);
-        --empty-tint: var(--color-error-soft);
+        --empty-tint: var(--color-error-container);
+        --empty-on-tint: var(--color-error-container-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="neutral"] {
         --empty-accent: var(--color-neutral);
-        --empty-tint: var(--color-neutral-soft);
+        --empty-tint: var(--color-neutral-container);
+        --empty-on-tint: var(--color-neutral-container-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="info"] {
         --empty-accent: var(--color-info);
-        --empty-tint: var(--color-info-soft);
+        --empty-tint: var(--color-info-container);
+        --empty-on-tint: var(--color-info-container-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="success"] {
         --empty-accent: var(--color-success);
-        --empty-tint: var(--color-success-soft);
+        --empty-tint: var(--color-success-container);
+        --empty-on-tint: var(--color-success-container-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="warning"] {
         --empty-accent: var(--color-warning);
-        --empty-tint: var(--color-warning-soft);
-    }
-
-    [data-scope="empty-state"][data-part="root"][data-color="accent"] {
-        --empty-accent: var(--color-accent);
-        --empty-tint: var(--color-accent-soft);
+        --empty-tint: var(--color-warning-container);
+        --empty-on-tint: var(--color-warning-container-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-size="xs"] {

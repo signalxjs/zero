@@ -22,7 +22,7 @@
         height: 100%;
         object-fit: cover;
         opacity: 0;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="avatar"][data-part="image"][data-state="loaded"] {
@@ -31,9 +31,9 @@
 
     [data-scope="avatar"][data-part="fallback"] {
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         grid-area: 1 / 1;
         place-items: center;
         width: 100%;
@@ -56,52 +56,47 @@
     }
 
     [data-scope="avatar"][data-part="root"][data-shape="rounded"] {
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="primary"] {
-        --avatar-accent: var(--color-primary-soft);
-        --avatar-on-accent: var(--color-primary);
+        --avatar-accent: var(--color-primary-container);
+        --avatar-on-accent: var(--color-primary-container-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="secondary"] {
-        --avatar-accent: var(--color-secondary-soft);
-        --avatar-on-accent: var(--color-secondary);
+        --avatar-accent: var(--color-secondary-container);
+        --avatar-on-accent: var(--color-secondary-container-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="tertiary"] {
-        --avatar-accent: var(--color-tertiary-soft);
-        --avatar-on-accent: var(--color-tertiary);
+        --avatar-accent: var(--color-tertiary-container);
+        --avatar-on-accent: var(--color-tertiary-container-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="error"] {
-        --avatar-accent: var(--color-error-soft);
-        --avatar-on-accent: var(--color-error);
+        --avatar-accent: var(--color-error-container);
+        --avatar-on-accent: var(--color-error-container-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="neutral"] {
-        --avatar-accent: var(--color-neutral-soft);
-        --avatar-on-accent: var(--color-neutral);
+        --avatar-accent: var(--color-neutral-container);
+        --avatar-on-accent: var(--color-neutral-container-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="info"] {
-        --avatar-accent: var(--color-info-soft);
-        --avatar-on-accent: var(--color-info);
+        --avatar-accent: var(--color-info-container);
+        --avatar-on-accent: var(--color-info-container-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="success"] {
-        --avatar-accent: var(--color-success-soft);
-        --avatar-on-accent: var(--color-success);
+        --avatar-accent: var(--color-success-container);
+        --avatar-on-accent: var(--color-success-container-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="warning"] {
-        --avatar-accent: var(--color-warning-soft);
-        --avatar-on-accent: var(--color-warning);
-    }
-
-    [data-scope="avatar"][data-part="root"][data-color="accent"] {
-        --avatar-accent: var(--color-accent-soft);
-        --avatar-on-accent: var(--color-accent);
+        --avatar-accent: var(--color-warning-container);
+        --avatar-on-accent: var(--color-warning-container-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-size="xs"] {

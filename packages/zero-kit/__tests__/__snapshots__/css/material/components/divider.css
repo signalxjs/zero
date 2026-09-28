@@ -106,10 +106,6 @@
         --divider-ink: var(--color-warning);
     }
 
-    [data-scope="divider"][data-part="root"][data-color="accent"] {
-        --divider-ink: var(--color-accent);
-    }
-
     [data-scope="divider"][data-part="root"][data-size="xs"] {
         --divider-thickness: var(--border);
     }

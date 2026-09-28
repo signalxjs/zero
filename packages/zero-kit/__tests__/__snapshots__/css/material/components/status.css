@@ -47,10 +47,6 @@
         --status-ink: var(--color-warning);
     }
 
-    [data-scope="status"][data-part="root"][data-color="accent"] {
-        --status-ink: var(--color-accent);
-    }
-
     [data-scope="status"][data-part="root"][data-size="xs"] {
         --status-size: calc(var(--size-selector) * 1.5);
     }

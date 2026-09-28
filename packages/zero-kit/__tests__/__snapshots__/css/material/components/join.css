@@ -96,12 +96,6 @@
         }
     }
 
-    @scope ([data-scope="join"][data-part="root"][data-color="accent"]) to ([data-scope="join"][data-part="root"]) {
-        [data-scope="join"][data-part="item"] {
-            color: var(--color-accent);
-        }
-    }
-
     @scope ([data-scope="join"][data-part="root"][data-size="xs"]) to ([data-scope="join"][data-part="root"]) {
         [data-scope="join"][data-part="item"] {
             font-size: var(--text-xs);

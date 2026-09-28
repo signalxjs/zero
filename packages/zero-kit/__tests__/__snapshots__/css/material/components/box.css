@@ -55,9 +55,4 @@
         --box-surface: var(--color-warning-soft);
         --box-ink: var(--color-warning);
     }
-
-    [data-scope="box"][data-part="root"][data-color="accent"] {
-        --box-surface: var(--color-accent-soft);
-        --box-ink: var(--color-accent);
-    }
 }

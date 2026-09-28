@@ -28,10 +28,11 @@ const tertiary: ColorValueFor<'button'> = 'tertiary';
 // @ts-expect-error — a typo is rejected under material's register module
 const typo: ColorValueFor<'button'> = 'primry';
 
-// Material's shadow union is the recommended ramp AND the elevation levels.
+// Material's shadow union is the recommended ramp AND the elevation levels,
+// level0 included (#414).
 export type _shadowRamp = MustBeTrue<Equal<
     ZeroVocabulary['tokens']['shadow'],
-    'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'level1' | 'level2' | 'level3' | 'level4' | 'level5'
+    'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'level0' | 'level1' | 'level2' | 'level3' | 'level4' | 'level5'
 >>;
 // Its easings include the two Material-specific curves.
 export type _easings = MustBeTrue<
@@ -39,10 +40,17 @@ export type _easings = MustBeTrue<
 >;
 
 // ── theme names close on the authoring surface ──
-export type _themesClosed = MustBeTrue<Equal<ZeroThemeName, 'material' | 'material-dark'>>;
+// M3's six schemes: light and dark at standard, medium and high contrast (#414).
+export type _themesClosed = MustBeTrue<Equal<ZeroThemeName,
+    'material' | 'material-dark'
+    | 'material-medium-contrast' | 'material-dark-medium-contrast'
+    | 'material-high-contrast' | 'material-dark-high-contrast'
+>>;
 export type _setThemeClosed = MustBeTrue<Equal<
     Parameters<ThemeController['setTheme']>[0],
-    'material' | 'material-dark' | null
+    'material' | 'material-dark'
+    | 'material-medium-contrast' | 'material-dark-medium-contrast'
+    | 'material-high-contrast' | 'material-dark-high-contrast' | null
 >>;
 
 // ── the property union carries the emitted specials ──

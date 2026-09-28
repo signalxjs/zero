@@ -16,7 +16,7 @@
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         overscroll-behavior-x: contain;
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
     }
 
     [data-scope="carousel"][data-part="viewport"]:focus-visible {
@@ -47,7 +47,7 @@
         border-radius: 9999px;
         box-shadow: var(--shadow-level1);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
         z-index: 1;
     }
 
@@ -86,7 +86,7 @@
         border-radius: 9999px;
         box-shadow: var(--shadow-level1);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
         z-index: 1;
     }
 
@@ -137,10 +137,10 @@
         inline-size: var(--carousel-dot);
         block-size: var(--carousel-dot);
         box-sizing: border-box;
-        border: calc(var(--border) * 2) solid color-mix(in oklch, var(--color-base-content) 70%, transparent);
+        border: calc(var(--border) * 2) solid var(--color-surface-variant-content);
         border-radius: 9999px;
         background: transparent;
-        transition: inline-size var(--duration-fast) var(--ease-emphasized), background var(--duration-fast) var(--ease-standard);
+        transition: inline-size var(--duration-short2) var(--ease-emphasized), background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="carousel"][data-part="indicator"][data-state="active"]::before {
@@ -179,10 +179,6 @@
 
     [data-scope="carousel"][data-part="root"][data-color="warning"] {
         --carousel-accent: var(--color-warning);
-    }
-
-    [data-scope="carousel"][data-part="root"][data-color="accent"] {
-        --carousel-accent: var(--color-accent);
     }
 
     [data-scope="carousel"][data-part="root"][data-size="xs"] {

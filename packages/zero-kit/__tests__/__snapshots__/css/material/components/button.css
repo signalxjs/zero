@@ -2,7 +2,8 @@
     [data-scope="button"][data-part="root"] {
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
-        --btn-soft: var(--color-primary-soft);
+        --btn-soft: var(--color-primary-container);
+        --btn-on-soft: var(--color-primary-container-content);
         --btn-ripple: var(--btn-on-accent);
     }
 
@@ -27,12 +28,12 @@
         border: var(--border) solid transparent;
         border-radius: 624rem;
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         line-height: var(--leading-none);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard), box-shadow var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard);
         position: relative;
         overflow: hidden;
         -webkit-tap-highlight-color: transparent;
@@ -60,15 +61,15 @@
         background: var(--btn-ripple);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="button"][data-part="root"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
     }
 
     [data-scope="button"][data-part="root"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="button"][data-part="root"]::after {
@@ -86,67 +87,70 @@
     }
 
     [data-scope="button"][data-part="root"][data-press-animating]::after {
-        animation: btn-ripple var(--duration-slow) var(--ease-standard);
+        animation: btn-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="button"][data-part="root"][data-color="primary"] {
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
-        --btn-soft: var(--color-primary-soft);
+        --btn-soft: var(--color-primary-container);
+        --btn-on-soft: var(--color-primary-container-content);
     }
 
     [data-scope="button"][data-part="root"]:not([data-color]) {
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
-        --btn-soft: var(--color-primary-soft);
+        --btn-soft: var(--color-primary-container);
+        --btn-on-soft: var(--color-primary-container-content);
     }
 
     [data-scope="button"][data-part="root"][data-color="secondary"] {
         --btn-accent: var(--color-secondary);
         --btn-on-accent: var(--color-secondary-content);
-        --btn-soft: var(--color-secondary-soft);
+        --btn-soft: var(--color-secondary-container);
+        --btn-on-soft: var(--color-secondary-container-content);
     }
 
     [data-scope="button"][data-part="root"][data-color="tertiary"] {
         --btn-accent: var(--color-tertiary);
         --btn-on-accent: var(--color-tertiary-content);
-        --btn-soft: var(--color-tertiary-soft);
+        --btn-soft: var(--color-tertiary-container);
+        --btn-on-soft: var(--color-tertiary-container-content);
     }
 
     [data-scope="button"][data-part="root"][data-color="error"] {
         --btn-accent: var(--color-error);
         --btn-on-accent: var(--color-error-content);
-        --btn-soft: var(--color-error-soft);
+        --btn-soft: var(--color-error-container);
+        --btn-on-soft: var(--color-error-container-content);
     }
 
     [data-scope="button"][data-part="root"][data-color="neutral"] {
         --btn-accent: var(--color-neutral);
         --btn-on-accent: var(--color-neutral-content);
-        --btn-soft: var(--color-neutral-soft);
+        --btn-soft: var(--color-neutral-container);
+        --btn-on-soft: var(--color-neutral-container-content);
     }
 
     [data-scope="button"][data-part="root"][data-color="info"] {
         --btn-accent: var(--color-info);
         --btn-on-accent: var(--color-info-content);
-        --btn-soft: var(--color-info-soft);
+        --btn-soft: var(--color-info-container);
+        --btn-on-soft: var(--color-info-container-content);
     }
 
     [data-scope="button"][data-part="root"][data-color="success"] {
         --btn-accent: var(--color-success);
         --btn-on-accent: var(--color-success-content);
-        --btn-soft: var(--color-success-soft);
+        --btn-soft: var(--color-success-container);
+        --btn-on-soft: var(--color-success-container-content);
     }
 
     [data-scope="button"][data-part="root"][data-color="warning"] {
         --btn-accent: var(--color-warning);
         --btn-on-accent: var(--color-warning-content);
-        --btn-soft: var(--color-warning-soft);
-    }
-
-    [data-scope="button"][data-part="root"][data-color="accent"] {
-        --btn-accent: var(--color-accent);
-        --btn-on-accent: var(--color-accent-content);
-        --btn-soft: var(--color-accent-soft);
+        --btn-soft: var(--color-warning-container);
+        --btn-on-soft: var(--color-warning-container-content);
     }
 
     [data-scope="button"][data-part="root"][data-variant="solid"] {
@@ -178,8 +182,8 @@
 
     [data-scope="button"][data-part="root"][data-variant="soft"] {
         background: var(--btn-soft);
-        color: var(--btn-accent);
-        --btn-ripple: var(--btn-accent);
+        color: var(--btn-on-soft);
+        --btn-ripple: var(--btn-on-soft);
     }
 
     [data-scope="button"][data-part="root"][data-variant="soft"]:hover:not([data-disabled]) {
@@ -248,5 +252,5 @@
     to { transform: rotate(360deg) }
 }
 @keyframes btn-ripple {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

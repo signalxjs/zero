@@ -25,10 +25,10 @@
     }
 
     [data-scope="breadcrumbs"][data-part="link"] {
-        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+        color: var(--color-surface-variant-content);
         text-decoration: none;
-        border-radius: var(--radius-selector);
-        transition: color var(--duration-fast) var(--ease-standard);
+        border-radius: var(--radius-extra-small);
+        transition: color var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="breadcrumbs"][data-part="link"]:hover:not([data-disabled]) {
@@ -64,10 +64,10 @@
         margin: 0;
         font: inherit;
         line-height: inherit;
-        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
-        border-radius: var(--radius-selector);
+        color: var(--color-surface-variant-content);
+        border-radius: var(--radius-extra-small);
         cursor: pointer;
-        transition: color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
+        transition: color var(--duration-short2) var(--ease-standard), background-color var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="breadcrumbs"][data-part="ellipsis-trigger"]:hover:not([data-disabled]) {
@@ -114,10 +114,6 @@
 
     [data-scope="breadcrumbs"][data-part="root"][data-color="warning"] {
         --bc-accent: var(--color-warning);
-    }
-
-    [data-scope="breadcrumbs"][data-part="root"][data-color="accent"] {
-        --bc-accent: var(--color-accent);
     }
 
     [data-scope="breadcrumbs"][data-part="root"][data-size="xs"] {

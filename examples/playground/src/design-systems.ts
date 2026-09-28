@@ -215,7 +215,7 @@ const REGISTRY: Record<DesignSystemId, Omit<DesignSystemEntry, 'id' | 'label'>> 
         href: materialCss,
         installThemes: installMaterial,
         manifestHref: materialManifestUrl,
-        blurb: 'Thirteen colour roles, a level1–level5 elevation ramp, its own breakpoints.',
+        blurb: 'Material 3 from seed #6750A4: the full role set, six contrast schemes, M3 shape, type and motion tokens.',
     },
     brutalist: {
         href: brutalistCss,

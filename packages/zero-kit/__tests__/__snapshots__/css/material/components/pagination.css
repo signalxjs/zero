@@ -33,7 +33,7 @@
         appearance: none;
         text-decoration: none;
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard), color var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="pagination"][data-part="item"]:hover:not([data-disabled]) {
@@ -69,7 +69,7 @@
         justify-content: center;
         min-inline-size: var(--pg-size);
         block-size: var(--pg-size);
-        color: color-mix(in oklch, var(--color-base-content) 55%, transparent);
+        color: var(--color-surface-variant-content);
         font-size: var(--pg-font);
         user-select: none;
     }
@@ -89,7 +89,7 @@
         appearance: none;
         text-decoration: none;
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="pagination"][data-part="first-trigger"]:hover:not([data-disabled]) {
@@ -129,7 +129,7 @@
         appearance: none;
         text-decoration: none;
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="pagination"][data-part="prev-trigger"]:hover:not([data-disabled]) {
@@ -169,7 +169,7 @@
         appearance: none;
         text-decoration: none;
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="pagination"][data-part="next-trigger"]:hover:not([data-disabled]) {
@@ -209,7 +209,7 @@
         appearance: none;
         text-decoration: none;
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="pagination"][data-part="last-trigger"]:hover:not([data-disabled]) {
@@ -272,11 +272,6 @@
     [data-scope="pagination"][data-part="root"][data-color="warning"] {
         --pg-accent: var(--color-warning);
         --pg-accent-content: var(--color-warning-content);
-    }
-
-    [data-scope="pagination"][data-part="root"][data-color="accent"] {
-        --pg-accent: var(--color-accent);
-        --pg-accent-content: var(--color-accent-content);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="xs"] {

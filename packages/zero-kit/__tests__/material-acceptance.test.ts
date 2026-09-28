@@ -52,8 +52,10 @@ describe('colour roles beyond the recommended eight', () => {
         // would be wrong, so they declare `soft: false`.
         expect(css).not.toContain('--color-surface-container-soft');
         expect(css).not.toContain('--color-outline-soft');
-        // …while an ordinary role still gets its derived tint.
-        expect(css).toMatch(/--color-tertiary-soft: color-mix\(/);
+        // …while an action role's tint is M3's container, stated per theme
+        // rather than mixed (#414): the tonal fill is a tone too.
+        expect(css).not.toMatch(/--color-tertiary-soft: color-mix\(/);
+        expect(css).toMatch(/--color-tertiary-soft: #/);
     });
 
     it('omits a content pairing for a role that has no foreground', () => {
@@ -65,9 +67,9 @@ describe('colour roles beyond the recommended eight', () => {
 });
 
 describe('open keys inside the closed categories', () => {
-    it('carries an elevation ramp named level1…level5', () => {
+    it('carries an elevation ramp named level0…level5', () => {
         const shadow = compiled.tokens.system.shadow as Record<string, string>;
-        expect(Object.keys(shadow)).toEqual(['level1', 'level2', 'level3', 'level4', 'level5']);
+        expect(Object.keys(shadow)).toEqual(['level0', 'level1', 'level2', 'level3', 'level4', 'level5']);
         expect(css).toContain('--shadow-level5:');
         // …and none of the recommended xs…xl names, which Material doesn't use.
         expect(css).not.toContain('--shadow-md:');
@@ -76,6 +78,15 @@ describe('open keys inside the closed categories', () => {
     it('carries easings Material named itself', () => {
         expect(css).toContain('--ease-emphasized-decelerate:');
         expect(css).toContain('--ease-emphasized-accelerate:');
+    });
+
+    it(`carries M3's duration tokens and corner scale by M3's names (#414)`, () => {
+        expect(css).toContain('--duration-short1:');
+        expect(css).toContain('--duration-extra-long4:');
+        expect(css).toContain('--radius-extra-small:');
+        expect(css).toContain('--radius-extra-extra-large:');
+        expect(css).toContain('--text-display-large:');
+        expect(css).toContain('--leading-label-small:');
     });
 
     it('dims elevation under system dark', () => {
@@ -88,7 +99,8 @@ describe('open keys inside the closed categories', () => {
 
 describe('breakpoints and the responsive dialog', () => {
     it('uses Material’s own window-size classes', () => {
-        expect(compiled.tokens.breakpoints).toEqual({ sm: '600px', md: '840px', lg: '1240px' });
+        // Medium, expanded, large and extra-large, by their lower bounds.
+        expect(compiled.tokens.breakpoints).toEqual({ sm: '600px', md: '840px', lg: '1200px', xl: '1600px' });
     });
 
     it('makes the dialog full-screen below sm', () => {
@@ -104,10 +116,11 @@ describe('breakpoints and the responsive dialog', () => {
 
 describe('the swatch follows the declaration', () => {
     it('samples the roles that actually distinguish a Material theme', () => {
-        // Not primary/neutral: Material themes differ in their tonal
-        // surfaces, so a picker hardcoded to the recommended roles would
-        // render every one of them identically.
-        expect(tokens.swatch).toContain('surface-container');
+        // Not the recommended first four: Material themes differ in their
+        // key colours and containers, and `tertiary` is not a recommended
+        // role at all.
+        expect(tokens.swatch).toContain('tertiary');
+        expect(tokens.swatch).toContain('primary-container');
         for (const theme of compiled.themes) {
             expect(Object.keys(theme.swatch)).toEqual(tokens.swatch);
         }
@@ -123,12 +136,9 @@ describe('the colour axis covers what the vocabulary declares', () => {
         const button = designSystem.recipes.find((r) => r.component === 'button')!;
         const offered = new Set(Object.keys(button.variants?.color ?? {}));
 
-        // Fills and hairlines are excluded on purpose: they are surfaces, not
-        // things a button is coloured by.
-        const notActionColours = new Set([
-            'surface', 'surface-container', 'surface-container-high', 'outline',
-        ]);
-        const expected = Object.keys(tokens.roles ?? {}).filter((r) => !notActionColours.has(r));
+        // Fills and hairlines are excluded on purpose: they are surfaces,
+        // containers and boundaries, not things a button is coloured by.
+        const expected = ['primary', 'secondary', 'tertiary', 'error', 'neutral', 'info', 'success', 'warning'];
 
         expect([...offered].sort()).toEqual(expected.sort());
     });

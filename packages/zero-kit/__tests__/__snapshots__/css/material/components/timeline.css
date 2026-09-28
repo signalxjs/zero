@@ -94,7 +94,7 @@
         font-size: var(--text-sm);
         background: var(--color-surface-container);
         color: var(--color-surface-container-content);
-        border-radius: var(--radius-field);
+        border-radius: var(--radius-medium);
     }
 
     [data-scope="timeline"][data-part="content"][data-orientation="vertical"][data-placement="start"] {
@@ -134,7 +134,7 @@
         display: block;
         margin: 0;
         margin-block-start: var(--space-2xs);
-        color: color-mix(in oklab, var(--color-surface-container-content) 78%, transparent);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="timeline"][data-part="marker"][data-color="primary"] {
@@ -167,10 +167,6 @@
 
     [data-scope="timeline"][data-part="marker"][data-color="warning"] {
         --timeline-accent: var(--color-warning);
-    }
-
-    [data-scope="timeline"][data-part="marker"][data-color="accent"] {
-        --timeline-accent: var(--color-accent);
     }
 
     @scope ([data-scope="timeline"][data-part="root"][data-color="primary"]) to ([data-scope="timeline"][data-part="root"]) {
@@ -218,12 +214,6 @@
     @scope ([data-scope="timeline"][data-part="root"][data-color="warning"]) to ([data-scope="timeline"][data-part="root"]) {
         [data-scope="timeline"][data-part="marker"] {
             --timeline-accent: var(--color-warning);
-        }
-    }
-
-    @scope ([data-scope="timeline"][data-part="root"][data-color="accent"]) to ([data-scope="timeline"][data-part="root"]) {
-        [data-scope="timeline"][data-part="marker"] {
-            --timeline-accent: var(--color-accent);
         }
     }
 

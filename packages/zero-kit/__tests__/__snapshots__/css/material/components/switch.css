@@ -31,7 +31,7 @@
         border-radius: 624rem;
         background: var(--color-surface-container-high);
         border: 2px solid var(--color-outline);
-        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="control"][data-state="checked"] {
@@ -51,11 +51,11 @@
     }
 
     [data-scope="switch"][data-part="control"]:hover:not([data-disabled], [data-readonly]) [data-part="thumb"]::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
     }
 
     [data-scope="switch"][data-part="control"][data-pressed]:not([data-disabled]) [data-part="thumb"]::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="switch"][data-part="control"][data-state="unchecked"] [data-part="thumb"]::before {
@@ -71,7 +71,7 @@
         border-radius: 624rem;
         background: var(--color-outline);
         transform: translateY(-50%);
-        transition: transform var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), width var(--duration-fast) var(--ease-standard), height var(--duration-fast) var(--ease-standard);
+        transition: transform var(--duration-short2) var(--ease-standard), background var(--duration-short2) var(--ease-standard), width var(--duration-short2) var(--ease-standard), height var(--duration-short2) var(--ease-standard);
         --switch-thumb-dir: 1;
     }
 
@@ -98,7 +98,7 @@
         transform: translate(-50%, -50%);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="label"] {
@@ -170,11 +170,6 @@
     [data-scope="switch"][data-part="root"][data-color="warning"] {
         --switch-accent: var(--color-warning);
         --switch-on-accent: var(--color-warning-content);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="accent"] {
-        --switch-accent: var(--color-accent);
-        --switch-on-accent: var(--color-accent-content);
     }
 
     @media (hover: none) {

@@ -19,7 +19,7 @@
         font-family: var(--font-sans);
         font-size: var(--text-md);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         color: var(--checkbox-group-accent);
     }
 
@@ -62,10 +62,6 @@
 
     [data-scope="checkbox-group"][data-part="root"][data-color="warning"] {
         --checkbox-group-accent: var(--color-warning);
-    }
-
-    [data-scope="checkbox-group"][data-part="root"][data-color="accent"] {
-        --checkbox-group-accent: var(--color-accent);
     }
 
     [data-scope="checkbox-group"][data-part="root"][data-size="xs"] {

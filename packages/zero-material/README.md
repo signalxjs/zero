@@ -1,43 +1,50 @@
 # @sigx/zero-material
 
-A Material-flavoured skin for [SignalX Zero](https://npmjs.com/package/@sigx/zero) —
+A Material 3 skin for [SignalX Zero](https://npmjs.com/package/@sigx/zero) —
 and the acceptance test for the whole token contract.
 
 **Not published.** It exists to answer one question: does a design language
 zero was *not* designed around fit the contract as data, with no
-special-casing anywhere in the kit? Its palette is a Material approximation,
-not a licensed token set.
+special-casing anywhere in the kit? To make the answer mean something, the
+skin implements the Material 3 spec itself rather than an approximation of
+it. That work is phased under #413, and every place zero or zero-kit cannot
+express M3 is filed as an `m3-finding` issue rather than worked around quietly.
 
-## What it proves
+## The M3 token set (#414)
 
-Material differs from zero's recommended vocabulary in four ways at once, and
-all four are expressed as declarations rather than escape hatches:
+| Material 3 | How it lands |
+|---|---|
+| Colour from M3's own algorithm: HCT tonal palettes from seed `#6750A4`, light and dark at standard, medium and high contrast (six themes) | `scripts/gen-scheme.mjs` runs `@material/material-color-utilities` (devDependency only) into a checked-in `src/scheme.generated.ts`; `pnpm --filter @sigx/zero-material gen:scheme` regenerates it, and a test fails when it is stale |
+| The full role set: key colours and their containers, seven surface tones, `surface-variant`, the inverse pair, `outline` / `outline-variant`, `scrim`, `shadow` | `roles`. `on-X` is zero's `X-content`. Fills and hairlines opt out of the `color` axis (`soft: false` / `content: false`) |
+| Tonal (container) fills with their `on-*-container` ink | each action role's `-soft` is set to its container per theme, and recipes pair `-container` with `-container-content`. Pairing the key ink with its container instead fails in the high-contrast schemes, where the container goes dark |
+| `info` / `success` / `warning`, which M3 does not define | custom colours harmonised toward the seed, each with the same colour / container quartet |
+| The corner scale, extra-small (4dp) → extra-extra-large (48dp) and full | open keys in `radius`: `--radius-extra-small` … `--radius-full`. `selector` / `field` / `box` remain as aliases, because zero's token hints and structural fallbacks name them |
+| The fifteen type roles (display … label × large/medium/small) | a size, a unitless line height and a tracking under one key (`--text-title-medium`, `--leading-title-medium`, `--tracking-title-medium`), composed by the recipes' `type()` helper |
+| Duration tokens `short1` … `extra-long4`, and the easing set | open keys in `motion`. `emphasized` is M3's two-segment path, sampled into `linear()` |
+| M3 Expressive's springs (spatial and effects × fast/default/slow) | simulated and sampled into `linear()` easings, each with a same-named duration |
+| Elevation `level0`–`level5` | open keys inside the closed `shadow` category, deepened under dark themes |
+| State layers: hover 8%, focus 10%, pressed 10%, dragged 16% | `--state-*` custom tokens, including the focus layer beside the focus ring |
+| Window size classes at 600 / 840 / 1200 / 1600 | `breakpoints` `sm` / `md` / `lg` / `xl`, driving a full-screen dialog below `sm` |
+
+## What the recipes prove
 
 | Material | How it lands |
 |---|---|
-| 13 colour roles, including `tertiary` and a tonal `surface` family | `roles` — the vocabulary is the design system's, not zero's |
-| `on-primary`, `on-surface` foregrounds | the `-content` suffix convention, unchanged |
-| Surface containers are explicit tones, not derived tints | `soft: false` suppresses the `color-mix()` |
-| `outline` is a hairline with no foreground | `content: false` — no unused token, no bogus contrast pair |
-| Elevation named `level1`–`level5` | open keys inside the closed `shadow` category |
-| `emphasized-decelerate` / `emphasized-accelerate` easings | open keys inside `motion` |
-| Window-size classes at 600 / 840 / 1240px | `breakpoints`, driving a full-screen dialog below `sm` |
 | The modal navigation drawer sliding in on emphasized-decelerate and out on emphasized-accelerate (#83), and the bottom sheet rising the same way (#291) | `translate` over a direction-flipped `--drawer-travel` (on the block axis, unflipped, for `top`/`bottom`), keyed on the regime (`data-l-dock="sheet"`) so the slide-out leaves from the sheet's own box |
 | The ink ripple, expanding from the press point | pure recipe CSS over the runtime's press feedback (`data-pressed`, `data-press-animating`, `--press-x/y/r`) — no JavaScript in this package |
 | State layers on every pressable surface, the 40dp selection-control halo, the switch layer that rides the thumb, the slider handle halo while dragging | the same press data, read four different ways: bounded ripple, centered unclipped circle, a descendant selector from the flagged control to the thumb's pseudo, and vendor thumb pseudos on `data-pressed` |
 
-It validates with **no errors and no warnings**, styles all fifteen
-components, and required no change to `@sigx/zero-kit`.
+It validates and audits with **no errors and no warnings** in all six themes,
+and styles every component in zero's manifest.
 
-## Two places Material's own spec had to be read, not copied
+## Places Material's own spec had to be read, not copied
 
 - **An expanded disclosure header takes the selected container.** Collapsible
   and accordion declare no `indicator` part, and `pressable()` already owns
   both `::before` (the state layer) and `::after` (the ripple), so a chevron
   has nowhere to draw. The trigger says it itself: `open` takes the
-  `primary-soft` fill, the primary ink and an inset hairline at its
-  block-end — the same "open" this design system paints on a menu
-  sub-trigger. `--weight-semibold` is deliberately not used; this vocabulary
+  primary container, its on-container ink and an inset hairline at its
+  block-end. `--weight-semibold` is deliberately not used; this vocabulary
   maps it to the same 500 as `medium`, so a weight bump would compile to
   nothing.
 - **`toast({ color })` lands on a status marker, not on the container.** M3
