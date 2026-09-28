@@ -25,13 +25,14 @@ export {
     emptyReport,
     foldConstantCalc,
     hasComparisonFunction,
+    hasSvgDataUri,
     hasUnsupportedColorFunction,
     LYNX_REM_PX,
     LynxRuntimePropertyError,
     remToPx,
     runtimePropertyIn,
 } from './capabilities.js';
-export { STRUCTURAL_FALLBACKS, compileLynxTokensCss, lynxThemeColors } from './tokens-css.js';
+export { STRUCTURAL_FALLBACKS, compileLynxTokensCss, lynxRefusedImageTokens, lynxThemeColors } from './tokens-css.js';
 export type { LynxThemeColors } from './recipe-css.js';
 export { compileLynxRecipeCss } from './recipe-css.js';
 export type { ChainVocabulary } from './calc-chains.js';

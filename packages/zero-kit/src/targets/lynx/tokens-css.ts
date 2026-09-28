@@ -41,7 +41,7 @@ import { STRUCTURAL_FALLBACKS, assertTokenValue, resolveSystemTokens } from '../
  */
 export { STRUCTURAL_FALLBACKS };
 import type { LynxCapabilityReport } from './capabilities.js';
-import { bakeColor, bakeColorValue, bakeSoft, hasComparisonFunction, hasUnsupportedColorFunction, LYNX_REM_PX, LynxRuntimePropertyError, remToPx, runtimePropertyIn } from './capabilities.js';
+import { bakeColor, bakeColorValue, bakeSoft, hasComparisonFunction, hasSvgDataUri, hasUnsupportedColorFunction, LYNX_REM_PX, LynxRuntimePropertyError, remToPx, runtimePropertyIn, SVG_DATA_URI_DETAIL } from './capabilities.js';
 import { HOST_CLASS, themeClass } from './class-names.js';
 import type { LynxThemeColors } from './recipe-css.js';
 
@@ -152,13 +152,8 @@ function bakedColors(
  * color functions in values baked, `--text-fixed-*` materialized as the
  * ramp's literals.
  */
-function bakedNonColor(
-    input: TokensInput<any, any>,
-    theme: AnyTheme,
-    themeColors: Record<string, string>,
-    where: string,
-    report: LynxCapabilityReport,
-): Record<string, string> {
+/** One theme's non-color properties, before any lynx capability pass. */
+function resolvedNonColor(input: TokensInput<any, any>, theme: AnyTheme): Record<string, string> {
     const resolved: Record<string, string> = {
         ...resolveSystemTokens(
             input.system,
@@ -168,6 +163,17 @@ function bakedNonColor(
     };
     for (const [name, value] of Object.entries(theme.custom ?? {})) resolved[customProp(name)] = value;
     for (const [name, value] of Object.entries(theme.extra ?? {})) resolved[customProp(name)] = value;
+    return resolved;
+}
+
+function bakedNonColor(
+    input: TokensInput<any, any>,
+    theme: AnyTheme,
+    themeColors: Record<string, string>,
+    where: string,
+    report: LynxCapabilityReport,
+): Record<string, string> {
+    const resolved = resolvedNonColor(input, theme);
     // Written into `--prop: value;` verbatim, like a recipe value (#183).
     for (const [prop, value] of Object.entries(resolved)) assertTokenValue(where, prop, String(value));
 
@@ -180,6 +186,15 @@ function bakedNonColor(
                 `[zero-kit] ${where}: "${prop}" references ${runtime}, a web-runtime-published property with no lynx equivalent — move it into a web-only section`,
                 runtime,
             );
+        }
+        if (hasSvgDataUri(value)) {
+            // iOS cannot decode an SVG data-URI image (signalxjs/lynx#1215):
+            // any declaration painting this token would raise an image
+            // failure. The recipe emitter refuses every read of it too, so
+            // `assertNoDanglingVars` stays satisfied.
+            report.dropped.push({ where, what: `${prop}: ${value}`, detail: SVG_DATA_URI_DETAIL });
+            delete inlined[prop];
+            continue;
         }
         if (hasComparisonFunction(value)) {
             // Same verdict as the recipe emitter: lynx does not implement
@@ -253,6 +268,26 @@ export function lynxThemeColors<R extends RolesDecl, T extends SystemTokens>(
         isDefault: name === input.defaultLight,
         colors: bakedColors(theme as AnyTheme, roles, `lynx tokens, theme "${name}"`, throwaway),
     }));
+}
+
+/**
+ * The token names the lynx tokens emitter refuses because their value — in
+ * any theme, after var() chains are inlined — carries an SVG data-URI image
+ * (signalxjs/lynx#1215). The recipe emitter drops every declaration reading
+ * one of them, so the image never reaches the engine by indirection either.
+ */
+export function lynxRefusedImageTokens<R extends RolesDecl, T extends SystemTokens>(
+    input: TokensInput<R, T>,
+): Set<string> {
+    const refused = new Set<string>();
+    const throwaway: LynxCapabilityReport = { translated: [], dropped: [] };
+    for (const [name, theme] of Object.entries(input.themes)) {
+        const inlined = inlineNonColorVars(resolvedNonColor(input, theme as AnyTheme), `lynx tokens, theme "${name}"`, throwaway);
+        for (const [prop, value] of Object.entries(inlined)) {
+            if (hasSvgDataUri(value)) refused.add(prop);
+        }
+    }
+    return refused;
 }
 
 /** Compile a `TokensInput` to the design system's lynx `tokens.css`. */

@@ -393,6 +393,60 @@ describe('compileLynxRecipeCss', () => {
         expect(kf.report.dropped.some((f) => f.what === 'keyframes pulse' && f.detail.includes('currentColor'))).toBe(true);
     });
 
+    it('drops SVG data-URI images — iOS cannot decode them', () => {
+        // Measured (signalxjs/lynx#1215, iOS 26 simulator): daisy's
+        // --fx-noise tile reached SDWebImage, which failed to decode it and
+        // raised a level-error image failure — the dev red screen on every
+        // checkbox and radio section.
+        const { css, report } = compile({
+            component: 'button',
+            parts: {
+                root: {
+                    base: {
+                        color: '#111111',
+                        backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\'/%3E")',
+                        background: 'url(data:image/SVG+XML,%3Csvg/%3E) no-repeat',
+                    },
+                },
+            },
+            keyframes: { shimmer: 'from { background-image: url(\'data:image/svg+xml,%3Csvg/%3E\'); } to { opacity: 1; }' },
+        });
+        expect(css).not.toMatch(/data:image/i);
+        expect(css).toContain('color: #111111;');
+        expect(report.dropped.filter((f) => f.detail.includes('signalxjs/lynx#1215'))).toHaveLength(3);
+        expect(report.dropped.some((f) => f.what === 'keyframes shimmer')).toBe(true);
+        // A raster data URI decodes and is left alone.
+        const png = compile({
+            component: 'button',
+            parts: { root: { base: { backgroundImage: 'url("data:image/png,%89PNG")' } } },
+        });
+        expect(png.css).toContain('data:image/png');
+    });
+
+    it('drops every read of a token refused as an SVG image', () => {
+        const report = emptyReport();
+        const css = compileLynxRecipeCss({
+            component: 'button',
+            parts: { root: { base: { backgroundImage: 'none, var(--fx-noise)', backgroundSize: 'auto' } } },
+        }, button, report, [], new Set(['--fx-noise']));
+        expect(css).not.toContain('--fx-noise');
+        expect(css).toContain('background-size: auto;');
+        expect(report.dropped.some((f) => f.what.includes('var(--fx-noise)') && f.detail.includes('reads --fx-noise'))).toBe(true);
+    });
+
+    it('drops clip-path — lynx does not apply it', () => {
+        // Measured (signalxjs/lynx#1216, iOS 26 simulator): daisy's
+        // polygon-cut checkbox tick drew as the unclipped rotated square.
+        const { css, report } = compile({
+            component: 'button',
+            parts: { root: { base: { clipPath: 'polygon(0 0, 100% 0, 50% 100%)', opacity: '1' } } },
+            keyframes: { wipe: 'from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); }' },
+        });
+        expect(css).not.toContain('clip-path');
+        expect(css).toContain('opacity: 1;');
+        expect(report.dropped.filter((f) => f.detail.includes('signalxjs/lynx#1216'))).toHaveLength(2);
+    });
+
     it('drops logical inset/margin/padding spellings — they resolve on iOS but not on Android', () => {
         // Measured (signalxjs/lynx#1084, four-bar probe): every logical
         // spelling lays out on iOS and is ignored on Android — the daisy
@@ -867,14 +921,46 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
     // currentColor border fallbacks dropped the whole border besides. Their
     // lynx sections restate all of it with the named accents the web
     // spellings resolve to.
+    // The tick is the classic two-border check on a rotated box, and the
+    // dash a filled bar centred on the cross axis — neither needs the
+    // clip-path lynx does not apply (signalxjs/lynx#1216, #1217).
+    it('zero-daisyui checkbox: the tick and the dash are drawn without clip-path', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const checkbox = componentCss['checkbox']!;
+        const block = (selector: string) => new RegExp(`${selector.replace(/\./g, '\\.')} \\{([^}]*)\\}`).exec(checkbox)?.[1] ?? '';
+        const tick = block('.zx-checkbox__indicator');
+        expect(tick).toContain('width: 50%;');
+        expect(tick).toContain('margin-left: 20%;');
+        expect(tick).toContain('border-top-width: 0;');
+        expect(tick).toContain('border-left-width: 0;');
+        expect(tick).toMatch(/border-right-width: calc\(/);
+        expect(tick).toMatch(/border-bottom-width: calc\(/);
+        expect(tick).toContain('transform-origin: 60% 50%;');
+        expect(tick).toContain('transform: rotate(45deg);');
+        const dash = block('.zx-checkbox__indicator.zx-s-indeterminate');
+        expect(dash).toContain('width: 60%;');
+        expect(dash).toContain('height: 20%;');
+        expect(dash).toContain('align-self: center;');
+        expect(dash).toContain('border-right-width: 0;');
+        expect(dash).toContain('transform: rotate(0deg);');
+        // The dash follows every size axis rule, so its zeroed borders win.
+        expect(checkbox.lastIndexOf('.zx-checkbox__indicator.zx-a-size-xl {')).toBeLessThan(checkbox.indexOf('.zx-checkbox__indicator.zx-s-indeterminate {'));
+    });
+
     it('zero-daisyui checkbox/radio: marks and rings spend named accents, not currentColor', () => {
         const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
         const checkbox = componentCss['checkbox']!;
         expect(checkbox).not.toMatch(/currentcolor/i);
-        expect(checkbox).toMatch(/\.zx-checkbox__indicator \{[^}]*background-color: var\(--checkbox-on-accent\);/);
+        expect(checkbox).toMatch(/\.zx-checkbox__indicator \{[^}]*border-color: var\(--checkbox-on-accent\);/);
+        expect(checkbox).toMatch(/\.zx-checkbox__indicator\.zx-s-indeterminate \{[^}]*background-color: var\(--checkbox-on-accent\);/);
         expect(checkbox).toMatch(/\.zx-checkbox__control \{[^}]*border: var\(--border\) solid var\(--checkbox-accent\);/);
         const radio = componentCss['radio-group']!;
         expect(radio).not.toMatch(/currentcolor/i);
+        // No noise tile and no clip-path reach either artifact
+        // (signalxjs/lynx#1215, #1216).
+        for (const css of [checkbox, radio]) {
+            expect(css).not.toMatch(/fx-noise|data:image|clip-path/);
+        }
         expect(radio).toMatch(/\.zx-radio-group__item-control \{[^}]*border: var\(--border\) solid var\(--radio-accent\);/);
         expect(radio).toMatch(/\.zx-radio-group__item-control\.zx-s-checked \{[^}]*border-color: var\(--radio-accent\);/);
         expect(radio).toMatch(/\.zx-radio-group__item-indicator\.zx-s-checked \{[^}]*background-color: var\(--radio-accent\);/);

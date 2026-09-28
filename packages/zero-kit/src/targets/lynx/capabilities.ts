@@ -88,6 +88,25 @@
  *   (font-size, line-height) only — the same contract a px-authored skin
  *   always had.
  *
+ * Sixth round (signalxjs/lynx#1215–#1216, iPhone 17 Pro / iOS 26 simulator,
+ * lynx main `c78a16af` with `@sigx/zero-daisyui` 0.12.0):
+ *
+ * - **An SVG data-URI image fails to decode on iOS.** Lynx hands a
+ *   `background-image: url("data:image/svg+xml,…")` to SDWebImage, which
+ *   cannot decode it (daisy's `--fx-noise` tile, an `feTurbulence` filter):
+ *   `Load backgroundImage failed` / `Downloaded image decode failed`, raised
+ *   as a level-error image failure — the dev client's red error screen on
+ *   every checkbox and radio section, 28 of 28 shots. Every value carrying
+ *   one is refused with a report entry: a token defining it, and every
+ *   declaration reading it directly or through such a token. The texture is
+ *   decorative (daisy paints it at `--noise`, 0 by default).
+ * - **`clip-path` is not applied.** daisy's checkbox tick — a rotated box cut
+ *   to an L by `clip-path: polygon(…)` — drew as the unclipped rotated
+ *   square, a solid diamond. Every `clip-path` declaration is dropped with a
+ *   report entry (the other basic shapes are unmeasured and get the same
+ *   verdict until a probe says otherwise); the recipe's lynx section draws
+ *   the shape another way (the checkbox tick is two borders on a rotated box).
+ *
  * Three verdicts:
  *
  *
@@ -108,7 +127,9 @@
  *   `currentColor`, which never resolves on device (signalxjs/lynx#1079) —
  *   and any logical inset/margin/padding spelling or standalone
  *   `translate`/`rotate`/`scale` property, which resolve on iOS but not on
- *   Android (signalxjs/lynx#1084).
+ *   Android (signalxjs/lynx#1084) — and any SVG data-URI image or
+ *   `clip-path`, which iOS fails to decode / does not apply
+ *   (signalxjs/lynx#1215, #1216).
  * - **reject, failing the build** — the recipe depends on a web runtime
  *   mechanism with no lynx equivalent (`var(--press-x)` and the other
  *   `RUNTIME_PROPERTIES`) or on a value nothing can bake. Silence would ship
@@ -223,6 +244,28 @@ const COMPARISON_FUNCTION_PATTERN = /\b(?:min|max|clamp)\(/i;
 
 export const hasComparisonFunction = (value: string): boolean =>
     COMPARISON_FUNCTION_PATTERN.test(value);
+
+/**
+ * An SVG data-URI image — `url("data:image/svg+xml,…")`, quoted or not,
+ * base64 or not. iOS Lynx hands it to SDWebImage, which cannot decode it
+ * (measured, signalxjs/lynx#1215: daisy's `--fx-noise` tile, an
+ * `feTurbulence` filter, failed with `Downloaded image decode failed` and
+ * raised the dev client's red error screen). Raster data URIs (`image/png`)
+ * decode and are not matched.
+ */
+const SVG_DATA_URI = /url\(\s*["']?\s*data:image\/svg\+xml/i;
+
+export const hasSvgDataUri = (value: string): boolean => SVG_DATA_URI.test(value);
+
+/** The report detail for a refused SVG data-URI image, shared by both emitters. */
+export const SVG_DATA_URI_DETAIL = 'an SVG data-URI image fails to decode on iOS lynx — SDWebImage reports "Downloaded image decode failed" as a level-error image failure, the dev client\'s red error screen (measured, signalxjs/lynx#1215); dropped — the image is dropped with it, supply a raster or a lynx replacement in the recipe\'s lynx target section if it is not decorative';
+
+/**
+ * `clip-path` — measured not applied on iOS (signalxjs/lynx#1216: daisy's
+ * checkbox tick, a rotated box cut to an L by `polygon()`, drew as the
+ * unclipped square). Dropped wherever it appears, with a report entry.
+ */
+export const CLIP_PATH_DETAIL = 'clip-path is not applied on lynx (measured on iOS, signalxjs/lynx#1216 — daisy\'s polygon-cut checkbox tick drew as the unclipped rotated square); dropped, draw the shape another way (borders, radii, transforms) in the recipe\'s lynx target section';
 
 /**
  * The colour baking itself — `bakeColor`, `bakeColorValue`, `bakeSoft`,

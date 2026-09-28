@@ -60,12 +60,15 @@ import type { LynxCapabilityReport } from './capabilities.js';
 import {
     INTERACTION_STATE_CLASSES,
     bakeColorValue,
+    CLIP_PATH_DETAIL,
     hasComparisonFunction,
+    hasSvgDataUri,
     hasUnsupportedColorFunction,
     LYNX_REM_PX,
     LynxRuntimePropertyError,
     remToPx,
     runtimePropertyIn,
+    SVG_DATA_URI_DETAIL,
 } from './capabilities.js';
 import { HOST_CLASS, axisClass, flagClass, layoutClass, modClass, orientationClass, partClass, placementClass, stateClass, themeClass } from './class-names.js';
 
@@ -259,6 +262,17 @@ function unbakeableVarIn(value: string): string | undefined {
     return undefined;
 }
 
+const NO_REFUSED_VARS: ReadonlySet<string> = new Set();
+
+/** The first `var()` in a value naming a property the tokens emitter refused as an image. */
+function refusedImageVarIn(value: string, refused: ReadonlySet<string>): string | undefined {
+    if (refused.size === 0) return undefined;
+    for (const match of value.matchAll(ANY_VAR)) {
+        if (refused.has(match[1]!)) return match[1];
+    }
+    return undefined;
+}
+
 /**
  * The result of capability-checking one declaration block: what emits as it
  * stands, and what has to be RESTATED PER THEME because its value reads theme
@@ -280,6 +294,7 @@ function checkedProps(
     props: CssProps,
     where: string,
     report: LynxCapabilityReport,
+    refusedImageVars: ReadonlySet<string> = NO_REFUSED_VARS,
 ): CheckedProps {
     const out: CssProps = {};
     const perTheme: CssProps = {};
@@ -293,6 +308,29 @@ function checkedProps(
             );
         }
         const kebabProp = kebab(prop);
+        if (hasSvgDataUri(value)) {
+            // iOS cannot decode an SVG data-URI image (measured,
+            // signalxjs/lynx#1215) — the failure is a level-error image
+            // failure, not a quiet miss.
+            report.dropped.push({ where, what: `${prop}: ${value}`, detail: SVG_DATA_URI_DETAIL });
+            continue;
+        }
+        const imageVar = refusedImageVarIn(value, refusedImageVars);
+        if (imageVar) {
+            // The same image by indirection: the tokens emitter refused
+            // the property (it holds an SVG data URI), so the read would
+            // both dangle and, were it defined, fail to decode.
+            report.dropped.push({
+                where,
+                what: `${prop}: ${value}`,
+                detail: `reads ${imageVar}, which the lynx tokens refuse — ${SVG_DATA_URI_DETAIL}`,
+            });
+            continue;
+        }
+        if (kebabProp === 'clip-path') {
+            report.dropped.push({ where, what: `${prop}: ${value}`, detail: CLIP_PATH_DETAIL });
+            continue;
+        }
         if (LOGICAL_PROPERTY.test(kebabProp)) {
             // Logical spellings resolve on iOS but NOT on Android (measured,
             // signalxjs/lynx#1084) — the declaration would ship and lay out
@@ -427,8 +465,9 @@ function emitChecked(
     rules: string[],
     report: LynxCapabilityReport,
     themes: readonly LynxThemeColors[],
+    refusedImageVars: ReadonlySet<string>,
 ): void {
-    const checked = checkedProps(props, where, report);
+    const checked = checkedProps(props, where, report, refusedImageVars);
     if (Object.keys(checked.props).length > 0) {
         rules.push(`${selector} {\n${declBlock(checked.props, '    ', where)}\n}`);
     }
@@ -473,12 +512,13 @@ function emitPartStyles(
     rules: string[],
     report: LynxCapabilityReport,
     themes: readonly LynxThemeColors[],
+    refusedImageVars: ReadonlySet<string>,
 ): void {
     const part = findPart(component, partName);
     const where = `lynx recipe for "${component.scope}"."${partName}"`;
     const base = `.${partClass(component.scope, partName)}${extraClasses}`;
     const rule = (selector: string, props: CssProps) => {
-        emitChecked(selector, props, where, rules, report, themes);
+        emitChecked(selector, props, where, rules, report, themes, refusedImageVars);
     };
 
     if (styles.base && Object.keys(styles.base).length > 0) {
@@ -550,6 +590,7 @@ export function compileLynxRecipeCss(
     component: ManifestComponent,
     report: LynxCapabilityReport,
     themes: readonly LynxThemeColors[] = [],
+    refusedImageVars: ReadonlySet<string> = NO_REFUSED_VARS,
 ): string {
     if (recipe.component !== component.scope) {
         throw new Error(
@@ -568,11 +609,12 @@ export function compileLynxRecipeCss(
             rules,
             report,
             themes,
+            refusedImageVars,
         );
     }
 
     for (const [partName, styles] of Object.entries(recipe.parts)) {
-        emitPartStyles(component, partName, styles, '', rules, report, themes);
+        emitPartStyles(component, partName, styles, '', rules, report, themes, refusedImageVars);
     }
 
     // `composes` in every form — explicit parts, borrowed axis values (#91)
@@ -601,7 +643,7 @@ export function compileLynxRecipeCss(
             for (const [partName, styles] of Object.entries(parts)) {
                 // No `:not()` default twin: the runtime always stamps a
                 // concrete axis class, explicit or default.
-                emitPartStyles(component, partName, styles, compound, rules, report, themes);
+                emitPartStyles(component, partName, styles, compound, rules, report, themes, refusedImageVars);
             }
         }
     }
@@ -609,7 +651,7 @@ export function compileLynxRecipeCss(
     for (const [name, parts] of Object.entries(recipe.modifiers ?? {})) {
         const compound = `.${modClass(assertAxisToken('modifier', name, scope))}`;
         for (const [partName, styles] of Object.entries(parts)) {
-            emitPartStyles(component, partName, styles, compound, rules, report, themes);
+            emitPartStyles(component, partName, styles, compound, rules, report, themes, refusedImageVars);
         }
     }
 
@@ -624,7 +666,7 @@ export function compileLynxRecipeCss(
                 : `.${axisClass(axis, assertAxisToken('value', value, scope))}`)
             .join('');
         for (const [partName, styles] of Object.entries(compoundVariant.parts)) {
-            emitPartStyles(component, partName, styles, compound, rules, report, themes);
+            emitPartStyles(component, partName, styles, compound, rules, report, themes, refusedImageVars);
         }
     }
 
@@ -691,6 +733,16 @@ export function compileLynxRecipeCss(
                 what: `keyframes ${name}`,
                 detail: 'the animation paints with currentColor, which never resolves on lynx (measured, signalxjs/lynx#1079) — dropped; supply a lynx replacement in the recipe target section',
             });
+            continue;
+        }
+        if (hasSvgDataUri(body) || refusedImageVarIn(body, refusedImageVars)) {
+            // Same verdict as the declaration path (signalxjs/lynx#1215).
+            report.dropped.push({ where, what: `keyframes ${name}`, detail: `the animation paints an SVG data-URI image — ${SVG_DATA_URI_DETAIL}` });
+            continue;
+        }
+        if (/(?:^|[{;\s])clip-path\s*:/i.test(body)) {
+            // Same verdict as the declaration path (signalxjs/lynx#1216).
+            report.dropped.push({ where, what: `keyframes ${name}`, detail: `the animation moves clip-path — ${CLIP_PATH_DETAIL}` });
             continue;
         }
         if (REFUSED_PROPERTY_IN_TEXT.test(body)) {

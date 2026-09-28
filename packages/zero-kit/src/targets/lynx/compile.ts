@@ -32,7 +32,7 @@ import type { LynxCapabilityReport } from './capabilities.js';
 import { emptyReport } from './capabilities.js';
 import { CLASS_GRAMMAR_VERSION } from './class-names.js';
 import { compileLynxRecipeCss } from './recipe-css.js';
-import { compileLynxTokensCss, lynxThemeColors } from './tokens-css.js';
+import { compileLynxTokensCss, lynxRefusedImageTokens, lynxThemeColors } from './tokens-css.js';
 
 export interface CompiledLynxTarget {
     tokensCss: string;
@@ -60,6 +60,9 @@ export function compileDesignSystemLynx(
     // The recipe emitter restates theme-dependent declarations once per
     // theme; these are the literal color maps it bakes them against.
     const themes = lynxThemeColors(ds.tokens);
+    // Tokens the tokens emitter refused as SVG data-URI images
+    // (signalxjs/lynx#1215): every recipe read of one drops too.
+    const refusedImageVars = lynxRefusedImageTokens(ds.tokens);
 
     const byScope = new Map(manifest.components.map((c) => [c.scope, c]));
     const componentCss: Record<string, string> = {};
@@ -86,7 +89,7 @@ export function compileDesignSystemLynx(
         // scope is only known at this level, and everything the emitter adds
         // while compiling this recipe belongs to this recipe.
         const before = { translated: report.translated.length, dropped: report.dropped.length };
-        const css = compileLynxRecipeCss(resolveRecipeForTarget(recipe, 'lynx'), component, report, themes);
+        const css = compileLynxRecipeCss(resolveRecipeForTarget(recipe, 'lynx'), component, report, themes, refusedImageVars);
         // By index: `slice` would allocate a copy per recipe, and the work
         // should be proportional to the findings added, not to the report.
         for (let i = before.translated; i < report.translated.length; i++) {
