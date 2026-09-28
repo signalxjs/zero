@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-09-28
+
 ### Added — composing zero parts (#452, #492)
 
 - **`mergePartProps(outer, own)`**, for component authors. It merges a lent
