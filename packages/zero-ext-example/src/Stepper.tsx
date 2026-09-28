@@ -78,7 +78,8 @@ export type StepperRootProps =
     & WithVariantAxesOpen<'ext-stepper'>
     & WithDisabled
     & WithClass
-    & WithHtmlAttrs
+    /** Not `role`: the root is always a `group`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
 const StepperRoot = component<StepperRootProps>(({ props, slots, emit }) => {

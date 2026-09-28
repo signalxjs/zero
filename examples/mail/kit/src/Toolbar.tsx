@@ -49,7 +49,8 @@ function settle(root: HTMLElement, current: HTMLElement | undefined): void {
 export type ToolbarRootProps =
     & WithVariantAxesOpen<'mail-toolbar'>
     & WithClass
-    & WithHtmlAttrs
+    /** Not `role`: the root is always a `toolbar`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Prop<'label', string, true>
     & Define.Prop<'orientation', 'horizontal' | 'vertical', false>
     & Define.Slot<'default'>;
@@ -123,7 +124,7 @@ const ToolbarRoot = component<ToolbarRootProps>(({ props, slots, onMounted, onUn
     );
 }, { name: 'Toolbar.Root' });
 
-export type ToolbarGroupProps = WithClass & WithHtmlAttrs & Define.Prop<'label', string, false> & Define.Slot<'default'>;
+export type ToolbarGroupProps = WithClass & Omit<WithHtmlAttrs, 'role'> & Define.Prop<'label', string, false> & Define.Slot<'default'>;
 
 const ToolbarGroup = component<ToolbarGroupProps>(({ props, slots }) => () => (
     <div class={props.class} {...htmlAttrs(props)} role="group" aria-label={props.label} data-scope={SCOPE} data-part="group">

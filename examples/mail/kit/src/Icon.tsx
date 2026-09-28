@@ -60,7 +60,8 @@ export type IconName = keyof typeof ICONS;
 export type IconRootProps =
     & WithVariantAxesOpen<'mail-icon'>
     & WithClass
-    & WithHtmlAttrs
+    /** Not `role`: the root owns it (`img` when labelled). */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Prop<'name', IconName, true>
     /** The ink, as on Text — the design system's `tone` axis. */
     & Define.Prop<'tone', Tone, false>
