@@ -1457,7 +1457,11 @@ describe('assertNoCalcVarChains', () => {
     });
 
     describe('zero-daisyui combobox on lynx (signalxjs/lynx#1278, #503)', () => {
-        const lynxCss = () => compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] }).componentCss;
+        // Compiled once for the block: every test reads the same stylesheet.
+        let compiled: string | undefined;
+        const comboboxCss = (): string => (compiled ??= compileDesignSystemLynx(daisyDS as never, {
+            components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
+        }).componentCss['combobox']!);
         const body = (css: string, selector: string): string | undefined => {
             const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const bodies = [...css.matchAll(new RegExp(`^${escaped} \\{([^}]*)\\}`, 'gm'))].map((m) => m[1]!);
@@ -1465,7 +1469,7 @@ describe('assertNoCalcVarChains', () => {
         };
 
         it('the field is bounded like select, and the native input carries its own ink and placeholder', () => {
-            const css = lynxCss()['combobox']!;
+            const css = comboboxCss();
             const root = body(css, '.zx-combobox__root')!;
             expect(root).toContain('width: 320px;');
             expect(root).toContain('max-width: 100%;');
@@ -1479,7 +1483,7 @@ describe('assertNoCalcVarChains', () => {
         });
 
         it('rings are box-shadows, the remove button\'s drawn inside the chip', () => {
-            const css = lynxCss()['combobox']!;
+            const css = comboboxCss();
             for (const selector of ['.zx-combobox__control.zx-f-focus-visible', '.zx-combobox__tag.zx-f-focus-visible']) {
                 const ring = body(css, selector)!;
                 expect(ring, selector).toContain('outline: none;');
@@ -1489,7 +1493,7 @@ describe('assertNoCalcVarChains', () => {
         });
 
         it('the glyph buttons are centred in explicit ink; held answers stand in for hover', () => {
-            const css = lynxCss()['combobox']!;
+            const css = comboboxCss();
             for (const part of ['trigger', 'clear-trigger', 'tag-remove']) {
                 const rule = body(css, `.zx-combobox__${part}`)!;
                 expect(rule, part).toContain('color: var(--color-base-content);');
@@ -1505,7 +1509,7 @@ describe('assertNoCalcVarChains', () => {
         });
 
         it('the portalled popup restates the accent, per colour', () => {
-            const css = lynxCss()['combobox']!;
+            const css = comboboxCss();
             expect(body(css, '.zx-combobox__popup')).toContain('--combobox-accent: var(--color-primary);');
             expect(body(css, '.zx-combobox__popup.zx-a-color-secondary')).toContain('--combobox-accent: var(--color-secondary);');
             expect(body(css, '.zx-combobox__item.zx-f-selected')).toContain('color: var(--combobox-accent);');
