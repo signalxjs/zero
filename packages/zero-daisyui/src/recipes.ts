@@ -7986,13 +7986,26 @@ export const navbar: RecipeInput = {
     // so the bar's height ramp is restated as `min-height`; and a lynx flex
     // container is only a row when it says so, so the bar and its three
     // sections spell `flex-direction: row`.
+    //
+    // No section squeezes a word (signalxjs/lynx#1274, zero#499). On the web
+    // `flex: 1 1 0%` is floored by the flex item's automatic minimum (its
+    // min-content width), so "Acme" never breaks. Lynx's flex layout has no
+    // automatic minimum, and its `min-width` takes no intrinsic keyword, so
+    // a zero basis shrank the start below its text and the `<text>` wrapped
+    // per character ("Acm / e"). On lynx the ends start from their content
+    // (`flex-basis: auto`), never shrink, and share the slack equally; the
+    // centre takes daisy's own `flex-shrink: 0`. A bar too narrow for its
+    // content overflows whole, as daisy's does — the btn rule (lynx#1165).
+    // The cost: with a centre and unequal ends, the centre sits off-centre
+    // by half the ends' difference (the web's is exact until a section
+    // reaches its min-content).
     targets: {
         lynx: {
             parts: {
                 root: { base: { flexDirection: 'row', minHeight: '4rem' } },
-                start: { base: { flexDirection: 'row' } },
-                center: { base: { flexDirection: 'row' } },
-                end: { base: { flexDirection: 'row' } },
+                start: { base: { flexDirection: 'row', flexBasis: 'auto', flexShrink: '0' } },
+                center: { base: { flexDirection: 'row', flexShrink: '0' } },
+                end: { base: { flexDirection: 'row', flexBasis: 'auto', flexShrink: '0' } },
             },
             variants: {
                 size: {

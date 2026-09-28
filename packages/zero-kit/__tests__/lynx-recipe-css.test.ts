@@ -1427,6 +1427,34 @@ describe('assertNoCalcVarChains', () => {
             expect(body(lynxCss()['kbd']!, '.zx-kbd__root')).toContain('font-family: Menlo, monospace;');
         });
     });
+
+    describe('zero-daisyui navbar on lynx: no section squeezes a word (signalxjs/lynx#1274)', () => {
+        const lynxCss = () => compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] }).componentCss;
+        const body = (css: string, selector: string): string => {
+            const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return [...css.matchAll(new RegExp(`^${escaped} \\{([^}]*)\\}`, 'gm'))].map((m) => m[1]!).join('\n');
+        };
+        /** The declarations of `prop` in rule order: the last one wins the cascade. */
+        const last = (decls: string, prop: string): string | undefined =>
+            [...decls.matchAll(new RegExp(`^\\s*${prop}: ([^;]+);`, 'gm'))].map((m) => m[1]!).at(-1);
+
+        it('start and end grow from their content and never shrink; the centre never shrinks', () => {
+            const css = lynxCss()['navbar']!;
+            for (const part of ['start', 'end']) {
+                const decls = body(css, `.zx-navbar__${part}`);
+                // The shared `flex: 1 1 0%` still ships (grow 1); the lynx
+                // longhands come after it and win.
+                const shorthand = decls.indexOf('flex: 1 1 0%;');
+                expect(shorthand).toBeGreaterThanOrEqual(0);
+                expect(shorthand).toBeLessThan(decls.indexOf('flex-basis: auto;'));
+                expect(last(decls, 'flex-basis')).toBe('auto');
+                expect(last(decls, 'flex-shrink')).toBe('0');
+                expect(decls).toContain('display: flex;');
+                expect(decls).toContain('flex-direction: row;');
+            }
+            expect(last(body(css, '.zx-navbar__center'), 'flex-shrink')).toBe('0');
+        });
+    });
 });
 
 describe('assertNoDanglingVars', () => {
