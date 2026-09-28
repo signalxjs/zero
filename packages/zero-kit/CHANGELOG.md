@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Fixed — a padded Container stays inside its column (zero#445)
+
+- The layout pack's Container root is now `box-sizing: border-box`. zero
+  ships no reset, so in the content box `inline-size: 100%` plus `pad` made a
+  padded Container in a column narrower than its measure overflow that
+  column by twice its padding, in all six skins.
+- `measure` is now the Container's outer width, padding included — the usual
+  reading of a max-width.
+
 ## [0.13.0] - 2026-09-28
 
 ### Fixed — the lynx target refuses SVG data-URI images and `clip-path` (zero#401)

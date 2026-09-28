@@ -28,11 +28,8 @@ const documentCss = `@layer zero.fallback {
     }
 }`;
 
-/** Amendments to zero-kit's generated layout tier (both tracked in #440). */
+/** Amendments to zero-kit's generated layout tier (tracked in #440). */
 const LAYOUT_PATCHES: Record<string, RecipePatch> = {
-    // `inline-size: 100%` plus `pad` in the content box: a padded Container in
-    // a column narrower than its measure overflowed by twice its padding.
-    container: { parts: { root: { base: { boxSizing: 'border-box' } } } },
     // Stack has no shrink/basis control, and a growing item with long
     // (truncated) text kept its content basis, squeezing its fixed siblings
     // — a timestamp beside a subject line. Growing from zero takes only what
