@@ -148,7 +148,15 @@ const EXPECTED: Record<string, Record<string, ConformanceGrade>> = {
         'mods.high-contrast': 'reshaped',
     },
     heroui: { variant: 'exact', 'mods.icon-only': 'reshaped', 'mods.pending': 'reshaped', 'mods.striped': 'reshaped' },
-    material: {},
+    material: {
+        variant: 'exact',
+        'axes.shape': 'exact',
+        'mods.icon': 'reshaped',
+        'mods.fab': 'reshaped',
+        'mods.zebra': 'reshaped',
+        'mods.hover': 'reshaped',
+        'mods.inline': 'reshaped',
+    },
 };
 
 describe.each(FIXTURES)('derived grades: %s', (name, fixture) => {
@@ -179,9 +187,13 @@ describe('fixtures describing in-repo packages stay verbatim', () => {
         expect([...heroui.vocabulary.modifiers]).toEqual([...(herouiPackageTokens.modifiers ?? [])]);
     });
 
-    it('material matches @sigx/zero-material', () => {
+    it('material matches @sigx/zero-material, api included', () => {
+        // #415 graduated the M3 component API into the package: the fixture
+        // restates it, and the shipped ./components module is built from it.
         expect([...material.vocabulary.roles]).toEqual(Object.keys(materialPackageRoles));
         expect([...material.vocabulary.variants]).toEqual([...(materialPackageTokens.variants ?? [])]);
+        expect([...material.vocabulary.modifiers]).toEqual([...(materialPackageTokens.modifiers ?? [])]);
+        expect(materialDS.api).toEqual(material.api);
     });
 
     it('carbon matches @sigx/zero-carbon, api included', () => {

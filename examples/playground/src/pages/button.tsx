@@ -1,6 +1,6 @@
 import { component, signal } from 'sigx';
 import { Button } from '@sigx/zero';
-import { activeVocabulary } from '../design-systems';
+import { activeVocabulary, pickScopeVariant } from '../design-systems';
 import { DemoRow, AxisLabel } from '../demo/Section';
 import type { PageEntry } from './registry';
 
@@ -87,7 +87,7 @@ const ButtonDemos = component(() => {
                 <Button.Root loading={state.saving} onClick={save}>
                     {state.saving ? 'Saving…' : 'Save'}
                 </Button.Root>
-                <Button.Root loading variant={axes().colors.length === 0 ? undefined : 'outline'}>Loading</Button.Root>
+                <Button.Root loading variant={pickScopeVariant('button', 'outline', 'outlined')}>Loading</Button.Root>
             </DemoRow>
             <p>
                 <small>

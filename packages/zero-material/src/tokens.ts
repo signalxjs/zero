@@ -134,8 +134,10 @@ export const system = {
         prose: '70ch',
     },
 
-    // M3's 4dp grid.
+    // M3's 4dp grid, plus the 2dp step M3 Expressive spaces a connected
+    // button group by.
     spacing: {
+        '3xs': dp(2),
         '2xs': dp(4),
         xs: dp(8),
         sm: dp(12),
@@ -341,30 +343,58 @@ function theme(
     };
 }
 
+/**
+ * The `variant` vocabulary: M3's button styles by M3's own names (#415) —
+ * filled, tonal, elevated, outlined and text. Button offers all five, toggle
+ * the four M3 toggles. Exported `as const` so `defineApi` narrows against it.
+ */
+export const variants = ['filled', 'tonal', 'elevated', 'outlined', 'text'] as const;
+
+/**
+ * Presence-only modifiers, each narrowed to its scope in `scopes`:
+ *
+ * - `icon` — M3's icon button: the same styles and sizes, square to its
+ *   height, the icon on M3's icon-button ramp (button and toggle).
+ * - `fab` — M3's floating action button: a container-coloured, level-3
+ *   surface on the large corner; with `icon` the square FAB, without it the
+ *   extended FAB (button only).
+ * - `zebra` / `hover` — table striping and row highlight (#340).
+ * - `inline` — countdown's in-sentence treatment (#57).
+ */
+export const modifiers = ['icon', 'fab', 'zebra', 'hover', 'inline'] as const;
+
+/**
+ * Custom axes. `shape` began as the avatar's (zero#129: `circle`, `square`,
+ * `rounded`) and gains M3 Expressive's button shapes, `round` and `square`
+ * (#415) — one axis, two per-scope vocabularies.
+ */
+export const axes = { shape: ['circle', 'square', 'rounded', 'round'] } as const;
+
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
-    // The `variant` axis vocabulary — what button's variants.variant keys on.
-    // Declared so a recipe typo is a build error, not a minted value.
-    variants: ['solid', 'outline', 'soft', 'ghost'],
-    /**
-     * Table's zebra striping and hover-highlight (#340) and countdown's
-     * inline treatment (#57) — presence-only, each narrowed to its scope.
-     */
-    modifiers: ['zebra', 'hover', 'inline'],
-    /**
-     * The avatar's shape (zero#129) — the first custom axis a shipped skin
-     * declares, and the acceptance test for `tokens.axes`: an enumerated
-     * choice with no named prop (`axes={{ shape: 'square' }}` →
-     * `data-shape="square"`). Wired on avatar alone; its unset default is
-     * this skin's own avatar radius.
-     */
-    axes: { shape: ['circle', 'square', 'rounded'] },
+    variants,
+    modifiers,
+    axes,
     scopes: {
         // The layout tier wires neither colour nor size — every one of its
         // scopes is geometry, and `data-color` on geometry would paint
         // nothing. Declared out of existence rather than left to the
         // axis-coverage audit to report.
         ...layoutScopes,
+        // M3's common buttons: five styles, round or square, the icon-button
+        // and FAB configurations (#415).
+        button: {
+            variants: ['filled', 'tonal', 'elevated', 'outlined', 'text'],
+            modifiers: ['icon', 'fab'],
+            axes: { shape: ['round', 'square'] },
+        },
+        // M3's toggle buttons: every style but text, which M3 never toggles.
+        toggle: {
+            variants: ['filled', 'tonal', 'elevated', 'outlined'],
+            modifiers: ['icon'],
+            axes: { shape: ['round', 'square'] },
+        },
+        avatar: { axes: { shape: ['circle', 'square', 'rounded'] } },
         table: { modifiers: ['zebra', 'hover'] },
         // A countdown set inside a sentence (#57).
         countdown: { modifiers: ['inline'] },

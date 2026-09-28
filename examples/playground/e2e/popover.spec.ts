@@ -187,6 +187,10 @@ const centre = (b: { x: number; y: number; width: number; height: number }) =>
 /** Open the popover whose trigger reads `name`; its popup and arrow, measured. */
 async function openArrowed(page: Page, name: string) {
     const t = page.getByRole('button', { name, exact: true });
+    // Centred first, so the placement under test is not a collision shift
+    // against whichever viewport edge the page's height left the trigger at
+    // (material's 40dp M3 controls pushed "Beside" to the bottom edge, #415).
+    await t.evaluate((el) => el.scrollIntoView({ block: 'center' }));
     await t.click();
     const popup = await controlledPopup(page, t, `the ${name} trigger`);
     await expect(popup).toHaveAttribute('data-state', 'open');

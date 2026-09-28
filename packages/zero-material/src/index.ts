@@ -8,7 +8,7 @@
 import { registerThemes } from '@sigx/zero';
 import { tokens } from './tokens.js';
 
-export { roles, system, systemDark, tokens } from './tokens.js';
+export { axes, modifiers, roles, system, systemDark, tokens, variants } from './tokens.js';
 export { recipes } from './recipes.js';
 export { designSystem } from './design-system.js';
 

@@ -65,7 +65,7 @@ const AvatarDemos = component(() => {
                   * make loud.
                   */}
                 <Button.Root
-                    variant={pickVariant('outline', 'tertiary', 'secondary')}
+                    variant={pickVariant('outline', 'outlined', 'tertiary', 'secondary')}
                     onClick={() => { state.avatarSrc = state.avatarSrc === AVATAR_A ? AVATAR_B : AVATAR_A; }}
                 >
                     Swap src

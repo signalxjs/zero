@@ -26,6 +26,36 @@ express M3 is filed as an `m3-finding` issue rather than worked around quietly.
 | State layers: hover 8%, focus 10%, pressed 10%, dragged 16% | `--state-*` custom tokens, including the focus layer beside the focus ring |
 | Window size classes at 600 / 840 / 1200 / 1600 | `breakpoints` `sm` / `md` / `lg` / `xl`, driving a full-screen dialog below `sm` |
 
+## The M3 component API (#415)
+
+`@sigx/zero-material/components` carries M3's own names. It is built from the
+`api` in `src/design-system.ts`:
+
+```tsx
+import { Button, Toggle, ToggleGroup, Join } from '@sigx/zero-material/components';
+
+<Button variant="tonal" size="s">Save</Button>                 {/* M3's default 40dp button */}
+<Button variant="outlined" shape="square" size="m">Share</Button>
+<Button fab icon color="tertiary" aria-label="Compose">…</Button> {/* the square FAB */}
+<Button fab>Compose</Button>                                     {/* the extended FAB */}
+<Toggle variant="elevated" icon aria-label="Favourite">…</Toggle>
+```
+
+| M3 | How it lands |
+|---|---|
+| Common buttons: `filled`, `tonal`, `elevated`, `outlined`, `text` | the `variant` axis, spelled as M3 spells it (grade `exact`). Unset, a tonal button is secondary-container and an outlined one on-surface-variant, as M3 draws them; `color` rebinds either to a role |
+| Expressive sizes XS / S / M / L / XL: 32 / 40 / 56 / 96 / 136dp, each with its own padding, icon, label role and outline | zero's `xs … xl` ramp, respelled `xs \| s \| m \| l \| xl` on button and toggle only (`api.components`). `s` is the default; every other scope keeps zero's spellings |
+| `round` / `square` shapes, and the press morph | the `shape` axis (shared with the avatar's `circle \| square \| rounded`, each scope narrowed to its own). A press morphs the corner to the size's pressed radius on the fast spatial spring; `round` is half the height rather than `full`, so the morph has two real lengths to interpolate between |
+| Icon buttons (standard, filled, tonal, outlined) | the `icon` modifier on Button or Toggle. `text` + `icon` is the standard icon button, in on-surface-variant |
+| FAB, medium and large FAB, extended FAB | the `fab` modifier: the role's container at level 3 on the large corner, stepping 40 / 56 / 80 / 96dp with size. With `icon` it is the square FAB, without it the extended one. `filled` takes the role colour itself, `elevated` gives the surface FAB |
+| Toggle buttons | `Toggle`, with M3's unselected → selected colours per style and the selected shape swap (round turns square, square turns round) |
+| Segmented button | `ToggleGroup`: an outlined pill at 40dp, selected segments on secondary-container with the check sliding in before the label |
+| Connected button group and split button | `Join`: segments 2dp apart with small inner corners, and the split button's menu half fully round while its menu is open |
+| Disabled buttons | M3's explicit colours: the label at 38% on-surface over a 10% container. Outlined and text buttons get no container, and the outline goes to 10% |
+
+M3 ships icon buttons and FABs as separate components; here they are
+configurations of one Button, so their grade is `reshaped`.
+
 ## What the recipes prove
 
 | Material | How it lands |
@@ -87,9 +117,10 @@ the axis instead of past an empty half of each item.
 
 ## Disabled overlay triggers
 
-A disabled Dialog, Popover, Tooltip, Menu or Drawer trigger fades the way
-a disabled Button does: `opacity: var(--disabled-opacity)` and
-`cursor: not-allowed` (#191). The dismiss actions (Dialog's close and cancel,
+A disabled Dialog, Popover, Tooltip, Menu or Drawer trigger fades:
+`opacity: var(--disabled-opacity)` and `cursor: not-allowed` (#191). Since
+#415, Button itself disables with M3's explicit colours instead. The triggers
+follow when the overlays are rebuilt to M3's specs (#418). The dismiss actions (Dialog's close and cancel,
 and the close on Popover and Drawer) fade the same way. These parts paint the
 accent ink, and that overrides the browser's grey text for `:disabled`. Before
 this change a disabled trigger lost only its hover layer and kept its full

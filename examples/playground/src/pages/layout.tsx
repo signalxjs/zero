@@ -96,7 +96,7 @@ const LayoutDemos = component(() => () => (
         <Row gap="sm" align="center" padY="sm" wrap="wrap">
             <strong>Document</strong>
             <Spacer />
-            <Button.Root variant={pickScopeVariant('button', 'outline', 'ghost', 'tertiary')} size="sm">Cancel</Button.Root>
+            <Button.Root variant={pickScopeVariant('button', 'outline', 'outlined', 'ghost', 'tertiary')} size="sm">Cancel</Button.Root>
             <Button.Root color={pickRole('primary')} size="sm">Save</Button.Root>
         </Row>
         <p>

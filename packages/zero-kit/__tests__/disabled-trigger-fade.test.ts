@@ -69,11 +69,14 @@ describe('disabled overlay triggers fade', () => {
         expect(unfaded).toEqual([]);
     });
 
-    it('material: the triggers match the button — faded and not-allowed', () => {
+    it('material: the button disables the M3 way, the triggers fade and refuse the pointer', () => {
         const compiled = SYSTEMS.find(([n]) => n === 'material')![1];
-        expect(disabledDecls(compiled, 'button', 'root')).toEqual(
-            expect.arrayContaining(['opacity: var(--disabled-opacity)', 'cursor: not-allowed']),
-        );
+        // M3's disabled button (#415) is explicit colour, not a fade: the
+        // label at 38% on-surface over a 10% container, and not-allowed.
+        expect(disabledDecls(compiled, 'button', 'root')).toEqual(expect.arrayContaining([
+            'color: color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+            'cursor: not-allowed',
+        ]));
         for (const scope of OVERLAY_SCOPES) {
             expect(disabledDecls(compiled, scope, 'trigger'), scope).toEqual(
                 expect.arrayContaining(['opacity: var(--disabled-opacity)', 'cursor: not-allowed']),

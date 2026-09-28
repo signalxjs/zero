@@ -58,13 +58,13 @@ const ToastDemos = component(({ signal }) => {
                 <Button.Root color={pickRole('error', 'danger')} onClick={() => toast({ title: 'Sync failed', description: 'Retrying in 30s.', color: pickRole('error', 'danger'), role: 'alert' })}>
                     Error alert
                 </Button.Root>
-                <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => {
+                <Button.Root variant={pickVariant('outline', 'outlined', 'tertiary', 'secondary')} onClick={() => {
                     const started = toast({ title: 'Uploading…', duration: Infinity });
                     setTimeout(() => toast({ id: started, title: 'Upload complete', color: pickRole('success'), duration: 4000 }), 1500);
                 }}>
                     Progress → done
                 </Button.Root>
-                <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => toast({
+                <Button.Root variant={pickVariant('outline', 'outlined', 'tertiary', 'secondary')} onClick={() => toast({
                     title: 'Undoable action',
                     action: { label: 'Undo', onClick: () => toast({ title: 'Undone', color: pickRole('info') }) },
                     duration: 8000,
@@ -78,7 +78,7 @@ const ToastDemos = component(({ signal }) => {
               * recipe's, per design system.
               */}
             <DemoRow>
-                <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => toaster().promise(
+                <Button.Root variant={pickVariant('outline', 'outlined', 'tertiary', 'secondary')} onClick={() => toaster().promise(
                     new Promise<string>((resolve) => setTimeout(() => resolve('report.pdf'), 1500)),
                     {
                         loading: { title: 'Uploading report…' },
@@ -88,7 +88,7 @@ const ToastDemos = component(({ signal }) => {
                 )}>
                     Promise → resolves
                 </Button.Root>
-                <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => toaster().promise(
+                <Button.Root variant={pickVariant('outline', 'outlined', 'tertiary', 'secondary')} onClick={() => toaster().promise(
                     new Promise<never>((_, reject) => setTimeout(() => reject(new Error('The server is busy.')), 1500)),
                     {
                         loading: 'Syncing…',
@@ -98,7 +98,7 @@ const ToastDemos = component(({ signal }) => {
                 )}>
                     Promise → rejects
                 </Button.Root>
-                <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => {
+                <Button.Root variant={pickVariant('outline', 'outlined', 'tertiary', 'secondary')} onClick={() => {
                     toast({ title: 'First of three', description: 'The oldest, at the back.', duration: 10_000 });
                     toast({ title: 'Second of three', duration: 10_000 });
                     toast({ title: 'Third of three', description: 'The newest, in front — hover to fan the stack.', duration: 10_000 });
@@ -107,7 +107,7 @@ const ToastDemos = component(({ signal }) => {
                 </Button.Root>
             </DemoRow>
             <DemoRow>
-                <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => toast({
+                <Button.Root variant={pickVariant('outline', 'outlined', 'tertiary', 'secondary')} onClick={() => toast({
                     title: 'Swipe me away',
                     description: 'Drag toward the edge, or press Close.',
                     duration: Infinity,

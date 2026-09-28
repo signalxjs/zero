@@ -1,7 +1,12 @@
 @layer zero.recipes {
     [data-scope="join"][data-part="root"] {
+        --join-inner: 0.5rem;
+    }
+
+    [data-scope="join"][data-part="root"] {
         display: inline-flex;
         align-items: stretch;
+        gap: var(--space-3xs);
     }
 
     [data-scope="join"][data-part="root"][data-orientation="vertical"] {
@@ -13,31 +18,27 @@
     }
 
     [data-scope="join"][data-part="item"][data-orientation="horizontal"]:not(:first-child), [data-scope="join"][data-part="item"][data-orientation="horizontal"]:not(:first-child) > * {
-        border-start-start-radius: 0;
-        border-end-start-radius: 0;
-    }
-
-    [data-scope="join"][data-part="item"][data-orientation="horizontal"]:not(:first-child) {
-        margin-inline-start: calc(var(--border) * -1);
+        border-start-start-radius: var(--join-inner);
+        border-end-start-radius: var(--join-inner);
     }
 
     [data-scope="join"][data-part="item"][data-orientation="horizontal"]:not(:last-child), [data-scope="join"][data-part="item"][data-orientation="horizontal"]:not(:last-child) > * {
-        border-start-end-radius: 0;
-        border-end-end-radius: 0;
+        border-start-end-radius: var(--join-inner);
+        border-end-end-radius: var(--join-inner);
     }
 
     [data-scope="join"][data-part="item"][data-orientation="vertical"]:not(:first-child), [data-scope="join"][data-part="item"][data-orientation="vertical"]:not(:first-child) > * {
-        border-start-start-radius: 0;
-        border-start-end-radius: 0;
-    }
-
-    [data-scope="join"][data-part="item"][data-orientation="vertical"]:not(:first-child) {
-        margin-block-start: calc(var(--border) * -1);
+        border-start-start-radius: var(--join-inner);
+        border-start-end-radius: var(--join-inner);
     }
 
     [data-scope="join"][data-part="item"][data-orientation="vertical"]:not(:last-child), [data-scope="join"][data-part="item"][data-orientation="vertical"]:not(:last-child) > * {
-        border-end-start-radius: 0;
-        border-end-end-radius: 0;
+        border-end-start-radius: var(--join-inner);
+        border-end-end-radius: var(--join-inner);
+    }
+
+    [data-scope="join"][data-part="item"][data-orientation] > [data-state="open"] {
+        border-radius: var(--radius-full);
     }
 
     [data-scope="join"][data-part="item"]:focus-within {
@@ -46,6 +47,18 @@
 
     [data-scope="join"][data-part="item"]:focus-visible {
         z-index: 1;
+    }
+
+    [data-scope="join"][data-part="root"][data-size="xs"] {
+        --join-inner: 0.25rem;
+    }
+
+    [data-scope="join"][data-part="root"][data-size="lg"] {
+        --join-inner: 1rem;
+    }
+
+    [data-scope="join"][data-part="root"][data-size="xl"] {
+        --join-inner: 1.25rem;
     }
 
     @scope ([data-scope="join"][data-part="root"][data-color="primary"]) to ([data-scope="join"][data-part="root"]) {

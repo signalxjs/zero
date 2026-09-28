@@ -27,6 +27,7 @@ import { anatomies } from '@sigx/zero/anatomy';
 import * as zero from '@sigx/zero';
 import { designSystem as herouiDS } from '@sigx/zero-heroui';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
+import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { fragment as extFragment, recipes as extRecipes } from '@sigx/zero-ext-example/fragment';
 import * as carbonFixture from '../skills/design-system/conformance/carbon.js';
@@ -112,6 +113,21 @@ describe('components goldens', () => {
         const compiled = compileDesignSystem(daisyDS as DesignSystemInput, manifest);
         await expect(compileComponentsJs(compiled))
             .toMatchFileSnapshot('../__goldens__/components/daisyui.components.js');
+    });
+
+    // material (#415): M3's component API — identity `variant` and `shape`
+    // axes, the icon/FAB modifiers, and the first PER-SCOPE size respelling
+    // (`s | m | l` on button and toggle only).
+    it('material components.d.ts matches its golden (compiled end to end by test:types)', async () => {
+        const compiled = compileDesignSystem(materialDS as DesignSystemInput, manifest);
+        await expect(compileComponentsDts(compiled))
+            .toMatchFileSnapshot('../../zero/type-tests/components/material.components.d.ts');
+    });
+
+    it('material components.js matches its golden', async () => {
+        const compiled = compileDesignSystem(materialDS as DesignSystemInput, manifest);
+        await expect(compileComponentsJs(compiled))
+            .toMatchFileSnapshot('../__goldens__/components/material.components.js');
     });
 
     it('the carbon probe matches its golden (the values-remap compile gate)', async () => {

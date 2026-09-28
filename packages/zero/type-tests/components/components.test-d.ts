@@ -12,11 +12,15 @@
 import { Button as CarbonButton } from './carbon.components.js';
 import { Button as HerouiButton, Stats as HerouiStats, Steps as HerouiSteps, Tabs as HerouiTabs, Timeline as HerouiTimeline } from './heroui.components.js';
 import { Button as DaisyButton, Stats as DaisyStats, Steps as DaisySteps, Timeline as DaisyTimeline } from './daisyui.components.js';
+import { Button as MaterialButton, Tabs as MaterialTabs, Toggle as MaterialToggle } from './material.components.js';
 import type { Equal, MustBeTrue } from '../assert.js';
 
 type CarbonProps = Parameters<typeof CarbonButton>[0];
 type HerouiProps = Parameters<typeof HerouiButton>[0];
 type DaisyProps = Parameters<typeof DaisyButton>[0];
+type MaterialProps = Parameters<typeof MaterialButton>[0];
+type MaterialToggleProps = Parameters<typeof MaterialToggle>[0];
+type MaterialTabsProps = Parameters<typeof MaterialTabs>[0];
 
 // ── the gate, clause 1: vendor props typecheck, narrowed per design system ──
 const carbonOk: CarbonProps = { kind: 'ghost', hasIconOnly: true };
@@ -57,6 +61,26 @@ const daisyForeign: DaisyProps = { isIconOnly: true };
 const daisyMods: DaisyProps = { mods: { wide: true } };
 // @ts-expect-error — glass was dropped from the modifier set (not in daisy 5)
 const daisyGlass: DaisyProps = { glass: true };
+
+// ── material (#415): M3's component API ──
+// M3's style names and Expressive's size names; icon button and FAB as
+// modifier booleans.
+const m3Ok: MaterialProps = { variant: 'tonal', size: 's', shape: 'square', color: 'tertiary' };
+const m3Fab: MaterialProps = { fab: true, icon: true, size: 'l' };
+// @ts-expect-error — zero's `sm` is respelled `s` on the button
+const m3ZeroSize: MaterialProps = { size: 'sm' };
+// @ts-expect-error — the recommended vocabulary is gone: M3 says `filled`
+const m3Solid: MaterialProps = { variant: 'solid' };
+// @ts-expect-error — `rounded` is the avatar's shape, not a button's
+const m3Rounded: MaterialProps = { shape: 'rounded' };
+// A toggle takes every style but text, and no FAB.
+const m3Toggle: MaterialToggleProps = { variant: 'outlined', size: 'm', icon: true };
+// @ts-expect-error — M3 never toggles a text button
+const m3ToggleText: MaterialToggleProps = { variant: 'text' };
+// @ts-expect-error — the FAB is a button configuration only
+const m3ToggleFab: MaterialToggleProps = { fab: true };
+// The respelling is per scope: tabs keep zero's `sm`.
+const m3TabsSize: MaterialTabsProps = { size: 'sm' };
 
 // ── the base surface survives: unrouted props keep zero's typing ──
 const passthrough: CarbonProps = { kind: 'primary', disabled: true, class: 'cta' };
