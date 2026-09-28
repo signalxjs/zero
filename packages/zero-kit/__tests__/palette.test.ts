@@ -126,6 +126,8 @@ describe.each(SCHEMES)('derivePalette (%s)', (scheme) => {
         const pairs = contrastPairs(roles);
         const roleNames = Object.keys(roles);
 
+        // A 30s budget: the cost scales with the role count, and material's
+        // is M3's 31 roles (#414) — past the default 5s on a loaded CI runner.
         it('holds every guarantee for 400 seeded palettes', () => {
             const next = rng(scheme === 'light' ? 7 : 11);
             for (let i = 0; i < 400; i++) {
@@ -184,7 +186,7 @@ describe.each(SCHEMES)('derivePalette (%s)', (scheme) => {
                 // Deterministic: same seeds, same strings.
                 expect(derivePalette({ roles, scheme, seeds, harmony })).toEqual(colors);
             }
-        });
+        }, 30_000);
     });
 });
 
