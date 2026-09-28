@@ -48,7 +48,7 @@ import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithVariantAxes } from '../../contract/props.js';
 import { popoverAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
 
@@ -219,6 +219,12 @@ export type PopoverTriggerProps =
     & WithHtmlAttrs
     & WithVariantAxes<'popover'>
     & WithAsChild
+    /**
+     * The app's handlers, run after the part's own (`onClick` after the
+     * open, `onKeydown` after the press feedback) and skipped while
+     * `disabled`. They reach an `asChild` element through the bag.
+     */
+    & WithInteractionHandlers
     & Define.Slot<'default', PartProps>;
 
 const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal }) => {
@@ -241,15 +247,24 @@ const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal })
         'aria-haspopup': 'dialog',
         'aria-expanded': popover.state.value ? 'true' : 'false',
         'aria-controls': popover.ids.popup,
-        onClick: () => {
-            if (!props.disabled) popover.state.value = !popover.state.value;
+        onClick: (e: MouseEvent) => {
+            if (props.disabled) return;
+            popover.state.value = !popover.state.value;
+            props.onClick?.(e);
         },
-        onFocus: () => { focus.visible = isFocusVisible(el); },
+        onFocus: (e: FocusEvent) => {
+            focus.visible = isFocusVisible(el);
+            if (!props.disabled) props.onFocus?.(e);
+        },
         onBlur: (e: FocusEvent) => {
             press.onBlur(e);
             focus.visible = false;
+            if (!props.disabled) props.onBlur?.(e);
         },
-        onKeydown: press.onKeydown,
+        onKeydown: (e: KeyboardEvent) => {
+            press.onKeydown(e);
+            if (!props.disabled) props.onKeydown?.(e);
+        },
         onKeyup: press.onKeyup,
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,
@@ -494,6 +509,14 @@ export type PopoverCloseProps =
     & WithClass
     & WithHtmlAttrs
     & WithAsChild
+    /**
+     * The app's handlers, skipped while `disabled` and passed to an
+     * `asChild` element through the bag. `onClick` runs BEFORE the close,
+     * and `event.preventDefault()` in it vetoes the close (a "save, then
+     * close" that fails can keep the popover open). `onKeydown`, `onFocus` and
+     * `onBlur` run after the part's own handling.
+     */
+    & WithInteractionHandlers
     & Define.Slot<'default', PartProps>;
 
 const PopoverClose = component<PopoverCloseProps>(({ props, slots, signal }) => {
@@ -511,15 +534,26 @@ const PopoverClose = component<PopoverCloseProps>(({ props, slots, signal }) => 
         'data-part': 'close',
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
-        onClick: () => {
-            if (!props.disabled) popover.state.value = false;
+        onClick: (e: MouseEvent) => {
+            if (props.disabled) return;
+            // The app's first, so its preventDefault() can veto the close.
+            props.onClick?.(e);
+            if (e.defaultPrevented) return;
+            popover.state.value = false;
         },
-        onFocus: () => { focus.visible = isFocusVisible(el); },
+        onFocus: (e: FocusEvent) => {
+            focus.visible = isFocusVisible(el);
+            if (!props.disabled) props.onFocus?.(e);
+        },
         onBlur: (e: FocusEvent) => {
             press.onBlur(e);
             focus.visible = false;
+            if (!props.disabled) props.onBlur?.(e);
         },
-        onKeydown: press.onKeydown,
+        onKeydown: (e: KeyboardEvent) => {
+            press.onKeydown(e);
+            if (!props.disabled) props.onKeydown?.(e);
+        },
         onKeyup: press.onKeyup,
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,

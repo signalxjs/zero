@@ -66,6 +66,8 @@ function rootPropsOf(scope: string): string[] {
         WithHtmlAttrs: ['id', 'title', 'role'],
         // Progress and RadialProgress share one value-text surface (#274).
         WithProgressValueText: ['getValueText', 'locale', 'formatOptions'],
+        // Button's handler quartet, shared with the trigger parts (#486).
+        WithInteractionHandlers: ['onClick', 'onKeydown', 'onFocus', 'onBlur'],
     };
     for (const [fragment, names] of Object.entries(FRAGMENTS)) {
         if (!new RegExp(`\\b${fragment}\\b`).test(block)) continue;

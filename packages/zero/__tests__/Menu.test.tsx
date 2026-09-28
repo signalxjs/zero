@@ -4,6 +4,7 @@ import { component, signal } from 'sigx';
 import { Menu, menuAnatomy } from '@sigx/zero';
 import type { PositionOptions, PositionStrategy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
+import { describeTriggerHandlers } from './trigger-handlers';
 
 /** watch()-driven cascades settle a microtask after the write. */
 const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -1226,5 +1227,43 @@ describe('Menu.ContextTrigger', () => {
         surface.focus();
         await tick();
         expect(surface.hasAttribute('data-focus-visible')).toBe(false);
+    });
+});
+
+describeTriggerHandlers('Menu.Trigger', '[data-scope="menu"][data-part="trigger"]', (p, child) => (
+    <Menu.Root><Menu.Trigger {...p}>{child}</Menu.Trigger></Menu.Root>
+));
+
+describe('Menu.Trigger handler ordering (#486)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    afterEach(() => container.remove());
+
+    it('onClick runs once, after the open; onKeydown after the menu-button keys', () => {
+        const state = signal({ open: false });
+        const clicks: boolean[] = [];
+        const keys: boolean[] = [];
+        render(
+            <Menu.Root model={[state, 'open']}>
+                <Menu.Trigger
+                    onClick={() => clicks.push(state.open)}
+                    onKeydown={(e: KeyboardEvent) => keys.push(e.defaultPrevented)}
+                >Actions</Menu.Trigger>
+                <Menu.Popup><Menu.Item value="a">A</Menu.Item></Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-scope="menu"][data-part="trigger"]')!;
+        trigger.click();
+        expect(clicks).toEqual([true]);
+        state.open = false;
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+        // The trigger's own ArrowDown handling ran first: it opened the menu
+        // and claimed the key.
+        expect(state.open).toBe(true);
+        expect(keys).toEqual([true]);
     });
 });

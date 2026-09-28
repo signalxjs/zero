@@ -47,7 +47,7 @@ import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithInteractionHandlers, WithVariantAxes } from '../../contract/props.js';
 import { hoverCardAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
 
@@ -291,6 +291,12 @@ export type HoverCardTriggerProps =
     & WithHtmlAttrs
     & WithVariantAxes<'hover-card'>
     & WithAsChild
+    /**
+     * The app's handlers. `onFocus`/`onBlur` run after the card's own focus
+     * logic; `onClick`/`onKeydown` are the app's alone. They reach an
+     * `asChild` element through the bag.
+     */
+    & WithInteractionHandlers
     & Define.Slot<'default', PartProps>;
 
 const HoverCardTrigger = component<HoverCardTriggerProps>(({ props, slots, signal }) => {
@@ -312,11 +318,15 @@ const HoverCardTrigger = component<HoverCardTriggerProps>(({ props, slots, signa
         onFocus: (e: FocusEvent) => {
             focus.visible = isFocusVisible(e.currentTarget as Element);
             card.focusTrigger(focus.visible);
+            props.onFocus?.(e);
         },
         onBlur: (e: FocusEvent) => {
             focus.visible = false;
             card.blur(e.relatedTarget);
+            props.onBlur?.(e);
         },
+        onClick: (e: MouseEvent) => props.onClick?.(e),
+        onKeydown: (e: KeyboardEvent) => props.onKeydown?.(e),
         ref: (node: HTMLElement | null) => card.setAnchor(node),
     });
 

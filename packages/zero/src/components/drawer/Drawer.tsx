@@ -62,7 +62,7 @@ import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { LayoutProp } from '../../contract/layout-attrs.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import type { ZeroBreakpointName } from '../../contract/vocabulary.js';
 import { drawerAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
@@ -363,6 +363,12 @@ export type DrawerTriggerProps =
     & WithHtmlAttrs
     & WithVariantAxes<'drawer'>
     & WithAsChild
+    /**
+     * The app's handlers, run after the part's own (`onClick` after the
+     * open, `onKeydown` after the press feedback) and skipped while
+     * `disabled`. They reach an `asChild` element through the bag.
+     */
+    & WithInteractionHandlers
     & Define.Slot<'default', PartProps>;
 
 const DrawerTrigger = component<DrawerTriggerProps>(({ props, slots, signal }) => {
@@ -390,15 +396,24 @@ const DrawerTrigger = component<DrawerTriggerProps>(({ props, slots, signal }) =
         'aria-haspopup': 'dialog',
         'aria-expanded': sheetOpen() ? 'true' : 'false',
         'aria-controls': drawer.ids.panel,
-        onClick: () => {
-            if (!props.disabled) drawer.state.value = true;
+        onClick: (e: MouseEvent) => {
+            if (props.disabled) return;
+            drawer.state.value = true;
+            props.onClick?.(e);
         },
-        onFocus: () => { focus.visible = isFocusVisible(el); },
+        onFocus: (e: FocusEvent) => {
+            focus.visible = isFocusVisible(el);
+            if (!props.disabled) props.onFocus?.(e);
+        },
         onBlur: (e: FocusEvent) => {
             press.onBlur(e);
             focus.visible = false;
+            if (!props.disabled) props.onBlur?.(e);
         },
-        onKeydown: press.onKeydown,
+        onKeydown: (e: KeyboardEvent) => {
+            press.onKeydown(e);
+            if (!props.disabled) props.onKeydown?.(e);
+        },
         onKeyup: press.onKeyup,
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,
@@ -732,6 +747,14 @@ export type DrawerCloseProps =
     & WithClass
     & WithHtmlAttrs
     & WithAsChild
+    /**
+     * The app's handlers, skipped while `disabled` and passed to an
+     * `asChild` element through the bag. `onClick` runs BEFORE the close,
+     * and `event.preventDefault()` in it vetoes the close (a "save, then
+     * close" that fails can keep the drawer open). `onKeydown`, `onFocus` and
+     * `onBlur` run after the part's own handling.
+     */
+    & WithInteractionHandlers
     & Define.Slot<'default', PartProps>;
 
 const DrawerClose = component<DrawerCloseProps>(({ props, slots, signal }) => {
@@ -755,15 +778,26 @@ const DrawerClose = component<DrawerCloseProps>(({ props, slots, signal }) => {
         // panel does not close, so a Close there would be a dead control.
         ...dockAttrs(drawer),
         'data-focus-visible': dataAttr(focus.visible),
-        onClick: () => {
-            if (!props.disabled) drawer.requestClose('close', props.value);
+        onClick: (e: MouseEvent) => {
+            if (props.disabled) return;
+            // The app's first, so its preventDefault() can veto the close.
+            props.onClick?.(e);
+            if (e.defaultPrevented) return;
+            drawer.requestClose('close', props.value);
         },
-        onFocus: () => { focus.visible = isFocusVisible(el); },
+        onFocus: (e: FocusEvent) => {
+            focus.visible = isFocusVisible(el);
+            if (!props.disabled) props.onFocus?.(e);
+        },
         onBlur: (e: FocusEvent) => {
             press.onBlur(e);
             focus.visible = false;
+            if (!props.disabled) props.onBlur?.(e);
         },
-        onKeydown: press.onKeydown,
+        onKeydown: (e: KeyboardEvent) => {
+            press.onKeydown(e);
+            if (!props.disabled) props.onKeydown?.(e);
+        },
         onKeyup: press.onKeyup,
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,

@@ -102,7 +102,7 @@ import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithVariantAxes } from '../../contract/props.js';
 import { menuAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
 import { derivedModel } from '../../behaviors/derived-model.js';
@@ -500,6 +500,13 @@ export type MenuTriggerProps =
     & Omit<WithHtmlAttrs, 'id'>
     & WithVariantAxes<'menu'>
     & WithAsChild
+    /**
+     * The app's handlers, run after the part's own (`onClick` after the
+     * open or close, `onKeydown` after the menu-button keys) and skipped
+     * while `disabled` (the Trigger's own or its menubar's). They reach an
+     * `asChild` element through the bag.
+     */
+    & WithInteractionHandlers
     & Define.Slot<'default', PartProps>;
 
 const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
@@ -563,6 +570,57 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onMount
     let pointerGesture = false;
     let closeOnClick = false;
 
+    const ownClick = (): void => {
+        const pointer = pointerGesture;
+        const close = closeOnClick;
+        pointerGesture = closeOnClick = false;
+        if (disabled()) return;
+        // Re-claim the anchor on every open: a context-trigger open may
+        // have moved it to a point — last opener wins.
+        menu.setAnchor(el);
+        if (inBar && pointer) {
+            const open = !close;
+            menu.state.value = open;
+            // The popover's light dismiss answers the same gesture: it
+            // hides a menu the press landed outside of (this trigger is
+            // outside its own popup) and reports it in a `toggle` task
+            // that lands AFTER this click. Restate the decision once
+            // that report is in, or a menu meant to stay open would
+            // close under the pointer.
+            if (open) setTimeout(() => { if (!disabled() && el?.isConnected) menu.state.value = true; }, 0);
+            return;
+        }
+        menu.state.value = !menu.state.value;
+    };
+
+    const ownKeydown = (e: KeyboardEvent): void => {
+        press.onKeydown(e);
+        if (disabled()) return;
+        if (inBar) {
+            // Horizontal bar: ArrowDown/ArrowUp open on the first/last
+            // item. Vertical: the inline-end arrow opens, Up/Down rove.
+            const vertical = bar.orientation() === 'vertical';
+            if (!vertical && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+                e.preventDefault();
+                open(e.key === 'ArrowUp' ? 'last' : 'first');
+                return;
+            }
+            if (vertical && e.key === (bar.rtl() ? 'ArrowLeft' : 'ArrowRight')) {
+                e.preventDefault();
+                open('first');
+                return;
+            }
+            bar.keydown(e, menu.value());
+            return;
+        }
+        // ArrowDown on a closed trigger opens the menu on its first
+        // item, ArrowUp on its last (APG menu button).
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !menu.state.value) {
+            e.preventDefault();
+            open(e.key === 'ArrowUp' ? 'last' : 'first');
+        }
+    };
+
     const bag = (): PartProps => ({
         ...htmlAttrs(props),
         id: menu.ids.trigger,
@@ -577,63 +635,24 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onMount
         'aria-haspopup': 'menu',
         'aria-expanded': menu.state.value ? 'true' : 'false',
         'aria-controls': menu.ids.popup,
-        onClick: () => {
-            const pointer = pointerGesture;
-            const close = closeOnClick;
-            pointerGesture = closeOnClick = false;
-            if (disabled()) return;
-            // Re-claim the anchor on every open: a context-trigger open may
-            // have moved it to a point — last opener wins.
-            menu.setAnchor(el);
-            if (inBar && pointer) {
-                const open = !close;
-                menu.state.value = open;
-                // The popover's light dismiss answers the same gesture: it
-                // hides a menu the press landed outside of (this trigger is
-                // outside its own popup) and reports it in a `toggle` task
-                // that lands AFTER this click. Restate the decision once
-                // that report is in, or a menu meant to stay open would
-                // close under the pointer.
-                if (open) setTimeout(() => { if (!disabled() && el?.isConnected) menu.state.value = true; }, 0);
-                return;
-            }
-            menu.state.value = !menu.state.value;
+        onClick: (e: MouseEvent) => {
+            ownClick();
+            if (!disabled()) props.onClick?.(e);
         },
         onKeydown: (e: KeyboardEvent) => {
-            press.onKeydown(e);
-            if (disabled()) return;
-            if (inBar) {
-                // Horizontal bar: ArrowDown/ArrowUp open on the first/last
-                // item. Vertical: the inline-end arrow opens, Up/Down rove.
-                const vertical = bar.orientation() === 'vertical';
-                if (!vertical && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
-                    e.preventDefault();
-                    open(e.key === 'ArrowUp' ? 'last' : 'first');
-                    return;
-                }
-                if (vertical && e.key === (bar.rtl() ? 'ArrowLeft' : 'ArrowRight')) {
-                    e.preventDefault();
-                    open('first');
-                    return;
-                }
-                bar.keydown(e, menu.value());
-                return;
-            }
-            // ArrowDown on a closed trigger opens the menu on its first
-            // item, ArrowUp on its last (APG menu button).
-            if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !menu.state.value) {
-                e.preventDefault();
-                open(e.key === 'ArrowUp' ? 'last' : 'first');
-            }
+            ownKeydown(e);
+            if (!disabled()) props.onKeydown?.(e);
         },
         onKeyup: press.onKeyup,
-        onFocus: () => {
+        onFocus: (e: FocusEvent) => {
             focus.visible = isFocusVisible(el);
             if (inBar) bar.setFocused(menu.value());
+            if (!disabled()) props.onFocus?.(e);
         },
         onBlur: (e: FocusEvent) => {
             press.onBlur(e);
             focus.visible = false;
+            if (!disabled()) props.onBlur?.(e);
         },
         onPointerenter: () => {
             // While any menu of the bar is open, hovering another trigger

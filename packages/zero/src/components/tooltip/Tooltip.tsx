@@ -41,7 +41,7 @@ import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithVariantAxes } from '../../contract/props.js';
 import { tooltipAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
 
@@ -275,6 +275,13 @@ export type TooltipTriggerProps =
     & WithHtmlAttrs
     & WithVariantAxes<'tooltip'>
     & WithAsChild
+    /**
+     * The trigger's action — an icon button that acts and is labelled by its
+     * tooltip. `onClick`/`onKeydown` are the app's alone; `onFocus`/`onBlur`
+     * run after the tooltip's own focus logic. None runs while `disabled`
+     * (an asChild element is not natively disabled, so this is enforced here).
+     */
+    & WithInteractionHandlers
     & Define.Slot<'default', PartProps>;
 
 const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
@@ -316,8 +323,18 @@ const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
             // is the platform's own keyboard-vs-pointer heuristic.
             onFocus: (e: FocusEvent) => {
                 if (isFocusVisible(e.currentTarget as Element)) tooltip.show(true);
+                if (!props.disabled) props.onFocus?.(e);
             },
-            onBlur: () => tooltip.hide(),
+            onBlur: (e: FocusEvent) => {
+                tooltip.hide();
+                if (!props.disabled) props.onBlur?.(e);
+            },
+            onClick: (e: MouseEvent) => {
+                if (!props.disabled) props.onClick?.(e);
+            },
+            onKeydown: (e: KeyboardEvent) => {
+                if (!props.disabled) props.onKeydown?.(e);
+            },
             // Escape is handled by the dismiss layer in Root (document-level,
             // WCAG 1.4.13) — no trigger-local keydown needed.
             ref: (node: HTMLElement | null) => tooltip.setAnchor(node),

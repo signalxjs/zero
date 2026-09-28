@@ -27,6 +27,7 @@ import type {
     WithDisabled,
     WithForm,
     WithHtmlAttrs,
+    WithInteractionHandlers,
     WithName,
     WithVariantAxes,
 } from '../../contract/props.js';
@@ -77,10 +78,7 @@ export type ButtonRootProps =
      * They compose with the component's own focus tracking rather than
      * replacing it.
      */
-    & Define.Prop<'onClick', (e: MouseEvent) => void, false>
-    & Define.Prop<'onKeydown', (e: KeyboardEvent) => void, false>
-    & Define.Prop<'onFocus', (e: FocusEvent) => void, false>
-    & Define.Prop<'onBlur', (e: FocusEvent) => void, false>
+    & WithInteractionHandlers
     & Define.Slot<'default', PartProps>;
 
 /**

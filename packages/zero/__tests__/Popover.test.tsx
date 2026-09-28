@@ -4,6 +4,7 @@ import { component, signal } from 'sigx';
 import { Popover, popoverAnatomy } from '@sigx/zero';
 import type { PartProps, PositionOptions, PositionStrategy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
+import { describeTriggerHandlers } from './trigger-handlers';
 
 /** Presence flags land one microtask after the render pass; settle them. */
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -385,5 +386,55 @@ describe('Popover', () => {
         state.anchor = true;
         await tick();
         expect(calls.length).toBe(settled);
+    });
+});
+
+describeTriggerHandlers('Popover.Trigger', '[data-scope="popover"][data-part="trigger"]', (p, child) => (
+    <Popover.Root><Popover.Trigger {...p}>{child}</Popover.Trigger></Popover.Root>
+));
+describeTriggerHandlers('Popover.Close', '[data-scope="popover"][data-part="close"]', (p, child) => (
+    <Popover.Root defaultOpen><Popover.Popup><Popover.Close {...p}>{child}</Popover.Close></Popover.Popup></Popover.Root>
+));
+
+describe('Popover handler ordering (#486)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    const part = (name: string) => container.querySelector<HTMLElement>(`[data-scope="popover"][data-part="${name}"]`)!;
+
+    it('Trigger onClick runs once, after the toggle', () => {
+        const state = signal({ open: false });
+        const seen: boolean[] = [];
+        render(
+            <Popover.Root model={[state, 'open']}>
+                <Popover.Trigger onClick={() => seen.push(state.open)}>Filters</Popover.Trigger>
+                <Popover.Popup>Body</Popover.Popup>
+            </Popover.Root>,
+            container,
+        );
+        part('trigger').click();
+        expect(seen).toEqual([true]);
+    });
+
+    it('Close onClick runs before the close, and preventDefault() vetoes it', () => {
+        const state = signal({ open: true });
+        const seen: boolean[] = [];
+        let veto = true;
+        render(
+            <Popover.Root model={[state, 'open']}>
+                <Popover.Popup>
+                    <Popover.Close onClick={(e: MouseEvent) => { seen.push(state.open); if (veto) e.preventDefault(); }}>Done</Popover.Close>
+                </Popover.Popup>
+            </Popover.Root>,
+            container,
+        );
+        part('close').click();
+        expect(state.open).toBe(true);
+        veto = false;
+        part('close').click();
+        expect(seen).toEqual([true, true]);
+        expect(state.open).toBe(false);
     });
 });

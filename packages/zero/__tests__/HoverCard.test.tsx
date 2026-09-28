@@ -4,6 +4,7 @@ import { signal } from 'sigx';
 import { HoverCard, hoverCardAnatomy } from '@sigx/zero';
 import type { PositionOptions, PositionStrategy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
+import { describeTriggerHandlers } from './trigger-handlers';
 
 /** A mouse pointer event (`pointerType` is what the touch guard reads). */
 function pointer(type: string, init: PointerEventInit = {}): Event {
@@ -347,3 +348,10 @@ describe('HoverCard', () => {
         expect(opts.getArrow?.()).toBe(arrow);
     });
 });
+
+describeTriggerHandlers('HoverCard.Trigger', '[data-scope="hover-card"][data-part="trigger"]', (p, child) => (
+    <HoverCard.Root>
+        <HoverCard.Trigger href="/users/ada" {...p}>{child}</HoverCard.Trigger>
+        <HoverCard.Popup>Ada</HoverCard.Popup>
+    </HoverCard.Root>
+), { disableable: false });

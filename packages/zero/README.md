@@ -2048,6 +2048,45 @@ user has already shown they are reading labels. The shared state lives in
 the provided context, one per rendered group, so nothing leaks across SSR
 requests.
 
+**Triggers that act (#486).** Button's handler quartet — `onClick`,
+`onKeydown`, `onFocus`, `onBlur` (the `WithInteractionHandlers` prop
+fragment) — is declared on `Tooltip.Trigger`, `Dialog.Trigger`,
+`Popover.Trigger`, `Drawer.Trigger`, `Menu.Trigger` and `HoverCard.Trigger`,
+and on the closers `Dialog.Close`, `Dialog.Cancel`, `Popover.Close` and
+`Drawer.Close`. sigx forwards no rest props, so they have to be declared to
+reach the element. So an icon button that acts and is labelled by its
+tooltip is one part:
+
+```tsx
+<Tooltip.Root>
+    <Tooltip.Trigger aria-label="Archive" onClick={archive}><ArchiveIcon /></Tooltip.Trigger>
+    <Tooltip.Popup>Archive the conversation</Tooltip.Popup>
+</Tooltip.Root>
+```
+
+The ordering is fixed:
+
+- **On a trigger**, the part's own handling runs first and the app's after:
+  a Dialog/Popover/Drawer/Menu trigger's `onClick` sees the surface already
+  open (or, for a toggling trigger, already closed), `onKeydown` runs after
+  the press feedback and Menu's arrow keys, and Tooltip's and HoverCard's
+  `onFocus`/`onBlur` after their open/close logic.
+- **On a closer**, `onClick` runs *before* the close, and
+  `event.preventDefault()` in it vetoes the close — a "save, then close"
+  that fails can keep the dialog open:
+  ```tsx
+  <Dialog.Close onClick={(e) => { if (!save()) e.preventDefault(); }}>Save and close</Dialog.Close>
+  ```
+  The closer's other three handlers follow the trigger rule.
+- **Disabled** skips every app handler — on an asChild element too, which
+  the native `disabled` does not protect. (HoverCard's trigger is a link and
+  has no `disabled`.)
+- **asChild**: the handlers are in the bag, composed with the part's own, so
+  spreading the bag is enough.
+
+`Menu.ContextTrigger`, `Menu.SubTrigger` and `Menu.Item` are not covered
+yet; the general composition rule is #452.
+
 **The hover card (#290).** A preview on the way to a destination — the
 profile behind an `@mention`, the page behind a link — whose content may be
 interactive:

@@ -4,6 +4,7 @@ import { component, signal } from 'sigx';
 import { Tooltip, tooltipAnatomy } from '@sigx/zero';
 import type { PositionOptions, PositionStrategy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
+import { describeTriggerHandlers } from './trigger-handlers';
 
 /** A mouse pointer event (`pointerType` is what the touch guard reads). */
 function pointer(type: string, pointerType = 'mouse'): Event {
@@ -389,5 +390,58 @@ describe('Tooltip', () => {
             expect(b!.getAttribute('data-state')).toBe('closed');
             expect(a!.getAttribute('data-state')).toBe('open');
         });
+    });
+});
+
+describeTriggerHandlers('Tooltip.Trigger', '[data-scope="tooltip"][data-part="trigger"]', (p, child) => (
+    <Tooltip.Root>
+        <Tooltip.Trigger {...p}>{child}</Tooltip.Trigger>
+        <Tooltip.Popup>Label</Tooltip.Popup>
+    </Tooltip.Root>
+));
+
+describe('Tooltip.Trigger handler ordering (#486)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    afterEach(() => container.remove());
+
+    it('onFocus runs after the tooltip opened on keyboard focus; onBlur after it closed', () => {
+        const state = signal({ open: false });
+        const seen: Array<[string, boolean]> = [];
+        render(
+            <Tooltip.Root model={[state, 'open']}>
+                <Tooltip.Trigger
+                    onFocus={() => seen.push(['focus', state.open])}
+                    onBlur={() => seen.push(['blur', state.open])}
+                >Save</Tooltip.Trigger>
+                <Tooltip.Popup>Save the document</Tooltip.Popup>
+            </Tooltip.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        // happy-dom answers `:focus-visible` for anything focused.
+        trigger.focus();
+        trigger.blur();
+        expect(seen).toEqual([['focus', true], ['blur', false]]);
+    });
+
+    it('a click runs the action once and leaves the tooltip closed', () => {
+        const state = signal({ open: false });
+        const onClick = vi.fn();
+        render(
+            <Tooltip.Root model={[state, 'open']}>
+                <Tooltip.Trigger onClick={onClick}>Save</Tooltip.Trigger>
+                <Tooltip.Popup>Save the document</Tooltip.Popup>
+            </Tooltip.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'mouse', bubbles: true }));
+        trigger.click();
+        expect(onClick).toHaveBeenCalledTimes(1);
+        expect(state.open).toBe(false);
     });
 });
