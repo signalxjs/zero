@@ -8193,6 +8193,19 @@ const pageTrigger: PartStyles = {
     },
 };
 
+/** A pagination cell's box on lynx — see the recipe's lynx section. */
+const pageCellLynx: NonNullable<PartStyles['base']> = {
+    minWidth: 'var(--pg-size)',
+    height: 'var(--pg-size)',
+    flexShrink: '0',
+};
+
+/** The four triggers on lynx: the cell box, the held wash + sink, the ring. */
+const pageTriggerLynx: PartStyles = {
+    base: pageCellLynx,
+    states: { pressed: { background: 'var(--color-base-300)' }, ...lynxFocus() },
+};
+
 /**
  * Pagination — daisy's join-of-buttons made of standalone btn cells: the
  * quiet base-200 fill, base-300 hover, the current page inverted into the
@@ -8289,13 +8302,35 @@ export const pagination: RecipeInput = {
             xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 14)', '--pg-font': 'var(--text-lg)' } } },
         },
     },
-    // The cell's inline padding, restated physically: logical spellings
-    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
-    // the emitter refuses them.
+    // Lynx (signalxjs/lynx#1258):
+    // - the cells' size, restated physically: `min-inline-size` and
+    //   `block-size` do not resolve on lynx (lynx#1145), so every cell
+    //   collapsed to its glyph. Read through `--pg-size`, so the compile
+    //   inlines the size steps per part, as it does the web's;
+    // - the item's inline padding, physical: logical spellings resolve on
+    //   iOS but not on Android (measured, lynx#1084);
+    // - the press: the web answers a pointer with `:hover`, which a touch
+    //   platform drops, so the held cell paints daisy's hover wash with the
+    //   1px sink (`lynxBtnPressed`'s pair) — the current page keeps its
+    //   accent fill and only sinks;
+    // - the focus ring as `lynxFocus`: lynx's outline has no offset and
+    //   ignores the radius (lynx#1163);
+    // - no row shrink: a cell never squeezes below its size in a narrow row.
+    // The glyphs' rtl flip has no replacement: lynx has no RTL flow.
     targets: {
         lynx: {
             parts: {
-                item: { base: { paddingLeft: 'var(--space-2xs)', paddingRight: 'var(--space-2xs)' } },
+                root: { base: { flexDirection: 'row' } },
+                item: {
+                    base: { ...pageCellLynx, paddingLeft: 'var(--space-2xs)', paddingRight: 'var(--space-2xs)' },
+                    states: lynxFocus(),
+                    selectors: { '&[data-pressed][data-state="inactive"]': { background: 'var(--color-base-300)' } },
+                },
+                ellipsis: { base: pageCellLynx },
+                'first-trigger': pageTriggerLynx,
+                'prev-trigger': pageTriggerLynx,
+                'next-trigger': pageTriggerLynx,
+                'last-trigger': pageTriggerLynx,
             },
         },
     },
@@ -8314,6 +8349,12 @@ export const pagination: RecipeInput = {
 const stepInk = (accent: string, role: string): string =>
     `color-mix(in oklab, ${accent} `
     + `${Math.min(ROLE_INK_KEEP[role as keyof typeof roles] ?? 55, 70)}%, var(--color-base-content))`;
+
+/**
+ * The complete disc's fill: 20% of the accent over base-100, in OKLAB (see
+ * the indicator's `complete` state for why not OKLCH).
+ */
+const stepTint = (accent: string): string => `color-mix(in oklab, ${accent} 20%, var(--color-base-100))`;
 
 /** A Steps root holding wizard parts (#296) — the panel or the triggers. */
 const STEPS_WIZARD = '&:has(> [data-scope="steps"]:is([data-part="content"], [data-part="prev-trigger"], [data-part="next-trigger"]))';
@@ -8432,7 +8473,7 @@ export const steps: RecipeInput = {
                 // (warning's yellow came out pink) — which the browser parity
                 // check caught once per-step colour put all eight roles on
                 // the disc (#112).
-                complete: { background: 'color-mix(in oklab, var(--steps-accent) 20%, var(--color-base-100))', color: 'var(--steps-complete-ink)' },
+                complete: { background: stepTint('var(--steps-accent)'), color: 'var(--steps-complete-ink)' },
                 inactive: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
                 invalid: { background: 'var(--color-error)', color: 'var(--color-error-content)' },
             },
@@ -8520,32 +8561,82 @@ export const steps: RecipeInput = {
             xl: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 9)', '--steps-font': 'var(--text-md)' } } },
         },
     },
-    // The bridge's anchors and the vertical item's tail padding, restated
-    // physically: logical spellings resolve on iOS but not on Android
-    // (measured, signalxjs/lynx#1084), so the emitter refuses them. Physical
-    // is the lynx target's norm — no RTL flow there to mirror with.
+    // Lynx. Physical spellings throughout: logical insets, margins and
+    // paddings resolve on iOS but not on Android (measured,
+    // signalxjs/lynx#1084), and `inline-size` / `block-size` do not resolve
+    // at all (lynx#1145) — without the restatement the discs and lines did
+    // not paint. Also (signalxjs/lynx#1258):
+    // - the complete disc's tint and ink read `--steps-accent` through a
+    //   colour function, which cannot bake; the base pair is restated over
+    //   primary, and each colour already restates the ink on its item, so
+    //   the tint joins it there;
+    // - the bridge runs from this disc's edge to the next disc's edge —
+    //   `50% + ind/2` for `100% - ind` — instead of centre to centre under
+    //   the disc, so it needs no z-index across sibling items; the item
+    //   stops clipping (a lynx view's `overflow` defaults to hidden) so the
+    //   bridge can reach past its box;
+    // - the `:has()` wizard wrap becomes the `wizard` stamp lynx-zero puts on
+    //   the root while a panel or trigger is mounted (raw css below);
+    // - the focus ring as `lynxFocus` (lynx#1163), and Back/Next's press as
+    //   daisy's hover wash + sink (`lynxBtnPressed`), `:hover` being dropped.
     targets: {
         lynx: {
+            tokens: {
+                '--steps-complete-ink': stepInk('var(--color-primary)', 'primary'),
+                '--steps-complete-tint': stepTint('var(--color-primary)'),
+            },
             parts: {
+                root: { base: { flexDirection: 'row', overflow: 'visible' } },
                 item: {
+                    base: { overflow: 'visible' },
+                    states: lynxFocus(),
                     selectors: {
                         '&[data-orientation="vertical"]': { paddingBottom: 'var(--space-lg)' },
                     },
                 },
+                indicator: {
+                    base: { width: 'var(--steps-ind)', height: 'var(--steps-ind)' },
+                    states: { complete: { background: 'var(--steps-complete-tint)' } },
+                },
                 separator: {
                     selectors: {
                         '&[data-orientation="horizontal"]': {
-                            top: 'calc(var(--space-xs) + var(--steps-ind) / 2)',
-                            left: '50%',
+                            top: 'calc(var(--space-xs) + (var(--steps-ind) - var(--border)) / 2)',
+                            left: 'calc(50% + var(--steps-ind) / 2)',
+                            width: 'calc(100% - var(--steps-ind))',
+                            height: 'var(--border)',
                         },
                         '&[data-orientation="vertical"]': {
                             left: 'calc(var(--space-xs) + (var(--steps-ind) - var(--border)) / 2)',
                             top: 'calc(var(--space-xs) + var(--steps-ind))',
                             bottom: 'calc(var(--space-xs) * -1)',
+                            width: 'var(--border)',
                         },
                     },
                 },
+                'prev-trigger': {
+                    base: { ...lynxBtnPad(4), ...lynxBtnFit },
+                    states: { pressed: lynxBtnPressed, ...lynxFocus() },
+                },
+                'next-trigger': {
+                    base: { ...lynxBtnPad(4), ...lynxBtnFit, marginLeft: 'auto' },
+                    states: { pressed: lynxBtnPressed, ...lynxFocus() },
+                },
             },
+            variants: {
+                color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
+                    '--steps-complete-tint': stepTint(`var(--color-${c})`),
+                } } }])),
+            },
+            // lynx-zero stamps `wizard` on the root while a Content,
+            // PrevTrigger or NextTrigger is mounted — the web's `:has()`.
+            // A lynx-zero rendering detail, not a modifier an author sets.
+            css: `
+.zx-steps__root.zx-m-wizard {
+    flex-wrap: wrap;
+    row-gap: var(--space-md);
+}
+`,
         },
     },
 };
