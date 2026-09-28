@@ -1,17 +1,19 @@
 @layer zero.recipes {
     [data-scope="card"][data-part="root"] {
-        --card-pad: var(--space-lg);
-        --card-accent: var(--color-primary);
+        --card-pad: var(--space-md);
     }
 
     [data-scope="card"][data-part="root"] {
         display: flex;
         flex-direction: column;
-        background: var(--color-surface-container);
-        color: var(--color-surface-container-content);
-        border-radius: var(--radius-extra-large);
-        box-shadow: var(--shadow-level1);
+        box-sizing: border-box;
+        background: var(--card-fill, var(--color-surface-container-low));
+        color: var(--card-ink, var(--color-surface-container-low-content));
+        border: 1px solid var(--card-outline, transparent);
+        border-radius: var(--radius-medium);
+        box-shadow: var(--card-shadow, var(--shadow-level1));
         overflow: hidden;
+        --tf-surface: var(--card-fill, var(--color-surface-container-low));
     }
 
     [data-scope="card"][data-part="media"] {
@@ -30,13 +32,13 @@
     }
 
     [data-scope="card"][data-part="media"]:first-child {
-        border-start-start-radius: var(--radius-extra-large);
-        border-start-end-radius: var(--radius-extra-large);
+        border-start-start-radius: var(--radius-medium);
+        border-start-end-radius: var(--radius-medium);
     }
 
     [data-scope="card"][data-part="media"]:last-child {
-        border-end-start-radius: var(--radius-extra-large);
-        border-end-end-radius: var(--radius-extra-large);
+        border-end-start-radius: var(--radius-medium);
+        border-end-end-radius: var(--radius-medium);
     }
 
     [data-scope="card"][data-part="header"] {
@@ -49,23 +51,29 @@
     [data-scope="card"][data-part="title"] {
         margin: 0;
         font-family: var(--font-sans);
-        font-size: var(--text-lg);
+        font-size: var(--text-title-medium);
+        line-height: var(--leading-title-medium);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
-        line-height: var(--leading-tight);
+        letter-spacing: var(--tracking-title-medium);
     }
 
     [data-scope="card"][data-part="description"] {
         margin: 0;
-        font-size: var(--text-sm);
-        color: var(--color-base-content);
-        opacity: 0.78;
+        font-family: var(--font-sans);
+        font-size: var(--text-body-medium);
+        line-height: var(--leading-body-medium);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-body-medium);
+        color: var(--card-subtle, var(--color-surface-variant-content));
     }
 
     [data-scope="card"][data-part="body"] {
         padding: var(--card-pad);
-        font-size: var(--text-md);
-        line-height: var(--leading-normal);
+        font-family: var(--font-sans);
+        font-size: var(--text-body-medium);
+        line-height: var(--leading-body-medium);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-body-medium);
     }
 
     [data-scope="card"][data-part="footer"] {
@@ -76,44 +84,65 @@
         padding: 0 var(--card-pad) var(--card-pad);
     }
 
+    [data-scope="card"][data-part="root"][data-variant="filled"] {
+        --card-fill: var(--color-surface-container-highest);
+        --card-ink: var(--color-surface-container-highest-content);
+        --card-shadow: var(--shadow-level0);
+    }
+
+    [data-scope="card"][data-part="root"][data-variant="outlined"] {
+        --card-fill: var(--color-surface);
+        --card-ink: var(--color-surface-content);
+        --card-outline: var(--color-outline-variant);
+        --card-shadow: var(--shadow-level0);
+    }
+
     [data-scope="card"][data-part="root"][data-color="primary"] {
-        --card-accent: var(--color-primary);
-        border-top: calc(var(--border) * 3) solid var(--card-accent);
+        --card-fill: var(--color-primary-container);
+        --card-ink: var(--color-primary-container-content);
+        --card-subtle: var(--color-primary-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="secondary"] {
-        --card-accent: var(--color-secondary);
-        border-top: calc(var(--border) * 3) solid var(--card-accent);
+        --card-fill: var(--color-secondary-container);
+        --card-ink: var(--color-secondary-container-content);
+        --card-subtle: var(--color-secondary-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="tertiary"] {
-        --card-accent: var(--color-tertiary);
-        border-top: calc(var(--border) * 3) solid var(--card-accent);
+        --card-fill: var(--color-tertiary-container);
+        --card-ink: var(--color-tertiary-container-content);
+        --card-subtle: var(--color-tertiary-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="error"] {
-        --card-accent: var(--color-error);
-        border-top: calc(var(--border) * 3) solid var(--card-accent);
+        --card-fill: var(--color-error-container);
+        --card-ink: var(--color-error-container-content);
+        --card-subtle: var(--color-error-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="neutral"] {
-        --card-accent: var(--color-neutral);
-        border-top: calc(var(--border) * 3) solid var(--card-accent);
+        --card-fill: var(--color-neutral-container);
+        --card-ink: var(--color-neutral-container-content);
+        --card-subtle: var(--color-neutral-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="info"] {
-        --card-accent: var(--color-info);
-        border-top: calc(var(--border) * 3) solid var(--card-accent);
+        --card-fill: var(--color-info-container);
+        --card-ink: var(--color-info-container-content);
+        --card-subtle: var(--color-info-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="success"] {
-        --card-accent: var(--color-success);
-        border-top: calc(var(--border) * 3) solid var(--card-accent);
+        --card-fill: var(--color-success-container);
+        --card-ink: var(--color-success-container-content);
+        --card-subtle: var(--color-success-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="warning"] {
-        --card-accent: var(--color-warning);
-        border-top: calc(var(--border) * 3) solid var(--card-accent);
+        --card-fill: var(--color-warning-container);
+        --card-ink: var(--color-warning-container-content);
+        --card-subtle: var(--color-warning-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-size="xs"] {

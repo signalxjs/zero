@@ -1,6 +1,6 @@
 @layer zero.recipes {
     [data-scope="divider"][data-part="root"] {
-        --divider-ink: var(--color-outline);
+        --divider-ink: var(--color-outline-variant);
         --divider-thickness: var(--border);
     }
 
