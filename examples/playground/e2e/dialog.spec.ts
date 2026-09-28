@@ -437,3 +437,32 @@ test('escapeKeyDown / interactOutside vetoes keep the dialog open until the app 
     await page.keyboard.press('Escape');
     await expect(popup).toHaveAttribute('data-state', 'closed');
 });
+
+/**
+ * The trigger and a close lent to Button.Root (#495): one element each, the
+ * Button's, with the dialog's behaviour. The close runs before the Button's
+ * own onClick, and still reports its value.
+ */
+test('Save and close: a Dialog.Close lent to a Button closes with its value (#495)', async ({ page }) => {
+    const trigger = page.getByRole('button', { name: 'Edit profile', exact: true });
+    const readout = page.locator('[data-demo="profile-reason"]');
+    await expect(readout).toHaveText('Last profile close: none yet (saved 0×)');
+    await expect(trigger).toHaveAttribute('data-scope', 'button');
+    await expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+
+    // Keyboard open, so the trigger holds focus for the native restore.
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    const popup = await controlledPopup(page, trigger, 'the Edit profile trigger');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    const save = popup.getByRole('button', { name: 'Save and close', exact: true });
+    await expect(save).toHaveAttribute('data-scope', 'button');
+    await expect(popup.locator('[data-scope="dialog"][data-part="close"]', { hasText: 'Save and close' })).toHaveCount(0);
+    await save.click();
+    await expect(popup).toHaveAttribute('data-state', 'closed');
+    await expect(popup).not.toBeVisible();
+    await expect(readout).toHaveText('Last profile close: close · save (saved 1×)');
+    await expect(trigger).toBeFocused();
+});

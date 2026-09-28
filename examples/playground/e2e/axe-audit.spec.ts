@@ -107,6 +107,8 @@ const SCANS: Record<string, Scan[]> = {
         { name: 'non-dismissible dialog', open: openDialog('Open required dialog') },
         { name: 'alertdialog', open: openDialog('Delete file…') },
         { name: 'alertdialog with dependents', open: openDialog('Delete workspace…') },
+        // #495: the trigger and a close lent to Button.Root.
+        { name: 'dialog lent to a Button', open: openDialog('Edit profile') },
     ],
     drawer: [{
         name: 'modal drawer',
@@ -185,6 +187,10 @@ const SCANS: Record<string, Scan[]> = {
             },
         },
         { name: 'selection-items menu', open: (page) => openMenu(page, 'View') },
+        // #495: a Tooltip lent to a Menu.Trigger lent to a Button.Root — one
+        // element carrying the menu button's ARIA and the tooltip's
+        // description, with the menu open.
+        { name: 'menu and tooltip lent to a Button', open: (page) => openMenu(page, 'More actions') },
     ],
     menubar: [
         {
