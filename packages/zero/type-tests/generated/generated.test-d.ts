@@ -58,9 +58,10 @@ export type _propertyHasLevels = MustBeTrue<
     '--shadow-level3' extends ZeroVocabulary['property'] ? true : false
 >;
 
-// ── material wires button fully; its filtered role set excludes the tonal
-//    surfaces (9 of 13 roles — harvest-from-compiled, not from declaration) ──
-const buttonVariant: VariantValueFor<'button'> = 'ghost';
+// ── material wires button fully, with M3's style names (#415); its filtered
+//    role set excludes the fills and hairlines (8 of 31 roles —
+//    harvest-from-compiled, not from declaration) ──
+const buttonVariant: VariantValueFor<'button'> = 'tonal';
 const buttonSize: SizeScaleFor<'button'> = 'md';
 // @ts-expect-error — `surface-container` is declared but deliberately not wired on button
 const tonal: ColorValueFor<'button'> = 'surface-container';
@@ -78,10 +79,10 @@ const avatarSize: SizeScaleFor<'avatar'> = 'xl';
 const avatarTypo: ColorValueFor<'avatar'> = 'primry';
 
 // ── the still-unwired axis keeps the visible break. `variant` is deferred
-//    on purpose (docs/architecture.md, "The ledgers"): only button wires it, because its
+//    on purpose (docs/architecture.md, "The ledgers"): only button and toggle wire it, because its
 //    vocabulary is convention rather than contract ──
 // @ts-expect-error — avatar accepts data-variant at runtime; nothing wires it
-const avatarVariant: VariantValueFor<'avatar'> = 'solid';
+const avatarVariant: VariantValueFor<'avatar'> = 'filled';
 // @ts-expect-error — empty declared axes reject every bag entry
 const mintedAxis: AxesFor<'button'> = { density: 'compact' };
 
