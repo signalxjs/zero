@@ -40,8 +40,9 @@ import { createAnchorPosition, type Placement, type PositionStrategy } from '../
 import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
+import { mergePartProps } from '../../contract/merge-part-props.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithLend, WithVariantAxes } from '../../contract/props.js';
 import { tooltipAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
 
@@ -276,6 +277,12 @@ export type TooltipTriggerProps =
     & WithVariantAxes<'tooltip'>
     & WithAsChild
     /**
+     * Another zero part's asChild bag (#452), so lenders chain: an outer
+     * tooltip's trigger bag lent to this one, whose own bag is then lent on
+     * to a `Button.Root`. The lent ref runs before `setAnchor`.
+     */
+    & WithLend
+    /**
      * The trigger's action — an icon button that acts and is labelled by its
      * tooltip. `onClick`/`onKeydown` are the app's alone; `onFocus`/`onBlur`
      * run after the tooltip's own focus logic. None runs while `disabled`
@@ -293,7 +300,7 @@ const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
 
     const bag = (): PartProps => {
         const attrs = htmlAttrs(props);
-        return {
+        return mergePartProps(props.lend, {
             ...attrs,
             'data-scope': SCOPE,
             'data-part': 'trigger',
@@ -338,7 +345,7 @@ const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
             // Escape is handled by the dismiss layer in Root (document-level,
             // WCAG 1.4.13) — no trigger-local keydown needed.
             ref: (node: HTMLElement | null) => tooltip.setAnchor(node),
-        };
+        });
     };
 
     return () => {

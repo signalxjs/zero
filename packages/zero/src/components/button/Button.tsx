@@ -12,12 +12,27 @@
  * `data-color` / `data-size` / `data-variant`, so a design system has
  * somewhere to put the fill styles the contract has always advertised — and
  * the one state a native button has no spelling for: `loading`.
+ *
+ * A lend host (#452): another zero part's asChild bag reaches it through
+ * `lend`, never a spread. The Button keeps its own anatomy and paint; the
+ * lent part adds behaviour and ARIA only, chained before the Button's own:
+ *
+ * ```tsx
+ * <Tooltip.Trigger asChild>
+ *     {(p) => <Button.Root lend={p} onClick={archive} aria-label="Archive"><Icon name="archive" /></Button.Root>}
+ * </Tooltip.Trigger>
+ * ```
+ *
+ * An inert Button (`disabled`, `loading`) gates the lent activation handlers
+ * (click, keydown, …) but not focus, blur or pointer ones — so a tooltip lent
+ * to a `loading` or `focusableWhenDisabled` Button still shows.
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
+import { mergePartProps } from '../../contract/merge-part-props.js';
 import { renderAsChild, synthesizesClickFrom } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
 import type {
@@ -28,6 +43,7 @@ import type {
     WithForm,
     WithHtmlAttrs,
     WithInteractionHandlers,
+    WithLend,
     WithName,
     WithVariantAxes,
 } from '../../contract/props.js';
@@ -40,6 +56,12 @@ export type ButtonRootProps =
     & WithDisabled
     & WithClass
     & WithAsChild
+    /**
+     * Another zero part's asChild bag — a `Tooltip.Trigger`'s, say (#452).
+     * Its handlers and ref run before the Button's own, its IDREF ARIA
+     * joins, and its anatomy is dropped: the Button keeps its own.
+     */
+    & WithLend
     & WithHtmlAttrs
     /**
      * The native button's own form attributes: `name`/`value` post with a
@@ -154,7 +176,10 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal, onMounted
                 : kind === 'native' && disabled && !focusableDisabled && el && 'disabled' in el
                     ? { disabled: true }
                     : {};
-        return {
+        // The lent bag merges under the Button's own: its anatomy dropped,
+        // its handlers and ref chained first, and — while the Button is
+        // inert — its activation handlers skipped.
+        return mergePartProps(props.lend, {
             // First, so the part's own attributes win on any name both set.
             ...attrs,
             'data-scope': SCOPE,
@@ -229,7 +254,7 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal, onMounted
             onPointerup: press.onPointerup,
             onPointercancel: press.onPointercancel,
             onPointerleave: press.onPointerleave,
-        };
+        });
     };
 
     return () => {

@@ -1,9 +1,10 @@
 import { component } from 'sigx';
-import { Tooltip } from '@sigx/zero';
+import { Button, Tooltip } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const TooltipDemos = component(({ signal }) => {
     const archive = signal({ count: 0 });
+    const thread = signal({ count: 0 });
     return () => (
         <>
             <Tooltip.Root>
@@ -67,6 +68,31 @@ const TooltipDemos = component(({ signal }) => {
                     <Tooltip.Popup>Archive the conversation</Tooltip.Popup>
                 </Tooltip.Root>
                 <output aria-label="Archive action count">Archived {archive.count}×</output>
+            </div>
+            {/*
+              * A tooltip LENT to a Button (#494): one element, the Button's —
+              * it keeps `button.root` and the skin's button paint, `loading`
+              * and `focusableWhenDisabled`, while the tooltip trigger it
+              * absorbs adds the hover/focus intent, `aria-describedby` and the
+              * anchor. `lend={p}` rather than `{...p}`: a zero component takes
+              * the bag through a prop. The e2e spec hovers, clicks and presses
+              * Escape on it.
+              */}
+            <div data-demo="tooltip-lend" style="display: flex; gap: 0.5rem; align-items: center; margin-top: 1rem;">
+                <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                        {(p) => (
+                            <Button.Root lend={p} aria-label="Archive thread" onClick={() => { thread.count += 1; }}>
+                                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <rect x="1.5" y="2.5" width="13" height="3" rx="0.5" />
+                                    <path d="M2.5 5.5v7a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-7M6.5 8.5h3" />
+                                </svg>
+                            </Button.Root>
+                        )}
+                    </Tooltip.Trigger>
+                    <Tooltip.Popup>Move the thread to the archive</Tooltip.Popup>
+                </Tooltip.Root>
+                <output aria-label="Archived threads">archived: {thread.count}</output>
             </div>
         </>
     );
