@@ -194,3 +194,73 @@ test('an acting icon trigger: hover shows its tooltip, a click runs the action',
     await archive.click();
     await expect(count).toHaveText('Archived 2×');
 });
+
+/**
+ * A tooltip lent to a Button (#494): `<Tooltip.Trigger asChild>{(p) =>
+ * <Button.Root lend={p}>…}`. One element, the Button's — it keeps
+ * `button.root`, while the absorbed tooltip trigger contributes the intent,
+ * the description and the anchor. Named by its accessible name like the
+ * triggers above; its popup by the text it shows.
+ */
+test.describe('a tooltip lent to a Button (#494)', () => {
+    const button = (page: Page) => page.getByRole('button', { name: 'Archive thread', exact: true });
+    const tip = (page: Page) =>
+        page.locator('[data-scope="tooltip"][data-part="popup"]', { hasText: 'Move the thread to the archive' });
+    const count = (page: Page) => page.getByRole('status', { name: 'Archived threads' });
+
+    test('the element is the Button: its anatomy, none of the trigger\'s', async ({ page }) => {
+        const b = button(page);
+        await expect(b).toHaveAttribute('data-scope', 'button');
+        await expect(b).toHaveAttribute('data-part', 'root');
+        await expect(b).not.toHaveAttribute('data-state', /.*/);
+    });
+
+    test('hover shows the tooltip after the intent delay, anchored to the Button', async ({ page }) => {
+        const b = button(page);
+        const hoveredAt = Date.now();
+        await b.hover();
+        await expect(tip(page)).toHaveAttribute('data-state', 'open');
+        await expect(tip(page)).toBeVisible();
+        // Lower bound only: the intent delay (600 ms) must have passed.
+        expect(Date.now() - hoveredAt).toBeGreaterThanOrEqual(600);
+        await expect(b).toHaveAccessibleDescription('Move the thread to the archive');
+        // Anchored to the Button: the popup sits beside it, overlapping it on
+        // the inline axis.
+        const at = await settledBox(b, 'the lent-to Button');
+        const box = await settledBox(tip(page), 'the lent tooltip');
+        expect(box.x).toBeLessThan(at.x + at.width);
+        expect(box.x + box.width).toBeGreaterThan(at.x);
+    });
+
+    test('a click acts once and keeps the tooltip shut until the pointer leaves and returns', async ({ page }) => {
+        const b = button(page);
+        await expect(count(page)).toHaveText('archived: 0');
+        await b.hover();
+        await expect(tip(page)).toHaveAttribute('data-state', 'open');
+
+        await b.click();
+        await expect(count(page)).toHaveText('archived: 1');
+        await expect(tip(page)).toHaveAttribute('data-state', 'closed');
+        // The pointer still rests on the Button: nothing re-opens it.
+        await page.waitForTimeout(900);
+        await expect(tip(page)).toHaveAttribute('data-state', 'closed');
+
+        await page.mouse.move(0, 0);
+        await b.hover();
+        await expect(tip(page)).toHaveAttribute('data-state', 'open');
+        await expect(count(page)).toHaveText('archived: 1');
+    });
+
+    test('Escape closes the tooltip first, and the Button keeps focus', async ({ page }) => {
+        const b = button(page);
+        // A script focus matches :focus-visible — the keyboard path.
+        await b.focus();
+        await expect(tip(page)).toHaveAttribute('data-state', 'open');
+        await page.keyboard.press('Escape');
+        await expect(tip(page)).toHaveAttribute('data-state', 'closed');
+        await expect(b).toBeFocused();
+        // And Enter still acts through the Button.
+        await page.keyboard.press('Enter');
+        await expect(count(page)).toHaveText('archived: 1');
+    });
+});

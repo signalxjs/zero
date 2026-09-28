@@ -5,15 +5,16 @@
  * <ActionButton icon="archive" label="Archive" shortcut="E" onClick={archive} />
  * ```
  *
- * Built on `<Tooltip.Trigger onClick>` (#486): the trigger is the button, its
- * own `onClick` runs the action, and the tooltip labels it — no asChild, no
- * raw `<button>`. The design system paints it through the tooltip trigger's
- * recipe — the same quiet trigger menus and popovers open from, so a toolbar
- * reads as one row.
+ * A tooltip lent to a `Button.Root` (#494): the Button renders the one
+ * element and keeps its anatomy, so it brings the design system's button
+ * paint (a quiet neutral ghost here), `loading` and `focusableWhenDisabled`;
+ * the tooltip trigger it absorbs adds the hover/focus intent, the
+ * `aria-describedby` and the anchor. A disabled action stays a tab stop
+ * (`focusableWhenDisabled`), so its tooltip still says what it would do.
  */
 import { component } from 'sigx';
 import type { Define } from 'sigx';
-import { Kbd, Tooltip } from '@sigx/zero';
+import { Button, Kbd, Tooltip } from '@sigx/zero';
 import type { Placement } from '@sigx/zero';
 import { Icon } from './Icon.js';
 import type { IconName } from './Icon.js';
@@ -34,15 +35,23 @@ export type ActionButtonProps =
 
 export const ActionButton = component<ActionButtonProps>(({ props, emit }) => () => (
     <Tooltip.Root placement={props.placement ?? 'bottom'} openDelay={500}>
-        <Tooltip.Trigger
-            size={props.size ?? 'sm'}
-            disabled={props.disabled}
-            aria-label={props.label}
-            aria-pressed={props.pressed === undefined ? undefined : String(props.pressed)}
-            aria-keyshortcuts={props.shortcut}
-            onClick={(e: MouseEvent) => emit('click', e)}
-        >
-            <Icon name={props.icon} tone={props.tone} />
+        <Tooltip.Trigger asChild>
+            {(p) => (
+                <Button.Root
+                    lend={p}
+                    variant="ghost"
+                    color="neutral"
+                    size={props.size ?? 'sm'}
+                    disabled={props.disabled}
+                    focusableWhenDisabled
+                    aria-label={props.label}
+                    aria-pressed={props.pressed === undefined ? undefined : String(props.pressed)}
+                    aria-keyshortcuts={props.shortcut}
+                    onClick={(e: MouseEvent) => emit('click', e)}
+                >
+                    <Icon name={props.icon} tone={props.tone} />
+                </Button.Root>
+            )}
         </Tooltip.Trigger>
         <Tooltip.Popup>
             {props.label}

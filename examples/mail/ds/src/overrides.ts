@@ -10,6 +10,8 @@ export const overrides: RecipeInput[] = [];
  * The overlay triggers (the baseline's shared "quiet trigger") drawn as a
  * mail client draws its icon buttons: no border until you reach for it, a
  * square hit area at `sm`, the ink wash on hover the baseline already gives.
+ * Not tooltip's: the kit's ActionButton lends its tooltip trigger to a
+ * `Button.Root` (#494), which paints it through the button recipe.
  */
 const ghostTrigger: RecipePatch = {
     parts: { trigger: { base: { borderColor: 'transparent', color: 'color-mix(in oklch, var(--color-base-content) 78%, var(--color-base-100))' } } },
@@ -22,7 +24,6 @@ const quietInk = 'color-mix(in oklch, var(--color-base-content) 70%, var(--color
 export const patches: Record<string, RecipePatch> = {
     'nav-list': { parts: { heading: { base: { color: quietInk } } } },
     pagination: { parts: { ellipsis: { base: { color: quietInk } } } },
-    tooltip: ghostTrigger,
     popover: ghostTrigger,
     // In a row of text, an avatar or a checkbox keeps its size; the text gives.
     avatar: { parts: { root: { base: { flexShrink: '0' } } } },

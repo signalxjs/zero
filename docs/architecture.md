@@ -376,6 +376,13 @@ in a spread. The host merges the two bags with `mergePartProps(outer, own)`:
 | `id`, `role`, single-value `aria-*` | host's, else lender's; two different values throw |
 | everything else | host wins, `class` concatenates |
 
+Hosts are opt-in: `Button.Root`, and `Tooltip.Trigger` so lenders chain
+(#494). `__tests__/lend-hosts.test.tsx` finds every host by the `WithLend`
+in its props, fails when a host has no render fixture (or a fixture's
+component stopped being one), and renders each with a probe bag: the host
+keeps its scope and part, joins the lent `aria-describedby`, fires the lent
+handler and hands the lent ref its element.
+
 A part that may lend declares **`absorbable: true`** — presence-only, like
 `visuallyHidden`: `tooltip.trigger`, `menu.trigger`, `menu.context-trigger`,
 `popover.trigger`, `popover.close`, `dialog.trigger`, `dialog.close`,

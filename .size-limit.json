@@ -84,7 +84,7 @@
     {
         "name": "@sigx/zero/button",
         "path": "packages/zero/dist/components/button/index.js",
-        "limit": "2.96 kB",
+        "limit": "3.71 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

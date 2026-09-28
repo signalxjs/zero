@@ -60,7 +60,12 @@ export const button: RecipeInput = {
                     boxShadow: '0 0 0 4px var(--color-base-100)',
                 },
             },
-            selectors: { '&:active:not([data-disabled])': { boxShadow: 'var(--shadow-xs)' } },
+            selectors: {
+                '&:active:not([data-disabled])': { boxShadow: 'var(--shadow-xs)' },
+                // An icon-only button (a toolbar's ActionButton, a discard ✕)
+                // is a square hit area at every size, not a label's pill.
+                '&:has(> [data-scope="mail-icon"]:only-child)': { padding: 'var(--space-sm)' },
+            },
         },
     },
     variants: {
@@ -91,6 +96,11 @@ export const button: RecipeInput = {
             ghost: {
                 root: {
                     base: { background: 'transparent', color: 'var(--btn-accent)', boxShadow: 'none' },
+                    // No lift: a ghost is furniture until you reach for it,
+                    // then a wash of its own ink (the toolbar's icon buttons).
+                    states: {
+                        hover: { background: 'color-mix(in oklch, var(--btn-accent) 8%, transparent)', boxShadow: 'none' },
+                    },
                 },
             },
         },
