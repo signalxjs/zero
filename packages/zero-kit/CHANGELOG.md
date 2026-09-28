@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-09-28
+
 ### Fixed — the lynx target ships logical sizing as width/height (signalxjs/lynx#1250)
 
 - Lynx ignores `block-size`, `inline-size` and their `min-`/`max-`
