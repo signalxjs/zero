@@ -5375,6 +5375,30 @@ const treeRowSelectors: NonNullable<PartStyles['selectors']> = {
 };
 
 /**
+ * The tree rows' lynx states (signalxjs/lynx#1256). The web's press wash is
+ * `[data-pressed]:not([data-disabled]):not([data-selected])`; lynx has no
+ * absence classes, so the wash is the plain `pressed` state and a selected
+ * row restores its accent fill below. The web's descendant rule that swaps
+ * the check box's pair on a selected row (`[data-selected] &` on the box)
+ * becomes the ROW's own custom properties: they inherit to the box inside
+ * it. The focus ring is inset (rows sit flush) and drawn as a box-shadow,
+ * which follows the row's radius where lynx's `outline` does not.
+ */
+const lynxTreeRowStates: Record<string, CssProps> = {
+    pressed: { background: 'var(--color-base-300)' },
+    selected: {
+        '--tree-check': 'var(--tree-on-accent)',
+        '--tree-on-check': 'var(--tree-accent)',
+    },
+    ...lynxFocus({ inset: true }),
+};
+
+/** A held selected row keeps its accent fill (the web's `:not([data-selected])`). */
+const lynxTreeRowSelectors: Record<string, CssProps> = {
+    '&[data-selected][data-pressed]': { background: 'var(--tree-accent)' },
+};
+
+/**
  * `tickGlyphFallback` for the node check box, whose tick is its `::after`:
  * the geometry drops and the same pseudo carries the glyph, in the medium's
  * own ink (the #233 divergence, restated).
@@ -5524,12 +5548,37 @@ export const treeView: RecipeInput = {
             xl: { root: { base: { '--tree-text': 'var(--text-lg)' } } },
         },
     },
-    // The indent, restated physically: logical spellings resolve on iOS but
-    // not on Android (measured, signalxjs/lynx#1084), so the emitter refuses
-    // them. Physical is the lynx target's norm — no RTL flow there.
+    // lynx (signalxjs/lynx#1256, zero#478). No hover on a touch platform, no
+    // `:not()`, no pseudo-elements, no descendant selectors: each web rule
+    // those carry is restated on the part the runtime stamps. The skin's
+    // `:dir(rtl)` mirror and the `@media` stops have no lynx form (no RTL
+    // flow, no conditions) and stay dropped.
     targets: {
         lynx: {
             parts: {
+                item: { states: lynxTreeRowStates, selectors: lynxTreeRowSelectors },
+                'branch-trigger': { states: lynxTreeRowStates, selectors: lynxTreeRowSelectors },
+                // `inline-block` is not a lynx display value. The glyph is a
+                // `<text>` part: a 1em box centred on it, so the quarter turn
+                // pivots on the chevron instead of swinging it sideways.
+                'branch-indicator': { base: { display: 'flex', width: '1em', textAlign: 'center' } },
+                // The mark is a `<text>` child lynx-zero renders (`✓` checked,
+                // `−` indeterminate) in place of the web's clip-path `::after`
+                // tick — clip-path and pseudo-elements are both dropped on
+                // lynx. The glyph is the forced-colors fallback's shape
+                // (`nodeTickFallback`), inked with the box's `-on` pair and
+                // sized by inheritance from the row.
+                'node-checkbox': {
+                    base: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--tree-on-check)',
+                    },
+                },
+                // The indent, restated physically: logical spellings resolve
+                // on iOS but not on Android (measured, signalxjs/lynx#1084),
+                // so the emitter refuses them.
                 'branch-content': { base: { paddingLeft: 'var(--space-lg)' } },
             },
         },
