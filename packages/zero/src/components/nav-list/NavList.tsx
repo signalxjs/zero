@@ -188,7 +188,7 @@ const NavListLink = component<NavListLinkProps>(({ props, slots }) => {
         ...(props.href !== undefined ? { href: props.href } : {}),
         // Likewise only when given, so an asChild element's own handler
         // survives when the Link has none.
-        ...(props.onClick ? { onClick: (e: MouseEvent) => props.onClick?.(e) } : {}),
+        ...(props.onClick ? { onClick: props.onClick } : {}),
     });
     return () => {
         const b = bag();
@@ -203,7 +203,7 @@ const NavListLink = component<NavListLinkProps>(({ props, slots }) => {
             );
         }
         return (
-            <a href={props.href} class={props.class} {...b}>
+            <a class={props.class} {...b}>
                 {slots.default?.(b)}
             </a>
         );
