@@ -101,6 +101,13 @@ jobs:
       - name: Playground typecheck
         run: pnpm --filter zero-playground typecheck
 
+      # Zero Mail (#439): a full app on zero alone. Its typecheck first runs
+      # the raw-markup guard (no intrinsic elements, classes or styles under
+      # src/), and its production build proves the kit and the custom design
+      # system it consumes resolve through their emitted dist/.
+      - name: Zero Mail typecheck + build
+        run: pnpm --filter zero-mail typecheck && pnpm --filter zero-mail build
+
       # The consumer-side capstone (#326): three isolated programs compiling
       # against the EMITTED dist/ artifacts through package exports — which
       # is why this must run after Build, and why it lives in this job

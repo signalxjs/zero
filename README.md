@@ -60,6 +60,10 @@ pnpm create @sigx/zero-ds zero-acme --brief riso
 programs compiling against the *emitted* packages (`/register` narrowing,
 heroui's `./components`, carbon's renamed props); `pnpm build`, then
 `pnpm --filter zero-typed-app typecheck`.
+`examples/mail` is **Zero Mail**, a full mail client on mock data built only
+from zero components (no raw elements, no app CSS) on its own design system.
+Run `pnpm build`, then `pnpm --filter zero-mail dev`. The holes it found are
+tracked in #440.
 
 ## Why zero is different
 
