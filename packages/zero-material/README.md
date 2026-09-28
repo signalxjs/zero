@@ -56,6 +56,30 @@ import { Button, Toggle, ToggleGroup, Join } from '@sigx/zero-material/component
 M3 ships icon buttons and FABs as separate components; here they are
 configurations of one Button, so their grade is `reshaped`.
 
+## M3 text fields (#416)
+
+Input, Textarea, NumberInput, Select and Combobox are M3's text field: filled
+by default, outlined with `variant="outlined"`.
+
+```tsx
+<Field.Root>
+    <Field.Label>Country</Field.Label>
+    <Select.Root variant="outlined">…</Select.Root>
+</Field.Root>
+```
+
+| M3 | How it lands |
+|---|---|
+| Filled field: surface-container-highest, top corners extra-small, a 1dp active indicator that turns 2dp and primary on focus | the box (`control`, `textarea`, `trigger`) reads `--tf-*` custom properties that the variant sets on the root. The indicator is an inset shadow, so nothing reflows |
+| Outlined field: a 1dp outline, 2dp and primary on focus, extra-small corners | the same properties. The focused outline is an inset ring added to the border |
+| The floating label: resting over the input while the field is empty and unfocused, floating to the top edge (filled) or onto the outline (outlined) otherwise | `Input.Label` and friends, or a `Field.Label` over any text field. It rests on `data-placeholder`, which the runtime stamps on an empty field's root and control and on the select trigger (#416), and floats on `:focus-within`. It moves by `transform`, on M3's short3 duration |
+| The notch in the outline behind the floated label | the label's background is `--tf-surface`, a theme token that defaults to `surface`. A container sets it to its own fill (#468) |
+| The placeholder shows only once the label has floated | while a visible label rests, `::placeholder` and an empty select's value are transparent |
+| Hover, error, disabled | the 8% on-surface state layer in a filled field's fill, a darker outline, the error role on the indicator, label and trailing icon, and M3's 38% / 4% disabled colours |
+| Leading and trailing icons, prefix and suffix, trailing icon buttons | `adornment` in the 24dp slot 12dp from the edge. The resting label moves past a leading icon; affix text sits on the input's text line (#467). The clear and visibility triggers and NumberInput's steppers are 40dp icon buttons in the trailing slot |
+| Supporting and error text | `Field.Description` and `Field.Error` in body-small, 16dp in under a text field |
+| Density | the size axis sets the height (40 / 48 / 56 / 64 / 72dp, `md` = M3's 56), and the padding and label positions follow it |
+
 ## What the recipes prove
 
 | Material | How it lands |

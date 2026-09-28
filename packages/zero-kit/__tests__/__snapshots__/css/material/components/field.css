@@ -9,6 +9,74 @@
         gap: var(--space-2xs);
     }
 
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) {
+        position: relative;
+        --tf-height: 3.5rem;
+        --tf-accent: var(--color-primary);
+        --tf-outline-color: var(--color-outline);
+        --tf-indicator-color: var(--color-surface-variant-content);
+        --tf-ring: 0px;
+        --tf-label-start: var(--tf-label-start-base);
+        --tf-fill: var(--color-surface-container-highest);
+        --tf-hover-fill: color-mix(in oklch, var(--color-surface-container-highest), var(--color-base-content) 8%);
+        --tf-disabled-fill: color-mix(in oklch, var(--color-base-content) 4%, transparent);
+        --tf-radius: var(--radius-extra-small) var(--radius-extra-small) 0 0;
+        --tf-outline-width: 0px;
+        --tf-indicator: 1px;
+        --tf-indicator-focus: 2px;
+        --tf-ring-focus: 0px;
+        --tf-label-start-base: 1rem;
+        --tf-label-start-floated: var(--tf-label-start);
+        --tf-label-pad: 0px;
+        --tf-float-y: calc((var(--tf-height) - 2.5rem) / 2);
+        --tf-notch: transparent;
+        --tf-pad-top: calc(var(--tf-height) - 2rem);
+        --tf-pad-bottom: 0.5rem;
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])[data-variant="outlined"]) {
+        --tf-fill: transparent;
+        --tf-hover-fill: transparent;
+        --tf-disabled-fill: transparent;
+        --tf-radius: var(--radius-extra-small);
+        --tf-outline-width: 1px;
+        --tf-indicator: 0px;
+        --tf-indicator-focus: 0px;
+        --tf-ring-focus: 1px;
+        --tf-label-start-base: 0.75rem;
+        --tf-label-start-floated: 0.75rem;
+        --tf-label-pad: 0.25rem;
+        --tf-float-y: -0.5625rem;
+        --tf-notch: var(--tf-surface);
+        --tf-pad-top: calc((var(--tf-height) - 1.5rem) / 2);
+        --tf-pad-bottom: calc((var(--tf-height) - 1.5rem) / 2);
+        margin-block-start: var(--space-xs);
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])[data-size="xs"]) {
+        --tf-height: 2.5rem;
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])[data-size="sm"]) {
+        --tf-height: 3rem;
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])[data-size="lg"]) {
+        --tf-height: 4rem;
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])[data-size="xl"]) {
+        --tf-height: 4.5rem;
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"]) [data-part="adornment"][data-placement="start"]) {
+        --tf-label-start: calc(var(--tf-label-start-base) + 2.25rem);
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])[data-invalid]) {
+        --tf-accent: var(--color-error);
+    }
+
     [data-scope="field"][data-part="label"] {
         font-family: var(--font-sans);
         font-size: var(--text-label-large);
@@ -26,16 +94,81 @@
         color: var(--color-error);
     }
 
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="field"][data-part="label"] {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-start: var(--tf-label-start);
+        z-index: 1;
+        max-inline-size: calc(100% - var(--tf-label-start) * 2);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        pointer-events: none;
+        font-family: var(--font-sans);
+        font-size: var(--text-body-large);
+        line-height: var(--leading-body-large);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-body-large);
+        color: var(--color-surface-variant-content);
+        padding-inline: var(--tf-label-pad);
+        background: transparent;
+        transform-origin: top left;
+        transform: translateY(calc(var(--tf-height) / 2 - 0.75rem));
+        transition: transform var(--duration-short3) var(--ease-standard), inset-inline-start var(--duration-short3) var(--ease-standard), color var(--duration-short3) var(--ease-standard), background-color var(--duration-short3) var(--ease-standard);
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])):where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) > [data-scope="field"][data-part="label"] {
+        transform-origin: top right;
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])):is(:focus-within, :not(:has([data-placeholder]))) > [data-scope="field"][data-part="label"] {
+        transform: translateY(var(--tf-float-y)) scale(0.75);
+        inset-inline-start: var(--tf-label-start-floated);
+        background: var(--tf-notch);
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])):focus-within > [data-scope="field"][data-part="label"] {
+        color: var(--tf-accent);
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="field"][data-part="label"][data-invalid] {
+        color: var(--color-error);
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="field"][data-part="label"][data-disabled] {
+        color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="field"][data-part="label"][data-required]::after {
+        color: inherit;
+    }
+
     [data-scope="field"][data-part="description"] {
         margin: 0;
-        font-size: var(--text-xs);
+        font-family: var(--font-sans);
+        font-size: var(--text-body-small);
+        line-height: var(--leading-body-small);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-body-small);
         color: var(--color-surface-variant-content);
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="field"][data-part="description"] {
+        padding-inline: var(--space-md);
     }
 
     [data-scope="field"][data-part="error"] {
         margin: 0;
-        font-size: var(--text-xs);
+        font-family: var(--font-sans);
+        font-size: var(--text-body-small);
+        line-height: var(--leading-body-small);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-body-small);
         color: var(--color-error);
+    }
+
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="field"][data-part="error"] {
+        padding-inline: var(--space-md);
     }
 
     [data-scope="field"][data-part="root"][data-color="primary"] {
@@ -107,6 +240,12 @@
 
         [data-scope="field"][data-part="error"] {
             font-size: var(--text-md);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="field"][data-part="label"] {
+            transition: none;
         }
     }
 }

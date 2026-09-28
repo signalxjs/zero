@@ -339,7 +339,7 @@ function theme(
         colorScheme,
         pair,
         colors: { ...colors, ...soft },
-        custom: { ...stateLayers },
+        custom: { ...stateLayers, 'tf-surface': 'var(--color-surface)' },
     };
 }
 
@@ -395,6 +395,15 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
             axes: { shape: ['round', 'square'] },
         },
         avatar: { axes: { shape: ['circle', 'square', 'rounded'] } },
+        // M3's text fields, filled or outlined (#416).
+        input: { variants: ['filled', 'outlined'] },
+        textarea: { variants: ['filled', 'outlined'] },
+        'number-input': { variants: ['filled', 'outlined'] },
+        select: { variants: ['filled', 'outlined'] },
+        combobox: { variants: ['filled', 'outlined'] },
+        // A field reads its text field's variant to float its label there,
+        // and has none of its own.
+        field: { variants: [] },
         table: { modifiers: ['zebra', 'hover'] },
         // A countdown set inside a sentence (#57).
         countdown: { modifiers: ['inline'] },
@@ -405,6 +414,9 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         'state-pressed': { description: 'M3 state layer: pressed', syntax: '<number>' },
         'state-dragged': { description: 'M3 state layer: dragged', syntax: '<number>' },
         'state-disabled-container': { description: 'M3 disabled container opacity', syntax: '<number>' },
+        'tf-surface': {
+            description: 'The surface behind an outlined text field — its floated label notches the outline in this colour. A container sets it to its own fill.',
+        },
     },
     system,
     systemDark,

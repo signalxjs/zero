@@ -339,6 +339,268 @@ const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => (
     ),
 });
 
+// ── M3 text fields (#416) ─────────────────────────────────────────────────
+/**
+ * The M3 text field, filled and outlined, shared by every scope that is one:
+ * input, textarea, number-input, select and combobox. Geometry and paint are
+ * `--tf-*` custom properties set on the hosting root — the scope's own root,
+ * or a `Field.Root` that holds one — so a variant, a density step, a leading
+ * icon or an error is one rebinding, and the container, the active
+ * indicator, the outline and the floating label all read the same values.
+ *
+ * The floating label is the stress test. It rests inside the field over the
+ * input while the field is empty and unfocused, and floats to the top edge
+ * (filled) or onto the outline (outlined) otherwise. "Empty" is
+ * `data-placeholder`, which the runtime stamps on the text controls' roots
+ * and on the select trigger (#416).
+ */
+
+/** The text-field scopes, by the root a `Field.Root` would hold. */
+const TEXT_FIELD_ROOTS = ['input', 'textarea', 'number-input', 'select', 'combobox']
+    .map((s) => `[data-scope="${s}"][data-part="root"]`)
+    .join(', ');
+
+/** A `Field.Root` holding a text field, whose label therefore floats. */
+const FIELD_HOST = `[data-scope="field"][data-part="root"]:has(> :is(${TEXT_FIELD_ROOTS}))`;
+
+/** A host with a visible label of its own (`Input.Label` & co) or a field's. */
+const LABELLED = ':has(> [data-part="label"]:not([data-visually-hidden]))';
+
+/**
+ * The filled field: surface-container-highest under a 1dp active indicator,
+ * top corners extra-small, the floated label 8dp from the top edge at M3's
+ * 56dp (scaled with the density), and the input pushed down to make room.
+ */
+const TF_FILLED: CssProps = {
+    '--tf-fill': 'var(--color-surface-container-highest)',
+    '--tf-hover-fill': 'color-mix(in oklch, var(--color-surface-container-highest), var(--color-base-content) 8%)',
+    '--tf-disabled-fill': 'color-mix(in oklch, var(--color-base-content) 4%, transparent)',
+    '--tf-radius': 'var(--radius-extra-small) var(--radius-extra-small) 0 0',
+    '--tf-outline-width': '0px',
+    '--tf-indicator': '1px',
+    '--tf-indicator-focus': '2px',
+    '--tf-ring-focus': '0px',
+    '--tf-label-start-base': dp(16),
+    '--tf-label-start-floated': 'var(--tf-label-start)',
+    '--tf-label-pad': '0px',
+    '--tf-float-y': `calc((var(--tf-height) - ${dp(40)}) / 2)`,
+    '--tf-notch': 'transparent',
+    '--tf-pad-top': `calc(var(--tf-height) - ${dp(32)})`,
+    '--tf-pad-bottom': dp(8),
+};
+
+/**
+ * The outlined field: a 1dp outline (2dp focused, drawn as an inset ring so
+ * nothing reflows), extra-small corners all round, and the floated label
+ * notched into the top edge — its background is the surface behind the field
+ * (`--tf-surface`, the page's `surface` unless a container says otherwise),
+ * since CSS cannot cut a gap in a border it cannot measure (#468).
+ */
+const TF_OUTLINED: CssProps = {
+    '--tf-fill': 'transparent',
+    '--tf-hover-fill': 'transparent',
+    '--tf-disabled-fill': 'transparent',
+    '--tf-radius': 'var(--radius-extra-small)',
+    '--tf-outline-width': '1px',
+    '--tf-indicator': '0px',
+    '--tf-indicator-focus': '0px',
+    '--tf-ring-focus': '1px',
+    '--tf-label-start-base': dp(12),
+    '--tf-label-start-floated': dp(12),
+    '--tf-label-pad': dp(4),
+    '--tf-float-y': dp(-9),
+    '--tf-notch': 'var(--tf-surface)',
+    '--tf-pad-top': `calc((var(--tf-height) - ${dp(24)}) / 2)`,
+    '--tf-pad-bottom': `calc((var(--tf-height) - ${dp(24)}) / 2)`,
+};
+
+/** The un-attributed host: M3's 56dp filled field, focused in primary. */
+const TF_HOST: CssProps = {
+    '--tf-height': dp(56),
+    '--tf-accent': 'var(--color-primary)',
+    '--tf-outline-color': 'var(--color-outline)',
+    '--tf-indicator-color': 'var(--color-surface-variant-content)',
+    '--tf-ring': '0px',
+    '--tf-label-start': 'var(--tf-label-start-base)',
+    ...TF_FILLED,
+};
+
+/** M3's densities (56 → 40dp); `lg` and `xl` step past M3 for the size axis. */
+const TF_HEIGHTS: Record<string, number> = { xs: 40, sm: 48, lg: 64, xl: 72 };
+
+/** The size axis on a text-field root: the height, the rest follows. */
+const tfSizes = (part: string): Record<string, Record<string, PartStyles>> => ({
+    ...Object.fromEntries(Object.entries(TF_HEIGHTS).map(([size, h]) => [size, { [part]: { base: { '--tf-height': dp(h) } } }])),
+    md: {},
+});
+
+/** The colour axis: the role is the focused indicator, outline and label. */
+const tfColors = (part: string): Record<string, Record<string, PartStyles>> =>
+    Object.fromEntries(ROLES.map((c) => [c, { [part]: { base: { '--tf-accent': `var(--color-${c})` } } }]));
+
+/**
+ * A text-field root: the positioning context for its floating label, the
+ * variant's custom properties, and the two things only the root can see —
+ * a visible label (the input makes room for it when floated) and a leading
+ * icon (the resting label moves past it).
+ */
+const tfRoot = (extra: CssProps = {}): PartStyles => ({
+    base: {
+        position: 'relative',
+        display: 'inline-flex',
+        flexDirection: 'column',
+        gap: 'var(--space-2xs)',
+        ...TF_HOST,
+        ...extra,
+    },
+    selectors: {
+        [`&${LABELLED}, ${FIELD_HOST}${LABELLED} > &`]: {
+            '--tf-in-top': 'var(--tf-pad-top)',
+            '--tf-in-bottom': 'var(--tf-pad-bottom)',
+        },
+        '&:has([data-part="adornment"][data-placement="start"])': {
+            '--tf-label-start': `calc(var(--tf-label-start-base) + ${dp(36)})`,
+        },
+        // Inside a field, the field owns the outlined label's headroom.
+        [`${FIELD_HOST} > &`]: { marginBlockStart: '0' },
+    },
+});
+
+/** The variant axis on a text-field root. */
+const tfVariants = (part: string): Record<string, Record<string, PartStyles>> => ({
+    filled: {},
+    // The floated label rides half its height above an outlined box, so the
+    // field owns that space rather than laying it over whatever sits above.
+    outlined: { [part]: { base: { ...TF_OUTLINED, marginBlockStart: 'var(--space-xs)' } } },
+});
+
+/**
+ * The container: fill, corners, outline, and the active indicator as an
+ * inset shadow — 1dp at rest, 2dp and the role colour while focused, error
+ * while invalid, 38% on-surface while disabled. Hover lays M3's 8% on-surface
+ * state layer into a filled field's fill and darkens an outline. `:focus-
+ * within` because M3 shows focus on every focus, not only keyboard focus.
+ */
+const tfBox = (): PartStyles => ({
+    base: {
+        boxSizing: 'border-box',
+        minBlockSize: 'var(--tf-height)',
+        background: 'var(--tf-fill)',
+        color: 'var(--color-base-content)',
+        border: 'var(--tf-outline-width) solid var(--tf-outline-color)',
+        borderRadius: 'var(--tf-radius)',
+        boxShadow:
+            'inset 0 calc(-1 * var(--tf-indicator)) 0 var(--tf-indicator-color), '
+            + 'inset 0 0 0 var(--tf-ring) var(--tf-outline-color)',
+        cursor: 'text',
+        transition: motion('background-color, border-color, box-shadow'),
+    },
+    selectors: {
+        '&:hover:not([data-disabled])': {
+            background: 'var(--tf-hover-fill)',
+            '--tf-indicator-color': 'var(--color-base-content)',
+            '--tf-outline-color': 'var(--color-base-content)',
+        },
+        '&:focus-within:not([data-disabled]), &[data-state="open"]': {
+            '--tf-indicator': 'var(--tf-indicator-focus)',
+            '--tf-ring': 'var(--tf-ring-focus)',
+            '--tf-indicator-color': 'var(--tf-accent)',
+            '--tf-outline-color': 'var(--tf-accent)',
+        },
+        '&[data-invalid]': {
+            '--tf-indicator-color': 'var(--color-error)',
+            '--tf-outline-color': 'var(--color-error)',
+        },
+        '&[data-disabled]': {
+            background: 'var(--tf-disabled-fill)',
+            color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+            cursor: 'not-allowed',
+            '--tf-indicator-color': 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+            '--tf-outline-color': 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+        },
+    },
+    at: {
+        'reduced-motion': { base: { transition: 'none' } },
+        // The fill is background paint, which forced colours revalue: keep
+        // the field's bounds with a system-coloured border.
+        'forced-colors': { base: { border: '1px solid CanvasText' } },
+    },
+});
+
+/** The native field inside the box: M3's body-large, 16dp in, room for the label. */
+const tfText = (): CssProps => ({
+    boxSizing: 'border-box',
+    minInlineSize: '0',
+    appearance: 'none',
+    border: 'none',
+    outline: 'none',
+    background: 'transparent',
+    color: 'inherit',
+    ...type('body-large'),
+    paddingInline: 'var(--space-md)',
+    paddingBlockStart: `var(--tf-in-top, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+    paddingBlockEnd: `var(--tf-in-bottom, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+});
+
+/**
+ * M3 shows a placeholder only once the label has floated out of its way:
+ * while a visible label rests in the field, the placeholder is transparent.
+ */
+const tfRestingPlaceholder = (host: string, target: string): Record<string, CssProps> => ({
+    [`${host}${LABELLED}:not(:focus-within) ${target}, ${FIELD_HOST}${LABELLED}:not(:focus-within) ${target}`]: {
+        color: 'transparent',
+    },
+});
+
+/**
+ * The floating label's declarations, for a host selector and the condition
+ * that floats it. Returned as selector blocks, so a `Field.Label` — which
+ * only floats while its field holds a text field — can take the same rules
+ * under `FIELD_HOST`.
+ */
+const tfLabelRules = (host: string, floated: string): Record<string, CssProps> => ({
+    [`${host} > &`]: {
+        position: 'absolute',
+        insetBlockStart: '0',
+        insetInlineStart: 'var(--tf-label-start)',
+        zIndex: '1',
+        maxInlineSize: 'calc(100% - var(--tf-label-start) * 2)',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        pointerEvents: 'none',
+        ...type('body-large'),
+        color: 'var(--color-surface-variant-content)',
+        paddingInline: 'var(--tf-label-pad)',
+        background: 'transparent',
+        transformOrigin: 'top left',
+        transform: `translateY(calc(var(--tf-height) / 2 - ${dp(12)}))`,
+        transition:
+            'transform var(--duration-short3) var(--ease-standard), '
+            + 'inset-inline-start var(--duration-short3) var(--ease-standard), '
+            + 'color var(--duration-short3) var(--ease-standard), '
+            + 'background-color var(--duration-short3) var(--ease-standard)',
+    },
+    [`${host}${rtl} > &`]: { transformOrigin: 'top right' },
+    [`${host}${floated} > &`]: {
+        transform: 'translateY(var(--tf-float-y)) scale(0.75)',
+        insetInlineStart: 'var(--tf-label-start-floated)',
+        background: 'var(--tf-notch)',
+    },
+    [`${host}:focus-within > &`]: { color: 'var(--tf-accent)' },
+    [`${host} > &[data-invalid]`]: { color: 'var(--color-error)' },
+    [`${host} > &[data-disabled]`]: { color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)' },
+});
+
+/** A text-field scope's own label (`Input.Label` & co). */
+const tfLabel = (scope: string): PartStyles => ({
+    selectors: {
+        ...tfLabelRules(`[data-scope="${scope}"][data-part="root"]`, ':is(:focus-within, :not([data-placeholder]))'),
+        '&[data-required]::after': { content: '" *"' },
+    },
+    at: { 'reduced-motion': { selectors: { [`[data-scope="${scope}"][data-part="root"] > &`]: { transition: 'none' } } } },
+});
+
 /**
  * M3 Expressive's common-button size ramp (#415), per zero size: container
  * height, inline padding, icon size, icon–label gap, label type role, the
@@ -1431,40 +1693,54 @@ export const select: RecipeInput = {
         '--select-accent': 'var(--color-primary)',
     },
     parts: {
-        root: { base: { display: 'inline-flex', position: 'relative' } },
-        // The ripple clip inherits the field's asymmetric radius.
-        trigger: withPresence(pressable('select', 'var(--select-accent)'), {
+        root: tfRoot(),
+        // M3's exposed dropdown menu is a text field (#416): the trigger is
+        // the filled or outlined box, the value its body-large text, and a
+        // `Field.Label` above it floats exactly as it does over an input.
+        // The press ripples, as MDC's filled select did; the ripple's state
+        // layer is the hover, so the box's own hover tint stands down.
+        trigger: withPresence(withPresence(tfBox(), pressable('select', 'var(--color-base-content)')), {
             base: {
+                '--tf-hover-fill': 'var(--tf-fill)',
                 appearance: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 'var(--space-xs)',
-                minWidth: '12rem',
-                padding: 'var(--space-sm) var(--space-md)',
-                // Material's filled field: rounded top, flat bottom, underline.
-                background: 'var(--color-surface-container)',
-                color: 'var(--color-surface-container-content)',
-                border: 'none',
-                borderBottom: '2px solid var(--color-outline)',
-                borderRadius: 'var(--radius-extra-small) var(--radius-extra-small) 0 0',
-                fontSize: 'var(--text-md)',
+                gap: 'var(--space-2xs)',
+                minInlineSize: '12rem',
+                paddingInlineStart: 'var(--space-md)',
+                paddingInlineEnd: 'var(--space-sm)',
+                paddingBlockStart: `var(--tf-in-top, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+                paddingBlockEnd: `var(--tf-in-bottom, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+                ...type('body-large'),
                 cursor: 'pointer',
-                transition: motion('border-color'),
             },
             states: {
-                open: { borderBottomColor: 'var(--select-accent)' },
+                open: {},
                 closed: {},
                 // Readonly answers to nothing, so it does not invite a click.
                 readonly: { cursor: 'default' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                // Semantic role state, deliberately NOT the accent.
-                invalid: { borderBottomColor: 'var(--color-error)' },
-                ...focusRing,
+                disabled: {},
+                invalid: {},
+                'focus-visible': { '--tf-indicator-color': 'var(--tf-accent)', '--tf-outline-color': 'var(--tf-accent)' },
             },
         }),
-        value: { base: { flex: '1', textAlign: 'start' } },
+        value: {
+            base: { flex: '1', textAlign: 'start', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+            selectors: {
+                '&[data-placeholder]': { color: 'var(--color-surface-variant-content)' },
+                ...tfRestingPlaceholder('[data-scope="select"][data-part="root"]', '&[data-placeholder]'),
+            },
+        },
+        // M3's trailing dropdown arrow: 24dp on-surface-variant, turned while open.
         indicator: {
-            base: { opacity: '0.7', transition: motion('transform') },
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: dp(24),
+                color: 'var(--color-surface-variant-content)',
+                transition: motion('transform'),
+            },
             states: {
                 open: { transform: 'rotate(180deg)' },
                 closed: {},
@@ -1472,6 +1748,7 @@ export const select: RecipeInput = {
                 // `clearable` flag the runtime stamps while it renders (#387).
                 clearable: { marginInlineStart: 'calc(var(--space-2xl) + var(--space-sm))' },
             },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
         // Clears the selection (#280): an icon button in the filled field's
         // trailing slot, before the dropdown arrow — on-surface ink with the
@@ -1557,19 +1834,15 @@ export const select: RecipeInput = {
     },
     keyframes: rippleKeyframes('select'),
     variants: {
+        // The role is the focused box and the item ripple.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--select-accent': `var(--color-${c})`,
+            '--tf-accent': `var(--color-${c})`,
         } } }])),
-        // The button's ramp rhythm anchored on the field's resting values
-        // (md = the base's padding/fontSize).
-        size: {
-            xs: { trigger: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
-            sm: { trigger: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
-            md: { trigger: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-md)' } } },
-            lg: { trigger: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-lg)' } } },
-            xl: { trigger: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-xl)' } } },
-        },
+        variant: tfVariants('root'),
+        size: tfSizes('root'),
     },
+    defaultVariants: { variant: 'filled' },
 };
 
 // ── Selection controls ────────────────────────────────────────────────────
@@ -2195,14 +2468,49 @@ export const field: RecipeInput = {
     // field is unchanged and a role only arrives through `data-color`.
     tokens: { '--field-accent': 'var(--color-base-content)' },
     parts: {
-        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' } },
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            selectors: {
+                // Holding a text field (#416), the field is the floating
+                // label's positioning context, and takes the child's variant
+                // and density so its label floats where the child's box is.
+                [`&:has(> :is(${TEXT_FIELD_ROOTS}))`]: { position: 'relative', ...TF_HOST },
+                [`&:has(> :is(${TEXT_FIELD_ROOTS})[data-variant="outlined"])`]: {
+                    ...TF_OUTLINED,
+                    marginBlockStart: 'var(--space-xs)',
+                },
+                ...Object.fromEntries(Object.entries(TF_HEIGHTS).map(([size, h]) => [
+                    `&:has(> :is(${TEXT_FIELD_ROOTS})[data-size="${size}"])`, { '--tf-height': dp(h) },
+                ])),
+                [`&:has(> :is(${TEXT_FIELD_ROOTS}) [data-part="adornment"][data-placement="start"])`]: {
+                    '--tf-label-start': `calc(var(--tf-label-start-base) + ${dp(36)})`,
+                },
+                [`&:has(> :is(${TEXT_FIELD_ROOTS})[data-invalid])`]: { '--tf-accent': 'var(--color-error)' },
+            },
+        },
         label: {
             base: { ...label, color: 'var(--field-accent)' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
-            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
+            selectors: {
+                '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' },
+                // Over a text field, the M3 floating label: resting while the
+                // field holds no value (`data-placeholder` anywhere inside —
+                // a text root, or the select trigger) and is unfocused.
+                ...tfLabelRules(FIELD_HOST, ':is(:focus-within, :not(:has([data-placeholder])))'),
+                [`${FIELD_HOST} > &[data-required]::after`]: { color: 'inherit' },
+            },
+            at: { 'reduced-motion': { selectors: { [`${FIELD_HOST} > &`]: { transition: 'none' } } } },
         },
-        description: { base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-surface-variant-content)' } },
-        error: { base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-error)' } },
+        // M3's supporting text and error text: body-small, 16dp in so it
+        // lines up with the field's text, error in the error role.
+        description: {
+            base: { margin: '0', ...type('body-small'), color: 'var(--color-surface-variant-content)' },
+            selectors: { [`${FIELD_HOST} > &`]: { paddingInline: 'var(--space-md)' } },
+        },
+        error: {
+            base: { margin: '0', ...type('body-small'), color: 'var(--color-error)' },
+            selectors: { [`${FIELD_HOST} > &`]: { paddingInline: 'var(--space-md)' } },
+        },
     },
     variants: {
         // Colour accents the LABEL ink only — Material's role tokens are inks
@@ -3046,42 +3354,28 @@ export const combobox: RecipeInput = {
         '--combobox-accent': 'var(--color-primary)',
     },
     parts: {
-        root: { base: { display: 'inline-flex', position: 'relative' } },
-        // Material's filled text field: rounded top, flat bottom, underline.
-        control: {
+        root: tfRoot(),
+        // M3's text field (#416): the control is the filled or outlined box,
+        // its tags and the input wrapping inside it; a `Field.Label` above it
+        // floats as it does over an input.
+        control: withPresence(tfBox(), {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
                 flexWrap: 'wrap',
-                minWidth: '12rem',
-                background: 'var(--color-surface-container)',
-                color: 'var(--color-surface-container-content)',
-                borderBottom: '2px solid var(--color-outline)',
-                borderRadius: 'var(--radius-extra-small) var(--radius-extra-small) 0 0',
-                transition: motion('border-color'),
+                minInlineSize: '12rem',
+                paddingInlineEnd: 'var(--space-2xs)',
             },
             states: {
-                open: { borderBottomColor: 'var(--combobox-accent)' },
+                open: {},
                 closed: {},
-                // Semantic role state, deliberately NOT the accent.
-                invalid: { borderBottomColor: 'var(--color-error)' },
-                disabled: { opacity: 'var(--disabled-opacity)' },
-                ...focusRing,
+                invalid: {},
+                disabled: {},
+                'focus-visible': { '--tf-indicator-color': 'var(--tf-accent)', '--tf-outline-color': 'var(--tf-accent)' },
             },
-        },
+        }),
         input: {
-            base: {
-                flex: '1',
-                minWidth: '0',
-                appearance: 'none',
-                border: 'none',
-                outline: 'none',
-                background: 'transparent',
-                color: 'inherit',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-md)',
-                padding: 'var(--space-sm) var(--space-md)',
-            },
+            base: { ...tfText(), flex: '1' },
             states: {
                 disabled: { cursor: 'not-allowed' },
                 readonly: {},
@@ -3092,6 +3386,7 @@ export const combobox: RecipeInput = {
             },
             selectors: {
                 '&::placeholder': { color: 'var(--color-surface-variant-content)' },
+                ...tfRestingPlaceholder('[data-scope="combobox"][data-part="root"]', '&::placeholder'),
             },
         },
         // A chosen value under `multiple` (#39): a chip in the control, before
@@ -3239,20 +3534,16 @@ export const combobox: RecipeInput = {
         },
     },
     variants: {
+        // The role is the focused box and the item ripple.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--combobox-accent': `var(--color-${c})`,
+            '--tf-accent': `var(--color-${c})`,
         } } }])),
-        // The button's ramp rhythm anchored on the field's resting values
-        // (md = the base's padding/fontSize).
-        size: {
-            xs: { input: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
-            sm: { input: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
-            md: { input: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-md)' } } },
-            lg: { input: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-lg)' } } },
-            xl: { input: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-xl)' } } },
-        },
+        variant: tfVariants('root'),
+        size: tfSizes('root'),
     },
-    // The visible ring lives on `control`; input and trigger delegate.
+    defaultVariants: { variant: 'filled' },
+    // The visible focus lives on `control`; input and trigger delegate.
     skipStates: {
         input: ['focus-visible'],
         trigger: ['focus-visible'],
@@ -3525,21 +3816,29 @@ export const toggleGroup: RecipeInput = {
  * MD3 press feedback (state layer + ripple) clipped to its own pill; the
  * margin keeps the pill off the field's hairline.
  */
-const stepper: PartStyles = withPresence(pressable('number-input'), {
+/**
+ * The steppers as M3's trailing icon buttons (#416): 40dp circles in
+ * on-surface-variant, both in the trailing slot so the label and the value
+ * keep the leading edge a text field reads from.
+ */
+const stepper: PartStyles = withPresence(pressable('number-input', 'var(--color-surface-variant-content)'), {
     base: {
         appearance: 'none',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        alignSelf: 'stretch',
+        alignSelf: 'center',
+        flex: 'none',
+        blockSize: dp(40),
+        minInlineSize: dp(40),
         border: 'none',
         background: 'transparent',
-        color: 'var(--color-primary)',
+        color: 'var(--color-surface-variant-content)',
         borderRadius: '624rem',
-        margin: 'var(--space-2xs)',
-        padding: '0 var(--space-md)',
-        ...label,
-        fontSize: 'var(--text-md)',
+        padding: '0',
+        fontFamily: 'var(--font-sans)',
+        fontSize: dp(20),
+        lineHeight: 'var(--leading-none)',
         cursor: 'pointer',
         userSelect: 'none',
     },
@@ -3549,60 +3848,36 @@ const stepper: PartStyles = withPresence(pressable('number-input'), {
 });
 
 /**
- * Material's outlined text field over the number-input anatomy: a hairline
- * box, the focus indicator and error tint drawing on the chrome (the
- * Combobox control/input split), steppers flanking the centered input.
+ * M3's text field over the number-input anatomy (#416): the box, the
+ * floating label and the indicator shared with every text field, the value
+ * at the leading edge and the steppers in the trailing icon slot.
  */
 export const numberInput: RecipeInput = {
     component: 'number-input',
-    tokens: { '--number-input-accent': 'var(--color-secondary)' },
     parts: {
-        root: {
-            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+        root: withPresence(tfRoot(), {
             states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
-        },
-        label: {
-            base: { ...label, color: 'var(--color-base-content)' },
-            states: {
-                disabled: { opacity: 'var(--disabled-opacity)' },
-                invalid: { color: 'var(--color-error)' },
-                required: {},
-            },
-            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
-        },
-        // The field chrome: the ring and the invalid tint draw on the box;
-        // input and steppers sit inside the outline.
-        control: {
+        }),
+        label: withPresence(tfLabel('number-input'), {
+            states: { disabled: {}, invalid: {}, required: {} },
+        }),
+        // M3's text field (#416) with the steppers inside the box: the box
+        // takes the indicator or outline, the input its body-large text.
+        control: withPresence(tfBox(), {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-medium)',
-                transition: motion('border-color'),
+                paddingInline: 'var(--space-2xs)',
             },
             states: {
-                invalid: { borderColor: 'var(--color-error)' },
-                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: {},
+                disabled: {},
                 readonly: {},
-                'focus-visible': { ...focusRing['focus-visible'], outline: '3px solid var(--number-input-accent)' },
+                'focus-visible': { '--tf-indicator-color': 'var(--tf-accent)', '--tf-outline-color': 'var(--tf-accent)' },
             },
-        },
+        }),
         input: {
-            base: {
-                width: '5rem',
-                minWidth: '0',
-                appearance: 'none',
-                border: 'none',
-                outline: 'none',
-                background: 'transparent',
-                color: 'inherit',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-md)',
-                textAlign: 'center',
-                padding: 'var(--space-sm) var(--space-xs)',
-            },
+            base: { ...tfText(), inlineSize: '5rem', flex: '1' },
             states: {
                 disabled: { cursor: 'not-allowed' },
                 readonly: {},
@@ -3611,33 +3886,21 @@ export const numberInput: RecipeInput = {
             },
             selectors: {
                 '&::placeholder': { color: 'var(--color-surface-variant-content)' },
+                ...tfRestingPlaceholder('[data-scope="number-input"][data-part="root"]', '&::placeholder'),
             },
         },
-        'increment-trigger': stepper,
-        'decrement-trigger': stepper,
+        'decrement-trigger': withPresence(stepper, { base: { order: '1' } }),
+        'increment-trigger': withPresence(stepper, { base: { order: '2' } }),
     },
-    // The visible ring lives on `control`; the input delegates.
+    // The visible focus lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
     keyframes: rippleKeyframes('number-input'),
     variants: {
-        // The field's own ring carries the role — the chrome is neutral, so
-        // the focus state is the only place a number input can show colour.
-        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--number-input-accent': `var(--color-${c})`,
-        } } }])),
-        // The readout carries the ramp; the steppers follow it so the frame
-        // stays proportional.
-        size: {
-            xs: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-2xs)' } } },
-            sm: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-2xs)' } } },
-            // `md` is the un-attributed render: the base already IS the
-            // middle step, so restating it here would be a second copy free
-            // to drift. An empty entry emits no rule and keeps the base.
-            md: {},
-            lg: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-sm)' } } },
-            xl: { input: { base: { fontSize: 'var(--text-xl)', padding: 'var(--space-lg) var(--space-md)' } } },
-        },
+        color: tfColors('root'),
+        variant: tfVariants('root'),
+        size: tfSizes('root'),
     },
+    defaultVariants: { variant: 'filled' },
 };
 
 // ── Rating group ──────────────────────────────────────────────────────────
@@ -3985,6 +4248,9 @@ const affixInk = 'var(--color-surface-variant-content)';
 const stateLayer = 'color-mix(in oklch, var(--color-base-content) 8%, transparent)';
 const fieldButton: NonNullable<PartStyles['base']> = {
     appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     border: 'none',
     background: 'transparent',
     color: affixInk,
@@ -3992,76 +4258,49 @@ const fieldButton: NonNullable<PartStyles['base']> = {
     alignSelf: 'center',
     flex: 'none',
     order: '1',
-    marginInlineEnd: 'var(--space-xs)',
+    // M3's trailing icon button: a 40dp target whose 24dp icon sits 12dp in.
+    blockSize: dp(40),
+    minInlineSize: dp(40),
+    marginInlineEnd: 'var(--space-2xs)',
     padding: 'var(--space-xs)',
-    fontSize: 'var(--text-md)',
+    fontSize: dp(24),
     lineHeight: 'var(--leading-none)',
     cursor: 'pointer',
     transition: motion('background'),
 };
-const affixSize = (fontSize: string) => ({
-    adornment: { base: { fontSize } },
-    'clear-trigger': { base: { fontSize } },
-    'visibility-trigger': { base: { fontSize } },
-});
 
 /**
- * Material's outlined text field, minus the notched floating label: zero's
- * anatomy puts the label above the box as its own part, and Material's notch
- * is a box-decoration trick that needs the label INSIDE the outline. Styling
- * one from here would mean absolutely positioning `label` over `control` and
- * guessing at its width — so this takes Material's other documented option,
- * the outlined field with a persistent label above it, and keeps the outline,
- * the tracking and the required asterisk that make it read as Material.
+ * M3's text field (#416), filled by default and outlined on `variant`: the
+ * label rests inside over the input and floats on focus or once there is
+ * text, the active indicator (filled) or the outline (outlined) thickens to
+ * 2dp in the role colour, and the icons and affordances sit in the 24dp slots
+ * at either edge.
  */
 export const input: RecipeInput = {
     component: 'input',
-    tokens: { '--input-accent': 'var(--color-secondary)' },
     parts: {
-        root: {
-            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+        root: withPresence(tfRoot(), {
             states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
-        },
-        label: {
-            base: { ...label, color: 'var(--color-base-content)' },
-            states: {
-                disabled: { opacity: 'var(--disabled-opacity)' },
-                invalid: { color: 'var(--color-error)' },
-                required: {},
-            },
-            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
-        },
-        control: {
+        }),
+        label: withPresence(tfLabel('input'), {
+            states: { disabled: {}, invalid: {}, required: {} },
+        }),
+        control: withPresence(tfBox(), {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 'var(--space-2xs)',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-medium)',
-                transition: motion('border-color'),
             },
             states: {
-                invalid: { borderColor: 'var(--color-error)' },
-                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: {},
+                disabled: {},
                 readonly: {},
-                'focus-visible': { ...focusRing['focus-visible'], outline: '3px solid var(--input-accent)' },
+                // The box's own focus treatment (the 2dp indicator) is its
+                // ring; keyboard focus gets the same, as M3 draws it.
+                'focus-visible': { '--tf-indicator-color': 'var(--tf-accent)', '--tf-outline-color': 'var(--tf-accent)' },
             },
-        },
+        }),
         input: {
-            base: {
-                width: '100%',
-                minWidth: '0',
-                appearance: 'none',
-                border: 'none',
-                outline: 'none',
-                background: 'transparent',
-                color: 'inherit',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-md)',
-                padding: 'var(--space-sm) var(--space-md)',
-            },
+            base: { ...tfText(), flex: '1', inlineSize: '100%' },
             states: {
                 disabled: { cursor: 'not-allowed' },
                 readonly: {},
@@ -4070,30 +4309,45 @@ export const input: RecipeInput = {
             },
             selectors: {
                 '&::placeholder': { color: 'var(--color-surface-variant-content)' },
+                ...tfRestingPlaceholder('[data-scope="input"][data-part="root"]', '&::placeholder'),
                 // zero draws its own ClearTrigger and clears on Escape, and Firefox
                 // draws no native clear: hide the engine's cancel button everywhere (#446).
                 '&::-webkit-search-cancel-button': { appearance: 'none', display: 'none' },
                 '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
-        // M3's leading / trailing icon (and prefix / suffix text):
-        // on-surface-variant ink at one edge, ordered logically.
+        // M3's leading / trailing icon (and prefix / suffix text): 24dp in
+        // on-surface-variant, 12dp from the container edge, ordered logically.
         adornment: {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 flex: 'none',
+                minInlineSize: dp(24),
                 color: affixInk,
-                fontSize: 'var(--text-md)',
-                lineHeight: 'var(--leading-none)',
+                // Prefix and suffix text in M3's body-large, on the input's
+                // own text band (a labelled filled field sets it lower); an
+                // svg icon in the 24dp slot, centred in the container. The
+                // anatomy cannot say which one it holds, so the svg decides
+                // (#467).
+                ...type('body-large'),
+                alignSelf: 'stretch',
+                paddingBlockStart: `var(--tf-in-top, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+                paddingBlockEnd: `var(--tf-in-bottom, calc((var(--tf-height) - ${dp(24)}) / 2))`,
             },
             states: { disabled: {} },
             selectors: {
-                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
-                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+                '& > svg': { inlineSize: dp(24), blockSize: dp(24) },
+                '&:has(> svg)': { paddingBlock: '0' },
+                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-sm)' },
+                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-sm)' },
+                // An error turns the trailing icon error, as M3 does.
+                '[data-invalid] > &[data-placement="end"]': { color: 'var(--color-error)' },
             },
         },
-        // M3's trailing icon button: a round state layer over on-surface-variant.
+        // M3's trailing icon button: a 40dp circle, on-surface-variant, with
+        // the 8% state layer on hover.
         'clear-trigger': {
             base: fieldButton,
             states: {
@@ -4116,88 +4370,57 @@ export const input: RecipeInput = {
             },
         },
     },
-    // The visible ring lives on `control`; the input delegates.
+    // The visible focus lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
     variants: {
-        // The field's own ring carries the role — the outline is neutral, so
-        // focus is the only place a text field shows colour.
-        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--input-accent': `var(--color-${c})`,
-        } } }])),
-        size: {
-            xs: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-xs)' } }, ...affixSize('var(--text-sm)') },
-            sm: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-sm)' } }, ...affixSize('var(--text-sm)') },
-            // `md` is the un-attributed render: the base already IS the
-            // middle step.
-            md: {},
-            lg: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-lg)' } }, ...affixSize('var(--text-lg)') },
-            xl: { input: { base: { fontSize: 'var(--text-xl)', padding: 'var(--space-lg) var(--space-xl)' } }, ...affixSize('var(--text-xl)') },
-        },
+        color: tfColors('root'),
+        variant: tfVariants('root'),
+        size: tfSizes('root'),
     },
+    defaultVariants: { variant: 'filled' },
 };
 
-/** The same outlined field, drawn on the element — see the textarea anatomy. */
+/**
+ * The same field, drawn on the element: the textarea IS the container, so the
+ * label rests over its first line and the padding makes room for it floated.
+ */
 export const textarea: RecipeInput = {
     component: 'textarea',
-    tokens: { '--textarea-accent': 'var(--color-secondary)' },
     parts: {
-        root: {
-            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+        root: withPresence(tfRoot(), {
             states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
-        },
-        label: {
-            base: { ...label, color: 'var(--color-base-content)' },
-            states: {
-                disabled: { opacity: 'var(--disabled-opacity)' },
-                invalid: { color: 'var(--color-error)' },
-                required: {},
-            },
-            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
-        },
-        textarea: {
+        }),
+        label: withPresence(tfLabel('textarea'), {
+            states: { disabled: {}, invalid: {}, required: {} },
+        }),
+        textarea: withPresence(tfBox(), {
             base: {
+                ...tfText(),
                 display: 'block',
-                width: '100%',
                 // border-box, or `width: 100%` plus the padding and border is
                 // wider than the column it fills — 26–34px at phone width (#45).
-                boxSizing: 'border-box',
-                minWidth: '0',
-                appearance: 'none',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-medium)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-md)',
-                lineHeight: 'var(--leading-normal)',
-                padding: 'var(--space-sm) var(--space-md)',
+                inlineSize: '100%',
                 resize: 'vertical',
-                transition: motion('border-color'),
             },
             states: {
-                invalid: { borderColor: 'var(--color-error)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: {},
+                disabled: {},
                 readonly: {},
                 required: {},
-                'focus-visible': { ...focusRing['focus-visible'], outline: '3px solid var(--textarea-accent)' },
+                'focus-visible': { '--tf-indicator-color': 'var(--tf-accent)', '--tf-outline-color': 'var(--tf-accent)' },
             },
             selectors: {
                 '&::placeholder': { color: 'var(--color-surface-variant-content)' },
+                ...tfRestingPlaceholder('[data-scope="textarea"][data-part="root"]', '&::placeholder'),
             },
-        },
+        }),
     },
     variants: {
-        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--textarea-accent': `var(--color-${c})`,
-        } } }])),
-        size: {
-            xs: { textarea: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-xs)' } } },
-            sm: { textarea: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-sm)' } } },
-            md: {},
-            lg: { textarea: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-lg)' } } },
-            xl: { textarea: { base: { fontSize: 'var(--text-xl)', padding: 'var(--space-lg) var(--space-xl)' } } },
-        },
+        color: tfColors('root'),
+        variant: tfVariants('root'),
+        size: tfSizes('root'),
     },
+    defaultVariants: { variant: 'filled' },
 };
 
 // ── Content tier (#311) ───────────────────────────────────────────────────
