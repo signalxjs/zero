@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`Combobox.Root` `autoHighlight` (#448).** Typing highlights the first
+  enabled visible option, and again whenever the query changes, so Enter
+  picks the best match instead of committing the raw text under
+  `allowCustom`. It applies only while the query is non-empty, so an empty
+  field or an `openOnClick` open still leaves Enter to the form. A query
+  that matches nothing leaves no highlight, so `allowCustom` commits the
+  text. `inlineComplete` takes precedence.
+
 ### Fixed
 
 - **`ReservedByZero` is exported** from `@sigx/zero`, `@sigx/zero/contract`
