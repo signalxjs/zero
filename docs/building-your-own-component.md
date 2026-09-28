@@ -94,7 +94,8 @@ Your package can sit on either end:
   dropped, handlers and refs chain (lender first), IDREF lists join, and a
   conflicting `id`, `role` or paint attribute throws. Apps then write
   `<Menu.ContextTrigger asChild>{(p) => <AcmeList.Root lend={p} />}</Menu.ContextTrigger>`.
-  (`WithLend` and `mergePartProps` land with #492.)
+  Both come from `@sigx/zero/contract` (#492); `mergePartProps` is DOM-free
+  and also on `@sigx/zero/contract/core`.
 - **Lender** — a part whose asChild bag may be lent to a host. Declare
   `absorbable: true` next to `asChild: true`:
 
