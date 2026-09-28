@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### Fixed — the lynx target ships logical sizing as width/height (signalxjs/lynx#1250)
+
+- Lynx ignores `block-size`, `inline-size` and their `min-`/`max-`
+  variants. daisy's divider draws its rule thickness only through them, so
+  on device the bare rule painted nothing, labelled segments filled the
+  label row, and the size ramp did nothing. Lynx has no writing modes, so
+  the lynx emitter now rewrites each one to the physical property it names
+  there (`block-size` to `height`, `inline-size` to `width`, and so on), in
+  recipe declarations, raw `targets.lynx.css` and keyframes bodies, with a
+  `translated` report entry. The same rewrite brings the badge, status,
+  spinner, steps, timeline, pagination, navbar, carousel and radial-progress
+  sizes and several `inline-size: 100%` fills into effect on lynx.
+- New exports on the lynx target: `LOGICAL_SIZE_PROPERTIES` and
+  `logicalSizeToPhysical`.
+
+### Fixed — zero-daisyui on lynx: the alert close is a square chip, kbd caps are monospace
+
+- The alert close button is sized outright on lynx (a
+  `text-md + 2 × space-2xs` square, glyph centred). Lynx does not carry the
+  close's `line-height: 1` into the glyph's `<text>`, so it measured
+  14 × 20pt and its press wash and focus ring drew as vertical ovals
+  (signalxjs/lynx#1253).
+- The kbd cap sets `font-family: Menlo, monospace` on lynx. The web's
+  monospace comes from the browser's UA style for `<kbd>`, which lynx does
+  not have (signalxjs/lynx#1254).
+
 ### Fixed — a padded Container stays inside its column (zero#445)
 
 - The layout pack's Container root is now `box-sizing: border-box`. zero
