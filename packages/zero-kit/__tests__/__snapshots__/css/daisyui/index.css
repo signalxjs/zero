@@ -5242,11 +5242,12 @@
         flex-wrap: wrap;
         min-width: 13rem;
         box-sizing: border-box;
-        height: calc(var(--size-field) * 12);
+        height: auto;
         background: var(--color-base-100);
         border: var(--border) solid var(--color-base-300);
         border-radius: var(--radius-field);
         box-shadow: var(--shadow-xs);
+        min-height: calc(var(--size-field) * 12);
         transition: border-color var(--duration-fast) var(--ease-standard);
     }
 
