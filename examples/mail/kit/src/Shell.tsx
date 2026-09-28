@@ -20,13 +20,12 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define, Model } from 'sigx';
 import { createControllableState, createInertState, dataAttr, htmlAttrs, isFocusVisible, variantAttrs } from '@sigx/zero';
-import type { WithClass, WithVariantAxesOpen } from '@sigx/zero';
+import type { WithClass, WithHtmlAttrs, WithVariantAxesOpen } from '@sigx/zero';
 import { shellAnatomy, splitAnatomy } from './anatomy.js';
-import type { KitHtmlAttrs } from './attrs.js';
 
 // ── Shell ──
 
-export type ShellRootProps = WithVariantAxesOpen<'mail-shell'> & WithClass & KitHtmlAttrs & Define.Slot<'default'>;
+export type ShellRootProps = WithVariantAxesOpen<'mail-shell'> & WithClass & WithHtmlAttrs & Define.Slot<'default'>;
 
 const ShellRoot = component<ShellRootProps>(({ props, slots }) => () => (
     <div class={props.class} {...htmlAttrs(props)} data-scope={shellAnatomy.scope} data-part="root" {...variantAttrs(props)}>
@@ -35,13 +34,13 @@ const ShellRoot = component<ShellRootProps>(({ props, slots }) => () => (
 ), { name: 'Shell.Root' });
 
 /** The row under the app bar: a docked sidebar beside `<main>`, filling the height left. */
-const ShellBody = component<WithClass & KitHtmlAttrs & Define.Slot<'default'>>(({ props, slots }) => () => (
+const ShellBody = component<WithClass & WithHtmlAttrs & Define.Slot<'default'>>(({ props, slots }) => () => (
     <div class={props.class} {...htmlAttrs(props)} data-scope={shellAnatomy.scope} data-part="body">
         {slots.default?.()}
     </div>
 ), { name: 'Shell.Body' });
 
-const ShellMain = component<WithClass & KitHtmlAttrs & Define.Slot<'default'>>(({ props, slots }) => () => (
+const ShellMain = component<WithClass & WithHtmlAttrs & Define.Slot<'default'>>(({ props, slots }) => () => (
     <main class={props.class} {...htmlAttrs(props)} data-scope={shellAnatomy.scope} data-part="main">
         {slots.default?.()}
     </main>
@@ -49,7 +48,7 @@ const ShellMain = component<WithClass & KitHtmlAttrs & Define.Slot<'default'>>((
 
 export type ShellRegionProps =
     & WithClass
-    & KitHtmlAttrs
+    & WithHtmlAttrs
     /** Names the region landmark. */
     & Define.Prop<'label', string, true>
     & Define.Slot<'default'>;
@@ -84,7 +83,7 @@ const useSplitContext = defineInjectable<SplitContext>(() => ({
 export type SplitRootProps =
     & WithVariantAxesOpen<'mail-split'>
     & WithClass
-    & KitHtmlAttrs
+    & WithHtmlAttrs
     /** Accessible name of the separator. */
     & Define.Prop<'label', string, true>
     /** The primary pane's inline size, in px. */
@@ -129,7 +128,7 @@ const SplitRoot = component<SplitRootProps>(({ props, slots, emit }) => {
 
 export type SplitPaneProps =
     & WithClass
-    & KitHtmlAttrs
+    & WithHtmlAttrs
     /** The pane whose size the model holds; the other takes the rest. */
     & Define.Prop<'primary', boolean, false>
     & Define.Slot<'default'>;

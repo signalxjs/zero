@@ -6,10 +6,9 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { htmlAttrs, variantAttrs } from '@sigx/zero';
-import type { WithClass, WithVariantAxesOpen } from '@sigx/zero';
+import type { WithClass, WithHtmlAttrs, WithVariantAxesOpen } from '@sigx/zero';
 import { iconAnatomy } from './anatomy.js';
 import type { Tone } from './Text.js';
-import type { KitHtmlAttrs } from './attrs.js';
 
 /** Path data per glyph. Several `d` strings draw one glyph. */
 export const ICONS = {
@@ -61,7 +60,8 @@ export type IconName = keyof typeof ICONS;
 export type IconRootProps =
     & WithVariantAxesOpen<'mail-icon'>
     & WithClass
-    & KitHtmlAttrs
+    /** Not `role`: the root owns it (`img` when labelled). */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Prop<'name', IconName, true>
     /** The ink, as on Text — the design system's `tone` axis. */
     & Define.Prop<'tone', Tone, false>

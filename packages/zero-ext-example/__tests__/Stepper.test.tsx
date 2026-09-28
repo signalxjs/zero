@@ -93,4 +93,35 @@ describe('Stepper (ecosystem acceptance)', () => {
         expect(items(container)[0]!.getAttribute('data-state')).toBe('active');
         expectAnatomy(container, stepperAnatomy);
     });
+    it('forwards html attributes through WithHtmlAttrs, the part keeping its own', () => {
+        render(
+            <Stepper.Root defaultStep="a" id="checkout-steps" aria-label="Checkout" data-testid="stepper">
+                <Stepper.Item value="a" id="step-a" title="First" aria-describedby="hint">A</Stepper.Item>
+                <Stepper.Item value="b" role="tab" aria-current="false">B</Stepper.Item>
+            </Stepper.Root>,
+            container,
+        );
+        const root = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        expect(root.id).toBe('checkout-steps');
+        expect(root.getAttribute('aria-label')).toBe('Checkout');
+        expect(root.getAttribute('data-testid')).toBe('stepper');
+        expect(root.getAttribute('role')).toBe('group');
+        const [a, b] = items(container);
+        expect(a!.id).toBe('step-a');
+        expect(a!.title).toBe('First');
+        expect(a!.getAttribute('aria-describedby')).toBe('hint');
+        expect(b!.getAttribute('role')).toBe('tab');
+        // The part's own ARIA wins on a name both set: the inactive step carries no aria-current.
+        expect(b!.hasAttribute('aria-current')).toBe(false);
+    });
+
+    it('a label wins over an app aria-label on the root', () => {
+        render(
+            <Stepper.Root label="Checkout" aria-label="Ignored">
+                <Stepper.Item value="a">A</Stepper.Item>
+            </Stepper.Root>,
+            container,
+        );
+        expect(container.querySelector('[data-part="root"]')!.getAttribute('aria-label')).toBe('Checkout');
+    });
 });

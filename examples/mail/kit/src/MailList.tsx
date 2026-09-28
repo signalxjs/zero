@@ -18,9 +18,8 @@
 import { component, compound, defineInjectable, defineProvide, watch } from 'sigx';
 import type { Define, Model } from 'sigx';
 import { createControllableState, createInertState, createVirtualList, dataAttr, htmlAttrs, isFocusVisible, variantAttrs } from '@sigx/zero';
-import type { PartProps, VirtualList, WithClass, WithVariantAxesOpen } from '@sigx/zero';
+import type { PartProps, VirtualList, WithClass, WithHtmlAttrs, WithVariantAxesOpen } from '@sigx/zero';
 import { mailListAnatomy, mailRowAnatomy } from './anatomy.js';
-import type { KitHtmlAttrs } from './attrs.js';
 
 interface MailListContext {
     highlight: Model<number>;
@@ -42,7 +41,8 @@ const OWN_CONTROL = 'button, input, label, a[href], textarea, select, [role="but
 export type MailListRootProps =
     & WithVariantAxesOpen<'mail-list'>
     & WithClass
-    & KitHtmlAttrs
+    /** Not `role`: the list is always a `list`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Prop<'label', string, true>
     & Define.Prop<'count', number, true>
     & Define.Prop<'itemKey', (index: number) => string, true>
@@ -160,7 +160,8 @@ const MailListSlot = component<
 export type MailRowRootProps =
     & WithVariantAxesOpen<'mail-row'>
     & WithClass
-    & KitHtmlAttrs
+    /** Not `role`: the row is always a `listitem`. */
+    & Omit<WithHtmlAttrs, 'role'>
     & Define.Prop<'index', number, true>
     & Define.Prop<'itemKey', string, true>
     /** The message open in the reading pane — `data-state="active"`, `aria-current`. */

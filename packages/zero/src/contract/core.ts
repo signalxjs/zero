@@ -83,7 +83,7 @@ export type { Anatomy, AnatomyJSON, CarriedAxis, PartPaint, PartSpec, PartJSON, 
 export { defineAnatomy, defaultPropOf, changeEventOf } from './anatomy.js';
 
 export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX } from './variant-attrs.js';
-export type { WithHtmlAttrs, HtmlAttrValue } from './html-attrs.js';
+export type { WithHtmlAttrs, HtmlAttrValue, ReservedByZero } from './html-attrs.js';
 export { htmlAttrs, RESERVED_DATA_ATTRS } from './html-attrs.js';
 
 export {
