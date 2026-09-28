@@ -54,10 +54,13 @@ const CardRoot = component<CardRootProps>(({ props, slots }) => () => {
         'data-scope': SCOPE,
         'data-part': 'root',
         ...variantAttrs(props),
-    } as PartProps);
+        // In the bag so a lent class concatenates; kept off an asChild bag,
+        // where the slot's element owns its class.
+        ...(props.asChild ? {} : { class: props.class }),
+    } satisfies PartProps);
     if (props.asChild) return renderAsChild(slots.default, bag);
     return (
-        <div {...bag} class={props.class}>
+        <div {...bag}>
             {slots.default?.(bag)}
         </div>
     );

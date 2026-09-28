@@ -724,14 +724,18 @@ export type MenuContextTriggerProps =
  * </Menu.ContextTrigger>
  * ```
  *
- * To turn the surface off there, disable the host (`aria-disabled="true"`
- * or its own `disabled`): an inert host skips the lent contextmenu and
- * keydown handlers. `disabled` on the ContextTrigger still works too.
+ * To turn the surface off there, disable the host (`aria-disabled`, or
+ * `disabled` on a host that has one): an inert host skips the lent
+ * contextmenu and keydown handlers. `disabled` on the ContextTrigger still works too.
  */
 const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, signal }) => {
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which a host chaining this one
+    // through `lend` would feel on every re-render.
+    const setEl = (node: HTMLElement | null): void => { el = node; };
 
     // A lent bag (#452) merges under the surface's own: its anatomy dropped,
     // its handlers and ref chained first.
@@ -748,7 +752,7 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, s
         // critical, #326). The open/closed fact stays on `data-state`.
         'aria-haspopup': 'menu',
         'aria-controls': menu.ids.popup,
-        ref: (node: HTMLElement | null) => { el = node; },
+        ref: setEl,
         onContextmenu: (e: MouseEvent) => {
             if (props.disabled) return;
             e.preventDefault();
@@ -807,7 +811,7 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, s
         // from an open context menu restores focus here.
         onFocus: () => { focus.visible = isFocusVisible(el); },
         onBlur: () => { focus.visible = false; },
-    } as PartProps);
+    } satisfies PartProps);
 
     return () => {
         const b = bag();

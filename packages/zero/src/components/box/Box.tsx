@@ -52,10 +52,13 @@ const BoxRoot = component<BoxRootProps>(({ props, slots }) => {
                 'pad-x': props.padX,
                 'pad-y': props.padY,
             }, boxAnatomy.parts.root.layout),
-        } as PartProps);
+            // In the bag so a lent class concatenates; kept off an asChild bag,
+            // where the slot's element owns its class.
+            ...(props.asChild ? {} : { class: props.class }),
+        } satisfies PartProps);
         if (props.asChild) return renderAsChild(slots.default, bag);
         return (
-            <div class={props.class} {...bag}>
+            <div {...bag}>
                 {slots.default?.(bag)}
             </div>
         );

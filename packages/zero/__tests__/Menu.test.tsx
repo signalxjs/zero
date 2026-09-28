@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
-import { Box, Card, Menu, menuAnatomy } from '@sigx/zero';
-import type { PositionAnchor, PositionOptions, PositionStrategy } from '@sigx/zero';
+import { Box, Card, Menu, menuAnatomy, mergePartProps } from '@sigx/zero';
+import type { PartProps, PositionAnchor, PositionOptions, PositionStrategy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 import { describeTriggerHandlers } from './trigger-handlers';
 
@@ -1299,6 +1299,46 @@ describe('Menu.ContextTrigger lent to a zero host (#450)', () => {
         card.dispatchEvent(new KeyboardEvent('keydown', { key: 'F10', shiftKey: true, bubbles: true, cancelable: true }));
         await tick();
         expect(popupState()).toBe('closed');
+    });
+
+    it('a re-rendering host keeps one chained ref: its own ref never detaches', async () => {
+        // sigx patches a CHANGED ref as ref(null) + ref(el); a host that
+        // re-renders often (a virtual list while scrolling) must not see its
+        // own ref churn because the lent one was chained afresh.
+        const own = vi.fn();
+        const state = signal({ n: 0 });
+        const Host = component<{ lend?: PartProps }>(({ props }) => () => (
+            <div {...mergePartProps(props.lend, {
+                'data-scope': 'host',
+                'data-part': 'root',
+                'data-n': String(state.n),
+                ref: own,
+            })}>Host {state.n}</div>
+        ));
+        render(
+            <Menu.Root>
+                <Menu.ContextTrigger asChild>
+                    {(p) => <Host lend={p} />}
+                </Menu.ContextTrigger>
+                <Menu.Popup><Menu.Item value="a">A</Menu.Item></Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        const host = container.querySelector<HTMLElement>('[data-scope="host"]')!;
+        for (let i = 1; i <= 4; i++) {
+            state.n = i;
+            await tick();
+        }
+        expect(host.getAttribute('data-n')).toBe('4');
+        // The lender re-renders too: opening flips its data-state.
+        host.dispatchEvent(new KeyboardEvent('keydown', { key: 'F10', shiftKey: true, bubbles: true, cancelable: true }));
+        await tick();
+        expect(popupState()).toBe('open');
+        state.n = 5;
+        await tick();
+        expect(own).toHaveBeenCalledTimes(1);
+        expect(own).toHaveBeenCalledWith(host);
+        expect(own).not.toHaveBeenCalledWith(null);
     });
 
     it('a Box hosts it the same way', async () => {

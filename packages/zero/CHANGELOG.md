@@ -8,7 +8,9 @@
   part's asChild bag into a host's own props. The host keeps its anatomy.
   The lender's runtime-written `data-*` is dropped, and paint or `hidden`
   set on it throws. Handlers and refs chain, lender first, and an inert
-  host skips the lender's activation handlers. IDREF-list ARIA is joined.
+  host skips the lender's activation handlers. The same two refs always
+  chain to the same function, so a re-rendering host never sees its ref
+  detach and re-attach. IDREF-list ARIA is joined.
   `id`, `role` and other `aria-*` fill in, and a conflict throws.
   `tabIndex` takes the lower value, and `class` is concatenated. It is
   DOM-free and also exported from `@sigx/zero/contract/core`.
