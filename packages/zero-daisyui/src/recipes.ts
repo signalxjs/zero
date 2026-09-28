@@ -7700,14 +7700,43 @@ export const chat: RecipeInput = {
             xl: { bubble: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-xl)' } } },
         },
     },
-    // The row's vertical padding, restated physically: logical spellings
-    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
-    // the emitter refuses them.
+    // Lynx (signalxjs/lynx#1276):
+    // - the row's vertical padding, restated physically: logical spellings
+    //   resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
+    //   the emitter refuses them;
+    // - lynx has no grid, so the row is a flex column (header, bubble,
+    //   footer), gathered to the placement's side. The avatar leaves the
+    //   flow: lynx-zero pins it to the row's bottom corner and reserves its
+    //   measured width beside the column;
+    // - the `[data-placement] > &` selectors have no class form on the
+    //   parts (placement is the root's), so the bubble's square tail corner
+    //   is raw lynx css, a descendant of the placed root — the shape the
+    //   theme restatements are proven to match. Physical corners: lynx has
+    //   no RTL flow.
     targets: {
         lynx: {
             parts: {
-                root: { base: { paddingTop: 'var(--space-2xs)', paddingBottom: 'var(--space-2xs)' } },
+                root: {
+                    base: {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        paddingTop: 'var(--space-2xs)',
+                        paddingBottom: 'var(--space-2xs)',
+                    },
+                    selectors: {
+                        '&[data-placement="end"]': { alignItems: 'flex-end' },
+                    },
+                },
             },
+            css: `
+.zx-chat__root.zx-p-start .zx-chat__bubble {
+    border-bottom-left-radius: 0;
+}
+.zx-chat__root.zx-p-end .zx-chat__bubble {
+    border-bottom-right-radius: 0;
+}
+`,
         },
     },
 };
@@ -7798,6 +7827,59 @@ export const chatLog: RecipeInput = {
             md: {},
             lg: { content: { base: { rowGap: 'var(--space-sm)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 9)', fontSize: 'var(--text-sm)' } } },
             xl: { content: { base: { rowGap: 'var(--space-md)' } }, 'jump-trigger': { base: { '--chat-log-jump-size': 'calc(var(--size-field) * 10)', fontSize: 'var(--text-sm)' } } },
+        },
+    },
+    // Lynx (signalxjs/lynx#1276). lynx-zero's root is the frame and a native
+    // scroll-view inside Content does the scrolling, so:
+    // - the frame's padding moves onto the content (physical — logical
+    //   spellings do not resolve on Android, signalxjs/lynx#1084), so rows
+    //   scroll to the frame's edge instead of clipping at an inset;
+    // - the content's grid is a flex column (lynx has no grid); a short
+    //   transcript sits at the top — `margin-block-start: auto` has nothing
+    //   to push against inside a scroll-view;
+    // - the jump trigger floats in lynx-zero's absolute dock at the frame's
+    //   foot, so it drops `position: sticky` and the negative margin, and
+    //   restates its inline padding physically;
+    // - `:hover` is dropped on touch: the held trigger shows the hover's
+    //   90% darkening (restated per colour — a colour function over
+    //   `--chat-log-fill` cannot bake), with the existing 1px sink;
+    // - the focus rings as `lynxFocus` (lynx#1163), the frame's drawn inside
+    //   like the web's negative offset.
+    targets: {
+        lynx: {
+            parts: {
+                root: {
+                    base: { padding: '0', overflow: 'hidden' },
+                    states: { 'focus-visible': lynxFocusRing('var(--color-base-content)', { inset: true }) },
+                },
+                content: {
+                    base: {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        paddingTop: 'var(--space-sm)',
+                        paddingBottom: 'var(--space-sm)',
+                        paddingLeft: 'var(--space-md)',
+                        paddingRight: 'var(--space-md)',
+                    },
+                },
+                'jump-trigger': {
+                    base: {
+                        position: 'relative',
+                        flexDirection: 'row',
+                        paddingLeft: 'var(--space-md)',
+                        paddingRight: 'var(--space-md)',
+                    },
+                    states: {
+                        pressed: { background: 'color-mix(in oklab, var(--color-primary) 90%, black)' },
+                        ...lynxFocus(),
+                    },
+                },
+            },
+            variants: {
+                color: Object.fromEntries(ROLES.map((c) => [c, { 'jump-trigger': { states: {
+                    pressed: { background: `color-mix(in oklab, var(--color-${c}) 90%, black)` },
+                } } }])),
+            },
         },
     },
 };
@@ -9532,6 +9614,52 @@ export const fileUpload: RecipeInput = {
             md: {},
             lg: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-md)' } } },
             xl: { root: { base: { '--fu-pad': 'calc(var(--space-xl) * 1.25)', '--fu-font': 'var(--text-md)' } } },
+        },
+    },
+    // Lynx (signalxjs/lynx#1276):
+    // - lynx has no grid: the root and the item list are flex columns, and
+    //   the stretched parts (dropzone, item list) say so with `align-self`;
+    //   the rows (trigger, item) state `flex-direction: row`;
+    // - the dropzone centres its words in a column (lynx text alignment is
+    //   the text's own), and its highlighted wash — a colour function over
+    //   `--fu-accent`, which cannot bake — is restated per colour over the
+    //   role. lynx never drives `highlighted` (no drag source); it shows
+    //   through `ForceStates` in the gallery;
+    // - `:hover` is dropped on touch: the held trigger shows daisy's
+    //   base-300 wash + 1px sink (`lynxBtnPressed`, in place of the
+    //   standalone `translate`, which Android does not resolve), and the
+    //   held × and clear show the ghost's base-200 wash;
+    // - the focus rings as `lynxFocus` (lynx#1163).
+    targets: {
+        lynx: {
+            parts: {
+                root: { base: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start' } },
+                trigger: {
+                    base: { flexDirection: 'row' },
+                    states: { pressed: lynxBtnPressed, ...lynxFocus() },
+                },
+                dropzone: {
+                    base: { alignSelf: 'stretch', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+                    states: {
+                        highlighted: { background: 'color-mix(in oklab, var(--color-primary) 8%, var(--color-base-100))' },
+                    },
+                },
+                'item-group': {
+                    base: { alignSelf: 'stretch', display: 'flex', flexDirection: 'column' },
+                },
+                item: { base: { flexDirection: 'row' } },
+                'item-remove': {
+                    states: { pressed: { background: 'var(--color-base-200)' }, ...lynxFocus() },
+                },
+                'clear-trigger': {
+                    states: { pressed: { background: 'var(--color-base-200)' }, ...lynxFocus() },
+                },
+            },
+            variants: {
+                color: Object.fromEntries(ROLES.map((c) => [c, { dropzone: { states: {
+                    highlighted: { background: `color-mix(in oklab, var(--color-${c}) 8%, var(--color-base-100))` },
+                } } }])),
+            },
         },
     },
 };
