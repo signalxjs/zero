@@ -589,7 +589,12 @@ const tfLabelRules = (host: string, floated: string): Record<string, CssProps> =
     },
     [`${host}:focus-within > &`]: { color: 'var(--tf-accent)' },
     [`${host} > &[data-invalid]`]: { color: 'var(--color-error)' },
-    [`${host} > &[data-disabled]`]: { color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)' },
+    // M3's disabled label is the 38% ink alone: a Field.Label's own fade
+    // (`opacity`) must not dim it a second time.
+    [`${host} > &[data-disabled]`]: {
+        color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+        opacity: '1',
+    },
 });
 
 /** A text-field scope's own label (`Input.Label` & co). */

@@ -137,6 +137,7 @@
 
     [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="field"][data-part="label"][data-disabled] {
         color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+        opacity: 1;
     }
 
     [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="field"][data-part="label"][data-required]::after {

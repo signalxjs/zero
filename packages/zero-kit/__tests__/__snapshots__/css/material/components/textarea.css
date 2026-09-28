@@ -83,6 +83,7 @@
 
     [data-scope="textarea"][data-part="root"] > [data-scope="textarea"][data-part="label"][data-disabled] {
         color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+        opacity: 1;
     }
 
     [data-scope="textarea"][data-part="label"][data-required]::after {
