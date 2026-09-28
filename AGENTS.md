@@ -214,6 +214,8 @@ navigation, and a bound that lost its `href` stays a tab stop),
 breadcrumbs collapse (#295: Tab steps from the leading link straight to
 the ellipsis trigger past the hidden crumbs, and a real Enter or Space
 expands the trail and lands focus on the first revealed link),
+nav-list button mode (#451: a `NavList.Link` with no `href` is a native
+button — a real Tab stops on each, and Enter or Space moves `current`),
 file-upload (#273: an empty `required` upload's real submit lands focus
 on the trigger and reads invalid until a file arrives, a refused picker
 selection never stays in the input's own FileList, a removal hands focus

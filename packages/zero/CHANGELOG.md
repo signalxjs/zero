@@ -12,6 +12,18 @@
   that matches nothing leaves no highlight, so `allowCustom` commits the
   text. `inlineComplete` takes precedence.
 
+### Added — `NavList.Link` navigates by state (#451)
+
+- **`onClick` on `NavList.Link`.** It is declared like Button's, and an
+  `asChild` element receives it too.
+- **Two modes.** With an `href` the link stays an `<a href>`, and `onClick`
+  runs without preventing the navigation, so an SPA router can intercept it.
+  Without an `href` it renders `<button type="button">`: a native tab stop,
+  Enter/Space activation, and the button role, for an app that navigates by
+  a signal or store. Both keep `aria-current="page"` and `data-state`.
+- **Anatomy.** `nav-list.link` still declares `a` as its default element.
+  All six skins reset the button chrome in the `link` recipe.
+
 ### Fixed
 
 - **`ReservedByZero` is exported** from `@sigx/zero`, `@sigx/zero/contract`

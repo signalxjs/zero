@@ -9009,6 +9009,13 @@
         align-items: center;
         gap: var(--space-sm);
         text-decoration: none;
+        appearance: none;
+        background: none;
+        border: 0;
+        font: inherit;
+        text-align: start;
+        inline-size: 100%;
+        cursor: pointer;
         color: var(--nav-ink);
         padding: var(--space-xs) var(--space-md);
         border-radius: 0;

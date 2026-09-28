@@ -24,6 +24,14 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * is unnamed, and takes `aria-label` if it needs a name. `icon` is
  * decorative; `meta` is the trailing slot (an unread count as a `Badge`, a
  * `Kbd` hint) that every skin pushes to the far edge.
+ *
+ * `link` has two modes (#451): with an `href` it renders `<a href>`, and
+ * without one a `<button type="button">` for state-driven navigation (a
+ * signal or store rather than a URL). The declared `element` is the
+ * default, like Pagination's link mode (#294). Both carry
+ * `aria-current="page"` and the `active`/`inactive` state, and an
+ * `onClick` never prevents an anchor's navigation, so an SPA router can
+ * intercept it. Every skin's `link` recipe resets the button chrome.
  */
 export const navListAnatomy = defineAnatomy('nav-list', {
     root: {
