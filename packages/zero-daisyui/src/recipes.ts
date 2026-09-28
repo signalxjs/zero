@@ -7879,6 +7879,28 @@ export const navbar: RecipeInput = {
             xl: { root: { base: { minBlockSize: '6rem', fontSize: 'var(--text-lg)' } } },
         },
     },
+    // Lynx (signalxjs/lynx#1257): `min-block-size` is not a lynx property,
+    // so the bar's height ramp is restated as `min-height`; and a lynx flex
+    // container is only a row when it says so, so the bar and its three
+    // sections spell `flex-direction: row`.
+    targets: {
+        lynx: {
+            parts: {
+                root: { base: { flexDirection: 'row', minHeight: '4rem' } },
+                start: { base: { flexDirection: 'row' } },
+                center: { base: { flexDirection: 'row' } },
+                end: { base: { flexDirection: 'row' } },
+            },
+            variants: {
+                size: {
+                    xs: { root: { base: { minHeight: '2.5rem' } } },
+                    sm: { root: { base: { minHeight: '3rem' } } },
+                    lg: { root: { base: { minHeight: '5rem' } } },
+                    xl: { root: { base: { minHeight: '6rem' } } },
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -8092,6 +8114,37 @@ export const breadcrumbs: RecipeInput = {
             md: {},
             lg: { root: { base: { fontSize: 'var(--text-md)' } } },
             xl: { root: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+    // Lynx (signalxjs/lynx#1257):
+    // - The list, the items and the ellipsis are explicit rows (a lynx flex
+    //   container is only a row when it says so).
+    // - The trigger's `hover` ink is dropped on a touch platform; the
+    //   `pressed` flag carries it instead. Its resting ink moves onto a
+    //   lynx-only token so the base rule stays a plain var() read: the
+    //   emitter bakes a `color-mix` declaration per theme under the host
+    //   class, and that baked rule would outrank the pressed one.
+    // - The focus ring is the lynx box-shadow ring (outline has no offset
+    //   and ignores the radius there).
+    // - The link's `hover` stays dropped: the link anatomy declares no
+    //   pressed flag, so there is nothing on lynx to carry it.
+    // - The separator is a real part on both targets (lynx-zero renders it
+    //   as a text glyph), so daisy's `::before` chevron needs no lynx form.
+    targets: {
+        lynx: {
+            tokens: { '--bc-trigger-ink': 'color-mix(in oklch, var(--color-base-content) 75%, transparent)' },
+            parts: {
+                list: { base: { flexDirection: 'row' } },
+                item: { base: { flexDirection: 'row' } },
+                ellipsis: { base: { flexDirection: 'row' } },
+                'ellipsis-trigger': {
+                    base: { color: 'var(--bc-trigger-ink)' },
+                    states: {
+                        pressed: { color: 'var(--color-base-content)' },
+                        'focus-visible': lynxFocusRing('var(--color-primary)'),
+                    },
+                },
+            },
         },
     },
 };
