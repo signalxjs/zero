@@ -179,7 +179,8 @@ const NO_VARIANT: Record<string, string> = {
     // Card — which is the entry above, and why zero ships both.
     box: 'Radix Themes Box is an unvaried layout primitive; the varied surface in every '
         + 'surveyed system is its Card, recorded separately above.',
-    card: 'Radix Themes Card varies as surface | classic | ghost.',
+    // card left this ledger in #418: zero-material wires `variant` as M3's
+    // elevated | filled | outlined card, with its own `tokens.scopes.card`.
     alert: 'Radix Themes Callout varies as soft | surface | outline.',
     divider: 'Ant Design Divider varies as solid | dashed | dotted — a stroke '
         + 'style rather than a fill, which is the axis in a different sense '

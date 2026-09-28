@@ -24,22 +24,29 @@
     [data-scope="hover-card"][data-part="popup"] {
         opacity: 0;
         transform: scale(0.9);
-        transition: opacity var(--duration-medium2) var(--ease-emphasized), transform var(--duration-medium2) var(--ease-emphasized), display var(--duration-medium2) allow-discrete, overlay var(--duration-medium2) allow-discrete;
-        background: var(--color-surface-container-high);
-        color: var(--color-surface-container-high-content);
+        transition: opacity var(--duration-short4) var(--ease-emphasized-accelerate), transform var(--duration-short4) var(--ease-emphasized-accelerate), display var(--duration-short4) allow-discrete, overlay var(--duration-short4) allow-discrete;
+        background: var(--color-surface-container);
+        color: var(--color-surface-variant-content);
         border: none;
-        border-radius: var(--radius-extra-large);
+        border-radius: var(--radius-medium);
         box-shadow: var(--shadow-level2);
-        padding: var(--space-md);
+        padding-block-start: var(--space-sm);
+        padding-block-end: var(--space-xs);
+        padding-inline: var(--space-md);
+        max-inline-size: 20rem;
+        font-family: var(--font-sans);
+        font-size: var(--text-body-medium);
+        line-height: var(--leading-body-medium);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-body-medium);
         transform-origin: var(--transform-origin, center);
-        max-width: 20rem;
-        font-size: var(--text-sm);
-        line-height: var(--leading-normal);
+        --tf-surface: var(--color-surface-container);
     }
 
     [data-scope="hover-card"][data-part="popup"][data-state="open"] {
         opacity: 1;
         transform: none;
+        transition: opacity var(--duration-medium4) var(--ease-emphasized-decelerate), transform var(--duration-medium4) var(--ease-emphasized-decelerate), display var(--duration-medium4) allow-discrete, overlay var(--duration-medium4) allow-discrete;
     }
 
     [data-scope="hover-card"][data-part="popup"]:has(> [data-scope="hover-card"][data-part="arrow"]) {
@@ -54,7 +61,7 @@
         height: 0.5rem;
         rotate: 45deg;
         pointer-events: none;
-        background: var(--color-surface-container-high);
+        background: var(--color-surface-container);
         border: none;
     }
 
@@ -163,6 +170,7 @@
 
         [data-scope="hover-card"][data-part="popup"][data-state="open"] {
             transform: none;
+            transition: none;
         }
     }
 
