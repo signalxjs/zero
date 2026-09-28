@@ -6669,7 +6669,11 @@ export const divider: RecipeInput = {
             // no fill, its cross size following the label, a row when
             // horizontal. Both are lynx-zero rendering details, not
             // modifiers an author sets, so they are styled from raw lynx css
-            // (the toggle-group join ends' reasoning).
+            // (the toggle-group join ends' reasoning). A segment centres
+            // itself on the label (signalxjs/lynx#1272): it carries the
+            // root's `align-self: stretch`, and a stretched item with a
+            // definite thickness lands at cross-start on lynx — the top of
+            // the label row, not the middle daisy's rules sit on.
             css: `
 .zx-divider__root.zx-m-labelled {
     --divider-ink: transparent;
@@ -6683,6 +6687,7 @@ export const divider: RecipeInput = {
 }
 .zx-divider__root.zx-m-segment {
     flex: 1 1 0;
+    align-self: center;
 }
 .zx-divider__root.zx-m-segment.zx-o-horizontal {
     min-width: 0;
