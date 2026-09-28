@@ -17,8 +17,8 @@
  */
 import { component, compound, defineInjectable, defineProvide, watch } from 'sigx';
 import type { Define, Model } from 'sigx';
-import { createControllableState, createInertState, createVirtualList, dataAttr, htmlAttrs, isFocusVisible, variantAttrs } from '@sigx/zero';
-import type { PartProps, VirtualList, WithClass, WithHtmlAttrs, WithVariantAxesOpen } from '@sigx/zero';
+import { createControllableState, createInertState, createVirtualList, dataAttr, htmlAttrs, isFocusVisible, mergePartProps, variantAttrs } from '@sigx/zero';
+import type { PartProps, VirtualList, WithClass, WithHtmlAttrs, WithLend, WithVariantAxesOpen } from '@sigx/zero';
 import { mailListAnatomy, mailRowAnatomy } from './anatomy.js';
 
 interface MailListContext {
@@ -43,6 +43,13 @@ export type MailListRootProps =
     & WithClass
     /** Not `role`: the list is always a `list`. */
     & Omit<WithHtmlAttrs, 'role'>
+    /**
+     * Another zero part's asChild bag — a `Menu.ContextTrigger`'s (#450), so
+     * the list itself is the right-click surface with no wrapper around it.
+     * Merged through zero's public `mergePartProps`: the lent ref and
+     * handlers run first, and the list keeps its own anatomy.
+     */
+    & WithLend
     & Define.Prop<'label', string, true>
     & Define.Prop<'count', number, true>
     & Define.Prop<'itemKey', (index: number) => string, true>
@@ -126,12 +133,14 @@ const MailListRoot = component<MailListRootProps>(({ props, emit, onMounted }) =
 
     return () => (
         <div
-            ref={virtual.viewportRef}
-            class={props.class}
-            {...htmlAttrs(props)}
-            data-scope={mailListAnatomy.scope}
-            data-part="root"
-            {...variantAttrs(props)}
+            {...mergePartProps(props.lend, {
+                ref: virtual.viewportRef,
+                ...htmlAttrs(props),
+                'data-scope': mailListAnatomy.scope,
+                'data-part': 'root',
+                ...variantAttrs(props),
+                class: props.class,
+            })}
         >
             <div
                 ref={(el: HTMLElement | null) => { content = el; virtual.listRef(el); }}

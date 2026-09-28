@@ -8,11 +8,20 @@
   part's asChild bag into a host's own props. The host keeps its anatomy.
   The lender's runtime-written `data-*` is dropped, and paint or `hidden`
   set on it throws. Handlers and refs chain, lender first, and an inert
-  host skips the lender's activation handlers. IDREF-list ARIA is joined.
+  host skips the lender's activation handlers. The same two refs always
+  chain to the same function, so a re-rendering host never sees its ref
+  detach and re-attach. IDREF-list ARIA is joined.
   `id`, `role` and other `aria-*` fill in, and a conflict throws.
   `tabIndex` takes the lower value, and `class` is concatenated. It is
   DOM-free and also exported from `@sigx/zero/contract/core`.
 - **`WithLend`**, the `lend={p}` prop type, next to `WithAsChild`.
+- **`Menu.ContextTrigger`, `Box` and `Card.Root` take `lend` (#450).**
+  `<Menu.ContextTrigger asChild>{(p) => <Card.Root lend={p}>…</Card.Root>}`
+  renders no `context-trigger` wrapper: the card stays the item its layout
+  placed, keeps its own anatomy, and gains `aria-haspopup`/`aria-controls`
+  and the surface's handlers. Shift+F10 anchors the menu to the card's own
+  box. To switch the surface off, disable the host (`aria-disabled`): an
+  inert host skips the lent `contextmenu` and `keydown`.
 - **`createPressFeedback` `owner`.** With `{ scope, part }` set, a press on
   an element whose `data-scope`/`data-part` differ does nothing. Every zero
   part passes its own.

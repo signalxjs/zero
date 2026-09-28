@@ -17,7 +17,7 @@ import { relative, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { JSXElement } from 'sigx';
-import { Button, Tooltip } from '@sigx/zero';
+import { Box, Button, Card, Menu, Tooltip } from '@sigx/zero';
 import type { PartProps } from '@sigx/zero';
 
 const componentsDir = resolve(import.meta.dirname, '../src/components');
@@ -48,10 +48,35 @@ interface Fixture {
     scope: string;
     part: string;
     render(lend: PartProps): JSXElement;
+    /** Renders the host with `class="own-class"`, so row 13's join is checked. */
+    ownClass?: true;
 }
 
 /** Module → how to render its host(s) with a lent bag. */
 const FIXTURES: Record<string, Fixture[]> = {
+    'box/Box.tsx': [{
+        scope: 'box',
+        part: 'root',
+        ownClass: true,
+        render: (lend) => <Box lend={lend} class="own-class">Box</Box>,
+    }],
+    'card/Card.tsx': [{
+        scope: 'card',
+        part: 'root',
+        ownClass: true,
+        render: (lend) => <Card.Root lend={lend} class="own-class">Card</Card.Root>,
+    }],
+    'menu/Menu.tsx': [{
+        scope: 'menu',
+        part: 'context-trigger',
+        ownClass: true,
+        render: (lend) => (
+            <Menu.Root>
+                <Menu.ContextTrigger lend={lend} class="own-class">Surface</Menu.ContextTrigger>
+                <Menu.Popup><Menu.Item value="a">A</Menu.Item></Menu.Popup>
+            </Menu.Root>
+        ),
+    }],
     'button/Button.tsx': [{
         scope: 'button',
         part: 'root',
@@ -97,6 +122,7 @@ describe('lend hosts (#452)', () => {
                     'data-scope': 'probe',
                     'data-part': 'trigger',
                     'aria-describedby': 'probe-desc',
+                    class: 'lent-class',
                     onClick,
                     ref,
                 } as unknown as PartProps;
@@ -111,6 +137,9 @@ describe('lend hosts (#452)', () => {
                 el.click();
                 expect(onClick).toHaveBeenCalledTimes(1);
                 expect(ref).toHaveBeenCalledWith(el);
+                // Row 13: class concatenates, neither side lost to prop order.
+                expect(el.classList.contains('lent-class')).toBe(true);
+                if (fixture.ownClass) expect(el.classList.contains('own-class')).toBe(true);
             });
         }
     }

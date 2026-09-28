@@ -4,13 +4,14 @@
  * not a bag, and a part that is not an opt-in host has no `lend` at all.
  * The hosts (#494): `Button.Root` takes a lent bag, `Tooltip.Trigger` takes
  * one too so lenders chain, and spreading a bag onto a zero component stays
- * an error (`ReservedByZero`) — `lend={p}` is the spelling.
+ * an error (`ReservedByZero`) — `lend={p}` is the spelling. #450 adds Box,
+ * Card.Root and Menu.ContextTrigger.
  *
  * No runtime: a regression here is a compile error in `pnpm test:types`.
  */
 import { component } from 'sigx';
 import type { JSXElement } from 'sigx';
-import { Button, Tabs, Tooltip } from '@sigx/zero';
+import { Box, Button, Card, Menu, Tabs, Tooltip } from '@sigx/zero';
 import type { PartProps, WithLend } from '@sigx/zero';
 
 const Host = component<WithLend>(() => () => null as unknown as JSXElement);
@@ -42,6 +43,16 @@ export const chained = (
         )}
     </Tooltip.Trigger>
 );
+// The hosts #450 adds: Box, Card.Root and Menu.ContextTrigger, which also
+// lends its own bag onward through asChild.
+export const box = <Box lend={p} pad="md">x</Box>;
+export const card = <Card.Root lend={p}>x</Card.Root>;
+export const surface = <Menu.ContextTrigger lend={p}>x</Menu.ContextTrigger>;
+export const lentSurface = (
+    <Menu.ContextTrigger asChild>
+        {(bag: PartProps) => <Card.Root lend={bag}>x</Card.Root>}
+    </Menu.ContextTrigger>
+);
 
 // ── invalid ──
 // @ts-expect-error — a bag spread onto a zero component: its anatomy is ReservedByZero; write lend={p}
@@ -52,3 +63,5 @@ export const e1 = <Host lend="x" />;
 export const e2 = <Host lend={{ id: 'a' }} />;
 // @ts-expect-error — Tabs.Tab is not a lend host
 export const e3 = <Tabs.Tab value="a" lend={p}>A</Tabs.Tab>;
+// @ts-expect-error — Card.Header is not a lend host
+export const e4 = <Card.Header lend={p}>x</Card.Header>;

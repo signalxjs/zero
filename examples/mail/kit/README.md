@@ -9,7 +9,7 @@ contract helpers. Each is an entry in signalxjs/zero#440.
 | `Text`, `Heading`, `Time` | A typography primitive. They take `tone`, `weight`, `truncate` and `clamp` from the design system's vocabulary. |
 | `Icon` | An icon primitive: a small stroke set drawn in `currentColor`. |
 | `Toolbar` | `role="toolbar"` with one roving tab stop over arbitrary zero children. |
-| `MailList`, `MailRow` | A virtualised list, built on zero's `createVirtualList` (a behavior only), with roving, open/toggle and a cursor. |
+| `MailList`, `MailRow` | A virtualised list, built on zero's `createVirtualList` (a behavior only), with roving, open/toggle and a cursor. `MailList.Root` is a lend host (#450): `<Menu.ContextTrigger asChild>{(p) => <MailList.Root lend={p} …/>}` makes the list itself the right-click surface, merged through zero's public `mergePartProps`. |
 | `Shell`, `Split` | A viewport-height frame, scrolling regions, `<main>`, and a resizable split view. |
 | `ActionButton` | A tooltip-labelled icon button that acts on click: a tooltip lent to a `Button.Root` (`lend`, #494), so it carries the button's paint, `loading` and `focusableWhenDisabled` (a disabled action keeps its tooltip). A convenience that bundles the icon, `aria-label`, shortcut hint and tooltip; it stands in for no gap. |
 | `Hotkeys` | Document-level single-key shortcuts that respect editable targets and open popups. |

@@ -2145,10 +2145,41 @@ on. `lend` is a prop on the host, `asChild` stays the transport:
 </Tooltip.Trigger>
 ```
 
-The hosts today are `Button.Root` and `Tooltip.Trigger`; the other
+The hosts today are `Button.Root`, `Tooltip.Trigger`, `Menu.ContextTrigger`, `Box` and `Card.Root`; the other
 triggers become hosts in #495. A component author makes a
 part a host with `WithLend` and `mergePartProps(props.lend, ownBag)`
 (exported for that); an app never calls it.
+
+**The context menu on a zero component (#450).** `Menu.ContextTrigger` is
+the right-click surface: `contextmenu` opens the menu at the pointer, and
+Shift+F10 or the ContextMenu key open it anchored to the surface's box. On
+its own it renders a wrapper `<div>` around its content. When the surface
+is itself a zero component, lend it the bag instead — `Card.Root`, `Box`
+(and `Menu.ContextTrigger` itself) take `lend`:
+
+```tsx
+<Menu.Root onSelect={act}>
+    <Menu.ContextTrigger asChild>
+        {(p) => <Card.Root lend={p}>…</Card.Root>}
+    </Menu.ContextTrigger>
+    <Menu.Popup>…</Menu.Popup>
+</Menu.Root>
+```
+
+No `context-trigger` element renders at all: the card is the surface, so it
+stays the flex or grid item its layout placed, with its own `data-scope`/
+`data-part` — the lent anatomy is dropped (`mergePartProps`, the #452
+composition rule). The card gains `aria-haspopup="menu"` and `aria-controls`
+and the surface's handlers, chained before its own, and the lent ref gives
+the menu the card's element, so the keyboard anchor is the card's own box.
+A raw element still takes the bag by spreading (`<div {...p}>`); a zero
+component takes it through `lend`, since a spread onto a component loses
+the ref.
+
+To switch the surface off, **disable the host**: `aria-disabled="true"` on
+the card makes it inert, and an inert host skips the lent `contextmenu`
+and `keydown` handlers (focus and blur still run). `disabled` on
+`Menu.ContextTrigger` works on both shapes.
 
 **The hover card (#290).** A preview on the way to a destination — the
 profile behind an `@mention`, the page behind a link — whose content may be

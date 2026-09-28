@@ -167,6 +167,23 @@ const SCANS: Record<string, Scan[]> = {
                 await openSub(page, 'Send to');
             },
         },
+        {
+            // #450: the surface lent to a Card.Root — no wrapper, so the
+            // card itself carries aria-haspopup/aria-controls.
+            // axe treats aria-haspopup as a global and passes it on any
+            // role, so this scan cannot catch a host WITH a role (grid,
+            // listbox, …) taking `lend`, where aria-haspopup means that
+            // widget's own popup: such a host needs a manual check.
+            name: 'context menu lent to a card',
+            open: async (page) => {
+                const card = page.locator('[data-demo="context-card"] [data-scope="card"][data-part="root"]');
+                await card.scrollIntoViewIfNeeded();
+                await card.click({ button: 'right' });
+                const popup = await controlledPopup(page, card, 'the lent card surface');
+                await expect(popup).toHaveAttribute('data-state', 'open');
+                await expect(popup).toBeVisible();
+            },
+        },
         { name: 'selection-items menu', open: (page) => openMenu(page, 'View') },
     ],
     menubar: [

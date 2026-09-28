@@ -21,8 +21,9 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { renderAsChild } from '../../contract/as-child.js';
+import { mergePartProps } from '../../contract/merge-part-props.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithLend, WithVariantAxes } from '../../contract/props.js';
 import { cardAnatomy } from './anatomy.js';
 
 const SCOPE = cardAnatomy.scope;
@@ -37,18 +38,29 @@ export type CardRootProps =
      * bag; spread it.
      */
     & WithAsChild
+    /**
+     * Another zero part's asChild bag — a `Menu.ContextTrigger`'s, say
+     * (#452). Its handlers and ref run before the card's own, its IDREF
+     * ARIA joins, and its anatomy is dropped: the card keeps its own.
+     */
+    & WithLend
     & Define.Slot<'default', PartProps>;
 
 const CardRoot = component<CardRootProps>(({ props, slots }) => () => {
-    const bag: PartProps = {
+    // A lent bag (#452) merges under the card's own: its anatomy dropped,
+    // its handlers and ref chained first.
+    const bag: PartProps = mergePartProps(props.lend, {
         ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'root',
         ...variantAttrs(props),
-    };
+        // In the bag so a lent class concatenates; kept off an asChild bag,
+        // where the slot's element owns its class.
+        ...(props.asChild ? {} : { class: props.class }),
+    } satisfies PartProps);
     if (props.asChild) return renderAsChild(slots.default, bag);
     return (
-        <div {...bag} class={props.class}>
+        <div {...bag}>
             {slots.default?.(bag)}
         </div>
     );
