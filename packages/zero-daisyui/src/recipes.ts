@@ -3773,6 +3773,80 @@ export const avatar: RecipeInput = {
             xl: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 16)', '--avatar-text': 'var(--text-lg)' } } },
         },
     },
+    // signalxjs/lynx#1237 — the lynx layout for what the web gets from grid.
+    targets: {
+        lynx: {
+            parts: {
+                // No grid on lynx (signalxjs/lynx#1075): the web stacks the
+                // image and the fallback in one grid cell. Here the root is a
+                // flex box that does not shrink in a row, and both faces are
+                // laid over it absolutely — the fallback, later in the tree,
+                // paints over a pending image exactly as the grid's second
+                // item does. lynx-zero renders neither face while its state
+                // hides it (`hiddenIn`), so the web's `&:not([hidden])`
+                // display rule has nothing to replace.
+                root: {
+                    base: {
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: '0',
+                    },
+                },
+                // Each face also rounds itself to the root's shape (below),
+                // rather than trusting the root's clip to round an image on
+                // both engines.
+                image: {
+                    base: { position: 'absolute', top: '0', left: '0', borderRadius: '9999px' },
+                },
+                fallback: {
+                    base: {
+                        position: 'absolute',
+                        top: '0',
+                        left: '0',
+                        borderRadius: '9999px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                    },
+                },
+            },
+            variants: {
+                shape: Object.fromEntries(([
+                    ['circle', '9999px'], ['square', '0'], ['rounded', 'var(--radius-selector)'],
+                ] as const).map(([shape, radius]) => [shape, {
+                    image: { base: { borderRadius: radius } },
+                    fallback: { base: { borderRadius: radius } },
+                }])),
+            },
+            // Every avatar after the first in an AvatarGroup overlaps its
+            // neighbour by a quarter of its own box — the web's
+            // `avatar-group` compose, `&:not(:first-child)`. Lynx has neither
+            // the nested-scope compose nor `:first-child`, so lynx-zero stamps
+            // those avatars `stacked` itself (`zx-m-stacked`, in mount order).
+            // A lynx-zero rendering detail, not a modifier an author sets, so
+            // it is styled from raw lynx css, one rule per avatar size.
+            css: `
+.zx-avatar__root.zx-m-stacked {
+    margin-left: calc(var(--size-selector) * -2.5);
+}
+.zx-avatar__root.zx-m-stacked.zx-a-size-xs {
+    margin-left: calc(var(--size-selector) * -1.5);
+}
+.zx-avatar__root.zx-m-stacked.zx-a-size-sm {
+    margin-left: calc(var(--size-selector) * -2);
+}
+.zx-avatar__root.zx-m-stacked.zx-a-size-lg {
+    margin-left: calc(var(--size-selector) * -3);
+}
+.zx-avatar__root.zx-m-stacked.zx-a-size-xl {
+    margin-left: calc(var(--size-selector) * -4);
+}
+`,
+        },
+    },
 };
 
 /**
@@ -3865,6 +3939,33 @@ export const avatarGroup: RecipeInput = {
             } } }])),
             // `md` is the un-attributed render — the defaults in `tokens:`.
             md: {},
+        },
+    },
+    // signalxjs/lynx#1237. The avatars inside take the group's size and
+    // colour from lynx-zero (the `composes` above has no class form on this
+    // target), and their overlap is the avatar recipe's `stacked` rule.
+    targets: {
+        lynx: {
+            parts: {
+                // A row that sizes to its faces (a lynx view stretches to its
+                // column otherwise).
+                root: { base: { display: 'flex', flexDirection: 'row', width: 'max-content' } },
+                // `inline-grid` centring as flex, and the logical inline
+                // padding and overlap as physical spellings — logical
+                // margins and paddings resolve on iOS but not on Android
+                // (signalxjs/lynx#1084); lynx has no RTL flow, so start IS left.
+                overflow: {
+                    base: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: '0',
+                        paddingLeft: 'var(--space-2xs)',
+                        paddingRight: 'var(--space-2xs)',
+                        marginLeft: 'calc(var(--avatar-group-size) * -0.25)',
+                    },
+                },
+            },
         },
     },
 };
@@ -4163,7 +4264,95 @@ export const toast: RecipeInput = {
                     base: { position: 'absolute', top: 'var(--space-xs)', right: 'var(--space-xs)' },
                     states: lynxFocus({ gap: 'var(--toast-bg)' }),
                 },
+                // The promise toast's mark (signalxjs/lynx#1196). No grid and
+                // no `:has()`: the mark is laid over the card's leading
+                // padding, at the root's own padding offsets (per size,
+                // below), and lynx-zero stamps `marked` on every part of a
+                // toast that shows it, so the text steps aside (the raw css
+                // below) — the web's leading grid column.
+                indicator: {
+                    base: {
+                        position: 'absolute',
+                        left: 'var(--space-lg)',
+                        top: 'var(--space-md)',
+                        width: 'var(--toast-mark)',
+                        height: 'var(--toast-mark)',
+                    },
+                    states: {
+                        // daisy's ring in the toast's ink. The track is the
+                        // ink at 25%, which cannot bake over the recipe-local
+                        // `--toast-ink`: the neutral toast's track mixes the
+                        // theme's base-content, and each colour's twin (the
+                        // variants below) its role. Longhands, and the head as
+                        // `border-top-color`: logical spellings are not lynx's
+                        // (signalxjs/lynx#1084), and a var-bearing shorthand
+                        // would repaint the head after the cascade (#1161).
+                        loading: {
+                            borderStyle: 'solid',
+                            ...lynxSides('border{}Width', 'calc(var(--border) * 2)'),
+                            ...lynxSides('border{}Color', 'color-mix(in oklab, var(--color-base-content) 25%, transparent)', ['Right', 'Bottom', 'Left']),
+                            borderTopColor: 'var(--toast-ink)',
+                        },
+                        // The tick without clip-path, which lynx does not apply
+                        // (signalxjs/lynx#1216): the checkbox's two-border
+                        // check — a box 3/8 of the mark wide and 3/4 tall with
+                        // its right and bottom borders drawn, turned 45° —
+                        // pulled to the middle of the mark's slot by its
+                        // margins. The fill the web cuts the tick from is
+                        // cleared.
+                        complete: {
+                            background: 'transparent',
+                            boxSizing: 'border-box',
+                            width: 'calc(var(--toast-mark) * 0.375)',
+                            height: 'calc(var(--toast-mark) * 0.75)',
+                            marginLeft: 'calc(var(--toast-mark) * 0.3125)',
+                            borderStyle: 'solid',
+                            borderColor: TOAST_SUCCESS_INK,
+                            borderTopWidth: '0',
+                            borderLeftWidth: '0',
+                            borderRightWidth: 'calc(var(--border) * 2)',
+                            borderBottomWidth: 'calc(var(--border) * 2)',
+                            transform: 'rotate(45deg)',
+                        },
+                        // The cross without clip-path: its two diagonal bars
+                        // as hard-stop gradients over a clear fill.
+                        error: {
+                            background: `linear-gradient(45deg, transparent 41%, ${TOAST_ERROR_INK} 41%, ${TOAST_ERROR_INK} 59%, transparent 59%), `
+                                + `linear-gradient(-45deg, transparent 41%, ${TOAST_ERROR_INK} 41%, ${TOAST_ERROR_INK} 59%, transparent 59%)`,
+                        },
+                    },
+                },
             },
+            variants: {
+                // Each colour's ring track: its role at 25% (the web's mix
+                // over `--toast-ink`, which is that role).
+                color: Object.fromEntries(ROLES.map((role) => [role, {
+                    indicator: {
+                        states: {
+                            loading: lynxSides('border{}Color', `color-mix(in oklab, var(--color-${role}) 25%, transparent)`, ['Right', 'Bottom', 'Left']),
+                        },
+                    },
+                }])),
+                // The mark sits at the root's padding offsets for its size.
+                size: {
+                    xs: { indicator: { base: { left: 'var(--space-md)', top: 'var(--space-xs)' } } },
+                    sm: { indicator: { base: { left: 'var(--space-md)', top: 'var(--space-sm)' } } },
+                    lg: { indicator: { base: { left: 'var(--space-xl)', top: 'var(--space-lg)' } } },
+                    xl: { indicator: { base: { left: 'var(--space-2xl)', top: 'var(--space-xl)' } } },
+                },
+            },
+            // The text of a marked toast steps past the mark and the web's
+            // column gap. `marked` is a lynx-zero rendering detail (the
+            // spelling of `:has(> indicator)`), not a modifier an author sets,
+            // so it is styled from raw lynx css. The reduced-motion and
+            // forced-colors stops cannot follow: lynx emits no `@media`.
+            css: `
+.zx-toast__title.zx-m-marked,
+.zx-toast__description.zx-m-marked,
+.zx-toast__action.zx-m-marked {
+    margin-left: calc(var(--toast-mark) + var(--space-md));
+}
+`,
         },
     },
     // The viewport's `open` (the stack expanded) is a fact this skin has no
@@ -6466,13 +6655,29 @@ export const skeleton: RecipeInput = {
     keyframes: {
         'zero-daisyui-skeleton': 'from, to { opacity: 1; } 50% { opacity: 0.55; }',
     },
+    // signalxjs/lynx#1237. The pulse is an opacity loop on the part itself —
+    // no pseudo-element, so it carries as is; only its keyframes are
+    // restated as three plain stops, not the `from, to` selector list. The
+    // reduced-motion stop cannot follow: lynx emits no `@media`.
+    targets: {
+        lynx: {
+            keyframes: {
+                'zero-daisyui-skeleton': '0% { opacity: 1; } 50% { opacity: 0.55; } 100% { opacity: 1; }',
+            },
+        },
+    },
 };
 
-/** daisy "loading-spinner": the ring, with one quadrant in the role's ink. */
+/**
+ * daisy "loading-spinner": the ring, with one quadrant in the role's ink.
+ * Sized on daisy's `loading-*` ramp — `--size-selector * 4…8` (16–32px), md
+ * the `loading` default of `* 6` (signalxjs/lynx#1237: the ramp was
+ * `--size-field * 0.35…0.9`, a 2px box that the 2px border swallowed).
+ */
 export const spinner: RecipeInput = {
     component: 'spinner',
     tokens: {
-        '--spinner-size': 'calc(var(--size-field) * 0.5)',
+        '--spinner-size': 'calc(var(--size-selector) * 6)',
         '--spinner-ink': 'var(--color-primary)',
         '--spinner-track': 'var(--color-base-300)',
     },
@@ -6496,14 +6701,40 @@ export const spinner: RecipeInput = {
             '--spinner-ink': `var(--color-${c})`,
         } } }])),
         size: {
-            xs: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.35)' } } },
-            sm: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.42)' } } },
+            xs: { root: { base: { '--spinner-size': 'calc(var(--size-selector) * 4)' } } },
+            sm: { root: { base: { '--spinner-size': 'calc(var(--size-selector) * 5)' } } },
             md: {},
-            lg: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.7)' } } },
-            xl: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.9)' } } },
+            lg: { root: { base: { '--spinner-size': 'calc(var(--size-selector) * 7)' } } },
+            xl: { root: { base: { '--spinner-size': 'calc(var(--size-selector) * 8)' } } },
         },
     },
     keyframes: { 'zero-daisyui-spin': 'to { transform: rotate(360deg); }' },
+    // signalxjs/lynx#1237 — the ring in physical spellings. The logical box
+    // size and `border-block-start-color` are not lynx's; the ring is
+    // restated as longhands, because a var-bearing `border` shorthand
+    // expands after the cascade and would repaint the head in the track
+    // colour (signalxjs/lynx#1161). A flex box, since `inline-block` is not a
+    // lynx display value, that keeps its size in a row. The reduced-motion
+    // stop cannot follow: lynx emits no `@media`.
+    targets: {
+        lynx: {
+            parts: {
+                root: {
+                    base: {
+                        display: 'flex',
+                        flexShrink: '0',
+                        width: 'var(--spinner-size)',
+                        height: 'var(--spinner-size)',
+                        border: '0 solid transparent',
+                        borderStyle: 'solid',
+                        ...lynxSides('border{}Width', 'calc(var(--border) * 2)'),
+                        ...lynxSides('border{}Color', 'var(--spinner-track)', ['Right', 'Bottom', 'Left']),
+                        borderTopColor: 'var(--spinner-ink)',
+                    },
+                },
+            },
+        },
+    },
 };
 
 // ── The content-tier sweep (#334) ─────────────────────────────────────────

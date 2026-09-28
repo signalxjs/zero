@@ -7816,7 +7816,7 @@
 
 @layer zero.recipes {
     [data-scope="spinner"][data-part="root"] {
-        --spinner-size: calc(var(--size-field) * 0.5);
+        --spinner-size: calc(var(--size-selector) * 6);
         --spinner-ink: var(--color-primary);
         --spinner-track: var(--color-base-300);
     }
@@ -7865,19 +7865,19 @@
     }
 
     [data-scope="spinner"][data-part="root"][data-size="xs"] {
-        --spinner-size: calc(var(--size-field) * 0.35);
+        --spinner-size: calc(var(--size-selector) * 4);
     }
 
     [data-scope="spinner"][data-part="root"][data-size="sm"] {
-        --spinner-size: calc(var(--size-field) * 0.42);
+        --spinner-size: calc(var(--size-selector) * 5);
     }
 
     [data-scope="spinner"][data-part="root"][data-size="lg"] {
-        --spinner-size: calc(var(--size-field) * 0.7);
+        --spinner-size: calc(var(--size-selector) * 7);
     }
 
     [data-scope="spinner"][data-part="root"][data-size="xl"] {
-        --spinner-size: calc(var(--size-field) * 0.9);
+        --spinner-size: calc(var(--size-selector) * 8);
     }
 
     @media (prefers-reduced-motion: reduce) {
