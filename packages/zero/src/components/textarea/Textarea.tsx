@@ -201,6 +201,7 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
             data-part="root"
             {...fc.flags()}
             data-readonly={dataAttr(fc.readonly())}
+            data-placeholder={dataAttr(!state.value)}
             {...fc.axisAttrs()}
             class={props.class}
         >

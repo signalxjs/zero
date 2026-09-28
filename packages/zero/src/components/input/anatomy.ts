@@ -25,11 +25,21 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * visible control is not a form control (a `<span>`) or not the canonical
  * value (a formatted number). An `<input type="text">` is both, so `name` goes
  * straight on it.
+ *
+ * `placeholder` (#416) flags `root` and `control` while the text is
+ * empty, the word Select already uses for "nothing chosen". It is what a
+ * floating label reads to rest inside the field. `:placeholder-shown` cannot
+ * stand in: it matches only when the input HAS a `placeholder` attribute,
+ * and a label resting in the field is exactly the case where it has none.
+ * It tracks the element on every keystroke, timing modifiers included. It
+ * is deliberately absent from `input`: reading the text there would
+ * re-render the native element per keystroke, and sigx re-binds the model on
+ * each render, which drops a pending `debounce`.
  */
 export const inputAnatomy = defineAnatomy('input', {
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'required', 'readonly'],
+        flags: ['disabled', 'invalid', 'required', 'readonly', 'placeholder'],
         tokens: ['color'],
     },
     label: {
@@ -42,7 +52,7 @@ export const inputAnatomy = defineAnatomy('input', {
     control: {
         element: 'div',
         parent: 'root',
-        flags: ['disabled', 'invalid', 'readonly', 'focus-visible'],
+        flags: ['disabled', 'invalid', 'readonly', 'focus-visible', 'placeholder'],
         tokens: ['color', 'radius-field', 'size'],
     },
     input: {

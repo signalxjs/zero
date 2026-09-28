@@ -368,6 +368,7 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
             data-invalid={dataAttr(invalid())}
             data-required={dataAttr(ctx.required())}
             data-readonly={dataAttr(readonly())}
+            data-placeholder={dataAttr(ctx.text.value === '')}
             {...fc.axisAttrs()}
             class={props.class}
         >
@@ -426,6 +427,7 @@ const NumberInputControl = component<NumberInputControlProps>(({ props, slots })
             data-disabled={dataAttr(ctx.disabled())}
             data-invalid={dataAttr(ctx.invalid())}
             data-readonly={dataAttr(ctx.readonly())}
+            data-placeholder={dataAttr(ctx.text.value === '')}
             data-focus-visible={dataAttr(ctx.focusVisible.value)}
             class={props.class}
         >
