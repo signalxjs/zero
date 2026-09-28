@@ -205,6 +205,17 @@ describe('the box recipe', () => {
     });
 });
 
+describe('Container', () => {
+    it('is border-box, so its padding stays inside the column it is given', () => {
+        // zero ships no reset: in the content box, `inline-size: 100%` plus
+        // `pad` overflowed a column narrower than the measure by twice the
+        // padding (zero#445). It also makes `measure` the outer width.
+        const container = layoutRecipes(basicDS.tokens as TokensInput).find((r) => r.component === 'container')!;
+        expect((container.parts as Record<string, { base?: Record<string, unknown> }>)['root']!.base!['boxSizing'])
+            .toBe('border-box');
+    });
+});
+
 describe('the measure ramp', () => {
     it('resolves each rung through the design system\'s own --measure-* token', () => {
         const css = layoutCss(basicDS.tokens as TokensInput);

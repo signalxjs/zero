@@ -962,6 +962,7 @@
     }
 
     [data-scope="container"][data-part="root"] {
+        box-sizing: border-box;
         inline-size: 100%;
         max-inline-size: var(--l-measure);
         margin-inline: auto;

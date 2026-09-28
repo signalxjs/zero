@@ -537,6 +537,12 @@ function boxRecipe(tokens: TokensInput): RecipeInput {
  * The default `--l-measure` is `none`, so a Container with no `measure` is a
  * gutter-only wrapper rather than an accidentally narrow one — a page that
  * wants no bound should not have to say `measure="full"`.
+ *
+ * `box-sizing: border-box`, because zero ships no global reset: in the
+ * content box, `inline-size: 100%` plus `pad` made a padded Container in a
+ * column narrower than its measure overflow that column by twice its padding
+ * (zero#445). It also means `measure` is the Container's OUTER width, padding
+ * included — the usual reading of a max-width.
  */
 function containerRecipe(): RecipeInput {
     return {
@@ -550,6 +556,7 @@ function containerRecipe(): RecipeInput {
         parts: {
             root: {
                 base: {
+                    boxSizing: 'border-box',
                     inlineSize: '100%',
                     maxInlineSize: 'var(--l-measure)',
                     marginInline: 'auto',

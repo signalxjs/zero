@@ -224,6 +224,16 @@ const LayoutDemos = component(() => () => (
             </Box>
         </Container>
 
+        <p>
+            A Container is <code>border-box</code>: its padding sits inside the
+            measure, so a padded Container in a column narrower than its
+            measure still fits that column. This one is bounded by a 20rem
+            wrapper, well short of <code>lg</code>.
+        </p>
+        <div style="max-inline-size: 20rem">
+            <Container class={BOUND} measure="lg" pad="xl"><Box pad="sm">measure="lg" pad="xl"</Box></Container>
+        </div>
+
         <h3>Box</h3>
         <p>
             The tier's one scope that paints: a padded surface that takes a

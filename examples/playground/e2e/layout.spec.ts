@@ -240,6 +240,41 @@ test.describe('the layout tier resolves through the design system', () => {
         expect(coarse).not.toBe(tight);
     });
 
+    test('a padded Container stays inside a column narrower than its measure', async ({ page }) => {
+        // zero#445: zero ships no reset, so a content-box Container with
+        // `inline-size: 100%` and `pad` ran twice its padding past a column
+        // narrower than its measure. The demo wraps a `measure="lg" pad="xl"`
+        // Container in a 20rem column; its border box must stay inside that
+        // column's content box. Both extreme skins, since the padding rung is
+        // each skin's own.
+        for (const ds of [TIGHT, COARSE]) {
+            // A fresh page per skin: `bootPage` seeds the design system
+            // before load, so it cannot switch one already booted.
+            const fresh = await page.context().newPage();
+            await bootPage(fresh, 'layout', ds);
+            await fresh.setViewportSize({ width: 1600, height: 900 });
+            const container = rootLabelled(fresh, 'container', 'pad="xl"');
+            const box = await settledBox(container, `the padded container under ${ds}`);
+            const column = await settledBox(container.locator('xpath=..'), `its column under ${ds}`);
+            const { padStart, padEnd, ownPad } = await container.evaluate((el) => {
+                const parent = getComputedStyle(el.parentElement!);
+                const own = getComputedStyle(el);
+                return {
+                    padStart: parseFloat(parent.paddingLeft) + parseFloat(parent.borderLeftWidth),
+                    padEnd: parseFloat(parent.paddingRight) + parseFloat(parent.borderRightWidth),
+                    ownPad: parseFloat(own.paddingLeft) + parseFloat(own.paddingRight),
+                };
+            });
+            // Not vacuous: the Container really is padded inline…
+            expect(ownPad, `${ds} padding-inline`).toBeGreaterThan(0);
+            // …and its border box still fits the column's content box.
+            expect(box.x, `${ds} start edge`).toBeGreaterThanOrEqual(column.x + padStart - 1);
+            expect(box.x + box.width, `${ds} end edge`)
+                .toBeLessThanOrEqual(column.x + column.width - padEnd + 1);
+            await fresh.close();
+        }
+    });
+
     test('`prose` tracks the type, not the page', async ({ page }) => {
         // In `ch`, so it is a typographic measure. Asserting it is narrower
         // than `md` is what proves the rung resolved at all rather than
