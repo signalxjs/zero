@@ -80,6 +80,16 @@ by default, outlined with `variant="outlined"`.
 | Supporting and error text | `Field.Description` and `Field.Error` in body-small, 16dp in under a text field |
 | Density | the size axis sets the height (40 / 48 / 56 / 64 / 72dp, `md` = M3's 56), and the padding and label positions follow it |
 
+## M3 selection controls (#417)
+
+| M3 | How it lands |
+|---|---|
+| Checkbox: an 18dp box with a 2dp corner and a 2dp on-surface-variant outline (on-surface on hover), the stroked check drawn on, a 40dp state layer | `--checkbox-size` is 18dp at `md` (14 / 16 / 18 / 22 / 26 across the ramp), the corner is the `selector` radius, and the halo is 40/18 of the box |
+| Radio: a 20dp ring, a 10dp dot, a 40dp state layer | `--radio-size` is 20dp at `md` (16 / 18 / 20 / 24 / 28), and the halo is twice the ring |
+| Switch: a 52 × 32 track in surface-container-highest, the handle 16 → 24dp when selected and 28dp while pressed, on-surface-variant / primary-container on hover | the handle travels and grows on the fast spatial spring; the press and hover colours hang off the control's flags |
+| Slider (M3 Expressive): a 16dp track, a 4 × 44dp bar handle in a 6dp gap that narrows to 2dp while pressed, a stop indicator at the track's end, dot stops | `--slider-track-size` / `--slider-handle-size` / `--slider-handle-width` / `--slider-gap`, read by both projections (native and composed) and by the vertical rail. The size axis steps Expressive's tracks (8 / 12 / 16 / 24 / 40dp). The gap is painted with `--tf-surface` (#468). The inactive track stays surface-container-highest, not Expressive's secondary-container, which in the high-contrast schemes sits within 1.6:1 of primary. Stops take one ink and there is no value bubble (#490) |
+| Disabled | M3's explicit colours in place of an opacity fade: outlines, fills and handles at 38% on-surface, tracks at 12%, a selected checkbox's mark and a selected switch's handle in `surface` |
+
 ## What the recipes prove
 
 | Material | How it lands |
