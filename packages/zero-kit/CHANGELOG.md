@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-09-28
+
 ### Added
 
 - **`absorbable` on manifest parts (#493, part of #452).** The manifest
