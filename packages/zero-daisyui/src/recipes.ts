@@ -5639,11 +5639,18 @@ export const textarea: RecipeInput = {
     // lands on top of the 2px gap and paints one solid band. A fixed-height
     // box never re-lays out; this auto-height one does, as its native field
     // measures and grows. So the ring is spelled with one outset shadow and
-    // one inset shadow, which paint disjoint areas and cannot swap: the ring
+    // inset shadows, which paint areas the outset never reaches: the ring
     // just outside the box, the box's own border repainted as the base-100
-    // gap, and the hairline redrawn inside it by the inset spread, in the
+    // gap, and the hairline redrawn inside it by the edge inset's spread, in the
     // edge colour (`--textarea-edge`, the error colour while invalid). The
     // gap is the border's width instead of the web's 2px.
+    //
+    // Android paints inset shadows OVER the border, where iOS paints them
+    // under it (signalxjs/lynx#1230): the base-100 border vanished and the
+    // whole 2px inset showed as a grey band against the ring. So the gap is
+    // also drawn as a 1px base-100 inset stacked above the edge inset. On
+    // Android that inset is the gap. On iOS the border already covers it,
+    // whichever order the layers end up in, so iOS paints as before.
     targets: {
         lynx: {
             parts: {
@@ -5660,6 +5667,9 @@ export const textarea: RecipeInput = {
                             outline: 'none',
                             borderColor: 'var(--color-base-100)',
                             boxShadow: '0 0 0 2px var(--textarea-accent), '
+                                // The gap: the border's width in base-100,
+                                // for Android, which paints this over the border.
+                                + 'inset 0 0 0 1px var(--color-base-100), '
                                 // Twice the border (1px in every shipped
                                 // theme): the inner half shows as the hairline.
                                 + 'inset 0 0 0 2px var(--textarea-edge)',
