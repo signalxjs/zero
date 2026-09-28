@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### Changed — the combobox tag keyboard (#411)
+
+- **Tags take real focus.** Under `multiple`, `Combobox.Tag` is focusable but
+  out of the Tab order (`tabIndex=-1`, `aria-keyshortcuts="Backspace Delete"`).
+  From the input, the reading-start arrow at caret 0 focuses the last tag.
+  On a tag:
+  - the arrows move between tags, and past the last one back to the input;
+  - Home goes to the first tag, End to the input;
+  - Backspace removes the tag and focuses the previous one;
+  - Delete removes it and focuses the tag taking its place;
+  - Escape and ArrowDown/Up return to the input (the arrows open the list);
+  - a printable key returns to the input, where the character lands.
+
+  Arrows swap under `rtl`. The typed query survives the trip. Under
+  `readonly` the tags are still reachable, but nothing is removed.
+- **Backspace on an empty input takes two presses.** It used to remove the
+  last tag immediately. Now the first press focuses the tag and the second
+  removes it.
+- **`Combobox.TagRemove` left the Tab order.** It is a pointer affordance,
+  like the trigger.
+- **Anatomy.** `combobox.tag` gains the `focus-visible` flag, and all six
+  skins draw their focus ring on it.
+
 ## [0.11.0] - 2026-09-27
 
 ### Added — a governed `clearable` flag for the select (#387)
