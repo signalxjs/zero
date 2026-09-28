@@ -17,7 +17,7 @@ import { relative, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { JSXElement } from 'sigx';
-import { Button, Tooltip } from '@sigx/zero';
+import { Button, Collapsible, Tooltip } from '@sigx/zero';
 import type { PartProps } from '@sigx/zero';
 
 const componentsDir = resolve(import.meta.dirname, '../src/components');
@@ -56,6 +56,17 @@ const FIXTURES: Record<string, Fixture[]> = {
         scope: 'button',
         part: 'root',
         render: (lend) => <Button.Root lend={lend}>Archive</Button.Root>,
+    }],
+    // A host only in non-native mode: a native <summary> refuses `lend` (#453).
+    'collapsible/Collapsible.tsx': [{
+        scope: 'collapsible',
+        part: 'trigger',
+        render: (lend) => (
+            <Collapsible.Root native={false}>
+                <Collapsible.Trigger lend={lend}>Expand</Collapsible.Trigger>
+                <Collapsible.Panel>Body</Collapsible.Panel>
+            </Collapsible.Root>
+        ),
     }],
     'tooltip/Tooltip.tsx': [{
         scope: 'tooltip',

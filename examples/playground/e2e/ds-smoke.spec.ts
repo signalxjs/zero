@@ -21,7 +21,11 @@
  *      any author-origin `display` on the same element beats it. Every design
  *      system's recipe for `branch-content` emitted an unconditional
  *      `display: flex` into `@layer zero.recipes`, so collapsing a branch hid
- *      nothing in all six.
+ *      nothing in all six. `hidden="until-found"` (Collapsible's non-native
+ *      panel, #453) is the one exception, by design: the UA gives it
+ *      `content-visibility: hidden` so find-in-page can reveal it, and keeps
+ *      its box — so the claim there is that the design system collapses the
+ *      box to nothing.
  *   2. **No undeclared axis value is rendered.** No element carries a
  *      `data-color` / `data-size` / `data-variant` / `data-mod-*` the active
  *      design system's manifest does not declare. An unmatched axis attribute
@@ -223,12 +227,17 @@ interface Offender {
     text: string;
 }
 
-/** Every `[hidden]` part the UA rule failed to hide, with what it measured. */
+/**
+ * Every `[hidden]` part the UA rule failed to hide, with what it measured —
+ * and every `hidden="until-found"` part (never `display: none`, by design)
+ * whose box the design system left with a height.
+ */
 const sweep = (page: Page): Promise<Offender[]> => page.evaluate(() => {
     const out: Offender[] = [];
     for (const el of document.querySelectorAll<HTMLElement>('[data-scope][data-part][hidden]')) {
         const display = getComputedStyle(el).display;
         if (display === 'none') continue;
+        if (el.getAttribute('hidden')?.toLowerCase() === 'until-found' && el.getBoundingClientRect().height === 0) continue;
         out.push({
             scope: el.getAttribute('data-scope') ?? '',
             part: el.getAttribute('data-part') ?? '',

@@ -10,12 +10,14 @@ audit findings.
   - `tone` and `weight` axes;
   - `truncate`, `clamp`, `unread` and `compact` modifiers.
 - `src/baseline.ts`: zero-basic's recipes, copied by the scaffold and fitted
-  to this vocabulary.
+  to this vocabulary (plus zero-basic's later non-native collapsible rules,
+  #453).
 - `src/overrides.ts`: the patches this design system applies on top of that
   baseline, each via `extendRecipe`:
   - ghost overlay triggers;
   - the drawer as a flat sidebar rail;
   - the composer docked to a corner;
+  - a frameless collapsible, since a message's card is its surface (#453);
   - AA-clearing secondary ink.
 - `src/mail.ts`: the recipes for the kit's `mail-*` scopes.
 - `src/design-system.ts`: amendments to the generated layout tier and a

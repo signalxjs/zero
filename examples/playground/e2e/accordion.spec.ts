@@ -12,10 +12,17 @@
  *
  * Sampling happens inside the page, one entry per animation frame from the
  * click, because a Playwright round-trip per sample is slower than the exit.
+ *
+ * Collapsible's non-native mode (#453) gets the same claims where it has no
+ * `<details>` to lean on: a trigger lent onto a Button inside a Card header,
+ * a real tab stop that Enter, Space and a click toggle, a close that plays
+ * before the panel goes back to `hidden="until-found"`, and find-in-page
+ * reaching into the closed panel (a text fragment, which fires the same
+ * `beforematch`).
  */
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { demoLabelled, rootLabelled } from './demo';
+import { demoLabelled, partsOf, rootLabelled } from './demo';
 
 test.beforeEach(({ browserName }, testInfo) => {
     test.skip(
@@ -146,4 +153,100 @@ test('accordion: reopening mid-exit keeps the item open', async ({ page }) => {
     await page.waitForTimeout(600);
     expect(await t.evaluate((summary) => summary.closest('details')!.open)).toBe(true);
     await expect(t).toHaveAttribute('aria-expanded', 'true');
+});
+
+// ── Collapsible native={false} (#453) ──
+
+/** The Card-header demo: a non-native Collapsible around a Card. */
+const cardDisclosure = (page: Page) => rootLabelled(page, 'collapsible', 'Card header');
+const cardTrigger = (page: Page) => cardDisclosure(page).getByRole('button', { name: 'Show details' });
+const cardPanel = (page: Page) => partsOf(cardDisclosure(page), 'collapsible')('panel');
+
+test.describe('collapsible native={false} in a card header (#453)', () => {
+    test.beforeEach(async ({ page }) => {
+        await bootPage(page, 'collapsible', 'basic');
+    });
+
+    test('a div root, no stray "Details" summary, and the trigger is the Button it was lent to', async ({ page }) => {
+        const root = cardDisclosure(page);
+        expect(await root.evaluate((el) => el.tagName)).toBe('DIV');
+        // No <details>, so the browser inserts no default "Details" summary.
+        await expect(root.locator('details, summary')).toHaveCount(0);
+        await expect(root.getByText('Details', { exact: true })).toHaveCount(0);
+        const trigger = cardTrigger(page);
+        // One element, the Button's anatomy; the lent collapsible trigger
+        // renders no part of its own.
+        await expect(trigger).toHaveAttribute('data-scope', 'button');
+        await expect(partsOf(root, 'collapsible')('trigger')).toHaveCount(0);
+        await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+        await expect(trigger).toHaveAttribute('aria-controls', (await cardPanel(page).getAttribute('id'))!);
+        // Closed: hidden but findable, and the box the UA leaves it collapsed.
+        await expect(cardPanel(page)).toHaveAttribute('hidden', /.*/);
+        expect((await cardPanel(page).boundingBox())?.height ?? 0).toBe(0);
+        // `checkVisibility`: the text keeps a box under `content-visibility:
+        // hidden`, which Playwright's own visibility reads as visible.
+        expect(await cardPanel(page).getByText('tangerine quartz').evaluate((el) => el.checkVisibility())).toBe(false);
+    });
+
+    test('the trigger is a tab stop, and Enter, Space and a click toggle it', async ({ page }, testInfo) => {
+        const trigger = cardTrigger(page);
+        const panel = cardPanel(page);
+        // From the native demo's summary, the next tab stop is the Button.
+        // WebKit's Tab skips buttons unless "full keyboard access" is on;
+        // Alt+Tab is its full keyboard order.
+        await demoLabelled(page, 'collapsible', 'What is zero?')('trigger').focus();
+        await page.keyboard.press(testInfo.project.name === 'webkit' ? 'Alt+Tab' : 'Tab');
+        await expect(trigger).toBeFocused();
+
+        await page.keyboard.press('Enter');
+        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+        await expect(panel).not.toHaveAttribute('hidden');
+        await expect(panel.getByText('tangerine quartz')).toBeVisible();
+
+        await page.keyboard.press('Space');
+        await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+        await expect(panel).toHaveAttribute('hidden', /.*/);
+
+        await trigger.click();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+        await expect(panel.getByText('tangerine quartz')).toBeVisible();
+        await expect(panel).toHaveAccessibleName('Show details');
+    });
+
+    test('a close plays the panel exit before the panel is hidden again', async ({ page }) => {
+        const trigger = cardTrigger(page);
+        await trigger.click();
+        await expect(cardPanel(page)).toHaveAttribute('data-state', 'open');
+        // Past the entry transition, so the close starts from full height.
+        await page.waitForTimeout(500);
+        const { before, frames } = await trigger.evaluate(async (button: HTMLElement, count) => {
+            const panel = document.getElementById(button.getAttribute('aria-controls')!)!;
+            const start = panel.getBoundingClientRect().height;
+            button.click();
+            const out: { state: string | null; open: boolean; height: number }[] = [];
+            for (let i = 0; i < count; i++) {
+                await new Promise((r) => requestAnimationFrame(r));
+                out.push({
+                    state: panel.getAttribute('data-state'),
+                    // "open" here: the panel is not hidden yet.
+                    open: !panel.hasAttribute('hidden'),
+                    height: panel.getBoundingClientRect().height,
+                });
+            }
+            return { before: start, frames: out };
+        }, 40);
+        expectPlayedExit('collapsible native={false}', before, frames);
+    });
+
+    test('find-in-page reaches into the closed panel and opens it (beforematch)', async ({ page, browserName }) => {
+        test.skip(browserName !== 'chromium', 'text fragments and hidden="until-found" are Chromium-tested');
+        await expect(cardPanel(page)).toHaveAttribute('hidden', 'until-found');
+        // A text fragment runs the find-in-page reveal: `beforematch` on the
+        // until-found panel, which writes the model.
+        await page.goto('/#/collapsible:~:text=tangerine%20quartz');
+        await expect(cardTrigger(page)).toHaveAttribute('aria-expanded', 'true');
+        await expect(cardPanel(page)).toHaveAttribute('data-state', 'open');
+        await expect(cardPanel(page)).not.toHaveAttribute('hidden');
+        await expect(cardPanel(page).getByText('tangerine quartz')).toBeVisible();
+    });
 });

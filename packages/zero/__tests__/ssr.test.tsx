@@ -474,6 +474,33 @@ describe('SSR', () => {
         expect(input).toMatch(/\sinputmode="numeric"/i);
         expect(input).toMatch(/\spattern="\[0-9\]\+"/);
     });
+    // #453: the non-native mode server-renders its closed panel hidden but
+    // findable, and no <details> at all.
+    it('server-renders a non-native Collapsible as a div, a button and an until-found panel', async () => {
+        const html = await renderApp(
+            <Collapsible.Root native={false}>
+                <Collapsible.Trigger>Toggle</Collapsible.Trigger>
+                <Collapsible.Panel>Content</Collapsible.Panel>
+            </Collapsible.Root>,
+        );
+        expect(html).not.toMatch(/<details|<summary/);
+        expect(html).toMatch(/<div[^>]*data-scope="collapsible"[^>]*data-part="root"/);
+        const trigger = html.match(/<button[^>]*data-part="trigger"[^>]*>/)?.[0] ?? '';
+        expect(trigger).toMatch(/aria-expanded="false"/);
+        expect(trigger).toMatch(/type="button"/);
+        const panel = html.match(/<div[^>]*data-part="panel"[^>]*>/)?.[0] ?? '';
+        expect(panel).toMatch(/\shidden="until-found"/);
+        expect(trigger).toMatch(new RegExp(`aria-controls="${panel.match(/\sid="([^"]+)"/)?.[1]}"`));
+
+        const open = await renderApp(
+            <Collapsible.Root native={false} defaultOpen>
+                <Collapsible.Trigger>Toggle</Collapsible.Trigger>
+                <Collapsible.Panel>Content</Collapsible.Panel>
+            </Collapsible.Root>,
+        );
+        expect(open.match(/<div[^>]*data-part="panel"[^>]*>/)?.[0]).not.toMatch(/hidden/);
+    });
+
     // #270: the table's scroll region is optimistic about its caption only
     // when the app gave no name — an app-named table keeps that name on the
     // server rather than an IDREF to a caption that may not exist.

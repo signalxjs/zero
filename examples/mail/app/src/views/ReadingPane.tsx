@@ -1,7 +1,7 @@
 import { component } from 'sigx';
 import {
-    Avatar, Badge, Button, Card, Col, Container, Divider, EmptyState, Grid, HoverCard, Kbd, Menu, Row, Stack,
-    Textarea, Toggle, formatBytes,
+    Avatar, Badge, Button, Card, Col, Collapsible, Container, Divider, EmptyState, Grid, HoverCard, Kbd, Menu, Row,
+    Stack, Textarea, Toggle, formatBytes,
 } from '@sigx/zero';
 import { ActionButton, Heading, Icon, Shell, Text, Time, Toolbar } from '@sigx/zero-mail-kit';
 import type { IconName } from '@sigx/zero-mail-kit';
@@ -35,75 +35,79 @@ const Person = component<{ contact: Contact }>(({ props }) => () => {
 }, { name: 'Person' });
 
 /**
- * One message of the thread. Expanding is plain state rather than zero's
- * Collapsible: that renders `<details>`, whose trigger must be the
- * `<summary>`, so it cannot sit inside a Card header next to other controls
- * (#440).
+ * One message of the thread: a non-native Collapsible around its Card
+ * (#453), bound to `st.expanded` so "Expand all" still reaches it. The
+ * header's chevron action is the trigger — lent through the ActionButton's
+ * tooltip onto its Button, one element with `aria-expanded`/`aria-controls`
+ * — and the body is the panel.
  */
 const MessageCard = component<{ message: Message }>(({ props }) => () => {
     const m = props.message;
     const open = !!st.expanded[m.id];
-    const toggle = (): void => { st.expanded[m.id] = !open; };
     return (
-        <Card.Root variant={open ? 'outline' : 'soft'}>
-            <Card.Header>
-                <Row gap="md" align="start">
-                    <Avatar.Root size="md" color={m.from.color}><Avatar.Fallback>{initials(m.from.name)}</Avatar.Fallback></Avatar.Root>
-                    <Stack.Item grow>
-                        <Col gap="2xs">
-                            <Row gap="sm" align="baseline" wrap="wrap">
-                                <Text weight="semibold"><Person contact={m.from} /></Text>
-                                <Text size="sm" tone="muted">{`<${m.from.email}>`}</Text>
-                            </Row>
-                            {open ? (
-                                <Text size="sm" tone="muted" truncate>
-                                    {'to '}
-                                    {m.to.map((c, i) => <>{i > 0 ? ', ' : ''}<Person contact={c} /></>)}
-                                    {m.cc.length ? <>{', cc '}{m.cc.map((c, i) => <>{i > 0 ? ', ' : ''}<Person contact={c} /></>)}</> : null}
-                                </Text>
-                            ) : (
-                                <Text size="sm" tone="muted" truncate>{m.body.join(' ')}</Text>
-                            )}
-                        </Col>
-                    </Stack.Item>
-                    <Row gap="xs" align="center">
-                        {m.attachments.length ? <Icon name="paperclip" size="sm" tone="muted" label={`${m.attachments.length} attachments`} /> : null}
-                        <Time value={m.date} format={open ? 'long' : 'relative'} tone="muted" />
-                        <ActionButton icon={open ? 'chevron-down' : 'chevron-right'} label={open ? 'Collapse message' : 'Expand message'} pressed={open} onClick={toggle} />
-                    </Row>
-                </Row>
-            </Card.Header>
-            {open ? (
-                <Card.Body>
-                    <Col gap="md">
-                        {m.body.map((p) => <Text as="p">{p}</Text>)}
-                        {m.attachments.length ? (
-                            <Col gap="sm">
-                                <Divider.Root decorative />
-                                <Text size="sm" tone="muted" weight="medium">{`${m.attachments.length} attachment${m.attachments.length > 1 ? 's' : ''}`}</Text>
-                                <Grid.Root cols="auto" track="sm" gap="sm">
-                                    {m.attachments.map((a) => (
-                                        <Card.Root key={a.name} variant="outline" size="sm">
-                                            <Card.Body>
-                                                <Row gap="sm" align="center">
-                                                    <Icon name={ATTACHMENT_ICON[a.kind]} size="lg" tone={a.kind === 'pdf' ? 'error' : a.kind === 'image' ? 'accent' : 'info'} />
-                                                    <Stack.Item grow>
-                                                        <Col gap="none">
-                                                            <Text size="sm" weight="medium" truncate title={a.name}>{a.name}</Text>
-                                                            <Text size="xs" tone="muted">{formatBytes(a.size)}</Text>
-                                                        </Col>
-                                                    </Stack.Item>
-                                                </Row>
-                                            </Card.Body>
-                                        </Card.Root>
-                                    ))}
-                                </Grid.Root>
+        <Collapsible.Root native={false} model={() => st.expanded[m.id]}>
+            <Card.Root variant={open ? 'outline' : 'soft'}>
+                <Card.Header>
+                    <Row gap="md" align="start">
+                        <Avatar.Root size="md" color={m.from.color}><Avatar.Fallback>{initials(m.from.name)}</Avatar.Fallback></Avatar.Root>
+                        <Stack.Item grow>
+                            <Col gap="2xs">
+                                <Row gap="sm" align="baseline" wrap="wrap">
+                                    <Text weight="semibold"><Person contact={m.from} /></Text>
+                                    <Text size="sm" tone="muted">{`<${m.from.email}>`}</Text>
+                                </Row>
+                                {open ? (
+                                    <Text size="sm" tone="muted" truncate>
+                                        {'to '}
+                                        {m.to.map((c, i) => <>{i > 0 ? ', ' : ''}<Person contact={c} /></>)}
+                                        {m.cc.length ? <>{', cc '}{m.cc.map((c, i) => <>{i > 0 ? ', ' : ''}<Person contact={c} /></>)}</> : null}
+                                    </Text>
+                                ) : (
+                                    <Text size="sm" tone="muted" truncate>{m.body.join(' ')}</Text>
+                                )}
                             </Col>
-                        ) : null}
-                    </Col>
-                </Card.Body>
-            ) : null}
-        </Card.Root>
+                        </Stack.Item>
+                        <Row gap="xs" align="center">
+                            {m.attachments.length ? <Icon name="paperclip" size="sm" tone="muted" label={`${m.attachments.length} attachments`} /> : null}
+                            <Time value={m.date} format={open ? 'long' : 'relative'} tone="muted" />
+                            <Collapsible.Trigger asChild>
+                                {(c) => <ActionButton lend={c} icon={open ? 'chevron-down' : 'chevron-right'} label={open ? 'Collapse message' : 'Expand message'} />}
+                            </Collapsible.Trigger>
+                        </Row>
+                    </Row>
+                </Card.Header>
+                <Collapsible.Panel>
+                    <Card.Body>
+                        <Col gap="md">
+                            {m.body.map((p) => <Text as="p">{p}</Text>)}
+                            {m.attachments.length ? (
+                                <Col gap="sm">
+                                    <Divider.Root decorative />
+                                    <Text size="sm" tone="muted" weight="medium">{`${m.attachments.length} attachment${m.attachments.length > 1 ? 's' : ''}`}</Text>
+                                    <Grid.Root cols="auto" track="sm" gap="sm">
+                                        {m.attachments.map((a) => (
+                                            <Card.Root key={a.name} variant="outline" size="sm">
+                                                <Card.Body>
+                                                    <Row gap="sm" align="center">
+                                                        <Icon name={ATTACHMENT_ICON[a.kind]} size="lg" tone={a.kind === 'pdf' ? 'error' : a.kind === 'image' ? 'accent' : 'info'} />
+                                                        <Stack.Item grow>
+                                                            <Col gap="none">
+                                                                <Text size="sm" weight="medium" truncate title={a.name}>{a.name}</Text>
+                                                                <Text size="xs" tone="muted">{formatBytes(a.size)}</Text>
+                                                            </Col>
+                                                        </Stack.Item>
+                                                    </Row>
+                                                </Card.Body>
+                                            </Card.Root>
+                                        ))}
+                                    </Grid.Root>
+                                </Col>
+                            ) : null}
+                        </Col>
+                    </Card.Body>
+                </Collapsible.Panel>
+            </Card.Root>
+        </Collapsible.Root>
     );
 }, { name: 'MessageCard' });
 

@@ -4,13 +4,14 @@
  * not a bag, and a part that is not an opt-in host has no `lend` at all.
  * The hosts (#494): `Button.Root` takes a lent bag, `Tooltip.Trigger` takes
  * one too so lenders chain, and spreading a bag onto a zero component stays
- * an error (`ReservedByZero`) — `lend={p}` is the spelling.
+ * an error (`ReservedByZero`) — `lend={p}` is the spelling. Collapsible's
+ * trigger (#453) is a host for its non-native mode.
  *
  * No runtime: a regression here is a compile error in `pnpm test:types`.
  */
 import { component } from 'sigx';
 import type { JSXElement } from 'sigx';
-import { Button, Tabs, Tooltip } from '@sigx/zero';
+import { Button, Collapsible, Tabs, Tooltip } from '@sigx/zero';
 import type { PartProps, WithLend } from '@sigx/zero';
 
 const Host = component<WithLend>(() => () => null as unknown as JSXElement);
@@ -41,6 +42,18 @@ export const chained = (
             </Tooltip.Trigger>
         )}
     </Tooltip.Trigger>
+);
+
+export const collapsible = (
+    <Collapsible.Root native={false}>
+        <Tooltip.Trigger asChild>
+            {(t: PartProps) => (
+                <Collapsible.Trigger asChild lend={t}>
+                    {(c: PartProps) => <Button.Root lend={c} aria-label="Expand">v</Button.Root>}
+                </Collapsible.Trigger>
+            )}
+        </Tooltip.Trigger>
+    </Collapsible.Root>
 );
 
 // ── invalid ──

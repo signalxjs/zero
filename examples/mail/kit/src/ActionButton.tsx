@@ -11,11 +11,15 @@
  * the tooltip trigger it absorbs adds the hover/focus intent, the
  * `aria-describedby` and the anchor. A disabled action stays a tab stop
  * (`focusableWhenDisabled`), so its tooltip still says what it would do.
+ *
+ * `lend` hands another part's asChild bag on to the tooltip trigger, which
+ * is a lend host too — so a `Collapsible.Trigger asChild` can make the
+ * action a disclosure (#453) without a second element.
  */
 import { component } from 'sigx';
 import type { Define } from 'sigx';
 import { Button, Kbd, Tooltip } from '@sigx/zero';
-import type { Placement } from '@sigx/zero';
+import type { PartProps, Placement } from '@sigx/zero';
 import { Icon } from './Icon.js';
 import type { IconName } from './Icon.js';
 import type { Tone } from './Text.js';
@@ -31,11 +35,13 @@ export type ActionButtonProps =
     & Define.Prop<'tone', Tone, false>
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'size', 'xs' | 'sm' | 'md' | 'lg' | 'xl', false>
+    /** Another zero part's asChild bag, lent through the tooltip trigger (#452). */
+    & Define.Prop<'lend', PartProps, false>
     & Define.Event<'click', MouseEvent>;
 
 export const ActionButton = component<ActionButtonProps>(({ props, emit }) => () => (
     <Tooltip.Root placement={props.placement ?? 'bottom'} openDelay={500}>
-        <Tooltip.Trigger asChild>
+        <Tooltip.Trigger asChild lend={props.lend}>
             {(p) => (
                 <Button.Root
                     lend={p}

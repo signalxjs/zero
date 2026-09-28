@@ -499,6 +499,49 @@ declared, `prefers-reduced-motion: reduce`) closes at once; reopening
 mid-exit cancels it; find-in-page and fragment navigation still sync the
 model as above. Five of the six bundled skins animate it; brutalist cuts.
 
+**Collapsible's non-native mode** (#453). A `<summary>` only works as the
+first child of its `<details>`: nested anywhere else — in a Card header, a
+table row, a toolbar — the browser inserts a default "Details" summary, the
+nested one is not focusable, and the closed `<details>` hides the whole card
+with it. `native={false}` on `Collapsible.Root` switches the construction:
+
+- the root renders a `<div>` (no `open`, no `toggle`);
+- the trigger renders a `<button type="button" aria-expanded aria-controls>`
+  that can sit anywhere inside the root. It takes `asChild` and `lend`
+  (#452): its bag can go to a raw element or be lent on to a zero part, and
+  it is a lend host itself, so a tooltip chains through it. An asChild
+  element that does not click itself from Enter/Space (a `span`) gets both
+  keys from the trigger; a disabled root says `aria-disabled` there;
+- the panel renders `hidden="until-found"` while closed — hidden, but
+  findable: find-in-page and a text fragment fire `beforematch`, which opens
+  it through the model (a disabled root refuses, and the panel is hidden
+  again). The close plays exactly as in native mode, the panel held shown
+  until its exit has finished.
+
+```tsx
+<Collapsible.Root native={false} model={() => state.open}>
+    <Card.Root>
+        <Card.Header>
+            <Card.Title>Release notes</Card.Title>
+            <Collapsible.Trigger asChild>
+                {(c) => <Button.Root lend={c}>Show details</Button.Root>}
+            </Collapsible.Trigger>
+        </Card.Header>
+        <Collapsible.Panel><Card.Body>…</Card.Body></Collapsible.Panel>
+    </Card.Root>
+</Collapsible.Root>
+```
+
+`asChild` and `lend` throw in native mode, naming `native={false}`. The
+native default keeps what the non-native mode gives up: server-rendered HTML
+toggles with no JS. `native` is read once, at mount. The anatomy's
+`element` records the native default; the non-native elements are the
+documented alternative. A design system collapses the closed panel itself
+(`&[hidden]`: the UA gives `until-found` `content-visibility: hidden`, not
+`display: none`, so the box stays) and animates the open on the panel, since
+there is no `::details-content`; all six bundled skins do, and reset the
+UA button paint a `<summary>` never had. Accordion has no such mode yet.
+
 **A Tabs indicator can slide** (#283). `Tabs.Indicator` is an optional,
 `aria-hidden` span placed inside `Tabs.List`. It publishes the active tab's
 box as `--tabs-indicator-inset-inline-start`,
@@ -2145,8 +2188,9 @@ on. `lend` is a prop on the host, `asChild` stays the transport:
 </Tooltip.Trigger>
 ```
 
-The hosts today are `Button.Root` and `Tooltip.Trigger`; the other
-triggers become hosts in #495. A component author makes a
+The hosts today are `Button.Root`, `Tooltip.Trigger` and — in its
+non-native mode (#453) — `Collapsible.Trigger`; the other triggers become
+hosts in #495. A component author makes a
 part a host with `WithLend` and `mergePartProps(props.lend, ownBag)`
 (exported for that); an app never calls it.
 

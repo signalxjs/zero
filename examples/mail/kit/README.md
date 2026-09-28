@@ -11,7 +11,7 @@ contract helpers. Each is an entry in signalxjs/zero#440.
 | `Toolbar` | `role="toolbar"` with one roving tab stop over arbitrary zero children. |
 | `MailList`, `MailRow` | A virtualised list, built on zero's `createVirtualList` (a behavior only), with roving, open/toggle and a cursor. |
 | `Shell`, `Split` | A viewport-height frame, scrolling regions, `<main>`, and a resizable split view. |
-| `ActionButton` | A tooltip-labelled icon button that acts on click: a tooltip lent to a `Button.Root` (`lend`, #494), so it carries the button's paint, `loading` and `focusableWhenDisabled` (a disabled action keeps its tooltip). A convenience that bundles the icon, `aria-label`, shortcut hint and tooltip; it stands in for no gap. |
+| `ActionButton` | A tooltip-labelled icon button that acts on click: a tooltip lent to a `Button.Root` (`lend`, #494), so it carries the button's paint, `loading` and `focusableWhenDisabled` (a disabled action keeps its tooltip). A convenience that bundles the icon, `aria-label`, shortcut hint and tooltip; it stands in for no gap. Its `lend` prop passes another part's bag on through the tooltip trigger, so the reading pane's expand/collapse chevron is a `Collapsible.Trigger` (#453). |
 | `Hotkeys` | Document-level single-key shortcuts that respect editable targets and open popups. |
 
 `./fragment` is pure data: the `mail-*` anatomies as a manifest fragment for

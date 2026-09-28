@@ -1,6 +1,7 @@
 /**
  * Presence for a disclosure built on native `<details>` — Collapsible's root
- * and each Accordion item (#276).
+ * and each Accordion item (#276) — or, in Collapsible's non-native mode
+ * (#453), on a plain root whose panel hides with `hidden="until-found"`.
  *
  * Two jobs, both web-only DOM work run from the owner's mount scope:
  *
@@ -24,20 +25,29 @@
  * the exit plays — and keeps its `toggle` handler as it was: the platform's
  * own toggles (find-in-page, fragment navigation, #166) still go through the
  * model, and a close written here arrives already in agreement with it.
+ *
+ * Non-native (a root that is not a `<details>`): the panel renders
+ * `hidden="until-found"` unless `presence.shown()`, and the same exit plays
+ * on it before the attribute returns. "Rendered" then means the panel has no
+ * `hidden` attribute, where it meant `details.open`.
  */
 import { effect, signal, untrack } from 'sigx';
 import { createAnimatedExit, prefersReducedMotion } from './top-layer-exit.js';
 
 export interface DisclosurePresence {
-    /** The `<details>` element's rendered `open`: open, or still exiting. */
+    /**
+     * The `<details>` element's rendered `open` (non-native: the panel is
+     * not `hidden`): open, or still exiting.
+     */
     shown(): boolean;
     /** The panel's ref: its element, or null when it unmounts. */
     setPanel(el: HTMLElement | null): void;
     /**
      * From the owner's `onMounted`, run through its `mountScope()` — the
-     * effect this creates must stop with the owner.
+     * effect this creates must stop with the owner. The root: a
+     * `<details>`, or (non-native) the element that stands for it.
      */
-    mount(details: HTMLDetailsElement | null): void;
+    mount(root: HTMLElement | null): void;
     /** From the owner's `onUnmounted`: stop observing, drop a pending exit. */
     unmount(): void;
 }
@@ -50,12 +60,20 @@ export function createDisclosurePresence(opts: {
     const presence = signal({ shown: opts.isOpen() });
     const exit = createAnimatedExit({ immediate: prefersReducedMotion });
     let panel: HTMLElement | null = null;
-    let details: HTMLDetailsElement | null = null;
+    let root: HTMLElement | null = null;
     let observer: ResizeObserver | null = null;
 
+    const isDetails = (el: HTMLElement): el is HTMLDetailsElement => el.tagName === 'DETAILS';
+    /** Whether the panel is laid out: the `<details>` open, else no `hidden`. */
+    const rendered = (): boolean => {
+        if (!root || !panel) return false;
+        return isDetails(root) ? root.open : !panel.hasAttribute('hidden');
+    };
+
     const measure = (): void => {
-        // A closed <details> skips its content's layout: nothing to read.
-        if (!panel || !details?.open) return;
+        // A closed <details> (a hidden panel) skips its content's layout:
+        // nothing to read.
+        if (!panel || !rendered()) return;
         panel.style.setProperty(`${opts.prefix}-height`, `${panel.scrollHeight}px`);
         panel.style.setProperty(`${opts.prefix}-width`, `${panel.scrollWidth}px`);
     };
@@ -68,7 +86,7 @@ export function createDisclosurePresence(opts: {
             if (el && observer) observer.observe(el);
         },
         mount(el) {
-            details = el;
+            root = el;
             if (typeof ResizeObserver === 'function') {
                 // Only while open: during the exit the panel shrinks, and the
                 // measurement taken at its start is the one the exit reads.
@@ -85,9 +103,9 @@ export function createDisclosurePresence(opts: {
                         return;
                     }
                     if (!presence.shown) return;
-                    const node = details;
+                    const node = root;
                     const target = panel;
-                    if (!node || !target || !node.open) {
+                    if (!node || !target || !rendered()) {
                         presence.shown = false;
                         return;
                     }
@@ -97,7 +115,8 @@ export function createDisclosurePresence(opts: {
                         // Written directly as well as through the render: the
                         // exit's last frame and the close must land together,
                         // or the panel paints back at full size in between.
-                        node.open = false;
+                        if (isDetails(node)) node.open = false;
+                        else target.setAttribute('hidden', 'until-found');
                         presence.shown = false;
                     });
                 });

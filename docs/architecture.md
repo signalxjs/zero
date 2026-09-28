@@ -335,7 +335,11 @@ state-legibility guard reads it from the manifest instead of carrying a
 hardcoded exemption list. Every entry must be one of the part's own `states`,
 and a part the runtime never hides omits the key — the schema rejects an
 empty array, since a key claiming nothing reads as a fact where there is
-none.
+none. `hidden="until-found"` is not that `hidden`: the UA gives it
+`content-visibility: hidden` and keeps the box, so the part still paints
+and a recipe still collapses it — Collapsible's non-native panel (#453)
+declares no `hiddenIn`, `expectAnatomy` skips the value, and base.css's
+`[hidden]` guard exempts it.
 
 **`paint` is an audit fact (#31).** A part whose job is paint rather than
 text — checkbox's `indicator`, switch's `thumb`, the rating star, the
@@ -377,7 +381,7 @@ in a spread. The host merges the two bags with `mergePartProps(outer, own)`:
 | everything else | host wins, `class` concatenates |
 
 Hosts are opt-in: `Button.Root`, and `Tooltip.Trigger` so lenders chain
-(#494). `__tests__/lend-hosts.test.tsx` finds every host by the `WithLend`
+(#494), and `Collapsible.Trigger` in its non-native mode (#453). `__tests__/lend-hosts.test.tsx` finds every host by the `WithLend`
 in its props, fails when a host has no render fixture (or a fixture's
 component stopped being one), and renders each with a probe bag: the host
 keeps its scope and part, joins the lent `aria-describedby`, fires the lent
@@ -386,7 +390,12 @@ handler and hands the lent ref its element.
 A part that may lend declares **`absorbable: true`** — presence-only, like
 `visuallyHidden`: `tooltip.trigger`, `menu.trigger`, `menu.context-trigger`,
 `popover.trigger`, `popover.close`, `dialog.trigger`, `dialog.close`,
-`dialog.cancel` and `hover-card.trigger` (#493). Not the Drawer's trigger or
+`dialog.cancel` and `hover-card.trigger` (#493), and `collapsible.trigger`
+(#453) — absorbable only in the Collapsible's non-native mode
+(`native={false}`: a `<div>` root, a `<button>` trigger, a
+`hidden="until-found"` panel), since a native `<summary>` must be its
+`<details>`' first child; the anatomy's `element` records the native
+default. Not the Drawer's trigger or
 close: the responsive trigger hides itself through its own layout attribute
 when docked. Absorbed, the part renders no `[data-scope][data-part]` element
 of its own, so its states and flags are never painted and **an absorbed
@@ -418,8 +427,8 @@ of a silent fall-through to the open unions.
 **Enforcement.** `expectAnatomy` (`@sigx/zero/testing`) is the assertion
 zero's own suite runs and ecosystem packages are told to run: declared parts
 only, states from the closed set, flags declared and presence-only,
-`data-placement` from the declared subset, `hidden` exactly where `hiddenIn`
-says, and the declared `parent` present among same-scope ancestors. Custom
+`data-placement` from the declared subset, `hidden` (other than
+`until-found`) exactly where `hiddenIn` says, and the declared `parent` present among same-scope ancestors. Custom
 axes must be passed in explicitly (`{ axes: ['emphasis'] }`) and are checked
 for grammar and non-collision with the contract. Runner-agnostic — it throws
 a plain `Error`.

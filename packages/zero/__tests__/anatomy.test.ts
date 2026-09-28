@@ -261,6 +261,8 @@ describe('anatomy registry', () => {
             }
         }
         expect(absorbable.sort()).toEqual([
+            // Non-native mode only (#453): a <summary> cannot be lent.
+            'collapsible.trigger',
             'dialog.cancel', 'dialog.close', 'dialog.trigger',
             'hover-card.trigger',
             'menu.context-trigger', 'menu.trigger',
