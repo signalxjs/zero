@@ -244,16 +244,28 @@ const SWIPE = 'translate(var(--swipe-x, 0px), var(--swipe-y, 0px))';
  * `overlay` is Chromium-only as of writing; elsewhere the entry still animates
  * and the exit is instant.
  */
+const popupTempo = (duration: string, ease: string): string =>
+    `opacity ${duration} ${ease}, transform ${duration} ${ease}, `
+    + `display ${duration} allow-discrete, overlay ${duration} allow-discrete`;
+
+/**
+ * M3's enter/exit pair (#418): a surface arrives on emphasized-decelerate
+ * over medium4 (400ms) and leaves on emphasized-accelerate over short4
+ * (200ms) — the transition on `open` is the entry, the base one the exit.
+ */
 const popupPresence = (from: string): PartStyles => ({
     base: {
         opacity: '0',
         transform: from,
-        transition: 'opacity var(--duration-medium2) var(--ease-emphasized), '
-            + 'transform var(--duration-medium2) var(--ease-emphasized), '
-            + 'display var(--duration-medium2) allow-discrete, '
-            + 'overlay var(--duration-medium2) allow-discrete',
+        transition: popupTempo('var(--duration-short4)', 'var(--ease-emphasized-accelerate)'),
     },
-    states: { open: { opacity: '1', transform: 'none' } },
+    states: {
+        open: {
+            opacity: '1',
+            transform: 'none',
+            transition: popupTempo('var(--duration-medium4)', 'var(--ease-emphasized-decelerate)'),
+        },
+    },
     at: {
         'starting-style': { states: { open: { opacity: '0', transform: from } } },
         'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
@@ -1174,14 +1186,45 @@ export const accordion: RecipeInput = {
  */
 const outlinedTrigger: CssProps = {
     appearance: 'none',
-    borderRadius: '624rem',
-    border: 'var(--border) solid var(--color-outline)',
+    boxSizing: 'border-box',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    // Phase 2's outlined button (#415/#418): the Expressive ramp's metrics,
+    // an outline-variant hairline, and on-surface-variant ink unless a
+    // `color` rebinds `--overlay-accent` — on the trigger itself, the
+    // carrier part of these rootless scopes.
+    ...buttonStep('sm'),
+    blockSize: 'var(--btn-height)',
+    paddingInline: 'var(--btn-pad)',
+    gap: 'var(--btn-gap)',
+    borderRadius: 'calc(var(--btn-height) / 2)',
+    border: 'var(--btn-outline) solid var(--color-outline-variant)',
     background: 'transparent',
-    // `--overlay-accent` is declared in each wearing recipe's `tokens:` and
-    // lands on the trigger itself — the carrier part of these rootless
-    // scopes — so `variants.color` below only rebinds it.
-    color: 'var(--overlay-accent)',
-    padding: 'var(--space-xs) var(--space-lg)',
+    color: 'var(--overlay-accent, var(--color-surface-variant-content))',
+    whiteSpace: 'nowrap',
+    cursor: 'pointer',
+};
+
+/** The ink an overlay trigger's state layer and ripple take: its label's. */
+const overlayInk = 'var(--overlay-accent, var(--color-surface-variant-content))';
+
+/**
+ * M3's text button, the dismiss actions' shape (dialog close and cancel,
+ * popover and drawer close): 40dp, 12dp in, the primary label.
+ */
+const textAction: CssProps = {
+    appearance: 'none',
+    boxSizing: 'border-box',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    blockSize: dp(40),
+    paddingInline: 'var(--space-sm)',
+    border: 'none',
+    background: 'transparent',
+    color: 'var(--color-primary)',
+    borderRadius: dp(20),
     ...label,
     cursor: 'pointer',
 };
@@ -1193,10 +1236,16 @@ const outlinedTrigger: CssProps = {
  * press layers — so without this a disabled trigger kept its full accent and
  * a pointer cursor.
  */
-const disabledFade: CssProps = { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' };
+const disabledFade: CssProps = {
+    // M3's disabled button colours (#418), as Button wears them (#415):
+    // the label at 38% on-surface, the outline at 12%.
+    color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+    borderColor: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+    cursor: 'not-allowed',
+};
 
-/** What every outlined-trigger recipe declares — the accent's resting value. */
-const overlayTriggerTokens = { '--overlay-accent': 'var(--color-primary)' };
+/** What every outlined-trigger recipe declares: nothing — unset, the ink is on-surface-variant. */
+const overlayTriggerTokens = {};
 
 /**
  * The axes for the outlined overlay triggers (#321). Dialog, popover,
@@ -1212,14 +1261,13 @@ const overlayTriggerColors = (): Record<string, Record<string, PartStyles>> =>
         '--overlay-accent': `var(--color-${c})`,
     } } }]));
 
+// The button's Expressive ramp (#415): `sm` (40dp) is the un-attributed render.
 const overlayTriggerSizes: Record<string, Record<string, PartStyles>> = {
-    xs: { trigger: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
-    sm: { trigger: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
-    // `md` is the un-attributed render — `outlinedTrigger` already IS the
-    // button ramp's middle step.
-    md: {},
-    lg: { trigger: { base: { padding: 'var(--space-sm) var(--space-xl)', fontSize: 'var(--text-md)' } } },
-    xl: { trigger: { base: { padding: 'var(--space-md) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
+    xs: { trigger: { base: buttonStep('xs') } },
+    sm: {},
+    md: { trigger: { base: buttonStep('md') } },
+    lg: { trigger: { base: buttonStep('lg') } },
+    xl: { trigger: { base: buttonStep('xl') } },
 };
 
 // ── Dialog ────────────────────────────────────────────────────────────────
@@ -1227,7 +1275,7 @@ export const dialog: RecipeInput = {
     component: 'dialog',
     tokens: overlayTriggerTokens,
     parts: {
-        trigger: withPresence(pressable('dialog', 'var(--overlay-accent)'), {
+        trigger: withPresence(pressable('dialog', overlayInk), {
             base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
@@ -1250,12 +1298,15 @@ export const dialog: RecipeInput = {
                 border: 'none',
                 borderRadius: '0',
                 boxShadow: 'none',
+                '--tf-surface': 'var(--color-surface-container-high)',
             },
             states: { open: {}, closed: {} },
             at: {
                 sm: {
                     base: {
                         width: 'calc(100% - var(--space-2xl))',
+                        // M3's basic dialog: 280-560dp wide.
+                        minWidth: `min(${dp(280)}, calc(100% - var(--space-2xl)))`,
                         maxWidth: '35rem',
                         // `auto` stretches an inset-positioned modal to fill; `fit-content`
                         // is the UA's own dialog default and hugs the content (#114).
@@ -1268,7 +1319,7 @@ export const dialog: RecipeInput = {
             },
         }),
         backdrop: {
-            base: { background: 'oklch(0% 0 0 / 0.32)' },
+            base: { background: 'color-mix(in oklch, var(--color-scrim) 32%, transparent)' },
             states: { open: {}, closed: {} },
         },
         title: {
@@ -1298,31 +1349,13 @@ export const dialog: RecipeInput = {
             },
         },
         close: withPresence(pressable('dialog'), {
-            base: {
-                appearance: 'none',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--color-primary)',
-                borderRadius: '624rem',
-                padding: 'var(--space-xs) var(--space-lg)',
-                ...label,
-                cursor: 'pointer',
-            },
+            base: textAction,
             states: { disabled: disabledFade, ...focusRing },
         }),
         // The alertdialog's least-destructive action — Material's text
         // button, same as close (M3 gives both dialog actions text style).
         cancel: withPresence(pressable('dialog'), {
-            base: {
-                appearance: 'none',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--color-primary)',
-                borderRadius: '624rem',
-                padding: 'var(--space-xs) var(--space-lg)',
-                ...label,
-                cursor: 'pointer',
-            },
+            base: textAction,
             states: { disabled: disabledFade, ...focusRing },
         }),
     },
@@ -1341,7 +1374,41 @@ export const dialog: RecipeInput = {
  */
 const growFromAnchor: CssProps = { transformOrigin: 'var(--transform-origin, center)' };
 
-const floating: CssProps = { ...raised('level2'), padding: 'var(--space-xs)', ...growFromAnchor };
+/**
+ * M3's menu surface (#418): surface-container at level 2 on the extra-small
+ * corner, 8dp above and below the full-width items. Menus, the select's and
+ * combobox's listboxes and submenus all wear it.
+ */
+const floating: CssProps = {
+    background: 'var(--color-surface-container)',
+    color: 'var(--color-surface-container-content)',
+    border: 'none',
+    borderRadius: 'var(--radius-extra-small)',
+    boxShadow: 'var(--shadow-level2)',
+    paddingBlock: 'var(--space-xs)',
+    paddingInline: '0',
+    ...growFromAnchor,
+};
+
+/**
+ * M3's rich tooltip (#418) — what Popover and HoverCard are here:
+ * surface-container at level 2 on the medium corner, 12dp over 8dp and 16dp
+ * in, a title-small subhead and body-medium supporting text, both
+ * on-surface-variant, at most 320dp wide.
+ */
+const richTooltip: CssProps = {
+    background: 'var(--color-surface-container)',
+    color: 'var(--color-surface-variant-content)',
+    border: 'none',
+    borderRadius: 'var(--radius-medium)',
+    boxShadow: 'var(--shadow-level2)',
+    paddingBlockStart: 'var(--space-sm)',
+    paddingBlockEnd: 'var(--space-xs)',
+    paddingInline: 'var(--space-md)',
+    maxInlineSize: dp(320),
+    ...type('body-medium'),
+    ...growFromAnchor,
+};
 
 /**
  * The arrow a floating surface grows toward its anchor (#279). Material's
@@ -1371,36 +1438,28 @@ export const popover: RecipeInput = {
     component: 'popover',
     tokens: overlayTriggerTokens,
     parts: {
-        trigger: withPresence(pressable('popover', 'var(--overlay-accent)'), {
+        trigger: withPresence(pressable('popover', overlayInk), {
             base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
         popup: withPresence(popupPresence('scale(0.9)'), {
-            base: { ...floating, padding: 'var(--space-md)', maxWidth: '20rem' },
+            base: { ...richTooltip, '--tf-surface': 'var(--color-surface-container)' },
             states: { open: {}, closed: {} },
             selectors: popupArrowHost('popover'),
         }),
-        title: { base: { margin: '0 0 var(--space-xs)', fontWeight: 'var(--weight-medium)' } },
-        // The rich tooltip's supporting text: body-medium in the variant ink.
+        // The rich tooltip's subhead and supporting text.
+        title: { base: { margin: '0 0 var(--space-2xs)', ...type('title-small') } },
         description: {
             base: {
-                margin: '0 0 var(--space-sm)',
-                fontSize: 'var(--text-sm)',
-                lineHeight: 'var(--leading-normal)',
+                margin: '0 0 var(--space-xs)',
+                ...type('body-medium'),
                 color: 'var(--color-surface-variant-content)',
             },
         },
-        arrow: surfaceArrow('popover', 'var(--color-surface-container-high)'),
+        arrow: surfaceArrow('popover', 'var(--color-surface-container)'),
+        // The rich tooltip's action: a text button.
         close: withPresence(pressable('popover'), {
-            base: {
-                appearance: 'none',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--color-primary)',
-                borderRadius: 'var(--radius-extra-small)',
-                cursor: 'pointer',
-                ...label,
-            },
+            base: textAction,
             states: { disabled: disabledFade, ...focusRing },
         }),
     },
@@ -1430,19 +1489,24 @@ export const tooltip: RecipeInput = {
             states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         },
         popup: withPresence(popupPresence('scale(0.85)'), {
+            // M3's plain tooltip: inverse-surface, body-small, 24dp tall at
+            // least, 4 x 8dp in, at most 200dp wide, no elevation.
             base: {
-                background: 'var(--color-neutral)',
-                color: 'var(--color-neutral-content)',
+                boxSizing: 'border-box',
+                background: 'var(--color-inverse-surface)',
+                color: 'var(--color-inverse-surface-content)',
                 borderRadius: 'var(--radius-extra-small)',
-                padding: 'var(--space-2xs) var(--space-xs)',
-                fontSize: 'var(--text-xs)',
-                boxShadow: 'var(--shadow-level1)',
+                minBlockSize: dp(24),
+                maxInlineSize: dp(200),
+                paddingBlock: 'var(--space-2xs)',
+                paddingInline: 'var(--space-xs)',
+                ...type('body-small'),
                 ...growFromAnchor,
             },
             states: { open: {}, closed: {} },
             selectors: popupArrowHost('tooltip'),
         }),
-        arrow: surfaceArrow('tooltip', 'var(--color-neutral)'),
+        arrow: surfaceArrow('tooltip', 'var(--color-inverse-surface)'),
     },
     // Trigger-carried axes — same wiring as dialog, same reason. The bubble
     // stays Material's inverse-surface tooltip whatever the trigger's colour.
@@ -1477,17 +1541,11 @@ export const hoverCard: RecipeInput = {
             },
         },
         popup: withPresence(popupPresence('scale(0.9)'), {
-            base: {
-                ...floating,
-                padding: 'var(--space-md)',
-                maxWidth: '20rem',
-                fontSize: 'var(--text-sm)',
-                lineHeight: 'var(--leading-normal)',
-            },
+            base: { ...richTooltip, '--tf-surface': 'var(--color-surface-container)' },
             states: { open: {}, closed: {} },
             selectors: popupArrowHost('hover-card'),
         }),
-        arrow: surfaceArrow('hover-card', 'var(--color-surface-container-high)'),
+        arrow: surfaceArrow('hover-card', 'var(--color-surface-container)'),
     },
     // Trigger-carried axes: colour is the link's ink, size its type.
     variants: {
@@ -1513,7 +1571,7 @@ export const menu: RecipeInput = {
     component: 'menu',
     tokens: overlayTriggerTokens,
     parts: {
-        trigger: withPresence(pressable('menu', 'var(--overlay-accent)'), {
+        trigger: withPresence(pressable('menu', overlayInk), {
             base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
@@ -1522,16 +1580,18 @@ export const menu: RecipeInput = {
             states: { open: {}, closed: {} },
             selectors: popupArrowHost('menu'),
         }),
-        arrow: surfaceArrow('menu', 'var(--color-surface-container-high)'),
+        arrow: surfaceArrow('menu', 'var(--color-surface-container)'),
         // The popup keeps no overflow clip; the item's own clips its ripple.
         item: withPresence(pressable('menu'), {
             base: {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
-                padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-extra-small)',
-                fontSize: 'var(--text-sm)',
+                // M3's menu item: 48dp, 12dp in, label-large, full width.
+                minBlockSize: dp(48),
+                boxSizing: 'border-box',
+                paddingInline: 'var(--space-sm)',
+                ...type('label-large'),
                 cursor: 'pointer',
                 transition: motion('background'),
             },
@@ -1550,9 +1610,11 @@ export const menu: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
-                padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-extra-small)',
-                fontSize: 'var(--text-sm)',
+                // M3's menu item: 48dp, 12dp in, label-large, full width.
+                minBlockSize: dp(48),
+                boxSizing: 'border-box',
+                paddingInline: 'var(--space-sm)',
+                ...type('label-large'),
                 cursor: 'pointer',
                 transition: motion('background'),
             },
@@ -1568,9 +1630,11 @@ export const menu: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
-                padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-extra-small)',
-                fontSize: 'var(--text-sm)',
+                // M3's menu item: 48dp, 12dp in, label-large, full width.
+                minBlockSize: dp(48),
+                boxSizing: 'border-box',
+                paddingInline: 'var(--space-sm)',
+                ...type('label-large'),
                 cursor: 'pointer',
                 transition: motion('background'),
             },
@@ -1602,9 +1666,11 @@ export const menu: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
-                padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-extra-small)',
-                fontSize: 'var(--text-sm)',
+                // M3's menu item: 48dp, 12dp in, label-large, full width.
+                minBlockSize: dp(48),
+                boxSizing: 'border-box',
+                paddingInline: 'var(--space-sm)',
+                ...type('label-large'),
                 cursor: 'pointer',
                 transition: motion('background'),
             },
@@ -1643,7 +1709,7 @@ export const menu: RecipeInput = {
             },
         },
         separator: {
-            base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-outline)' },
+            base: { height: 'var(--border)', margin: 'var(--space-xs) 0', background: 'var(--color-outline-variant)' },
         },
     },
     keyframes: rippleKeyframes('menu'),
@@ -1814,9 +1880,11 @@ export const select: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
-                padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-extra-small)',
-                fontSize: 'var(--text-sm)',
+                // M3's menu item: 48dp, 12dp in, label-large, full width.
+                minBlockSize: dp(48),
+                boxSizing: 'border-box',
+                paddingInline: 'var(--space-sm)',
+                ...type('label-large'),
                 cursor: 'pointer',
             },
             states: {
@@ -1833,7 +1901,7 @@ export const select: RecipeInput = {
         'item-indicator': { base: { color: 'inherit' } },
         // The menu's rule between runs of options (#280).
         separator: {
-            base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-outline)' },
+            base: { height: 'var(--border)', margin: 'var(--space-xs) 0', background: 'var(--color-outline-variant)' },
         },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0', pointerEvents: 'none' } },
     },
@@ -3275,7 +3343,8 @@ export const avatarGroup: RecipeInput = {
 export const toast: RecipeInput = {
     component: 'toast',
     tokens: {
-        '--toast-accent': 'var(--color-primary)',
+        // On the snackbar's inverse surface a role reads as its container.
+        '--toast-accent': 'var(--color-primary-container)',
         '--toast-from': '8px',
         '--toast-mark': '1rem',
     },
@@ -3310,9 +3379,17 @@ export const toast: RecipeInput = {
                 '&[data-placement="bottom-end"]': { bottom: '0', insetInlineEnd: '0', flexDirection: 'column-reverse' },
             },
         },
+        // M3's snackbar (#418): inverse-surface under inverse-on-surface at
+        // level 3, the extra-small corner, 48dp tall at least, body-medium,
+        // and an inverse-primary action.
         root: {
             base: {
-                ...raised('level3'),
+                background: 'var(--color-inverse-surface)',
+                color: 'var(--color-inverse-surface-content)',
+                border: 'none',
+                boxShadow: 'var(--shadow-level3)',
+                boxSizing: 'border-box',
+                minBlockSize: dp(48),
                 pointerEvents: 'auto',
                 display: 'grid',
                 // Four columns now: the status marker, the text, the action,
@@ -3321,10 +3398,11 @@ export const toast: RecipeInput = {
                 gridTemplateColumns: 'auto 1fr auto auto',
                 alignItems: 'center',
                 columnGap: 'var(--space-md)',
-                padding: 'var(--space-md) var(--space-lg)',
-                borderRadius: 'var(--radius-medium)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-sm)',
+                paddingBlock: 'var(--space-xs)',
+                paddingInlineStart: 'var(--space-md)',
+                paddingInlineEnd: 'var(--space-xs)',
+                borderRadius: 'var(--radius-extra-small)',
+                ...type('body-medium'),
                 opacity: '0',
                 transform: `${SWIPE} translateY(var(--toast-from))`,
                 // The swipe is the runtime's: no pan or pinch starts on a toast.
@@ -3347,6 +3425,9 @@ export const toast: RecipeInput = {
                     height: '0.625rem',
                     borderRadius: '50%',
                     background: 'var(--toast-accent)',
+                    // The role's container is no ink for the inverse surface
+                    // in every scheme; the ring keeps the mark findable.
+                    boxShadow: '0 0 0 2px var(--color-inverse-surface-content)',
                 },
                 // A promise toast's indicator takes the marker's column —
                 // the status IS the marker then, so the dot steps aside.
@@ -3365,7 +3446,7 @@ export const toast: RecipeInput = {
             },
         },
         // The promise status in the marker's column: M3's circular progress
-        // (the accent arc on its outline track) while pending, then a tick
+        // (the inverse-primary arc on its track) while pending, then a tick
         // or a cross.
         indicator: {
             base: {
@@ -3379,12 +3460,14 @@ export const toast: RecipeInput = {
             states: {
                 loading: {
                     borderRadius: '50%',
-                    border: 'calc(var(--border) * 2) solid var(--color-outline)',
-                    borderBlockStartColor: 'var(--toast-accent)',
+                    border: 'calc(var(--border) * 2) solid color-mix(in oklch, var(--color-inverse-surface-content) 38%, transparent)',
+                    borderBlockStartColor: 'var(--color-inverse-primary)',
                     animation: 'zero-material-toast-spin 0.7s linear infinite',
                 },
-                complete: { background: 'var(--color-success)', clipPath: TOAST_CHECK },
-                error: { background: 'var(--color-error)', clipPath: TOAST_CROSS },
+                // M3's snackbar is monochrome, and no role has an ink for the
+                // inverse surface: the glyph's shape carries the status.
+                complete: { background: 'var(--color-inverse-surface-content)', clipPath: TOAST_CHECK },
+                error: { background: 'var(--color-inverse-surface-content)', clipPath: TOAST_CROSS },
             },
             at: {
                 'reduced-motion': { states: { loading: { animation: 'none' } } },
@@ -3400,37 +3483,32 @@ export const toast: RecipeInput = {
             base: { gridColumn: '2', ...label },
         },
         description: {
-            base: {
-                gridColumn: '2',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-xs)',
-                color: 'var(--color-surface-variant-content)',
-            },
+            base: { gridColumn: '2', ...type('body-medium'), color: 'var(--color-inverse-surface-content)' },
         },
-        action: withPresence(pressable('toast', 'var(--toast-accent)'), {
+        action: withPresence(pressable('toast', 'var(--color-inverse-primary)'), {
             base: {
                 gridColumn: '3',
                 gridRow: '1',
                 appearance: 'none',
                 border: 'none',
                 background: 'transparent',
-                color: 'var(--toast-accent)',
-                borderRadius: '624rem',
-                padding: 'var(--space-2xs) var(--space-md)',
+                color: 'var(--color-inverse-primary)',
+                blockSize: dp(40),
+                borderRadius: dp(20),
+                paddingInline: 'var(--space-sm)',
                 ...label,
-                fontSize: 'var(--text-xs)',
                 cursor: 'pointer',
             },
             states: { disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' }, ...focusRing },
         }),
-        close: withPresence(pressable('toast', 'var(--color-surface-container-high-content)'), {
+        close: withPresence(pressable('toast', 'var(--color-inverse-surface-content)'), {
             base: {
                 gridColumn: '4',
                 gridRow: '1',
                 appearance: 'none',
                 border: 'none',
                 background: 'transparent',
-                color: 'var(--color-surface-container-high-content)',
+                color: 'var(--color-inverse-surface-content)',
                 borderRadius: '624rem',
                 padding: 'var(--space-2xs) var(--space-xs)',
                 ...label,
@@ -3443,7 +3521,7 @@ export const toast: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((role) => [
             role,
-            { root: { base: { '--toast-accent': `var(--color-${role})` } } },
+            { root: { base: { '--toast-accent': `var(--color-${role}-container)` } } },
         ])),
         // Size moves the snackbar's box — padding and type — never the
         // status marker. The description steps only at the wide end.
@@ -3622,9 +3700,11 @@ export const combobox: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
-                padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-extra-small)',
-                fontSize: 'var(--text-sm)',
+                // M3's menu item: 48dp, 12dp in, label-large, full width.
+                minBlockSize: dp(48),
+                boxSizing: 'border-box',
+                paddingInline: 'var(--space-sm)',
+                ...type('label-large'),
                 cursor: 'pointer',
             },
             states: {
@@ -3658,7 +3738,7 @@ export const combobox: RecipeInput = {
         },
         // The menu's rule between runs of options (#280).
         separator: {
-            base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-outline)' },
+            base: { height: 'var(--border)', margin: 'var(--space-xs) 0', background: 'var(--color-outline-variant)' },
         },
     },
     variants: {
@@ -4566,17 +4646,28 @@ export const card: RecipeInput = {
             '--card-accent': 'The accent colour.',
         },
     },
-    tokens: { '--card-pad': 'var(--space-lg)', '--card-accent': 'var(--color-primary)' },
+    tokens: {
+        // M3's 16dp card padding.
+        '--card-pad': 'var(--space-md)',
+        '--card-accent': 'var(--color-primary)',
+    },
     parts: {
+        // M3's card (#418): elevated, filled or outlined — the variant sets
+        // the fill, the elevation and the outline; the medium corner is
+        // common to all three. An outlined text field inside notches in the
+        // card's own fill (`--tf-surface`).
         root: {
             base: {
                 display: 'flex',
                 flexDirection: 'column',
-                background: 'var(--color-surface-container)',
-                color: 'var(--color-surface-container-content)',
-                borderRadius: 'var(--radius-extra-large)',
-                boxShadow: 'var(--shadow-level1)',
+                boxSizing: 'border-box',
+                background: 'var(--card-fill, var(--color-surface-container-low))',
+                color: 'var(--card-ink, var(--color-surface-container-low-content))',
+                border: '1px solid var(--card-outline, transparent)',
+                borderRadius: 'var(--radius-medium)',
+                boxShadow: 'var(--card-shadow, var(--shadow-level1))',
                 overflow: 'hidden',
+                '--tf-surface': 'var(--card-fill, var(--color-surface-container-low))',
             },
         },
         /**
@@ -4604,8 +4695,8 @@ export const card: RecipeInput = {
                 // The corners it shares with the card (#302): the root clips
                 // too, but an asChild <img> is the band itself and rounds on
                 // its own.
-                '&:first-child': { borderStartStartRadius: 'var(--radius-extra-large)', borderStartEndRadius: 'var(--radius-extra-large)' },
-                '&:last-child': { borderEndStartRadius: 'var(--radius-extra-large)', borderEndEndRadius: 'var(--radius-extra-large)' },
+                '&:first-child': { borderStartStartRadius: 'var(--radius-medium)', borderStartEndRadius: 'var(--radius-medium)' },
+                '&:last-child': { borderEndStartRadius: 'var(--radius-medium)', borderEndEndRadius: 'var(--radius-medium)' },
             },
         },
         header: {
@@ -4616,27 +4707,10 @@ export const card: RecipeInput = {
                 padding: 'var(--card-pad) var(--card-pad) 0',
             },
         },
-        title: {
-            base: {
-                margin: '0',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-lg)',
-                fontWeight: 'var(--weight-medium)',
-                letterSpacing: 'var(--tracking-wide)',
-                lineHeight: 'var(--leading-tight)',
-            },
-        },
-        description: {
-            base: {
-                margin: '0',
-                fontSize: 'var(--text-sm)',
-                color: 'var(--color-base-content)',
-                opacity: '0.78',
-            },
-        },
-        body: {
-            base: { padding: 'var(--card-pad)', fontSize: 'var(--text-md)', lineHeight: 'var(--leading-normal)' },
-        },
+        title: { base: { margin: '0', ...type('title-medium') } },
+        // On-surface-variant on a neutral card; a tonal card's own ink.
+        description: { base: { margin: '0', ...type('body-medium'), color: 'var(--card-subtle, var(--color-surface-variant-content))' } },
+        body: { base: { padding: 'var(--card-pad)', ...type('body-medium') } },
         footer: {
             base: {
                 display: 'flex',
@@ -4648,12 +4722,27 @@ export const card: RecipeInput = {
         },
     },
     variants: {
-        // Material tints an accented card through its border, not its fill:
-        // the tonal surface IS the card's colour, and re-tinting it would
-        // fight the elevation ramp it belongs to.
+        variant: {
+            elevated: {},
+            filled: { root: { base: {
+                '--card-fill': 'var(--color-surface-container-highest)',
+                '--card-ink': 'var(--color-surface-container-highest-content)',
+                '--card-shadow': 'var(--shadow-level0)',
+            } } },
+            outlined: { root: { base: {
+                '--card-fill': 'var(--color-surface)',
+                '--card-ink': 'var(--color-surface-content)',
+                '--card-outline': 'var(--color-outline-variant)',
+                '--card-shadow': 'var(--shadow-level0)',
+            } } },
+        },
+        // M3 has no coloured card; a role here is the tonal one — the
+        // role's container under its on-container ink, whatever the variant.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--card-accent': `var(--color-${c})`,
-            borderTop: `calc(var(--border) * 3) solid var(--card-accent)`,
+            '--card-fill': `var(--color-${c}-container)`,
+            '--card-ink': `var(--color-${c}-container-content)`,
+            '--card-subtle': `var(--color-${c}-container-content)`,
         } } }])),
         size: {
             xs: { root: { base: { '--card-pad': 'var(--space-sm)' } } },
@@ -4663,6 +4752,7 @@ export const card: RecipeInput = {
             xl: { root: { base: { '--card-pad': 'var(--space-2xl)' } } },
         },
     },
+    defaultVariants: { variant: 'elevated' },
 };
 
 /** Material's banner: the role's container and on-container ink, its outline. */
@@ -4937,7 +5027,8 @@ export const badge: RecipeInput = {
 /** Material's divider: the outline tone, at hairline weight. */
 export const divider: RecipeInput = {
     component: 'divider',
-    tokens: { '--divider-ink': 'var(--color-outline)', '--divider-thickness': 'var(--border)' },
+    // M3's divider: 1dp outline-variant (#418).
+    tokens: { '--divider-ink': 'var(--color-outline-variant)', '--divider-thickness': 'var(--border)' },
     parts: {
         root: {
             // The rule is two flex segments (#298), drawn as borders: with no
@@ -6553,7 +6644,7 @@ export const drawer: RecipeInput = {
     component: 'drawer',
     tokens: overlayTriggerTokens,
     parts: {
-        trigger: withPresence(pressable('drawer', 'var(--overlay-accent)'), {
+        trigger: withPresence(pressable('drawer', overlayInk), {
             base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
@@ -6561,12 +6652,16 @@ export const drawer: RecipeInput = {
             'var(--duration-medium2) var(--ease-emphasized-decelerate)',
             'var(--duration-medium2) var(--ease-emphasized-accelerate)',
         )), {
+            // M3's sheets (#418): surface-container-low, the large corner on
+            // a side sheet's inner edge, the extra-large on a bottom sheet's
+            // top, level 1 once modal.
             base: {
                 padding: 'var(--space-lg)',
-                background: 'var(--color-surface-container)',
-                color: 'var(--color-surface-container-content)',
+                background: 'var(--color-surface-container-low)',
+                color: 'var(--color-surface-container-low-content)',
                 border: 'none',
-                borderRadius: 'var(--radius-extra-large)',
+                borderRadius: 'var(--radius-large)',
+                '--tf-surface': 'var(--color-surface-container-low)',
                 // The width is capped by `--l-measure` (Drawer.Panel's
                 // `measure`, via the layout step table); this is the default
                 // an unset `measure` leaves. A cap, not a width, because the
@@ -6610,9 +6705,20 @@ export const drawer: RecipeInput = {
                     maxBlockSize: '100dvh',
                     margin: '0',
                     borderRadius: '0',
+                    boxShadow: 'var(--shadow-level1)',
                 },
-                '&[data-placement="start"][data-l-dock="sheet"]': { insetInlineStart: '0', insetInlineEnd: 'auto' },
-                '&[data-placement="end"][data-l-dock="sheet"]': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+                '&[data-placement="start"][data-l-dock="sheet"]': {
+                    insetInlineStart: '0',
+                    insetInlineEnd: 'auto',
+                    borderStartEndRadius: 'var(--radius-large)',
+                    borderEndEndRadius: 'var(--radius-large)',
+                },
+                '&[data-placement="end"][data-l-dock="sheet"]': {
+                    insetInlineStart: 'auto',
+                    insetInlineEnd: '0',
+                    borderStartStartRadius: 'var(--radius-large)',
+                    borderEndStartRadius: 'var(--radius-large)',
+                },
                 /**
                  * The block edges (#291): a sheet across the viewport's width,
                  * pinned with `inset-block-*` — nothing here mirrors in RTL. Its
@@ -6645,33 +6751,35 @@ export const drawer: RecipeInput = {
                     borderStartStartRadius: 'var(--radius-extra-large)',
                     borderStartEndRadius: 'var(--radius-extra-large)',
                 },
+                // M3's bottom-sheet drag handle: 32 x 4dp in on-surface-variant
+                // at 40%, centred 22dp below the top edge.
+                '&[data-placement="bottom"][data-l-dock="sheet"]::before': {
+                    content: '""',
+                    display: 'block',
+                    inlineSize: dp(32),
+                    blockSize: dp(4),
+                    marginInline: 'auto',
+                    marginBlockStart: 'calc(var(--space-md) - var(--space-lg) + var(--space-2xs))',
+                    marginBlockEnd: 'var(--space-md)',
+                    borderRadius: dp(2),
+                    background: 'color-mix(in oklch, var(--color-surface-variant-content) 40%, transparent)',
+                },
             },
         }),
         backdrop: {
-            base: { background: 'oklch(0% 0 0 / 0.32)' },
+            base: { background: 'color-mix(in oklch, var(--color-scrim) 32%, transparent)' },
             states: { open: {}, closed: {} },
         },
+        // A sheet's headline: title-large in on-surface-variant.
         title: {
             base: {
                 margin: '0 0 var(--space-md)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-md)',
-                fontWeight: 'var(--weight-medium)',
-                letterSpacing: 'var(--tracking-wide)',
+                ...type('title-large'),
                 color: 'var(--color-surface-variant-content)',
             },
         },
         close: withPresence(pressable('drawer'), {
-            base: {
-                appearance: 'none',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--color-primary)',
-                borderRadius: '624rem',
-                padding: 'var(--space-xs) var(--space-lg)',
-                ...label,
-                cursor: 'pointer',
-            },
+            base: textAction,
             states: { disabled: disabledFade, ...focusRing },
         }),
     },

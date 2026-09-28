@@ -1,24 +1,37 @@
 @layer zero.recipes {
     [data-scope="tooltip"][data-part="trigger"] {
-        --overlay-accent: var(--color-primary);
-    }
-
-    [data-scope="tooltip"][data-part="trigger"] {
         appearance: none;
-        border-radius: 624rem;
-        border: var(--border) solid var(--color-outline);
-        background: transparent;
-        color: var(--overlay-accent);
-        padding: var(--space-xs) var(--space-lg);
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        --btn-height: 2.5rem;
+        --btn-pad: 1rem;
+        --btn-icon: 1.25rem;
+        --btn-icon-only: 1.5rem;
+        --btn-gap: 0.5rem;
+        --btn-square: var(--radius-medium);
+        --btn-pressed: var(--radius-small);
+        --btn-outline: 1px;
         font-family: var(--font-sans);
         font-size: var(--text-label-large);
+        line-height: var(--leading-label-large);
         font-weight: var(--weight-medium);
         letter-spacing: var(--tracking-label-large);
+        block-size: var(--btn-height);
+        padding-inline: var(--btn-pad);
+        gap: var(--btn-gap);
+        border-radius: calc(var(--btn-height) / 2);
+        border: var(--btn-outline) solid var(--color-outline-variant);
+        background: transparent;
+        color: var(--overlay-accent, var(--color-surface-variant-content));
+        white-space: nowrap;
         cursor: help;
     }
 
     [data-scope="tooltip"][data-part="trigger"][data-disabled] {
-        opacity: var(--disabled-opacity);
+        color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+        border-color: color-mix(in oklch, var(--color-base-content) 12%, transparent);
         cursor: not-allowed;
     }
 
@@ -30,19 +43,27 @@
     [data-scope="tooltip"][data-part="popup"] {
         opacity: 0;
         transform: scale(0.85);
-        transition: opacity var(--duration-medium2) var(--ease-emphasized), transform var(--duration-medium2) var(--ease-emphasized), display var(--duration-medium2) allow-discrete, overlay var(--duration-medium2) allow-discrete;
-        background: var(--color-neutral);
-        color: var(--color-neutral-content);
+        transition: opacity var(--duration-short4) var(--ease-emphasized-accelerate), transform var(--duration-short4) var(--ease-emphasized-accelerate), display var(--duration-short4) allow-discrete, overlay var(--duration-short4) allow-discrete;
+        box-sizing: border-box;
+        background: var(--color-inverse-surface);
+        color: var(--color-inverse-surface-content);
         border-radius: var(--radius-extra-small);
-        padding: var(--space-2xs) var(--space-xs);
-        font-size: var(--text-xs);
-        box-shadow: var(--shadow-level1);
+        min-block-size: 1.5rem;
+        max-inline-size: 12.5rem;
+        padding-block: var(--space-2xs);
+        padding-inline: var(--space-xs);
+        font-family: var(--font-sans);
+        font-size: var(--text-body-small);
+        line-height: var(--leading-body-small);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-body-small);
         transform-origin: var(--transform-origin, center);
     }
 
     [data-scope="tooltip"][data-part="popup"][data-state="open"] {
         opacity: 1;
         transform: none;
+        transition: opacity var(--duration-medium4) var(--ease-emphasized-decelerate), transform var(--duration-medium4) var(--ease-emphasized-decelerate), display var(--duration-medium4) allow-discrete, overlay var(--duration-medium4) allow-discrete;
     }
 
     [data-scope="tooltip"][data-part="popup"]:has(> [data-scope="tooltip"][data-part="arrow"]) {
@@ -57,7 +78,7 @@
         height: 0.5rem;
         rotate: 45deg;
         pointer-events: none;
-        background: var(--color-neutral);
+        background: var(--color-inverse-surface);
         border: none;
     }
 
@@ -144,23 +165,67 @@
     }
 
     [data-scope="tooltip"][data-part="trigger"][data-size="xs"] {
-        padding: var(--space-2xs) var(--space-sm);
-        font-size: var(--text-xs);
+        --btn-height: 2rem;
+        --btn-pad: 0.75rem;
+        --btn-icon: 1.25rem;
+        --btn-icon-only: 1.25rem;
+        --btn-gap: 0.25rem;
+        --btn-square: var(--radius-medium);
+        --btn-pressed: var(--radius-small);
+        --btn-outline: 1px;
+        font-family: var(--font-sans);
+        font-size: var(--text-label-large);
+        line-height: var(--leading-label-large);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-label-large);
     }
 
-    [data-scope="tooltip"][data-part="trigger"][data-size="sm"] {
-        padding: var(--space-xs) var(--space-md);
-        font-size: var(--text-sm);
+    [data-scope="tooltip"][data-part="trigger"][data-size="md"] {
+        --btn-height: 3.5rem;
+        --btn-pad: 1.5rem;
+        --btn-icon: 1.5rem;
+        --btn-icon-only: 1.5rem;
+        --btn-gap: 0.5rem;
+        --btn-square: var(--radius-large);
+        --btn-pressed: var(--radius-medium);
+        --btn-outline: 1px;
+        font-family: var(--font-sans);
+        font-size: var(--text-title-medium);
+        line-height: var(--leading-title-medium);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-title-medium);
     }
 
     [data-scope="tooltip"][data-part="trigger"][data-size="lg"] {
-        padding: var(--space-sm) var(--space-xl);
-        font-size: var(--text-md);
+        --btn-height: 6rem;
+        --btn-pad: 3rem;
+        --btn-icon: 2rem;
+        --btn-icon-only: 2rem;
+        --btn-gap: 0.75rem;
+        --btn-square: var(--radius-extra-large);
+        --btn-pressed: var(--radius-large);
+        --btn-outline: 2px;
+        font-family: var(--font-sans);
+        font-size: var(--text-headline-small);
+        line-height: var(--leading-headline-small);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-headline-small);
     }
 
     [data-scope="tooltip"][data-part="trigger"][data-size="xl"] {
-        padding: var(--space-md) var(--space-2xl);
-        font-size: var(--text-lg);
+        --btn-height: 8.5rem;
+        --btn-pad: 4rem;
+        --btn-icon: 2.5rem;
+        --btn-icon-only: 2.5rem;
+        --btn-gap: 1rem;
+        --btn-square: var(--radius-extra-large);
+        --btn-pressed: var(--radius-large);
+        --btn-outline: 3px;
+        font-family: var(--font-sans);
+        font-size: var(--text-headline-large);
+        line-height: var(--leading-headline-large);
+        font-weight: var(--weight-normal);
+        letter-spacing: var(--tracking-headline-large);
     }
 
     @media (prefers-reduced-motion: reduce) {

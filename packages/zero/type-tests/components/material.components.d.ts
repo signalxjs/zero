@@ -358,12 +358,13 @@ type TextareaProps = {
 type TextareaAdapted = Adapted<typeof ZTextarea, ZeroAxisProp | 'variant', TextareaProps>;
 export declare const Textarea: TextareaAdapted & AdaptedStatics<typeof ZTextarea> & { Root: TextareaAdapted };
 
-/** card — no vendor route; the wired surface keeps zero's names. */
+/** card — variant ← variant. Attributes stay zero-spelled. */
 type CardProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    'variant'?: 'elevated' | 'filled' | 'outlined';
 };
-type CardAdapted = Adapted<typeof ZCard, ZeroAxisProp, CardProps>;
+type CardAdapted = Adapted<typeof ZCard, ZeroAxisProp | 'variant', CardProps>;
 export declare const Card: CardAdapted & AdaptedStatics<typeof ZCard> & { Root: CardAdapted };
 
 /** alert — no vendor route; the wired surface keeps zero's names. */

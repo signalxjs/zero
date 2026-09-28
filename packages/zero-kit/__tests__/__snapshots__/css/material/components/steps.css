@@ -168,22 +168,39 @@
         overflow: hidden;
         -webkit-tap-highlight-color: transparent;
         appearance: none;
-        border-radius: 624rem;
-        border: var(--border) solid var(--color-outline);
-        background: transparent;
-        color: var(--color-primary);
-        padding: var(--space-xs) var(--space-lg);
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        --btn-height: 2.5rem;
+        --btn-pad: 1rem;
+        --btn-icon: 1.25rem;
+        --btn-icon-only: 1.5rem;
+        --btn-gap: 0.5rem;
+        --btn-square: var(--radius-medium);
+        --btn-pressed: var(--radius-small);
+        --btn-outline: 1px;
         font-family: var(--font-sans);
         font-size: var(--text-label-large);
+        line-height: var(--leading-label-large);
         font-weight: var(--weight-medium);
         letter-spacing: var(--tracking-label-large);
+        block-size: var(--btn-height);
+        padding-inline: var(--btn-pad);
+        gap: var(--btn-gap);
+        border-radius: calc(var(--btn-height) / 2);
+        border: var(--btn-outline) solid var(--color-outline-variant);
+        background: transparent;
+        color: var(--color-primary);
+        white-space: nowrap;
         cursor: pointer;
         flex: 0 0 auto;
         align-self: flex-start;
     }
 
     [data-scope="steps"][data-part="prev-trigger"][data-disabled] {
-        opacity: var(--disabled-opacity);
+        color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+        border-color: color-mix(in oklch, var(--color-base-content) 12%, transparent);
         cursor: not-allowed;
     }
 
@@ -237,15 +254,31 @@
         overflow: hidden;
         -webkit-tap-highlight-color: transparent;
         appearance: none;
-        border-radius: 624rem;
-        border: var(--border) solid var(--color-outline);
-        background: transparent;
-        color: var(--color-primary);
-        padding: var(--space-xs) var(--space-lg);
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        --btn-height: 2.5rem;
+        --btn-pad: 1rem;
+        --btn-icon: 1.25rem;
+        --btn-icon-only: 1.5rem;
+        --btn-gap: 0.5rem;
+        --btn-square: var(--radius-medium);
+        --btn-pressed: var(--radius-small);
+        --btn-outline: 1px;
         font-family: var(--font-sans);
         font-size: var(--text-label-large);
+        line-height: var(--leading-label-large);
         font-weight: var(--weight-medium);
         letter-spacing: var(--tracking-label-large);
+        block-size: var(--btn-height);
+        padding-inline: var(--btn-pad);
+        gap: var(--btn-gap);
+        border-radius: calc(var(--btn-height) / 2);
+        border: var(--btn-outline) solid var(--color-outline-variant);
+        background: transparent;
+        color: var(--color-primary);
+        white-space: nowrap;
         cursor: pointer;
         flex: 0 0 auto;
         align-self: flex-start;
@@ -253,7 +286,8 @@
     }
 
     [data-scope="steps"][data-part="next-trigger"][data-disabled] {
-        opacity: var(--disabled-opacity);
+        color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+        border-color: color-mix(in oklch, var(--color-base-content) 12%, transparent);
         cursor: not-allowed;
     }
 
