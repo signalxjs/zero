@@ -4288,6 +4288,10 @@ export const toast: RecipeInput = {
                         // (signalxjs/lynx#1084), and a var-bearing shorthand
                         // would repaint the head after the cascade (#1161).
                         loading: {
+                            // The shared shorthand is dropped on lynx (its
+                            // track cannot bake); a static one here keeps it
+                            // that way should the shared value ever bake.
+                            border: '0 solid transparent',
                             borderStyle: 'solid',
                             ...lynxSides('border{}Width', 'calc(var(--border) * 2)'),
                             ...lynxSides('border{}Color', 'color-mix(in oklab, var(--color-base-content) 25%, transparent)', ['Right', 'Bottom', 'Left']),
