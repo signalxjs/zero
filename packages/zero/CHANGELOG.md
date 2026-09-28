@@ -40,6 +40,20 @@
   is a host too, so lenders chain. The README's Patterns section teaches
   the rule: a raw element spreads the bag, a zero component takes
   `lend={p}`.
+- **`Collapsible.Root` `native={false}` (#453).** A composable mode for a
+  disclosure whose trigger sits inside another part's layout (a Card
+  header): the root renders a `<div>`, the trigger a `<button
+  aria-expanded aria-controls>` anywhere inside it, with `asChild` and
+  `lend`, and the panel `hidden="until-found"` while closed. Find-in-page
+  and text fragments still open it (`beforematch` writes the model; a
+  disabled root refuses), and the close plays as in native mode.
+  `collapsible.trigger` is now `absorbable` and a lend host, in this mode
+  only: `asChild` or `lend` on a native trigger throws. The default stays
+  the native `<details>`/`<summary>`, and the anatomy's `element` records
+  it. `expectAnatomy` no longer counts `hidden="until-found"` as `hidden`
+  (it keeps the box, so it is not what `hiddenIn` means), and the six
+  bundled skins collapse the until-found panel, grow it on open and reset
+  the UA button paint on a button trigger.
 
 ### Changed
 

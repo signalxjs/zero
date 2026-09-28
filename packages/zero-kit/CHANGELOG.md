@@ -4,6 +4,10 @@
 
 ### Added
 
+- **`native` is a reserved Collapsible root prop (#453).**
+  `RESERVED_PROPS_BY_SCOPE.collapsible` gains `native`, the new
+  `Collapsible.Root` prop that picks the non-native mode, so a design
+  system's api cannot name an axis prop after it.
 - **`absorbable` on manifest parts (#493, part of #452).** The manifest
   schema's part definition and `ManifestPart` gain `absorbable: true`
   (presence-only): the part may lend its asChild bag to a host through
