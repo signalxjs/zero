@@ -690,6 +690,7 @@
 
         [data-scope="menu"][data-part="popup"][data-state="open"] {
             transform: none;
+            transition: none;
         }
 
         [data-scope="menu"][data-part="sub-popup"] {
@@ -698,6 +699,7 @@
 
         [data-scope="menu"][data-part="sub-popup"][data-state="open"] {
             transform: none;
+            transition: none;
         }
     }
 

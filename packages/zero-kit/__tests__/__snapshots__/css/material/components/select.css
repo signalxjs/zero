@@ -472,6 +472,7 @@
 
         [data-scope="select"][data-part="popup"][data-state="open"] {
             transform: none;
+            transition: none;
         }
     }
 

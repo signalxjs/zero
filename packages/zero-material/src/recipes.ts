@@ -268,7 +268,8 @@ const popupPresence = (from: string): PartStyles => ({
     },
     at: {
         'starting-style': { states: { open: { opacity: '0', transform: from } } },
-        'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+        // Both directions: `open` carries the entry's own transition.
+        'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none', transition: 'none' } } },
     },
 });
 
@@ -4643,13 +4644,15 @@ export const card: RecipeInput = {
     hooks: {
         properties: {
             '--card-pad': 'The card padding.',
-            '--card-accent': 'The accent colour.',
+            '--card-fill': 'The card fill (the variant sets it; a colour makes it the role container).',
+            '--card-ink': 'The ink on --card-fill.',
+            '--card-outline': 'The outlined card hairline.',
+            '--card-shadow': 'The card elevation.',
         },
     },
     tokens: {
         // M3's 16dp card padding.
         '--card-pad': 'var(--space-md)',
-        '--card-accent': 'var(--color-primary)',
     },
     parts: {
         // M3's card (#418): elevated, filled or outlined — the variant sets
@@ -4739,7 +4742,6 @@ export const card: RecipeInput = {
         // M3 has no coloured card; a role here is the tonal one — the
         // role's container under its on-container ink, whatever the variant.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--card-accent': `var(--color-${c})`,
             '--card-fill': `var(--color-${c}-container)`,
             '--card-ink': `var(--color-${c}-container-content)`,
             '--card-subtle': `var(--color-${c}-container-content)`,

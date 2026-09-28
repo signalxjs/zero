@@ -235,6 +235,7 @@
 
         [data-scope="tooltip"][data-part="popup"][data-state="open"] {
             transform: none;
+            transition: none;
         }
     }
 

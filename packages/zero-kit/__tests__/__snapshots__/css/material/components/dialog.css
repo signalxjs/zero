@@ -444,6 +444,7 @@
 
         [data-scope="dialog"][data-part="popup"][data-state="open"] {
             transform: none;
+            transition: none;
         }
     }
 

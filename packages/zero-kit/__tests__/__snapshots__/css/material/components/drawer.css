@@ -434,6 +434,7 @@
 
         [data-scope="drawer"][data-part="panel"][data-state="open"] {
             transform: none;
+            transition: none;
         }
 
         [data-scope="drawer"][data-part="panel"][data-l-dock="sheet"] {

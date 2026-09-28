@@ -1,7 +1,6 @@
 @layer zero.recipes {
     [data-scope="card"][data-part="root"] {
         --card-pad: var(--space-md);
-        --card-accent: var(--color-primary);
     }
 
     [data-scope="card"][data-part="root"] {
@@ -99,56 +98,48 @@
     }
 
     [data-scope="card"][data-part="root"][data-color="primary"] {
-        --card-accent: var(--color-primary);
         --card-fill: var(--color-primary-container);
         --card-ink: var(--color-primary-container-content);
         --card-subtle: var(--color-primary-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="secondary"] {
-        --card-accent: var(--color-secondary);
         --card-fill: var(--color-secondary-container);
         --card-ink: var(--color-secondary-container-content);
         --card-subtle: var(--color-secondary-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="tertiary"] {
-        --card-accent: var(--color-tertiary);
         --card-fill: var(--color-tertiary-container);
         --card-ink: var(--color-tertiary-container-content);
         --card-subtle: var(--color-tertiary-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="error"] {
-        --card-accent: var(--color-error);
         --card-fill: var(--color-error-container);
         --card-ink: var(--color-error-container-content);
         --card-subtle: var(--color-error-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="neutral"] {
-        --card-accent: var(--color-neutral);
         --card-fill: var(--color-neutral-container);
         --card-ink: var(--color-neutral-container-content);
         --card-subtle: var(--color-neutral-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="info"] {
-        --card-accent: var(--color-info);
         --card-fill: var(--color-info-container);
         --card-ink: var(--color-info-container-content);
         --card-subtle: var(--color-info-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="success"] {
-        --card-accent: var(--color-success);
         --card-fill: var(--color-success-container);
         --card-ink: var(--color-success-container-content);
         --card-subtle: var(--color-success-container-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="warning"] {
-        --card-accent: var(--color-warning);
         --card-fill: var(--color-warning-container);
         --card-ink: var(--color-warning-container-content);
         --card-subtle: var(--color-warning-container-content);

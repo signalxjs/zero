@@ -170,6 +170,7 @@
 
         [data-scope="hover-card"][data-part="popup"][data-state="open"] {
             transform: none;
+            transition: none;
         }
     }
 

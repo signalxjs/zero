@@ -528,6 +528,7 @@
 
         [data-scope="combobox"][data-part="popup"][data-state="open"] {
             transform: none;
+            transition: none;
         }
     }
 
