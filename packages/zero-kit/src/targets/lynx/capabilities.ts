@@ -107,6 +107,20 @@
  *   verdict until a probe says otherwise); the recipe's lynx section draws
  *   the shape another way (the checkbox tick is two borders on a rotated box).
  *
+ * Seventh round (signalxjs/lynx#1250, iPhone 17 Pro / iOS 26 simulator +
+ * Android emulator, lynx main `bc0d9186` with `@sigx/zero-daisyui` 0.14.0):
+ *
+ * - **The logical sizing properties (`block-size`, `inline-size` and their
+ *   `min-`/`max-` variants) are ignored on lynx.** daisy's divider draws its
+ *   rule thickness only through `block-size`/`inline-size`, so the bare rule
+ *   painted nothing, labelled segments grew to the label row's height and
+ *   the size ramp did nothing. Lynx has no writing modes — every flow is
+ *   horizontal-tb, the same reason the logical spacing spellings are
+ *   restated physically (#1084) — so `block-size` IS `height` and
+ *   `inline-size` IS `width`. The emitter rewrites them
+ *   ({@link LOGICAL_SIZE_PROPERTIES}) in declarations, raw
+ *   `targets.lynx.css` and keyframes bodies: a translate, not a drop.
+ *
  * Three verdicts:
  *
  *
@@ -118,7 +132,8 @@
  *   the lynx runtime never stamps on a disabled part (zero#326) — anatomy pseudo
  *   parts onto real part classes, color functions onto culori-baked literals,
  *   `@layer` onto source order, `--text-fixed-*` onto materialized literals,
- *   `rem` onto `px` at 16px/rem (signalxjs/lynx#1183).
+ *   `rem` onto `px` at 16px/rem (signalxjs/lynx#1183), the logical sizing
+ *   properties onto `width`/`height` (signalxjs/lynx#1250).
  * - **drop, with a report entry** — the declaration cannot exist on lynx and
  *   losing it is legible styling degradation an author may want to patch in
  *   a lynx recipe section: `hover` states, pseudo-element `selectors:` keys,
@@ -331,5 +346,46 @@ export function remToPx(css: string): { css: string; count: number } {
         last = match.index + match[0].length;
     }
     out += rewrite(css.slice(last));
+    return { css: out, count };
+}
+
+/**
+ * The logical sizing properties and the physical property each one IS on
+ * lynx. Lynx ignores the logical spellings (measured, signalxjs/lynx#1250 —
+ * daisy's divider, whose thickness is only `block-size`/`inline-size`, drew
+ * no rule at all) and has no writing modes, so the block axis is always the
+ * vertical one: `block-size` is `height`, `inline-size` is `width`.
+ */
+export const LOGICAL_SIZE_PROPERTIES: Readonly<Record<string, string>> = {
+    'block-size': 'height',
+    'inline-size': 'width',
+    'min-block-size': 'min-height',
+    'min-inline-size': 'min-width',
+    'max-block-size': 'max-height',
+    'max-inline-size': 'max-width',
+};
+
+/** The report detail for a rewritten logical sizing property, shared by every emission path. */
+export const LOGICAL_SIZE_DETAIL = 'lynx ignores the logical sizing properties (measured, signalxjs/lynx#1250 — daisy\'s divider drew no rule) and has no writing modes, so the block axis is always vertical; rewritten to the physical property it names there';
+
+/**
+ * A logical sizing property in RAW CSS TEXT (`targets.lynx.css`, keyframes
+ * bodies), in declaration position: anchored so a custom property
+ * (`--divider-inline-size:`) or a longer name (`contain-intrinsic-block-size`)
+ * cannot match.
+ */
+const LOGICAL_SIZE_IN_TEXT = /(^|[{;\s])((?:min-|max-)?(?:block|inline)-size)(\s*:)/gi;
+
+/**
+ * Rewrite every logical sizing declaration in raw lynx CSS text to its
+ * physical property (signalxjs/lynx#1250). Returns the text and how many it
+ * rewrote, so the caller can record the translation.
+ */
+export function logicalSizeToPhysical(css: string): { css: string; count: number } {
+    let count = 0;
+    const out = css.replace(LOGICAL_SIZE_IN_TEXT, (_whole, head: string, prop: string, colon: string) => {
+        count++;
+        return `${head}${LOGICAL_SIZE_PROPERTIES[prop.toLowerCase()]!}${colon}`;
+    });
     return { css: out, count };
 }

@@ -64,6 +64,9 @@ import {
     hasComparisonFunction,
     hasSvgDataUri,
     hasUnsupportedColorFunction,
+    LOGICAL_SIZE_DETAIL,
+    LOGICAL_SIZE_PROPERTIES,
+    logicalSizeToPhysical,
     LYNX_REM_PX,
     LynxRuntimePropertyError,
     remToPx,
@@ -298,8 +301,20 @@ function checkedProps(
 ): CheckedProps {
     const out: CssProps = {};
     const perTheme: CssProps = {};
-    for (const [prop, raw] of Object.entries(props)) {
+    for (const [authoredProp, raw] of Object.entries(props)) {
         const value = String(raw);
+        // Lynx ignores the logical sizing properties and has no writing
+        // modes (measured, signalxjs/lynx#1250 — daisy's divider drew no
+        // rule): `block-size` IS `height` there. Renamed up front, in the
+        // author's casing, so every check below judges the physical
+        // declaration that actually ships.
+        const physicalSize = LOGICAL_SIZE_PROPERTIES[kebab(authoredProp)];
+        const prop = physicalSize
+            ? (authoredProp.includes('-') ? physicalSize : physicalSize.replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase()))
+            : authoredProp;
+        if (physicalSize) {
+            report.translated.push({ where, what: `${kebab(authoredProp)}: ${value}`, detail: `${LOGICAL_SIZE_DETAIL} (${physicalSize})` });
+        }
         const runtime = runtimePropertyIn(`${prop} ${value}`);
         if (runtime) {
             throw new LynxRuntimePropertyError(
@@ -697,7 +712,15 @@ export function compileLynxRecipeCss(
     // device (signalxjs/lynx#1075), so it rewrites to `flex` here too.
     let css = inlined.length > 0 ? `${inlined.join('\n\n')}\n` : '';
     if (recipe.css?.trim()) {
-        const rewritten = recipe.css.trim().replace(/(\bdisplay\s*:\s*)inline-flex\b/gi, (_whole, head: string) => {
+        const sized = logicalSizeToPhysical(recipe.css.trim());
+        if (sized.count > 0) {
+            report.translated.push({
+                where: `lynx recipe for "${scope}" css (raw stylesheet escape hatch)`,
+                what: `logical sizing properties (${sized.count})`,
+                detail: LOGICAL_SIZE_DETAIL,
+            });
+        }
+        const rewritten = sized.css.replace(/(\bdisplay\s*:\s*)inline-flex\b/gi, (_whole, head: string) => {
             report.translated.push({
                 where: `lynx recipe for "${scope}" css (raw stylesheet escape hatch)`,
                 what: 'display: inline-flex',
@@ -707,7 +730,7 @@ export function compileLynxRecipeCss(
         });
         css += `${rewritten}\n`;
     }
-    for (const [name, body] of Object.entries(recipe.keyframes ?? {})) {
+    for (const [name, rawBody] of Object.entries(recipe.keyframes ?? {})) {
         assertKeyframesName(name, scope);
         // Keyframes bodies are raw strings, so they get the same capability
         // checks the declaration path applies — a runtime-property reference
@@ -717,6 +740,11 @@ export function compileLynxRecipeCss(
         // inside one would need a whole animation per theme AND a per-theme
         // `animation-name`. That stays dropped, and the report says why.
         const where = `lynx recipe for "${scope}" keyframes "${name}"`;
+        const sized = logicalSizeToPhysical(rawBody);
+        if (sized.count > 0) {
+            report.translated.push({ where, what: `logical sizing properties (${sized.count})`, detail: LOGICAL_SIZE_DETAIL });
+        }
+        const body = sized.css;
         const runtime = runtimePropertyIn(body);
         if (runtime) {
             throw new LynxRuntimePropertyError(

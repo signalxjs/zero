@@ -488,6 +488,45 @@ describe('compileLynxRecipeCss', () => {
         expect(report.dropped.filter((f) => f.detail.includes('signalxjs/lynx#1084'))).toHaveLength(6);
     });
 
+    it('rewrites the logical sizing properties to width/height — lynx ignores them', () => {
+        // Measured (signalxjs/lynx#1250): lynx ignores block-size/inline-size
+        // and their min-/max- variants — daisy's divider, whose thickness is
+        // only block-size/inline-size, drew no rule at all. Lynx has no
+        // writing modes, so block-size IS height and inline-size IS width.
+        const { css, report } = compile({
+            component: 'button',
+            parts: {
+                root: {
+                    base: {
+                        blockSize: 'var(--border)',
+                        inlineSize: '100%',
+                        minBlockSize: '2px',
+                        maxInlineSize: '20rem',
+                        'min-inline-size': '1px',
+                        'max-block-size': 'calc(var(--border) * 3)',
+                    },
+                    states: { disabled: { inlineSize: '4px' } },
+                },
+            },
+            css: '.x { block-size: 1px; --divider-inline-size: 2px; }',
+            keyframes: { grow: 'from { inline-size: 0; } to { inline-size: 100%; }' },
+        });
+        expect(css).not.toMatch(/(?:^|[\s{;])(?:min-|max-)?(?:block|inline)-size\s*:/im);
+        expect(css).toContain('height: var(--border);');
+        expect(css).toContain('width: 100%;');
+        expect(css).toContain('min-height: 2px;');
+        expect(css).toContain('max-width: 320px;');
+        expect(css).toContain('min-width: 1px;');
+        expect(css).toContain('max-height: calc(var(--border) * 3);');
+        expect(css).toMatch(/\.zx-button__root\.zx-f-disabled \{\s*width: 4px;/);
+        // Raw lynx css and keyframes bodies get the same rewrite; a custom
+        // property that merely ends in the name is left alone.
+        expect(css).toContain('.x { height: 1px; --divider-inline-size: 2px; }');
+        expect(css).toContain('from { width: 0; } to { width: 100%; }');
+        expect(report.dropped).toHaveLength(0);
+        expect(report.translated.filter((f) => f.detail.includes('signalxjs/lynx#1250'))).toHaveLength(9);
+    });
+
     it('drops the standalone translate/rotate/scale properties but keeps transform functions', () => {
         // Same #1084 verdict: the standalone transform properties resolve on
         // iOS only; `transform`'s functions are proven on both platforms.
@@ -768,6 +807,10 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         // the gate.
         /(?:^|[\s{;])(?:inset|margin|padding)-(?:block|inline)/im,
         /(?:^|[\s{;])(?:translate|rotate|scale)\s*:/im,
+        // Lynx ignores the logical sizing properties (measured,
+        // signalxjs/lynx#1250 — the daisy divider drew no rule); the emitter
+        // rewrites them to width/height, so nothing may ship them.
+        /(?:^|[\s{;])(?:min-|max-)?(?:block|inline)-size\s*:/im,
     ] as const;
     it.each([
         ['zero-basic', basicDS],
@@ -1042,15 +1085,17 @@ describe('assertNoCalcVarChains', () => {
     // The web draws the divider's rule as ::before/::after segments (#356),
     // which lynx drops: 0.8.0's lynx divider painted no line and, with
     // `--divider-thickness` read only there, lost its size ramp (#375).
+    // The thickness is authored as block-size/inline-size, which lynx ignores
+    // — the emitter ships it as height/width (signalxjs/lynx#1250).
     it('zero-daisyui divider: the root is the line on lynx, and the size ramp thickens it', () => {
         const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
         const css = componentCss['divider']!;
         expect(css).not.toContain('::');
         expect(css).toMatch(/\.zx-divider__root \{[^}]*background: var\(--divider-ink\);/);
-        expect(css).toMatch(/\.zx-divider__root\.zx-o-horizontal \{[^}]*block-size: var\(--border\);/);
-        expect(css).toMatch(/\.zx-divider__root\.zx-o-vertical \{[^}]*inline-size: var\(--border\);/);
-        expect(css).toMatch(/\.zx-divider__root\.zx-o-horizontal\.zx-a-size-xl \{[^}]*block-size: calc\(var\(--border\) \* 3\);/);
-        expect(css).toMatch(/\.zx-divider__root\.zx-o-vertical\.zx-a-size-lg \{[^}]*inline-size: calc\(var\(--border\) \* 2\);/);
+        expect(css).toMatch(/\.zx-divider__root\.zx-o-horizontal \{[^}]*height: var\(--border\);/);
+        expect(css).toMatch(/\.zx-divider__root\.zx-o-vertical \{[^}]*width: var\(--border\);/);
+        expect(css).toMatch(/\.zx-divider__root\.zx-o-horizontal\.zx-a-size-xl \{[^}]*height: calc\(var\(--border\) \* 3\);/);
+        expect(css).toMatch(/\.zx-divider__root\.zx-o-vertical\.zx-a-size-lg \{[^}]*width: calc\(var\(--border\) \* 2\);/);
     });
 
     it('zero-daisyui slider: the mark is its own tick on lynx, and vertical turns the channel upright', () => {
@@ -1302,8 +1347,8 @@ describe('assertNoCalcVarChains', () => {
             expect(body(css, '.zx-divider__root.zx-m-labelled')).toContain('--divider-ink: transparent;');
             const labelled = body(css, '.zx-divider__root.zx-m-labelled.zx-o-horizontal')!;
             expect(labelled).toContain('flex-direction: row;');
-            expect(labelled).toContain('block-size: var(--divider-fit);');
-            expect(body(css, '.zx-divider__root.zx-m-labelled.zx-o-vertical')).toContain('inline-size: var(--divider-fit);');
+            expect(labelled).toContain('height: var(--divider-fit);');
+            expect(body(css, '.zx-divider__root.zx-m-labelled.zx-o-vertical')).toContain('width: var(--divider-fit);');
             expect(body(css, '.zx-divider__root.zx-m-segment')).toContain('flex: 1 1 0;');
             // Same specificity as the size ramp's thickness: source order decides.
             expect(css.indexOf('.zx-divider__root.zx-m-labelled.zx-o-horizontal {'))
@@ -1340,6 +1385,44 @@ describe('assertNoCalcVarChains', () => {
             expect(title).toContain('color: var(--color-base-content);');
             expect(title).toContain('text-align: center;');
             expect(body(css, '.zx-empty-state__description')).toContain('text-align: center;');
+        });
+
+        it('divider: the rule thickness ships as physical width/height (signalxjs/lynx#1250)', () => {
+            const css = lynxCss()['divider']!;
+            expect(css).not.toMatch(/(?:^|[\s{;])(?:min-|max-)?(?:block|inline)-size\s*:/m);
+            const horizontal = body(css, '.zx-divider__root.zx-o-horizontal')!;
+            expect(horizontal).toContain('width: 100%;');
+            expect(horizontal).toContain('height: var(--border);');
+            expect(body(css, '.zx-divider__root.zx-o-horizontal.zx-a-size-lg')).toContain('height: calc(var(--border) * 2);');
+            expect(body(css, '.zx-divider__root.zx-o-vertical')).toContain('width: var(--border);');
+            // A segment is a root: it keeps the line's thickness and grows along it.
+            expect(body(css, '.zx-divider__root.zx-m-segment.zx-o-horizontal')).toContain('min-width: 0;');
+            expect(body(css, '.zx-divider__root.zx-m-segment.zx-o-vertical')).toContain('min-height: 0;');
+        });
+    });
+
+    describe('zero-daisyui alert close and kbd on lynx (signalxjs/lynx#1253, #1254)', () => {
+        const lynxCss = () => compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] }).componentCss;
+        const body = (css: string, selector: string): string | undefined => {
+            const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const bodies = [...css.matchAll(new RegExp(`^${escaped} \\{([^}]*)\\}`, 'gm'))].map((m) => m[1]!);
+            return bodies.length > 0 ? bodies.join('\n') : undefined;
+        };
+
+        it('alert: the close is a square chip with its glyph centred, not a tall pill', () => {
+            const close = body(lynxCss()['alert']!, '.zx-alert__close')!;
+            expect(close).toContain('width: calc(var(--text-md) + var(--space-2xs) * 2);');
+            expect(close).toContain('height: calc(var(--text-md) + var(--space-2xs) * 2);');
+            expect(close).toContain('display: flex;');
+            expect(close).toContain('align-items: center;');
+            expect(close).toContain('justify-content: center;');
+            // The lynx padding replaces the shared 2xs padding, so the box is the size.
+            expect(close).toContain('padding: 0;');
+            expect(close).not.toContain('padding: var(--space-2xs);');
+        });
+
+        it('kbd: the cap is set in a monospace face, as the web UA sheet does', () => {
+            expect(body(lynxCss()['kbd']!, '.zx-kbd__root')).toContain('font-family: Menlo, monospace;');
         });
     });
 });

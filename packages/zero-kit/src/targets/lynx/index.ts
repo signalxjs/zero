@@ -27,6 +27,8 @@ export {
     hasComparisonFunction,
     hasSvgDataUri,
     hasUnsupportedColorFunction,
+    LOGICAL_SIZE_PROPERTIES,
+    logicalSizeToPhysical,
     LYNX_REM_PX,
     LynxRuntimePropertyError,
     remToPx,
