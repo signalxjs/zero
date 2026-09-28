@@ -82,6 +82,20 @@ describe('data-placeholder on the text controls', () => {
         expect(flagged(part('textarea', 'root'))).toBe(false);
     });
 
+    it('Textarea: tracks the element under debounce', () => {
+        const state = signal({ notes: '' });
+        render(
+            <Textarea.Root model={() => state.notes} modelModifiers={{ debounce: 200 }}>
+                <Textarea.Textarea />
+            </Textarea.Root>,
+            container,
+        );
+        type(part('textarea', 'textarea') as HTMLTextAreaElement, 'x');
+        // The model is held back; what the box shows is not.
+        expect(state.notes).toBe('');
+        expect(flagged(part('textarea', 'root'))).toBe(false);
+    });
+
     it('NumberInput: root and control while the text is empty, the draft included', () => {
         const state = signal({ n: null as number | null });
         render(
@@ -125,5 +139,22 @@ describe('data-placeholder on the text controls', () => {
         expect(flagged(part('combobox', 'control'))).toBe(false);
         state.value = [];
         expect(flagged(part('combobox', 'control'))).toBe(true);
+    });
+
+    it('Combobox: trigger mode never claims empty — its Textarea flags itself', () => {
+        render(
+            <Combobox.Root trigger="@">
+                <Textarea.Root><Textarea.Textarea /></Textarea.Root>
+                <Combobox.Popup>
+                    <Combobox.Item value="ada">Ada</Combobox.Item>
+                </Combobox.Popup>
+            </Combobox.Root>,
+            container,
+        );
+        expect(flagged(part('combobox', 'root'))).toBe(false);
+        expect(flagged(part('textarea', 'root'))).toBe(true);
+        type(part('textarea', 'textarea') as HTMLTextAreaElement, 'hi there');
+        expect(flagged(part('combobox', 'root'))).toBe(false);
+        expect(flagged(part('textarea', 'root'))).toBe(false);
     });
 });

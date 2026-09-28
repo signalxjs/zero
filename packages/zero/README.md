@@ -225,7 +225,8 @@ system's size axis (`data-size`), so width belongs to the recipe.
 **An empty field says so (#416).** Input's and NumberInput's `root` and
 `control` carry `data-placeholder` while their text is empty, and so do
 Textarea's `root` and Combobox's `root` and `control`. For a combobox, empty
-means no typed query and nothing chosen. It is the word Select already uses
+means no typed query and nothing chosen; a trigger-mode combobox never sets
+it, because the Textarea it wraps flags its own. It is the word Select already uses
 for "nothing chosen", and it is what a floating label reads to rest inside
 the field instead of above it. It follows what the field shows, so a
 keystroke a `lazy` or `debounce` model has not taken yet already clears it.

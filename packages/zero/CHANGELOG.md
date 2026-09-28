@@ -25,7 +25,8 @@
 
 - Input's and NumberInput's `root` and `control`, Textarea's `root`, and
   Combobox's `root` and `control` carry `data-placeholder` while the field is
-  empty. For a combobox that means no query and nothing chosen. It is the flag
+  empty. For a combobox that means no query and nothing chosen; a
+  trigger-mode combobox never sets it, since its Textarea flags itself. It is the flag
   Select already sets for "nothing chosen", and what a floating label reads to
   rest inside its field. It tracks the element's text, so a keystroke a `lazy`
   or `debounce` model has not taken yet already clears it.

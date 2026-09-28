@@ -151,7 +151,7 @@ interface ComboboxContext {
     tagBlur(e: FocusEvent): void;
     /** Something to clear: a chosen value or typed text (the clear-trigger renders while true). */
     clearable(): boolean;
-    /** No typed text and nothing selected — the parts' `data-placeholder`. */
+    /** No typed text and nothing selected — the parts' `data-placeholder`. Never in trigger mode. */
     empty(): boolean;
     /** Clear the value and the text, and focus the input (the clear-trigger's click). */
     clear(): void;
@@ -1044,7 +1044,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         tagKeydown,
         tagBlur,
         clearable: () => !triggerMode && (inputValue.value !== '' || listbox.selectedKeys().length > 0),
-        empty: () => inputValue.value === '' && listbox.selectedKeys().length === 0,
+        // Not in trigger mode: there the query is only the active token's, and
+        // the Textarea it wraps flags its own emptiness.
+        empty: () => !triggerMode && inputValue.value === '' && listbox.selectedKeys().length === 0,
         clear: () => {
             if (fc.disabled() || fc.readonly()) return;
             if (listbox.selectedKeys().length > 0) {
