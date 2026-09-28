@@ -310,3 +310,59 @@ describe('createPressFeedback', () => {
         });
     });
 });
+
+describe('createPressFeedback owner (#452)', () => {
+    const setup = (scope: string, part: string): { el: HTMLElement; press: PressFeedbackHandlers } => {
+        const el = document.createElement('button');
+        el.setAttribute('data-scope', scope);
+        el.setAttribute('data-part', part);
+        document.body.appendChild(el);
+        const press = createPressFeedback({
+            owner: { scope: 'tooltip', part: 'trigger' },
+            getElement: () => el,
+        });
+        return { el, press };
+    };
+
+    afterEach(() => {
+        window.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 0 }));
+        document.body.replaceChildren();
+    });
+
+    it('a press whose owner does not match the element\'s data-scope/data-part does nothing', () => {
+        // The lent tooltip trigger's handlers ride on the host Button's
+        // element: the Button's own feedback presses, the tooltip's must not.
+        const { el, press } = setup('button', 'root');
+        el.getAnimations = () => [{} as Animation];
+        const added: string[] = [];
+        const add = window.addEventListener;
+        window.addEventListener = ((type: string, ...rest: unknown[]) => {
+            added.push(type);
+            return (add as (...a: unknown[]) => void).call(window, type, ...rest);
+        }) as typeof window.addEventListener;
+        try {
+            press.onPointerdown(pointerdown(3, 4));
+        } finally {
+            window.addEventListener = add;
+        }
+        press.onKeydown(new KeyboardEvent('keydown', { key: 'Enter' }));
+        expect(el.hasAttribute('data-pressed')).toBe(false);
+        expect(el.hasAttribute('data-press-animating')).toBe(false);
+        expect(el.style.getPropertyValue('--press-x')).toBe('');
+        expect(added).toEqual([]);
+        // Nor does it clear a flag the element's own feedback set.
+        el.setAttribute('data-pressed', '');
+        press.onPointerup(new PointerEvent('pointerup'));
+        press.onBlur(new FocusEvent('blur'));
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+    });
+
+    it('a press whose owner matches marks the element as before', () => {
+        const { el, press } = setup('tooltip', 'trigger');
+        press.onPointerdown(pointerdown());
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        expect(el.style.getPropertyValue('--press-x')).toBe('0px');
+        press.onPointerup(new PointerEvent('pointerup'));
+        expect(el.hasAttribute('data-pressed')).toBe(false);
+    });
+});

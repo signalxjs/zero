@@ -526,6 +526,7 @@ function makeTrigger(direction: 1 | -1, part: 'increment-trigger' | 'decrement-t
 
         const triggerDisabled = (): boolean => ctx.disabled() || ctx.readonly() || !ctx.canStep(direction);
         const press = createPressFeedback({
+            owner: { scope: SCOPE, part },
             getElement: () => el,
             isDisabled: () => triggerDisabled(),
         });

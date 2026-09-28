@@ -52,6 +52,7 @@ const ToggleRoot = component<ToggleRootProps>(({ props, slots, emit, signal }) =
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'root' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });

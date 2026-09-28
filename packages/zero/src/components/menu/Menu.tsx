@@ -517,6 +517,7 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onMount
     const focus = signal({ visible: false });
     const disabled = (): boolean => !!props.disabled || bar.disabled();
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'trigger' },
         getElement: () => el,
         isDisabled: disabled,
     });
@@ -882,6 +883,8 @@ interface ItemHooks {
 }
 
 interface ItemCoreOpts {
+    /** The part the item renders — its press feedback marks only that. */
+    part: 'item' | 'checkbox-item' | 'radio-item';
     value(): string;
     textValue(): string | undefined;
     disabled(): boolean;
@@ -900,6 +903,7 @@ function useMenuItemCore({ signal, onUnmounted }: ItemHooks, opts: ItemCoreOpts)
     let el: HTMLElement | null = null;
     const focus = signal({ highlighted: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: opts.part },
         getElement: () => el,
         isDisabled: () => opts.disabled(),
     });
@@ -983,6 +987,7 @@ export type MenuItemProps =
 
 const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }) => {
     const core = useMenuItemCore({ signal, onUnmounted }, {
+        part: 'item',
         value: () => props.value,
         textValue: () => props.textValue,
         disabled: () => !!props.disabled,
@@ -1044,6 +1049,7 @@ const MenuCheckboxItem = component<MenuCheckboxItemProps>(({ props, slots, emit,
         (v) => emit('checkedChange', v),
     );
     const core = useMenuItemCore({ signal, onUnmounted }, {
+        part: 'checkbox-item',
         value: () => props.value,
         textValue: () => props.textValue,
         disabled: () => !!props.disabled,
@@ -1142,6 +1148,7 @@ const MenuRadioItem = component<MenuRadioItemProps>(({ props, slots, signal, onU
     const group = useMenuRadioGroupContext();
     const isChecked = (): boolean => group.state.value === props.value;
     const core = useMenuItemCore({ signal, onUnmounted }, {
+        part: 'radio-item',
         value: () => props.value,
         textValue: () => props.textValue,
         disabled: () => !!props.disabled,
@@ -1497,6 +1504,7 @@ const MenuSubTrigger = component<MenuSubTriggerProps>(({ props, slots, signal, o
     let el: HTMLElement | null = null;
     const focus = signal({ highlighted: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'sub-trigger' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });

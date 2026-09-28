@@ -275,6 +275,7 @@ const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal }) =
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'trigger' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });
@@ -603,6 +604,7 @@ const DialogClose = component<DialogCloseProps>(({ props, slots, signal }) => {
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'close' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });
@@ -683,6 +685,7 @@ const DialogCancel = component<DialogCancelProps>(({ props, slots, signal }) => 
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'cancel' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });

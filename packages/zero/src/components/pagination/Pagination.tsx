@@ -33,6 +33,7 @@ const SCOPE = paginationAnatomy.scope;
 
 /** One slot of the computed row. */
 type RowEntry = number | 'start-ellipsis' | 'end-ellipsis';
+type ControlPart = 'item' | 'prev-trigger' | 'next-trigger' | 'first-trigger' | 'last-trigger';
 
 const range = (from: number, to: number): number[] => {
     const out: number[] = [];
@@ -168,10 +169,11 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
         }
     };
     const focus = signal({ visibleKey: '' });
-    const pressFor = (key: string, disabled: () => boolean) => {
+    const pressFor = (key: string, disabled: () => boolean, part: ControlPart) => {
         let press = presses.get(key);
         if (!press) {
             press = createPressFeedback({
+                owner: { scope: SCOPE, part },
                 getElement: () => els.get(key) ?? null,
                 isDisabled: disabled,
             });
@@ -180,8 +182,8 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
         return press;
     };
 
-    const pressBag = (key: string, disabled: () => boolean): TriggerPressBag => {
-        const press = pressFor(key, disabled);
+    const pressBag = (key: string, disabled: () => boolean, part: ControlPart): TriggerPressBag => {
+        const press = pressFor(key, disabled, part);
         return {
             onKeydown: press.onKeydown,
             onKeyup: press.onKeyup,
@@ -217,13 +219,13 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
      */
     const control = (
         key: string,
-        partName: 'item' | 'prev-trigger' | 'next-trigger' | 'first-trigger' | 'last-trigger',
+        partName: ControlPart,
         target: () => number,
         inert: () => boolean,
         extra: Record<string, unknown>,
         content: string,
     ) => {
-        const bag = pressBag(key, inert);
+        const bag = pressBag(key, inert, partName);
         const common = {
             key,
             'data-scope': SCOPE,

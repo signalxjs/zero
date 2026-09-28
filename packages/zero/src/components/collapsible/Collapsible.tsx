@@ -126,6 +126,7 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'trigger' },
         getElement: () => el,
         isDisabled: () => ctx.disabled(),
     });

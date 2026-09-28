@@ -392,6 +392,7 @@ const stepTrigger = (
         const atBound = (): boolean =>
             step === -1 ? carousel.index() <= 0 : carousel.index() >= carousel.count() - 1;
         const press = createPressFeedback({
+            owner: { scope: SCOPE, part: partName },
             getElement: () => el,
             isDisabled: () => atBound(),
         });
@@ -463,6 +464,7 @@ const CarouselIndicator = component<CarouselIndicatorProps>(({ props, slots, sig
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'indicator' },
         getElement: () => el,
         isDisabled: () => false,
     });

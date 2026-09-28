@@ -202,6 +202,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
     // Cross-element press: pointer on the row, keyboard on the hidden input,
     // feedback on the visible control.
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'control' },
         getElement: () => controlEl,
         // A readonly control does not answer a press either — nothing
         // will happen, so nothing should look like it is about to.

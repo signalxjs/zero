@@ -232,6 +232,7 @@ const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal })
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'trigger' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });
@@ -524,6 +525,7 @@ const PopoverClose = component<PopoverCloseProps>(({ props, slots, signal }) => 
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'close' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });

@@ -644,6 +644,7 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
     const focus = signal({ visible: false });
     // Disabled lives in the root's context, not on this part's props.
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'trigger' },
         getElement: () => el,
         isDisabled: () => select.disabled() || select.readonly(),
     });
@@ -872,6 +873,7 @@ const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) =>
     // (aria-activedescendant — focus never reaches the option), so keyboard
     // press feedback deliberately lives on the trigger instead.
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'item' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });

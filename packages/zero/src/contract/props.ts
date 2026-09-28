@@ -199,6 +199,24 @@ export type WithOrientation = Define.Prop<'orientation', Orientation, false>;
 export type WithAsChild = Define.Prop<'asChild', boolean, false>;
 
 /**
+ * Receive another zero part's asChild bag (`lend`, #452). The rule for apps:
+ * whatever renders the element gets the bag. A raw element gets it by
+ * spreading (`<button {...p}>`); a zero component gets it through `lend`,
+ * because sigx strips `ref` from component props and a spread would land
+ * on the component, not its element:
+ *
+ * ```tsx
+ * <Tooltip.Trigger asChild>
+ *     {(p) => <Button.Root lend={p} aria-label="Archive"><Icon name="archive" /></Button.Root>}
+ * </Tooltip.Trigger>
+ * ```
+ *
+ * The host keeps its own anatomy; the lent part contributes behaviour and
+ * ARIA only (`mergePartProps`). Only hosts that opt in take the prop.
+ */
+export type WithLend = Define.Prop<'lend', PartProps, false>;
+
+/**
  * Hide the part from sight while it keeps its accessible role — a label that
  * still names its control, a title that still names its dialog. Renders
  * `data-visually-hidden`, which `css/base.css` clips in `@layer

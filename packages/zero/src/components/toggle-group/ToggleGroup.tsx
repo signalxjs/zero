@@ -295,6 +295,7 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onMount
 
     const disabled = (): boolean => !!props.disabled || group.disabled();
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'item' },
         getElement: () => el,
         isDisabled: () => disabled(),
     });

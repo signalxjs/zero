@@ -354,6 +354,7 @@ const BreadcrumbsEllipsisTrigger = component<BreadcrumbsEllipsisTriggerProps>(({
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'ellipsis-trigger' },
         getElement: () => el,
         isDisabled: () => false,
     });

@@ -49,6 +49,16 @@ export interface PressFeedbackOptions {
      * published. Default true.
      */
     oneShot?: boolean;
+    /**
+     * The part this feedback belongs to. When set, every handler is a no-op
+     * on an element whose `data-scope`/`data-part` is not this pair: no
+     * `data-pressed`, no `--press-*`, no window listener. A part lent to
+     * another zero component (`lend={p}`, #452) spreads its handlers onto an
+     * element that keeps the HOST's anatomy, and two feedbacks writing to one
+     * element would both animate — so only the element's own part presses.
+     * Omitted, the feedback marks whatever element `getElement` returns.
+     */
+    owner?: { scope: string; part: string };
 }
 
 /**
@@ -158,15 +168,23 @@ export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHa
         }
     };
 
+    const owner = opts.owner;
+    const owns = (el: HTMLElement): boolean =>
+        !owner || (el.getAttribute('data-scope') === owner.scope && el.getAttribute('data-part') === owner.part);
+
     const pressEnd = (): void => {
         detachRelease?.();
         // Only the held state ends here; the one-shot flag and the
         // coordinates follow their own lifecycles.
-        opts.getElement()?.removeAttribute('data-pressed');
+        const el = opts.getElement();
+        if (el && owns(el)) el.removeAttribute('data-pressed');
     };
 
-    const guard = (): HTMLElement | null =>
-        opts.isDisabled?.() ? null : opts.getElement();
+    const guard = (): HTMLElement | null => {
+        if (opts.isDisabled?.()) return null;
+        const el = opts.getElement();
+        return el && owns(el) ? el : null;
+    };
 
     return {
         onPointerdown: (e) => {
