@@ -50,17 +50,17 @@ type Row = {
 const HOSTS: Record<string, Row> = {
     BoxRootProps: {
         selector: '[data-scope="box"][data-part="root"]',
-        render: (lend) => <Box lend={lend} aria-describedby="own-desc">Box</Box>,
+        render: (lend) => <Box lend={lend} class="own-class" aria-describedby="own-desc">Box</Box>,
     },
     CardRootProps: {
         selector: '[data-scope="card"][data-part="root"]',
-        render: (lend) => <Card.Root lend={lend} aria-describedby="own-desc">Card</Card.Root>,
+        render: (lend) => <Card.Root lend={lend} class="own-class" aria-describedby="own-desc">Card</Card.Root>,
     },
     MenuContextTriggerProps: {
         selector: '[data-scope="menu"][data-part="context-trigger"]',
         render: (lend) => (
             <Menu.Root>
-                <Menu.ContextTrigger lend={lend} aria-describedby="own-desc">Surface</Menu.ContextTrigger>
+                <Menu.ContextTrigger lend={lend} class="own-class" aria-describedby="own-desc">Surface</Menu.ContextTrigger>
                 <Menu.Popup><Menu.Item value="a">A</Menu.Item></Menu.Popup>
             </Menu.Root>
         ),
@@ -87,6 +87,7 @@ describe('lend hosts (#452)', () => {
                 'data-scope': 'probe',
                 'data-part': 'lender',
                 'aria-describedby': 'probe-desc',
+                class: 'lent-class',
                 onClick,
                 ref,
             } as unknown as PartProps;
@@ -96,6 +97,9 @@ describe('lend hosts (#452)', () => {
             expect(el, `${name} renders ${row.selector}`).not.toBeNull();
             expect(container.querySelector('[data-scope="probe"]')).toBeNull();
             expect(el!.getAttribute('aria-describedby')).toBe('probe-desc own-desc');
+            // Row 13: class concatenates, neither side dropped by prop order.
+            expect(el!.classList.contains('lent-class'), `${name} keeps the lent class`).toBe(true);
+            expect(el!.classList.contains('own-class'), `${name} keeps its own class`).toBe(true);
             el!.click();
             expect(onClick).toHaveBeenCalledTimes(1);
             expect(ref).toHaveBeenCalledWith(el);

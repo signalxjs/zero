@@ -743,6 +743,9 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, s
         ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'context-trigger',
+        // In the bag so a lent class concatenates; kept off an asChild bag,
+        // where the slot's element owns its class.
+        ...(props.asChild ? {} : { class: props.class }),
         'data-state': stateAttr(menu.state.value, 'open', 'closed'),
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
@@ -817,7 +820,7 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, s
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <div class={props.class} {...b}>
+            <div {...b}>
                 {slots.default?.(b)}
             </div>
         );
