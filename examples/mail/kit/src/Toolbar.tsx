@@ -133,7 +133,8 @@ const ToolbarGroup = component<ToolbarGroupProps>(({ props, slots }) => () => (
 ), { name: 'Toolbar.Group' });
 
 const ToolbarSeparator = component<WithClass>(({ props }) => () => (
-    <div class={props.class} role="separator" aria-orientation="vertical" data-scope={SCOPE} data-part="separator" />
+    // Decorative: the groups already carry the structure, so the rule is not announced.
+    <div class={props.class} aria-hidden="true" data-scope={SCOPE} data-part="separator" />
 ), { name: 'Toolbar.Separator' });
 
 export const Toolbar = compound(ToolbarRoot, { Root: ToolbarRoot, Group: ToolbarGroup, Separator: ToolbarSeparator });

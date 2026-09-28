@@ -172,7 +172,7 @@ const SplitHandle = component<WithClass>(({ props, signal }) => {
             data-scope={splitAnatomy.scope}
             data-part="handle"
             data-focus-visible={dataAttr(focus.visible)}
-            onFocus={() => { focus.visible = isFocusVisible(handle); }}
+            onFocus={(e: FocusEvent) => { focus.visible = isFocusVisible(e.currentTarget as HTMLElement); }}
             onBlur={() => { focus.visible = false; }}
             onPointerdown={(e: PointerEvent) => {
                 if (e.button !== 0) return;

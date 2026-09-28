@@ -88,7 +88,7 @@ const IconRoot = component<IconRootProps>(({ props }) => () => (
         aria-hidden={props.label ? undefined : 'true'}
         focusable="false"
     >
-        {ICONS[props.name].map((d) => <path d={d} />)}
+        {ICONS[props.name].map((d, i) => <path key={`${props.name}-${i}`} d={d} />)}
     </svg>
 ), { name: 'Icon.Root' });
 
