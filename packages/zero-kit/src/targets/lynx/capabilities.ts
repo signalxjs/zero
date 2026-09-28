@@ -383,9 +383,18 @@ const LOGICAL_SIZE_IN_TEXT = /(^|[{;\s])((?:min-|max-)?(?:block|inline)-size)(\s
  */
 export function logicalSizeToPhysical(css: string): { css: string; count: number } {
     let count = 0;
-    const out = css.replace(LOGICAL_SIZE_IN_TEXT, (_whole, head: string, prop: string, colon: string) => {
+    const rewrite = (text: string): string => text.replace(LOGICAL_SIZE_IN_TEXT, (_whole, head: string, prop: string, colon: string) => {
         count++;
         return `${head}${LOGICAL_SIZE_PROPERTIES[prop.toLowerCase()]!}${colon}`;
     });
+    // `url()` and quoted strings are opaque, as in `remToPx`: a `content`
+    // string or a data URI spelling `inline-size:` is not a declaration.
+    let out = '';
+    let last = 0;
+    for (const match of css.matchAll(OPAQUE_SPAN)) {
+        out += rewrite(css.slice(last, match.index)) + match[0];
+        last = match.index + match[0].length;
+    }
+    out += rewrite(css.slice(last));
     return { css: out, count };
 }

@@ -508,10 +508,10 @@ describe('compileLynxRecipeCss', () => {
                     states: { disabled: { inlineSize: '4px' } },
                 },
             },
-            css: '.x { block-size: 1px; --divider-inline-size: 2px; }',
+            css: '.x { block-size: 1px; --divider-inline-size: 2px; }\n.y { content: "a; inline-size: 1px"; background: url(data:text/plain,;block-size:1px); }',
             keyframes: { grow: 'from { inline-size: 0; } to { inline-size: 100%; }' },
         });
-        expect(css).not.toMatch(/(?:^|[\s{;])(?:min-|max-)?(?:block|inline)-size\s*:/im);
+        expect(css.replace(/^\.y \{.*$/m, '')).not.toMatch(/(?:^|[\s{;])(?:min-|max-)?(?:block|inline)-size\s*:/im);
         expect(css).toContain('height: var(--border);');
         expect(css).toContain('width: 100%;');
         expect(css).toContain('min-height: 2px;');
@@ -522,6 +522,8 @@ describe('compileLynxRecipeCss', () => {
         // Raw lynx css and keyframes bodies get the same rewrite; a custom
         // property that merely ends in the name is left alone.
         expect(css).toContain('.x { height: 1px; --divider-inline-size: 2px; }');
+        // Quoted strings and url() are opaque, as for the rem rewrite.
+        expect(css).toContain('.y { content: "a; inline-size: 1px"; background: url(data:text/plain,;block-size:1px); }');
         expect(css).toContain('from { width: 0; } to { width: 100%; }');
         expect(report.dropped).toHaveLength(0);
         expect(report.translated.filter((f) => f.detail.includes('signalxjs/lynx#1250'))).toHaveLength(9);
