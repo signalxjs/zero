@@ -63,6 +63,79 @@ importers:
         specifier: ^4.1.5
         version: 4.1.10(@types/node@26.6.2)(@vitest/coverage-v8@4.1.10)(happy-dom@20.14.5)(vite@8.3.1(@types/node@26.6.2)(esbuild@0.28.1))
 
+  examples/mail/app:
+    dependencies:
+      '@sigx/zero':
+        specifier: workspace:^
+        version: link:../../../packages/zero
+      '@sigx/zero-mail-ds':
+        specifier: workspace:^
+        version: link:../ds
+      '@sigx/zero-mail-kit':
+        specifier: workspace:^
+        version: link:../kit
+      sigx:
+        specifier: 'catalog:'
+        version: 1.0.1
+    devDependencies:
+      '@fontsource/inter':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@sigx/vite':
+        specifier: 'catalog:'
+        version: 1.0.1(@sigx/server-renderer@1.0.1(sigx@1.0.1))(sigx@1.0.1)(vite@8.3.1(@types/node@26.6.2)(esbuild@0.28.1))
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vite:
+        specifier: ^8.3.0
+        version: 8.3.1(@types/node@26.6.2)(esbuild@0.28.1)
+
+  examples/mail/ds:
+    devDependencies:
+      '@sigx/cli':
+        specifier: ^0.12.0
+        version: 0.12.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
+      '@sigx/zero':
+        specifier: workspace:^
+        version: link:../../../packages/zero
+      '@sigx/zero-kit':
+        specifier: workspace:^
+        version: link:../../../packages/zero-kit
+      '@sigx/zero-mail-kit':
+        specifier: workspace:^
+        version: link:../kit
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+
+  examples/mail/kit:
+    devDependencies:
+      '@sigx/reactivity':
+        specifier: 'catalog:'
+        version: 1.0.1
+      '@sigx/runtime-core':
+        specifier: 'catalog:'
+        version: 1.0.1(@sigx/reactivity@1.0.1)
+      '@sigx/runtime-dom':
+        specifier: 'catalog:'
+        version: 1.0.1(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
+      '@sigx/vite':
+        specifier: 'catalog:'
+        version: 1.0.1(@sigx/server-renderer@1.0.1(sigx@1.0.1))(sigx@1.0.1)(vite@8.3.1(@types/node@26.6.2)(esbuild@0.28.1))
+      '@sigx/zero':
+        specifier: workspace:^
+        version: link:../../../packages/zero
+      sigx:
+        specifier: 'catalog:'
+        version: 1.0.1
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vite:
+        specifier: ^8.3.0
+        version: 8.3.1(@types/node@26.6.2)(esbuild@0.28.1)
+
   examples/playground:
     dependencies:
       '@sigx/zero':

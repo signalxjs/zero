@@ -1,0 +1,25 @@
+{
+    "name": "zero-mail",
+    "version": "0.0.0",
+    "private": true,
+    "description": "Zero Mail — a full mail client on mock data, built only from @sigx/zero components on a custom design system.",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "typecheck": "node scripts/check-no-raw.mjs && tsgo --noEmit"
+    },
+    "dependencies": {
+        "@sigx/zero": "workspace:^",
+        "@sigx/zero-mail-ds": "workspace:^",
+        "@sigx/zero-mail-kit": "workspace:^",
+        "sigx": "catalog:"
+    },
+    "devDependencies": {
+        "@fontsource/inter": "^5.3.0",
+        "@sigx/vite": "catalog:",
+        "typescript": "^7.0.2",
+        "vite": "^8.3.0"
+    }
+}

@@ -1,0 +1,38 @@
+{
+    "name": "@sigx/zero-mail-kit",
+    "version": "0.0.0",
+    "private": true,
+    "description": "Zero Mail's own components, built only from @sigx/zero's public surface: the pieces zero does not ship yet (typography, icons, toolbar, a virtualised mail list, panes). Each one is a gap tracked in signalxjs/zero#440.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./fragment": {
+            "types": "./dist/fragment.d.ts",
+            "import": "./dist/fragment.js"
+        }
+    },
+    "sideEffects": false,
+    "scripts": {
+        "build": "vite build && tsgo --emitDeclarationOnly",
+        "typecheck": "tsgo --noEmit"
+    },
+    "peerDependencies": {
+        "@sigx/zero": "workspace:^",
+        "sigx": "catalog:"
+    },
+    "devDependencies": {
+        "@sigx/reactivity": "catalog:",
+        "@sigx/runtime-core": "catalog:",
+        "@sigx/runtime-dom": "catalog:",
+        "@sigx/vite": "catalog:",
+        "@sigx/zero": "workspace:^",
+        "sigx": "catalog:",
+        "typescript": "^7.0.2",
+        "vite": "^8.3.0"
+    }
+}

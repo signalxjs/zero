@@ -594,6 +594,23 @@ slides, is fine).
   lib-checkable, every program checks its dependencies' `.d.ts` too, as a
   strict consumer would.
   Private, excluded from the root typecheck like the playground.
+- `examples/mail/*` — **Zero Mail** (#439), the full-app acceptance test: a
+  working mail client on mock data built ONLY from zero components. Three
+  private packages (the workspace lists `examples/mail/*`):
+  - `kit` (`@sigx/zero-mail-kit`): the components zero lacks — Text/Heading/
+    Time, Icon, Toolbar, the virtualised MailList/MailRow, Shell/Split
+    panes, ActionButton, Hotkeys. They are built from zero's public surface
+    like zero-ext-example, with `mail-*` anatomies in a manifest fragment.
+  - `ds` (`@sigx/zero-mail-ds`): the custom design system, scaffolded by
+    create-zero-ds from the corporate brief. It passes the kit's fragment
+    explicitly (`ecosystem: false`) and styles those scopes itself.
+  - `app` (`zero-mail`): the Vite app. Its `typecheck` first runs
+    `scripts/check-no-raw.mjs`, which fails on any intrinsic JSX element,
+    `class` or `style` under `src/`.
+
+  Every workaround in kit/ds names the gap it stands in for; the list lives in
+  #440. `pnpm build` builds kit and ds, and CI then typechecks and builds the
+  app. Run it with `pnpm --filter zero-mail dev`.
 
 **Lockstep versioning**: every publishable package shares one version. Never
 bump a single package's version — use `pnpm version:patch|minor|major`.
