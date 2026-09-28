@@ -454,6 +454,14 @@ two that sum to under 100% scale the result's alpha by that sum
 (`red 30%, blue 30%` is purple at alpha 0.6), and two that sum to 0% — or
 a percentage above 100% — are an error, as the spec makes them invalid.
 
+Two things are dropped outright, with a report entry, because the engine
+cannot draw them: an SVG data-URI image (`url("data:image/svg+xml,…")`),
+which iOS fails to decode — raising an image error, not a quiet miss — along
+with any token holding one and every declaration reading such a token
+(signalxjs/lynx#1215); and `clip-path`, which lynx does not apply
+(signalxjs/lynx#1216). A recipe draws a clipped shape another way in its
+`targets.lynx` section.
+
 ## The authoring surface in a browser graph
 
 The kit's barrel is Node-only — a design-system package may never

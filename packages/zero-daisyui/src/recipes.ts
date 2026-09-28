@@ -1825,6 +1825,13 @@ export const fieldset: RecipeInput = {
  * horizontal bar and lifts it to the middle. All three verbatim from daisyUI
  * 5.7.8's `.checkbox:before` / `:checked` / `:indeterminate`.
  */
+/**
+ * The lynx tick's stroke: 20% of the checkbox's content box — the width of
+ * daisy's polygon bars — as a length, since borders take no percentage.
+ * The content box is the control less its padding and border on both sides.
+ */
+const CHECKBOX_LYNX_STROKE = 'calc((var(--checkbox-size) - var(--checkbox-pad) * 2 - var(--border) * 2) * 0.2)';
+
 const TICK_COLLAPSED = 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 70% 80%, 70% 100%)';
 const TICK_DRAWN = 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 0%, 70% 0%, 70% 100%)';
 const DASH_DRAWN = 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 80% 80%, 80% 100%)';
@@ -2064,26 +2071,62 @@ export const checkbox: RecipeInput = {
                     },
                 },
                 indicator: {
-                    // The tick's fill: the control's `color:` names
-                    // `--checkbox-on-accent`, and `currentColor` was that
-                    // ink by inheritance — spend it directly.
+                    // The tick WITHOUT clip-path, which lynx does not apply
+                    // (measured on iOS, signalxjs/lynx#1216 — daisy's
+                    // polygon-cut box drew as a solid diamond; the emitter
+                    // now drops every clip-path). daisy's drawn polygon is an
+                    // L inside the content box: a bar at x 50–70% over the
+                    // full height and a foot at y 80–100% from x 20%, both
+                    // 20% of the box thick, rotated 45° about the box's
+                    // centre. That is exactly the classic two-border check:
+                    // a 50%-wide full-height box at x 20% with a right and a
+                    // bottom border 20% of the content box thick, turned
+                    // about the content box's centre (60% 50% of itself).
                     //
-                    // The tick's motion, restated as `transform`: the
-                    // standalone `rotate`/`translate` properties resolve on
-                    // iOS but not on Android (measured, signalxjs/lynx#1084),
-                    // so the emitter refuses them. `transform` functions are
-                    // proven on both platforms — and the transition follows
-                    // the property that now moves.
+                    // The ink: the control's `color:` names
+                    // `--checkbox-on-accent`, and `currentColor` was that ink
+                    // by inheritance (it never resolves on lynx,
+                    // signalxjs/lynx#1079) — spent directly on the borders.
+                    //
+                    // The motion is `transform`: the standalone `rotate` /
+                    // `translate` properties resolve on iOS but not on
+                    // Android (signalxjs/lynx#1084). No sheen shadow — on a
+                    // hollow box it would band the inside of the L.
                     base: {
-                        backgroundColor: 'var(--checkbox-on-accent)',
+                        boxSizing: 'border-box',
+                        width: '50%',
+                        height: '100%',
+                        marginLeft: '20%',
+                        backgroundColor: 'transparent',
+                        borderStyle: 'solid',
+                        borderColor: 'var(--checkbox-on-accent)',
+                        borderTopWidth: '0',
+                        borderLeftWidth: '0',
+                        borderRightWidth: CHECKBOX_LYNX_STROKE,
+                        borderBottomWidth: CHECKBOX_LYNX_STROKE,
+                        boxShadow: 'none',
+                        transformOrigin: '60% 50%',
                         transform: 'rotate(45deg)',
-                        transition: 'clip-path var(--duration-slow) var(--ease-standard) var(--duration-instant), '
-                            + 'opacity var(--duration-instant) var(--ease-standard) var(--duration-instant), '
+                        transition: 'opacity var(--duration-instant) var(--ease-standard) var(--duration-instant), '
                             + 'transform var(--duration-slow) var(--ease-standard) var(--duration-instant)',
                     },
-                    // The order matches the standalone properties' fixed
-                    // apply order (translate, then rotate).
-                    states: { indeterminate: { transform: 'translateY(-35%) rotate(0deg)' } },
+                    states: {
+                        // daisy's dash (signalxjs/lynx#1217): the same six
+                        // points un-rotated into a bar at x 20–80%, 20% of
+                        // the box tall, lifted to the middle. Here a filled,
+                        // borderless 60% × 20% box centred on the cross
+                        // axis — the unclipped full-height box had painted
+                        // the top half of the control.
+                        indeterminate: {
+                            width: '60%',
+                            height: '20%',
+                            alignSelf: 'center',
+                            borderRightWidth: '0',
+                            borderBottomWidth: '0',
+                            backgroundColor: 'var(--checkbox-on-accent)',
+                            transform: 'rotate(0deg)',
+                        },
+                    },
                 },
             },
         },

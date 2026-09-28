@@ -16,6 +16,7 @@ import {
     bakeSoft,
     compileLynxTokensCss,
     emptyReport,
+    lynxRefusedImageTokens,
     runtimePropertyIn,
     STRUCTURAL_FALLBACKS,
 } from '../src/targets/lynx/index.js';
@@ -183,6 +184,30 @@ describe('compileLynxTokensCss', () => {
         const css = compileLynxTokensCss(input, report);
         expect(css).not.toMatch(/currentcolor/i);
         expect(report.dropped.some((f) => f.what.includes('--underline') && f.detail.includes('currentColor'))).toBe(true);
+    });
+
+    it('drops a token holding an SVG data-URI image — iOS cannot decode it', () => {
+        // signalxjs/lynx#1215: daisy's --fx-noise tile failed to decode on
+        // iOS and raised the dev red screen. A token aliasing it is the same
+        // image, so both are refused, and named for the recipe emitter.
+        const report = emptyReport();
+        const input: TokensInput = {
+            defaultLight: 'l',
+            themes: {
+                l: {
+                    colorScheme: 'light',
+                    colors: { 'base-100': '#ffffff', 'base-content': '#111111' },
+                    extra: { '--noise-tile': 'url("data:image/svg+xml,%3Csvg/%3E")', '--alias': 'var(--noise-tile)', '--shout': 'VAR(--noise-tile)', '--keep': '4px' },
+                },
+            },
+        };
+        const css = compileLynxTokensCss(input, report);
+        expect(css).not.toMatch(/data:image/);
+        expect(css).toContain('--keep: 4px;');
+        // Once per emitted block: the default theme rides `.zx-root` and its own class.
+        expect(new Set(report.dropped.filter((f) => f.detail.includes('signalxjs/lynx#1215')).map((f) => f.what.split(':')[0]))).toEqual(new Set(['--noise-tile', '--alias', '--shout']));
+        expect([...lynxRefusedImageTokens(input)].sort()).toEqual(['--alias', '--noise-tile', '--shout']);
+        expect(lynxRefusedImageTokens(daisyTokens as never).has('--fx-noise')).toBe(true);
     });
 
     it('rejects a theme name that cannot be a class', () => {

@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### Fixed — the lynx target refuses SVG data-URI images and `clip-path` (zero#401)
+
+- iOS Lynx hands a `url("data:image/svg+xml,…")` background to SDWebImage,
+  which cannot decode it: daisy's `--fx-noise` tile raised the dev client's
+  red error screen on every checkbox and radio section (signalxjs/lynx#1215).
+  The lynx emitters now drop, with a report entry, every token holding an
+  SVG data URI (after var() chains are inlined), every recipe declaration
+  and keyframes body carrying one, and every declaration reading a refused
+  token. Raster data URIs pass.
+- `clip-path` is not applied on lynx (signalxjs/lynx#1216 — daisy's
+  polygon-cut checkbox tick drew as a solid diamond). Every `clip-path`
+  declaration, and any keyframes body animating it, is dropped with a report
+  entry.
+- New exports on the lynx target: `hasSvgDataUri` and
+  `lynxRefusedImageTokens`. `compileLynxRecipeCss` takes an optional fifth
+  argument, the refused image tokens.
+- zero-daisyui's checkbox draws its lynx tick as two borders on a rotated
+  box (daisy's L geometry, stroke 20% of the content box), and its
+  indeterminate dash as a filled 60% × 20% bar centred in the box
+  (signalxjs/lynx#1216, #1217). The web output is unchanged byte for byte.
+
 ## [0.11.0] - 2026-09-27
 
 ### Added — the `clearable` flag (zero#387)
