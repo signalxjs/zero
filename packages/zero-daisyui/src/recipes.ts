@@ -1413,7 +1413,17 @@ export const tooltip: RecipeInput = {
     targets: {
         web: floatingArrow('tooltip', { background: 'var(--color-neutral)' }, '0.5rem'),
         lynx: {
-            parts: { trigger: { base: lynxBtnPad(4) } },
+            parts: {
+                // Content-sized like daisy's btn, never broken mid-word
+                // (signalxjs/lynx#1165). No pressed rule: the anatomy
+                // declares none — the long press paints the `open` state.
+                trigger: { base: { ...lynxBtnPad(4), ...lynxBtnFit } },
+                // The arrow's paint: the bubble's neutral, continued. The
+                // web's `floatingArrow` geometry rides runtime custom
+                // properties lynx does not write, so lynx-zero places the
+                // 8px square and turns it itself (signalxjs/lynx#1277).
+                arrow: { base: { background: 'var(--color-neutral)' } },
+            },
             variants: { size: lynxBtnSizes('trigger') },
         },
     },
@@ -4632,6 +4642,70 @@ export const combobox: RecipeInput = {
     },
     targets: {
         web: { parts: { popup: { base: anchoredListbox } } },
+        // lynx-zero's combobox (signalxjs/lynx#1278): a native text field in
+        // a painted `control` view, the list in the overlay outlet.
+        lynx: {
+            parts: {
+                // select's bounds (signalxjs/lynx#1146): 20rem, never wider
+                // than the container. The web's 13rem control floor
+                // overflowed any cell narrower than 208px on a phone; the
+                // control fills the root instead.
+                root: { base: { width: '20rem', maxWidth: '100%', minWidth: '3rem' } },
+                // The web `:hover` border is dropped on a touch platform. The
+                // ring is the box-shadow spelling (signalxjs/lynx#1163): lynx
+                // has no `outline-offset`, and its outline ignores the radius.
+                control: {
+                    base: { minWidth: '3rem', width: '100%' },
+                    states: lynxFocus(),
+                },
+                // `color: inherit` never reaches a native text field, and
+                // `::placeholder` does not exist: the ink is explicit, and the
+                // placeholder takes lynx's `-x-placeholder-color` — the web's
+                // 60% mix, baked per theme (input's spelling; its constant is
+                // declared below this recipe, so the value is restated).
+                input: {
+                    base: {
+                        color: 'var(--color-base-content)',
+                        '-x-placeholder-color': 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
+                        flexGrow: '1',
+                        flexShrink: '1',
+                    },
+                },
+                // The chevron and the × are `<view>`s holding a glyph: centred
+                // in the stretched row (a lynx view lays its child out at the
+                // top), in explicit ink. A held chevron comes up to full ink —
+                // the touch answer to the web's resting 60%. The clear-trigger
+                // declares no pressed flag; its feedback is the text leaving.
+                trigger: {
+                    base: { color: 'var(--color-base-content)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+                    states: { pressed: { opacity: '1' } },
+                },
+                'clear-trigger': {
+                    base: { color: 'var(--color-base-content)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+                },
+                // The chip's ring is the lynx one; its remove button's ring is
+                // drawn inside, so it never paints over the chip's label.
+                tag: { states: lynxFocus() },
+                'tag-remove': {
+                    base: { color: 'var(--color-base-content)' },
+                    states: lynxFocus({ inset: true }),
+                },
+                // The popup renders in the overlay outlet, outside the root,
+                // so it cannot inherit `--combobox-accent`, and an unresolved
+                // `var()` on lynx has no fallback (select's
+                // signalxjs/lynx#1168). The popup restates the accent; its
+                // colour-axis twins are in `variants.color` below.
+                popup: { base: { '--combobox-accent': 'var(--color-primary)' } },
+                // A touch list has no pointer highlight: a held option takes
+                // the highlighted wash.
+                item: { states: { pressed: { background: 'var(--color-base-200)' } } },
+            },
+            variants: {
+                color: Object.fromEntries(ROLES.map((c) => [c, { popup: { base: {
+                    '--combobox-accent': `var(--color-${c})`,
+                } } }])),
+            },
+        },
     },
 };
 
@@ -7976,13 +8050,26 @@ export const navbar: RecipeInput = {
     // so the bar's height ramp is restated as `min-height`; and a lynx flex
     // container is only a row when it says so, so the bar and its three
     // sections spell `flex-direction: row`.
+    //
+    // No section squeezes a word (signalxjs/lynx#1274, zero#499). On the web
+    // `flex: 1 1 0%` is floored by the flex item's automatic minimum (its
+    // min-content width), so "Acme" never breaks. Lynx's flex layout has no
+    // automatic minimum, and its `min-width` takes no intrinsic keyword, so
+    // a zero basis shrank the start below its text and the `<text>` wrapped
+    // per character ("Acm / e"). On lynx the ends start from their content
+    // (`flex-basis: auto`), never shrink, and share the slack equally; the
+    // centre takes daisy's own `flex-shrink: 0`. A bar too narrow for its
+    // content overflows whole, as daisy's does — the btn rule (lynx#1165).
+    // The cost: with a centre and unequal ends, the centre sits off-centre
+    // by half the ends' difference (the web's is exact until a section
+    // reaches its min-content).
     targets: {
         lynx: {
             parts: {
                 root: { base: { flexDirection: 'row', minHeight: '4rem' } },
-                start: { base: { flexDirection: 'row' } },
-                center: { base: { flexDirection: 'row' } },
-                end: { base: { flexDirection: 'row' } },
+                start: { base: { flexDirection: 'row', flexBasis: 'auto', flexShrink: '0' } },
+                center: { base: { flexDirection: 'row', flexShrink: '0' } },
+                end: { base: { flexDirection: 'row', flexBasis: 'auto', flexShrink: '0' } },
             },
             variants: {
                 size: {
@@ -8932,11 +9019,68 @@ export const drawer: RecipeInput = {
                 },
             },
         },
-        // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
+        // The btn paddings, restated physically — see `lynxBtnPad` (#1084) —
+        // and the btns' press rendering (`lynxBtnPressed`), as dialog wears
+        // them. The edge sheet (signalxjs/lynx#1277): lynx-zero lays the
+        // panel on its edge with flexbox inside the backdrop, so the sheet
+        // stays in flow (`position: relative`, never `fixed`) and sizes to
+        // it — no viewport units, which lynx does not resolve against the
+        // overlay outlet. The skin keeps the cap, the corners and the slide.
         lynx: {
+            keyframes: {
+                // `translate` is Android-asymmetric (#1084): the travel is a
+                // transform function, one per edge.
+                'zero-daisy-drawer-in-start': 'from { transform: translateX(-100%); } to { transform: translateX(0); }',
+                'zero-daisy-drawer-in-end': 'from { transform: translateX(100%); } to { transform: translateX(0); }',
+                'zero-daisy-drawer-in-top': 'from { transform: translateY(-100%); } to { transform: translateY(0); }',
+                'zero-daisy-drawer-in-bottom': 'from { transform: translateY(100%); } to { transform: translateY(0); }',
+            },
             parts: {
-                trigger: { base: lynxBtnPad(4) },
-                close: { base: lynxBtnPad(4) },
+                trigger: { base: { ...lynxBtnPad(4), ...lynxBtnFit }, states: { pressed: lynxBtnPressed, ...lynxFocus() } },
+                close: { base: { ...lynxBtnPad(4), ...lynxBtnFit }, states: { pressed: lynxBtnPressed, ...lynxFocus() } },
+                panel: {
+                    // The cap alone: `min(20rem, 85vw)` has no lynx spelling
+                    // (no min()); lynx-zero states the 85% share inline and
+                    // this caps it — together, the web's width.
+                    base: { '--l-measure': '20rem' },
+                    selectors: {
+                        '&[data-l-dock="sheet"]': {
+                            position: 'relative',
+                            blockSize: 'auto',
+                            maxBlockSize: 'none',
+                        },
+                        // The block edges run full width (the web's `:where()`
+                        // pair, one selector each — no `:where()` on lynx),
+                        // content-sized up to 85% of the outlet.
+                        '&[data-placement="top"]': { '--l-measure': 'none' },
+                        '&[data-placement="bottom"]': { '--l-measure': 'none' },
+                        '&[data-placement="top"][data-l-dock="sheet"]': {
+                            maxBlockSize: '85%',
+                            borderBottomLeftRadius: 'var(--radius-box)',
+                            borderBottomRightRadius: 'var(--radius-box)',
+                        },
+                        '&[data-placement="bottom"][data-l-dock="sheet"]': {
+                            maxBlockSize: '85%',
+                            borderTopLeftRadius: 'var(--radius-box)',
+                            borderTopRightRadius: 'var(--radius-box)',
+                        },
+                        // The slide in from the edge (the web's `translate`
+                        // over `@starting-style`, both dropped here). The
+                        // exit is an unmount on lynx, so only the entry runs.
+                        '&[data-placement="start"][data-l-dock="sheet"][data-state="open"]': {
+                            animation: 'zero-daisy-drawer-in-start var(--duration-slow) var(--ease-standard)',
+                        },
+                        '&[data-placement="end"][data-l-dock="sheet"][data-state="open"]': {
+                            animation: 'zero-daisy-drawer-in-end var(--duration-slow) var(--ease-standard)',
+                        },
+                        '&[data-placement="top"][data-l-dock="sheet"][data-state="open"]': {
+                            animation: 'zero-daisy-drawer-in-top var(--duration-slow) var(--ease-standard)',
+                        },
+                        '&[data-placement="bottom"][data-l-dock="sheet"][data-state="open"]': {
+                            animation: 'zero-daisy-drawer-in-bottom var(--duration-slow) var(--ease-standard)',
+                        },
+                    },
+                },
             },
             variants: { size: lynxBtnSizes('trigger') },
         },
@@ -9136,6 +9280,89 @@ export const table: RecipeInput = {
             },
         },
     },
+    // signalxjs/lynx#1279. Lynx has no table layout: lynx-zero lays the
+    // parts out as flex rows itself. The `hover` modifier has no lynx
+    // answer (a touch screen has no hover), nor has the viewport-width
+    // `@media` of the stacked mode — lynx-zero resolves `stack` in JS and
+    // stamps the parts instead (see `css` below).
+    targets: {
+        lynx: {
+            parts: {
+                // The web's `overflow-x: auto` box: a lynx view clips its
+                // rounded frame; a table of fixed columns scrolls in a
+                // scroll-view lynx-zero renders.
+                root: {
+                    base: { overflow: 'hidden' },
+                    // daisy's ring drawn inside the box, as on the web
+                    // (outline-offset: -2px) — spelled as an inset shadow.
+                    states: { 'focus-visible': lynxFocusRing('var(--color-base-content)', { inset: true }) },
+                },
+                // The muted header ink: the colour function over
+                // `--table-accent` cannot bake (a recipe-local property),
+                // so the default accent's mix is restated here and each
+                // colour's below.
+                'header-cell': { base: { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' } },
+                'cell-label': { base: { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' } },
+                // The web's hover ink, while held; the lynx ring.
+                'sort-trigger': {
+                    base: { flexDirection: 'row' },
+                    states: { pressed: { color: 'var(--table-accent)' }, ...lynxFocus() },
+                },
+            },
+            variants: {
+                color: Object.fromEntries(ROLES.map((c) => {
+                    const muted = `color-mix(in oklab, ${roleInk(c)} 60%, transparent)`;
+                    return [c, {
+                        'header-cell': { base: { color: muted } },
+                        'cell-label': { base: { color: muted } },
+                    }];
+                })),
+            },
+            // lynx-zero rendering details, not modifiers an author sets:
+            // - `stripe`: lynx has no `:nth-child`, so the body stamps its
+            //   even, unselected rows (mount order) under `zebra`.
+            // - `held`: the unsorted mark the web reveals under a hovered or
+            //   keyboard-focused trigger, shown while the trigger is held.
+            // - `stacked`: the stacked mode's card chrome (the web's
+            //   below-breakpoint rules). Zero widths and paddings keep a
+            //   var() so they beat the var-bearing base values (lynx expands
+            //   var() declarations after the cascade, signalxjs/lynx#1161);
+            //   the root keeps its base-100 fill (a var-free transparent
+            //   would lose the same way).
+            css: `
+.zx-table__root.zx-m-stacked {
+    border-width: calc(var(--border) * 0);
+    border-radius: calc(var(--radius-box) * 0);
+}
+.zx-table__caption.zx-m-stacked {
+    padding-left: calc(var(--table-pad-inline) * 0);
+    padding-right: calc(var(--table-pad-inline) * 0);
+}
+.zx-table__row.zx-m-stacked {
+    border: var(--border) solid var(--color-base-200);
+    border-radius: var(--radius-box);
+    background: var(--color-base-100);
+    padding: var(--space-sm) var(--table-pad-inline);
+    margin-bottom: var(--space-md);
+}
+.zx-table__row.zx-m-stacked.zx-f-selected {
+    background: var(--color-base-300);
+}
+.zx-table__cell.zx-m-stacked {
+    padding-left: calc(var(--table-pad-inline) * 0);
+    padding-right: calc(var(--table-pad-inline) * 0);
+    padding-top: var(--space-xs);
+    padding-bottom: var(--space-xs);
+}
+.zx-table__row.zx-m-stripe {
+    background: var(--color-base-200);
+}
+.zx-table__sort-indicator.zx-m-held.zx-s-none {
+    opacity: 0.6;
+}
+`,
+        },
+    },
 };
 
 /**
@@ -9304,6 +9531,19 @@ export const fileUpload: RecipeInput = {
     },
 };
 
+/** A carousel nav circle on lynx: the glyph centred as flex (no `grid`). */
+const carouselTriggerLynx: CssProps = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+};
+
+/** A held carousel nav circle on lynx: daisy's hover wash plus the 1px sink, and the lynx ring. */
+const carouselTriggerLynxStates: Record<string, CssProps> = {
+    pressed: { background: 'var(--color-base-300)', transform: 'translateY(1px)' },
+    ...lynxFocus(),
+};
+
 /**
  * Carousel — daisy's carousel is exactly a scroll-snap box; the additions
  * are btn-circle nav triggers floating on the inline edges and pill dots.
@@ -9454,14 +9694,60 @@ export const carousel: RecipeInput = {
     // spellings resolve on iOS but not on Android (measured,
     // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
     // lynx target's norm — no RTL flow there, so `start` IS left.
+    //
+    // signalxjs/lynx#1279 — the rest of the lynx shape:
+    // - `grid` does not lay out on lynx: the root is a flex column, and a
+    //   trigger centres its glyph as flex.
+    // - The dot: the web draws it on `::before` inside a
+    //   `max(dot, 1.5rem)` button; lynx has neither pseudo-elements nor
+    //   `max()`, so lynx-zero renders the dot AS the indicator (its touch
+    //   area widened with `hit-slop`) and the ring and the active fill ride
+    //   the part.
+    // - The web sinks a held trigger with the standalone `translate`,
+    //   which Android ignores (#1084): a transform function here, over
+    //   daisy's hover wash (no hover on touch).
+    // - Rings: lynx's outline ignores radius and has no offset (#1163).
+    // No replacement for the viewport's `:focus-visible` ring: there is no
+    // keyboard focus on lynx, and the part declares no flag to key it on.
     targets: {
         lynx: {
             parts: {
+                root: { base: { display: 'flex', flexDirection: 'column' } },
                 'prev-trigger': {
-                    base: { top: 'calc(50% - var(--carousel-nav) / 2)', left: 'var(--space-sm)' },
+                    base: {
+                        top: 'calc(50% - var(--carousel-nav) / 2)',
+                        left: 'var(--space-sm)',
+                        ...carouselTriggerLynx,
+                    },
+                    states: carouselTriggerLynxStates,
                 },
                 'next-trigger': {
-                    base: { top: 'calc(50% - var(--carousel-nav) / 2)', right: 'var(--space-sm)' },
+                    base: {
+                        top: 'calc(50% - var(--carousel-nav) / 2)',
+                        right: 'var(--space-sm)',
+                        ...carouselTriggerLynx,
+                    },
+                    states: carouselTriggerLynxStates,
+                },
+                'indicator-group': { base: { flexDirection: 'row', alignItems: 'center' } },
+                indicator: {
+                    base: {
+                        display: 'flex',
+                        width: 'var(--carousel-dot)',
+                        height: 'var(--carousel-dot)',
+                        flexShrink: '0',
+                        // Longhands: the ring's colour bakes per theme only
+                        // on its own (a shorthand mixing it with the
+                        // --border calc cannot).
+                        borderWidth: 'calc(var(--border) * 2)',
+                        borderStyle: 'solid',
+                        borderColor: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+                        borderRadius: '9999px',
+                    },
+                    states: {
+                        active: { background: 'var(--carousel-accent)', borderColor: 'var(--carousel-accent)' },
+                        ...lynxFocus(),
+                    },
                 },
             },
         },

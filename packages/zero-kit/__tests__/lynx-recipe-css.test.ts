@@ -1427,6 +1427,94 @@ describe('assertNoCalcVarChains', () => {
             expect(body(lynxCss()['kbd']!, '.zx-kbd__root')).toContain('font-family: Menlo, monospace;');
         });
     });
+
+    describe('zero-daisyui navbar on lynx: no section squeezes a word (signalxjs/lynx#1274)', () => {
+        const lynxCss = () => compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] }).componentCss;
+        const body = (css: string, selector: string): string => {
+            const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return [...css.matchAll(new RegExp(`^${escaped} \\{([^}]*)\\}`, 'gm'))].map((m) => m[1]!).join('\n');
+        };
+        /** The declarations of `prop` in rule order: the last one wins the cascade. */
+        const last = (decls: string, prop: string): string | undefined =>
+            [...decls.matchAll(new RegExp(`^\\s*${prop}: ([^;]+);`, 'gm'))].map((m) => m[1]!).at(-1);
+
+        it('start and end grow from their content and never shrink; the centre never shrinks', () => {
+            const css = lynxCss()['navbar']!;
+            for (const part of ['start', 'end']) {
+                const decls = body(css, `.zx-navbar__${part}`);
+                // The shared `flex: 1 1 0%` still ships (grow 1); the lynx
+                // longhands come after it and win.
+                const shorthand = decls.indexOf('flex: 1 1 0%;');
+                expect(shorthand).toBeGreaterThanOrEqual(0);
+                expect(shorthand).toBeLessThan(decls.indexOf('flex-basis: auto;'));
+                expect(last(decls, 'flex-basis')).toBe('auto');
+                expect(last(decls, 'flex-shrink')).toBe('0');
+                expect(decls).toContain('display: flex;');
+                expect(decls).toContain('flex-direction: row;');
+            }
+            expect(last(body(css, '.zx-navbar__center'), 'flex-shrink')).toBe('0');
+        });
+    });
+
+    describe('zero-daisyui combobox on lynx (signalxjs/lynx#1278, #503)', () => {
+        // Compiled once for the block: every test reads the same stylesheet.
+        let compiled: string | undefined;
+        const comboboxCss = (): string => (compiled ??= compileDesignSystemLynx(daisyDS as never, {
+            components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
+        }).componentCss['combobox']!);
+        const body = (css: string, selector: string): string | undefined => {
+            const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const bodies = [...css.matchAll(new RegExp(`^${escaped} \\{([^}]*)\\}`, 'gm'))].map((m) => m[1]!);
+            return bodies.length > 0 ? bodies.join('\n') : undefined;
+        };
+
+        it('the field is bounded like select, and the native input carries its own ink and placeholder', () => {
+            const css = comboboxCss();
+            const root = body(css, '.zx-combobox__root')!;
+            expect(root).toContain('width: 320px;');
+            expect(root).toContain('max-width: 100%;');
+            const control = body(css, '.zx-combobox__control')!;
+            expect(control).toContain('min-width: 48px;');
+            expect(control).not.toContain('min-width: 208px;');
+            const input = body(css, '.zx-combobox__input')!;
+            expect(input).toContain('color: var(--color-base-content);');
+            expect(input).not.toContain('color: inherit;');
+            expect(body(css, '.zx-root .zx-combobox__input')).toMatch(/-x-placeholder-color: #[0-9a-f]{8};/);
+        });
+
+        it('rings are box-shadows, the remove button\'s drawn inside the chip', () => {
+            const css = comboboxCss();
+            for (const selector of ['.zx-combobox__control.zx-f-focus-visible', '.zx-combobox__tag.zx-f-focus-visible']) {
+                const ring = body(css, selector)!;
+                expect(ring, selector).toContain('outline: none;');
+                expect(ring, selector).toContain('box-shadow: 0 0 0 2px var(--color-base-100), 0 0 0 4px var(--color-base-content);');
+            }
+            expect(body(css, '.zx-combobox__tag-remove.zx-f-focus-visible')).toContain('box-shadow: inset 0 0 0 2px var(--color-base-content);');
+        });
+
+        it('the glyph buttons are centred in explicit ink; held answers stand in for hover', () => {
+            const css = comboboxCss();
+            for (const part of ['trigger', 'clear-trigger', 'tag-remove']) {
+                const rule = body(css, `.zx-combobox__${part}`)!;
+                expect(rule, part).toContain('color: var(--color-base-content);');
+                expect(rule, part).not.toContain('color: inherit;');
+            }
+            for (const part of ['trigger', 'clear-trigger']) {
+                const rule = body(css, `.zx-combobox__${part}`)!;
+                expect(rule, part).toContain('display: flex;');
+                expect(rule, part).toContain('align-items: center;');
+            }
+            expect(body(css, '.zx-combobox__trigger.zx-f-pressed')).toContain('opacity: 1;');
+            expect(body(css, '.zx-combobox__item.zx-f-pressed')).toContain('background: var(--color-base-200);');
+        });
+
+        it('the portalled popup restates the accent, per colour', () => {
+            const css = comboboxCss();
+            expect(body(css, '.zx-combobox__popup')).toContain('--combobox-accent: var(--color-primary);');
+            expect(body(css, '.zx-combobox__popup.zx-a-color-secondary')).toContain('--combobox-accent: var(--color-secondary);');
+            expect(body(css, '.zx-combobox__item.zx-f-selected')).toContain('color: var(--combobox-accent);');
+        });
+    });
 });
 
 describe('assertNoDanglingVars', () => {

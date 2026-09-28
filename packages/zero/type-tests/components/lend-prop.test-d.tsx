@@ -1,15 +1,17 @@
 /**
- * The `lend` prop (#452) before any zero part takes it: `WithLend` accepts a
- * real asChild bag (`PartProps`), and only that. A hand-built object without
- * the anatomy is not a bag, and a part that is not an opt-in host has no
- * `lend` at all. C1 adds the positive cases against `Button.Root`; #450
- * adds Box, Card.Root and Menu.ContextTrigger.
+ * The `lend` prop (#452): `WithLend` accepts a real asChild bag
+ * (`PartProps`), and only that. A hand-built object without the anatomy is
+ * not a bag, and a part that is not an opt-in host has no `lend` at all.
+ * The hosts (#494): `Button.Root` takes a lent bag, `Tooltip.Trigger` takes
+ * one too so lenders chain, and spreading a bag onto a zero component stays
+ * an error (`ReservedByZero`) — `lend={p}` is the spelling. #450 adds Box,
+ * Card.Root and Menu.ContextTrigger.
  *
  * No runtime: a regression here is a compile error in `pnpm test:types`.
  */
 import { component } from 'sigx';
 import type { JSXElement } from 'sigx';
-import { Box, Card, Menu, Tabs, Tooltip } from '@sigx/zero';
+import { Box, Button, Card, Menu, Tabs, Tooltip } from '@sigx/zero';
 import type { PartProps, WithLend } from '@sigx/zero';
 
 const Host = component<WithLend>(() => () => null as unknown as JSXElement);
@@ -25,6 +27,22 @@ export const fromSlot = (
     </Tooltip.Trigger>
 );
 
+// ── the hosts (#494) ──
+export const button = <Button.Root lend={p} aria-label="Archive" />;
+export const buttonFromTooltip = (
+    <Tooltip.Trigger asChild>
+        {(bag: PartProps) => <Button.Root lend={bag} aria-label="Archive">A</Button.Root>}
+    </Tooltip.Trigger>
+);
+export const chained = (
+    <Tooltip.Trigger asChild>
+        {(t: PartProps) => (
+            <Tooltip.Trigger asChild lend={t}>
+                {(bag: PartProps) => <Button.Root lend={bag} aria-label="Archive">A</Button.Root>}
+            </Tooltip.Trigger>
+        )}
+    </Tooltip.Trigger>
+);
 // The hosts #450 adds: Box, Card.Root and Menu.ContextTrigger, which also
 // lends its own bag onward through asChild.
 export const box = <Box lend={p} pad="md">x</Box>;
@@ -37,6 +55,8 @@ export const lentSurface = (
 );
 
 // ── invalid ──
+// @ts-expect-error — a bag spread onto a zero component: its anatomy is ReservedByZero; write lend={p}
+export const e0 = <Button.Root {...p} />;
 // @ts-expect-error — a bag, not a string
 export const e1 = <Host lend="x" />;
 // @ts-expect-error — no data-scope/data-part: not a part's bag

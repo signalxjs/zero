@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "77.07 kB",
+        "limit": "77.09 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -50,7 +50,7 @@
     {
         "name": "@sigx/zero/menu",
         "path": "packages/zero/dist/components/menu/index.js",
-        "limit": "12.02 kB",
+        "limit": "12.04 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -84,7 +84,7 @@
     {
         "name": "@sigx/zero/button",
         "path": "packages/zero/dist/components/button/index.js",
-        "limit": "2.96 kB",
+        "limit": "3.76 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

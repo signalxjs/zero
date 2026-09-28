@@ -1345,6 +1345,10 @@ owns) and spread `htmlAttrs(props)` first. That holds for an ecosystem
 package's parts too: `WithHtmlAttrs` and the `ReservedByZero` type its
 reserved names carry are both exported, so a package that emits its own
 declarations can name them (`@sigx/zero-ext-example`'s Stepper does).
+That is also why a trigger's asChild bag cannot be spread onto a zero
+component — the bag carries those names. A zero component takes it through
+`lend={p}` instead; see "Composition: lending a part (`lend`)" under
+Patterns.
 
 ```tsx
 <Button.Root aria-label="Close" data-testid="close" onClick={close}>×</Button.Root>
@@ -2086,6 +2090,65 @@ The ordering is fixed:
 
 `Menu.ContextTrigger`, `Menu.SubTrigger` and `Menu.Item` are not covered
 yet; the general composition rule is #452.
+
+**Composition: lending a part (`lend`) (#452, #494).** A trigger's asChild
+bag goes to whatever renders the element. One rule:
+
+- a **raw element** gets it by spreading: `<button {...p}>`;
+- a **zero component** gets it through `lend={p}`.
+
+```tsx
+<Tooltip.Root>
+    <Tooltip.Trigger asChild>
+        {(p) => (
+            <Button.Root lend={p} variant="ghost" aria-label="Archive" onClick={archive}>
+                <ArchiveIcon />
+            </Button.Root>
+        )}
+    </Tooltip.Trigger>
+    <Tooltip.Popup>Archive the conversation</Tooltip.Popup>
+</Tooltip.Root>
+```
+
+A spread cannot work on a component: sigx strips `ref` from component
+props (the tooltip would lose its anchor), a component forwards no unknown
+props, and the bag's `data-scope`/`data-part` are reserved names, a type
+error on every zero part.
+
+The element that renders keeps its **own** anatomy. Above, the one
+`<button>` is `button.root`, with the Button's `data-*`, paint, press
+feedback, `loading` and `focusableWhenDisabled`. The lent `tooltip.trigger`
+renders no element (it is declared `absorbable`) and contributes behaviour
+and ARIA only: its handlers and ref run first, then the host's, and its
+`aria-describedby` joins the host's. Its `data-state`, flags and anatomy
+are dropped. Paint set on the lender (`color`, `size`, `variant`, a
+modifier, a layout prop) or `hidden` on it throws — set those on the host.
+The lender's recipe does not apply: the element is painted by the host's.
+
+**Disable the host, not the lender.** An inert host (`disabled`, `loading`)
+skips the lender's activation handlers (click, keydown, …) but still runs
+its focus, blur and pointer handlers. So a tooltip lent to a `loading` or
+`disabled focusableWhenDisabled` Button still shows on hover and keyboard
+focus, and a press does nothing. A disabled lender only goes quiet: its own
+app handlers stop, and the host still acts.
+
+Lenders chain, because a lender that is also a host passes the merged bag
+on. `lend` is a prop on the host, `asChild` stays the transport:
+
+```tsx
+<Tooltip.Trigger asChild>
+    {(t) => (
+        <Tooltip.Trigger asChild lend={t}>
+            {(p) => <Button.Root lend={p}>…</Button.Root>}
+        </Tooltip.Trigger>
+    )}
+</Tooltip.Trigger>
+```
+
+The hosts today are `Button.Root`, `Tooltip.Trigger`, `Menu.ContextTrigger`, `Box` and `Card.Root`; the other
+triggers become hosts in #495. A component author makes a
+part a host with `WithLend` and `mergePartProps(props.lend, ownBag)`
+(exported for that); an app never calls it.
 
 **The context menu on a zero component (#450).** `Menu.ContextTrigger` is
 the right-click surface: `contextmenu` opens the menu at the pointer, and

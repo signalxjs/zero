@@ -37,6 +37,18 @@
   part's `parent`, and declares no `hiddenIn`, `layout` or `pseudo`; the
   anatomy suite holds zero's own parts to that. The key reaches
   `manifest.json` through `toJSON()`.
+- **`Button.Root` and `Tooltip.Trigger` take `lend` (#494).** A tooltip
+  lent to a Button is one element that keeps `button.root`, its paint,
+  press feedback, `loading` and `focusableWhenDisabled`:
+  `<Tooltip.Trigger asChild>{(p) => <Button.Root lend={p} aria-label="Archive"
+  onClick={archive}>…</Button.Root>}</Tooltip.Trigger>`. The tooltip's
+  handlers and ref run first and its `aria-describedby` joins the Button's.
+  An inert Button skips the lent click and keydown; a `loading` or
+  `disabled focusableWhenDisabled` Button still shows the tooltip on hover
+  and keyboard focus. `Tooltip.Trigger`
+  is a host too, so lenders chain. The README's Patterns section teaches
+  the rule: a raw element spreads the bag, a zero component takes
+  `lend={p}`.
 
 ### Changed
 

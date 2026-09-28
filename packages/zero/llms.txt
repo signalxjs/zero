@@ -165,6 +165,14 @@ popover/dialog `close`, dialog `cancel`) may be lent to another zero part
 through `lend`; the rendered element keeps the host's own anatomy, so the
 lendable part's recipe is advisory — it styles the part only when it
 renders on its own, never the host it was lent to. Style the host.
+LEND HOSTS (#494): `Button.Root` and `Tooltip.Trigger` take `lend={p}`.
+One rule: a raw element spreads the bag (`<button {...p}>`), a zero
+component gets `lend={p}` — spreading onto a component is a type error.
+`<Tooltip.Trigger asChild>{(p) => <Button.Root lend={p} aria-label="Archive"
+onClick={archive}>…</Button.Root>}</Tooltip.Trigger>` is an icon button that
+acts and has a tooltip. Disable the HOST: an inert Button skips the lent
+click/keydown; a `loading` or `disabled focusableWhenDisabled` Button still
+shows the tooltip.
 
 THE FORM CONTRACT (#441): every posting control takes `name`, `form`,
 `disabled`, `invalid`, `required` (and `readonly` where the platform has
