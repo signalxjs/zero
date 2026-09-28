@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-09-28
+
 ### Changed — the combobox tag keyboard (#411)
 
 - **Tags take real focus.** Under `multiple`, `Combobox.Tag` is focusable but
