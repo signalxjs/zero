@@ -712,6 +712,18 @@ something, so on an empty combobox it still reaches an enclosing dialog.
 `openOnClick` (default `false`) opens the list on a pointer click in the
 input as well.
 
+**Auto-highlight (#448).** By default, typing never highlights an option, so
+Enter picks nothing until an arrow key moves the highlight. Under
+`allowCustom`, Enter then commits the raw text, even when it names a listed
+option only in part. `autoHighlight` on `Combobox.Root` highlights the first
+enabled visible option as you type, and again whenever the query changes, so
+Enter picks the best match. An arrow move holds until the query changes. It
+applies only while the query is non-empty: an empty field or an
+`openOnClick` open leaves no highlight, so Enter still reaches the form.
+Under `allowCustom`, a query that matches nothing leaves no highlight, so
+Enter commits the text. `inlineComplete` takes precedence, because its
+highlight is the completion. Trigger mode always behaves this way.
+
 **Inline autocomplete (#301).** `inlineComplete` on `Combobox.Root` (single
 mode, not trigger mode) follows the APG list-with-inline-autocomplete
 pattern, and the input says so with `aria-autocomplete="both"`. When

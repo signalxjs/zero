@@ -267,7 +267,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     'checkbox-group': ['allValues', 'defaultValue', 'form', 'id', 'invalid', 'name', 'readonly', 'required', 'title', 'value'],
     collapsible: ['defaultOpen', 'id', 'role', 'title', 'value'],
     container: ['id', 'measure', 'pad', 'padX', 'padY', 'role', 'title'],
-    combobox: ['alignOffset', 'allowCustom', 'anchor', 'clearable', 'collisionPadding', 'defaultInputValue', 'defaultOpen', 'defaultValue', 'emptyText', 'estimateItemSize', 'filter', 'form', 'id', 'inlineComplete', 'invalid', 'itemDisabled', 'itemGroup', 'itemInsert', 'itemKey', 'itemLabel', 'itemValue', 'items', 'loading', 'loadingText', 'multiple', 'name', 'openOnClick', 'placeholder', 'placement', 'positionStrategy', 'readonly', 'required', 'role', 'title', 'trigger', 'value', 'virtual'],
+    combobox: ['alignOffset', 'allowCustom', 'anchor', 'autoHighlight', 'clearable', 'collisionPadding', 'defaultInputValue', 'defaultOpen', 'defaultValue', 'emptyText', 'estimateItemSize', 'filter', 'form', 'id', 'inlineComplete', 'invalid', 'itemDisabled', 'itemGroup', 'itemInsert', 'itemKey', 'itemLabel', 'itemValue', 'items', 'loading', 'loadingText', 'multiple', 'name', 'openOnClick', 'placeholder', 'placement', 'positionStrategy', 'readonly', 'required', 'role', 'title', 'trigger', 'value', 'virtual'],
     countdown: ['id', 'label', 'title'],
     dialog: ['defaultOpen', 'dismissible', 'finalFocus', 'initialFocus', 'modal', 'preventScroll', 'role', 'value'],
     diff: ['defaultValue', 'id', 'role', 'title', 'value'],

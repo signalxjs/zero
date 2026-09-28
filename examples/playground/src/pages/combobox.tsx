@@ -17,6 +17,13 @@ const TOOLS = ['browser', 'editor', 'git', 'search', 'shell'];
 
 const COMMANDS = ['clear', 'deploy', 'describe', 'help', 'history'];
 
+const CONTACTS = [
+    { name: 'Ada Lovelace', email: 'ada@example.com' },
+    { name: 'Marcus Webb', email: 'marcus@example.com' },
+    { name: 'Maya Chen', email: 'maya@example.com' },
+    { name: 'Priya Nair', email: 'priya@example.com' },
+];
+
 const AGENTS = [
     { id: 'atlas', name: 'Atlas' },
     { id: 'ada', name: 'Ada' },
@@ -220,6 +227,31 @@ const ComboboxDemos = component(() => {
                     name="tools"
                     placeholder="Add a tool…"
                     emptyText="Press Enter to add it"
+                />
+            </Field.Root>
+            <h3>Auto-highlight</h3>
+            <p>
+                <small>
+                    <code>autoHighlight</code> highlights the first match as you
+                    type, so Enter picks it: type <kbd>maya</kbd> and Enter adds
+                    Maya Chen. With <code>allowCustom</code>, a query that
+                    matches nothing leaves no highlight, and Enter adds the text.
+                </small>
+            </p>
+            <Field.Root>
+                <Field.Label>Recipients</Field.Label>
+                <Combobox.Root
+                    multiple
+                    allowCustom
+                    autoHighlight
+                    items={CONTACTS}
+                    itemKey={(c) => c.email}
+                    itemLabel={(c) => c.name}
+                    itemValue={(c) => c.email}
+                    defaultValue={['ada@example.com']}
+                    name="recipients"
+                    placeholder="Name or address…"
+                    emptyText="Press Enter to add this address"
                 />
             </Field.Root>
             <p>

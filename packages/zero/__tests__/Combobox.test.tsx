@@ -1435,3 +1435,152 @@ describe('Combobox inline autocomplete (#301)', () => {
         expect(input.value).toBe('Fr');
     });
 });
+
+describe('Combobox autoHighlight (#448)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    type Contact = { name: string; email: string; away?: boolean };
+    const CONTACTS: Contact[] = [
+        { name: 'Maya Chen', email: 'maya@example.com' },
+        { name: 'Marcus Webb', email: 'marcus@example.com' },
+        { name: 'Priya Nair', email: 'priya@example.com' },
+    ];
+    const type = (el: HTMLInputElement, text: string) => { el.value = text; el.dispatchEvent(new Event('input', { bubbles: true })); };
+    function key(el: HTMLElement, k: string) {
+        const e = new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true });
+        el.dispatchEvent(e);
+        return e;
+    }
+    const input = () => container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+    const highlighted = () => container.querySelector<HTMLElement>('[data-part="item"][data-highlighted]');
+
+    function contacts(opts: { multiple?: boolean; allowCustom?: boolean; autoHighlight?: boolean; openOnClick?: boolean; disabled?: (c: Contact) => boolean } = {}) {
+        const state = signal({ value: null as string | null, values: [] as string[], query: '', open: false });
+        // The overloads are picked by `multiple`'s and `allowCustom`'s literal types.
+        const mode = {
+            ...(opts.multiple ? { multiple: true, model: [state, 'values'] } : { model: [state, 'value'] }),
+            allowCustom: opts.allowCustom,
+        } as unknown as Record<string, never>;
+        render(
+            <Combobox.Root
+                items={CONTACTS}
+                itemKey={(c) => c.email}
+                itemLabel={(c) => c.name}
+                itemValue={(c) => c.email}
+                itemDisabled={opts.disabled}
+                {...mode}
+                autoHighlight={opts.autoHighlight ?? true}
+                openOnClick={opts.openOnClick}
+                model:inputValue={[state, 'query']}
+                model:open={[state, 'open']}
+                aria-label="To"
+            />,
+            container,
+        );
+        return state;
+    }
+
+    it('typing highlights the first visible option, named by aria-activedescendant; Enter selects it (single)', () => {
+        const state = contacts();
+        type(input(), 'ma');
+        const h = highlighted()!;
+        expect(h.textContent).toContain('Maya Chen');
+        expect(input().getAttribute('aria-activedescendant')).toBe(h.id);
+        // The query moves: the head of the new list is highlighted.
+        type(input(), 'mar');
+        expect(highlighted()!.textContent).toContain('Marcus Webb');
+        const e = key(input(), 'Enter');
+        expect(e.defaultPrevented).toBe(true);
+        expect(state.value).toBe('marcus@example.com');
+        expect(state.open).toBe(false);
+    });
+
+    it('multiple: Enter adds the highlighted option as a tag and clears the text', () => {
+        const state = contacts({ multiple: true });
+        type(input(), 'pri');
+        key(input(), 'Enter');
+        expect(state.values).toEqual(['priya@example.com']);
+        expect(state.query).toBe('');
+        expect(container.querySelector('[data-part="tag-label"]')!.textContent).toBe('Priya Nair');
+    });
+
+    it('allowCustom: a match is picked, a query that matches nothing commits the text', () => {
+        const state = contacts({ multiple: true, allowCustom: true });
+        type(input(), 'maya');
+        key(input(), 'Enter');
+        expect(state.values).toEqual(['maya@example.com']);
+        type(input(), 'zed@example.com');
+        expect(highlighted()).toBeNull();
+        expect(input().hasAttribute('aria-activedescendant')).toBe(false);
+        expect(key(input(), 'Enter').defaultPrevented).toBe(true);
+        expect(state.values).toEqual(['maya@example.com', 'zed@example.com']);
+    });
+
+    it('skips a disabled first match', () => {
+        contacts({ disabled: (c) => c.name === 'Maya Chen' });
+        type(input(), 'ma');
+        expect(highlighted()!.textContent).toContain('Marcus Webb');
+    });
+
+    it('an empty query or an openOnClick open leaves no highlight, and Enter to the form', () => {
+        const state = contacts({ openOnClick: true });
+        input().click();
+        expect(state.open).toBe(true);
+        expect(highlighted()).toBeNull();
+        expect(key(input(), 'Enter').defaultPrevented).toBe(false);
+        // Typed, then emptied: the highlight goes with the text.
+        type(input(), 'ma');
+        expect(highlighted()).not.toBeNull();
+        type(input(), '');
+        expect(state.open).toBe(true);
+        expect(highlighted()).toBeNull();
+        expect(key(input(), 'Enter').defaultPrevented).toBe(false);
+        expect(state.value).toBeNull();
+        // ArrowDown on an empty field still starts at the first option, and holds.
+        key(input(), 'ArrowDown');
+        expect(highlighted()!.textContent).toContain('Maya Chen');
+        key(input(), 'ArrowDown');
+        expect(highlighted()!.textContent).toContain('Marcus Webb');
+    });
+
+    it('an arrow move holds while the query is unchanged', () => {
+        const state = contacts();
+        type(input(), 'a');
+        expect(highlighted()!.textContent).toContain('Maya Chen');
+        key(input(), 'ArrowDown');
+        expect(highlighted()!.textContent).toContain('Marcus Webb');
+        key(input(), 'Enter');
+        expect(state.value).toBe('marcus@example.com');
+    });
+
+    it('without the prop nothing changes: allowCustom Enter commits the raw text', () => {
+        const state = contacts({ multiple: true, allowCustom: true, autoHighlight: false });
+        type(input(), 'maya');
+        expect(highlighted()).toBeNull();
+        key(input(), 'Enter');
+        expect(state.values).toEqual(['maya']);
+    });
+
+    it('inlineComplete takes precedence: no starts-with match leaves no highlight', () => {
+        const state = signal({ value: null as string | null });
+        render(<Combobox.Root items={['Finland', 'France', 'Germany']} inlineComplete autoHighlight model={[state, 'value']} aria-label="Country" />, container);
+        const el = input();
+        el.focus();
+        // "an" is contained in France and Germany but starts neither.
+        el.value = 'an';
+        el.setSelectionRange(2, 2);
+        el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'n' }));
+        expect(highlighted()).toBeNull();
+        expect(key(el, 'Enter').defaultPrevented).toBe(false);
+        // A starts-with match completes and highlights, as without the prop.
+        el.value = 'Ge';
+        el.setSelectionRange(2, 2);
+        el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'e' }));
+        expect(highlighted()!.textContent).toContain('Germany');
+        expect(el.value).toBe('Germany');
+    });
+});
