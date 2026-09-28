@@ -6207,7 +6207,13 @@ export const alert: RecipeInput = {
                     },
                 },
                 // Pinned top-right, its glyph on the padding edge. `inherit`
-                // is spelled as the root's own ink.
+                // is spelled as the root's own ink. A square chip, the
+                // glyph centred in it: the web's `line-height: 1` + 2xs
+                // padding make an almost-square box, but lynx does not carry
+                // the line-height into the glyph's `<text>`, so the padded
+                // box was a narrow × in a tall line — a 14 × 20pt pill whose
+                // press wash and focus ring drew as vertical ovals
+                // (signalxjs/lynx#1253). The box is sized outright instead.
                 close: {
                     base: {
                         position: 'absolute',
@@ -6215,6 +6221,13 @@ export const alert: RecipeInput = {
                         right: 'calc(var(--alert-pad-x) - var(--space-2xs))',
                         color: 'var(--color-base-content)',
                         fontSize: 'var(--text-md)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxSizing: 'border-box',
+                        padding: '0',
+                        width: 'calc(var(--text-md) + var(--space-2xs) * 2)',
+                        height: 'calc(var(--text-md) + var(--space-2xs) * 2)',
                     },
                     states: lynxFocus({ gap: 'var(--alert-tint)' }),
                 },
@@ -6859,6 +6872,15 @@ export const kbd: RecipeInput = {
                         ...lynxSides('border{}Width', 'var(--border)', ['Top', 'Right', 'Left']),
                         borderBottomWidth: 'calc(var(--border) * 2)',
                         ...lynxSides('border{}Color', 'var(--color-base-300)'),
+                        // The web's monospace cap comes from the browser's
+                        // UA style for `<kbd>`, not the recipe; lynx has no
+                        // UA sheet, so the face is spelled here
+                        // (signalxjs/lynx#1254). Concrete names, not a
+                        // token: iOS Lynx walks the list with
+                        // `UIFont fontWithName:` (Menlo ships on iOS, the
+                        // CSS generics do not resolve there), and
+                        // `monospace` serves the lynx web target.
+                        fontFamily: 'Menlo, monospace',
                     },
                 },
             },

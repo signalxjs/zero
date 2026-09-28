@@ -402,6 +402,12 @@ component's anatomy). No component code is ever written or changed.
        entry. A recipe whose geometry rides a logical spelling restates it
        physically (`top`/`left`/`margin-left`/`transform: translate…()`) in
        its `targets.lynx` section.
+     - **Logical sizing is translated, not refused.** Lynx ignores
+       `block-size`/`inline-size` and their `min-`/`max-` variants
+       (measured, signalxjs/lynx#1250), but it has no writing modes, so the
+       lynx emitter rewrites them to `height`/`width` (`min-height`, …) in
+       declarations, raw `targets.lynx.css` and keyframes. Author them as on
+       the web; there is nothing to restate.
      - **Keep authoring in `rem` for lynx too.** Lynx resolves `rem` against
        its 14px default page font size, not the web's 16px, so the lynx
        emitter rewrites every `rem` length to `px` at 16px/rem (measured,
