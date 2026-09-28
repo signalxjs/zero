@@ -1413,7 +1413,17 @@ export const tooltip: RecipeInput = {
     targets: {
         web: floatingArrow('tooltip', { background: 'var(--color-neutral)' }, '0.5rem'),
         lynx: {
-            parts: { trigger: { base: lynxBtnPad(4) } },
+            parts: {
+                // Content-sized like daisy's btn, never broken mid-word
+                // (signalxjs/lynx#1165). No pressed rule: the anatomy
+                // declares none — the long press paints the `open` state.
+                trigger: { base: { ...lynxBtnPad(4), ...lynxBtnFit } },
+                // The arrow's paint: the bubble's neutral, continued. The
+                // web's `floatingArrow` geometry rides runtime custom
+                // properties lynx does not write, so lynx-zero places the
+                // 8px square and turns it itself (signalxjs/lynx#1277).
+                arrow: { base: { background: 'var(--color-neutral)' } },
+            },
             variants: { size: lynxBtnSizes('trigger') },
         },
     },
@@ -8932,11 +8942,68 @@ export const drawer: RecipeInput = {
                 },
             },
         },
-        // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
+        // The btn paddings, restated physically — see `lynxBtnPad` (#1084) —
+        // and the btns' press rendering (`lynxBtnPressed`), as dialog wears
+        // them. The edge sheet (signalxjs/lynx#1277): lynx-zero lays the
+        // panel on its edge with flexbox inside the backdrop, so the sheet
+        // stays in flow (`position: relative`, never `fixed`) and sizes to
+        // it — no viewport units, which lynx does not resolve against the
+        // overlay outlet. The skin keeps the cap, the corners and the slide.
         lynx: {
+            keyframes: {
+                // `translate` is Android-asymmetric (#1084): the travel is a
+                // transform function, one per edge.
+                'zero-daisy-drawer-in-start': 'from { transform: translateX(-100%); } to { transform: translateX(0); }',
+                'zero-daisy-drawer-in-end': 'from { transform: translateX(100%); } to { transform: translateX(0); }',
+                'zero-daisy-drawer-in-top': 'from { transform: translateY(-100%); } to { transform: translateY(0); }',
+                'zero-daisy-drawer-in-bottom': 'from { transform: translateY(100%); } to { transform: translateY(0); }',
+            },
             parts: {
-                trigger: { base: lynxBtnPad(4) },
-                close: { base: lynxBtnPad(4) },
+                trigger: { base: { ...lynxBtnPad(4), ...lynxBtnFit }, states: { pressed: lynxBtnPressed, ...lynxFocus() } },
+                close: { base: { ...lynxBtnPad(4), ...lynxBtnFit }, states: { pressed: lynxBtnPressed, ...lynxFocus() } },
+                panel: {
+                    // The cap alone: `min(20rem, 85vw)` has no lynx spelling
+                    // (no min()); lynx-zero states the 85% share inline and
+                    // this caps it — together, the web's width.
+                    base: { '--l-measure': '20rem' },
+                    selectors: {
+                        '&[data-l-dock="sheet"]': {
+                            position: 'relative',
+                            blockSize: 'auto',
+                            maxBlockSize: 'none',
+                        },
+                        // The block edges run full width (the web's `:where()`
+                        // pair, one selector each — no `:where()` on lynx),
+                        // content-sized up to 85% of the outlet.
+                        '&[data-placement="top"]': { '--l-measure': 'none' },
+                        '&[data-placement="bottom"]': { '--l-measure': 'none' },
+                        '&[data-placement="top"][data-l-dock="sheet"]': {
+                            maxBlockSize: '85%',
+                            borderBottomLeftRadius: 'var(--radius-box)',
+                            borderBottomRightRadius: 'var(--radius-box)',
+                        },
+                        '&[data-placement="bottom"][data-l-dock="sheet"]': {
+                            maxBlockSize: '85%',
+                            borderTopLeftRadius: 'var(--radius-box)',
+                            borderTopRightRadius: 'var(--radius-box)',
+                        },
+                        // The slide in from the edge (the web's `translate`
+                        // over `@starting-style`, both dropped here). The
+                        // exit is an unmount on lynx, so only the entry runs.
+                        '&[data-placement="start"][data-l-dock="sheet"][data-state="open"]': {
+                            animation: 'zero-daisy-drawer-in-start var(--duration-slow) var(--ease-standard)',
+                        },
+                        '&[data-placement="end"][data-l-dock="sheet"][data-state="open"]': {
+                            animation: 'zero-daisy-drawer-in-end var(--duration-slow) var(--ease-standard)',
+                        },
+                        '&[data-placement="top"][data-l-dock="sheet"][data-state="open"]': {
+                            animation: 'zero-daisy-drawer-in-top var(--duration-slow) var(--ease-standard)',
+                        },
+                        '&[data-placement="bottom"][data-l-dock="sheet"][data-state="open"]': {
+                            animation: 'zero-daisy-drawer-in-bottom var(--duration-slow) var(--ease-standard)',
+                        },
+                    },
+                },
             },
             variants: { size: lynxBtnSizes('trigger') },
         },
