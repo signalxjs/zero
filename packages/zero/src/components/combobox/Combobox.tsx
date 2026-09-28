@@ -963,7 +963,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             lastQuery = query;
             return;
         }
-        if (query !== lastQuery || h === null || !visible.includes(h)) {
+        // A highlight that went hidden or disabled (a reactive
+        // `itemDisabled`) moves on too: Enter on it would be swallowed.
+        if (query !== lastQuery || h === null || !visible.includes(h) || collection.isDisabled(h)) {
             lastQuery = query;
             // Nothing visible → no highlight, so `allowCustom`'s Enter
             // commits the text.

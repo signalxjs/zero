@@ -1557,7 +1557,18 @@ describe('Combobox autoHighlight (#448)', () => {
         expect(state.value).toBe('marcus@example.com');
     });
 
-    it('without the prop nothing changes: allowCustom Enter commits the raw text', () => {
+    it('a highlighted option that becomes disabled hands the highlight on', () => {
+        const blocked = signal({ maya: false });
+        const state = contacts({ disabled: (c) => c.name === 'Maya Chen' && blocked.maya });
+        type(input(), 'ma');
+        expect(highlighted()!.textContent).toContain('Maya Chen');
+        blocked.maya = true;
+        expect(highlighted()!.textContent).toContain('Marcus Webb');
+        key(input(), 'Enter');
+        expect(state.value).toBe('marcus@example.com');
+    });
+
+    it('with autoHighlight={false} nothing changes: allowCustom Enter commits the raw text', () => {
         const state = contacts({ multiple: true, allowCustom: true, autoHighlight: false });
         type(input(), 'maya');
         expect(highlighted()).toBeNull();
