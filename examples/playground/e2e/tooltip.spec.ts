@@ -164,3 +164,33 @@ test('the arrow points at the trigger from the edge facing it (#279)', async ({ 
     // Decoration only: the trigger's description is the text alone.
     await expect(t).toHaveAccessibleDescription('Points at what it describes');
 });
+
+/**
+ * An icon trigger that acts (#486): `Tooltip.Trigger onClick` with no asChild
+ * button beneath it. Tooltip renders no root element, so the demo is named
+ * the way the triggers above are — by the button's accessible name — and its
+ * popup by the text it shows.
+ */
+test('an acting icon trigger: hover shows its tooltip, a click runs the action', async ({ page }) => {
+    const archive = page.getByRole('button', { name: 'Archive', exact: true });
+    const label = page.locator('[data-scope="tooltip"][data-part="popup"]', { hasText: 'Archive the conversation' });
+    const count = page.getByRole('status', { name: 'Archive action count' });
+    await expect(count).toHaveText('Archived 0×');
+
+    const hoveredAt = Date.now();
+    await archive.hover();
+    await expect(label).toHaveAttribute('data-state', 'open');
+    await expect(label).toBeVisible();
+    // Lower bound only: the intent delay (600 ms) must have passed.
+    expect(Date.now() - hoveredAt).toBeGreaterThanOrEqual(600);
+    // The tooltip describes the trigger; the aria-label names it.
+    await expect(archive).toHaveAttribute('aria-describedby', (await label.getAttribute('id'))!);
+
+    await archive.click();
+    await expect(count).toHaveText('Archived 1×');
+    // The press dismissed the tooltip, as any press on a trigger does.
+    await expect(label).toHaveAttribute('data-state', 'closed');
+
+    await archive.click();
+    await expect(count).toHaveText('Archived 2×');
+});

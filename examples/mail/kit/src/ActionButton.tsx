@@ -5,18 +5,16 @@
  * <ActionButton icon="archive" label="Archive" shortcut="E" onClick={archive} />
  * ```
  *
- * Zero cannot compose this from its own parts (#440): `Tooltip.Trigger` has no
- * `onClick`, and a zero `Button` cannot take a trigger's `asChild` bag — the
- * bag carries `data-scope`/`data-part`/`data-color`, which Button's html
- * pass-through rejects (a type error, and a throw at runtime). So the trigger
- * renders its own `<button>` here, where the kit is allowed markup, and the
- * design system paints it through the tooltip trigger's recipe — the same
- * quiet trigger menus and popovers open from, so a toolbar reads as one row.
+ * Built on `<Tooltip.Trigger onClick>` (#486): the trigger is the button, its
+ * own `onClick` runs the action, and the tooltip labels it — no asChild, no
+ * raw `<button>`. The design system paints it through the tooltip trigger's
+ * recipe — the same quiet trigger menus and popovers open from, so a toolbar
+ * reads as one row.
  */
 import { component } from 'sigx';
 import type { Define } from 'sigx';
 import { Kbd, Tooltip } from '@sigx/zero';
-import type { PartProps, Placement } from '@sigx/zero';
+import type { Placement } from '@sigx/zero';
 import { Icon } from './Icon.js';
 import type { IconName } from './Icon.js';
 import type { Tone } from './Text.js';
@@ -36,20 +34,15 @@ export type ActionButtonProps =
 
 export const ActionButton = component<ActionButtonProps>(({ props, emit }) => () => (
     <Tooltip.Root placement={props.placement ?? 'bottom'} openDelay={500}>
-        <Tooltip.Trigger asChild size={props.size ?? 'sm'}>
-            {(p: PartProps) => (
-                <button
-                    type="button"
-                    {...p}
-                    aria-label={props.label}
-                    aria-pressed={props.pressed === undefined ? undefined : String(props.pressed)}
-                    aria-keyshortcuts={props.shortcut}
-                    disabled={props.disabled}
-                    onClick={(e: MouseEvent) => emit('click', e)}
-                >
-                    <Icon name={props.icon} tone={props.tone} />
-                </button>
-            )}
+        <Tooltip.Trigger
+            size={props.size ?? 'sm'}
+            disabled={props.disabled}
+            aria-label={props.label}
+            aria-pressed={props.pressed === undefined ? undefined : String(props.pressed)}
+            aria-keyshortcuts={props.shortcut}
+            onClick={(e: MouseEvent) => emit('click', e)}
+        >
+            <Icon name={props.icon} tone={props.tone} />
         </Tooltip.Trigger>
         <Tooltip.Popup>
             {props.label}

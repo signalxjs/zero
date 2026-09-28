@@ -1,6 +1,6 @@
 import { component } from 'sigx';
 import { Button, Col, Combobox, Dialog, Field, FileUpload, Input, Kbd, Row, Stack, Textarea } from '@sigx/zero';
-import { ActionButton, Icon, Text } from '@sigx/zero-mail-kit';
+import { Icon, Text } from '@sigx/zero-mail-kit';
 import { ALL_CONTACTS } from '../data/mock';
 import type { Contact } from '../data/mock';
 import { discardDraft, saveDraft, send, st } from '../store';
@@ -50,7 +50,10 @@ export const Compose = component(() => {
                 <Col gap="md">
                     <Row gap="sm" align="center" justify="between">
                         <Dialog.Title>{st.draft.subject || 'New message'}</Dialog.Title>
-                        <ActionButton icon="x" label="Close and save draft" shortcut="Esc" onClick={() => { st.composeOpen = false; }} />
+                        {/* Closing through the dialog runs onClose above, which saves the draft. */}
+                        <Dialog.Close aria-label="Close and save draft" aria-keyshortcuts="Escape">
+                            <Icon name="x" />
+                        </Dialog.Close>
                     </Row>
                     <Recipients field="to" label="To" />
                     {st.draft.showCc ? <Recipients field="cc" label="Cc" /> : (

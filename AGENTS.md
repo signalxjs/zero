@@ -181,7 +181,8 @@ anchor while the trigger keeps focus restore), tooltip (hover-intent delay asser
 lower bound only, and WCAG 1.4.13: Escape dismisses a hover-opened tooltip
 while focus sits elsewhere; a click neither opens nor, until the pointer
 leaves, re-opens it; and a `Tooltip.Group` sibling opens inside the intent
-delay, #268; the arrow over the trigger's centre, #279), hover-card (#290:
+delay, #268; the arrow over the trigger's centre, #279; an icon trigger
+whose own `onClick` acts, #486), hover-card (#290:
 the 700 ms intent delay as a lower bound, the pointer's trip from the
 trigger into the card's links, keyboard focus opening it and focus inside
 holding it open, Escape handing focus back to the trigger without reopening

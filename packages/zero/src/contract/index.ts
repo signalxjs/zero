@@ -106,6 +106,7 @@ export type {
     ReservedByZero,
     WithVisuallyHidden,
     WithTextControlEvents,
+    WithInteractionHandlers,
     TextControlHandle,
     PartProps,
 } from './props.js';

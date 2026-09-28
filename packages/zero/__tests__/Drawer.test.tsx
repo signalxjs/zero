@@ -15,6 +15,7 @@ import { signal } from 'sigx';
 import { Drawer, clearThemes, drawerAnatomy, registerThemes } from '@sigx/zero';
 import type { DrawerCloseDetail, DrawerPlacement } from '@sigx/zero';
 import { expectAnatomy, pressDialog } from './helpers';
+import { describeTriggerHandlers } from './trigger-handlers';
 
 /** Presence flags land one microtask after the render pass; settle them. */
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -672,5 +673,57 @@ describe('Drawer dismissal guards (#260) — Dialog\'s', () => {
         panel.close();
         expect(panel.open).toBe(true);
         expect(state.open).toBe(true);
+    });
+});
+
+describeTriggerHandlers('Drawer.Trigger', '[data-scope="drawer"][data-part="trigger"]', (p, child) => (
+    <Drawer.Root><Drawer.Trigger {...p}>{child}</Drawer.Trigger></Drawer.Root>
+));
+describeTriggerHandlers('Drawer.Close', '[data-scope="drawer"][data-part="close"]', (p, child) => (
+    <Drawer.Root defaultOpen><Drawer.Panel><Drawer.Close {...p}>{child}</Drawer.Close></Drawer.Panel></Drawer.Root>
+));
+
+describe('Drawer handler ordering (#486)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    afterEach(() => container.remove());
+
+    it('Trigger onClick runs once, after the open', () => {
+        const state = signal({ open: false });
+        const seen: boolean[] = [];
+        render(
+            <Drawer.Root model={[state, 'open']}>
+                <Drawer.Trigger onClick={() => seen.push(state.open)}>Menu</Drawer.Trigger>
+                <Drawer.Panel>Body</Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        part(container, 'trigger').click();
+        expect(seen).toEqual([true]);
+    });
+
+    it('Close onClick runs before the close, and preventDefault() vetoes it', () => {
+        const state = signal({ open: true });
+        const seen: boolean[] = [];
+        const onClose = vi.fn();
+        let veto = true;
+        render(
+            <Drawer.Root model={[state, 'open']} onClose={onClose}>
+                <Drawer.Panel>
+                    <Drawer.Close onClick={(e: MouseEvent) => { seen.push(state.open); if (veto) e.preventDefault(); }}>Close</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>,
+            container,
+        );
+        part(container, 'close').click();
+        expect(state.open).toBe(true);
+        expect(onClose).not.toHaveBeenCalled();
+        veto = false;
+        part(container, 'close').click();
+        expect(seen).toEqual([true, true]);
+        expect(state.open).toBe(false);
     });
 });

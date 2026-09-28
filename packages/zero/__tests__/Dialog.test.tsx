@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { Dialog, dialogAnatomy } from '@sigx/zero';
 import type { DialogCloseDetail } from '@sigx/zero';
 import { expectAnatomy, pressDialog } from './helpers';
+import { describeTriggerHandlers } from './trigger-handlers';
 
 /** Presence flags land one microtask after the render pass; settle them. */
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -563,4 +564,69 @@ describe('Dialog dismissal guards (#260)', () => {
         expect(state.open).toBe(false);
         expect(log).toEqual([{ reason: 'programmatic' }]);
     });
+});
+
+describeTriggerHandlers('Dialog.Trigger', '[data-scope="dialog"][data-part="trigger"]', (p, child) => (
+    <Dialog.Root><Dialog.Trigger {...p}>{child}</Dialog.Trigger></Dialog.Root>
+));
+describeTriggerHandlers('Dialog.Close', '[data-scope="dialog"][data-part="close"]', (p, child) => (
+    <Dialog.Root defaultOpen><Dialog.Popup><Dialog.Close {...p}>{child}</Dialog.Close></Dialog.Popup></Dialog.Root>
+));
+describeTriggerHandlers('Dialog.Cancel', '[data-scope="dialog"][data-part="cancel"]', (p, child) => (
+    <Dialog.Root defaultOpen><Dialog.Popup><Dialog.Cancel {...p}>{child}</Dialog.Cancel></Dialog.Popup></Dialog.Root>
+));
+
+describe('Dialog handler ordering (#486)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    const part = (name: string) => container.querySelector<HTMLElement>(`[data-scope="dialog"][data-part="${name}"]`)!;
+
+    it('Trigger onClick runs once, after the open', () => {
+        const state = signal({ open: false });
+        const seen: boolean[] = [];
+        render(
+            <Dialog.Root model={[state, 'open']}>
+                <Dialog.Trigger onClick={() => seen.push(state.open)}>Open</Dialog.Trigger>
+                <Dialog.Popup>Body</Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+        part('trigger').click();
+        expect(seen).toEqual([true]);
+    });
+
+    for (const closer of ['close', 'cancel'] as const) {
+        const Closer = closer === 'close' ? Dialog.Close : Dialog.Cancel;
+
+        it(`${closer}: onClick runs before the close`, () => {
+            const state = signal({ open: true });
+            const seen: boolean[] = [];
+            render(
+                <Dialog.Root model={[state, 'open']}>
+                    <Dialog.Popup><Closer onClick={() => seen.push(state.open)}>Done</Closer></Dialog.Popup>
+                </Dialog.Root>,
+                container,
+            );
+            part(closer).click();
+            expect(seen).toEqual([true]);
+            expect(state.open).toBe(false);
+        });
+
+        it(`${closer}: preventDefault() in onClick vetoes the close`, () => {
+            const state = signal({ open: true });
+            const onClose = vi.fn();
+            render(
+                <Dialog.Root model={[state, 'open']} onClose={onClose}>
+                    <Dialog.Popup><Closer onClick={(e: MouseEvent) => e.preventDefault()}>Done</Closer></Dialog.Popup>
+                </Dialog.Root>,
+                container,
+            );
+            part(closer).click();
+            expect(state.open).toBe(true);
+            expect(onClose).not.toHaveBeenCalled();
+        });
+    }
 });

@@ -55,6 +55,22 @@ export type WithTextControlEvents =
     & Define.Prop<'onBlur', (e: FocusEvent) => void, false>;
 
 /**
+ * The interaction handlers of a part that acts like a button — Button.Root
+ * and the trigger parts (Tooltip, Dialog, Popover, Drawer, Menu, HoverCard,
+ * and the dialog/popover/drawer closers). sigx forwards no rest props, so a
+ * `<Tooltip.Trigger onClick={…}>` would otherwise be inert. Each part composes
+ * them with its own handlers (its own first, except a closer's `onClick`,
+ * which runs before the close so `preventDefault()` can veto it), skips them
+ * while the part is disabled, and passes them to an `asChild` element through
+ * the bag.
+ */
+export type WithInteractionHandlers =
+    & Define.Prop<'onClick', (e: MouseEvent) => void, false>
+    & Define.Prop<'onKeydown', (e: KeyboardEvent) => void, false>
+    & Define.Prop<'onFocus', (e: FocusEvent) => void, false>
+    & Define.Prop<'onBlur', (e: FocusEvent) => void, false>;
+
+/**
  * What a text control's `ref` receives: the element, for what only the
  * element can do — `setSelectionRange`, `selectionStart`, measuring — and
  * `focus()`. `element` is `null` until mount and after unmount.
