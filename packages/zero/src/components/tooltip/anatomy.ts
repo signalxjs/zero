@@ -7,6 +7,7 @@ export const tooltipAnatomy = defineAnatomy('tooltip', {
         states: ['open', 'closed'],
         flags: ['disabled'],
         asChild: true,
+        absorbable: true,
     },
     // Anchor-positioned: carries `data-placement` plus the published
     // POSITION_PROPERTIES — `--anchor-width`/`--anchor-height`,

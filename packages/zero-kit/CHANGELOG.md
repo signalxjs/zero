@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`absorbable` on manifest parts (#493, part of #452).** The manifest
+  schema's part definition and `ManifestPart` gain `absorbable: true`
+  (presence-only): the part may lend its asChild bag to a host through
+  `lend`, and then renders no element of its own, so its recipe does not
+  apply there. `mergeManifests` holds ecosystem fragments to the
+  invariants: a value other than `true`, a missing `asChild: true`, an
+  absorbable part another part names as its `parent`, and absorbable with
+  `hiddenIn`, `layout` or `pseudo` are each rejected by name.
+  `FRAGMENT_VERSION` stays 1 — the change is additive, like `carries` —
+  but an **older kit rejects the new key** when it validates a newer
+  fragment (or zero manifest) against its schema, whose part definition
+  allows no unknown keys: upgrade the kit alongside zero.
+
 ## [0.15.0] - 2026-09-28
 
 ### Fixed — the lynx target ships logical sizing as width/height (signalxjs/lynx#1250)

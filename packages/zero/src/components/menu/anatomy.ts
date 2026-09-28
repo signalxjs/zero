@@ -8,6 +8,7 @@ export const menuAnatomy = defineAnatomy('menu', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
+        absorbable: true,
     },
     // Anchor-positioned: carries `data-placement` plus the published
     // POSITION_PROPERTIES — `--anchor-width`/`--anchor-height`,
@@ -93,6 +94,7 @@ export const menuAnatomy = defineAnatomy('menu', {
         states: ['open', 'closed'],
         flags: ['disabled', 'focus-visible'],
         asChild: true,
+        absorbable: true,
     },
     group: {
         element: 'div',

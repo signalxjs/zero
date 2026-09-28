@@ -978,8 +978,10 @@ merge hard-errors on a scope collision, which is why fragment scopes should
 carry a vendor prefix (`acme-stepper`). It also holds the fragment to the
 shared vocabularies — flags, governed states (a synonym like `expanded` fails
 with "use `open`"), placements, `hiddenIn ⊆ states`, `carries` (named axes
-only, never on the carrier or a pseudo part), an acyclic part
-tree, and the naming rule on any `models` it declares (`default<Concept>` +
+only, never on the carrier or a pseudo part), `absorbable` (presence-only,
+requires `asChild: true`, never another part's `parent`, never with
+`hiddenIn`/`layout`/`pseudo` — a lent part renders no element, #452), an
+acyclic part tree, and the naming rule on any `models` it declares (`default<Concept>` +
 `<concept>Change`, a named model's concept its name) — so the "no synonyms"
 rule binds on the ecosystem surface, not only on zero's own anatomies.
 

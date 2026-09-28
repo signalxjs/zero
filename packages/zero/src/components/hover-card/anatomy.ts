@@ -12,6 +12,7 @@ export const hoverCardAnatomy = defineAnatomy('hover-card', {
         flags: ['focus-visible'],
         tokens: ['color', 'text'],
         asChild: true,
+        absorbable: true,
     },
     // Anchor-positioned: carries `data-placement` plus the published
     // POSITION_PROPERTIES — `--anchor-width`/`--anchor-height`,

@@ -17,6 +17,18 @@
 - **`createPressFeedback` `owner`.** With `{ scope, part }` set, a press on
   an element whose `data-scope`/`data-part` differ does nothing. Every zero
   part passes its own.
+- **`PartSpec.absorbable` (#493).** A presence-only anatomy
+  key marking a part that may lend its asChild bag to a host part through
+  `lend`. Lent, the part renders no `[data-scope][data-part]` element of
+  its own: the host keeps its anatomy, so the lent part's states and flags
+  are never painted and its recipe does not apply. Declared on
+  `tooltip.trigger`, `menu.trigger`, `menu.context-trigger`,
+  `popover.trigger`, `popover.close`, `dialog.trigger`, `dialog.close`,
+  `dialog.cancel` and `hover-card.trigger` — not on the Drawer's trigger or
+  close. An absorbable part requires `asChild: true`, is never another
+  part's `parent`, and declares no `hiddenIn`, `layout` or `pseudo`; the
+  anatomy suite holds zero's own parts to that. The key reaches
+  `manifest.json` through `toJSON()`.
 
 ### Changed
 

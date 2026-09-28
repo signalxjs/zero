@@ -357,6 +357,10 @@
                     "description": "True when the part supports asChild composition.",
                     "type": "boolean"
                 },
+                "absorbable": {
+                    "description": "Present when the part may lend its asChild bag to a host part through `lend` (#452's composition rule: the element that renders keeps its own anatomy). A lent part renders no [data-scope][data-part] element of its own, so its states and flags are never painted and its recipe does not apply. Presence-only. Requires asChild: true; never another part's parent; never combined with hiddenIn, layout or pseudo.",
+                    "const": true
+                },
                 "visuallyHidden": {
                     "description": "True when the consumer can hide the part from sight while it keeps its accessible role (a label that still names its control). The part then renders data-visually-hidden, which zero's base.css clips in @layer zero.structure \u2014 nothing for a recipe to style, and not a flag.",
                     "type": "boolean"

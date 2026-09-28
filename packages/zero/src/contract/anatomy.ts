@@ -199,6 +199,21 @@ export interface PartSpec {
     /** True when the part supports `asChild`. */
     asChild?: boolean;
     /**
+     * Present when the part may LEND its asChild bag to another part — a
+     * zero host that takes it through `lend` (#452's composition rule: the
+     * element that renders keeps its own anatomy). A lent part then renders
+     * no `[data-scope][data-part]` element of its own: the host's scope and
+     * part win, so the lent part's states and flags are never painted and
+     * its recipe does not apply — it contributes behaviour and ARIA only.
+     * Presence-only, like `visuallyHidden`; a part that never lends OMITS
+     * the key. Invariants (zero's anatomy suite for zero's own parts,
+     * `mergeManifests` for ecosystem fragments): it requires
+     * `asChild: true`, it is never another part's `parent` (an absorbed
+     * part has no element to contain anything), and it declares no
+     * `hiddenIn`, `layout` or `pseudo` (each needs an element of its own).
+     */
+    absorbable?: true;
+    /**
      * True when the consumer can hide the part from sight while it keeps
      * naming something — a label beside a compact control, a drawer title
      * whose heading is the brand row. The part then renders

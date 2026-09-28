@@ -786,6 +786,16 @@ export interface ManifestPart {
     tokens?: readonly string[];
     asChild?: boolean;
     /**
+     * Present when the part may lend its asChild bag to a host part through
+     * `lend` — zero's `PartSpec.absorbable` (#452). A lent part renders no
+     * `[data-scope][data-part]` element of its own: the host's anatomy wins,
+     * so the part's states and flags are never painted and its recipe does
+     * not apply. Presence-only. `mergeManifests` holds a fragment to the
+     * invariants: `asChild: true`, never another part's `parent`, and no
+     * `hiddenIn`, `layout` or `pseudo`.
+     */
+    absorbable?: true;
+    /**
      * True when the consumer can hide the part from sight while it keeps its
      * accessible role (`Field.Label visuallyHidden`). The part then renders
      * `data-visually-hidden`, which zero's `css/base.css` clips in

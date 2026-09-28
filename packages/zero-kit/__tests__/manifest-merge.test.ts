@@ -300,6 +300,34 @@ describe('mergeManifests', () => {
             { name: 'mark', paint: { host: 'row' } },
         ]))).toThrow(/paint\.host but no parent/);
     });
+
+    // ── Absorbable parts (#452/#493): a lent part renders no element ──
+    it('accepts an absorbable trigger, and carries the key through', () => {
+        const merged = mergeManifests(baseManifest(), withParts([
+            { name: 'root' },
+            { name: 'trigger', element: 'button', states: ['open', 'closed'], asChild: true, absorbable: true },
+        ]));
+        const parts = merged.components.find((c) => c.scope === 'acme-meter')!.parts;
+        expect(parts.find((p) => p.name === 'trigger')!.absorbable).toBe(true);
+        expect(parts.find((p) => p.name === 'root')!.absorbable).toBeUndefined();
+    });
+
+    it('rejects an absorbable part that would need an element of its own', () => {
+        const bad = (trigger: object, extra: Array<Partial<ManifestComponent['parts'][number]> & { name: string }> = []) =>
+            () => mergeManifests(baseManifest(), withParts([
+                { name: 'root', states: ['open', 'closed'] },
+                { name: 'trigger', element: 'button', states: ['open', 'closed'], asChild: true, absorbable: true, ...trigger },
+                ...extra,
+            ]));
+        expect(bad({ absorbable: false })).toThrow(/"absorbable" that is not true/);
+        expect(bad({ asChild: undefined })).toThrow(/absorbable without "asChild": true/);
+        expect(bad({ asChild: false })).toThrow(/absorbable without "asChild": true/);
+        expect(bad({}, [{ name: 'icon', parent: 'trigger' }])).toThrow(/parent of "icon"/);
+        expect(bad({ layout: ['gap'] })).toThrow(/absorbable and declares "layout"/);
+        expect(bad({ hiddenIn: ['closed'] })).toThrow(/absorbable and declares "hiddenIn"/);
+        expect(bad({ pseudo: { of: 'root', selector: '::after' } })).toThrow(/absorbable and declares "pseudo"/);
+        expect(bad({})).not.toThrow();
+    });
 });
 
 describe('a merged ecosystem scope in the pipeline', () => {
