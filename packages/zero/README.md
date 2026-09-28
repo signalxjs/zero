@@ -1304,7 +1304,10 @@ A `data-*` name the contract owns — `data-scope`/`part`/`state`/
 `data-mod-*`, `data-l-*` — is a compile error where TypeScript can see it
 and throws at runtime either way. Build your own forwarding part the same
 way: intersect `WithHtmlAttrs` into the props (`Omit` the names your part
-owns) and spread `htmlAttrs(props)` first.
+owns) and spread `htmlAttrs(props)` first. That holds for an ecosystem
+package's parts too: `WithHtmlAttrs` and the `ReservedByZero` type its
+reserved names carry are both exported, so a package that emits its own
+declarations can name them (`@sigx/zero-ext-example`'s Stepper does).
 
 ```tsx
 <Button.Root aria-label="Close" data-testid="close" onClick={close}>×</Button.Root>

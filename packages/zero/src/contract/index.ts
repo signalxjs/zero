@@ -103,6 +103,7 @@ export type {
     WithAsChild,
     WithHtmlAttrs,
     HtmlAttrValue,
+    ReservedByZero,
     WithVisuallyHidden,
     WithTextControlEvents,
     TextControlHandle,

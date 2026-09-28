@@ -4,10 +4,15 @@ The acceptance test for the **ecosystem-component contract**: a component zero
 doesn't ship (`ExtStepper`, scope `ext-stepper`), built **entirely from
 `@sigx/zero`'s public surface** — `defineAnatomy`, the behaviors
 (controllable state, list registration, roving tabindex, press feedback,
-focus-visible), the contract helpers (`variantAttrs`, `renderAsChild`,
+focus-visible), the contract helpers (`variantAttrs`, `htmlAttrs`, `renderAsChild`,
 `synthesizesClickFrom`) — and held to the contract by the published
 `@sigx/zero/testing` assertion. Private on purpose: it proves the loop the
 way zero-heroui proves axis shapes, rather than shipping a product.
+
+Both parts forward html attributes (`id`, `title`, `role`, `aria-*`, the
+app's own `data-*`) through `WithHtmlAttrs` and `htmlAttrs(props)`, as zero's
+own parts do. The package's `build` emits declarations for them, which is what
+holds zero to exporting every type `WithHtmlAttrs` names (#447).
 
 What it publishes to design systems, from the data-only `./fragment` entry:
 

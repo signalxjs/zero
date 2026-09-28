@@ -19,9 +19,8 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { htmlAttrs, variantAttrs } from '@sigx/zero';
-import type { WithClass, WithVariantAxesOpen } from '@sigx/zero';
+import type { WithClass, WithHtmlAttrs, WithVariantAxesOpen } from '@sigx/zero';
 import { toolbarAnatomy } from './anatomy.js';
-import type { KitHtmlAttrs } from './attrs.js';
 
 const SCOPE = toolbarAnatomy.scope;
 
@@ -50,7 +49,7 @@ function settle(root: HTMLElement, current: HTMLElement | undefined): void {
 export type ToolbarRootProps =
     & WithVariantAxesOpen<'mail-toolbar'>
     & WithClass
-    & KitHtmlAttrs
+    & WithHtmlAttrs
     & Define.Prop<'label', string, true>
     & Define.Prop<'orientation', 'horizontal' | 'vertical', false>
     & Define.Slot<'default'>;
@@ -124,7 +123,7 @@ const ToolbarRoot = component<ToolbarRootProps>(({ props, slots, onMounted, onUn
     );
 }, { name: 'Toolbar.Root' });
 
-export type ToolbarGroupProps = WithClass & KitHtmlAttrs & Define.Prop<'label', string, false> & Define.Slot<'default'>;
+export type ToolbarGroupProps = WithClass & WithHtmlAttrs & Define.Prop<'label', string, false> & Define.Slot<'default'>;
 
 const ToolbarGroup = component<ToolbarGroupProps>(({ props, slots }) => () => (
     <div class={props.class} {...htmlAttrs(props)} role="group" aria-label={props.label} data-scope={SCOPE} data-part="group">

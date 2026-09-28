@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **`ReservedByZero` is exported** from `@sigx/zero`, `@sigx/zero/contract`
+  and `@sigx/zero/contract/core` (#447). `WithHtmlAttrs` types its reserved
+  `data-*` names with it, so a package that emits declarations for a part
+  typed with `WithHtmlAttrs` failed with TS2883: the inferred component type
+  could not be named. `@sigx/zero-ext-example`'s Stepper now forwards html
+  attributes through `WithHtmlAttrs`, and its declaration build holds the fix.
+
 ## [0.14.0] - 2026-09-28
 
 ### Changed — the combobox tag keyboard (#411)

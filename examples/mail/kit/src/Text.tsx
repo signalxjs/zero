@@ -14,9 +14,8 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { htmlAttrs, renderAsChild, variantAttrs } from '@sigx/zero';
-import type { PartProps, WithAsChild, WithClass, WithVariantAxesOpen } from '@sigx/zero';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithVariantAxesOpen } from '@sigx/zero';
 import { headingAnatomy, textAnatomy, timeAnatomy } from './anatomy.js';
-import type { KitHtmlAttrs } from './attrs.js';
 
 /** Ink steps the design system declares as the `tone` axis. */
 export type Tone = 'muted' | 'subtle' | 'primary' | 'secondary' | 'accent' | 'info' | 'success' | 'warning' | 'error';
@@ -49,7 +48,7 @@ export type TextElement = 'span' | 'p' | 'div' | 'strong' | 'em' | 'label';
 export type TextRootProps =
     & WithVariantAxesOpen<'mail-text'>
     & WithClass
-    & KitHtmlAttrs
+    & WithHtmlAttrs
     & WithAsChild
     & TypeProps
     & Define.Prop<'as', TextElement, false>
@@ -72,7 +71,7 @@ export const Text = compound(TextRoot, { Root: TextRoot });
 export type HeadingRootProps =
     & WithVariantAxesOpen<'mail-heading'>
     & WithClass
-    & KitHtmlAttrs
+    & WithHtmlAttrs
     & TypeProps
     /** The outline level, `h1`–`h6`. Defaults to 2. */
     & Define.Prop<'level', 1 | 2 | 3 | 4 | 5 | 6, false>
@@ -100,7 +99,7 @@ export type TimeFormat = 'relative' | 'short' | 'long' | 'time';
 export type TimeRootProps =
     & WithVariantAxesOpen<'mail-time'>
     & WithClass
-    & KitHtmlAttrs
+    & WithHtmlAttrs
     & TypeProps
     & Define.Prop<'value', Date | number | string, true>
     /** `relative` (default) reads like a mail list: "14:05", "Tue", "3 Mar". */

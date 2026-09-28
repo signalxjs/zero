@@ -25,6 +25,7 @@ import {
     createPressFeedback,
     createRovingKeydown,
     dataAttr,
+    htmlAttrs,
     isFocusVisible,
     renderAsChild,
     synthesizesClickFrom,
@@ -38,6 +39,7 @@ import type {
     WithAsChild,
     WithClass,
     WithDisabled,
+    WithHtmlAttrs,
     WithVariantAxesOpen,
 } from '@sigx/zero';
 import { stepperAnatomy } from './anatomy.js';
@@ -76,6 +78,7 @@ export type StepperRootProps =
     & WithVariantAxesOpen<'ext-stepper'>
     & WithDisabled
     & WithClass
+    & WithHtmlAttrs
     & Define.Slot<'default'>;
 
 const StepperRoot = component<StepperRootProps>(({ props, slots, emit }) => {
@@ -103,19 +106,24 @@ const StepperRoot = component<StepperRootProps>(({ props, slots, emit }) => {
     };
     defineProvide(useStepperContext, () => ctx);
 
-    return () => (
-        <div
-            role="group"
-            aria-label={props.label}
-            data-scope={SCOPE}
-            data-part="root"
-            data-disabled={dataAttr(props.disabled)}
-            {...variantAttrs(props)}
-            class={props.class}
-        >
-            {slots.default?.()}
-        </div>
-    );
+    return () => {
+        const attrs = htmlAttrs(props);
+        return (
+            <div
+                {...attrs}
+                role="group"
+                // `label` is the part's own spelling; an app's `aria-label` fills in without it.
+                aria-label={props.label ?? attrs['aria-label']}
+                data-scope={SCOPE}
+                data-part="root"
+                data-disabled={dataAttr(props.disabled)}
+                {...variantAttrs(props)}
+                class={props.class}
+            >
+                {slots.default?.()}
+            </div>
+        );
+    };
 }, { name: 'Stepper.Root' });
 
 // ── Item ──
@@ -125,6 +133,7 @@ export type StepperItemProps =
     & WithDisabled
     & WithClass
     & WithAsChild
+    & WithHtmlAttrs
     & Define.Slot<'default', PartProps>;
 
 const StepperItem = component<StepperItemProps>(({ props, slots, onUnmounted, signal }) => {
@@ -181,6 +190,8 @@ const StepperItem = component<StepperItemProps>(({ props, slots, onUnmounted, si
     };
 
     const bag = (): PartProps => ({
+        // First, so the part's own attributes win on any name both set.
+        ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'item',
         'data-state': phase(),
@@ -191,7 +202,7 @@ const StepperItem = component<StepperItemProps>(({ props, slots, onUnmounted, si
         // asChild elements get the button contract supplied by hand: the
         // native <button> below carries these itself.
         'aria-disabled': props.asChild && disabled() ? 'true' : undefined,
-        role: props.asChild ? 'button' : undefined,
+        role: props.asChild ? 'button' : props.role,
         ref: (node: HTMLElement | null) => { el = node; },
         onClick: (e: MouseEvent) => {
             if (disabled()) {
