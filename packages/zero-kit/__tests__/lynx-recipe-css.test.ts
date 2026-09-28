@@ -1444,7 +1444,9 @@ describe('assertNoCalcVarChains', () => {
                 const decls = body(css, `.zx-navbar__${part}`);
                 // The shared `flex: 1 1 0%` still ships (grow 1); the lynx
                 // longhands come after it and win.
-                expect(decls.indexOf('flex: 1 1 0%;')).toBeLessThan(decls.indexOf('flex-basis: auto;'));
+                const shorthand = decls.indexOf('flex: 1 1 0%;');
+                expect(shorthand).toBeGreaterThanOrEqual(0);
+                expect(shorthand).toBeLessThan(decls.indexOf('flex-basis: auto;'));
                 expect(last(decls, 'flex-basis')).toBe('auto');
                 expect(last(decls, 'flex-shrink')).toBe('0');
                 expect(decls).toContain('display: flex;');
