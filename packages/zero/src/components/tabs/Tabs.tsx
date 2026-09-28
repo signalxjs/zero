@@ -158,6 +158,7 @@ const TabsTab = component<TabsTabProps>(({ props, slots, onMounted, onUnmounted,
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'tab' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });

@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Added — composing zero parts (#452, #492)
+
+- **`mergePartProps(outer, own)`**, for component authors. It merges a lent
+  part's asChild bag into a host's own props. The host keeps its anatomy.
+  The lender's runtime-written `data-*` is dropped, and paint or `hidden`
+  set on it throws. Handlers and refs chain, lender first, and an inert
+  host skips the lender's activation handlers. IDREF-list ARIA is joined.
+  `id`, `role` and other `aria-*` fill in, and a conflict throws.
+  `tabIndex` takes the lower value, and `class` is concatenated. It is
+  DOM-free and also exported from `@sigx/zero/contract/core`.
+- **`WithLend`**, the `lend={p}` prop type, next to `WithAsChild`. No
+  component takes it yet.
+- **`createPressFeedback` `owner`.** With `{ scope, part }` set, a press on
+  an element whose `data-scope`/`data-part` differ does nothing. Every zero
+  part passes its own.
+
+### Changed
+
+- The reserved-attribute error from `htmlAttrs`, and the `ReservedByZero`
+  type error, now add: to hand a part's bag to a zero component, use
+  `lend={p}`.
+
 ## [0.15.0] - 2026-09-28
 
 ### Added

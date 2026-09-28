@@ -519,7 +519,7 @@ const InputClearTrigger = component<InputClearTriggerProps>(({ props, slots, sig
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const inert = (): boolean => ctx.disabled() || ctx.readonly();
-    const press = createPressFeedback({ getElement: () => el, isDisabled: inert });
+    const press = createPressFeedback({ owner: { scope: SCOPE, part: 'clear-trigger' }, getElement: () => el, isDisabled: inert });
 
     return () => {
         // The element's text, not the model: under `lazy`/`debounce` the
@@ -580,7 +580,7 @@ const InputVisibilityTrigger = component<InputVisibilityTriggerProps>(({ props, 
     const ctx = useInputContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
-    const press = createPressFeedback({ getElement: () => el, isDisabled: () => ctx.disabled() });
+    const press = createPressFeedback({ owner: { scope: SCOPE, part: 'visibility-trigger' }, getElement: () => el, isDisabled: () => ctx.disabled() });
 
     return () => {
         const attrs = htmlAttrs(props);

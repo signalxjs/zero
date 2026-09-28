@@ -191,6 +191,7 @@ const DiffHandle = component<DiffHandleProps>(({ props, slots, signal }) => {
     // A drag is a long press — Slider's shape: no pointerleave handler, no
     // one-shot, the window release ends it wherever it ends.
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'handle' },
         getElement: () => el,
         isDisabled: () => diff.disabled(),
         oneShot: false,

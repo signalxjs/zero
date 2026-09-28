@@ -377,6 +377,7 @@ const DrawerTrigger = component<DrawerTriggerProps>(({ props, slots, signal }) =
     const sheetOpen = (): boolean => drawer.state.value && !drawer.docked();
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'trigger' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });
@@ -762,6 +763,7 @@ const DrawerClose = component<DrawerCloseProps>(({ props, slots, signal }) => {
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'close' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });

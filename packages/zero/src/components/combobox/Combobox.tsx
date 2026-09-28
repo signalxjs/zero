@@ -1557,6 +1557,7 @@ const ComboboxTagRemove = component<ComboboxTagRemoveProps>(({ props, slots, sig
     const focus = signal({ visible: false });
     const disabled = (): boolean => combobox.disabled() || combobox.readonly();
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'tag-remove' },
         getElement: () => el,
         isDisabled: disabled,
     });
@@ -1674,6 +1675,7 @@ const ComboboxTrigger = component<ComboboxTriggerProps>(({ props, slots, signal 
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'trigger' },
         getElement: () => el,
         isDisabled: () => combobox.disabled(),
     });
@@ -1822,6 +1824,7 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
     // Pointer-only press: keyboard selection lives on the input
     // (aria-activedescendant — focus never reaches the option).
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'item' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });

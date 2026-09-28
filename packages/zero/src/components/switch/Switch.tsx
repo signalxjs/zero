@@ -85,6 +85,7 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal, onM
     // hidden input is the keyboard target, but the feedback lands on the
     // visible control — coordinates are computed against getElement's rect.
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'control' },
         getElement: () => controlEl,
         // A readonly control does not answer a press either — nothing
         // will happen, so nothing should look like it is about to.

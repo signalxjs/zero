@@ -466,7 +466,7 @@ const TableHeaderCell = component<TableHeaderCellProps>(({ props, slots, signal 
     const ctx = useTableContext();
     let triggerEl: HTMLElement | null = null;
     const focus = signal({ visible: false });
-    const press = createPressFeedback({ getElement: () => triggerEl, isDisabled: () => props.disabled === true });
+    const press = createPressFeedback({ owner: { scope: SCOPE, part: 'sort-trigger' }, getElement: () => triggerEl, isDisabled: () => props.disabled === true });
     return () => {
         // A sortable cell may name a column no spec declares — the name is
         // then only the sort key. With a spec, a name it lacks is a typo.

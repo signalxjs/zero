@@ -773,6 +773,7 @@ const ToastAction = component<ToastActionProps>(({ props, slots, emit, signal })
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'action' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });
@@ -827,6 +828,7 @@ const ToastClose = component<ToastCloseProps>(({ props, slots, signal }) => {
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'close' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });

@@ -57,7 +57,7 @@ export type HtmlAttrValue = string | number | boolean | undefined;
  * for an event, which would quietly turn `data-state` into `onData-state`.
  */
 export interface ReservedByZero {
-    readonly __reservedByZero: 'set through the component props — color/size/variant/axes/mods, layout, disabled, …';
+    readonly __reservedByZero: 'set through the component props — color/size/variant/axes/mods, layout, disabled, …; to hand a part\'s bag to a zero component, use lend={p}';
 }
 
 type ReservedDataAttr =
@@ -119,7 +119,7 @@ export function htmlAttrs(props: Record<string, unknown>): Record<string, HtmlAt
         if (value === undefined) continue;
         if (isReserved(key)) {
             // Terse on purpose: this module rides into every forwarding part.
-            throw new Error(`[zero] ${key} is part of the anatomy contract — set it through the component's props`);
+            throw new Error(`[zero] ${key} is part of the anatomy contract — set it through the component's props; to hand a part's bag to a zero component, use lend={p}`);
         }
         // The type says as much, but an untyped spread does not: an object
         // would serialize to "[object Object]", a function to its source.

@@ -243,6 +243,7 @@ const AlertClose = component<AlertCloseProps>(({ props, slots, signal }) => {
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'close' },
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });

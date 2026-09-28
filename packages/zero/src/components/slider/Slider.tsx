@@ -628,6 +628,7 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
     // handlers either — arrow keys are value changes, not presses — and no
     // one-shot: a drag has no ripple.
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'control' },
         getElement: () => el,
         isDisabled: () => slider.disabled() || slider.readonly(),
         oneShot: false,
@@ -848,6 +849,7 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
     // A drag is a long press — same shape as Control: no pointerleave, no
     // one-shot, the behavior's window release ends it wherever it ends.
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'thumb' },
         getElement: () => el,
         isDisabled: () => slider.disabled() || slider.readonly(),
         oneShot: false,

@@ -378,6 +378,7 @@ const StepsItem = component<StepsItemProps>(({ props, slots, onMounted, onUnmoun
     const locked = (): boolean => !disabled() && steps.locked(props.value);
     const inert = (): boolean => disabled() || locked();
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'item' },
         getElement: () => el,
         isDisabled: () => inert(),
     });
@@ -642,6 +643,7 @@ const stepTrigger = (partName: 'prev-trigger' | 'next-trigger', direction: -1 | 
         const atBound = (): boolean => destination() === undefined;
         const inert = (): boolean => steps.disabled() || atBound();
         const press = createPressFeedback({
+            owner: { scope: SCOPE, part: partName },
             getElement: () => el,
             isDisabled: () => inert(),
         });

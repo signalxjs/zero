@@ -122,6 +122,7 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal, onMounted
     // attribute (see the prop).
     const inert = (): boolean => !!props.disabled || !!props.loading;
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'root' },
         getElement: () => el,
         isDisabled: inert,
     });

@@ -728,6 +728,7 @@ const TreeViewItem = component<TreeViewItemProps>(({ props, slots, onMounted, on
 
     const disabled = (): boolean => !!props.disabled || ctx.disabled();
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'item' },
         getElement: () => el,
         isDisabled: () => disabled(),
     });
@@ -942,6 +943,7 @@ const TreeViewBranchTrigger = component<TreeViewBranchTriggerProps>(({ props, sl
     const value = (): string => branch.value ?? '';
     const disabled = (): boolean => ctx.disabled() || !!ctx.tree.findNode(value())?.disabled();
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'branch-trigger' },
         getElement: () => el,
         isDisabled: () => disabled(),
     });

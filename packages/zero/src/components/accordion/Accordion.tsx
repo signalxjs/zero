@@ -239,6 +239,7 @@ const AccordionTrigger = component<AccordionTriggerProps>(({ props, slots, signa
     onUnmounted(accordion.triggers.register(entry));
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'trigger' },
         getElement: () => el,
         isDisabled: () => item.disabled(),
     });

@@ -93,6 +93,7 @@ const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal, onMount
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'root' },
         getElement: () => el,
         isDisabled: () => !props.interactive || !!props.disabled,
     });

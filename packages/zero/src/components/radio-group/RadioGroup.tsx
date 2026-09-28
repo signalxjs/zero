@@ -254,6 +254,7 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal, o
     // Cross-element press: pointer on the row, keyboard on the hidden input,
     // feedback on the visible item-control.
     const press = createPressFeedback({
+        owner: { scope: SCOPE, part: 'item-control' },
         getElement: () => controlEl,
         isDisabled: () => disabled() || group.readonly(),
     });

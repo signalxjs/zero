@@ -85,6 +85,8 @@ export { defineAnatomy, defaultPropOf, changeEventOf } from './anatomy.js';
 export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX } from './variant-attrs.js';
 export type { WithHtmlAttrs, HtmlAttrValue, ReservedByZero } from './html-attrs.js';
 export { htmlAttrs, RESERVED_DATA_ATTRS } from './html-attrs.js';
+export type { LentBag } from './merge-part-props.js';
+export { mergePartProps } from './merge-part-props.js';
 
 export {
     CLASS_GRAMMAR_VERSION,

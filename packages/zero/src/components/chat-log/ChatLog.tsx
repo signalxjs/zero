@@ -188,7 +188,7 @@ const ChatLogJumpTrigger = component<ChatLogJumpTriggerProps>(({ props, slots, s
     const ctx = useChatLogContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
-    const press = createPressFeedback({ getElement: () => el, isDisabled: () => false });
+    const press = createPressFeedback({ owner: { scope: SCOPE, part: 'jump-trigger' }, getElement: () => el, isDisabled: () => false });
 
     const bag = (): PartProps => {
         const attrs = htmlAttrs(props);
