@@ -31,9 +31,16 @@ function componentSources(dir = componentsDir): string[] {
     });
 }
 
-/** The modules whose props include `WithLend` (the contract's own declaration lives outside `components/`). */
+/**
+ * The modules whose props include `WithLend` anywhere in a type — an alias
+ * body, an intersection or union member, a generic argument, an `extends`
+ * clause (the contract's own declaration lives outside `components/`). Import
+ * declarations are stripped first, so importing the type is not hosting it.
+ */
+const IMPORTS = /^import\b[^;]*;/gm;
+const USES_WITH_LEND = /(?:^|[=&|,(<]|extends)\s*WithLend\b/m;
 const hosts = componentSources()
-    .filter((file) => /&\s*WithLend\b/.test(readFileSync(resolve(componentsDir, file), 'utf8')))
+    .filter((file) => USES_WITH_LEND.test(readFileSync(resolve(componentsDir, file), 'utf8').replace(IMPORTS, '')))
     .sort();
 
 interface Fixture {

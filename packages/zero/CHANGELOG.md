@@ -34,8 +34,9 @@
   `<Tooltip.Trigger asChild>{(p) => <Button.Root lend={p} aria-label="Archive"
   onClick={archive}>…</Button.Root>}</Tooltip.Trigger>`. The tooltip's
   handlers and ref run first and its `aria-describedby` joins the Button's.
-  An inert Button (`disabled`, `loading`) skips the lent click and keydown
-  but still shows the tooltip on hover and keyboard focus. `Tooltip.Trigger`
+  An inert Button skips the lent click and keydown; a `loading` or
+  `disabled focusableWhenDisabled` Button still shows the tooltip on hover
+  and keyboard focus. `Tooltip.Trigger`
   is a host too, so lenders chain. The README's Patterns section teaches
   the rule: a raw element spreads the bag, a zero component takes
   `lend={p}`.

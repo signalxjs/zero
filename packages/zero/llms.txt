@@ -170,8 +170,9 @@ One rule: a raw element spreads the bag (`<button {...p}>`), a zero
 component gets `lend={p}` — spreading onto a component is a type error.
 `<Tooltip.Trigger asChild>{(p) => <Button.Root lend={p} aria-label="Archive"
 onClick={archive}>…</Button.Root>}</Tooltip.Trigger>` is an icon button that
-acts and has a tooltip. Disable the HOST: an inert Button (disabled,
-loading) skips the lent click/keydown but still shows the tooltip.
+acts and has a tooltip. Disable the HOST: an inert Button skips the lent
+click/keydown; a `loading` or `disabled focusableWhenDisabled` Button still
+shows the tooltip.
 
 THE FORM CONTRACT (#441): every posting control takes `name`, `form`,
 `disabled`, `invalid`, `required` (and `readonly` where the platform has

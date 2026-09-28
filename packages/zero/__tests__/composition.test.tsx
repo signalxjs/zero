@@ -133,6 +133,54 @@ describe('composition: Tooltip lent to Button', () => {
         expect(onClick).not.toHaveBeenCalled();
     });
 
+    describe('an inert host skips the lender\'s app handlers', () => {
+        function mountLender(host: { loading?: boolean; disabled?: boolean; focusableWhenDisabled?: boolean }) {
+            const lent = vi.fn();
+            const lentKey = vi.fn();
+            render(
+                <Tooltip.Root>
+                    <Tooltip.Trigger asChild onClick={lent} onKeydown={lentKey}>
+                        {(p) => (
+                            <Button.Root
+                                lend={p}
+                                loading={host.loading}
+                                disabled={host.disabled}
+                                focusableWhenDisabled={host.focusableWhenDisabled}
+                                aria-label="Archive"
+                            >
+                                A
+                            </Button.Root>
+                        )}
+                    </Tooltip.Trigger>
+                    <Tooltip.Popup>Archive the thread</Tooltip.Popup>
+                </Tooltip.Root>,
+                container,
+            );
+            const el = container.querySelector<HTMLElement>('button')!;
+            el.click();
+            el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+            return { lent, lentKey };
+        }
+
+        it('control: a plain Button hands the lender its click and keydown', () => {
+            const { lent, lentKey } = mountLender({});
+            expect(lent).toHaveBeenCalledTimes(1);
+            expect(lentKey).toHaveBeenCalledTimes(1);
+        });
+
+        it('a loading Button', () => {
+            const { lent, lentKey } = mountLender({ loading: true });
+            expect(lent).not.toHaveBeenCalled();
+            expect(lentKey).not.toHaveBeenCalled();
+        });
+
+        it('a disabled focusableWhenDisabled Button', () => {
+            const { lent, lentKey } = mountLender({ disabled: true, focusableWhenDisabled: true });
+            expect(lent).not.toHaveBeenCalled();
+            expect(lentKey).not.toHaveBeenCalled();
+        });
+    });
+
     it('a disabled lender goes quiet: its handlers stop, the host acts', () => {
         const lent = vi.fn();
         const own = vi.fn();
