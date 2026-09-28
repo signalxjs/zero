@@ -72,11 +72,6 @@
         color: var(--color-warning-content);
     }
 
-    [data-scope="navbar"][data-part="root"][data-color="accent"] {
-        background: var(--color-accent);
-        color: var(--color-accent-content);
-    }
-
     [data-scope="navbar"][data-part="root"][data-size="xs"] {
         min-block-size: 2.75rem;
         font-size: var(--text-sm);

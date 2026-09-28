@@ -14,9 +14,9 @@
         color: var(--overlay-accent);
         padding: var(--space-xs) var(--space-lg);
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         cursor: pointer;
     }
 
@@ -37,15 +37,19 @@
         background: var(--overlay-accent);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="trigger"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="menu"][data-part="trigger"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="menu"][data-part="trigger"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="menu"][data-part="trigger"]::after {
@@ -63,17 +67,17 @@
     }
 
     [data-scope="menu"][data-part="trigger"][data-press-animating]::after {
-        animation: menu-ripple var(--duration-slow) var(--ease-standard);
+        animation: menu-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="popup"] {
         opacity: 0;
         transform: scale(0.9);
-        transition: opacity var(--duration-normal) var(--ease-emphasized), transform var(--duration-normal) var(--ease-emphasized), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
+        transition: opacity var(--duration-medium2) var(--ease-emphasized), transform var(--duration-medium2) var(--ease-emphasized), display var(--duration-medium2) allow-discrete, overlay var(--duration-medium2) allow-discrete;
         background: var(--color-surface-container-high);
         color: var(--color-surface-container-high-content);
         border: none;
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
         box-shadow: var(--shadow-level2);
         padding: var(--space-xs);
         transform-origin: var(--transform-origin, center);
@@ -159,14 +163,14 @@
         align-items: center;
         gap: var(--space-sm);
         padding: var(--space-xs) var(--space-md);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         font-size: var(--text-sm);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="item"][data-highlighted] {
-        background: var(--color-primary-soft);
+        background: color-mix(in oklch, var(--color-surface-container-high-content) 10%, transparent);
     }
 
     [data-scope="menu"][data-part="item"][data-disabled] {
@@ -186,15 +190,19 @@
         background: var(--color-primary);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="item"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="menu"][data-part="item"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="menu"][data-part="item"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="menu"][data-part="item"]::after {
@@ -212,7 +220,7 @@
     }
 
     [data-scope="menu"][data-part="item"][data-press-animating]::after {
-        animation: menu-ripple var(--duration-slow) var(--ease-standard);
+        animation: menu-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="checkbox-item"] {
@@ -223,14 +231,14 @@
         align-items: center;
         gap: var(--space-sm);
         padding: var(--space-xs) var(--space-md);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         font-size: var(--text-sm);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="checkbox-item"][data-highlighted] {
-        background: var(--color-primary-soft);
+        background: color-mix(in oklch, var(--color-surface-container-high-content) 10%, transparent);
     }
 
     [data-scope="menu"][data-part="checkbox-item"][data-disabled] {
@@ -250,15 +258,19 @@
         background: var(--color-primary);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="checkbox-item"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="menu"][data-part="checkbox-item"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="menu"][data-part="checkbox-item"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="menu"][data-part="checkbox-item"]::after {
@@ -276,7 +288,7 @@
     }
 
     [data-scope="menu"][data-part="checkbox-item"][data-press-animating]::after {
-        animation: menu-ripple var(--duration-slow) var(--ease-standard);
+        animation: menu-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="radio-item"] {
@@ -287,14 +299,14 @@
         align-items: center;
         gap: var(--space-sm);
         padding: var(--space-xs) var(--space-md);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         font-size: var(--text-sm);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="radio-item"][data-highlighted] {
-        background: var(--color-primary-soft);
+        background: color-mix(in oklch, var(--color-surface-container-high-content) 10%, transparent);
     }
 
     [data-scope="menu"][data-part="radio-item"][data-disabled] {
@@ -314,15 +326,19 @@
         background: var(--color-primary);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="radio-item"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="menu"][data-part="radio-item"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="menu"][data-part="radio-item"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="menu"][data-part="radio-item"]::after {
@@ -340,7 +356,7 @@
     }
 
     [data-scope="menu"][data-part="radio-item"][data-press-animating]::after {
-        animation: menu-ripple var(--duration-slow) var(--ease-standard);
+        animation: menu-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="item-indicator"] {
@@ -362,18 +378,18 @@
         align-items: center;
         gap: var(--space-sm);
         padding: var(--space-xs) var(--space-md);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         font-size: var(--text-sm);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="sub-trigger"][data-highlighted] {
-        background: var(--color-primary-soft);
+        background: color-mix(in oklch, var(--color-surface-container-high-content) 10%, transparent);
     }
 
     [data-scope="menu"][data-part="sub-trigger"][data-state="open"] {
-        background: var(--color-primary-soft);
+        background: color-mix(in oklch, var(--color-surface-container-high-content) 10%, transparent);
     }
 
     [data-scope="menu"][data-part="sub-trigger"][data-disabled] {
@@ -393,15 +409,19 @@
         background: var(--color-primary);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="sub-trigger"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="menu"][data-part="sub-trigger"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="menu"][data-part="sub-trigger"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="menu"][data-part="sub-trigger"]::after {
@@ -419,17 +439,17 @@
     }
 
     [data-scope="menu"][data-part="sub-trigger"][data-press-animating]::after {
-        animation: menu-ripple var(--duration-slow) var(--ease-standard);
+        animation: menu-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="sub-popup"] {
         opacity: 0;
         transform: translateX(-4px) scale(0.95);
-        transition: opacity var(--duration-normal) var(--ease-emphasized), transform var(--duration-normal) var(--ease-emphasized), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
+        transition: opacity var(--duration-medium2) var(--ease-emphasized), transform var(--duration-medium2) var(--ease-emphasized), display var(--duration-medium2) allow-discrete, overlay var(--duration-medium2) allow-discrete;
         background: var(--color-surface-container-high);
         color: var(--color-surface-container-high-content);
         border: none;
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
         box-shadow: var(--shadow-level2);
         padding: var(--space-xs);
         transform-origin: var(--transform-origin, center);
@@ -449,7 +469,7 @@
         padding: var(--space-2xs) var(--space-md);
         font-size: var(--text-xs);
         letter-spacing: var(--tracking-wide);
-        color: var(--color-outline);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="menu"][data-part="shortcut"] {
@@ -457,7 +477,7 @@
         padding-inline-start: var(--space-lg);
         font-size: var(--text-xs);
         letter-spacing: var(--tracking-wide);
-        color: var(--color-outline);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="menu"][data-part="separator"] {
@@ -496,10 +516,6 @@
 
     [data-scope="menu"][data-part="trigger"][data-color="warning"] {
         --overlay-accent: var(--color-warning);
-    }
-
-    [data-scope="menu"][data-part="trigger"][data-color="accent"] {
-        --overlay-accent: var(--color-accent);
     }
 
     [data-scope="menu"][data-part="trigger"][data-size="xs"] {
@@ -617,5 +633,5 @@
     }
 }
 @keyframes menu-ripple {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

@@ -204,14 +204,21 @@ describe('component coverage', () => {
 });
 
 describe('declared but unwired', () => {
-    it('surfaces material\'s four tonal roles, which no validator rule catches', () => {
+    it('surfaces material\'s fill and hairline roles, which no validator rule catches', () => {
         // `color` and `size` have no declared-but-unwired check in the
         // validator — only `variant`, `tokens.axes` and `modifiers` do — so
         // this report is the only place the gap is stated.
         const material = reportFor(materialDS as DesignSystemInput);
-        expect(material.vocabulary.roles).toHaveLength(13);
+        // M3's full role set (#414): eight action roles plus 23 fills and
+        // hairlines — containers, surfaces, outlines, scrim and shadow.
+        expect(material.vocabulary.roles).toHaveLength(31);
         expect(material.unwired.color).toEqual([
-            'outline', 'surface', 'surface-container', 'surface-container-high',
+            'error-container', 'info-container', 'inverse-primary', 'inverse-surface',
+            'neutral-container', 'outline', 'outline-variant', 'primary-container',
+            'scrim', 'secondary-container', 'shadow', 'success-container', 'surface',
+            'surface-bright', 'surface-container', 'surface-container-high',
+            'surface-container-highest', 'surface-container-low', 'surface-container-lowest',
+            'surface-dim', 'surface-variant', 'tertiary-container', 'warning-container',
         ]);
     });
 
@@ -236,7 +243,7 @@ describe('the axis-agnostic divergence report', () => {
 
         // The colour rule's own semantics, preserved: compared against the
         // union wired ANYWHERE, not against the declared vocabulary — so the
-        // four roles no component wires are absent here while showing up in
+        // fill roles no component wires are absent here while showing up in
         // `unwired.color`.
         expect(material.divergence['color']!.wiredAnywhere).not.toContain('surface');
     });

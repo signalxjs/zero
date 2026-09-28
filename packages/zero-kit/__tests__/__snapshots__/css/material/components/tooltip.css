@@ -11,9 +11,9 @@
         color: var(--overlay-accent);
         padding: var(--space-xs) var(--space-lg);
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         cursor: help;
     }
 
@@ -30,10 +30,10 @@
     [data-scope="tooltip"][data-part="popup"] {
         opacity: 0;
         transform: scale(0.85);
-        transition: opacity var(--duration-normal) var(--ease-emphasized), transform var(--duration-normal) var(--ease-emphasized), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
+        transition: opacity var(--duration-medium2) var(--ease-emphasized), transform var(--duration-medium2) var(--ease-emphasized), display var(--duration-medium2) allow-discrete, overlay var(--duration-medium2) allow-discrete;
         background: var(--color-neutral);
         color: var(--color-neutral-content);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         padding: var(--space-2xs) var(--space-xs);
         font-size: var(--text-xs);
         box-shadow: var(--shadow-level1);
@@ -141,10 +141,6 @@
 
     [data-scope="tooltip"][data-part="trigger"][data-color="warning"] {
         --overlay-accent: var(--color-warning);
-    }
-
-    [data-scope="tooltip"][data-part="trigger"][data-color="accent"] {
-        --overlay-accent: var(--color-accent);
     }
 
     [data-scope="tooltip"][data-part="trigger"][data-size="xs"] {

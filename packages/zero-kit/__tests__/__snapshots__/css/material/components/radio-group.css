@@ -14,7 +14,7 @@
         font-family: var(--font-sans);
         font-size: var(--text-md);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
     }
 
     [data-scope="radio-group"][data-part="item"] {
@@ -45,7 +45,7 @@
         height: var(--radio-size);
         border: 2px solid var(--color-outline);
         background: transparent;
-        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard);
         border-radius: 624rem;
     }
 
@@ -75,15 +75,19 @@
         transform: translate(-50%, -50%);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="radio-group"][data-part="item-control"]:hover:not([data-disabled], [data-readonly])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-state="unchecked"]::before {
@@ -109,7 +113,7 @@
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-press-animating]::after {
-        animation: radio-ripple var(--duration-slow) var(--ease-standard);
+        animation: radio-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="radio-group"][data-part="item-indicator"] {
@@ -118,7 +122,7 @@
         border-radius: 624rem;
         background: var(--radio-accent);
         transform: scale(0);
-        transition: transform var(--duration-fast) var(--ease-standard);
+        transition: transform var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="radio-group"][data-part="item-indicator"][data-state="checked"] {
@@ -166,10 +170,6 @@
 
     [data-scope="radio-group"][data-part="root"][data-color="warning"] {
         --radio-accent: var(--color-warning);
-    }
-
-    [data-scope="radio-group"][data-part="root"][data-color="accent"] {
-        --radio-accent: var(--color-accent);
     }
 
     [data-scope="radio-group"][data-part="root"][data-size="xs"] {
@@ -243,5 +243,5 @@
     }
 }
 @keyframes radio-ripple {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

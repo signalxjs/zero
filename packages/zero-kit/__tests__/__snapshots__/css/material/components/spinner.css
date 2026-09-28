@@ -48,10 +48,6 @@
         --spinner-ink: var(--color-warning);
     }
 
-    [data-scope="spinner"][data-part="root"][data-color="accent"] {
-        --spinner-ink: var(--color-accent);
-    }
-
     [data-scope="spinner"][data-part="root"][data-size="xs"] {
         --spinner-size: calc(var(--size-field) * 0.4);
     }

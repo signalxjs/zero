@@ -11,9 +11,9 @@
 
     [data-scope="number-input"][data-part="label"] {
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         color: var(--color-base-content);
     }
 
@@ -36,8 +36,8 @@
         background: transparent;
         color: var(--color-base-content);
         border: var(--border) solid var(--color-outline);
-        border-radius: var(--radius-field);
-        transition: border-color var(--duration-fast) var(--ease-standard);
+        border-radius: var(--radius-medium);
+        transition: border-color var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="number-input"][data-part="control"][data-invalid] {
@@ -72,7 +72,7 @@
     }
 
     [data-scope="number-input"][data-part="input"]::placeholder {
-        color: var(--color-outline);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="number-input"][data-part="increment-trigger"] {
@@ -93,7 +93,7 @@
         font-family: var(--font-sans);
         font-size: var(--text-md);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         cursor: pointer;
         user-select: none;
     }
@@ -110,15 +110,19 @@
         background: var(--color-primary);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="number-input"][data-part="increment-trigger"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="number-input"][data-part="increment-trigger"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="number-input"][data-part="increment-trigger"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="number-input"][data-part="increment-trigger"]::after {
@@ -136,7 +140,7 @@
     }
 
     [data-scope="number-input"][data-part="increment-trigger"][data-press-animating]::after {
-        animation: number-input-ripple var(--duration-slow) var(--ease-standard);
+        animation: number-input-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"] {
@@ -157,7 +161,7 @@
         font-family: var(--font-sans);
         font-size: var(--text-md);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         cursor: pointer;
         user-select: none;
     }
@@ -174,15 +178,19 @@
         background: var(--color-primary);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="number-input"][data-part="decrement-trigger"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"]::after {
@@ -200,7 +208,7 @@
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"][data-press-animating]::after {
-        animation: number-input-ripple var(--duration-slow) var(--ease-standard);
+        animation: number-input-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="number-input"][data-part="root"][data-color="primary"] {
@@ -233,10 +241,6 @@
 
     [data-scope="number-input"][data-part="root"][data-color="warning"] {
         --number-input-accent: var(--color-warning);
-    }
-
-    [data-scope="number-input"][data-part="root"][data-color="accent"] {
-        --number-input-accent: var(--color-accent);
     }
 
     @scope ([data-scope="number-input"][data-part="root"][data-size="xs"]) to ([data-scope="number-input"][data-part="root"]) {
@@ -296,5 +300,5 @@
     }
 }
 @keyframes number-input-ripple {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

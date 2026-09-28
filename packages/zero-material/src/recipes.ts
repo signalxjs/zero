@@ -1,9 +1,12 @@
 /**
- * zero-material recipes — Material's look over zero's anatomy.
+ * zero-material recipes — Material 3 over zero's anatomy.
  *
- * Written to exercise the recipe layer rather than to be exhaustive: the
- * tonal surface roles, the `level1`–`level5` elevation ramp, Material's
- * emphasized easings, and a dialog that goes full-screen below `sm`.
+ * Every value reads an M3 token from `tokens.ts`: the colour roles and their
+ * containers, the corner scale (`--radius-extra-small` … `--radius-full`),
+ * the type roles (`type('label-large')`), the duration and easing tokens
+ * (`--duration-short2`, `--ease-emphasized-decelerate`), the elevation
+ * levels and the state-layer opacities (`--state-hover` …). The per-component
+ * M3 specs land phase by phase under #413.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
 import { axisRoles, popupArrow, popupArrowHost, tableStackAt } from '@sigx/zero-kit/define';
@@ -47,22 +50,40 @@ const focusRing: Record<string, CssProps> = {
 };
 
 const motion = (props: string): string =>
-    props.split(', ').map((p) => `${p} var(--duration-fast) var(--ease-standard)`).join(', ');
+    props.split(', ').map((p) => `${p} var(--duration-short2) var(--ease-standard)`).join(', ');
 
 /** Material's raised container: a tonal fill plus an elevation step. */
 const raised = (level: 'level2' | 'level3'): CssProps => ({
     background: 'var(--color-surface-container-high)',
     color: 'var(--color-surface-container-high-content)',
     border: 'none',
-    borderRadius: 'var(--radius-box)',
+    borderRadius: 'var(--radius-extra-large)',
     boxShadow: `var(--shadow-${level})`,
 });
 
+/** M3's fifteen type roles. */
+type TypeRole = `${'display' | 'headline' | 'title' | 'body' | 'label'}-${'large' | 'medium' | 'small'}`;
+
+/**
+ * An M3 type role as one declaration block. zero-kit has no composite
+ * type-role token, so a role's size, line height and tracking are three
+ * ramps under one key (`tokens.ts`), and its weight — regular or medium —
+ * is recorded here (#423).
+ */
+const type = (role: TypeRole): CssProps => ({
+    fontFamily: 'var(--font-sans)',
+    fontSize: `var(--text-${role})`,
+    lineHeight: `var(--leading-${role})`,
+    fontWeight: /^(title-(medium|small)|label-)/.test(role) ? 'var(--weight-medium)' : 'var(--weight-normal)',
+    letterSpacing: `var(--tracking-${role})`,
+});
+
+/** M3's label-large, less its line height — the caller sets the box. */
 const label: CssProps = {
     fontFamily: 'var(--font-sans)',
-    fontSize: 'var(--text-sm)',
+    fontSize: 'var(--text-label-large)',
     fontWeight: 'var(--weight-medium)',
-    letterSpacing: 'var(--tracking-wide)',
+    letterSpacing: 'var(--tracking-label-large)',
 };
 
 // ── Press feedback ────────────────────────────────────────────────────────
@@ -89,13 +110,17 @@ const pressable = (prefix: string, ink = 'var(--color-primary)'): PartStyles => 
             background: ink,
             opacity: '0',
             pointerEvents: 'none',
-            transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            transition: 'opacity var(--duration-short2) var(--ease-standard)',
         },
-        // MD3 state layers: hover 8%, pressed 12%. Pressed carries the
+        // MD3 state layers: hover 8%, focus and pressed 10%. Pressed carries the
         // redundant :not so its specificity EQUALS hover's and it wins by
         // source order while both apply.
-        '&:hover:not([data-disabled])::before': { opacity: '0.08' },
-        '&[data-pressed]:not([data-disabled])::before': { opacity: '0.12' },
+        '&:hover:not([data-disabled])::before': { opacity: 'var(--state-hover)' },
+        // M3's focus state layer rides beside the focus ring. `:is()` takes
+        // its argument's specificity, so hover, focus and pressed tie and
+        // resolve by source order.
+        '&:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before': { opacity: 'var(--state-focus)' },
+        '&[data-pressed]:not([data-disabled])::before': { opacity: 'var(--state-pressed)' },
         '&::after': {
             content: '""',
             position: 'absolute',
@@ -110,7 +135,7 @@ const pressable = (prefix: string, ink = 'var(--color-primary)'): PartStyles => 
             pointerEvents: 'none',
         },
         '&[data-press-animating]::after': {
-            animation: `${prefix}-ripple var(--duration-slow) var(--ease-standard)`,
+            animation: `${prefix}-ripple var(--duration-long2) var(--ease-standard)`,
         },
     },
     at: {
@@ -151,10 +176,11 @@ const pressableCentered = (prefix: string, diameter: string, ink = 'var(--color-
             transform: 'translate(-50%, -50%)',
             opacity: '0',
             pointerEvents: 'none',
-            transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            transition: 'opacity var(--duration-short2) var(--ease-standard)',
         },
-        '&:hover:not([data-disabled], [data-readonly])::before': { opacity: '0.08' },
-        '&[data-pressed]:not([data-disabled])::before': { opacity: '0.12' },
+        '&:hover:not([data-disabled], [data-readonly])::before': { opacity: 'var(--state-hover)' },
+        '&:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before': { opacity: 'var(--state-focus)' },
+        '&[data-pressed]:not([data-disabled])::before': { opacity: 'var(--state-pressed)' },
         // MD3 ink: on-surface while unselected, the accent once selected.
         '&[data-state="unchecked"]::before': { background: 'var(--color-base-content)' },
         '&[data-state="unchecked"]::after': { background: 'var(--color-base-content)' },
@@ -172,7 +198,7 @@ const pressableCentered = (prefix: string, diameter: string, ink = 'var(--color-
             pointerEvents: 'none',
         },
         '&[data-press-animating]::after': {
-            animation: `${prefix}-ripple var(--duration-slow) var(--ease-standard)`,
+            animation: `${prefix}-ripple var(--duration-long2) var(--ease-standard)`,
         },
     },
     at: {
@@ -190,8 +216,8 @@ const pressableCentered = (prefix: string, diameter: string, ink = 'var(--color-
 
 const rippleKeyframes = (prefix: string): Record<string, string> => ({
     [`${prefix}-ripple`]:
-        'from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } '
-        + '60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } '
+        'from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } '
+        + '60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } '
         + 'to { transform: translate(-50%, -50%) scale(1); opacity: 0; }',
 });
 
@@ -222,10 +248,10 @@ const popupPresence = (from: string): PartStyles => ({
     base: {
         opacity: '0',
         transform: from,
-        transition: 'opacity var(--duration-normal) var(--ease-emphasized), '
-            + 'transform var(--duration-normal) var(--ease-emphasized), '
-            + 'display var(--duration-normal) allow-discrete, '
-            + 'overlay var(--duration-normal) allow-discrete',
+        transition: 'opacity var(--duration-medium2) var(--ease-emphasized), '
+            + 'transform var(--duration-medium2) var(--ease-emphasized), '
+            + 'display var(--duration-medium2) allow-discrete, '
+            + 'overlay var(--duration-medium2) allow-discrete',
     },
     states: { open: { opacity: '1', transform: 'none' } },
     at: {
@@ -253,8 +279,8 @@ const disclosurePresence: PartStyles = {
         // any transition could run — the panel animates that half (#276).
         '&[open]::details-content': {
             blockSize: 'auto',
-            transition: 'block-size var(--duration-normal) var(--ease-emphasized), '
-                    + 'content-visibility var(--duration-normal) allow-discrete',
+            transition: 'block-size var(--duration-medium2) var(--ease-emphasized), '
+                    + 'content-visibility var(--duration-medium2) allow-discrete',
         },
     },
     at: { 'reduced-motion': { selectors: { '&[open]::details-content': { transition: 'none' } } } },
@@ -277,7 +303,7 @@ const disclosureExit = (scope: 'collapsible' | 'accordion'): RecipeInput['target
                 states: {
                     closed: {
                         boxSizing: 'border-box',
-                        animation: `${scope}-panel-exit var(--duration-normal) var(--ease-emphasized)`,
+                        animation: `${scope}-panel-exit var(--duration-medium2) var(--ease-emphasized)`,
                     },
                 },
                 at: { 'reduced-motion': { states: { closed: { animation: 'none' } } } },
@@ -320,13 +346,15 @@ export const button: RecipeInput = {
         properties: {
             '--btn-accent': 'The fill of the solid variant.',
             '--btn-on-accent': 'The ink on --btn-accent.',
-            '--btn-soft': 'The soft fill (soft variant, unfilled hover).',
+            '--btn-soft': 'The tonal fill (soft variant): the M3 container of the role.',
+            '--btn-on-soft': 'The ink on --btn-soft: the on-container of the role.',
         },
     },
     tokens: {
         '--btn-accent': 'var(--color-primary)',
         '--btn-on-accent': 'var(--color-primary-content)',
-        '--btn-soft': 'var(--color-primary-soft)',
+        '--btn-soft': 'var(--color-primary-container)',
+        '--btn-on-soft': 'var(--color-primary-container-content)',
         // The state-layer/ripple ink. On a filled button that is the on-color;
         // un-filled variants override to the accent itself.
         '--btn-ripple': 'var(--btn-on-accent)',
@@ -392,10 +420,10 @@ export const button: RecipeInput = {
                     background: 'var(--btn-ripple)',
                     opacity: '0',
                     pointerEvents: 'none',
-                    transition: 'opacity var(--duration-fast) var(--ease-standard)',
+                    transition: 'opacity var(--duration-short2) var(--ease-standard)',
                 },
-                '&:hover:not([data-disabled])::before': { opacity: '0.08' },
-                '&[data-pressed]:not([data-disabled])::before': { opacity: '0.12' },
+                '&:hover:not([data-disabled])::before': { opacity: 'var(--state-hover)' },
+                '&[data-pressed]:not([data-disabled])::before': { opacity: 'var(--state-pressed)' },
                 // Ink ripple — a one-shot expansion from the press point the
                 // runtime publishes as --press-x/y, sized by --press-r (the
                 // farthest-corner radius). data-press-animating outlives
@@ -414,7 +442,7 @@ export const button: RecipeInput = {
                     pointerEvents: 'none',
                 },
                 '&[data-press-animating]::after': {
-                    animation: 'btn-ripple var(--duration-slow) var(--ease-standard)',
+                    animation: 'btn-ripple var(--duration-long2) var(--ease-standard)',
                 },
             },
             at: {
@@ -435,8 +463,8 @@ export const button: RecipeInput = {
     keyframes: {
         'zero-material-btn-spin': 'to { transform: rotate(360deg) }',
         'btn-ripple':
-            'from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } '
-            + '60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } '
+            'from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } '
+            + '60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } '
             + 'to { transform: translate(-50%, -50%) scale(1); opacity: 0; }',
     },
     variants: {
@@ -447,7 +475,8 @@ export const button: RecipeInput = {
                     base: {
                         '--btn-accent': `var(--color-${c})`,
                         '--btn-on-accent': `var(--color-${c}-content)`,
-                        '--btn-soft': `var(--color-${c}-soft)`,
+                        '--btn-soft': `var(--color-${c}-container)`,
+                        '--btn-on-soft': `var(--color-${c}-container-content)`,
                     },
                 },
             },
@@ -478,8 +507,8 @@ export const button: RecipeInput = {
                 root: {
                     base: {
                         background: 'var(--btn-soft)',
-                        color: 'var(--btn-accent)',
-                        '--btn-ripple': 'var(--btn-accent)',
+                        color: 'var(--btn-on-soft)',
+                        '--btn-ripple': 'var(--btn-on-soft)',
                     },
                     states: { hover: { boxShadow: 'var(--shadow-level1)' } },
                 },
@@ -632,12 +661,12 @@ export const tabs: RecipeInput = {
 //
 // What is left is the element's own box, and MD3 already has a word for it:
 // the SELECTED CONTAINER. An expanded header takes the tonal container fill
-// and the key ink — the same `primary-soft` + primary pairing the open menu
-// sub-trigger takes two hundred lines down, so "open" looks the same wherever
-// this design system says it. The inset hairline is the structural half of
+// and its on-container ink — M3's tonal pairing, which holds in every
+// contrast level (the key ink on a container does not: in the high-contrast
+// schemes the container goes dark). The inset hairline is the structural half of
 // the same sentence: the header now has a panel under it. `box-shadow`, not
 // `border-block-end`, so nothing reflows on toggle.
-// The accent pair rides two custom properties (`--disclosure-accent`/`-soft`)
+// The accent rides custom properties (`--disclosure-accent`/`-soft`/`-on-soft`)
 // declared in each recipe's `tokens:` — the un-attributed render IS the
 // primary variant and `variants.color` only rebinds them on the carrier.
 const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable(prefix, 'var(--disclosure-accent)'), {
@@ -654,7 +683,7 @@ const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable
     states: {
         open: {
             background: 'var(--disclosure-soft)',
-            color: 'var(--disclosure-accent)',
+            color: 'var(--disclosure-on-soft)',
             boxShadow: 'inset 0 -1px 0 var(--color-outline)',
         },
         closed: {},
@@ -677,7 +706,8 @@ const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable
 const disclosureColors = (): Record<string, Record<string, PartStyles>> =>
     Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
         '--disclosure-accent': `var(--color-${c})`,
-        '--disclosure-soft': `var(--color-${c}-soft)`,
+        '--disclosure-soft': `var(--color-${c}-container)`,
+        '--disclosure-on-soft': `var(--color-${c}-container-content)`,
     } } }]));
 
 /**
@@ -711,19 +741,21 @@ export const collapsible: RecipeInput = {
     hooks: {
         properties: {
             '--disclosure-accent': 'The accent of the open trigger.',
-            '--disclosure-soft': 'The soft state-layer fill.',
+            '--disclosure-soft': 'The tonal fill of the open trigger: the M3 container of the role.',
+            '--disclosure-on-soft': 'The ink on --disclosure-soft.',
         },
     },
     tokens: {
         '--disclosure-accent': 'var(--color-primary)',
-        '--disclosure-soft': 'var(--color-primary-soft)',
+        '--disclosure-soft': 'var(--color-primary-container)',
+        '--disclosure-on-soft': 'var(--color-primary-container-content)',
     },
     parts: {
         root: withPresence(disclosurePresence, {
             base: {
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
                 overflow: 'hidden',
             },
             states: { open: {}, closed: {} },
@@ -743,7 +775,8 @@ export const accordion: RecipeInput = {
     targets: disclosureExit('accordion'),
     tokens: {
         '--disclosure-accent': 'var(--color-primary)',
-        '--disclosure-soft': 'var(--color-primary-soft)',
+        '--disclosure-soft': 'var(--color-primary-container)',
+        '--disclosure-on-soft': 'var(--color-primary-container-content)',
     },
     parts: {
         root: {
@@ -755,7 +788,7 @@ export const accordion: RecipeInput = {
             base: {
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
                 overflow: 'hidden',
             },
             states: { open: {}, closed: {} },
@@ -878,18 +911,16 @@ export const dialog: RecipeInput = {
         title: {
             base: {
                 margin: '0 0 var(--space-md)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-xl)',
-                fontWeight: 'var(--weight-normal)',
-                lineHeight: 'var(--leading-tight)',
+                // M3 dialog: headline-small title, body-medium supporting
+                // text in on-surface-variant.
+                ...type('headline-small'),
             },
         },
         description: {
             base: {
                 margin: '0 0 var(--space-lg)',
-                fontSize: 'var(--text-sm)',
-                lineHeight: 'var(--leading-normal)',
-                color: 'var(--color-base-content)',
+                ...type('body-medium'),
+                color: 'var(--color-surface-variant-content)',
             },
         },
         // M3's action area: text buttons at the trailing edge, 8px apart,
@@ -993,7 +1024,7 @@ export const popover: RecipeInput = {
                 margin: '0 0 var(--space-sm)',
                 fontSize: 'var(--text-sm)',
                 lineHeight: 'var(--leading-normal)',
-                color: 'color-mix(in oklch, var(--color-surface-container-high-content) 75%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         arrow: surfaceArrow('popover', 'var(--color-surface-container-high)'),
@@ -1003,7 +1034,7 @@ export const popover: RecipeInput = {
                 border: 'none',
                 background: 'transparent',
                 color: 'var(--color-primary)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 cursor: 'pointer',
                 ...label,
             },
@@ -1039,7 +1070,7 @@ export const tooltip: RecipeInput = {
             base: {
                 background: 'var(--color-neutral)',
                 color: 'var(--color-neutral-content)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 padding: 'var(--space-2xs) var(--space-xs)',
                 fontSize: 'var(--text-xs)',
                 boxShadow: 'var(--shadow-level1)',
@@ -1071,9 +1102,9 @@ export const hoverCard: RecipeInput = {
                 color: 'var(--color-primary)',
                 textDecorationLine: 'underline',
                 textUnderlineOffset: '0.15em',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard)',
+                transition: 'background var(--duration-short2) var(--ease-standard)',
             },
             states: {
                 hover: { background: 'color-mix(in oklch, currentColor 8%, transparent)' },
@@ -1108,6 +1139,13 @@ export const hoverCard: RecipeInput = {
     },
 };
 
+/**
+ * M3's menu item state: an on-surface focus state layer over the menu's
+ * container — never a coloured fill, which in the high-contrast schemes goes
+ * dark under dark ink.
+ */
+const menuStateLayer = 'color-mix(in oklch, var(--color-surface-container-high-content) 10%, transparent)';
+
 export const menu: RecipeInput = {
     component: 'menu',
     tokens: overlayTriggerTokens,
@@ -1129,13 +1167,13 @@ export const menu: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
                 padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 fontSize: 'var(--text-sm)',
                 cursor: 'pointer',
                 transition: motion('background'),
             },
             states: {
-                highlighted: { background: 'var(--color-primary-soft)' },
+                highlighted: { background: menuStateLayer },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
@@ -1150,13 +1188,13 @@ export const menu: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
                 padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 fontSize: 'var(--text-sm)',
                 cursor: 'pointer',
                 transition: motion('background'),
             },
             states: {
-                highlighted: { background: 'var(--color-primary-soft)' },
+                highlighted: { background: menuStateLayer },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {}, unchecked: {},
                 ...focusRing,
@@ -1168,13 +1206,13 @@ export const menu: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
                 padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 fontSize: 'var(--text-sm)',
                 cursor: 'pointer',
                 transition: motion('background'),
             },
             states: {
-                highlighted: { background: 'var(--color-primary-soft)' },
+                highlighted: { background: menuStateLayer },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {}, unchecked: {},
                 ...focusRing,
@@ -1202,14 +1240,14 @@ export const menu: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
                 padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 fontSize: 'var(--text-sm)',
                 cursor: 'pointer',
                 transition: motion('background'),
             },
             states: {
-                highlighted: { background: 'var(--color-primary-soft)' },
-                open: { background: 'var(--color-primary-soft)' },
+                highlighted: { background: menuStateLayer },
+                open: { background: menuStateLayer },
                 closed: {},
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
@@ -1228,7 +1266,7 @@ export const menu: RecipeInput = {
                 padding: 'var(--space-2xs) var(--space-md)',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'var(--color-outline)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         // M3's trailing supporting text: outline ink, pushed to the row's end.
@@ -1238,7 +1276,7 @@ export const menu: RecipeInput = {
                 paddingInlineStart: 'var(--space-lg)',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'var(--color-outline)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         separator: {
@@ -1266,7 +1304,7 @@ export const menubar: RecipeInput = {
                 maxWidth: '100%',
                 flexWrap: 'wrap',
                 background: 'var(--menubar-surface)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
             },
             // The triggers fade themselves.
             states: { disabled: {} },
@@ -1295,7 +1333,6 @@ export const select: RecipeInput = {
     // variant; `variants.color` only rebinds the custom properties.
     tokens: {
         '--select-accent': 'var(--color-primary)',
-        '--select-soft': 'var(--color-primary-soft)',
     },
     parts: {
         root: { base: { display: 'inline-flex', position: 'relative' } },
@@ -1313,7 +1350,7 @@ export const select: RecipeInput = {
                 color: 'var(--color-surface-container-content)',
                 border: 'none',
                 borderBottom: '2px solid var(--color-outline)',
-                borderRadius: 'var(--radius-selector) var(--radius-selector) 0 0',
+                borderRadius: 'var(--radius-extra-small) var(--radius-extra-small) 0 0',
                 fontSize: 'var(--text-md)',
                 cursor: 'pointer',
                 transition: motion('border-color'),
@@ -1381,7 +1418,7 @@ export const select: RecipeInput = {
                 padding: 'var(--space-2xs) var(--space-md)',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'var(--color-outline)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         // A windowed group's heading (#127): the same overline as the label,
@@ -1391,7 +1428,7 @@ export const select: RecipeInput = {
                 padding: 'var(--space-2xs) var(--space-md)',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'var(--color-outline)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         item: withPresence(pressable('select', 'var(--select-accent)'), {
@@ -1400,21 +1437,22 @@ export const select: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
                 padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 fontSize: 'var(--text-sm)',
                 cursor: 'pointer',
             },
             states: {
-                highlighted: { background: 'var(--select-soft)' },
+                highlighted: { background: menuStateLayer },
                 // MD3's secondary-container fill for a selected row — the
                 // pairing tree-view and the segmented button use. Deliberately
                 // NOT the accent.
-                selected: { background: 'var(--color-secondary-soft)' },
+                selected: { background: 'var(--color-secondary-container)', color: 'var(--color-secondary-container-content)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 ...focusRing,
             },
         }),
-        'item-indicator': { base: { color: 'var(--select-accent)' } },
+        // The check takes the row's ink: on-secondary-container once selected.
+        'item-indicator': { base: { color: 'inherit' } },
         // The menu's rule between runs of options (#280).
         separator: {
             base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-outline)' },
@@ -1425,7 +1463,6 @@ export const select: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--select-accent': `var(--color-${c})`,
-            '--select-soft': `var(--color-${c}-soft)`,
         } } }])),
         // The button's ramp rhythm anchored on the field's resting values
         // (md = the base's padding/fontSize).
@@ -1505,8 +1542,8 @@ export const switchRecipe: RecipeInput = {
             selectors: {
                 // No hover layer on a readonly switch: it would promise a
                 // press that changes nothing.
-                '&:hover:not([data-disabled], [data-readonly]) [data-part="thumb"]::before': { opacity: '0.08' },
-                '&[data-pressed]:not([data-disabled]) [data-part="thumb"]::before': { opacity: '0.12' },
+                '&:hover:not([data-disabled], [data-readonly]) [data-part="thumb"]::before': { opacity: 'var(--state-hover)' },
+                '&[data-pressed]:not([data-disabled]) [data-part="thumb"]::before': { opacity: 'var(--state-pressed)' },
                 // MD3 ink: on-surface while unselected (deliberately NOT the
                 // accent), the accent once checked (the thumb's own ::before).
                 '&[data-state="unchecked"] [data-part="thumb"]::before': { background: 'var(--color-base-content)' },
@@ -1564,7 +1601,7 @@ export const switchRecipe: RecipeInput = {
                     transform: 'translate(-50%, -50%)',
                     opacity: '0',
                     pointerEvents: 'none',
-                    transition: 'opacity var(--duration-fast) var(--ease-standard)',
+                    transition: 'opacity var(--duration-short2) var(--ease-standard)',
                 },
             },
             at: {
@@ -1722,7 +1759,7 @@ export const checkbox: RecipeInput = {
         // the size variant.
         control: withPresence(pressableCentered('checkbox', 'calc(var(--checkbox-size) * 2.5)', 'var(--checkbox-accent)'), {
             ...checkboxTick,
-            base: { ...checkboxTick.base, borderRadius: 'var(--radius-selector)' },
+            base: { ...checkboxTick.base, borderRadius: 'var(--radius-extra-small)' },
             states: {
                 ...checkboxTick.states,
                 /**
@@ -1847,9 +1884,9 @@ export const checkbox: RecipeInput = {
                     translate: 'var(--checkbox-mark-lead-offset)',
                     rotate: 'var(--checkbox-mark-lead-angle)',
                     scale: 'var(--checkbox-mark-lead) 1',
-                    transition: 'translate var(--duration-fast) var(--ease-emphasized-decelerate), '
-                        + 'rotate var(--duration-fast) var(--ease-emphasized-decelerate), '
-                        + 'scale var(--duration-fast) var(--ease-emphasized-decelerate)',
+                    transition: 'translate var(--duration-short2) var(--ease-emphasized-decelerate), '
+                        + 'rotate var(--duration-short2) var(--ease-emphasized-decelerate), '
+                        + 'scale var(--duration-short2) var(--ease-emphasized-decelerate)',
                 },
                 // Trailing arm: out of the elbow at −45°, to the tip. Fixed
                 // axis — only its length animates. Its origin IS the elbow the
@@ -1870,14 +1907,14 @@ export const checkbox: RecipeInput = {
                         + 'calc(var(--checkbox-mark-size) * 0.279 - var(--checkbox-mark-stroke) * 0.177)',
                     rotate: '-45deg',
                     scale: 'var(--checkbox-mark-trail) 1',
-                    transition: 'scale var(--duration-fast) var(--ease-emphasized-decelerate)',
+                    transition: 'scale var(--duration-short2) var(--ease-emphasized-decelerate)',
                 },
                 // Material draws the long arm OUT OF the short one, so the
                 // stagger lives on the destination rule: drawing in waits a
                 // beat for the lead arm, erasing does not wait for anything.
                 '&[data-state="checked"]::after': {
                     transition:
-                        'scale var(--duration-fast) var(--ease-emphasized-decelerate) var(--duration-fast)',
+                        'scale var(--duration-short2) var(--ease-emphasized-decelerate) var(--duration-short2)',
                 },
             },
             at: {
@@ -2068,7 +2105,7 @@ export const field: RecipeInput = {
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
             selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
         },
-        description: { base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-outline)' } },
+        description: { base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-surface-variant-content)' } },
         error: { base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-error)' } },
     },
     variants: {
@@ -2175,10 +2212,12 @@ export const slider: RecipeInput = {
                 outline: 'none',
                 accentColor: 'var(--slider-accent)',
                 '--slider-halo': 'transparent',
-                // The remaining track keeps MD3's secondary-container tone —
-                // deliberately NOT the accent (matches the progress track).
+                // The inactive track is M3's surface-container-highest
+                // (md.comp.slider.inactive.track.color) — never the accent. M3
+                // Expressive moved it to secondary-container, which in the
+                // high-contrast schemes sits within 1.6:1 of primary.
                 '--slider-track':
-                    'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-secondary-soft) 0)',
+                    'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-surface-container-highest) 0)',
             },
             states: {
                 // `invalid` is semantic, not an accent: it stays error under
@@ -2190,7 +2229,7 @@ export const slider: RecipeInput = {
                     '--slider-halo': 'color-mix(in oklab, var(--slider-accent) 10%, transparent)',
                 },
                 pressed: {
-                    '--slider-halo': 'color-mix(in oklab, var(--slider-accent) 12%, transparent)',
+                    '--slider-halo': 'color-mix(in oklab, var(--slider-accent) 10%, transparent)',
                 },
                 // Readonly answers to nothing, so it does not invite a click.
                 readonly: { cursor: 'default' },
@@ -2211,7 +2250,7 @@ export const slider: RecipeInput = {
                     border: 'none',
                     background: 'var(--slider-accent)',
                     boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
-                    transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
+                    transition: 'box-shadow var(--duration-short2) var(--ease-standard)',
                 },
                 // Keyboard focus must be discernible, not just a 10% wash:
                 // a crisp two-tone ring (surface gap + the focus ink used by
@@ -2233,7 +2272,7 @@ export const slider: RecipeInput = {
                     border: 'none',
                     background: 'var(--slider-accent)',
                     boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
-                    transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
+                    transition: 'box-shadow var(--duration-short2) var(--ease-standard)',
                 },
                 '&[data-focus-visible]::-moz-range-thumb': {
                     boxShadow: '0 0 0 2px var(--color-base-100), '
@@ -2251,13 +2290,13 @@ export const slider: RecipeInput = {
         },
         // The composed range projection (#325): MD3's active/inactive track
         // and round handle as real parts. Same inks as the gradient control
-        // above — accent fill on a secondary-container rail.
+        // above — accent fill on a surface-container-highest rail.
         track: {
             base: {
                 height: 'calc(var(--size-selector) * 2)',
                 marginBlock: 'calc(var(--size-selector) * 4)',
                 borderRadius: '624rem',
-                background: 'var(--color-secondary-soft)',
+                background: 'var(--color-surface-container-highest)',
                 cursor: 'pointer',
             },
             states: { readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
@@ -2287,7 +2326,7 @@ export const slider: RecipeInput = {
             states: {
                 // The MD3 state-layer halo, and — for keyboard — the same
                 // crisp two-tone ring the native thumb draws inside it.
-                pressed: { boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 12%, transparent)' },
+                pressed: { boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 10%, transparent)' },
                 'focus-visible': {
                     boxShadow: '0 0 0 2px var(--color-base-100), '
                         + '0 0 0 4px var(--color-secondary), '
@@ -2304,7 +2343,7 @@ export const slider: RecipeInput = {
                 fontSize: 'var(--text-xs)',
                 lineHeight: 'var(--leading-none)',
                 whiteSpace: 'nowrap',
-                color: 'var(--color-outline)',
+                color: 'var(--color-surface-variant-content)',
             },
             states: { disabled: {} },
             selectors: {
@@ -2319,7 +2358,7 @@ export const slider: RecipeInput = {
                 },
             },
         },
-        'value-text': { base: { fontSize: 'var(--text-xs)', color: 'var(--color-outline)' } },
+        'value-text': { base: { fontSize: 'var(--text-xs)', color: 'var(--color-surface-variant-content)' } },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
@@ -2348,7 +2387,7 @@ export const slider: RecipeInput = {
                         '&[data-orientation="vertical"]': {
                             width: 'calc(var(--size-selector) * 10)',
                             height: 'var(--slider-length)',
-                            '--slider-track': 'linear-gradient(to top, var(--slider-accent) var(--slider-percent, 50%), var(--color-secondary-soft) 0)',
+                            '--slider-track': 'linear-gradient(to top, var(--slider-accent) var(--slider-percent, 50%), var(--color-surface-container-highest) 0)',
                         },
                         '&[data-orientation="vertical"]::-webkit-slider-runnable-track': {
                             width: 'calc(var(--size-selector) * 2)',
@@ -2454,9 +2493,9 @@ export const progress: RecipeInput = {
                 position: 'relative',
                 height: 'var(--progress-track-size)',
                 borderRadius: '624rem',
-                // MD3's secondary-container track tone — deliberately NOT the
-                // accent (matches the slider's remaining-track colour).
-                background: 'var(--color-secondary-soft)',
+                // M3's linear-progress track, surface-container-highest —
+                // never the accent (matches the slider's inactive track).
+                background: 'var(--color-surface-container-highest)',
                 overflow: 'hidden',
             },
         },
@@ -2489,7 +2528,7 @@ export const progress: RecipeInput = {
             // A loop must stop under reduced motion, not accelerate.
             at: { 'reduced-motion': { states: { indeterminate: { animation: 'none', width: '100%' } } } },
         },
-        'value-text': { base: { fontSize: 'var(--text-xs)', color: 'var(--color-outline)' } },
+        'value-text': { base: { fontSize: 'var(--text-xs)', color: 'var(--color-surface-variant-content)' } },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
@@ -2564,14 +2603,14 @@ export const avatar: RecipeInput = {
         shape: {
             circle: { root: { base: { borderRadius: '9999px' } } },
             square: { root: { base: { borderRadius: '0' } } },
-            rounded: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+            rounded: { root: { base: { borderRadius: 'var(--radius-extra-small)' } } },
         },
         // A tonal container, per Material's own avatar/monogram treatment —
-        // the tint carries the role, the ink is the role itself. Unattributed
+        // the role's container and its on-container ink. Unattributed
         // it stays on the neutral surface container it always used.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--avatar-accent': `var(--color-${c}-soft)`,
-            '--avatar-on-accent': `var(--color-${c})`,
+            '--avatar-accent': `var(--color-${c}-container)`,
+            '--avatar-on-accent': `var(--color-${c}-container-content)`,
         } } }])),
         size: {
             xs: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 6)' } }, fallback: { base: { fontSize: 'var(--text-xs)' } } },
@@ -2662,8 +2701,8 @@ export const avatarGroup: RecipeInput = {
     })),
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--avatar-group-accent': `var(--color-${c}-soft)`,
-            '--avatar-group-on-accent': `var(--color-${c})`,
+            '--avatar-group-accent': `var(--color-${c}-container)`,
+            '--avatar-group-on-accent': `var(--color-${c}-container-content)`,
         } } }])),
         size: {
             ...Object.fromEntries(Object.entries(avatarGroupSteps).map(([size, [box, text]]) => [size, {
@@ -2751,15 +2790,15 @@ export const toast: RecipeInput = {
                 alignItems: 'center',
                 columnGap: 'var(--space-md)',
                 padding: 'var(--space-md) var(--space-lg)',
-                borderRadius: 'var(--radius-field)',
+                borderRadius: 'var(--radius-medium)',
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-sm)',
                 opacity: '0',
                 transform: `${SWIPE} translateY(var(--toast-from))`,
                 // The swipe is the runtime's: no pan or pinch starts on a toast.
                 touchAction: 'none',
-                transition: 'opacity var(--duration-normal) var(--ease-emphasized), '
-                    + 'transform var(--duration-normal) var(--ease-emphasized)',
+                transition: 'opacity var(--duration-medium2) var(--ease-emphasized), '
+                    + 'transform var(--duration-medium2) var(--ease-emphasized)',
             },
             selectors: {
                 // Mid-swipe the toast tracks the pointer, not a transition.
@@ -2833,7 +2872,7 @@ export const toast: RecipeInput = {
                 gridColumn: '2',
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklab, var(--color-surface-container-high-content) 80%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         action: withPresence(pressable('toast', 'var(--toast-accent)'), {
@@ -2909,7 +2948,6 @@ export const combobox: RecipeInput = {
     // variant; `variants.color` only rebinds the custom properties.
     tokens: {
         '--combobox-accent': 'var(--color-primary)',
-        '--combobox-soft': 'var(--color-primary-soft)',
     },
     parts: {
         root: { base: { display: 'inline-flex', position: 'relative' } },
@@ -2923,7 +2961,7 @@ export const combobox: RecipeInput = {
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
                 borderBottom: '2px solid var(--color-outline)',
-                borderRadius: 'var(--radius-selector) var(--radius-selector) 0 0',
+                borderRadius: 'var(--radius-extra-small) var(--radius-extra-small) 0 0',
                 transition: motion('border-color'),
             },
             states: {
@@ -2957,7 +2995,7 @@ export const combobox: RecipeInput = {
                 required: {},
             },
             selectors: {
-                '&::placeholder': { color: 'var(--color-outline)' },
+                '&::placeholder': { color: 'var(--color-surface-variant-content)' },
             },
         },
         // A chosen value under `multiple` (#39): a chip in the control, before
@@ -2974,7 +3012,7 @@ export const combobox: RecipeInput = {
                 border: '1px solid var(--color-outline)',
                 background: 'transparent',
                 color: 'var(--color-surface-container-content)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 ...label,
             },
             states: { disabled: {} },
@@ -2987,7 +3025,7 @@ export const combobox: RecipeInput = {
                 background: 'transparent',
                 color: 'inherit',
                 font: 'inherit',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 padding: '0 var(--space-2xs)',
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
@@ -3046,7 +3084,7 @@ export const combobox: RecipeInput = {
                 padding: 'var(--space-2xs) var(--space-md)',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'var(--color-outline)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         // A windowed group's heading (#127): the same overline as the label,
@@ -3056,7 +3094,7 @@ export const combobox: RecipeInput = {
                 padding: 'var(--space-2xs) var(--space-md)',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'var(--color-outline)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         item: withPresence(pressable('combobox', 'var(--combobox-accent)'), {
@@ -3065,26 +3103,27 @@ export const combobox: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
                 padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 fontSize: 'var(--text-sm)',
                 cursor: 'pointer',
             },
             states: {
-                highlighted: { background: 'var(--combobox-soft)' },
+                highlighted: { background: menuStateLayer },
                 // MD3's secondary-container fill for a selected row —
                 // deliberately NOT the accent.
-                selected: { background: 'var(--color-secondary-soft)' },
+                selected: { background: 'var(--color-secondary-container)', color: 'var(--color-secondary-container-content)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
             },
         }),
-        'item-indicator': { base: { color: 'var(--combobox-accent)' } },
+        // The check takes the row's ink: on-secondary-container once selected.
+        'item-indicator': { base: { color: 'inherit' } },
         empty: {
             base: {
                 padding: 'var(--space-md)',
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-sm)',
                 textAlign: 'center',
-                color: 'var(--color-outline)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         // The list still arriving (#280): the empty row's outline ink.
@@ -3094,7 +3133,7 @@ export const combobox: RecipeInput = {
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-sm)',
                 textAlign: 'center',
-                color: 'var(--color-outline)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         // The menu's rule between runs of options (#280).
@@ -3105,7 +3144,6 @@ export const combobox: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--combobox-accent': `var(--color-${c})`,
-            '--combobox-soft': `var(--color-${c}-soft)`,
         } } }])),
         // The button's ramp rhythm anchored on the field's resting values
         // (md = the base's padding/fontSize).
@@ -3150,7 +3188,7 @@ export const toggle: RecipeInput = {
                 background: 'transparent',
                 color: 'var(--color-base-content)',
                 border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-field)',
+                borderRadius: 'var(--radius-medium)',
                 ...label,
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
@@ -3205,14 +3243,14 @@ export const toggleGroup: RecipeInput = {
     // Public to a design system derived from this one (#73).
     hooks: {
         properties: {
-            '--toggle-group-fill': 'The fill of an off item.',
-            '--toggle-group-on-fill': 'The fill of an on item.',
+            '--toggle-group-fill': 'The fill of an on item.',
+            '--toggle-group-on-fill': 'The ink on --toggle-group-fill.',
             '--toggle-group-ink': 'The item ink.',
         },
     },
     tokens: {
-        '--toggle-group-fill': 'var(--color-secondary-soft)',
-        '--toggle-group-on-fill': 'var(--color-secondary)',
+        '--toggle-group-fill': 'var(--color-secondary-container)',
+        '--toggle-group-on-fill': 'var(--color-secondary-container-content)',
         '--toggle-group-ink': 'var(--color-base-content)',
     },
     parts: {
@@ -3289,8 +3327,8 @@ export const toggleGroup: RecipeInput = {
             {
                 item: {
                     base: {
-                        '--toggle-group-fill': `var(--color-${c}-soft)`,
-                        '--toggle-group-on-fill': `var(--color-${c})`,
+                        '--toggle-group-fill': `var(--color-${c}-container)`,
+                        '--toggle-group-on-fill': `var(--color-${c}-container-content)`,
                     },
                 },
             },
@@ -3359,7 +3397,7 @@ export const numberInput: RecipeInput = {
                 background: 'transparent',
                 color: 'var(--color-base-content)',
                 border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-field)',
+                borderRadius: 'var(--radius-medium)',
                 transition: motion('border-color'),
             },
             states: {
@@ -3390,7 +3428,7 @@ export const numberInput: RecipeInput = {
                 required: {},
             },
             selectors: {
-                '&::placeholder': { color: 'var(--color-outline)' },
+                '&::placeholder': { color: 'var(--color-surface-variant-content)' },
             },
         },
         'increment-trigger': stepper,
@@ -3464,7 +3502,7 @@ export const ratingGroup: RecipeInput = {
                 'focus-visible': {
                     outline: '3px solid var(--color-secondary)',
                     outlineOffset: '2px',
-                    borderRadius: 'var(--radius-selector)',
+                    borderRadius: 'var(--radius-extra-small)',
                 },
             },
         },
@@ -3474,7 +3512,7 @@ export const ratingGroup: RecipeInput = {
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
                 userSelect: 'none',
-                color: 'var(--color-outline)',
+                color: 'var(--color-surface-variant-content)',
                 transition: motion('color, transform'),
             },
             states: {
@@ -3506,7 +3544,7 @@ export const ratingGroup: RecipeInput = {
                 'focus-visible': {
                     outline: '2px solid var(--color-secondary)',
                     outlineOffset: '1px',
-                    borderRadius: 'var(--radius-selector)',
+                    borderRadius: 'var(--radius-extra-small)',
                 },
             },
             selectors: {
@@ -3593,7 +3631,7 @@ const treeRow: PartStyles = {
         alignItems: 'center',
         gap: 'var(--space-sm)',
         padding: 'var(--space-xs) var(--space-md)',
-        borderRadius: 'var(--radius-selector)',
+        borderRadius: 'var(--radius-extra-small)',
         fontSize: 'var(--tree-text)',
         cursor: 'pointer',
         userSelect: 'none',
@@ -3631,9 +3669,9 @@ const nodeMarkFallback = (ink: string): PartStyles => ({
 export const treeView: RecipeInput = {
     component: 'tree-view',
     tokens: {
-        '--tree-accent': 'var(--color-secondary-soft)',
+        '--tree-accent': 'var(--color-secondary-container)',
         '--tree-text': 'var(--text-sm)',
-        '--tree-on-accent': 'var(--color-base-content)',
+        '--tree-on-accent': 'var(--color-secondary-container-content)',
         // The node check box: the checkbox's primary container and its
         // on-primary mark, retinted by a colour variant.
         '--tree-check': 'var(--color-primary)',
@@ -3692,7 +3730,7 @@ export const treeView: RecipeInput = {
                 display: 'inline-block',
                 position: 'relative',
                 flexShrink: '0',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 cursor: 'pointer',
             },
             states: {
@@ -3761,7 +3799,7 @@ export const treeView: RecipeInput = {
  * for icons and affixes, the round icon button with its 8% state layer, and
  * the size step both follow.
  */
-const affixInk = 'color-mix(in oklch, var(--color-base-content) 75%, transparent)';
+const affixInk = 'var(--color-surface-variant-content)';
 const stateLayer = 'color-mix(in oklch, var(--color-base-content) 8%, transparent)';
 const fieldButton: NonNullable<PartStyles['base']> = {
     appearance: 'none',
@@ -3819,7 +3857,7 @@ export const input: RecipeInput = {
                 background: 'transparent',
                 color: 'var(--color-base-content)',
                 border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-field)',
+                borderRadius: 'var(--radius-medium)',
                 transition: motion('border-color'),
             },
             states: {
@@ -3849,7 +3887,7 @@ export const input: RecipeInput = {
                 required: {},
             },
             selectors: {
-                '&::placeholder': { color: 'var(--color-outline)' },
+                '&::placeholder': { color: 'var(--color-surface-variant-content)' },
             },
         },
         // M3's leading / trailing icon (and prefix / suffix text):
@@ -3942,7 +3980,7 @@ export const textarea: RecipeInput = {
                 background: 'transparent',
                 color: 'var(--color-base-content)',
                 border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-field)',
+                borderRadius: 'var(--radius-medium)',
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-md)',
                 lineHeight: 'var(--leading-normal)',
@@ -3958,7 +3996,7 @@ export const textarea: RecipeInput = {
                 'focus-visible': { ...focusRing['focus-visible'], outline: '3px solid var(--textarea-accent)' },
             },
             selectors: {
-                '&::placeholder': { color: 'var(--color-outline)' },
+                '&::placeholder': { color: 'var(--color-surface-variant-content)' },
             },
         },
     },
@@ -3999,7 +4037,7 @@ export const card: RecipeInput = {
                 flexDirection: 'column',
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
                 boxShadow: 'var(--shadow-level1)',
                 overflow: 'hidden',
             },
@@ -4029,8 +4067,8 @@ export const card: RecipeInput = {
                 // The corners it shares with the card (#302): the root clips
                 // too, but an asChild <img> is the band itself and rounds on
                 // its own.
-                '&:first-child': { borderStartStartRadius: 'var(--radius-box)', borderStartEndRadius: 'var(--radius-box)' },
-                '&:last-child': { borderEndStartRadius: 'var(--radius-box)', borderEndEndRadius: 'var(--radius-box)' },
+                '&:first-child': { borderStartStartRadius: 'var(--radius-extra-large)', borderStartEndRadius: 'var(--radius-extra-large)' },
+                '&:last-child': { borderEndStartRadius: 'var(--radius-extra-large)', borderEndEndRadius: 'var(--radius-extra-large)' },
             },
         },
         header: {
@@ -4090,11 +4128,12 @@ export const card: RecipeInput = {
     },
 };
 
-/** Material's banner: the role's soft tint, its outline, and the icon in ink. */
+/** Material's banner: the role's container and on-container ink, its outline. */
 export const alert: RecipeInput = {
     component: 'alert',
     tokens: {
-        '--alert-tint': 'var(--color-info-soft)',
+        '--alert-tint': 'var(--color-info-container)',
+        '--alert-on-tint': 'var(--color-info-container-content)',
         '--alert-accent': 'var(--color-info)',
     },
     parts: {
@@ -4105,9 +4144,9 @@ export const alert: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-2xs) var(--space-md)',
                 background: 'var(--alert-tint)',
-                color: 'var(--color-base-content)',
+                color: 'var(--alert-on-tint)',
                 border: 'var(--border) solid var(--alert-accent)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
                 padding: 'var(--space-md) var(--space-lg)',
             },
             states: { open: {}, closed: {} },
@@ -4117,7 +4156,7 @@ export const alert: RecipeInput = {
                 gridRow: '1 / span 2',
                 display: 'inline-flex',
                 alignItems: 'center',
-                color: 'var(--alert-accent)',
+                color: 'var(--alert-on-tint)',
                 fontSize: 'var(--text-lg)',
                 lineHeight: 'var(--leading-none)',
             },
@@ -4145,7 +4184,7 @@ export const alert: RecipeInput = {
                 border: 'none',
                 background: 'transparent',
                 color: 'inherit',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 padding: 'var(--space-2xs)',
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
@@ -4165,7 +4204,8 @@ export const alert: RecipeInput = {
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--alert-tint': `var(--color-${c}-soft)`,
+            '--alert-tint': `var(--color-${c}-container)`,
+            '--alert-on-tint': `var(--color-${c}-container-content)`,
             '--alert-accent': `var(--color-${c})`,
         } } }])),
         size: {
@@ -4205,14 +4245,14 @@ export const emptyState: RecipeInput = {
                 gap: 'var(--space-sm)',
                 padding: 'var(--space-2xl) var(--space-xl)',
                 background: 'var(--empty-tint)',
-                color: 'var(--color-base-content)',
-                borderRadius: 'var(--radius-box)',
+                color: 'var(--empty-on-tint, var(--color-base-content))',
+                borderRadius: 'var(--radius-extra-large)',
             },
         },
         icon: {
             base: {
                 display: 'inline-flex',
-                color: 'var(--empty-accent)',
+                color: 'var(--empty-on-tint, var(--empty-accent))',
                 fontSize: 'var(--text-3xl)',
                 lineHeight: 'var(--leading-none)',
                 marginBlockEnd: 'var(--space-xs)',
@@ -4248,7 +4288,8 @@ export const emptyState: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--empty-accent': `var(--color-${c})`,
-            '--empty-tint': `var(--color-${c}-soft)`,
+            '--empty-tint': `var(--color-${c}-container)`,
+            '--empty-on-tint': `var(--color-${c}-container-content)`,
         } } }])),
         size: {
             xs: { root: { base: { padding: 'var(--space-md)', gap: 'var(--space-2xs)' } }, icon: { base: { fontSize: 'var(--text-xl)' } }, title: { base: { fontSize: 'var(--text-sm)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
@@ -4286,7 +4327,7 @@ export const badge: RecipeInput = {
                 gap: '0.375em',
                 background: 'var(--badge-fill)',
                 color: 'var(--badge-ink)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 padding: 'var(--space-2xs) var(--space-xs)',
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-xs)',
@@ -4440,7 +4481,7 @@ export const skeleton: RecipeInput = {
     tokens: { '--skeleton-fill': 'var(--color-surface-container)' },
     parts: {
         root: {
-            base: { borderRadius: 'var(--radius-box)' },
+            base: { borderRadius: 'var(--radius-extra-large)' },
             states: {
                 loading: {
                     color: 'transparent',
@@ -4459,11 +4500,11 @@ export const skeleton: RecipeInput = {
             '--skeleton-fill': `color-mix(in oklab, var(--color-${c}) 20%, var(--color-base-300))`,
         } } }])),
         size: {
-            xs: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
-            sm: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+            xs: { root: { base: { borderRadius: 'var(--radius-extra-small)' } } },
+            sm: { root: { base: { borderRadius: 'var(--radius-extra-small)' } } },
             md: {},
-            lg: { root: { base: { borderRadius: 'var(--radius-box)' } } },
-            xl: { root: { base: { borderRadius: 'var(--radius-box)' } } },
+            lg: { root: { base: { borderRadius: 'var(--radius-extra-large)' } } },
+            xl: { root: { base: { borderRadius: 'var(--radius-extra-large)' } } },
         },
     },
     keyframes: { 'zero-material-skeleton': 'from, to { opacity: 1; } 50% { opacity: 0.55; }' },
@@ -4535,7 +4576,7 @@ export const kbd: RecipeInput = {
                 padding: '0 var(--space-xs)',
                 background: 'var(--kbd-fill)',
                 color: 'var(--kbd-ink)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-extra-small)',
                 fontFamily: 'var(--font-mono)',
                 fontSize: 'var(--text-xs)',
                 fontWeight: 'var(--weight-medium)',
@@ -4677,7 +4718,7 @@ export const stats: RecipeInput = {
                 overflowX: 'auto',
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
             },
             selectors: {
                 '&[data-orientation="vertical"]': { flexDirection: 'column' },
@@ -4706,7 +4747,7 @@ export const stats: RecipeInput = {
                 gridColumn: '1',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         value: {
@@ -4724,7 +4765,7 @@ export const stats: RecipeInput = {
             base: {
                 gridColumn: '1',
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         figure: {
@@ -4877,7 +4918,7 @@ export const timeline: RecipeInput = {
                 fontSize: 'var(--text-sm)',
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
-                borderRadius: 'var(--radius-field)',
+                borderRadius: 'var(--radius-medium)',
             },
             selectors: {
                 // side × axis, composed on the one element that carries both.
@@ -4907,7 +4948,7 @@ export const timeline: RecipeInput = {
         // Title and description (#302): M3's title-small over body-small —
         // medium weight with tracking, then the detail in a quieter ink.
         title: { base: { display: 'block', margin: '0', fontWeight: 'var(--weight-medium)', letterSpacing: 'var(--tracking-wide)', lineHeight: 'var(--leading-tight)' } },
-        description: { base: { display: 'block', margin: '0', marginBlockStart: 'var(--space-2xs)', color: 'color-mix(in oklab, var(--color-surface-container-content) 78%, transparent)' } },
+        description: { base: { display: 'block', margin: '0', marginBlockStart: 'var(--space-2xs)', color: 'var(--color-surface-variant-content)' } },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { marker: { base: {
@@ -4969,7 +5010,7 @@ export const chat: RecipeInput = {
         header: {
             base: {
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
             selectors: {
                 '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
@@ -4983,23 +5024,23 @@ export const chat: RecipeInput = {
                 fontSize: 'var(--text-sm)',
                 background: 'var(--chat-fill)',
                 color: 'var(--chat-ink)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
             },
             selectors: {
                 '[data-scope="chat"][data-part="root"][data-placement="start"] > &': {
                     gridColumn: '2',
-                    borderEndStartRadius: 'var(--radius-selector)',
+                    borderEndStartRadius: 'var(--radius-extra-small)',
                 },
                 '[data-scope="chat"][data-part="root"][data-placement="end"] > &': {
                     gridColumn: '1',
-                    borderEndEndRadius: 'var(--radius-selector)',
+                    borderEndEndRadius: 'var(--radius-extra-small)',
                 },
             },
         },
         footer: {
             base: {
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
             selectors: {
                 '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
@@ -5045,7 +5086,7 @@ export const chatLog: RecipeInput = {
                 flexDirection: 'column',
                 overflowY: 'auto',
                 overscrollBehaviorY: 'contain',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
                 background: 'var(--color-base-100)',
                 color: 'var(--color-base-content)',
                 padding: 'var(--space-md)',
@@ -5078,7 +5119,7 @@ export const chatLog: RecipeInput = {
                 gap: 'var(--space-sm)',
                 paddingInline: 'var(--space-lg)',
                 border: 'none',
-                borderRadius: 'var(--radius-field)',
+                borderRadius: 'var(--radius-medium)',
                 background: 'var(--chat-log-fill)',
                 color: 'var(--chat-log-on-fill)',
                 boxShadow: 'var(--shadow-level3)',
@@ -5091,13 +5132,13 @@ export const chatLog: RecipeInput = {
             states: {
                 open: {},
                 closed: {},
-                // MD3 state layers, folded into the fill: hover 8%, pressed 12%.
+                // MD3 state layers, folded into the fill: hover 8%, focus and pressed 10%.
                 hover: { background: 'color-mix(in oklch, var(--chat-log-fill), var(--chat-log-on-fill) 8%)' },
                 ...focusRing,
             },
             selectors: {
                 '&[data-pressed]:not([data-disabled])': {
-                    background: 'color-mix(in oklch, var(--chat-log-fill), var(--chat-log-on-fill) 12%)',
+                    background: 'color-mix(in oklch, var(--chat-log-fill), var(--chat-log-on-fill) 10%)',
                     boxShadow: 'var(--shadow-level2)',
                 },
             },
@@ -5199,7 +5240,7 @@ export const radialProgress: RecipeInput = {
         label: {
             base: {
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         'value-text': {
@@ -5378,7 +5419,8 @@ export const navList: RecipeInput = {
     },
     tokens: {
         '--nav-accent': 'var(--color-secondary)',
-        '--nav-tint': 'var(--color-secondary-soft)',
+        '--nav-tint': 'var(--color-secondary-container)',
+        '--nav-on-tint': 'var(--color-secondary-container-content)',
         '--nav-ink': 'var(--color-base-content)',
     },
     parts: {
@@ -5429,7 +5471,7 @@ export const navList: RecipeInput = {
             },
             states: {
                 hover: { background: 'color-mix(in oklab, var(--color-base-content) 8%, transparent)' },
-                active: { background: 'var(--nav-tint)', color: 'var(--nav-accent)' },
+                active: { background: 'var(--nav-tint)', color: 'var(--nav-on-tint)' },
                 inactive: {},
                 ...focusRing,
             },
@@ -5456,7 +5498,8 @@ export const navList: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--nav-accent': `var(--color-${c})`,
-            '--nav-tint': `var(--color-${c}-soft)`,
+            '--nav-tint': `var(--color-${c}-container)`,
+            '--nav-on-tint': `var(--color-${c}-container-content)`,
         } } }])),
         size: {
             xs: { root: { base: { fontSize: 'var(--text-xs)' } }, link: { base: { padding: 'var(--space-2xs) var(--space-md)' } } },
@@ -5506,10 +5549,10 @@ export const breadcrumbs: RecipeInput = {
         },
         link: {
             base: {
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
                 textDecoration: 'none',
-                borderRadius: 'var(--radius-selector)',
-                transition: 'color var(--duration-fast) var(--ease-standard)',
+                borderRadius: 'var(--radius-extra-small)',
+                transition: 'color var(--duration-short2) var(--ease-standard)',
             },
             states: {
                 hover: { color: 'var(--color-base-content)' },
@@ -5548,10 +5591,10 @@ export const breadcrumbs: RecipeInput = {
                 margin: '0',
                 font: 'inherit',
                 lineHeight: 'inherit',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
-                borderRadius: 'var(--radius-selector)',
+                color: 'var(--color-surface-variant-content)',
+                borderRadius: 'var(--radius-extra-small)',
                 cursor: 'pointer',
-                transition: 'color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard)',
+                transition: 'color var(--duration-short2) var(--ease-standard), background-color var(--duration-short2) var(--ease-standard)',
             },
             states: {
                 // Material's state layer: an on-surface tint, never an underline.
@@ -5703,7 +5746,7 @@ export const pagination: RecipeInput = {
                 justifyContent: 'center',
                 minInlineSize: 'var(--pg-size)',
                 blockSize: 'var(--pg-size)',
-                color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)',
+                color: 'var(--color-surface-variant-content)',
                 fontSize: 'var(--pg-font)',
                 userSelect: 'none',
             },
@@ -5874,7 +5917,7 @@ export const steps: RecipeInput = {
         description: {
             base: {
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
                 fontWeight: 'var(--weight-normal)',
             },
         },
@@ -5972,15 +6015,15 @@ export const drawer: RecipeInput = {
             states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
         panel: withPresence(withPresence(popupPresence('none'), sheetSlide(
-            'var(--duration-normal) var(--ease-emphasized-decelerate)',
-            'var(--duration-normal) var(--ease-emphasized-accelerate)',
+            'var(--duration-medium2) var(--ease-emphasized-decelerate)',
+            'var(--duration-medium2) var(--ease-emphasized-accelerate)',
         )), {
             base: {
                 padding: 'var(--space-lg)',
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
                 border: 'none',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
                 // The width is capped by `--l-measure` (Drawer.Panel's
                 // `measure`, via the layout step table); this is the default
                 // an unset `measure` leaves. A cap, not a width, because the
@@ -6045,8 +6088,8 @@ export const drawer: RecipeInput = {
                     marginInline: 'auto',
                     blockSize: 'auto',
                     maxBlockSize: '85dvh',
-                    borderEndStartRadius: 'var(--radius-box)',
-                    borderEndEndRadius: 'var(--radius-box)',
+                    borderEndStartRadius: 'var(--radius-extra-large)',
+                    borderEndEndRadius: 'var(--radius-extra-large)',
                 },
                 '&[data-placement="bottom"][data-l-dock="sheet"]': {
                     insetBlockStart: 'auto',
@@ -6056,8 +6099,8 @@ export const drawer: RecipeInput = {
                     marginInline: 'auto',
                     blockSize: 'auto',
                     maxBlockSize: '85dvh',
-                    borderStartStartRadius: 'var(--radius-box)',
-                    borderStartEndRadius: 'var(--radius-box)',
+                    borderStartStartRadius: 'var(--radius-extra-large)',
+                    borderStartEndRadius: 'var(--radius-extra-large)',
                 },
             },
         }),
@@ -6072,7 +6115,7 @@ export const drawer: RecipeInput = {
                 fontSize: 'var(--text-md)',
                 fontWeight: 'var(--weight-medium)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'color-mix(in oklch, var(--color-surface-container-content) 80%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         close: withPresence(pressable('drawer'), {
@@ -6129,7 +6172,7 @@ export const table: RecipeInput = {
             base: {
                 overflowX: 'auto',
                 border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
             },
@@ -6157,7 +6200,7 @@ export const table: RecipeInput = {
                 padding: 'var(--table-pad-block) var(--table-pad-inline)',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
             at: tableStackAt(tokens, 'caption', { paddingInline: '0' }),
         },
@@ -6166,7 +6209,7 @@ export const table: RecipeInput = {
         foot: {
             base: {
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
             at: tableStackAt(tokens, 'foot', { rowGap: 'var(--space-md)', marginBlockStart: 'var(--space-md)' }),
         },
@@ -6177,7 +6220,7 @@ export const table: RecipeInput = {
             },
             at: tableStackAt(tokens, 'row', {
                 border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
                 background: 'var(--color-surface-container)',
                 padding: 'var(--table-pad-block) var(--table-pad-inline)',
             }),
@@ -6189,7 +6232,7 @@ export const table: RecipeInput = {
                 fontWeight: 'var(--weight-medium)',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
             at: tableStackAt(tokens, 'header-cell', { paddingInline: '0' }),
         },
@@ -6210,7 +6253,7 @@ export const table: RecipeInput = {
                 cursor: 'pointer',
                 gap: 'var(--space-2xs)',
                 padding: '0',
-                borderRadius: 'var(--radius-field)',
+                borderRadius: 'var(--radius-medium)',
                 background: 'transparent',
                 color: 'inherit',
                 transition: motion('color, background-color'),
@@ -6257,7 +6300,7 @@ export const table: RecipeInput = {
                 fontWeight: 'var(--weight-medium)',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
     },
@@ -6333,9 +6376,9 @@ export const fileUpload: RecipeInput = {
                 color: 'var(--fu-accent)',
                 background: 'transparent',
                 border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-field)',
+                borderRadius: 'var(--radius-medium)',
                 cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard)',
+                transition: 'background var(--duration-short2) var(--ease-standard)',
             },
             states: {
                 hover: { background: 'color-mix(in oklch, var(--fu-accent) 8%, transparent)' },
@@ -6355,13 +6398,13 @@ export const fileUpload: RecipeInput = {
                 padding: 'var(--fu-pad)',
                 textAlign: 'center',
                 fontSize: 'var(--fu-font)',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
                 border: 'var(--border) dashed var(--color-outline)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
                 background: 'var(--color-surface-container)',
                 cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard), '
-                    + 'border-color var(--duration-fast) var(--ease-standard)',
+                transition: 'background var(--duration-short2) var(--ease-standard), '
+                    + 'border-color var(--duration-short2) var(--ease-standard)',
             },
             states: {
                 highlighted: {
@@ -6388,7 +6431,7 @@ export const fileUpload: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-sm)',
                 padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-field)',
+                borderRadius: 'var(--radius-medium)',
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
             },
@@ -6417,7 +6460,7 @@ export const fileUpload: RecipeInput = {
             base: {
                 fontSize: 'var(--text-xs)',
                 fontVariantNumeric: 'tabular-nums',
-                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                color: 'var(--color-surface-variant-content)',
             },
         },
         'item-remove': {
@@ -6430,7 +6473,7 @@ export const fileUpload: RecipeInput = {
                 padding: 'var(--space-2xs) var(--space-xs)',
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard)',
+                transition: 'background var(--duration-short2) var(--ease-standard)',
             },
             states: {
                 hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)' },
@@ -6452,7 +6495,7 @@ export const fileUpload: RecipeInput = {
                 fontWeight: 'var(--weight-medium)',
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard)',
+                transition: 'background var(--duration-short2) var(--ease-standard)',
             },
             states: {
                 hover: { background: 'color-mix(in oklch, var(--color-primary) 8%, transparent)' },
@@ -6499,7 +6542,7 @@ export const carousel: RecipeInput = {
                 overflowX: 'auto',
                 scrollSnapType: 'x mandatory',
                 overscrollBehaviorX: 'contain',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
             },
             selectors: {
                 // The viewport is a tab stop (scrollable-region-focusable) and
@@ -6534,7 +6577,7 @@ export const carousel: RecipeInput = {
                 borderRadius: '9999px',
                 boxShadow: 'var(--shadow-level1)',
                 cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard)',
+                transition: 'background var(--duration-short2) var(--ease-standard)',
                 zIndex: '1',
             },
             states: {
@@ -6566,7 +6609,7 @@ export const carousel: RecipeInput = {
                 borderRadius: '9999px',
                 boxShadow: 'var(--shadow-level1)',
                 cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard)',
+                transition: 'background var(--duration-short2) var(--ease-standard)',
                 zIndex: '1',
             },
             states: {
@@ -6609,10 +6652,10 @@ export const carousel: RecipeInput = {
                     inlineSize: 'var(--carousel-dot)',
                     blockSize: 'var(--carousel-dot)',
                     boxSizing: 'border-box',
-                    border: 'calc(var(--border) * 2) solid color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                    border: 'calc(var(--border) * 2) solid var(--color-surface-variant-content)',
                     borderRadius: '9999px',
                     background: 'transparent',
-                    transition: 'inline-size var(--duration-fast) var(--ease-emphasized), background var(--duration-fast) var(--ease-standard)',
+                    transition: 'inline-size var(--duration-short2) var(--ease-emphasized), background var(--duration-short2) var(--ease-standard)',
                 },
                 '&[data-state="active"]::before': {
                     background: 'var(--carousel-accent)',
@@ -6672,7 +6715,7 @@ export const swap: RecipeInput = {
                     border: 'none',
                     background: 'transparent',
                     padding: 'var(--space-2xs)',
-                    borderRadius: 'var(--radius-selector)',
+                    borderRadius: 'var(--radius-extra-small)',
                     cursor: 'pointer',
                     font: 'inherit',
                     fontSize: 'var(--swap-size)',
@@ -6683,7 +6726,7 @@ export const swap: RecipeInput = {
         on: {
             base: {
                 gridArea: '1 / 1',
-                transition: 'transform var(--duration-normal) var(--ease-emphasized), opacity var(--duration-normal) var(--ease-standard)',
+                transition: 'transform var(--duration-medium2) var(--ease-emphasized), opacity var(--duration-medium2) var(--ease-standard)',
             },
             states: {
                 on: {},
@@ -6696,7 +6739,7 @@ export const swap: RecipeInput = {
         off: {
             base: {
                 gridArea: '1 / 1',
-                transition: 'transform var(--duration-normal) var(--ease-emphasized), opacity var(--duration-normal) var(--ease-standard)',
+                transition: 'transform var(--duration-medium2) var(--ease-emphasized), opacity var(--duration-medium2) var(--ease-standard)',
             },
             states: {
                 off: {},
@@ -6799,7 +6842,7 @@ export const diff: RecipeInput = {
                 display: 'grid',
                 overflow: 'hidden',
                 background: 'var(--color-base-100)',
-                borderRadius: 'var(--radius-box)',
+                borderRadius: 'var(--radius-extra-large)',
             },
             // The root holds the images, which are content: disabled is the
             // handle's to show (#272).

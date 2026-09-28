@@ -10,7 +10,7 @@
         flex-direction: column;
         overflow-y: auto;
         overscroll-behavior-y: contain;
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
         background: var(--color-base-100);
         color: var(--color-base-content);
         padding: var(--space-md);
@@ -41,18 +41,18 @@
         gap: var(--space-sm);
         padding-inline: var(--space-lg);
         border: none;
-        border-radius: var(--radius-field);
+        border-radius: var(--radius-medium);
         background: var(--chat-log-fill);
         color: var(--chat-log-on-fill);
         box-shadow: var(--shadow-level3);
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         line-height: var(--leading-none);
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
-        transition: background var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard), box-shadow var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="chat-log"][data-part="jump-trigger"]:hover:not([data-disabled]) {
@@ -65,7 +65,7 @@
     }
 
     [data-scope="chat-log"][data-part="jump-trigger"][data-pressed]:not([data-disabled]) {
-        background: color-mix(in oklch, var(--chat-log-fill), var(--chat-log-on-fill) 12%);
+        background: color-mix(in oklch, var(--chat-log-fill), var(--chat-log-on-fill) 10%);
         box-shadow: var(--shadow-level2);
     }
 
@@ -122,13 +122,6 @@
         [data-scope="chat-log"][data-part="jump-trigger"] {
             --chat-log-fill: var(--color-warning);
             --chat-log-on-fill: var(--color-warning-content);
-        }
-    }
-
-    @scope ([data-scope="chat-log"][data-part="root"][data-color="accent"]) to ([data-scope="chat-log"][data-part="root"]) {
-        [data-scope="chat-log"][data-part="jump-trigger"] {
-            --chat-log-fill: var(--color-accent);
-            --chat-log-on-fill: var(--color-accent-content);
         }
     }
 

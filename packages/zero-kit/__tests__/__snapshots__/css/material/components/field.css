@@ -11,9 +11,9 @@
 
     [data-scope="field"][data-part="label"] {
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         color: var(--field-accent);
     }
 
@@ -29,7 +29,7 @@
     [data-scope="field"][data-part="description"] {
         margin: 0;
         font-size: var(--text-xs);
-        color: var(--color-outline);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="field"][data-part="error"] {
@@ -68,10 +68,6 @@
 
     [data-scope="field"][data-part="root"][data-color="warning"] {
         --field-accent: var(--color-warning);
-    }
-
-    [data-scope="field"][data-part="root"][data-color="accent"] {
-        --field-accent: var(--color-accent);
     }
 
     @scope ([data-scope="field"][data-part="root"][data-size="xs"]) to ([data-scope="field"][data-part="root"]) {

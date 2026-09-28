@@ -12,7 +12,7 @@
         gap: 0.375em;
         background: var(--badge-fill);
         color: var(--badge-ink);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         padding: var(--space-2xs) var(--space-xs);
         font-family: var(--font-sans);
         font-size: var(--text-xs);
@@ -79,11 +79,6 @@
         --badge-ink: var(--color-warning-content);
     }
 
-    [data-scope="badge"][data-part="root"][data-color="accent"] {
-        --badge-fill: var(--color-accent);
-        --badge-ink: var(--color-accent-content);
-    }
-
     [data-scope="badge"][data-part="root"][data-size="xs"] {
         font-size: var(--text-xs);
         padding: 0 var(--space-xs);
@@ -144,11 +139,6 @@
         --badge-dot-ring: var(--color-warning-content);
     }
 
-    [data-scope="badge"][data-part="dot"][data-color="accent"] {
-        --badge-dot: var(--color-accent);
-        --badge-dot-ring: var(--color-accent-content);
-    }
-
     @scope ([data-scope="badge"][data-part="root"][data-color="primary"]) to ([data-scope="badge"][data-part="root"]) {
         [data-scope="badge"][data-part="dot"] {
             --badge-dot: var(--color-primary);
@@ -202,13 +192,6 @@
         [data-scope="badge"][data-part="dot"] {
             --badge-dot: var(--color-warning);
             --badge-dot-ring: var(--color-warning-content);
-        }
-    }
-
-    @scope ([data-scope="badge"][data-part="root"][data-color="accent"]) to ([data-scope="badge"][data-part="root"]) {
-        [data-scope="badge"][data-part="dot"] {
-            --badge-dot: var(--color-accent);
-            --badge-dot-ring: var(--color-accent-content);
         }
     }
 

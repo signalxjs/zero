@@ -1,6 +1,7 @@
 @layer zero.recipes {
     [data-scope="alert"][data-part="root"] {
-        --alert-tint: var(--color-info-soft);
+        --alert-tint: var(--color-info-container);
+        --alert-on-tint: var(--color-info-container-content);
         --alert-accent: var(--color-info);
     }
 
@@ -10,9 +11,9 @@
         align-items: center;
         gap: var(--space-2xs) var(--space-md);
         background: var(--alert-tint);
-        color: var(--color-base-content);
+        color: var(--alert-on-tint);
         border: var(--border) solid var(--alert-accent);
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
         padding: var(--space-md) var(--space-lg);
     }
 
@@ -20,7 +21,7 @@
         grid-row: 1 / span 2;
         display: inline-flex;
         align-items: center;
-        color: var(--alert-accent);
+        color: var(--alert-on-tint);
         font-size: var(--text-lg);
         line-height: var(--leading-none);
     }
@@ -29,7 +30,7 @@
         font-family: var(--font-sans);
         font-size: var(--text-md);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         line-height: var(--leading-tight);
     }
 
@@ -47,11 +48,11 @@
         border: none;
         background: transparent;
         color: inherit;
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         padding: var(--space-2xs);
         line-height: var(--leading-none);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="alert"][data-part="close"]:hover:not([data-disabled]) {
@@ -73,48 +74,51 @@
     }
 
     [data-scope="alert"][data-part="root"][data-color="primary"] {
-        --alert-tint: var(--color-primary-soft);
+        --alert-tint: var(--color-primary-container);
+        --alert-on-tint: var(--color-primary-container-content);
         --alert-accent: var(--color-primary);
     }
 
     [data-scope="alert"][data-part="root"][data-color="secondary"] {
-        --alert-tint: var(--color-secondary-soft);
+        --alert-tint: var(--color-secondary-container);
+        --alert-on-tint: var(--color-secondary-container-content);
         --alert-accent: var(--color-secondary);
     }
 
     [data-scope="alert"][data-part="root"][data-color="tertiary"] {
-        --alert-tint: var(--color-tertiary-soft);
+        --alert-tint: var(--color-tertiary-container);
+        --alert-on-tint: var(--color-tertiary-container-content);
         --alert-accent: var(--color-tertiary);
     }
 
     [data-scope="alert"][data-part="root"][data-color="error"] {
-        --alert-tint: var(--color-error-soft);
+        --alert-tint: var(--color-error-container);
+        --alert-on-tint: var(--color-error-container-content);
         --alert-accent: var(--color-error);
     }
 
     [data-scope="alert"][data-part="root"][data-color="neutral"] {
-        --alert-tint: var(--color-neutral-soft);
+        --alert-tint: var(--color-neutral-container);
+        --alert-on-tint: var(--color-neutral-container-content);
         --alert-accent: var(--color-neutral);
     }
 
     [data-scope="alert"][data-part="root"][data-color="info"] {
-        --alert-tint: var(--color-info-soft);
+        --alert-tint: var(--color-info-container);
+        --alert-on-tint: var(--color-info-container-content);
         --alert-accent: var(--color-info);
     }
 
     [data-scope="alert"][data-part="root"][data-color="success"] {
-        --alert-tint: var(--color-success-soft);
+        --alert-tint: var(--color-success-container);
+        --alert-on-tint: var(--color-success-container-content);
         --alert-accent: var(--color-success);
     }
 
     [data-scope="alert"][data-part="root"][data-color="warning"] {
-        --alert-tint: var(--color-warning-soft);
+        --alert-tint: var(--color-warning-container);
+        --alert-on-tint: var(--color-warning-container-content);
         --alert-accent: var(--color-warning);
-    }
-
-    [data-scope="alert"][data-part="root"][data-color="accent"] {
-        --alert-tint: var(--color-accent-soft);
-        --alert-accent: var(--color-accent);
     }
 
     [data-scope="alert"][data-part="root"][data-size="xs"] {

@@ -12,7 +12,7 @@
         max-width: 100%;
         flex-wrap: wrap;
         background: var(--menubar-surface);
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
     }
 
     [data-scope="menubar"][data-part="root"][data-orientation="vertical"] {
@@ -50,10 +50,6 @@
 
     [data-scope="menubar"][data-part="root"][data-color="warning"] {
         --menubar-surface: color-mix(in oklch, var(--color-warning) 10%, var(--color-surface-container));
-    }
-
-    [data-scope="menubar"][data-part="root"][data-color="accent"] {
-        --menubar-surface: color-mix(in oklch, var(--color-accent) 10%, var(--color-surface-container));
     }
 
     [data-scope="menubar"][data-part="root"][data-size="xs"] {

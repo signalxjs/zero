@@ -136,7 +136,8 @@ describe('every declared axis value is honoured or claimed', () => {
 
     it('records the vocabulary that is declared and deliberately unwired', () => {
         // Not a formality: the exemption above is only safe while it is exactly
-        // Material's tonal surfaces. If a design system adds a fill role and
+        // Material's fills and hairlines (its containers, surfaces, outlines,
+        // scrim and shadow — #414). If a design system adds a fill role and
         // then starts wiring it, or another one grows an unused role, this
         // fails and the reasoning gets revisited rather than inherited.
         // Both classes in one sorted list, keyed apart: an unclaimed value is
@@ -146,20 +147,58 @@ describe('every declared axis value is honoured or claimed', () => {
             unusedVocabulary(s.compiled).map((u) =>
                 `${s.name}/${u.axis}: ${u.value}${u.reason === 'unclaimed' ? ' (unclaimed)' : ''}`));
         expect(ledger.sort()).toEqual([
+            'material/color: error-container',
+            'material/color: info-container',
+            'material/color: inverse-primary',
+            'material/color: inverse-surface',
+            'material/color: neutral-container',
             'material/color: outline',
+            'material/color: outline-variant',
+            'material/color: primary-container',
+            'material/color: scrim',
+            'material/color: secondary-container',
+            'material/color: shadow',
+            'material/color: success-container',
             'material/color: surface',
+            'material/color: surface-bright',
             'material/color: surface-container',
             'material/color: surface-container-high',
+            'material/color: surface-container-highest',
+            'material/color: surface-container-low',
+            'material/color: surface-container-lowest',
+            'material/color: surface-dim',
+            'material/color: surface-variant',
+            'material/color: tertiary-container',
+            'material/color: warning-container',
         ]);
         // …and the audit lists exactly those as waivers, by the mechanism
         // that excuses them, rather than dropping them on the floor.
         const waived = SYSTEMS.flatMap((s) =>
             audit(s.name, 'axis-value-coverage/unused').waived.map((w) => `${s.name}/${w.where} (${w.waivedBy.mechanism})`));
         expect(waived.sort()).toEqual([
+            'material/color.error-container (role-decl)',
+            'material/color.info-container (role-decl)',
+            'material/color.inverse-primary (role-decl)',
+            'material/color.inverse-surface (role-decl)',
+            'material/color.neutral-container (role-decl)',
             'material/color.outline (role-decl)',
+            'material/color.outline-variant (role-decl)',
+            'material/color.primary-container (role-decl)',
+            'material/color.scrim (role-decl)',
+            'material/color.secondary-container (role-decl)',
+            'material/color.shadow (role-decl)',
+            'material/color.success-container (role-decl)',
             'material/color.surface (role-decl)',
+            'material/color.surface-bright (role-decl)',
             'material/color.surface-container (role-decl)',
             'material/color.surface-container-high (role-decl)',
+            'material/color.surface-container-highest (role-decl)',
+            'material/color.surface-container-low (role-decl)',
+            'material/color.surface-container-lowest (role-decl)',
+            'material/color.surface-dim (role-decl)',
+            'material/color.surface-variant (role-decl)',
+            'material/color.tertiary-container (role-decl)',
+            'material/color.warning-container (role-decl)',
         ]);
     });
 });

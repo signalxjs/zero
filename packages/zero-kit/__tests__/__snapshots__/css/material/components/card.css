@@ -9,7 +9,7 @@
         flex-direction: column;
         background: var(--color-surface-container);
         color: var(--color-surface-container-content);
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
         box-shadow: var(--shadow-level1);
         overflow: hidden;
     }
@@ -30,13 +30,13 @@
     }
 
     [data-scope="card"][data-part="media"]:first-child {
-        border-start-start-radius: var(--radius-box);
-        border-start-end-radius: var(--radius-box);
+        border-start-start-radius: var(--radius-extra-large);
+        border-start-end-radius: var(--radius-extra-large);
     }
 
     [data-scope="card"][data-part="media"]:last-child {
-        border-end-start-radius: var(--radius-box);
-        border-end-end-radius: var(--radius-box);
+        border-end-start-radius: var(--radius-extra-large);
+        border-end-end-radius: var(--radius-extra-large);
     }
 
     [data-scope="card"][data-part="header"] {
@@ -113,11 +113,6 @@
 
     [data-scope="card"][data-part="root"][data-color="warning"] {
         --card-accent: var(--color-warning);
-        border-top: calc(var(--border) * 3) solid var(--card-accent);
-    }
-
-    [data-scope="card"][data-part="root"][data-color="accent"] {
-        --card-accent: var(--color-accent);
         border-top: calc(var(--border) * 3) solid var(--card-accent);
     }
 

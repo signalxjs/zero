@@ -1,8 +1,8 @@
 @layer zero.recipes {
     [data-scope="tree-view"][data-part="root"] {
-        --tree-accent: var(--color-secondary-soft);
+        --tree-accent: var(--color-secondary-container);
         --tree-text: var(--text-sm);
-        --tree-on-accent: var(--color-base-content);
+        --tree-on-accent: var(--color-secondary-container-content);
         --tree-check: var(--color-primary);
         --tree-on-check: var(--color-primary-content);
     }
@@ -19,9 +19,9 @@
 
     [data-scope="tree-view"][data-part="label"] {
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         color: var(--color-base-content);
         padding: var(--space-2xs) var(--space-md);
     }
@@ -40,11 +40,11 @@
         align-items: center;
         gap: var(--space-sm);
         padding: var(--space-xs) var(--space-md);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         font-size: var(--tree-text);
         cursor: pointer;
         user-select: none;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="tree-view"][data-part="item"][data-selected] {
@@ -69,15 +69,19 @@
         background: var(--color-primary);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="tree-view"][data-part="item"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="tree-view"][data-part="item"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="tree-view"][data-part="item"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="tree-view"][data-part="item"]::after {
@@ -95,7 +99,7 @@
     }
 
     [data-scope="tree-view"][data-part="item"][data-press-animating]::after {
-        animation: tree-view-ripple var(--duration-slow) var(--ease-standard);
+        animation: tree-view-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="tree-view"][data-part="branch"] {
@@ -112,11 +116,11 @@
         align-items: center;
         gap: var(--space-sm);
         padding: var(--space-xs) var(--space-md);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         font-size: var(--tree-text);
         cursor: pointer;
         user-select: none;
-        transition: background var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="tree-view"][data-part="branch-trigger"][data-selected] {
@@ -141,15 +145,19 @@
         background: var(--color-primary);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="tree-view"][data-part="branch-trigger"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="tree-view"][data-part="branch-trigger"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="tree-view"][data-part="branch-trigger"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="tree-view"][data-part="branch-trigger"]::after {
@@ -167,12 +175,12 @@
     }
 
     [data-scope="tree-view"][data-part="branch-trigger"][data-press-animating]::after {
-        animation: tree-view-ripple var(--duration-slow) var(--ease-standard);
+        animation: tree-view-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="tree-view"][data-part="branch-indicator"] {
         display: inline-flex;
-        transition: transform var(--duration-fast) var(--ease-standard);
+        transition: transform var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="tree-view"][data-part="branch-indicator"][data-state="open"] {
@@ -196,10 +204,10 @@
         height: 1.125em;
         border: 2px solid var(--color-outline);
         background: transparent;
-        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard);
         position: relative;
         flex-shrink: 0;
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
         cursor: pointer;
     }
 
@@ -224,7 +232,7 @@
         background: var(--tree-on-check);
         clip-path: polygon(36% 66%, 36% 94%, 36% 94%, 36% 94%, 36% 66%, 36% 66%);
         opacity: 0;
-        transition: clip-path var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);
+        transition: clip-path var(--duration-short2) var(--ease-standard), opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="tree-view"][data-part="node-checkbox"][data-state="checked"]::after {
@@ -302,13 +310,6 @@
         --tree-on-accent: var(--color-warning-content);
         --tree-check: var(--color-warning);
         --tree-on-check: var(--color-warning-content);
-    }
-
-    [data-scope="tree-view"][data-part="root"][data-color="accent"] {
-        --tree-accent: var(--color-accent);
-        --tree-on-accent: var(--color-accent-content);
-        --tree-check: var(--color-accent);
-        --tree-on-check: var(--color-accent-content);
     }
 
     [data-scope="tree-view"][data-part="root"][data-size="xs"] {
@@ -414,5 +415,5 @@
     }
 }
 @keyframes tree-view-ripple {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

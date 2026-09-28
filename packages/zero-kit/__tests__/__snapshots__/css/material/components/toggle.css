@@ -17,14 +17,14 @@
         background: transparent;
         color: var(--color-base-content);
         border: var(--border) solid var(--color-outline);
-        border-radius: var(--radius-field);
+        border-radius: var(--radius-medium);
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         line-height: var(--leading-none);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard), color var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="toggle"][data-part="root"][data-state="on"] {
@@ -51,15 +51,19 @@
         background: var(--toggle-ink);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="toggle"][data-part="root"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="toggle"][data-part="root"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="toggle"][data-part="root"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="toggle"][data-part="root"]::after {
@@ -77,7 +81,7 @@
     }
 
     [data-scope="toggle"][data-part="root"][data-press-animating]::after {
-        animation: toggle-ripple var(--duration-slow) var(--ease-standard);
+        animation: toggle-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="toggle"][data-part="root"][data-color="primary"] {
@@ -123,11 +127,6 @@
     [data-scope="toggle"][data-part="root"][data-color="warning"] {
         --toggle-accent: var(--color-warning);
         --toggle-on-accent: var(--color-warning-content);
-    }
-
-    [data-scope="toggle"][data-part="root"][data-color="accent"] {
-        --toggle-accent: var(--color-accent);
-        --toggle-on-accent: var(--color-accent-content);
     }
 
     [data-scope="toggle"][data-part="root"][data-size="xs"] {
@@ -177,5 +176,5 @@
     }
 }
 @keyframes toggle-ripple {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

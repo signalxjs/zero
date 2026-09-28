@@ -44,7 +44,7 @@
 
     [data-scope="radial-progress"][data-part="label"] {
         font-size: var(--text-xs);
-        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="radial-progress"][data-part="value-text"] {
@@ -84,10 +84,6 @@
 
     [data-scope="radial-progress"][data-part="root"][data-color="warning"] {
         --radial-ink: var(--color-warning);
-    }
-
-    [data-scope="radial-progress"][data-part="root"][data-color="accent"] {
-        --radial-ink: var(--color-accent);
     }
 
     [data-scope="radial-progress"][data-part="root"][data-size="xs"] {

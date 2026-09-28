@@ -21,9 +21,9 @@
 
     [data-scope="slider"][data-part="label"] {
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
     }
 
     [data-scope="slider"][data-part="control"] {
@@ -36,7 +36,7 @@
         outline: none;
         accent-color: var(--slider-accent);
         --slider-halo: transparent;
-        --slider-track: linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-secondary-soft) 0);
+        --slider-track: linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-surface-container-highest) 0);
     }
 
     [data-scope="slider"][data-part="control"][data-invalid] {
@@ -48,7 +48,7 @@
     }
 
     [data-scope="slider"][data-part="control"][data-pressed] {
-        --slider-halo: color-mix(in oklab, var(--slider-accent) 12%, transparent);
+        --slider-halo: color-mix(in oklab, var(--slider-accent) 10%, transparent);
     }
 
     [data-scope="slider"][data-part="control"][data-readonly] {
@@ -74,7 +74,7 @@
         border: none;
         background: var(--slider-accent);
         box-shadow: 0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo);
-        transition: box-shadow var(--duration-fast) var(--ease-standard);
+        transition: box-shadow var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="slider"][data-part="control"][data-focus-visible]::-webkit-slider-thumb {
@@ -94,7 +94,7 @@
         border: none;
         background: var(--slider-accent);
         box-shadow: 0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo);
-        transition: box-shadow var(--duration-fast) var(--ease-standard);
+        transition: box-shadow var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="slider"][data-part="control"][data-focus-visible]::-moz-range-thumb {
@@ -104,7 +104,7 @@
     [data-scope="slider"][data-part="control"][data-orientation="vertical"] {
         width: calc(var(--size-selector) * 10);
         height: var(--slider-length);
-        --slider-track: linear-gradient(to top, var(--slider-accent) var(--slider-percent, 50%), var(--color-secondary-soft) 0);
+        --slider-track: linear-gradient(to top, var(--slider-accent) var(--slider-percent, 50%), var(--color-surface-container-highest) 0);
     }
 
     [data-scope="slider"][data-part="control"][data-orientation="vertical"]::-webkit-slider-runnable-track {
@@ -126,7 +126,7 @@
         height: calc(var(--size-selector) * 2);
         margin-block: calc(var(--size-selector) * 4);
         border-radius: 624rem;
-        background: var(--color-secondary-soft);
+        background: var(--color-surface-container-highest);
         cursor: pointer;
     }
 
@@ -167,11 +167,11 @@
         cursor: pointer;
         outline: none;
         touch-action: none;
-        transition: box-shadow var(--duration-fast) var(--ease-standard);
+        transition: box-shadow var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="slider"][data-part="thumb"][data-pressed] {
-        box-shadow: 0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 12%, transparent);
+        box-shadow: 0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 10%, transparent);
     }
 
     [data-scope="slider"][data-part="thumb"][data-focus-visible] {
@@ -199,7 +199,7 @@
         font-size: var(--text-xs);
         line-height: var(--leading-none);
         white-space: nowrap;
-        color: var(--color-outline);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="slider"][data-part="mark"]::before {
@@ -229,7 +229,7 @@
 
     [data-scope="slider"][data-part="value-text"] {
         font-size: var(--text-xs);
-        color: var(--color-outline);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="slider"][data-part="root"][data-color="primary"] {
@@ -262,10 +262,6 @@
 
     [data-scope="slider"][data-part="root"][data-color="warning"] {
         --slider-accent: var(--color-warning);
-    }
-
-    [data-scope="slider"][data-part="root"][data-color="accent"] {
-        --slider-accent: var(--color-accent);
     }
 
     @scope ([data-scope="slider"][data-part="root"][data-size="xs"]) to ([data-scope="slider"][data-part="root"]) {

@@ -1,7 +1,7 @@
 @layer zero.recipes {
     [data-scope="toggle-group"][data-part="root"] {
-        --toggle-group-fill: var(--color-secondary-soft);
-        --toggle-group-on-fill: var(--color-secondary);
+        --toggle-group-fill: var(--color-secondary-container);
+        --toggle-group-on-fill: var(--color-secondary-container-content);
         --toggle-group-ink: var(--color-base-content);
     }
 
@@ -34,12 +34,12 @@
         border: none;
         padding: var(--space-xs) var(--space-lg);
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         line-height: var(--leading-none);
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-short2) var(--ease-standard), color var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="toggle-group"][data-part="item"][data-state="on"] {
@@ -65,15 +65,19 @@
         background: var(--toggle-group-ink);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--duration-fast) var(--ease-standard);
+        transition: opacity var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="toggle-group"][data-part="item"]:hover:not([data-disabled])::before {
-        opacity: 0.08;
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="toggle-group"][data-part="item"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
     }
 
     [data-scope="toggle-group"][data-part="item"][data-pressed]:not([data-disabled])::before {
-        opacity: 0.12;
+        opacity: var(--state-pressed);
     }
 
     [data-scope="toggle-group"][data-part="item"]::after {
@@ -91,7 +95,7 @@
     }
 
     [data-scope="toggle-group"][data-part="item"][data-press-animating]::after {
-        animation: toggle-group-ripple var(--duration-slow) var(--ease-standard);
+        animation: toggle-group-ripple var(--duration-long2) var(--ease-standard);
     }
 
     [data-scope="toggle-group"][data-part="item"][data-orientation="horizontal"] + [data-scope="toggle-group"][data-part="item"] {
@@ -132,71 +136,64 @@
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="primary"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-primary-soft);
-            --toggle-group-on-fill: var(--color-primary);
+            --toggle-group-fill: var(--color-primary-container);
+            --toggle-group-on-fill: var(--color-primary-container-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="secondary"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-secondary-soft);
-            --toggle-group-on-fill: var(--color-secondary);
+            --toggle-group-fill: var(--color-secondary-container);
+            --toggle-group-on-fill: var(--color-secondary-container-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"]:not([data-color])) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-secondary-soft);
-            --toggle-group-on-fill: var(--color-secondary);
+            --toggle-group-fill: var(--color-secondary-container);
+            --toggle-group-on-fill: var(--color-secondary-container-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="tertiary"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-tertiary-soft);
-            --toggle-group-on-fill: var(--color-tertiary);
+            --toggle-group-fill: var(--color-tertiary-container);
+            --toggle-group-on-fill: var(--color-tertiary-container-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="error"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-error-soft);
-            --toggle-group-on-fill: var(--color-error);
+            --toggle-group-fill: var(--color-error-container);
+            --toggle-group-on-fill: var(--color-error-container-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="neutral"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-neutral-soft);
-            --toggle-group-on-fill: var(--color-neutral);
+            --toggle-group-fill: var(--color-neutral-container);
+            --toggle-group-on-fill: var(--color-neutral-container-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="info"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-info-soft);
-            --toggle-group-on-fill: var(--color-info);
+            --toggle-group-fill: var(--color-info-container);
+            --toggle-group-on-fill: var(--color-info-container-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="success"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-success-soft);
-            --toggle-group-on-fill: var(--color-success);
+            --toggle-group-fill: var(--color-success-container);
+            --toggle-group-on-fill: var(--color-success-container-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="warning"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-warning-soft);
-            --toggle-group-on-fill: var(--color-warning);
-        }
-    }
-
-    @scope ([data-scope="toggle-group"][data-part="root"][data-color="accent"]) to ([data-scope="toggle-group"][data-part="root"]) {
-        [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-accent-soft);
-            --toggle-group-on-fill: var(--color-accent);
+            --toggle-group-fill: var(--color-warning-container);
+            --toggle-group-on-fill: var(--color-warning-container-content);
         }
     }
 
@@ -217,5 +214,5 @@
     }
 }
 @keyframes toggle-group-ripple {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

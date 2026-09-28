@@ -4,7 +4,7 @@
     }
 
     [data-scope="skeleton"][data-part="root"] {
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
     }
 
     [data-scope="skeleton"][data-part="root"][data-state="loading"] {
@@ -47,24 +47,20 @@
         --skeleton-fill: color-mix(in oklab, var(--color-warning) 20%, var(--color-base-300));
     }
 
-    [data-scope="skeleton"][data-part="root"][data-color="accent"] {
-        --skeleton-fill: color-mix(in oklab, var(--color-accent) 20%, var(--color-base-300));
-    }
-
     [data-scope="skeleton"][data-part="root"][data-size="xs"] {
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
     }
 
     [data-scope="skeleton"][data-part="root"][data-size="sm"] {
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
     }
 
     [data-scope="skeleton"][data-part="root"][data-size="lg"] {
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
     }
 
     [data-scope="skeleton"][data-part="root"][data-size="xl"] {
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
     }
 
     @media (prefers-reduced-motion: reduce) {

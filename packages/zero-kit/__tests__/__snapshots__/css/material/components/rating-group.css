@@ -12,9 +12,9 @@
 
     [data-scope="rating-group"][data-part="label"] {
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         color: var(--color-base-content);
     }
 
@@ -45,7 +45,7 @@
     [data-scope="rating-group"][data-part="control"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
     }
 
     [data-scope="rating-group"][data-part="item"] {
@@ -53,8 +53,8 @@
         line-height: var(--leading-none);
         cursor: pointer;
         user-select: none;
-        color: var(--color-outline);
-        transition: color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+        color: var(--color-surface-variant-content);
+        transition: color var(--duration-short2) var(--ease-standard), transform var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="full"] {
@@ -84,7 +84,7 @@
     [data-scope="rating-group"][data-part="item"][data-focus-visible] {
         outline: 2px solid var(--color-secondary);
         outline-offset: 1px;
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-extra-small);
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="half"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
@@ -121,10 +121,6 @@
 
     [data-scope="rating-group"][data-part="root"][data-color="warning"] {
         --rating-fill: color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content));
-    }
-
-    [data-scope="rating-group"][data-part="root"][data-color="accent"] {
-        --rating-fill: color-mix(in oklab, var(--color-accent) 70%, var(--color-accent-content));
     }
 
     [data-scope="rating-group"][data-part="root"][data-size="xs"] {

@@ -56,10 +56,6 @@
         --countdown-ink: var(--color-warning);
     }
 
-    [data-scope="countdown"][data-part="root"][data-color="accent"] {
-        --countdown-ink: var(--color-accent);
-    }
-
     [data-scope="countdown"][data-part="root"][data-size="xs"] {
         --countdown-font: var(--text-md);
     }

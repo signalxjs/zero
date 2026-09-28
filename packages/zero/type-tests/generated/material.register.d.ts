@@ -4,22 +4,22 @@
 // vocabulary. Opt in with:  import '@sigx/<ds>/register';
 declare module '@sigx/zero' {
     interface ZeroVocabulary {
-        theme: 'material' | 'material-dark';
-        breakpoint: 'sm' | 'md' | 'lg';
-        property: '--border' | '--breakpoint-lg' | '--breakpoint-md' | '--breakpoint-sm' | '--color-accent' | '--color-accent-content' | '--color-accent-soft' | '--color-base-100' | '--color-base-200' | '--color-base-300' | '--color-base-content' | '--color-error' | '--color-error-content' | '--color-error-soft' | '--color-info' | '--color-info-content' | '--color-info-soft' | '--color-neutral' | '--color-neutral-content' | '--color-neutral-soft' | '--color-outline' | '--color-primary' | '--color-primary-content' | '--color-primary-soft' | '--color-secondary' | '--color-secondary-content' | '--color-secondary-soft' | '--color-success' | '--color-success-content' | '--color-success-soft' | '--color-surface' | '--color-surface-container' | '--color-surface-container-content' | '--color-surface-container-high' | '--color-surface-container-high-content' | '--color-surface-content' | '--color-tertiary' | '--color-tertiary-content' | '--color-tertiary-soft' | '--color-warning' | '--color-warning-content' | '--color-warning-soft' | '--disabled-opacity' | '--duration-extra-long' | '--duration-fast' | '--duration-instant' | '--duration-normal' | '--duration-slow' | '--ease-emphasized' | '--ease-emphasized-accelerate' | '--ease-emphasized-decelerate' | '--ease-linear' | '--ease-standard' | '--font-mono' | '--font-sans' | '--leading-none' | '--leading-normal' | '--leading-relaxed' | '--leading-tight' | '--measure-lg' | '--measure-md' | '--measure-prose' | '--measure-sm' | '--measure-xl' | '--measure-xs' | '--radius-box' | '--radius-field' | '--radius-selector' | '--shadow-level1' | '--shadow-level2' | '--shadow-level3' | '--shadow-level4' | '--shadow-level5' | '--size-field' | '--size-selector' | '--space-2xl' | '--space-2xs' | '--space-lg' | '--space-md' | '--space-sm' | '--space-xl' | '--space-xs' | '--text-2xl' | '--text-3xl' | '--text-fixed-2xl' | '--text-fixed-3xl' | '--text-fixed-lg' | '--text-fixed-md' | '--text-fixed-sm' | '--text-fixed-xl' | '--text-fixed-xs' | '--text-lg' | '--text-md' | '--text-sm' | '--text-xl' | '--text-xs' | '--tracking-normal' | '--tracking-tight' | '--tracking-wide' | '--weight-bold' | '--weight-medium' | '--weight-normal' | '--weight-semibold';
+        theme: 'material' | 'material-dark' | 'material-medium-contrast' | 'material-dark-medium-contrast' | 'material-high-contrast' | 'material-dark-high-contrast';
+        breakpoint: 'sm' | 'md' | 'lg' | 'xl';
+        property: '--border' | '--breakpoint-lg' | '--breakpoint-md' | '--breakpoint-sm' | '--breakpoint-xl' | '--color-base-100' | '--color-base-200' | '--color-base-300' | '--color-base-content' | '--color-error' | '--color-error-container' | '--color-error-container-content' | '--color-error-content' | '--color-error-soft' | '--color-info' | '--color-info-container' | '--color-info-container-content' | '--color-info-content' | '--color-info-soft' | '--color-inverse-primary' | '--color-inverse-surface' | '--color-inverse-surface-content' | '--color-neutral' | '--color-neutral-container' | '--color-neutral-container-content' | '--color-neutral-content' | '--color-neutral-soft' | '--color-outline' | '--color-outline-variant' | '--color-primary' | '--color-primary-container' | '--color-primary-container-content' | '--color-primary-content' | '--color-primary-soft' | '--color-scrim' | '--color-secondary' | '--color-secondary-container' | '--color-secondary-container-content' | '--color-secondary-content' | '--color-secondary-soft' | '--color-shadow' | '--color-success' | '--color-success-container' | '--color-success-container-content' | '--color-success-content' | '--color-success-soft' | '--color-surface' | '--color-surface-bright' | '--color-surface-bright-content' | '--color-surface-container' | '--color-surface-container-content' | '--color-surface-container-high' | '--color-surface-container-high-content' | '--color-surface-container-highest' | '--color-surface-container-highest-content' | '--color-surface-container-low' | '--color-surface-container-low-content' | '--color-surface-container-lowest' | '--color-surface-container-lowest-content' | '--color-surface-content' | '--color-surface-dim' | '--color-surface-dim-content' | '--color-surface-variant' | '--color-surface-variant-content' | '--color-tertiary' | '--color-tertiary-container' | '--color-tertiary-container-content' | '--color-tertiary-content' | '--color-tertiary-soft' | '--color-warning' | '--color-warning-container' | '--color-warning-container-content' | '--color-warning-content' | '--color-warning-soft' | '--disabled-opacity' | '--duration-effects-default' | '--duration-effects-fast' | '--duration-effects-slow' | '--duration-extra-long1' | '--duration-extra-long2' | '--duration-extra-long3' | '--duration-extra-long4' | '--duration-long1' | '--duration-long2' | '--duration-long3' | '--duration-long4' | '--duration-medium1' | '--duration-medium2' | '--duration-medium3' | '--duration-medium4' | '--duration-short1' | '--duration-short2' | '--duration-short3' | '--duration-short4' | '--duration-spatial-default' | '--duration-spatial-fast' | '--duration-spatial-slow' | '--ease-effects-default' | '--ease-effects-fast' | '--ease-effects-slow' | '--ease-emphasized' | '--ease-emphasized-accelerate' | '--ease-emphasized-decelerate' | '--ease-legacy' | '--ease-legacy-accelerate' | '--ease-legacy-decelerate' | '--ease-linear' | '--ease-spatial-default' | '--ease-spatial-fast' | '--ease-spatial-slow' | '--ease-standard' | '--ease-standard-accelerate' | '--ease-standard-decelerate' | '--font-mono' | '--font-sans' | '--leading-body-large' | '--leading-body-medium' | '--leading-body-small' | '--leading-display-large' | '--leading-display-medium' | '--leading-display-small' | '--leading-headline-large' | '--leading-headline-medium' | '--leading-headline-small' | '--leading-label-large' | '--leading-label-medium' | '--leading-label-small' | '--leading-none' | '--leading-normal' | '--leading-relaxed' | '--leading-tight' | '--leading-title-large' | '--leading-title-medium' | '--leading-title-small' | '--measure-lg' | '--measure-md' | '--measure-prose' | '--measure-sm' | '--measure-xl' | '--measure-xs' | '--radius-box' | '--radius-extra-extra-large' | '--radius-extra-large' | '--radius-extra-large-increased' | '--radius-extra-small' | '--radius-field' | '--radius-full' | '--radius-large' | '--radius-large-increased' | '--radius-medium' | '--radius-none' | '--radius-selector' | '--radius-small' | '--shadow-level0' | '--shadow-level1' | '--shadow-level2' | '--shadow-level3' | '--shadow-level4' | '--shadow-level5' | '--size-field' | '--size-selector' | '--space-2xl' | '--space-2xs' | '--space-lg' | '--space-md' | '--space-sm' | '--space-xl' | '--space-xs' | '--state-disabled-container' | '--state-dragged' | '--state-focus' | '--state-hover' | '--state-pressed' | '--text-2xl' | '--text-3xl' | '--text-body-large' | '--text-body-medium' | '--text-body-small' | '--text-display-large' | '--text-display-medium' | '--text-display-small' | '--text-fixed-2xl' | '--text-fixed-3xl' | '--text-fixed-body-large' | '--text-fixed-body-medium' | '--text-fixed-body-small' | '--text-fixed-display-large' | '--text-fixed-display-medium' | '--text-fixed-display-small' | '--text-fixed-headline-large' | '--text-fixed-headline-medium' | '--text-fixed-headline-small' | '--text-fixed-label-large' | '--text-fixed-label-medium' | '--text-fixed-label-small' | '--text-fixed-lg' | '--text-fixed-md' | '--text-fixed-sm' | '--text-fixed-title-large' | '--text-fixed-title-medium' | '--text-fixed-title-small' | '--text-fixed-xl' | '--text-fixed-xs' | '--text-headline-large' | '--text-headline-medium' | '--text-headline-small' | '--text-label-large' | '--text-label-medium' | '--text-label-small' | '--text-lg' | '--text-md' | '--text-sm' | '--text-title-large' | '--text-title-medium' | '--text-title-small' | '--text-xl' | '--text-xs' | '--tracking-body-large' | '--tracking-body-medium' | '--tracking-body-small' | '--tracking-display-large' | '--tracking-display-medium' | '--tracking-display-small' | '--tracking-headline-large' | '--tracking-headline-medium' | '--tracking-headline-small' | '--tracking-label-large' | '--tracking-label-medium' | '--tracking-label-small' | '--tracking-normal' | '--tracking-tight' | '--tracking-title-large' | '--tracking-title-medium' | '--tracking-title-small' | '--tracking-wide' | '--weight-bold' | '--weight-medium' | '--weight-normal' | '--weight-semibold';
         tokens: {
-            radius: 'selector' | 'field' | 'box';
+            radius: 'selector' | 'field' | 'box' | 'none' | 'extra-small' | 'small' | 'medium' | 'large' | 'large-increased' | 'extra-large' | 'extra-large-increased' | 'extra-extra-large' | 'full';
             size: 'selector' | 'field';
             font: 'sans' | 'serif' | 'mono' | 'display';
-            text: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+            text: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'display-large' | 'display-medium' | 'display-small' | 'headline-large' | 'headline-medium' | 'headline-small' | 'title-large' | 'title-medium' | 'title-small' | 'body-large' | 'body-medium' | 'body-small' | 'label-large' | 'label-medium' | 'label-small';
             weight: 'normal' | 'medium' | 'semibold' | 'bold';
-            leading: 'none' | 'tight' | 'normal' | 'relaxed';
-            tracking: 'tight' | 'normal' | 'wide';
+            leading: 'none' | 'tight' | 'normal' | 'relaxed' | 'display-large' | 'display-medium' | 'display-small' | 'headline-large' | 'headline-medium' | 'headline-small' | 'title-large' | 'title-medium' | 'title-small' | 'body-large' | 'body-medium' | 'body-small' | 'label-large' | 'label-medium' | 'label-small';
+            tracking: 'tight' | 'normal' | 'wide' | 'display-large' | 'display-medium' | 'display-small' | 'headline-large' | 'headline-medium' | 'headline-small' | 'title-large' | 'title-medium' | 'title-small' | 'body-large' | 'body-medium' | 'body-small' | 'label-large' | 'label-medium' | 'label-small';
             space: '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
             measure: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'prose';
-            shadow: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'level1' | 'level2' | 'level3' | 'level4' | 'level5';
-            duration: 'instant' | 'fast' | 'normal' | 'slow' | 'extra-long';
-            ease: 'linear' | 'standard' | 'emphasized' | 'emphasized-decelerate' | 'emphasized-accelerate';
+            shadow: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'level0' | 'level1' | 'level2' | 'level3' | 'level4' | 'level5';
+            duration: 'instant' | 'fast' | 'normal' | 'slow' | 'short1' | 'short2' | 'short3' | 'short4' | 'medium1' | 'medium2' | 'medium3' | 'medium4' | 'long1' | 'long2' | 'long3' | 'long4' | 'extra-long1' | 'extra-long2' | 'extra-long3' | 'extra-long4' | 'spatial-fast' | 'spatial-default' | 'spatial-slow' | 'effects-fast' | 'effects-default' | 'effects-slow';
+            ease: 'linear' | 'standard' | 'emphasized' | 'standard-accelerate' | 'standard-decelerate' | 'emphasized-decelerate' | 'emphasized-accelerate' | 'legacy' | 'legacy-accelerate' | 'legacy-decelerate' | 'spatial-fast' | 'spatial-default' | 'spatial-slow' | 'effects-fast' | 'effects-default' | 'effects-slow';
         };
         components: {
             /** stack — no axis wired by material; every axis errors under this register module. */
@@ -68,7 +68,7 @@ declare module '@sigx/zero' {
             };
             /** box — color wired. */
             'box': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 /** Accepts `size` at runtime, but material declares no size axis for box — the attribute would match nothing. */
                 size: never;
                 /** Accepts `variant` at runtime, but material declares no variant axis for box — the attribute would match nothing. */
@@ -89,7 +89,7 @@ declare module '@sigx/zero' {
             };
             /** button — color, size, variant wired. */
             'button': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 variant: 'solid' | 'outline' | 'soft' | 'ghost';
                 axes: Record<string, never>;
@@ -97,7 +97,7 @@ declare module '@sigx/zero' {
             };
             /** tabs — color, size wired. */
             'tabs': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -106,7 +106,7 @@ declare module '@sigx/zero' {
             };
             /** collapsible — color, size wired. */
             'collapsible': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -115,7 +115,7 @@ declare module '@sigx/zero' {
             };
             /** accordion — color, size wired. */
             'accordion': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -124,7 +124,7 @@ declare module '@sigx/zero' {
             };
             /** dialog — color, size wired. */
             'dialog': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -133,7 +133,7 @@ declare module '@sigx/zero' {
             };
             /** popover — color, size wired. */
             'popover': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -142,7 +142,7 @@ declare module '@sigx/zero' {
             };
             /** tooltip — color, size wired. */
             'tooltip': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -151,7 +151,7 @@ declare module '@sigx/zero' {
             };
             /** hover-card — color, size wired. */
             'hover-card': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -160,7 +160,7 @@ declare module '@sigx/zero' {
             };
             /** menu — color, size wired. */
             'menu': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -169,7 +169,7 @@ declare module '@sigx/zero' {
             };
             /** menubar — color, size wired. */
             'menubar': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -178,7 +178,7 @@ declare module '@sigx/zero' {
             };
             /** select — color, size wired. */
             'select': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -187,7 +187,7 @@ declare module '@sigx/zero' {
             };
             /** switch — color, size wired. */
             'switch': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -196,7 +196,7 @@ declare module '@sigx/zero' {
             };
             /** checkbox — color, size wired. */
             'checkbox': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -205,7 +205,7 @@ declare module '@sigx/zero' {
             };
             /** checkbox-group — color, size wired. */
             'checkbox-group': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -214,7 +214,7 @@ declare module '@sigx/zero' {
             };
             /** radio-group — color, size wired. */
             'radio-group': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -223,7 +223,7 @@ declare module '@sigx/zero' {
             };
             /** field — color, size wired. */
             'field': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -232,7 +232,7 @@ declare module '@sigx/zero' {
             };
             /** fieldset — color, size wired. */
             'fieldset': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -241,7 +241,7 @@ declare module '@sigx/zero' {
             };
             /** slider — color, size wired. */
             'slider': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -250,7 +250,7 @@ declare module '@sigx/zero' {
             };
             /** progress — color, size wired. */
             'progress': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -259,7 +259,7 @@ declare module '@sigx/zero' {
             };
             /** avatar — color, size, axes.shape wired. */
             'avatar': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -268,7 +268,7 @@ declare module '@sigx/zero' {
             };
             /** avatar-group — color, size wired. */
             'avatar-group': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'lg' | 'xl' | 'md';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -277,7 +277,7 @@ declare module '@sigx/zero' {
             };
             /** toast — color, size wired. */
             'toast': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -286,7 +286,7 @@ declare module '@sigx/zero' {
             };
             /** combobox — color, size wired. */
             'combobox': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -295,7 +295,7 @@ declare module '@sigx/zero' {
             };
             /** toggle — color, size wired. */
             'toggle': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -304,7 +304,7 @@ declare module '@sigx/zero' {
             };
             /** toggle-group — color, size wired. */
             'toggle-group': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -313,7 +313,7 @@ declare module '@sigx/zero' {
             };
             /** number-input — color, size wired. */
             'number-input': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -322,7 +322,7 @@ declare module '@sigx/zero' {
             };
             /** rating-group — color, size wired. */
             'rating-group': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -331,7 +331,7 @@ declare module '@sigx/zero' {
             };
             /** tree-view — color, size wired. */
             'tree-view': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -340,7 +340,7 @@ declare module '@sigx/zero' {
             };
             /** input — color, size wired. */
             'input': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -349,7 +349,7 @@ declare module '@sigx/zero' {
             };
             /** textarea — color, size wired. */
             'textarea': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -358,7 +358,7 @@ declare module '@sigx/zero' {
             };
             /** card — color, size wired. */
             'card': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -367,7 +367,7 @@ declare module '@sigx/zero' {
             };
             /** alert — color, size wired. */
             'alert': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -376,7 +376,7 @@ declare module '@sigx/zero' {
             };
             /** empty-state — color, size wired. */
             'empty-state': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -385,7 +385,7 @@ declare module '@sigx/zero' {
             };
             /** badge — color, size wired. */
             'badge': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -394,7 +394,7 @@ declare module '@sigx/zero' {
             };
             /** divider — color, size wired. */
             'divider': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -403,7 +403,7 @@ declare module '@sigx/zero' {
             };
             /** skeleton — color, size wired. */
             'skeleton': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -412,7 +412,7 @@ declare module '@sigx/zero' {
             };
             /** spinner — color, size wired. */
             'spinner': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -421,7 +421,7 @@ declare module '@sigx/zero' {
             };
             /** kbd — color, size wired. */
             'kbd': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -430,7 +430,7 @@ declare module '@sigx/zero' {
             };
             /** status — color, size wired. */
             'status': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -439,7 +439,7 @@ declare module '@sigx/zero' {
             };
             /** indicator — color, size wired. */
             'indicator': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -448,7 +448,7 @@ declare module '@sigx/zero' {
             };
             /** stats — color, size wired. */
             'stats': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -457,7 +457,7 @@ declare module '@sigx/zero' {
             };
             /** timeline — color, size wired. */
             'timeline': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -466,7 +466,7 @@ declare module '@sigx/zero' {
             };
             /** chat — color, size wired. */
             'chat': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -475,7 +475,7 @@ declare module '@sigx/zero' {
             };
             /** chat-log — color, size wired. */
             'chat-log': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -484,7 +484,7 @@ declare module '@sigx/zero' {
             };
             /** radial-progress — color, size wired. */
             'radial-progress': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -493,7 +493,7 @@ declare module '@sigx/zero' {
             };
             /** join — color, size wired. */
             'join': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -502,7 +502,7 @@ declare module '@sigx/zero' {
             };
             /** navbar — color, size wired. */
             'navbar': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -511,7 +511,7 @@ declare module '@sigx/zero' {
             };
             /** nav-list — color, size wired. */
             'nav-list': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -520,7 +520,7 @@ declare module '@sigx/zero' {
             };
             /** breadcrumbs — color, size wired. */
             'breadcrumbs': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -529,7 +529,7 @@ declare module '@sigx/zero' {
             };
             /** pagination — color, size wired. */
             'pagination': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -538,7 +538,7 @@ declare module '@sigx/zero' {
             };
             /** steps — color, size wired. */
             'steps': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -547,7 +547,7 @@ declare module '@sigx/zero' {
             };
             /** drawer — color, size wired. */
             'drawer': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -556,7 +556,7 @@ declare module '@sigx/zero' {
             };
             /** table — color, size, mods.hover, mods.zebra wired. */
             'table': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -565,7 +565,7 @@ declare module '@sigx/zero' {
             };
             /** file-upload — color, size wired. */
             'file-upload': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -574,7 +574,7 @@ declare module '@sigx/zero' {
             };
             /** carousel — color, size wired. */
             'carousel': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -583,7 +583,7 @@ declare module '@sigx/zero' {
             };
             /** swap — color, size wired. */
             'swap': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -592,7 +592,7 @@ declare module '@sigx/zero' {
             };
             /** countdown — color, size, mods.inline wired. */
             'countdown': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
@@ -601,7 +601,7 @@ declare module '@sigx/zero' {
             };
             /** diff — color, size wired. */
             'diff': {
-                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;

@@ -8,7 +8,7 @@
         overflow-x: auto;
         background: var(--color-surface-container);
         color: var(--color-surface-container-content);
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-extra-large);
     }
 
     [data-scope="stats"][data-part="root"][data-orientation="vertical"] {
@@ -36,7 +36,7 @@
         grid-column: 1;
         font-size: var(--text-xs);
         letter-spacing: var(--tracking-wide);
-        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="stats"][data-part="value"] {
@@ -51,7 +51,7 @@
     [data-scope="stats"][data-part="desc"] {
         grid-column: 1;
         font-size: var(--text-xs);
-        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="stats"][data-part="figure"] {
@@ -90,10 +90,6 @@
 
     [data-scope="stats"][data-part="item"][data-color="warning"] {
         --stats-accent: var(--color-warning);
-    }
-
-    [data-scope="stats"][data-part="item"][data-color="accent"] {
-        --stats-accent: var(--color-accent);
     }
 
     @scope ([data-scope="stats"][data-part="root"][data-color="primary"]) to ([data-scope="stats"][data-part="root"]) {
@@ -141,12 +137,6 @@
     @scope ([data-scope="stats"][data-part="root"][data-color="warning"]) to ([data-scope="stats"][data-part="root"]) {
         [data-scope="stats"][data-part="item"] {
             --stats-accent: var(--color-warning);
-        }
-    }
-
-    @scope ([data-scope="stats"][data-part="root"][data-color="accent"]) to ([data-scope="stats"][data-part="root"]) {
-        [data-scope="stats"][data-part="item"] {
-            --stats-accent: var(--color-accent);
         }
     }
 

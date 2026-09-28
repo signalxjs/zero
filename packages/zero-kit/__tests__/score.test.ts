@@ -84,11 +84,11 @@ describe('a declined axis costs nothing', () => {
         expect(report.score.criteria.vocabulary.detail['declaredOut']).toBe('variant');
     });
 
-    it('material scores full vocabulary marks although four fill roles are unwired', () => {
-        // The four tonal `surface*`/`outline` roles are tokens, not axis
-        // values (#286) — `unwired.color` lists them, the score must not.
+    it('material scores full vocabulary marks although its fill roles are unwired', () => {
+        // M3's containers, surfaces and hairlines are tokens, not axis values
+        // (#286) — `unwired.color` lists all 23 (#414), the score must not.
         const report = reportFor(materialDS as DesignSystemInput);
-        expect(report.unwired.color.length).toBe(4);
+        expect(report.unwired.color.length).toBe(23);
         expect(report.score.criteria.vocabulary.score).toBe(100);
     });
 

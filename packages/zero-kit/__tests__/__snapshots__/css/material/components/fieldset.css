@@ -15,9 +15,9 @@
 
     [data-scope="fieldset"][data-part="legend"] {
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         padding: 0;
         margin-block-end: var(--space-sm);
         color: var(--fieldset-accent);
@@ -61,10 +61,6 @@
 
     [data-scope="fieldset"][data-part="root"][data-color="warning"] {
         --fieldset-accent: var(--color-warning);
-    }
-
-    [data-scope="fieldset"][data-part="root"][data-color="accent"] {
-        --fieldset-accent: var(--color-accent);
     }
 
     [data-scope="fieldset"][data-part="root"][data-size="xs"] {

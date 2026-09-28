@@ -12,16 +12,16 @@
 
     [data-scope="progress"][data-part="label"] {
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
     }
 
     [data-scope="progress"][data-part="track"] {
         position: relative;
         height: var(--progress-track-size);
         border-radius: 624rem;
-        background: var(--color-secondary-soft);
+        background: var(--color-surface-container-highest);
         overflow: hidden;
     }
 
@@ -29,7 +29,7 @@
         height: 100%;
         border-radius: 624rem;
         background: var(--progress-accent);
-        transition: width var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
+        transition: width var(--duration-short2) var(--ease-standard), background var(--duration-short2) var(--ease-standard);
         --progress-sweep-dir: 1;
     }
 
@@ -48,7 +48,7 @@
 
     [data-scope="progress"][data-part="value-text"] {
         font-size: var(--text-xs);
-        color: var(--color-outline);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="progress"][data-part="root"][data-color="primary"] {
@@ -81,10 +81,6 @@
 
     [data-scope="progress"][data-part="root"][data-color="warning"] {
         --progress-accent: var(--color-warning);
-    }
-
-    [data-scope="progress"][data-part="root"][data-color="accent"] {
-        --progress-accent: var(--color-accent);
     }
 
     [data-scope="progress"][data-part="root"][data-size="xs"] {

@@ -11,9 +11,9 @@
 
     [data-scope="textarea"][data-part="label"] {
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--text-label-large);
         font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-wide);
+        letter-spacing: var(--tracking-label-large);
         color: var(--color-base-content);
     }
 
@@ -39,13 +39,13 @@
         background: transparent;
         color: var(--color-base-content);
         border: var(--border) solid var(--color-outline);
-        border-radius: var(--radius-field);
+        border-radius: var(--radius-medium);
         font-family: var(--font-sans);
         font-size: var(--text-md);
         line-height: var(--leading-normal);
         padding: var(--space-sm) var(--space-md);
         resize: vertical;
-        transition: border-color var(--duration-fast) var(--ease-standard);
+        transition: border-color var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="textarea"][data-part="textarea"][data-invalid] {
@@ -63,7 +63,7 @@
     }
 
     [data-scope="textarea"][data-part="textarea"]::placeholder {
-        color: var(--color-outline);
+        color: var(--color-surface-variant-content);
     }
 
     [data-scope="textarea"][data-part="root"][data-color="primary"] {
@@ -96,10 +96,6 @@
 
     [data-scope="textarea"][data-part="root"][data-color="warning"] {
         --textarea-accent: var(--color-warning);
-    }
-
-    [data-scope="textarea"][data-part="root"][data-color="accent"] {
-        --textarea-accent: var(--color-accent);
     }
 
     @scope ([data-scope="textarea"][data-part="root"][data-size="xs"]) to ([data-scope="textarea"][data-part="root"]) {

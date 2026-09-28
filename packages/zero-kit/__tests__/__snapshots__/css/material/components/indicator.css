@@ -140,12 +140,6 @@
         }
     }
 
-    @scope ([data-scope="indicator"][data-part="root"][data-color="accent"]) to ([data-scope="indicator"][data-part="root"]) {
-        [data-scope="indicator"][data-part="item"] {
-            color: var(--color-accent);
-        }
-    }
-
     @scope ([data-scope="indicator"][data-part="root"][data-size="xs"]) to ([data-scope="indicator"][data-part="root"]) {
         [data-scope="indicator"][data-part="item"] {
             font-size: var(--text-xs);
