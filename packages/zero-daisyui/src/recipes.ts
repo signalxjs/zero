@@ -5786,6 +5786,42 @@ export const card: RecipeInput = {
             xl: { root: { base: { '--card-pad': 'var(--space-2xl)' } } },
         },
     },
+    targets: {
+        lynx: {
+            parts: {
+                // The root does not clip on lynx: a clipping layer takes its
+                // own shadow with it on iOS, and the card's elevation is the
+                // daisy look. The media band rounds its own corners instead
+                // (below), which is all the clip was for.
+                root: { base: { overflow: 'visible' } },
+                // `inline-size` has no lynx spelling; the image selector and
+                // the `:first-child` / `:last-child` corners are dropped (no
+                // child or structural pseudo-classes). The band clips its
+                // own content, so an `<image>` inside it takes the corners.
+                media: { base: { width: '100%', overflow: 'hidden' } },
+                // A lynx view is a column unless told otherwise.
+                footer: { base: { flexDirection: 'row' } },
+            },
+            // The corners the media band shares with the card
+            // (signalxjs/lynx#1235). Lynx has no `:first-child` or
+            // `:last-child`, so lynx-zero stamps the band itself from its
+            // mount order among the card's bands, as `data-mod-first` /
+            // `data-mod-last` (the `zx-m-first` / `zx-m-last` classes). They
+            // are a lynx-zero rendering detail, not modifiers an author sets,
+            // so they are not declared in the vocabulary and are styled from
+            // raw lynx css (toggle-group's join ends are the precedent).
+            css: `
+.zx-card__media.zx-m-first {
+    border-top-left-radius: var(--radius-box);
+    border-top-right-radius: var(--radius-box);
+}
+.zx-card__media.zx-m-last {
+    border-bottom-left-radius: var(--radius-box);
+    border-bottom-right-radius: var(--radius-box);
+}
+`,
+        },
+    },
 };
 
 /**
@@ -5875,6 +5911,87 @@ export const alert: RecipeInput = {
             md: {},
             lg: { root: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
             xl: { root: { base: { padding: 'var(--space-xl) var(--space-2xl)' } } },
+        },
+    },
+    targets: {
+        // No grid on lynx (signalxjs/lynx#1075, #1235): the web's three
+        // columns (the icon over both rows | the title over the description
+        // | the close button) are rebuilt as a flex column with the icon and
+        // the close button placed absolutely — the toast's close pin is the
+        // precedent. The padding moves onto two properties so the icon and
+        // the close button can follow it per size.
+        lynx: {
+            tokens: {
+                '--alert-pad-y': 'var(--space-md)',
+                '--alert-pad-x': 'var(--space-lg)',
+            },
+            parts: {
+                root: {
+                    base: {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'stretch',
+                        gap: 'var(--space-sm)',
+                        position: 'relative',
+                        boxSizing: 'border-box',
+                        padding: 'var(--alert-pad-y) var(--alert-pad-x)',
+                    },
+                },
+                // The icon column: a --text-xl slot at the padding edge,
+                // centred over the alert's height (the web's two-row span).
+                icon: {
+                    base: {
+                        position: 'absolute',
+                        left: 'var(--alert-pad-x)',
+                        top: '0',
+                        bottom: '0',
+                        width: 'var(--text-xl)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                    },
+                },
+                // Pinned top-right, its glyph on the padding edge. `inherit`
+                // is spelled as the root's own ink.
+                close: {
+                    base: {
+                        position: 'absolute',
+                        top: 'calc(var(--alert-pad-y) - var(--space-2xs))',
+                        right: 'calc(var(--alert-pad-x) - var(--space-2xs))',
+                        color: 'var(--color-base-content)',
+                        fontSize: 'var(--text-md)',
+                    },
+                    states: lynxFocus({ gap: 'var(--alert-tint)' }),
+                },
+            },
+            variants: {
+                size: {
+                    xs: { root: { base: { '--alert-pad-y': 'var(--space-2xs)', '--alert-pad-x': 'var(--space-sm)' } } },
+                    sm: { root: { base: { '--alert-pad-y': 'var(--space-xs)', '--alert-pad-x': 'var(--space-md)' } } },
+                    lg: { root: { base: { '--alert-pad-y': 'var(--space-lg)', '--alert-pad-x': 'var(--space-xl)' } } },
+                    xl: { root: { base: { '--alert-pad-y': 'var(--space-xl)', '--alert-pad-x': 'var(--space-2xl)' } } },
+                },
+            },
+            // The title and description keep clear of the icon column and
+            // the close button's corner. Lynx has no `:has()`, so lynx-zero
+            // stamps what the alert renders onto both text parts, as
+            // `data-mod-with-icon` / `data-mod-with-close` (the
+            // `zx-m-with-icon` / `zx-m-with-close` classes) — a lynx-zero
+            // rendering detail like toggle-group's join ends, styled from raw
+            // lynx css.
+            css: `
+.zx-alert__title.zx-m-with-icon {
+    margin-left: calc(var(--text-xl) + var(--space-md));
+}
+.zx-alert__description.zx-m-with-icon {
+    margin-left: calc(var(--text-xl) + var(--space-md));
+}
+.zx-alert__title.zx-m-with-close {
+    margin-right: calc(var(--text-md) + var(--space-md));
+}
+.zx-alert__description.zx-m-with-close {
+    margin-right: calc(var(--text-md) + var(--space-md));
+}
+`,
         },
     },
 };
