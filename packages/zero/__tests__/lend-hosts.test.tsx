@@ -17,7 +17,7 @@ import { relative, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { JSXElement } from 'sigx';
-import { Box, Button, Card, Menu, Tooltip } from '@sigx/zero';
+import { Box, Button, Card, Dialog, HoverCard, Menu, Popover, Tooltip } from '@sigx/zero';
 import type { PartProps } from '@sigx/zero';
 
 const componentsDir = resolve(import.meta.dirname, '../src/components');
@@ -76,18 +76,90 @@ const FIXTURES: Record<string, Fixture[]> = {
                 <Menu.Popup><Menu.Item value="a">A</Menu.Item></Menu.Popup>
             </Menu.Root>
         ),
+    }, {
+        scope: 'menu',
+        part: 'trigger',
+        ownClass: true,
+        render: (lend) => (
+            <Menu.Root>
+                <Menu.Trigger lend={lend} class="own-class">Actions</Menu.Trigger>
+                <Menu.Popup><Menu.Item value="a">A</Menu.Item></Menu.Popup>
+            </Menu.Root>
+        ),
+    }],
+    'popover/Popover.tsx': [{
+        scope: 'popover',
+        part: 'trigger',
+        ownClass: true,
+        render: (lend) => (
+            <Popover.Root>
+                <Popover.Trigger lend={lend} class="own-class">Details</Popover.Trigger>
+                <Popover.Popup>Body</Popover.Popup>
+            </Popover.Root>
+        ),
+    }, {
+        scope: 'popover',
+        part: 'close',
+        ownClass: true,
+        render: (lend) => (
+            <Popover.Root>
+                <Popover.Popup><Popover.Close lend={lend} class="own-class">Close</Popover.Close></Popover.Popup>
+            </Popover.Root>
+        ),
+    }],
+    'dialog/Dialog.tsx': [{
+        scope: 'dialog',
+        part: 'trigger',
+        ownClass: true,
+        render: (lend) => (
+            <Dialog.Root>
+                <Dialog.Trigger lend={lend} class="own-class">Open</Dialog.Trigger>
+                <Dialog.Popup><Dialog.Title>Title</Dialog.Title></Dialog.Popup>
+            </Dialog.Root>
+        ),
+    }, {
+        scope: 'dialog',
+        part: 'close',
+        ownClass: true,
+        render: (lend) => (
+            <Dialog.Root>
+                <Dialog.Popup><Dialog.Close lend={lend} class="own-class">Close</Dialog.Close></Dialog.Popup>
+            </Dialog.Root>
+        ),
+    }, {
+        scope: 'dialog',
+        part: 'cancel',
+        ownClass: true,
+        render: (lend) => (
+            <Dialog.Root>
+                <Dialog.Popup><Dialog.Cancel lend={lend} class="own-class">Cancel</Dialog.Cancel></Dialog.Popup>
+            </Dialog.Root>
+        ),
+    }],
+    'hover-card/HoverCard.tsx': [{
+        scope: 'hover-card',
+        part: 'trigger',
+        ownClass: true,
+        render: (lend) => (
+            <HoverCard.Root>
+                <HoverCard.Trigger lend={lend} href="#profile" class="own-class">Profile</HoverCard.Trigger>
+                <HoverCard.Popup>Card</HoverCard.Popup>
+            </HoverCard.Root>
+        ),
     }],
     'button/Button.tsx': [{
         scope: 'button',
         part: 'root',
-        render: (lend) => <Button.Root lend={lend}>Archive</Button.Root>,
+        ownClass: true,
+        render: (lend) => <Button.Root lend={lend} class="own-class">Archive</Button.Root>,
     }],
     'tooltip/Tooltip.tsx': [{
         scope: 'tooltip',
         part: 'trigger',
+        ownClass: true,
         render: (lend) => (
             <Tooltip.Root>
-                <Tooltip.Trigger lend={lend}>Save</Tooltip.Trigger>
+                <Tooltip.Trigger lend={lend} class="own-class">Save</Tooltip.Trigger>
                 <Tooltip.Popup>Save the document</Tooltip.Popup>
             </Tooltip.Root>
         ),

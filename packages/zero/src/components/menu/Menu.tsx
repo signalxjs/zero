@@ -85,7 +85,7 @@
  * close happens and the popup shows again from its `toggle`, with no
  * `openChange`.
  */
-import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect, untrack, watch } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
@@ -508,6 +508,13 @@ export type MenuTriggerProps =
      * `asChild` element through the bag.
      */
     & WithInteractionHandlers
+    /**
+     * Another zero part's asChild bag (#452) — a `Tooltip.Trigger`'s, say —
+     * so lenders chain: tooltip → menu → a `Button.Root` that renders the
+     * element. Its handlers and ref run before the trigger's own, its IDREF
+     * ARIA joins, and its anatomy is dropped: the trigger keeps its own.
+     */
+    & WithLend
     & Define.Slot<'default', PartProps>;
 
 const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
@@ -623,11 +630,22 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onMount
         }
     };
 
-    const bag = (): PartProps => ({
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which a host chaining this one
+    // through `lend` would feel on every re-render.
+    const setEl = (node: HTMLElement | null): void => { el = node; menu.setAnchor(node); menu.setTriggerEl(node); };
+
+    // A lent bag (#452) merges under the trigger's own: its anatomy dropped,
+    // its handlers and ref chained first. The menubar's `role="menuitem"`
+    // and roving `tabIndex` are the trigger's own, so they hold.
+    const bag = (): PartProps => mergePartProps(props.lend, {
         ...htmlAttrs(props),
         id: menu.ids.trigger,
         'data-scope': SCOPE,
         'data-part': 'trigger',
+        // In the bag so a lent class concatenates; kept off an asChild bag,
+        // where the slot's element owns its class.
+        ...(props.asChild ? {} : { class: props.class }),
         ...variantAttrs(props),
         'data-state': stateAttr(menu.state.value, 'open', 'closed'),
         'data-disabled': dataAttr(disabled()),
@@ -675,14 +693,14 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onMount
             hoverOpened = false;
             press.onPointerleave(e);
         },
-        ref: (node: HTMLElement | null) => { el = node; menu.setAnchor(node); menu.setTriggerEl(node); },
-    });
+        ref: setEl,
+    } satisfies PartProps);
 
     return () => {
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <button type="button" class={props.class} {...b} disabled={disabled()}>
+            <button type="button" {...b} disabled={disabled()}>
                 {slots.default?.(b)}
             </button>
         );
@@ -862,7 +880,11 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
                 // 'last' would leak into the next, unrelated open.
                 const end = menu.takeOpenFocus();
                 const items = menu.list.enabledItems();
-                items[end === 'last' ? items.length - 1 : 0]?.el()?.focus();
+                // Untracked: the focus move runs the trigger's blur, and
+                // with a lent tooltip (#495) that reads the tooltip's state —
+                // which would otherwise re-run this effect when the tooltip
+                // shows, mid native hide, and re-show a closing menu.
+                untrack(() => items[end === 'last' ? items.length - 1 : 0]?.el()?.focus());
             } else if (!open && showing) {
                 exit.close(node, () => {
                     if (!menu.state.value && node.matches(':popover-open')) node.hidePopover!();

@@ -5,13 +5,14 @@
  * The hosts (#494): `Button.Root` takes a lent bag, `Tooltip.Trigger` takes
  * one too so lenders chain, and spreading a bag onto a zero component stays
  * an error (`ReservedByZero`) — `lend={p}` is the spelling. #450 adds Box,
- * Card.Root and Menu.ContextTrigger.
+ * Card.Root and Menu.ContextTrigger; #495 the Menu, Popover, Dialog and
+ * HoverCard triggers (and closes), so tooltip → menu → button chains.
  *
  * No runtime: a regression here is a compile error in `pnpm test:types`.
  */
 import { component } from 'sigx';
 import type { JSXElement } from 'sigx';
-import { Box, Button, Card, Menu, Tabs, Tooltip } from '@sigx/zero';
+import { Box, Button, Card, Dialog, HoverCard, Menu, Popover, Tabs, Tooltip } from '@sigx/zero';
 import type { PartProps, WithLend } from '@sigx/zero';
 
 const Host = component<WithLend>(() => () => null as unknown as JSXElement);
@@ -54,6 +55,29 @@ export const lentSurface = (
     </Menu.ContextTrigger>
 );
 
+// The trigger hosts #495 adds, each of which also lends onward.
+export const menuTrigger = <Menu.Trigger lend={p}>x</Menu.Trigger>;
+export const popoverTrigger = <Popover.Trigger lend={p}>x</Popover.Trigger>;
+export const popoverClose = <Popover.Close lend={p}>x</Popover.Close>;
+export const dialogTrigger = <Dialog.Trigger lend={p}>x</Dialog.Trigger>;
+export const dialogClose = <Dialog.Close lend={p} value="save">x</Dialog.Close>;
+export const dialogCancel = <Dialog.Cancel lend={p}>x</Dialog.Cancel>;
+export const hoverCardTrigger = <HoverCard.Trigger lend={p} href="/u/ada">x</HoverCard.Trigger>;
+export const tooltipMenuButton = (
+    <Tooltip.Trigger asChild>
+        {(t: PartProps) => (
+            <Menu.Trigger asChild lend={t}>
+                {(m: PartProps) => <Button.Root lend={m} aria-label="More actions">…</Button.Root>}
+            </Menu.Trigger>
+        )}
+    </Tooltip.Trigger>
+);
+export const closeButton = (
+    <Dialog.Close asChild>
+        {(bag: PartProps) => <Button.Root lend={bag}>Save and close</Button.Root>}
+    </Dialog.Close>
+);
+
 // ── invalid ──
 // @ts-expect-error — a bag spread onto a zero component: its anatomy is ReservedByZero; write lend={p}
 export const e0 = <Button.Root {...p} />;
@@ -63,5 +87,7 @@ export const e1 = <Host lend="x" />;
 export const e2 = <Host lend={{ id: 'a' }} />;
 // @ts-expect-error — Tabs.Tab is not a lend host
 export const e3 = <Tabs.Tab value="a" lend={p}>A</Tabs.Tab>;
+// @ts-expect-error — Menu.Item is not a lend host
+export const e5 = <Menu.Item value="a" lend={p}>A</Menu.Item>;
 // @ts-expect-error — Card.Header is not a lend host
 export const e4 = <Card.Header lend={p}>x</Card.Header>;
