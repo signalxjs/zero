@@ -1208,7 +1208,7 @@ describe('assertNoCalcVarChains', () => {
         });
     });
 
-    describe('zero-daisyui toggle-group and textarea on lynx (signalxjs/lynx#1218, #1219, #1220)', () => {
+    describe('zero-daisyui toggle-group and textarea on lynx (signalxjs/lynx#1218, #1219, #1220, #1230)', () => {
         const lynxCss = () => compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] }).componentCss;
         const body = (css: string, selector: string): string | undefined => {
             const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -1260,12 +1260,14 @@ describe('assertNoCalcVarChains', () => {
             }
         });
 
-        it('the textarea ring is one outset and one inset shadow, which cannot swap', () => {
+        it('the textarea ring is one outset shadow plus insets the border makes order-proof', () => {
             const css = lynxCss()['textarea']!;
             const ring = body(css, '.zx-textarea__textarea.zx-f-focus-visible')!;
             expect(ring).toContain('outline: none;');
             expect(ring).toContain('border-color: var(--color-base-100);');
-            expect(ring).toContain('box-shadow: 0 0 0 2px var(--textarea-accent), inset 0 0 0 2px var(--textarea-edge);');
+            // The 1px base-100 inset is the gap on Android, which paints
+            // insets over the border (signalxjs/lynx#1230). It sits above the edge.
+            expect(ring).toContain('box-shadow: 0 0 0 2px var(--textarea-accent), inset 0 0 0 1px var(--color-base-100), inset 0 0 0 2px var(--textarea-edge);');
             expect(body(css, '.zx-textarea__textarea')).toContain('--textarea-edge: var(--color-base-300);');
             expect(body(css, '.zx-textarea__textarea.zx-f-invalid')).toContain('--textarea-edge: var(--color-error);');
         });

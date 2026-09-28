@@ -5644,6 +5644,13 @@ export const textarea: RecipeInput = {
     // gap, and the hairline redrawn inside it by the inset spread, in the
     // edge colour (`--textarea-edge`, the error colour while invalid). The
     // gap is the border's width instead of the web's 2px.
+    //
+    // Android paints inset shadows OVER the border, where iOS paints them
+    // under it (signalxjs/lynx#1230): the base-100 border vanished and the
+    // whole 2px inset showed as a grey band against the ring. So the gap is
+    // also drawn as a 1px base-100 inset stacked above the edge inset. On
+    // Android that inset is the gap. On iOS the border already covers it,
+    // whichever order the layers end up in, so iOS paints as before.
     targets: {
         lynx: {
             parts: {
@@ -5660,6 +5667,9 @@ export const textarea: RecipeInput = {
                             outline: 'none',
                             borderColor: 'var(--color-base-100)',
                             boxShadow: '0 0 0 2px var(--textarea-accent), '
+                                // The gap: the border's width in base-100,
+                                // for Android, which paints this over the border.
+                                + 'inset 0 0 0 1px var(--color-base-100), '
                                 // Twice the border (1px in every shipped
                                 // theme): the inner half shows as the hairline.
                                 + 'inset 0 0 0 2px var(--textarea-edge)',
