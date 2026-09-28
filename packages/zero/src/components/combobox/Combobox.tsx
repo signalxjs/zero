@@ -41,8 +41,17 @@
  * per chosen value in the control, before the input — its label and a
  * remove button, or the root's `tag` slot in their place (a per-tag control
  * such as a mode select). Hand-written roots place `Combobox.Tags` (or
- * individual `Combobox.Tag`s) themselves. Backspace on an empty input
- * removes the last value. `allowCustom` commits free text on Enter while no
+ * individual `Combobox.Tag`s) themselves.
+ *
+ * TAG KEYBOARD (#411): the tags take real focus (`tabIndex=-1`, out of the
+ * Tab order — so are their remove buttons, a pointer affordance). From the
+ * input, the reading-start arrow at caret 0, or Backspace on an empty input,
+ * focuses the last tag. On a tag the arrows move between tags and past the
+ * last back into the input, Home/End go to the first tag / the input,
+ * Backspace removes it and focuses the previous one, Delete removes it and
+ * focuses the one taking its place, Escape and ArrowDown/Up return to the
+ * input (the arrows opening the list), and a printable key lands in the
+ * input. The typed query survives the trip. `allowCustom` commits free text on Enter while no
  * option is highlighted — the option whose label it matches, else the text
  * itself — and a custom value posts like any other.
  *
@@ -101,6 +110,7 @@ import { createAnchorPosition, type Placement, type PositionAnchor, type Positio
 import type { TextAnchor } from '../../behaviors/caret-anchor.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { isRtl } from '../../behaviors/direction.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
@@ -135,6 +145,10 @@ interface ComboboxContext {
     tagLabel(key: string): string;
     /** Deselect one chosen value (a tag's remove). */
     remove(key: string): void;
+    /** A key on a focused tag (#411): move between tags, remove, or return to the input. */
+    tagKeydown(e: KeyboardEvent, key: string, el: HTMLElement): void;
+    /** A focused tag lost focus — resyncs like the input's blur when focus left the combobox. */
+    tagBlur(e: FocusEvent): void;
     /** Something to clear: a chosen value or typed text (the clear-trigger renders while true). */
     clearable(): boolean;
     /** Clear the value and the text, and focus the input (the clear-trigger's click). */
@@ -191,6 +205,8 @@ function makeInert(): ComboboxContext {
         multiple: () => false,
         tagLabel: (key) => key,
         remove: () => {},
+        tagKeydown: () => {},
+        tagBlur: () => {},
         clearable: () => false,
         clear: () => {},
         loading: () => false,
@@ -610,6 +626,108 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         const current = Array.isArray(state.value) ? state.value : [];
         state.value = current.filter((v) => collection.keyForValue(v) !== key);
     };
+
+    // ── Tag keyboard (#411) ──
+    // The tags in document order, read from the control rather than the
+    // selection: hand-written roots place their own `Combobox.Tag`s.
+    const tagEls = (): HTMLElement[] => (control
+        ? Array.from(control.querySelectorAll<HTMLElement>(`[data-scope="${SCOPE}"][data-part="tag"]`))
+        : []);
+    const tagFocused = (): boolean => {
+        const active = control?.ownerDocument.activeElement ?? null;
+        return !!active && tagEls().includes(active as HTMLElement);
+    };
+    /** Focus a tag — the popup closes (its options answer the input, not a tag); the query stays. */
+    const focusTag = (el: HTMLElement): void => {
+        el.focus();
+        setOpen(false);
+    };
+    /** Focus the input with the caret at `pos` (`'end'` for the end of the text). */
+    const focusInputAt = (pos: number | 'end'): void => {
+        const el = input as HTMLInputElement | null;
+        if (!el) return;
+        el.focus();
+        const at = pos === 'end' ? el.value.length : pos;
+        el.setSelectionRange(at, at);
+    };
+    const tagKeydown = (e: KeyboardEvent, key: string, el: HTMLElement): void => {
+        if (e.isComposing || fc.disabled()) return;
+        const tags = tagEls();
+        const i = tags.indexOf(el);
+        if (i < 0) return;
+        const k = e.key;
+        const rtl = isRtl(control);
+        const start = rtl ? 'ArrowRight' : 'ArrowLeft';
+        const end = rtl ? 'ArrowLeft' : 'ArrowRight';
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (k === start || k === 'Home') {
+            e.preventDefault();
+            const to = k === 'Home' ? tags[0]! : tags[Math.max(0, i - 1)]!;
+            if (to !== el) focusTag(to);
+            return;
+        }
+        if (k === end) {
+            e.preventDefault();
+            if (i + 1 < tags.length) focusTag(tags[i + 1]!);
+            else focusInputAt(0);
+            return;
+        }
+        if (k === 'End' || k === 'Escape') {
+            e.preventDefault();
+            focusInputAt('end');
+            return;
+        }
+        if (k === 'ArrowDown' || k === 'ArrowUp') {
+            e.preventDefault();
+            focusInputAt('end');
+            if (fc.readonly()) return;
+            setOpen(true);
+            listbox.move(k === 'ArrowDown' ? 'first' : 'last');
+            return;
+        }
+        if (k === 'Backspace' || k === 'Delete') {
+            e.preventDefault();
+            if (fc.readonly()) return;
+            // Focus moves BEFORE the removal, while the neighbour exists and
+            // the tag being removed still holds focus — so focus never falls
+            // back to the body when it unmounts.
+            const next = k === 'Backspace'
+                ? (i > 0 ? tags[i - 1] : tags[i + 1])
+                : tags[i + 1];
+            if (next) next.focus();
+            else focusInputAt('end');
+            remove(key);
+            return;
+        }
+        // A printable key belongs to the input: focus moves there before the
+        // character is inserted, so it lands in the text.
+        if (k.length === 1 && !fc.readonly()) focusInputAt('end');
+    };
+    /**
+     * From the input onto the last tag: the reading-start arrow with the
+     * caret at 0, or Backspace on an empty input — the next Backspace
+     * removes it, so one stray key never deletes. True when handled.
+     */
+    const enterTags = (e: KeyboardEvent): boolean => {
+        if (!multiple() || e.isComposing || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return false;
+        const el = input as HTMLInputElement | null;
+        const tags = tagEls();
+        const last = tags[tags.length - 1];
+        if (!el || !last) return false;
+        const enter = e.key === 'Backspace'
+            ? inputValue.value === ''
+            : e.key === (isRtl(control) ? 'ArrowRight' : 'ArrowLeft') && el.selectionStart === 0 && el.selectionEnd === 0;
+        if (!enter) return false;
+        e.preventDefault();
+        focusTag(last);
+        return true;
+    };
+    const tagBlur = (e: FocusEvent): void => {
+        const to = e.relatedTarget as Node | null;
+        if (to && (control?.contains(to) || popup?.contains(to) || trigger?.contains(to))) return;
+        if (openState.value) setOpen(false);
+        else commitInputText();
+    };
     // allowCustom: the option (or chosen custom value) whose label the text
     // names, case-insensitively, else the text itself — a key the collection
     // does not hold is its own value (`valueForKey`) and its own label.
@@ -647,7 +765,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         if (triggerMode || fc.disabled() || fc.readonly()) return;
         const text = inputValue.value;
         if (multiple()) {
-            if (text !== '') inputValue.value = '';
+            // A tag holding focus is still inside the combobox (#411): the
+            // query waits for focus to leave.
+            if (text !== '' && !tagFocused()) inputValue.value = '';
             return;
         }
         const keys = listbox.selectedKeys();
@@ -887,6 +1007,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         multiple,
         tagLabel,
         remove,
+        tagKeydown,
+        tagBlur,
         clearable: () => !triggerMode && (inputValue.value !== '' || listbox.selectedKeys().length > 0),
         clear: () => {
             if (fc.disabled() || fc.readonly()) return;
@@ -912,7 +1034,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         setPopup: (el) => { popup = el; },
         focusInput: () => { (input ?? textEl)?.focus(); },
         inputKeydown(e) {
-            if (ctx.disabled() || ctx.readonly()) return;
+            if (ctx.disabled()) return;
+            // Readonly tags are still reachable — only their removal is refused.
+            if (enterTags(e) || ctx.readonly()) return;
             if (pageKey(e)) return;
             const key = e.key;
             if (completing() && !e.isComposing) {
@@ -997,12 +1121,6 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
                     e.preventDefault();
                     commitText(text);
                 }
-                return;
-            }
-            if (key === 'Backspace') {
-                // Backspace on an empty input removes the last tag.
-                const keys = listbox.selectedKeys();
-                if (multiple() && inputValue.value === '' && keys.length > 0) remove(keys[keys.length - 1]!);
                 return;
             }
             if (key === 'Escape') {
@@ -1327,20 +1445,40 @@ export type ComboboxTagProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const ComboboxTag = component<ComboboxTagProps>(({ props, slots }) => {
+const ComboboxTag = component<ComboboxTagProps>(({ props, slots, signal }) => {
     const combobox = useComboboxContext();
+    let el: HTMLElement | null = null;
+    const focus = signal({ visible: false });
     const ctx: ComboboxTagContext = {
         value: () => props.value,
         label: () => combobox.tagLabel(props.value),
     };
     defineProvide(useComboboxTagContext, () => ctx);
+    // Focusable but out of the Tab order (#411): the arrows reach it from the
+    // input. No role — a generic span may hold the remove <button> without
+    // nesting interactives; its text is what is read.
     return () => (
         <span
             {...htmlAttrs(props)}
             data-scope={SCOPE}
             data-part="tag"
             data-disabled={dataAttr(combobox.disabled())}
+            data-focus-visible={dataAttr(focus.visible)}
+            tabIndex={combobox.disabled() ? undefined : -1}
+            aria-keyshortcuts={combobox.disabled() || combobox.readonly() ? undefined : 'Backspace Delete'}
             class={props.class}
+            ref={(node: HTMLElement | null) => { el = node; }}
+            onKeydown={(e: KeyboardEvent) => {
+                // A key on the remove button inside is the button's own.
+                if (!el || e.target !== el) return;
+                combobox.tagKeydown(e, props.value, el);
+            }}
+            onFocus={(e: FocusEvent) => { if (e.target === el) focus.visible = isFocusVisible(el); }}
+            onBlur={(e: FocusEvent) => {
+                if (e.target !== el) return;
+                focus.visible = false;
+                combobox.tagBlur(e);
+            }}
         >
             {slots.default
                 ? slots.default()
@@ -1393,6 +1531,9 @@ const ComboboxTagRemove = component<ComboboxTagRemoveProps>(({ props, slots, sig
                 data-part="tag-remove"
                 data-disabled={dataAttr(disabled())}
                 data-focus-visible={dataAttr(focus.visible)}
+                // A pointer affordance (#411): the keyboard removes the
+                // focused tag with Backspace/Delete.
+                tabIndex={-1}
                 aria-label={props.label ?? attrs['aria-label'] ?? `Remove ${tag.label()}`}
                 disabled={disabled()}
                 class={props.class}

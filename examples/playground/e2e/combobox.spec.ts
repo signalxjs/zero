@@ -8,7 +8,7 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { bootPage } from './nav';
-import { demoPosting } from './demo';
+import { demoPosting, rootPosting } from './demo';
 
 test.beforeEach(async ({ page }) => {
     await bootPage(page, 'combobox', 'basic');
@@ -123,9 +123,56 @@ test('tags: free text commits on Enter, Backspace on the empty input removes the
     await expect(t('input')).toHaveValue('');
     expect(await posted(page)).toEqual(['search', 'shell', 'deploy']);
 
+    // Two presses (#411): the first focuses the last tag, the second removes it.
     await t('input').press('Backspace');
+    await expect(t('tag').nth(2)).toBeFocused();
+    await expect(t('tag-label')).toHaveText(['search', 'shell', 'deploy']);
+    await page.keyboard.press('Backspace');
     await expect(t('tag-label')).toHaveText(['search', 'shell']);
+    await expect(t('tag').nth(1)).toBeFocused();
     expect(await posted(page)).toEqual(['search', 'shell']);
+});
+
+/**
+ * Tag keyboard (#411), in real engines: real focus lands on the tags, a
+ * printable key typed on one reaches the input's text (focus moves during the
+ * keydown — only a real engine inserts the character where focus went), and
+ * a real Tab never stops on a tag or its remove button.
+ */
+test('tags: arrows walk the tags, Delete removes, and typing on a tag lands in the input (#411)', async ({ page }) => {
+    const t = tools(page);
+    await t('input').click();
+    await page.keyboard.press('ArrowLeft');
+    await expect(t('tag').nth(1)).toBeFocused();
+    await page.keyboard.press('ArrowLeft');
+    await expect(t('tag').nth(0)).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(t('tag').nth(1)).toBeFocused();
+    await expect(t('tag').nth(1)).toHaveAttribute('data-focus-visible', '');
+    await page.keyboard.press('ArrowRight');
+    await expect(t('input')).toBeFocused();
+
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('Home');
+    await page.keyboard.press('Delete');
+    await expect(t('tag-label')).toHaveText(['shell']);
+    await expect(t('tag').nth(0)).toBeFocused();
+    expect(await posted(page)).toEqual(['shell']);
+
+    await page.keyboard.type('gi');
+    await expect(t('input')).toBeFocused();
+    await expect(t('input')).toHaveValue('gi');
+});
+
+test('tags: Tab and Shift+Tab never stop on a tag or its remove button (#411)', async ({ page }) => {
+    const t = tools(page);
+    await t('input').click();
+    await page.keyboard.press('Shift+Tab');
+    const inside = () => rootPosting(page, 'combobox', 'tools').evaluate((root) => root.contains(document.activeElement));
+    expect(await inside()).toBe(false);
+    await t('input').click();
+    await page.keyboard.press('Tab');
+    expect(await inside()).toBe(false);
 });
 
 test('tags: an option picked by keyboard becomes a tag and the list stays open', async ({ page }) => {

@@ -671,8 +671,28 @@ the label — `filter` replaces the rule and `filter={false}` shows a
 server-filtered list as is; `Combobox.Empty` renders only while nothing is
 visible. Under `multiple`, Combobox renders each chosen value as a tag in
 the control (`Combobox.Tags` / `Tag` / `TagLabel` / `TagRemove`; the root's
-`tag` slot supplies per-tag content). Backspace on an empty input removes
-the last tag, and `allowCustom` commits free text on Enter. Both post through a real hidden `<select>` (every item as an
+`tag` slot supplies per-tag content), and `allowCustom` commits free text on
+Enter.
+
+The tags are keyboard-reachable (#411). They take real focus but are out of
+the Tab order, and so are their remove buttons, which are a pointer
+affordance like the trigger:
+
+| Where | Key | Does |
+|---|---|---|
+| input | reading-start arrow (←, → under `rtl`) at caret 0 | focus the last tag; the list closes, the typed query stays |
+| input (empty) | Backspace | focus the last tag — a second Backspace removes it |
+| tag | ← / → | previous / next tag; past the last, back to the input |
+| tag | Home / End | first tag / the input |
+| tag | Backspace | remove it, focus the previous tag |
+| tag | Delete | remove it, focus the tag taking its place (or the input) |
+| tag | Escape, ↓ / ↑ | back to the input (the arrows open the list) |
+| tag | a printable key | back to the input, where the character lands |
+
+A focused tag carries `data-focus-visible` for a keyboard ring. Under
+`readonly` the tags are still reachable but nothing is removed.
+
+Both post through a real hidden `<select>` (every item as an
 option in data mode, `multiple` under `multiple`). There is no separate
 native select: the hidden `<select>` is the form control, and a native
 projection would be a prop on this anatomy, never a second component.

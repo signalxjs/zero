@@ -27,11 +27,13 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
     // A chosen value, rendered in the control before the input (the data
     // expansion does so under `multiple`; hand-written roots place
     // `Combobox.Tags` themselves). The label and the remove button are its
-    // default content; a per-tag slot replaces it.
+    // default content; a per-tag slot replaces it. Focusable out of the Tab
+    // order (#411): the arrows reach it from the input, Backspace/Delete
+    // remove it — `focus-visible` is the ring a recipe draws on it.
     tag: {
         element: 'span',
         parent: 'control',
-        flags: ['disabled'],
+        flags: ['disabled', 'focus-visible'],
         tokens: ['color', 'radius-selector', 'text'],
     },
     'tag-label': {
@@ -39,9 +41,9 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         parent: 'tag',
         tokens: ['text'],
     },
-    // A real button in the tab order (`aria-label="Remove <label>"`) — the
-    // one way to reach a tag other than the last, which Backspace on the
-    // empty input removes.
+    // A real button (`aria-label="Remove <label>"`), out of the Tab order
+    // since #411 — a pointer affordance like the trigger: the keyboard
+    // removes the focused tag with Backspace/Delete.
     'tag-remove': {
         element: 'button',
         parent: 'tag',

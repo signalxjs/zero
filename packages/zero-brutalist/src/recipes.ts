@@ -2449,7 +2449,8 @@ export const combobox: RecipeInput = {
                 ...label,
                 fontSize: 'var(--text-xs)',
             },
-            states: { disabled: {} },
+            // Arrowed onto from the input (#411).
+            states: { disabled: {}, ...focusRing },
         },
         'tag-label': { base: { whiteSpace: 'nowrap' } },
         'tag-remove': {

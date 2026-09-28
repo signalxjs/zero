@@ -75,6 +75,11 @@
         line-height: var(--leading-none);
     }
 
+    [data-scope="combobox"][data-part="tag"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
     [data-scope="combobox"][data-part="tag-label"] {
         white-space: nowrap;
     }
