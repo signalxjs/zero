@@ -20,7 +20,7 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const textareaAnatomy = defineAnatomy('textarea', {
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'required', 'readonly'],
+        flags: ['disabled', 'invalid', 'required', 'readonly', 'placeholder'],
         tokens: ['color'],
     },
     label: {

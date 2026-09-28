@@ -222,6 +222,18 @@ system's size axis (`data-size`), so width belongs to the recipe.
 </Input.Root>
 ```
 
+**An empty field says so (#416).** Input's and NumberInput's `root` and
+`control` carry `data-placeholder` while their text is empty, and so do
+Textarea's `root` and Combobox's `root` and `control`. For a combobox, empty
+means no typed query and nothing chosen; a trigger-mode combobox never sets
+it, because the Textarea it wraps flags its own. It is the word Select already uses
+for "nothing chosen", and it is what a floating label reads to rest inside
+the field instead of above it. It follows what the field shows, so a
+keystroke a `lazy` or `debounce` model has not taken yet already clears it.
+It is kept off the native element on purpose: `:placeholder-shown` needs a
+`placeholder` attribute to match at all, and re-rendering the native
+element per keystroke would drop a pending `debounce`.
+
 **Input's control holds three affordances (#281).** `Input.Adornment`
 (part `adornment`, `placement="start" | "end"` → `data-placement`) puts
 consumer content — an icon, a unit, a prefix — at a logical edge of the

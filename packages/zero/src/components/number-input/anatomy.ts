@@ -12,7 +12,7 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const numberInputAnatomy = defineAnatomy('number-input', {
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'required', 'readonly'],
+        flags: ['disabled', 'invalid', 'required', 'readonly', 'placeholder'],
         tokens: ['color'],
     },
     label: {
@@ -24,7 +24,7 @@ export const numberInputAnatomy = defineAnatomy('number-input', {
     control: {
         element: 'div',
         parent: 'root',
-        flags: ['disabled', 'invalid', 'readonly', 'focus-visible'],
+        flags: ['disabled', 'invalid', 'readonly', 'focus-visible', 'placeholder'],
         tokens: ['color', 'radius-field', 'size'],
     },
     input: {

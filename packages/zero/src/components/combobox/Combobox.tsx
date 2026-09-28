@@ -151,6 +151,8 @@ interface ComboboxContext {
     tagBlur(e: FocusEvent): void;
     /** Something to clear: a chosen value or typed text (the clear-trigger renders while true). */
     clearable(): boolean;
+    /** No typed text and nothing selected — the parts' `data-placeholder`. Never in trigger mode. */
+    empty(): boolean;
     /** Clear the value and the text, and focus the input (the clear-trigger's click). */
     clear(): void;
     /** The root's `loading` — the listbox is `aria-busy`, `empty` holds back. */
@@ -208,6 +210,7 @@ function makeInert(): ComboboxContext {
         tagKeydown: () => {},
         tagBlur: () => {},
         clearable: () => false,
+        empty: () => true,
         clear: () => {},
         loading: () => false,
         guardKey: () => {},
@@ -1041,6 +1044,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         tagKeydown,
         tagBlur,
         clearable: () => !triggerMode && (inputValue.value !== '' || listbox.selectedKeys().length > 0),
+        // Not in trigger mode: there the query is only the active token's, and
+        // the Textarea it wraps flags its own emptiness.
+        empty: () => !triggerMode && inputValue.value === '' && listbox.selectedKeys().length === 0,
         clear: () => {
             if (fc.disabled() || fc.readonly()) return;
             if (listbox.selectedKeys().length > 0) {
@@ -1338,6 +1344,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             data-part="root"
             {...fc.flags()}
             data-readonly={dataAttr(ctx.readonly())}
+            data-placeholder={dataAttr(ctx.empty())}
             {...fc.axisAttrs()}
             class={props.class}
         >
@@ -1429,6 +1436,7 @@ const ComboboxControl = component<ComboboxControlProps>(({ props, slots }) => {
             data-state={stateAttr(combobox.open.value, 'open', 'closed')}
             data-disabled={dataAttr(combobox.disabled())}
             data-invalid={dataAttr(combobox.invalid())}
+            data-placeholder={dataAttr(combobox.empty())}
             data-focus-visible={dataAttr(combobox.inputFocusVisible.value)}
             class={props.class}
             ref={(node: HTMLElement | null) => { combobox.setControl(node); }}

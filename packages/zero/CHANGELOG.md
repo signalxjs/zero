@@ -21,6 +21,21 @@
   could not be named. `@sigx/zero-ext-example`'s Stepper now forwards html
   attributes through `WithHtmlAttrs`, and its declaration build holds the fix.
 
+### Added — `data-placeholder` on the text controls (#416)
+
+- Input's and NumberInput's `root` and `control`, Textarea's `root`, and
+  Combobox's `root` and `control` carry `data-placeholder` while the field is
+  empty. For a combobox that means no query and nothing chosen; a
+  trigger-mode combobox never sets it, since its Textarea flags itself. It is the flag
+  Select already sets for "nothing chosen", and what a floating label reads to
+  rest inside its field. It tracks the element's text, so a keystroke a `lazy`
+  or `debounce` model has not taken yet already clears it.
+- **Anatomy.** `input.root`, `input.control`, `number-input.root`,
+  `number-input.control`, `textarea.root`, `combobox.root` and
+  `combobox.control` declare the `placeholder` flag. The native elements do
+  not: re-rendering them per keystroke would drop a pending `debounce`, and
+  `:placeholder-shown` only matches when a `placeholder` attribute is set.
+
 ## [0.14.0] - 2026-09-28
 
 ### Changed — the combobox tag keyboard (#411)

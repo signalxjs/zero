@@ -2,9 +2,11 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 import { PLACEMENT_VOCABULARY } from '../../contract/data-attrs.js';
 
 export const comboboxAnatomy = defineAnatomy('combobox', {
+    // `placeholder` on root and control (#416): no typed text and nothing
+    // selected — what a floating label reads to rest inside the field.
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'required', 'readonly'],
+        flags: ['disabled', 'invalid', 'required', 'readonly', 'placeholder'],
         tokens: ['color'],
     },
     // The bordered "field chrome" wrapping input + trigger. It mirrors the
@@ -13,10 +15,13 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         element: 'div',
         parent: 'root',
         states: ['open', 'closed'],
-        flags: ['disabled', 'invalid', 'focus-visible'],
+        flags: ['disabled', 'invalid', 'focus-visible', 'placeholder'],
         tokens: ['color', 'radius-field', 'size'],
     },
-    // A real text input — no data-placeholder flag; use :placeholder-shown.
+    // A real text input. Emptiness is flagged on root and control, not here,
+    // and not left to `:placeholder-shown`: the pseudo-class needs a
+    // `placeholder` attribute to match at all, and reads a multiple combobox
+    // with chosen tags as empty.
     input: {
         element: 'input',
         parent: 'control',

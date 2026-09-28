@@ -27,7 +27,7 @@
  * right before hydration. `createAutosize` measures the chrome the bounds
  * need and, on an engine without `field-sizing`, the height itself.
  */
-import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define, ModelModifiers } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createFormControl, type FormControl } from '../../behaviors/form-control.js';
@@ -78,6 +78,12 @@ interface TextareaContext {
     required(): boolean;
     readonly(): boolean;
     focusVisible: { value: boolean };
+    /**
+     * What the box shows: kept from the element on every keystroke and from
+     * every model write, so `data-placeholder` is right under `lazy` and
+     * `debounce` too, which hold the model back.
+     */
+    text: { value: string };
     /** The Root's `reportValidity` — the Textarea part reports its element (#284). */
     reportValidity: FormControl['reportValidity'];
 }
@@ -102,6 +108,7 @@ function makeInert(): TextareaContext {
         required: () => false,
         readonly: () => false,
         focusVisible: { value: false },
+        text: { value: '' },
         reportValidity: () => {},
     };
 }
@@ -162,6 +169,8 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-textarea' });
     const focusVisible = signal({ value: false });
+    const text = signal({ value: state.value ?? '' });
+    watch(() => state.value, (v) => { text.value = v ?? ''; });
 
     const ctx: TextareaContext = {
         state,
@@ -190,6 +199,7 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
         required: fc.required,
         readonly: fc.readonly,
         focusVisible,
+        text,
         reportValidity: fc.reportValidity,
     };
     defineProvide(useTextareaContext, () => ctx);
@@ -201,6 +211,7 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
             data-part="root"
             {...fc.flags()}
             data-readonly={dataAttr(fc.readonly())}
+            data-placeholder={dataAttr(text.value === '')}
             {...fc.axisAttrs()}
             class={props.class}
         >
@@ -272,6 +283,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
     // under a timing modifier: `lazy` and `debounce` exist precisely to NOT
     // write on each input.
     const onInput = (e: Event): void => {
+        if (el) ctx.text.value = el.value;
         if (el && !ctx.modifiers() && ctx.state.value !== el.value) ctx.state.value = el.value;
         claim?.sync(true);
         props.onInput?.(e);
@@ -288,6 +300,7 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
         detachReset = onFormReset(() => el, () => {
             ctx.state.value = ctx.defaultValue();
             if (el) el.value = ctx.state.value;
+            ctx.text.value = ctx.state.value ?? '';
             autosize?.refresh();
         });
         effect(() => {

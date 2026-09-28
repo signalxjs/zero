@@ -261,6 +261,7 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal, onUnm
             data-part="root"
             {...fc.flags()}
             data-readonly={dataAttr(fc.readonly())}
+            data-placeholder={dataAttr(text.value === '')}
             {...fc.axisAttrs()}
             class={props.class}
         >
@@ -308,6 +309,7 @@ const InputControl = component<InputControlProps>(({ props, slots }) => {
             data-disabled={dataAttr(ctx.disabled())}
             data-invalid={dataAttr(ctx.invalid())}
             data-readonly={dataAttr(ctx.readonly())}
+            data-placeholder={dataAttr(ctx.text.value === '')}
             data-focus-visible={dataAttr(ctx.focusVisible.value)}
             class={props.class}
         >
