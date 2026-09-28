@@ -1869,6 +1869,7 @@ export const switchRecipe: RecipeInput = {
         // `variants.color` only rebinds these (the toast shape).
         '--switch-accent': 'var(--color-primary)',
         '--switch-on-accent': 'var(--color-primary-content)',
+        '--switch-soft': 'var(--color-primary-container)',
     },
     parts: {
         root: {
@@ -1879,7 +1880,7 @@ export const switchRecipe: RecipeInput = {
                 cursor: 'pointer',
                 WebkitTapHighlightColor: 'transparent',
             },
-            states: { checked: {}, unchecked: {}, readonly: { cursor: 'default' }, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+            states: { checked: {}, unchecked: {}, readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
         },
         // Material's switch state layer rides the THUMB (which travels and
         // grows), so the held layer is a thumb pseudo lit from the control's
@@ -1893,7 +1894,8 @@ export const switchRecipe: RecipeInput = {
                 width: 'var(--switch-width)',
                 height: 'var(--switch-height)',
                 borderRadius: '624rem',
-                background: 'var(--color-surface-container-high)',
+                // M3's unselected track: surface-container-highest in a 2dp outline.
+                background: 'var(--color-surface-container-highest)',
                 border: '2px solid var(--color-outline)',
                 transition: motion('background, border-color'),
             },
@@ -1921,6 +1923,36 @@ export const switchRecipe: RecipeInput = {
                 // MD3 ink: on-surface while unselected (deliberately NOT the
                 // accent), the accent once checked (the thumb's own ::before).
                 '&[data-state="unchecked"] [data-part="thumb"]::before': { background: 'var(--color-base-content)' },
+                // M3's handle on hover and press: on-surface-variant while
+                // unselected, the role's container once selected — and a
+                // press grows it to 28dp whichever it is.
+                '&:is(:hover, [data-pressed]):not([data-disabled], [data-readonly])[data-state="unchecked"] [data-part="thumb"]': {
+                    background: 'var(--color-surface-variant-content)',
+                },
+                '&:is(:hover, [data-pressed]):not([data-disabled], [data-readonly])[data-state="checked"] [data-part="thumb"]': {
+                    background: 'var(--switch-soft)',
+                },
+                '&[data-pressed]:not([data-disabled], [data-readonly]) [data-part="thumb"]': {
+                    width: 'calc(var(--size-selector) * 7)',
+                    height: 'calc(var(--size-selector) * 7)',
+                },
+                // M3's disabled switch (#417): explicit colours rather than a
+                // fade. Unselected: the outline and handle at 12% / 38%
+                // on-surface; selected: the track at 12% and the handle surface.
+                '&[data-disabled]': {
+                    background: 'color-mix(in oklch, var(--color-surface-container-highest), transparent 88%)',
+                    borderColor: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+                },
+                '&[data-disabled][data-state="checked"]': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+                    borderColor: 'transparent',
+                },
+                '&[data-disabled] [data-part="thumb"]': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+                },
+                '&[data-disabled][data-state="checked"] [data-part="thumb"]': {
+                    background: 'var(--color-surface)',
+                },
             },
             at: {
                 'hover-none': {
@@ -1938,7 +1970,13 @@ export const switchRecipe: RecipeInput = {
                 borderRadius: '624rem',
                 background: 'var(--color-outline)',
                 transform: 'translateY(-50%)',
-                transition: motion('transform, background, width, height'),
+                // The handle travels and grows on M3 Expressive's fast spatial
+                // spring; its colour on the standard curve.
+                transition:
+                    'transform var(--duration-spatial-fast) var(--ease-spatial-fast), '
+                    + 'width var(--duration-spatial-fast) var(--ease-spatial-fast), '
+                    + 'height var(--duration-spatial-fast) var(--ease-spatial-fast), '
+                    + 'background-color var(--duration-short2) var(--ease-standard)',
                 // The anchor is logical, so the travel has to be too — and
                 // `transform` has no logical form, so the direction is carried by
                 // a value the RTL rule below can rebind. Half of this is worse
@@ -1999,7 +2037,14 @@ export const switchRecipe: RecipeInput = {
                 },
             },
         },
-        label: { base: { fontSize: 'var(--text-md)' }, states: { checked: {}, unchecked: {} } },
+        label: {
+            base: { ...type('body-large') },
+            states: {
+                checked: {},
+                unchecked: {},
+                disabled: { color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)' },
+            },
+        },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
     variants: {
@@ -2015,6 +2060,7 @@ export const switchRecipe: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--switch-accent': `var(--color-${c})`,
             '--switch-on-accent': `var(--color-${c}-content)`,
+            '--switch-soft': `var(--color-${c}-container)`,
         } } }])),
     },
     skipStates: { root: ['focus-visible'] },
@@ -2040,7 +2086,8 @@ const tickBox = (accent: string, size: string): PartStyles => ({
         boxSizing: 'border-box',
         width: size,
         height: size,
-        border: '2px solid var(--color-outline)',
+        // M3's unselected outline: 2dp on-surface-variant, on-surface on hover.
+        border: '2px solid var(--color-surface-variant-content)',
         background: 'transparent',
         transition: motion('background, border-color'),
     },
@@ -2052,6 +2099,16 @@ const tickBox = (accent: string, size: string): PartStyles => ({
         unchecked: {},
         indeterminate: { background: accent, borderColor: accent },
         ...focusRing,
+    },
+    selectors: {
+        '&[data-state="unchecked"]:hover:not([data-disabled], [data-readonly])': { borderColor: 'var(--color-base-content)' },
+        // M3's disabled selection control (#417): explicit colours rather
+        // than a fade — the outline and a selected fill at 38% on-surface.
+        '&[data-disabled]': { borderColor: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)' },
+        '&[data-disabled]:not([data-state="unchecked"])': {
+            background: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+            borderColor: 'transparent',
+        },
     },
 });
 
@@ -2104,7 +2161,8 @@ export const checkbox: RecipeInput = {
     // primary variant, and `variants.color` only rebinds custom properties
     // (the toast shape).
     tokens: {
-        '--checkbox-size': 'calc(var(--size-selector) * 6)',
+        // M3's 18dp container at `md`.
+        '--checkbox-size': dp(18),
         '--checkbox-accent': 'var(--color-primary)',
         '--checkbox-on-accent': 'var(--color-primary-content)',
         // The mark's own box, and — since #226's re-centring — literally the
@@ -2126,14 +2184,14 @@ export const checkbox: RecipeInput = {
                 cursor: 'pointer',
                 WebkitTapHighlightColor: 'transparent',
             },
-            states: { readonly: { cursor: 'default' }, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+            states: { readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
         },
-        // MD3 selection-control halo: unbounded, centered, coords ignored.
-        // 2.5 × the tick keeps the 15-unit resting diameter and scales with
-        // the size variant.
-        control: withPresence(pressableCentered('checkbox', 'calc(var(--checkbox-size) * 2.5)', 'var(--checkbox-accent)'), {
+        // MD3 selection-control halo: unbounded, centered, coords ignored —
+        // M3's 40dp state layer over the 18dp box, scaling with the size step.
+        control: withPresence(pressableCentered('checkbox', 'calc(var(--checkbox-size) * 40 / 18)', 'var(--checkbox-accent)'), {
             ...checkboxTick,
-            base: { ...checkboxTick.base, borderRadius: 'var(--radius-extra-small)' },
+            // M3's checkbox corner is 2dp: this vocabulary's `selector` radius.
+            base: { ...checkboxTick.base, borderRadius: 'var(--radius-selector)' },
             states: {
                 ...checkboxTick.states,
                 /**
@@ -2283,6 +2341,8 @@ export const checkbox: RecipeInput = {
                     scale: 'var(--checkbox-mark-trail) 1',
                     transition: 'scale var(--duration-short2) var(--ease-emphasized-decelerate)',
                 },
+                // M3's disabled mark: the surface over the 38% on-surface fill.
+                '[data-disabled] > &': { color: 'var(--color-surface)' },
                 // Material draws the long arm OUT OF the short one, so the
                 // stagger lives on the destination rule: drawing in waits a
                 // beat for the lead arm, erasing does not wait for anything.
@@ -2304,7 +2364,10 @@ export const checkbox: RecipeInput = {
                 print: markGlyphFallback('var(--print-ink)'),
             },
         },
-        label: { base: { fontSize: 'var(--text-md)' } },
+        label: {
+            base: { ...type('body-large') },
+            selectors: { '[data-disabled] > &': { color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)' } },
+        },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
     keyframes: rippleKeyframes('checkbox'),
@@ -2314,11 +2377,12 @@ export const checkbox: RecipeInput = {
             '--checkbox-on-accent': `var(--color-${c}-content)`,
         } } }])),
         size: {
-            xs: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
-            sm: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 5)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
-            md: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 6)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
-            lg: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
-            xl: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-xl)' } } },
+            xs: { root: { base: { '--checkbox-size': dp(14) } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--checkbox-size': dp(16) } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            // `md` is M3's 18dp — the token default.
+            md: {},
+            lg: { root: { base: { '--checkbox-size': dp(22) } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { '--checkbox-size': dp(26) } }, label: { base: { fontSize: 'var(--text-xl)' } } },
         },
     },
     // The container and the mark carry the selection between them; the row and
@@ -2334,7 +2398,8 @@ const radioTick = tickBox('var(--radio-accent)', 'var(--radio-size)');
 export const radioGroup: RecipeInput = {
     component: 'radio-group',
     tokens: {
-        '--radio-size': 'calc(var(--size-selector) * 6)',
+        // M3's 20dp radio at `md`.
+        '--radio-size': dp(20),
         // No `--radio-on-accent`: nothing in a Material radio sits ON the
         // accent — the ring and the dot both take the accent itself.
         '--radio-accent': 'var(--color-primary)',
@@ -2355,13 +2420,13 @@ export const radioGroup: RecipeInput = {
                 cursor: 'pointer',
                 WebkitTapHighlightColor: 'transparent',
             },
-            states: { readonly: { cursor: 'default' }, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+            states: { readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
         },
         // Not the full `tickBox`: a radio has no indeterminate state, and
         // reusing the checkbox's states smuggled one in — which the compiler
-        // rejected. The halo diameter is 2.5 × the tick (15 units resting),
+        // rejected. The halo is M3's 40dp state layer over the 20dp ring,
         // scaling with the size variant.
-        'item-control': withPresence(pressableCentered('radio', 'calc(var(--radio-size) * 2.5)', 'var(--radio-accent)'), {
+        'item-control': withPresence(pressableCentered('radio', 'calc(var(--radio-size) * 2)', 'var(--radio-accent)'), {
             base: { ...radioTick.base, borderRadius: '624rem' },
             states: {
                 checked: { borderColor: 'var(--radio-accent)' },
@@ -2376,6 +2441,14 @@ export const radioGroup: RecipeInput = {
                     borderColor: 'var(--color-error)',
                 },
                 ...focusRing,
+            },
+            selectors: {
+                '&[data-state="unchecked"]:hover:not([data-disabled], [data-readonly])': { borderColor: 'var(--color-base-content)' },
+                // M3's disabled radio (#417): ring and dot at 38% on-surface.
+                '&[data-disabled]': {
+                    borderColor: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+                    '--radio-accent': 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+                },
             },
         }),
         'item-indicator': {
@@ -2402,7 +2475,10 @@ export const radioGroup: RecipeInput = {
             // that is nothing but one. A system colour is honoured as given.
             at: { 'forced-colors': { base: { background: 'CanvasText' } } },
         },
-        'item-label': { base: { fontSize: 'var(--text-md)' } },
+        'item-label': {
+            base: { ...type('body-large') },
+            selectors: { '[data-disabled] > &': { color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)' } },
+        },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
     keyframes: rippleKeyframes('radio'),
@@ -2411,11 +2487,12 @@ export const radioGroup: RecipeInput = {
             '--radio-accent': `var(--color-${c})`,
         } } }])),
         size: {
-            xs: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 4)' } }, 'item-label': { base: { fontSize: 'var(--text-xs)' } } },
-            sm: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 5)' } }, 'item-label': { base: { fontSize: 'var(--text-sm)' } } },
-            md: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 6)' } }, 'item-label': { base: { fontSize: 'var(--text-md)' } } },
-            lg: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 7)' } }, 'item-label': { base: { fontSize: 'var(--text-lg)' } } },
-            xl: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 8)' } }, 'item-label': { base: { fontSize: 'var(--text-xl)' } } },
+            xs: { root: { base: { '--radio-size': dp(16) } }, 'item-label': { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--radio-size': dp(18) } }, 'item-label': { base: { fontSize: 'var(--text-sm)' } } },
+            // `md` is M3's 20dp — the token default.
+            md: {},
+            lg: { root: { base: { '--radio-size': dp(24) } }, 'item-label': { base: { fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { '--radio-size': dp(28) } }, 'item-label': { base: { fontSize: 'var(--text-xl)' } } },
         },
     },
     // The tick itself carries the selected state; the row, dot and text have
@@ -2589,168 +2666,191 @@ export const fieldset: RecipeInput = {
     },
 };
 
+/**
+ * The M3 Expressive handle as a box shadow list: the gap it stands in (the
+ * surface behind the slider, painted over the track either side — CSS cannot
+ * cut a track it does not own, the #468 answer), and on keyboard focus the
+ * two-tone ring outside that gap.
+ */
+const sliderGap = '0 0 0 var(--slider-gap) var(--tf-surface)';
+const sliderFocusRing = `${sliderGap}, 0 0 0 calc(var(--slider-gap) + 2px) var(--color-secondary)`;
+
+/** The native thumb, shared by both engines' pseudo: the bar in its gap. */
+const sliderNativeThumb: CssProps = {
+    appearance: 'none',
+    boxSizing: 'border-box',
+    width: 'var(--slider-handle-width)',
+    height: 'var(--slider-handle-size)',
+    borderRadius: 'calc(var(--slider-handle-width) / 2)',
+    border: 'none',
+    background: 'var(--slider-accent)',
+    boxShadow: sliderGap,
+    transition: 'width var(--duration-spatial-fast) var(--ease-spatial-fast)',
+};
+
 export const slider: RecipeInput = {
     component: 'slider',
-    // Accent default in `tokens:` — the un-attributed render IS the primary
-    // variant; `variants.color` only rebinds the custom property.
-    tokens: { '--slider-accent': 'var(--color-primary)' },
+    // M3 Expressive's slider (#417): a 16dp track, a 4 × 44dp bar handle
+    // standing in a 6dp gap, and a stop indicator at the track's end. The
+    // geometry is custom properties so the size axis steps Expressive's
+    // track sizes and every projection (native and composed) reads them.
+    tokens: {
+        '--slider-accent': 'var(--color-primary)',
+        '--slider-inactive': 'var(--color-surface-container-highest)',
+        '--slider-track-size': dp(16),
+        '--slider-handle-size': dp(44),
+        '--slider-handle-width': dp(4),
+        '--slider-gap': dp(6),
+    },
     parts: {
-        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' }, states: { disabled: { opacity: 'var(--disabled-opacity)' } } },
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            // M3's disabled slider: the active track and handle at 38%
+            // on-surface, the inactive track at 12% — explicit, not a fade.
+            states: {
+                disabled: {
+                    '--slider-accent': 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+                    '--slider-inactive': 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+                },
+            },
+        },
         label: { base: { ...label } },
-        // A custom skin (`appearance: none`), for two reasons at once. Blink
-        // ignores thumb-pseudo styling on a native slider, so the MD3 handle
-        // halo could never render there; and Chrome treats range inputs as
-        // always `:focus-visible`, so the generic focus RING appeared on a
-        // mouse press and stayed — MD3's focus indicator for a slider is the
-        // handle halo, not a ring around the track.
+        // A custom skin (`appearance: none`): Blink ignores thumb-pseudo
+        // styling on a native slider, and Chrome treats a range input as
+        // always `:focus-visible`, so a generic ring would stay on after a
+        // mouse press. The filled track reads the runtime-published
+        // `--slider-percent` (set on the root, inherited) as a gradient stop.
         //
-        // Both halo states set one custom property the thumb pseudos read:
-        // vendor thumb pseudos cannot share a selector list (an unrecognized
-        // selector invalidates the whole rule), and the variable keeps the
-        // halo defined once per engine instead of once per state per engine.
-        // The filled track reads the runtime-published `--slider-percent`
-        // (set on the slider root, inherited here) as a gradient stop.
+        // The inactive track is M3's surface-container-highest
+        // (md.comp.slider.inactive.track.color) — never the accent. M3
+        // Expressive moved it to secondary-container, which in the
+        // high-contrast schemes sits within 1.6:1 of primary.
         control: {
             base: {
                 appearance: 'none',
                 width: '100%',
-                height: 'calc(var(--size-selector) * 10)',
+                height: 'var(--slider-handle-size)',
                 margin: '0',
                 background: 'transparent',
                 cursor: 'pointer',
                 outline: 'none',
                 accentColor: 'var(--slider-accent)',
-                '--slider-halo': 'transparent',
-                // The inactive track is M3's surface-container-highest
-                // (md.comp.slider.inactive.track.color) — never the accent. M3
-                // Expressive moved it to secondary-container, which in the
-                // high-contrast schemes sits within 1.6:1 of primary.
                 '--slider-track':
-                    'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-surface-container-highest) 0)',
+                    'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--slider-inactive) 0)',
             },
             states: {
                 // `invalid` is semantic, not an accent: it stays error under
                 // every colour variant, and the indirection carries it to the
-                // filled track, the thumb and the halo at once — the same
-                // shape basic, heroui, daisyui, carbon and brutalist use.
+                // filled track and the handle at once.
                 invalid: { '--slider-accent': 'var(--color-error)' },
-                'focus-visible': {
-                    '--slider-halo': 'color-mix(in oklab, var(--slider-accent) 10%, transparent)',
-                },
-                pressed: {
-                    '--slider-halo': 'color-mix(in oklab, var(--slider-accent) 10%, transparent)',
-                },
+                // M3 Expressive's press: the handle narrows to 2dp.
+                pressed: { '--slider-handle-width': dp(2) },
                 // Readonly answers to nothing, so it does not invite a click.
                 readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
             },
             selectors: {
                 '&::-webkit-slider-runnable-track': {
-                    height: 'calc(var(--size-selector) * 2)',
-                    borderRadius: '624rem',
+                    height: 'var(--slider-track-size)',
+                    borderRadius: 'calc(var(--slider-track-size) / 2)',
                     background: 'var(--slider-track)',
                 },
                 '&::-webkit-slider-thumb': {
-                    appearance: 'none',
-                    width: 'calc(var(--size-selector) * 5)',
-                    height: 'calc(var(--size-selector) * 5)',
-                    marginTop: 'calc(var(--size-selector) * -1.5)',
-                    borderRadius: '624rem',
-                    border: 'none',
-                    background: 'var(--slider-accent)',
-                    boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
-                    transition: 'box-shadow var(--duration-short2) var(--ease-standard)',
+                    ...sliderNativeThumb,
+                    marginTop: 'calc((var(--slider-track-size) - var(--slider-handle-size)) / 2)',
                 },
-                // Keyboard focus must be discernible, not just a 10% wash:
-                // a crisp two-tone ring (surface gap + the focus ink used by
-                // every other part) sits inside the halo.
-                '&[data-focus-visible]::-webkit-slider-thumb': {
-                    boxShadow: '0 0 0 2px var(--color-base-100), '
-                        + '0 0 0 4px var(--color-secondary), '
-                        + '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
-                },
+                '&[data-focus-visible]::-webkit-slider-thumb': { boxShadow: sliderFocusRing },
                 '&::-moz-range-track': {
-                    height: 'calc(var(--size-selector) * 2)',
-                    borderRadius: '624rem',
+                    height: 'var(--slider-track-size)',
+                    borderRadius: 'calc(var(--slider-track-size) / 2)',
                     background: 'var(--slider-track)',
                 },
-                '&::-moz-range-thumb': {
-                    width: 'calc(var(--size-selector) * 5)',
-                    height: 'calc(var(--size-selector) * 5)',
-                    borderRadius: '624rem',
-                    border: 'none',
-                    background: 'var(--slider-accent)',
-                    boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
-                    transition: 'box-shadow var(--duration-short2) var(--ease-standard)',
-                },
-                '&[data-focus-visible]::-moz-range-thumb': {
-                    boxShadow: '0 0 0 2px var(--color-base-100), '
-                        + '0 0 0 4px var(--color-secondary), '
-                        + '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
-                },
+                '&::-moz-range-thumb': sliderNativeThumb,
+                '&[data-focus-visible]::-moz-range-thumb': { boxShadow: sliderFocusRing },
             },
             at: {
                 // Native rendering knows forced colors better than we do; the
                 // retained accentColor keeps the fallback branded elsewhere.
-                'forced-colors': {
-                    base: { appearance: 'auto', '--slider-halo': 'transparent' },
+                'forced-colors': { base: { appearance: 'auto' } },
+                'reduced-motion': {
+                    selectors: {
+                        '&::-webkit-slider-thumb': { transition: 'none' },
+                        '&::-moz-range-thumb': { transition: 'none' },
+                    },
                 },
             },
         },
-        // The composed range projection (#325): MD3's active/inactive track
-        // and round handle as real parts. Same inks as the gradient control
-        // above — accent fill on a surface-container-highest rail.
+        // The composed range projection (#325): the same track, handle and
+        // gap as real parts, and the stop indicator at the track's end.
         track: {
             base: {
-                height: 'calc(var(--size-selector) * 2)',
-                marginBlock: 'calc(var(--size-selector) * 4)',
-                borderRadius: '624rem',
-                background: 'var(--color-surface-container-highest)',
+                position: 'relative',
+                height: 'var(--slider-track-size)',
+                marginBlock: 'calc((var(--slider-handle-size) - var(--slider-track-size)) / 2)',
+                borderRadius: 'calc(var(--slider-track-size) / 2)',
+                background: 'var(--slider-inactive)',
                 cursor: 'pointer',
             },
             states: { readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
+            selectors: {
+                // M3's stop indicator: a 4dp dot in the accent at the end of a
+                // continuous track, showing where the range ends.
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: `calc((var(--slider-track-size) - ${dp(4)}) / 2)`,
+                    insetInlineEnd: `calc((var(--slider-track-size) - ${dp(4)}) / 2)`,
+                    width: dp(4),
+                    height: dp(4),
+                    borderRadius: '50%',
+                    background: 'var(--slider-accent)',
+                },
+                // A slider with stops draws its own; the end dot would double one.
+                '&:has([data-part="mark"])::after': { content: 'none' },
+            },
         },
         range: {
             base: {
                 height: '100%',
-                borderRadius: '624rem',
+                borderRadius: 'calc(var(--slider-track-size) / 2)',
                 background: 'var(--slider-accent)',
             },
             states: { disabled: {} },
         },
         thumb: {
             base: {
-                width: 'calc(var(--size-selector) * 5)',
-                height: 'calc(var(--size-selector) * 5)',
+                zIndex: '1',
+                width: 'var(--slider-handle-width)',
+                height: 'var(--slider-handle-size)',
                 insetBlockStart: '50%',
                 translate: '0 -50%',
-                marginInlineStart: 'calc(var(--size-selector) * -2.5)',
-                borderRadius: '624rem',
+                marginInlineStart: 'calc(var(--slider-handle-width) / -2)',
+                borderRadius: 'calc(var(--slider-handle-width) / 2)',
                 background: 'var(--slider-accent)',
+                boxShadow: sliderGap,
                 cursor: 'pointer',
                 outline: 'none',
                 touchAction: 'none',
-                transition: motion('box-shadow'),
+                transition:
+                    'width var(--duration-spatial-fast) var(--ease-spatial-fast), '
+                    + 'margin var(--duration-spatial-fast) var(--ease-spatial-fast)',
             },
             states: {
-                // The MD3 state-layer halo, and — for keyboard — the same
-                // crisp two-tone ring the native thumb draws inside it.
-                pressed: { boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 10%, transparent)' },
-                'focus-visible': {
-                    boxShadow: '0 0 0 2px var(--color-base-100), '
-                        + '0 0 0 4px var(--color-secondary), '
-                        + '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 10%, transparent)',
-                },
+                // M3 Expressive's press: the handle narrows to 2dp.
+                pressed: { '--slider-handle-width': dp(2) },
+                'focus-visible': { boxShadow: sliderFocusRing },
                 // Readonly answers to nothing, so it does not invite a click.
                 readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
             },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
+        // M3's stops: 4dp dots on the track, the label under it. One ink for
+        // all: a stop cannot tell whether it sits on the active track (#490).
         mark: {
             base: {
-                paddingBlockStart: 'calc(var(--size-selector) * 2 + var(--space-2xs))',
-                fontSize: 'var(--text-xs)',
-                lineHeight: 'var(--leading-none)',
+                paddingBlockStart: 'calc(var(--slider-track-size) + var(--space-2xs))',
+                ...type('label-medium'),
                 whiteSpace: 'nowrap',
                 color: 'var(--color-surface-variant-content)',
             },
@@ -2759,32 +2859,34 @@ export const slider: RecipeInput = {
                 '&::before': {
                     content: '""',
                     position: 'absolute',
-                    insetBlockStart: '0',
-                    insetInlineStart: '-1px',
-                    width: '2px',
-                    height: 'calc(var(--size-selector) * 2)',
-                    background: 'var(--color-outline)',
+                    insetBlockStart: `calc((var(--slider-track-size) - ${dp(4)}) / 2)`,
+                    insetInlineStart: `calc(${dp(4)} / -2)`,
+                    width: dp(4),
+                    height: dp(4),
+                    borderRadius: '50%',
+                    background: 'var(--color-surface-variant-content)',
                 },
             },
         },
-        'value-text': { base: { fontSize: 'var(--text-xs)', color: 'var(--color-surface-variant-content)' } },
+        'value-text': { base: { ...type('label-medium'), color: 'var(--color-surface-variant-content)' } },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--slider-accent': `var(--color-${c})`,
         } } }])),
-        // The control's box height is the size lever (track and thumb keep
-        // their MD3 metrics); md is the resting height, so it only steps the
-        // label.
+        // M3 Expressive's slider sizes by their track: XS (16dp, the default,
+        // at `md`), S (24dp) and M (40dp, a 52dp handle) above it, and two
+        // lighter tracks below for dense layouts.
         size: {
-            xs: { control: { base: { height: 'calc(var(--size-selector) * 6)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
-            sm: { control: { base: { height: 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
-            md: { label: { base: { fontSize: 'var(--text-sm)' } } },
-            lg: { control: { base: { height: 'calc(var(--size-selector) * 12)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
-            xl: { control: { base: { height: 'calc(var(--size-selector) * 14)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+            xs: { root: { base: { '--slider-track-size': dp(8), '--slider-handle-size': dp(36) } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--slider-track-size': dp(12), '--slider-handle-size': dp(40) } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { root: { base: { '--slider-track-size': dp(24) } }, label: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { '--slider-track-size': dp(40), '--slider-handle-size': dp(52) } }, label: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
-    skipStates: { root: ['invalid', 'focus-visible'] },
+    // The native control's focus ring is its thumb pseudo's (`[data-focus-visible]`).
+    skipStates: { root: ['invalid', 'focus-visible'], control: ['focus-visible'] },
     targets: {
         web: {
             parts: {
@@ -2794,23 +2896,30 @@ export const slider: RecipeInput = {
                 control: {
                     selectors: {
                         '&[data-orientation="vertical"]': {
-                            width: 'calc(var(--size-selector) * 10)',
+                            width: 'var(--slider-handle-size)',
                             height: 'var(--slider-length)',
-                            '--slider-track': 'linear-gradient(to top, var(--slider-accent) var(--slider-percent, 50%), var(--color-surface-container-highest) 0)',
+                            '--slider-track': 'linear-gradient(to top, var(--slider-accent) var(--slider-percent, 50%), var(--slider-inactive) 0)',
                         },
                         '&[data-orientation="vertical"]::-webkit-slider-runnable-track': {
-                            width: 'calc(var(--size-selector) * 2)',
+                            width: 'var(--slider-track-size)',
                             height: 'auto',
                         },
                         // Blink lays the thumb against the channel's block axis — in
-                        // vertical-lr that is its left edge.
+                        // vertical-lr that is its left edge — so the bar turns on
+                        // its side and centres on the other axis.
                         '&[data-orientation="vertical"]::-webkit-slider-thumb': {
+                            width: 'var(--slider-handle-size)',
+                            height: 'var(--slider-handle-width)',
                             marginTop: '0',
-                            marginBlockStart: 'calc(var(--size-selector) * -1.5)',
+                            marginBlockStart: 'calc((var(--slider-track-size) - var(--slider-handle-size)) / 2)',
                         },
                         '&[data-orientation="vertical"]::-moz-range-track': {
-                            width: 'calc(var(--size-selector) * 2)',
+                            width: 'var(--slider-track-size)',
                             height: '100%',
+                        },
+                        '&[data-orientation="vertical"]::-moz-range-thumb': {
+                            width: 'var(--slider-handle-size)',
+                            height: 'var(--slider-handle-width)',
                         },
                     },
                 },
@@ -2830,10 +2939,15 @@ export const slider: RecipeInput = {
                 track: {
                     selectors: {
                         '&[data-orientation="vertical"]': {
-                            width: 'calc(var(--size-selector) * 2)',
+                            width: 'var(--slider-track-size)',
                             height: 'var(--slider-length)',
                             marginBlock: '0',
-                            marginInline: 'calc(var(--size-selector) * 4)',
+                            marginInline: 'calc((var(--slider-handle-size) - var(--slider-track-size)) / 2)',
+                        },
+                        // The stop indicator sits at the top of an upright track.
+                        '&[data-orientation="vertical"]::after': {
+                            insetBlockStart: `calc((var(--slider-track-size) - ${dp(4)}) / 2)`,
+                            insetInlineEnd: `calc((var(--slider-track-size) - ${dp(4)}) / 2)`,
                         },
                     },
                 },
@@ -2844,30 +2958,30 @@ export const slider: RecipeInput = {
                 },
                 thumb: {
                     selectors: {
+                        // Upright, the bar lies across the track.
                         '&[data-orientation="vertical"]': {
+                            width: 'var(--slider-handle-size)',
+                            height: 'var(--slider-handle-width)',
                             insetBlockStart: 'auto',
                             insetInlineStart: '50%',
                             translate: 'none',
-                            marginInlineStart: 'calc(calc(var(--size-selector) * 5) / -2)',
-                            marginBlockEnd: 'calc(calc(var(--size-selector) * 5) / -2)',
+                            marginInlineStart: 'calc(var(--slider-handle-size) / -2)',
+                            marginBlockEnd: 'calc(var(--slider-handle-width) / -2)',
                         },
                     },
                 },
-                // The label sits beside the channel, centred on its tick.
+                // The label sits beside the channel, centred on its stop.
                 mark: {
                     selectors: {
                         '&[data-orientation="vertical"]': {
                             insetInlineStart: '0',
                             paddingBlockStart: '0',
-                            paddingInlineStart: 'calc(var(--size-selector) * 2 + var(--space-2xs))',
+                            paddingInlineStart: 'calc(var(--slider-track-size) + var(--space-2xs))',
                             translate: '0 50%',
                         },
                         '&[data-orientation="vertical"]::before': {
-                            insetBlockStart: '50%',
-                            insetInlineStart: '0',
-                            width: 'calc(var(--size-selector) * 2)',
-                            height: '2px',
-                            translate: '0 -50%',
+                            insetBlockStart: `calc(${dp(4)} / -2)`,
+                            insetInlineStart: `calc((var(--slider-track-size) - ${dp(4)}) / 2)`,
                         },
                     },
                 },

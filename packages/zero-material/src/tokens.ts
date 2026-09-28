@@ -415,7 +415,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         'state-dragged': { description: 'M3 state layer: dragged', syntax: '<number>' },
         'state-disabled-container': { description: 'M3 disabled container opacity', syntax: '<number>' },
         'tf-surface': {
-            description: 'The surface behind an outlined text field — its floated label notches the outline in this colour. A container sets it to its own fill.',
+            description: 'The surface behind a control: an outlined text field notches its outline in this colour under the floated label, and a slider handle stands in a gap painted in it. A container sets it to its own fill.',
         },
     },
     system,
