@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-09-28
+
 ### Fixed — the lynx target refuses SVG data-URI images and `clip-path` (zero#401)
 
 - iOS Lynx hands a `url("data:image/svg+xml,…")` background to SDWebImage,
