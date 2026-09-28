@@ -13,8 +13,17 @@ const ROUTES = [
     { key: 'sent', icon: '➤', label: 'Sent' },
 ] as const;
 
+// State-driven navigation (#451): no URL, just a signal. Each link has no
+// `href`, so it renders a native button whose `onClick` moves `view`.
+const VIEWS = [
+    { key: 'overview', icon: '◉', label: 'Overview' },
+    { key: 'activity', icon: '≋', label: 'Activity', meta: 3 },
+    { key: 'members', icon: '☺', label: 'Members' },
+] as const;
+
 const NavListDemos = component(() => {
     const state = signal({ current: 'inbox' });
+    const project = signal({ view: 'overview' as string });
 
     const links = () => ROUTES.map((r) => (
         <NavList.Item>
@@ -60,6 +69,31 @@ const NavListDemos = component(() => {
                         </NavList.List>
                     </NavList.Group>
                 </NavList.Root>
+            </div>
+            <p>
+                A link without an <code>href</code> is a native{' '}
+                <code>&lt;button type="button"&gt;</code> (#451): for an app
+                that navigates by state — a signal, a store, a router with no
+                URLs — its <code>onClick</code> is the navigation, and a tab
+                stop, Enter and Space come with the element. With an{' '}
+                <code>href</code> the same <code>onClick</code> runs on the
+                anchor and never prevents it, so a router can intercept.
+            </p>
+            <div style="max-width: 16rem" data-demo="nav-list-buttons">
+                <NavList.Root label="Project" color={pickRole('primary')}>
+                    <NavList.List>
+                        {VIEWS.map((v) => (
+                            <NavList.Item>
+                                <NavList.Link current={project.view === v.key} onClick={() => { project.view = v.key; }}>
+                                    <NavList.Icon>{v.icon}</NavList.Icon>
+                                    {v.label}
+                                    {'meta' in v ? <NavList.Meta><Badge size={pickSize('xs', 'sm')}>{v.meta}</Badge></NavList.Meta> : null}
+                                </NavList.Link>
+                            </NavList.Item>
+                        ))}
+                    </NavList.List>
+                </NavList.Root>
+                <output data-testid="nav-list-view">view: {project.view}</output>
             </div>
             <p>
                 Inside a responsive Drawer it is the app shell's sidebar:

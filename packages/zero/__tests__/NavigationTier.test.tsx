@@ -174,6 +174,95 @@ describe('NavList (#132)', () => {
         expect(settings.getAttribute('aria-current')).toBe('page');
     });
 
+    describe('onClick and the two link modes (#451)', () => {
+        it('without an href a link is a native button whose onClick navigates by state', async () => {
+            const view = signal({ current: 'inbox' });
+            const clicks: string[] = [];
+            const go = (v: string) => (e: MouseEvent) => { clicks.push(`${v}:${e.type}`); view.current = v; };
+            const App = component(() => () => (
+                <NavList.Root label="Main">
+                    <NavList.List>
+                        <NavList.Item><NavList.Link current={view.current === 'inbox'} onClick={go('inbox')}>Inbox</NavList.Link></NavList.Item>
+                        <NavList.Item><NavList.Link current={view.current === 'sent'} onClick={go('sent')}>Sent</NavList.Link></NavList.Item>
+                    </NavList.List>
+                </NavList.Root>
+            ));
+            render(<App />, container);
+            expectAnatomy(container, navListAnatomy);
+            const links = () => [...container.querySelectorAll<HTMLElement>(selector('nav-list', 'link'))];
+            for (const l of links()) {
+                // A native button: its own tab stop, Enter/Space activation
+                // and the button role, with nothing re-implemented — and it
+                // never submits a surrounding form.
+                expect(l.tagName).toBe('BUTTON');
+                expect(l.getAttribute('type')).toBe('button');
+                expect(l.hasAttribute('href')).toBe(false);
+                expect(l.hasAttribute('tabindex')).toBe(false);
+                expect(l.hasAttribute('role')).toBe(false);
+            }
+            expect(links().map((l) => l.getAttribute('aria-current'))).toEqual(['page', null]);
+            expect(links().map((l) => l.getAttribute('data-state'))).toEqual(['active', 'inactive']);
+
+            links()[1]!.click();
+            await Promise.resolve();
+            expect(clicks).toEqual(['sent:click']);
+            expect(links().map((l) => l.getAttribute('aria-current'))).toEqual([null, 'page']);
+            expect(links().map((l) => l.getAttribute('data-state'))).toEqual(['inactive', 'active']);
+            expectAnatomy(container, navListAnatomy);
+        });
+
+        it('with an href a link stays an anchor, and onClick runs without preventing the navigation', () => {
+            const seen: boolean[] = [];
+            render(
+                <NavList.Root label="Main">
+                    <NavList.List>
+                        <NavList.Item>
+                            <NavList.Link href="#/inbox" current onClick={(e) => { seen.push(e.defaultPrevented); }}>Inbox</NavList.Link>
+                        </NavList.Item>
+                    </NavList.List>
+                </NavList.Root>,
+                container,
+            );
+            const link = part(container, 'nav-list', 'link');
+            expect(link.tagName).toBe('A');
+            expect(link.getAttribute('href')).toBe('#/inbox');
+            expect(link.getAttribute('aria-current')).toBe('page');
+            expect(link.getAttribute('data-state')).toBe('active');
+            const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+            link.dispatchEvent(click);
+            expect(seen).toEqual([false]);
+            // A router intercepts; the part itself never does.
+            expect(click.defaultPrevented).toBe(false);
+            expectAnatomy(container, navListAnatomy);
+        });
+
+        it('an asChild element receives onClick, and keeps its own handler when the Link has none', () => {
+            const calls: string[] = [];
+            render(
+                <NavList.Root label="Main">
+                    <NavList.List>
+                        <NavList.Item>
+                            <NavList.Link asChild onClick={() => calls.push('link')}>
+                                {(p: PartProps) => <a href="/a" {...p}>A</a>}
+                            </NavList.Link>
+                        </NavList.Item>
+                        <NavList.Item>
+                            <NavList.Link asChild>
+                                {(p: PartProps) => <a href="/b" onClick={(e: MouseEvent) => { e.preventDefault(); calls.push('own'); }} {...p}>B</a>}
+                            </NavList.Link>
+                        </NavList.Item>
+                    </NavList.List>
+                </NavList.Root>,
+                container,
+            );
+            const [a, b] = [...container.querySelectorAll<HTMLElement>(selector('nav-list', 'link'))];
+            a!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            b!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            expect(calls).toEqual(['link', 'own']);
+            expect(a!.tagName).toBe('A');
+        });
+    });
+
     it('server-renders the landmark, the group name and the current link', async () => {
         const { defineApp } = await import('sigx');
         const { renderToString } = await import('@sigx/server-renderer');

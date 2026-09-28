@@ -6389,6 +6389,13 @@
         align-items: center;
         gap: var(--space-sm);
         text-decoration: none;
+        appearance: none;
+        background: none;
+        border: 0;
+        font: inherit;
+        text-align: start;
+        inline-size: 100%;
+        cursor: pointer;
         color: var(--color-base-content);
         padding: var(--space-sm) var(--space-lg);
         border-radius: 0;

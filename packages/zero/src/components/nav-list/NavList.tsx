@@ -20,6 +20,19 @@
  *
  * No behaviour: which link is current is the router's knowledge, passed in
  * as `current`. A `Link` is `asChild` for a router's own anchor component.
+ *
+ * A `Link` has two modes (#451). With `href` it is an `<a href>`, and an
+ * `onClick` passes through untouched — never prevented — so an SPA router
+ * can intercept the click (Pagination's link mode). Without `href` it is a
+ * `<button type="button">` for state-driven navigation (a signal, a store,
+ * a non-URL router): a native tab stop, Enter/Space activation, and the
+ * handler on `onClick`:
+ *
+ * ```tsx
+ * <NavList.Link current={view() === 'inbox'} onClick={() => go('inbox')}>Inbox</NavList.Link>
+ * ```
+ *
+ * Both modes carry `aria-current="page"` and `data-state` alike.
  * It renders inside a responsive `Drawer.Panel` as it renders anywhere —
  * the drawer decides whether the sidebar is docked or a sheet; the list
  * does not know.
@@ -152,6 +165,12 @@ export type NavListLinkProps =
     & Define.Prop<'href', string, false>
     /** This is the page the user is on: `aria-current="page"` + `data-state="active"`. */
     & Define.Prop<'current', boolean, false>
+    /**
+     * Declared rather than forwarded (sigx passes no rest props). With
+     * `href` it runs on the anchor and never prevents the navigation;
+     * without one the link renders a `<button>` and this is its action.
+     */
+    & Define.Prop<'onClick', (e: MouseEvent) => void, false>
     & WithClass
     & WithHtmlAttrs
     & WithAsChild
@@ -167,10 +186,22 @@ const NavListLink = component<NavListLinkProps>(({ props, slots }) => {
         // Only when given: an asChild consumer's own `<a href>` must not be
         // clobbered by an undefined one from the bag.
         ...(props.href !== undefined ? { href: props.href } : {}),
+        // Likewise only when given, so an asChild element's own handler
+        // survives when the Link has none.
+        ...(props.onClick ? { onClick: (e: MouseEvent) => props.onClick?.(e) } : {}),
     });
     return () => {
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
+        // No href: state-driven navigation. An `<a>` without one is neither
+        // focusable nor a link, so the part is a native button instead.
+        if (props.href === undefined) {
+            return (
+                <button type="button" class={props.class} {...b}>
+                    {slots.default?.(b)}
+                </button>
+            );
+        }
         return (
             <a href={props.href} class={props.class} {...b}>
                 {slots.default?.(b)}

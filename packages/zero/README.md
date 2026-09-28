@@ -1253,6 +1253,19 @@ named by its `Heading` with the ids wired for you. It renders inside a
 responsive `Drawer.Panel` (`modal={{ below: 'md' }}`) as it renders
 anywhere — the drawer decides whether the sidebar is docked or a sheet.
 
+A `Link` has two modes (#451). With an `href` it is an `<a href>`, and an
+`onClick` runs on it without ever preventing the navigation, so an SPA router
+can intercept the click (Pagination's link mode). Without an `href` it is a
+`<button type="button">` for an app that navigates by state — a signal, a
+store, a router with no URLs: the native button brings the tab stop, Enter
+and Space, and `onClick` is the navigation. Both modes carry
+`aria-current="page"` and `data-state`, and every skin's `link` recipe drops
+the button's chrome, so the two look the same:
+
+```tsx
+<NavList.Link current={view() === 'inbox'} onClick={() => go('inbox')}>Inbox</NavList.Link>
+```
+
 **Attribute pass-through.** sigx forwards no rest props, so a part only
 renders what it declares. Every part an app writes takes `WithHtmlAttrs` and
 forwards `aria-*`, the app's own `data-*`, `id`, `title` and `role` onto the
