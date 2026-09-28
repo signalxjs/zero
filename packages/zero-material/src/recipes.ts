@@ -61,6 +61,9 @@ const raised = (level: 'level2' | 'level3'): CssProps => ({
     boxShadow: `var(--shadow-${level})`,
 });
 
+/** An M3 measure in dp, as rem (1dp = 1px here) — the unit M3's specs are written in. */
+const dp = (n: number): string => `${n / 16}rem`;
+
 /** M3's fifteen type roles. */
 type TypeRole = `${'display' | 'headline' | 'title' | 'body' | 'label'}-${'large' | 'medium' | 'small'}`;
 
@@ -221,9 +224,6 @@ const rippleKeyframes = (prefix: string): Record<string, string> => ({
         + 'to { transform: translate(-50%, -50%) scale(1); opacity: 0; }',
 });
 
-// ── Button ────────────────────────────────────────────────────────────────
-// The accent-pair indirection, so Material's larger role vocabulary costs one
-// rule per role rather than one per role × fill.
 /**
  * The swipe-to-dismiss offset (#293): `createSwipe` publishes the drag as
  * `--swipe-x` / `--swipe-y` on a toast root or a drawer sheet, and this is
@@ -339,25 +339,163 @@ const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => (
     ),
 });
 
+/**
+ * M3 Expressive's common-button size ramp (#415), per zero size: container
+ * height, inline padding, icon size, icon–label gap, label type role, the
+ * `square` shape's corner, the corner a press morphs to, and the outline
+ * width. `sm` is M3's default (S, 40dp) and the un-attributed render; the
+ * `./components` module spells these `xs | s | m | l | xl`.
+ */
+const BUTTON_SIZES = {
+    xs: { height: 32, pad: 12, icon: 20, gap: 4, type: 'label-large', square: 'medium', pressed: 'small', outline: 1 },
+    sm: { height: 40, pad: 16, icon: 20, gap: 8, type: 'label-large', square: 'medium', pressed: 'small', outline: 1 },
+    md: { height: 56, pad: 24, icon: 24, gap: 8, type: 'title-medium', square: 'large', pressed: 'medium', outline: 1 },
+    lg: { height: 96, pad: 48, icon: 32, gap: 12, type: 'headline-small', square: 'extra-large', pressed: 'large', outline: 2 },
+    xl: { height: 136, pad: 64, icon: 40, gap: 16, type: 'headline-large', square: 'extra-large', pressed: 'large', outline: 3 },
+} as const satisfies Record<string, {
+    height: number; pad: number; icon: number; gap: number; type: TypeRole;
+    square: string; pressed: string; outline: number;
+}>;
+
+type ButtonSize = keyof typeof BUTTON_SIZES;
+
+/** M3's icon-button icon sizes, which step apart from the label buttons'. */
+const ICON_BUTTON_ICON: Record<ButtonSize, number> = { xs: 20, sm: 24, md: 24, lg: 32, xl: 40 };
+
+/** One step of the ramp as the custom properties the shared base reads. */
+const buttonStep = (size: ButtonSize): CssProps => {
+    const s = BUTTON_SIZES[size];
+    return {
+        '--btn-height': dp(s.height),
+        '--btn-pad': dp(s.pad),
+        '--btn-icon': dp(s.icon),
+        '--btn-icon-only': dp(ICON_BUTTON_ICON[size]),
+        '--btn-gap': dp(s.gap),
+        '--btn-square': `var(--radius-${s.square})`,
+        '--btn-pressed': `var(--radius-${s.pressed})`,
+        '--btn-outline': `${s.outline}px`,
+        ...type(s.type),
+    };
+};
+
+/** The size variants: the base carries `sm`, so its entry stays empty. */
+const buttonSizeVariants = (part: string): Record<string, Record<string, PartStyles>> =>
+    Object.fromEntries((Object.keys(BUTTON_SIZES) as ButtonSize[]).map((size) => [
+        size,
+        size === 'sm' ? {} : { [part]: { base: buttonStep(size) } },
+    ]));
+
+/**
+ * The geometry and paint every M3 button-like control shares — button and
+ * toggle (#415). Paint rides custom properties the variants set: `--btn-fill`,
+ * `--btn-label`, `--btn-border`, `--btn-shadow` / `--btn-shadow-hover`. The
+ * state layer and the ripple (`pressable`) take the label colour, as M3's do.
+ *
+ * Shape: `round` is a corner of half the height rather than `full`, so the
+ * press morph interpolates between two real lengths instead of from 9999px.
+ * A press morphs the corner to the size's pressed corner on the fast spatial
+ * spring; `square` starts from the size's square corner.
+ */
+const m3ButtonRoot = (prefix: string): PartStyles => withPresence(pressable(prefix, 'var(--btn-label)'), {
+    base: {
+        appearance: 'none',
+        // An asChild `<a>` gets no UA underline (see the README's
+        // link-button note for the unlayered `a { color }` case).
+        textDecoration: 'none',
+        boxSizing: 'border-box',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...buttonStep('sm'),
+        '--btn-radius': 'calc(var(--btn-height) / 2)',
+        gap: 'var(--btn-gap)',
+        blockSize: 'var(--btn-height)',
+        paddingInline: 'var(--btn-pad)',
+        paddingBlock: '0',
+        background: 'var(--btn-fill, transparent)',
+        color: 'var(--btn-label)',
+        border: 'var(--btn-outline) solid var(--btn-border, transparent)',
+        borderRadius: 'var(--btn-radius)',
+        boxShadow: 'var(--btn-shadow, none)',
+        whiteSpace: 'nowrap',
+        cursor: 'pointer',
+        transition:
+            'border-radius var(--duration-spatial-fast) var(--ease-spatial-fast), '
+            + 'box-shadow var(--duration-short2) var(--ease-standard), '
+            + 'background-color var(--duration-short2) var(--ease-standard), '
+            + 'color var(--duration-short2) var(--ease-standard)',
+    },
+    states: {
+        // M3's disabled button: an on-surface container at 10% (none for
+        // outlined and text) and the label at 38% — explicit colours, not a
+        // fade, so the outline and the elevation go with it.
+        disabled: {
+            background: 'var(--btn-disabled-fill, color-mix(in oklch, var(--color-base-content) 10%, transparent))',
+            color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+            borderColor: 'var(--btn-disabled-border, transparent)',
+            boxShadow: 'none',
+            cursor: 'not-allowed',
+        },
+        hover: { boxShadow: 'var(--btn-shadow-hover, var(--btn-shadow, none))' },
+        ...focusRing,
+    },
+    selectors: {
+        '& > svg': { inlineSize: 'var(--btn-icon)', blockSize: 'var(--btn-icon)', flex: 'none' },
+        '&[data-pressed]:not([data-disabled])': { borderRadius: 'var(--btn-pressed)' },
+    },
+    at: {
+        'reduced-motion': { base: { transition: 'none' } },
+        // The fill is background paint, which forced colours revalue: keep
+        // the button's bounds with a system-coloured border.
+        'forced-colors': { base: { borderColor: 'ButtonText' } },
+    },
+});
+
+/** The colour axis: each role rebinds the accent pair and its tonal pair. */
+const buttonColors = (part: string): Record<string, Record<string, PartStyles>> =>
+    Object.fromEntries(ROLES.map((c) => [c, { [part]: { base: {
+        '--btn-accent': `var(--color-${c})`,
+        '--btn-on-accent': `var(--color-${c}-content)`,
+        '--btn-soft': `var(--color-${c}-container)`,
+        '--btn-on-soft': `var(--color-${c}-container-content)`,
+        '--btn-ink': `var(--color-${c})`,
+    } } }]));
+
+/**
+ * The shape axis: `round` is the base; `square` starts from the size's
+ * square corner (and still morphs on a press).
+ */
+const buttonShapes = (part: string): Record<string, Record<string, PartStyles>> => ({
+    round: {},
+    square: { [part]: { base: { '--btn-radius': 'var(--btn-square)' } } },
+});
+
+/**
+ * The icon-button configuration (`mods.icon`): square to its height, no
+ * inline padding, the icon on the icon-button ramp. M3's round icon button
+ * is a circle; `square` still takes the size's square corner.
+ */
+const iconButton = (part: string): Record<string, PartStyles> => ({
+    [part]: {
+        base: { paddingInline: '0', inlineSize: 'var(--btn-height)', '--btn-icon': 'var(--btn-icon-only)' },
+    },
+});
+
 export const button: RecipeInput = {
     component: 'button',
     // Public to a design system derived from this one (#73).
     hooks: {
         properties: {
-            '--btn-accent': 'The fill of the solid variant.',
+            '--btn-accent': 'The role colour: filled fill, text and elevated label.',
             '--btn-on-accent': 'The ink on --btn-accent.',
-            '--btn-soft': 'The tonal fill (soft variant): the M3 container of the role.',
-            '--btn-on-soft': 'The ink on --btn-soft: the on-container of the role.',
+            '--btn-soft': 'The tonal fill: the role container (secondary-container unset).',
+            '--btn-on-soft': 'The ink on --btn-soft.',
+            '--btn-ink': 'The outlined label and the standard icon: the role, on-surface-variant unset.',
         },
     },
     tokens: {
         '--btn-accent': 'var(--color-primary)',
         '--btn-on-accent': 'var(--color-primary-content)',
-        '--btn-soft': 'var(--color-primary-container)',
-        '--btn-on-soft': 'var(--color-primary-container-content)',
-        // The state-layer/ripple ink. On a filled button that is the on-color;
-        // un-filled variants override to the accent itself.
-        '--btn-ripple': 'var(--btn-on-accent)',
     },
     parts: {
         // The loading spinner (#50): a real part zero renders before the
@@ -369,8 +507,8 @@ export const button: RecipeInput = {
         spinner: {
             base: {
                 boxSizing: 'border-box',
-                inlineSize: '1em',
-                blockSize: '1em',
+                inlineSize: 'var(--btn-icon)',
+                blockSize: 'var(--btn-icon)',
                 flex: 'none',
                 borderRadius: '9999px',
                 border: 'calc(var(--border) * 2) solid currentColor',
@@ -379,159 +517,117 @@ export const button: RecipeInput = {
             },
             at: { 'reduced-motion': { base: { animation: 'none' } } },
         },
-        root: {
-            base: {
-                appearance: 'none',
-                // An asChild `<a>` gets no UA underline (see the README's
-                // link-button note for the unlayered `a { color }` case).
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 'var(--space-xs)',
-                border: 'var(--border) solid transparent',
-                // Material's fully-rounded action shape.
-                borderRadius: '624rem',
-                ...label,
-                lineHeight: 'var(--leading-none)',
-                cursor: 'pointer',
-                transition: motion('background, box-shadow, border-color'),
-                // Ripple containment: the ink clips to the pill; box-shadow
-                // elevation is unaffected by overflow.
-                position: 'relative',
-                overflow: 'hidden',
-                WebkitTapHighlightColor: 'transparent',
-            },
-            states: {
-                // Work in flight (`loading`, #50): still focusable, still legible —
-                // the label is what the reader is waiting on — so no fade here.
-                loading: { cursor: 'progress' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed', boxShadow: 'none' },
-                ...focusRing,
-            },
-            selectors: {
-                // Held state layer — Material pressed = ink at 12% while the
-                // pointer/key is down. This is the non-motion press feedback,
-                // so it also carries reduced-motion.
-                '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    inset: '0',
-                    background: 'var(--btn-ripple)',
-                    opacity: '0',
-                    pointerEvents: 'none',
-                    transition: 'opacity var(--duration-short2) var(--ease-standard)',
-                },
-                '&:hover:not([data-disabled])::before': { opacity: 'var(--state-hover)' },
-                '&[data-pressed]:not([data-disabled])::before': { opacity: 'var(--state-pressed)' },
-                // Ink ripple — a one-shot expansion from the press point the
-                // runtime publishes as --press-x/y, sized by --press-r (the
-                // farthest-corner radius). data-press-animating outlives
-                // release, so a quick tap still plays the full wave.
-                '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    left: 'var(--press-x, 50%)',
-                    top: 'var(--press-y, 50%)',
-                    width: 'calc(var(--press-r, 0px) * 2)',
-                    height: 'calc(var(--press-r, 0px) * 2)',
-                    borderRadius: '50%',
-                    background: 'var(--btn-ripple)',
-                    transform: 'translate(-50%, -50%) scale(0)',
-                    opacity: '0',
-                    pointerEvents: 'none',
-                },
-                '&[data-press-animating]::after': {
-                    animation: 'btn-ripple var(--duration-long2) var(--ease-standard)',
-                },
-            },
-            at: {
-                // Reduced motion needs nothing here: --duration-* collapse to
-                // 0.01ms and the ::before tint remains as press feedback.
-                'hover-none': {
-                    selectors: { '&:hover:not([data-disabled])::before': { opacity: '0' } },
-                },
-                'forced-colors': {
-                    selectors: {
-                        '&::before': { display: 'none' },
-                        '&::after': { display: 'none' },
-                    },
-                },
-            },
-        },
+        root: withPresence(m3ButtonRoot('btn'), {
+            // Work in flight (`loading`, #50): still focusable, still legible —
+            // the label is what the reader is waiting on — so no fade here.
+            states: { loading: { cursor: 'progress' } },
+        }),
     },
     keyframes: {
         'zero-material-btn-spin': 'to { transform: rotate(360deg) }',
-        'btn-ripple':
-            'from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } '
-            + '60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } '
-            + 'to { transform: translate(-50%, -50%) scale(1); opacity: 0; }',
+        ...rippleKeyframes('btn'),
     },
     variants: {
-        color: Object.fromEntries(ROLES.map((c) => [
-            c,
-            {
-                root: {
-                    base: {
-                        '--btn-accent': `var(--color-${c})`,
-                        '--btn-on-accent': `var(--color-${c}-content)`,
-                        '--btn-soft': `var(--color-${c}-container)`,
-                        '--btn-on-soft': `var(--color-${c}-container-content)`,
-                    },
-                },
-            },
-        ])),
+        color: buttonColors('root'),
+        // M3's five common buttons (#415). Unset, a tonal button is
+        // secondary-container and an outlined one on-surface-variant, as M3
+        // draws them; a `color` rebinds each to that role.
         variant: {
-            // Material calls these filled / outlined / tonal / text.
-            solid: {
-                root: {
-                    base: {
-                        background: 'var(--btn-accent)',
-                        color: 'var(--btn-on-accent)',
-                        boxShadow: 'var(--shadow-level1)',
-                    },
-                    states: { hover: { boxShadow: 'var(--shadow-level2)' } },
-                },
-            },
-            outline: {
-                root: {
-                    base: {
-                        background: 'transparent',
-                        color: 'var(--btn-accent)',
-                        borderColor: 'var(--color-outline)',
-                        '--btn-ripple': 'var(--btn-accent)',
-                    },
-                },
-            },
-            soft: {
-                root: {
-                    base: {
-                        background: 'var(--btn-soft)',
-                        color: 'var(--btn-on-soft)',
-                        '--btn-ripple': 'var(--btn-on-soft)',
-                    },
-                    states: { hover: { boxShadow: 'var(--shadow-level1)' } },
-                },
-            },
-            ghost: {
-                root: {
-                    base: {
-                        background: 'transparent',
-                        color: 'var(--btn-accent)',
-                        '--btn-ripple': 'var(--btn-accent)',
-                    },
-                },
-            },
+            filled: { root: { base: {
+                '--btn-fill': 'var(--btn-accent)',
+                '--btn-label': 'var(--btn-on-accent)',
+                '--btn-shadow-hover': 'var(--shadow-level1)',
+            } } },
+            tonal: { root: { base: {
+                '--btn-fill': 'var(--btn-soft, var(--color-secondary-container))',
+                '--btn-label': 'var(--btn-on-soft, var(--color-secondary-container-content))',
+                '--btn-shadow-hover': 'var(--shadow-level1)',
+            } } },
+            elevated: { root: { base: {
+                '--btn-fill': 'var(--color-surface-container-low)',
+                '--btn-label': 'var(--btn-accent)',
+                '--btn-shadow': 'var(--shadow-level1)',
+                '--btn-shadow-hover': 'var(--shadow-level2)',
+            } } },
+            outlined: { root: { base: {
+                '--btn-fill': 'transparent',
+                '--btn-label': 'var(--btn-ink, var(--color-surface-variant-content))',
+                '--btn-border': 'var(--color-outline-variant)',
+                '--btn-disabled-fill': 'transparent',
+                '--btn-disabled-border': 'color-mix(in oklch, var(--color-base-content) 10%, transparent)',
+            } } },
+            text: { root: { base: {
+                '--btn-fill': 'transparent',
+                '--btn-label': 'var(--btn-accent)',
+                '--btn-disabled-fill': 'transparent',
+            } } },
         },
-        size: {
-            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
-            sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
-            md: { root: { base: { padding: 'var(--space-xs) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
-            lg: { root: { base: { padding: 'var(--space-sm) var(--space-xl)', fontSize: 'var(--text-md)' } } },
-            xl: { root: { base: { padding: 'var(--space-md) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
+        size: buttonSizeVariants('root'),
+        shape: buttonShapes('root'),
+    },
+    modifiers: {
+        icon: iconButton('root'),
+        /**
+         * M3's FAB: the role's container on the large corner at level 3
+         * (level 4 on hover), no press morph. `fab` alone is the extended
+         * FAB, sized by its label; `fab` + `icon` is the square FAB. `filled`
+         * takes the role colour itself, `elevated` the surface FAB.
+         */
+        fab: {
+            root: {
+                base: {
+                    '--btn-fill': 'var(--btn-soft, var(--color-primary-container))',
+                    '--btn-label': 'var(--btn-on-soft, var(--color-primary-container-content))',
+                    '--btn-shadow': 'var(--shadow-level3)',
+                    '--btn-shadow-hover': 'var(--shadow-level4)',
+                    '--btn-height': dp(56),
+                    '--btn-pad': dp(16),
+                    '--btn-gap': dp(12),
+                    '--btn-icon': dp(24),
+                    '--btn-icon-only': dp(24),
+                    '--btn-radius': 'var(--radius-large)',
+                    '--btn-pressed': 'var(--btn-radius)',
+                    ...type('title-medium'),
+                },
+                selectors: {
+                    '&[data-variant="filled"]': {
+                        '--btn-fill': 'var(--btn-accent)',
+                        '--btn-label': 'var(--btn-on-accent)',
+                    },
+                    '&[data-variant="elevated"]': {
+                        '--btn-fill': 'var(--color-surface-container-high)',
+                        '--btn-label': 'var(--btn-accent)',
+                    },
+                },
+            },
         },
     },
-    defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
+    compoundVariants: [
+        // The standard icon button: M3 draws its icon in on-surface-variant,
+        // where a text button's label is the role colour.
+        { match: { variant: 'text', icon: true }, parts: { root: { base: {
+            '--btn-label': 'var(--btn-ink, var(--color-surface-variant-content))',
+        } } } },
+        // M3's FAB sizes: small (40dp, r12), FAB (56, r16), medium (80, r20)
+        // and large (96, r28) — the square FAB's icon and the extended FAB's
+        // label step with them.
+        { match: { size: 'xs', fab: true }, parts: { root: { base: {
+            '--btn-height': dp(40), '--btn-pad': dp(12), '--btn-radius': 'var(--radius-medium)',
+        } } } },
+        { match: { size: 'md', fab: true }, parts: { root: { base: {
+            '--btn-height': dp(80), '--btn-pad': dp(26), '--btn-radius': 'var(--radius-large-increased)',
+            '--btn-icon': dp(28), '--btn-icon-only': dp(28), ...type('title-large'),
+        } } } },
+        { match: { size: 'lg', fab: true }, parts: { root: { base: {
+            '--btn-height': dp(96), '--btn-pad': dp(28), '--btn-radius': 'var(--radius-extra-large)',
+            '--btn-icon': dp(36), '--btn-icon-only': dp(36), ...type('headline-small'),
+        } } } },
+        { match: { size: 'xl', fab: true }, parts: { root: { base: {
+            '--btn-height': dp(96), '--btn-pad': dp(28), '--btn-radius': 'var(--radius-extra-large)',
+            '--btn-icon': dp(36), '--btn-icon-only': dp(36), ...type('headline-small'),
+        } } } },
+    ],
+    defaultVariants: { variant: 'filled', size: 'sm', shape: 'round' },
 };
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -3166,78 +3262,132 @@ export const combobox: RecipeInput = {
 
 // ── Toggle, toggle group ──────────────────────────────────────────────────
 /**
- * Material's outlined toggle button: a hairline pill while off, the accent
- * fill once on. Same accent-pair indirection as button, plus a `--toggle-ink`
- * the on state flips so the state layer/ripple is on-surface while outlined
- * and the on-color once filled.
+ * M3 Expressive's toggle buttons (#415): the common button's geometry, sizes,
+ * shapes and icon configuration, with M3's unselected → selected colours per
+ * style and the selected shape swap — a round toggle turns square when
+ * selected, a square one round.
  */
 export const toggle: RecipeInput = {
     component: 'toggle',
     tokens: {
-        '--toggle-accent': 'var(--color-primary)',
-        '--toggle-on-accent': 'var(--color-primary-content)',
-        '--toggle-ink': 'var(--color-base-content)',
+        '--btn-accent': 'var(--color-primary)',
+        '--btn-on-accent': 'var(--color-primary-content)',
     },
     parts: {
-        root: withPresence(pressable('toggle', 'var(--toggle-ink)'), {
-            base: {
-                appearance: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 'var(--space-xs)',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-outline)',
-                borderRadius: 'var(--radius-medium)',
-                ...label,
-                lineHeight: 'var(--leading-none)',
-                cursor: 'pointer',
-                transition: motion('background, color, border-color'),
-            },
+        root: withPresence(m3ButtonRoot('toggle'), {
+            base: { '--btn-selected-radius': 'var(--btn-square)' },
             states: {
-                on: {
-                    background: 'var(--toggle-accent)',
-                    color: 'var(--toggle-on-accent)',
-                    borderColor: 'var(--toggle-accent)',
-                    '--toggle-ink': 'var(--toggle-on-accent)',
-                },
+                on: { '--btn-radius': 'var(--btn-selected-radius)' },
                 off: {},
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
+            },
+            at: {
+                // Forced colours drop the fills that tell on from off; the
+                // system's selection pair says it instead.
+                'forced-colors': {
+                    states: { on: { background: 'Highlight', color: 'HighlightText', borderColor: 'Highlight' } },
+                },
             },
         }),
     },
     keyframes: rippleKeyframes('toggle'),
     variants: {
-        color: Object.fromEntries(ROLES.map((c) => [
-            c,
-            {
-                root: {
-                    base: {
-                        '--toggle-accent': `var(--color-${c})`,
-                        '--toggle-on-accent': `var(--color-${c}-content)`,
-                    },
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--btn-accent': `var(--color-${c})`,
+            '--btn-on-accent': `var(--color-${c}-content)`,
+            '--btn-soft': `var(--color-${c}-container)`,
+            '--btn-on-soft': `var(--color-${c}-container-content)`,
+            '--btn-ink': `var(--color-${c})`,
+            '--btn-selected': `var(--color-${c})`,
+            '--btn-on-selected': `var(--color-${c}-content)`,
+        } } }])),
+        variant: {
+            filled: { root: {
+                base: {
+                    '--btn-fill': 'var(--color-surface-container)',
+                    '--btn-label': 'var(--color-surface-variant-content)',
+                    '--btn-shadow-hover': 'var(--shadow-level1)',
                 },
-            },
-        ])),
-        size: {
-            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
-            sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
-            md: { root: { base: { padding: 'var(--space-xs) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
-            lg: { root: { base: { padding: 'var(--space-sm) var(--space-xl)', fontSize: 'var(--text-md)' } } },
-            xl: { root: { base: { padding: 'var(--space-md) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
+                states: { on: { '--btn-fill': 'var(--btn-accent)', '--btn-label': 'var(--btn-on-accent)' } },
+            } },
+            tonal: { root: {
+                base: {
+                    '--btn-fill': 'var(--btn-soft, var(--color-secondary-container))',
+                    '--btn-label': 'var(--btn-on-soft, var(--color-secondary-container-content))',
+                    '--btn-shadow-hover': 'var(--shadow-level1)',
+                },
+                states: { on: {
+                    '--btn-fill': 'var(--btn-selected, var(--color-secondary))',
+                    '--btn-label': 'var(--btn-on-selected, var(--color-secondary-content))',
+                } },
+            } },
+            elevated: { root: {
+                base: {
+                    '--btn-fill': 'var(--color-surface-container-low)',
+                    '--btn-label': 'var(--btn-accent)',
+                    '--btn-shadow': 'var(--shadow-level1)',
+                    '--btn-shadow-hover': 'var(--shadow-level2)',
+                },
+                states: { on: { '--btn-fill': 'var(--btn-accent)', '--btn-label': 'var(--btn-on-accent)' } },
+            } },
+            outlined: { root: {
+                base: {
+                    '--btn-fill': 'transparent',
+                    '--btn-label': 'var(--btn-ink, var(--color-surface-variant-content))',
+                    '--btn-border': 'var(--color-outline-variant)',
+                    '--btn-disabled-fill': 'transparent',
+                    '--btn-disabled-border': 'color-mix(in oklch, var(--color-base-content) 10%, transparent)',
+                },
+                states: { on: {
+                    '--btn-fill': 'var(--btn-selected, var(--color-inverse-surface))',
+                    '--btn-label': 'var(--btn-on-selected, var(--color-inverse-surface-content))',
+                    '--btn-border': 'transparent',
+                } },
+            } },
+        },
+        size: buttonSizeVariants('root'),
+        shape: {
+            round: {},
+            square: { root: { base: {
+                '--btn-radius': 'var(--btn-square)',
+                '--btn-selected-radius': 'calc(var(--btn-height) / 2)',
+            } } },
         },
     },
-    defaultVariants: { color: 'primary', size: 'md' },
+    modifiers: { icon: iconButton('root') },
+    defaultVariants: { variant: 'filled', size: 'sm', shape: 'round' },
 };
 
 /**
- * Material's segmented button: connected outlined segments in one fully
- * rounded pill, hairlines between them, and the on segment taking the
- * container fill. MD3 names that fill secondary-container; in this
- * vocabulary it is the `secondary` soft/role pair — the same pairing the
- * button's soft variant uses.
+ * `pressable()`'s state layer without its ripple, which frees `::after` for
+ * a mark of the part's own. The segmented button needs that: M3 draws its
+ * selected check in front of the label, and `toggle-group.item` declares no
+ * indicator part to draw it in (#437).
+ */
+const stateLayerOnly = (ink: string): PartStyles => {
+    const layer = pressable('unused', ink);
+    const {
+        '&::after': _ripple,
+        '&[data-press-animating]::after': _wave,
+        ...selectors
+    } = layer.selectors ?? {};
+    return {
+        ...layer,
+        selectors,
+        at: { ...layer.at, 'forced-colors': { selectors: { '&::before': { display: 'none' } } } },
+    };
+};
+
+/** M3's check icon (Material Symbols `check`), drawn as a mask in `currentColor`. */
+const CHECK_MASK =
+    'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E'
+    + '%3Cpath d=\'M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z\'/%3E%3C/svg%3E") center / contain no-repeat';
+
+/**
+ * M3's segmented button (#415): an outlined pill of connected segments at
+ * 40dp, the selected ones on secondary-container with a check sliding in
+ * before the label. The check is `::after` placed first with `order`, grown
+ * from zero width so the label moves over rather than jumping; the segment
+ * keeps M3's state layer and gives up the ripple for it.
  */
 export const toggleGroup: RecipeInput = {
     component: 'toggle-group',
@@ -3253,34 +3403,36 @@ export const toggleGroup: RecipeInput = {
         '--toggle-group-fill': 'var(--color-secondary-container)',
         '--toggle-group-on-fill': 'var(--color-secondary-container-content)',
         '--toggle-group-ink': 'var(--color-base-content)',
+        '--toggle-group-height': dp(40),
     },
     parts: {
         root: {
             base: {
                 display: 'inline-flex',
                 border: 'var(--border) solid var(--color-outline)',
-                // The segmented pill: Material's fully-rounded action shape.
-                borderRadius: '624rem',
+                borderRadius: 'var(--radius-full)',
                 overflow: 'hidden',
             },
-            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            states: { disabled: { borderColor: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)' } },
             selectors: {
-                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+                '&[data-orientation="vertical"]': { flexDirection: 'column', borderRadius: 'var(--radius-large)' },
             },
         },
-        item: withPresence(pressable('toggle-group', 'var(--toggle-group-ink)'), {
+        item: withPresence(stateLayerOnly('var(--toggle-group-ink)'), {
             base: {
                 appearance: 'none',
+                boxSizing: 'border-box',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flex: '1 1 auto',
                 gap: 'var(--space-xs)',
+                minBlockSize: 'var(--toggle-group-height)',
+                paddingInline: 'var(--space-sm)',
                 background: 'transparent',
-                color: 'var(--color-base-content)',
+                color: 'var(--toggle-group-ink)',
                 border: 'none',
-                padding: 'var(--space-xs) var(--space-lg)',
-                ...label,
-                lineHeight: 'var(--leading-none)',
+                ...type('label-large'),
                 cursor: 'pointer',
                 transition: motion('background, color'),
             },
@@ -3291,7 +3443,10 @@ export const toggleGroup: RecipeInput = {
                     '--toggle-group-ink': 'var(--toggle-group-on-fill)',
                 },
                 off: {},
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                disabled: {
+                    color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+                    cursor: 'not-allowed',
+                },
                 'focus-visible': {
                     // The pill clips its segments (joined corners), so an
                     // offset ring would be swallowed — inset it instead.
@@ -3306,22 +3461,48 @@ export const toggleGroup: RecipeInput = {
                 '&[data-orientation="vertical"] + &': {
                     borderBlockStart: 'var(--border) solid var(--color-outline)',
                 },
+                // The check: zero-width and cancelling the gap while off,
+                // 18dp and in front of the label while on.
+                '&::after': {
+                    content: '""',
+                    order: '-1',
+                    flex: 'none',
+                    inlineSize: '0',
+                    blockSize: dp(18),
+                    marginInlineEnd: 'calc(var(--space-xs) * -1)',
+                    background: 'currentColor',
+                    mask: CHECK_MASK,
+                    opacity: '0',
+                    transition:
+                        'inline-size var(--duration-short4) var(--ease-emphasized-decelerate), '
+                        + 'margin var(--duration-short4) var(--ease-emphasized-decelerate), '
+                        + 'opacity var(--duration-short2) var(--ease-standard)',
+                },
+                '&[data-state="on"]::after': { inlineSize: dp(18), marginInlineEnd: '0', opacity: '1' },
+                '&[data-state="on"][data-disabled]': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+                },
+            },
+            at: {
+                'reduced-motion': { selectors: { '&::after': { transition: 'none' } } },
+                // A mask paints its box's background, which forced colours
+                // revalue — opt the check out so it stays the item's ink.
+                'forced-colors': {
+                    states: { on: { background: 'Highlight', color: 'HighlightText' } },
+                    selectors: { '&::after': { forcedColorAdjust: 'none' } },
+                },
             },
         }),
     },
-    keyframes: rippleKeyframes('toggle-group'),
     variants: {
-        // The group is a frame around its items, so the ramp lands on the
-        // items and the frame follows their box.
+        // M3 densities: the segment's height steps, the frame follows.
         size: {
-            xs: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-2xs)' } } },
-            sm: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
-            // `md` is the un-attributed render: the base already IS the
-            // middle step, so restating it here would be a second copy free
-            // to drift. An empty entry emits no rule and keeps the base.
+            xs: { root: { base: { '--toggle-group-height': dp(28) } } },
+            sm: { root: { base: { '--toggle-group-height': dp(32) } } },
+            // `md` is the un-attributed render — M3's default 40dp.
             md: {},
-            lg: { item: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-md)' } } },
-            xl: { item: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-sm) var(--space-lg)' } } },
+            lg: { root: { base: { '--toggle-group-height': dp(48) } } },
+            xl: { root: { base: { '--toggle-group-height': dp(56) } } },
         },
         color: Object.fromEntries(ROLES.map((c) => [
             c,
@@ -5269,29 +5450,29 @@ export const radialProgress: RecipeInput = {
 };
 
 /**
- * Join — inner corners squared, seams folded to one border; the joined
- * controls keep their own chrome. Colour/size wire as on indicator: the
- * wrapper has no paint of its own.
+ * M3 Expressive's connected button group (#415), which is also its split
+ * button: the segments stand 2dp apart instead of sharing a seam, their
+ * inner corners drop to a small radius while the outer ones keep each
+ * control's own shape, and an item whose control opens a menu (the split
+ * button's trailing half) turns fully round while it is open.
+ *
+ * All logical (border-*-radius longhands, gap), so the group mirrors under
+ * RTL untouched.
  */
 export const join: RecipeInput = {
     component: 'join',
+    tokens: { '--join-inner': dp(8) },
     parts: {
         root: {
             base: {
                 display: 'inline-flex',
                 alignItems: 'stretch',
+                gap: 'var(--space-3xs)',
             },
             selectors: {
                 '&[data-orientation="vertical"]': { flexDirection: 'column' },
             },
         },
-        /**
-         * The collapse itself: inner corners squared, one shared seam. All
-         * logical (border-*-radius longhands, margin-inline/block), so the
-         * group mirrors under RTL untouched. `:focus-within` and
-         * `:focus-visible` raise the segment so a ring is not clipped by the
-         * seam overlap.
-         */
         item: {
             base: {
                 position: 'relative',
@@ -5300,29 +5481,25 @@ export const join: RecipeInput = {
                 // Each corner rule lands on the item AND its direct child:
                 // asChild puts the item attributes on the control itself, but
                 // in wrapper mode the control is the child, and a wrapper
-                // cannot collapse a radius it does not carry.
+                // cannot shape a radius it does not carry.
                 '&[data-orientation="horizontal"]:not(:first-child), &[data-orientation="horizontal"]:not(:first-child) > *': {
-                    borderStartStartRadius: '0',
-                    borderEndStartRadius: '0',
-                },
-                '&[data-orientation="horizontal"]:not(:first-child)': {
-                    marginInlineStart: 'calc(var(--border) * -1)',
+                    borderStartStartRadius: 'var(--join-inner)',
+                    borderEndStartRadius: 'var(--join-inner)',
                 },
                 '&[data-orientation="horizontal"]:not(:last-child), &[data-orientation="horizontal"]:not(:last-child) > *': {
-                    borderStartEndRadius: '0',
-                    borderEndEndRadius: '0',
+                    borderStartEndRadius: 'var(--join-inner)',
+                    borderEndEndRadius: 'var(--join-inner)',
                 },
                 '&[data-orientation="vertical"]:not(:first-child), &[data-orientation="vertical"]:not(:first-child) > *': {
-                    borderStartStartRadius: '0',
-                    borderStartEndRadius: '0',
-                },
-                '&[data-orientation="vertical"]:not(:first-child)': {
-                    marginBlockStart: 'calc(var(--border) * -1)',
+                    borderStartStartRadius: 'var(--join-inner)',
+                    borderStartEndRadius: 'var(--join-inner)',
                 },
                 '&[data-orientation="vertical"]:not(:last-child), &[data-orientation="vertical"]:not(:last-child) > *': {
-                    borderEndStartRadius: '0',
-                    borderEndEndRadius: '0',
+                    borderEndStartRadius: 'var(--join-inner)',
+                    borderEndEndRadius: 'var(--join-inner)',
                 },
+                // The split button's menu half, open: M3 rounds it fully.
+                '&[data-orientation] > [data-state="open"]': { borderRadius: 'var(--radius-full)' },
                 '&:focus-within': { zIndex: '1' },
                 '&:focus-visible': { zIndex: '1' },
             },
@@ -5332,12 +5509,14 @@ export const join: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
             color: `var(--color-${c})`,
         } } }])),
+        // M3's inner corner per button size: 4dp at XS, 8 at S and M, 16 at
+        // L, 20 at XL; the type follows the ramp for bare text items.
         size: {
-            xs: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            xs: { root: { base: { '--join-inner': dp(4) } }, item: { base: { fontSize: 'var(--text-xs)' } } },
             sm: { item: { base: { fontSize: 'var(--text-xs)' } } },
             md: {},
-            lg: { item: { base: { fontSize: 'var(--text-md)' } } },
-            xl: { item: { base: { fontSize: 'var(--text-lg)' } } },
+            lg: { root: { base: { '--join-inner': dp(16) } }, item: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { '--join-inner': dp(20) } }, item: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
 };

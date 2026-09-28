@@ -854,8 +854,10 @@ describe('the declared vocabulary closes the set in every shipped design system 
         const seeded = structuredClone(ds) as DesignSystemInput;
         const button = seeded.recipes.find((r) => r.component === 'button')!;
         const variantAxis = button.variants!['variant']!;
-        variantAxis['ghots'] = variantAxis['ghost']!;
-        delete variantAxis['ghost'];
+        // Any real value will do — material's are M3's names (#415), not ghost.
+        const real = Object.keys(variantAxis)[0]!;
+        variantAxis['ghots'] = variantAxis[real]!;
+        delete variantAxis[real];
         expect(validateDesignSystem(seeded, manifest).errors.map((e) => e.message))
             .toContainEqual(expect.stringContaining('"ghots" is not a declared variant'));
 

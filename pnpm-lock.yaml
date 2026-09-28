@@ -144,6 +144,9 @@ importers:
       '@sigx/zero-heroui':
         specifier: workspace:^
         version: link:../../packages/zero-heroui
+      '@sigx/zero-material':
+        specifier: workspace:^
+        version: link:../../packages/zero-material
       sigx:
         specifier: 'catalog:'
         version: 1.0.1

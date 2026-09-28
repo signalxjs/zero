@@ -157,9 +157,9 @@ const NO_VARIANT: Record<string, string> = {
     // border | lift | box flavors, with its own `tokens.scopes.tabs`
     // vocabulary. (The survey rows that justified the deferral: HeroUI v3
     // varies as primary | secondary, Carbon as line vs contained.)
-    toggle: 'Material 3 makes the toggle a MODE of the icon button rather than '
-        + 'a component — all four (standard, filled, filled-tonal, outlined) '
-        + 'take `toggle`, so the variant is the button\'s and follows it.',
+    // toggle left this ledger in #415: zero-material wires `variant` as M3
+    // Expressive's toggle buttons (filled | tonal | elevated | outlined), with
+    // its own `tokens.scopes.toggle` vocabulary.
 
     // ── The animated pair (#314). Both DO have a style axis somewhere, and
     //    neither is a fill/chrome one — the survey's point twice over. ──

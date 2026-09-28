@@ -37,8 +37,14 @@ adapter would be its own fixture with an `api` declaration.
 | HeroUI | [HeroUI v3](https://www.heroui.com/docs/components/button) (2026-07-29) | `isPending` | presence-flag | boolean | `mods.pending` | reshaped | #179 (shipped) | `packages/zero-heroui` |
 | HeroUI | [HeroUI v3](https://www.heroui.com/docs/components/button) (2026-07-29) | `isStriped` | presence-flag | boolean | `mods.striped` | reshaped | #179 (shipped) | `packages/zero-heroui` |
 | HeroUI | [HeroUI v3](https://www.heroui.com/docs/components/button) (2026-07-29) | `inline` | presence-flag | boolean | `mods.inline` | unsupported | unmapped — no api declaration | `packages/zero-heroui` |
-| Material 3 | [Material 3 (2026 spec)](https://m3.material.io/styles/color/roles) (2026-07-29) | `color` | enumeration | primary, secondary, tertiary, error, neutral, info, success, warning, primary-container, secondary-container, tertiary-container, error-container, info-container, success-container, warning-container, neutral-container, surface, surface-dim, surface-bright, surface-container-lowest, surface-container-low, surface-container, surface-container-high, surface-container-highest, surface-variant, inverse-surface, inverse-primary, outline, outline-variant, scrim, shadow | `color` | exact | — | `packages/zero-material` |
-| Material 3 | [Material 3 (2026 spec)](https://m3.material.io/styles/color/roles) (2026-07-29) | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | — | `packages/zero-material` |
+| Material 3 | [Material 3 (2026 spec)](https://m3.material.io/components/buttons/specs) (2026-09-28) | `color` | enumeration | primary, secondary, tertiary, error, neutral, info, success, warning, primary-container, secondary-container, tertiary-container, error-container, info-container, success-container, warning-container, neutral-container, surface, surface-dim, surface-bright, surface-container-lowest, surface-container-low, surface-container, surface-container-high, surface-container-highest, surface-variant, inverse-surface, inverse-primary, outline, outline-variant, scrim, shadow | `color` | exact | — | `packages/zero-material` |
+| Material 3 | [Material 3 (2026 spec)](https://m3.material.io/components/buttons/specs) (2026-09-28) | `variant` | enumeration | filled, tonal, elevated, outlined, text | `variant` | exact | — | `packages/zero-material` |
+| Material 3 | [Material 3 (2026 spec)](https://m3.material.io/components/buttons/specs) (2026-09-28) | `shape` | enumeration | circle, square, rounded, round | `axes.shape` | exact | — | `packages/zero-material` |
+| Material 3 | [Material 3 (2026 spec)](https://m3.material.io/components/buttons/specs) (2026-09-28) | `icon` | presence-flag | boolean | `mods.icon` | reshaped | #179 (shipped) | `packages/zero-material` |
+| Material 3 | [Material 3 (2026 spec)](https://m3.material.io/components/buttons/specs) (2026-09-28) | `fab` | presence-flag | boolean | `mods.fab` | reshaped | #179 (shipped) | `packages/zero-material` |
+| Material 3 | [Material 3 (2026 spec)](https://m3.material.io/components/buttons/specs) (2026-09-28) | `zebra` | presence-flag | boolean | `mods.zebra` | reshaped | #179 (shipped) | `packages/zero-material` |
+| Material 3 | [Material 3 (2026 spec)](https://m3.material.io/components/buttons/specs) (2026-09-28) | `hover` | presence-flag | boolean | `mods.hover` | reshaped | #179 (shipped) | `packages/zero-material` |
+| Material 3 | [Material 3 (2026 spec)](https://m3.material.io/components/buttons/specs) (2026-09-28) | `inline` | presence-flag | boolean | `mods.inline` | reshaped | #179 (shipped) | `packages/zero-material` |
 | Radix Themes | [@radix-ui/themes v3](https://www.radix-ui.com/themes/docs/components/button) (2026-07-29) | `size` | numeric ramp | 1, 2, 3, 4 | `size` | exact | — | `skills/design-system/conformance/radix.ts` |
 | Radix Themes | [@radix-ui/themes v3](https://www.radix-ui.com/themes/docs/components/button) (2026-07-29) | `variant` | enumeration | classic, solid, soft, surface, outline, ghost | `variant` | exact | — | `skills/design-system/conformance/radix.ts` |
 | Radix Themes | [@radix-ui/themes v3](https://www.radix-ui.com/themes/docs/components/button) (2026-07-29) | `radius` | enumeration | none, small, medium, large, full | `axes.radius` | exact | — | `skills/design-system/conformance/radix.ts` |
@@ -83,11 +89,13 @@ api-derived grades where a system declares one.
 | daisyui | `zebra` | presence-flag | boolean | `mods.zebra` | reshaped | `packages/zero-daisyui` |
 | material | `color` | enumeration | error, error-container, info, info-container, inverse-primary, inverse-surface, neutral, neutral-container, outline, outline-variant, primary, primary-container, scrim, secondary, secondary-container, shadow, success, success-container, surface, surface-bright, surface-container, surface-container-high, surface-container-highest, surface-container-low, surface-container-lowest, surface-dim, surface-variant, tertiary, tertiary-container, warning, warning-container | `color` | exact | `packages/zero-material` |
 | material | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-material` |
-| material | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-material` |
-| material | `shape` | enumeration | circle, square, rounded | `axes.shape` | exact | `packages/zero-material` |
-| material | `hover` | presence-flag | boolean | `mods.hover` | exact | `packages/zero-material` |
-| material | `inline` | presence-flag | boolean | `mods.inline` | exact | `packages/zero-material` |
-| material | `zebra` | presence-flag | boolean | `mods.zebra` | exact | `packages/zero-material` |
+| material | `variant` | enumeration | filled, tonal, elevated, outlined, text | `variant` | exact | `packages/zero-material` |
+| material | `shape` | enumeration | circle, square, rounded, round | `axes.shape` | exact | `packages/zero-material` |
+| material | `fab` | presence-flag | boolean | `mods.fab` | reshaped | `packages/zero-material` |
+| material | `hover` | presence-flag | boolean | `mods.hover` | reshaped | `packages/zero-material` |
+| material | `icon` | presence-flag | boolean | `mods.icon` | reshaped | `packages/zero-material` |
+| material | `inline` | presence-flag | boolean | `mods.inline` | reshaped | `packages/zero-material` |
+| material | `zebra` | presence-flag | boolean | `mods.zebra` | reshaped | `packages/zero-material` |
 | brutalist | `color` | enumeration | accent, error, info, neutral, primary, secondary, success, warning | `color` | exact | `packages/zero-brutalist` |
 | brutalist | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-brutalist` |
 | brutalist | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-brutalist` |

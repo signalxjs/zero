@@ -2,21 +2,18 @@
  * Conformance fixture: **Material 3** — the extensible-vocabulary Tier-1 row
  * (docs/architecture.md §7, the conformance program).
  *
- * No `api` and no fixture recipe: `packages/zero-material` IS the executing
- * artifact, and a design system built on zero is zero-native — its documented
- * surface is zero's, so every declared surface grades `exact` by
- * construction. What the row states is the SHAPE the package proves
- * reachable: M3's full colour-role set (#414) — the eight action roles
- * (`tertiary` beyond the recommended set), their containers, the seven-step
- * surface family, the inverse pair, `outline` / `outline-variant`, `scrim` and
- * `shadow` — and its own variant vocabulary.
- *
- * Deliberately NOT graded here: Google's component API (`elevated`/`filled`/
- * `tonal`/`outlined`/`text` on M3 Button). That would be a vendor-surface
- * fixture with an `api` declaration of its own — this row is about the token
- * system, which is what zero-material set out to prove. The vocabulary below
- * is pinned verbatim against the package by `conformance.test.ts`.
+ * No fixture recipe: `packages/zero-material` IS the executing artifact. The
+ * row states the shape the package proves reachable — M3's full colour-role
+ * set (#414: the eight action roles, their containers, the seven-step surface
+ * family, the inverse pair, `outline` / `outline-variant`, `scrim`, `shadow`)
+ * — and, since #415, M3's component API: Button's five styles by M3's names
+ * (`filled`, `tonal`, `elevated`, `outlined`, `text` — `exact`), its
+ * `round` / `square` shapes (`exact`), and the icon-button and FAB
+ * configurations, which M3 ships as separate components and zero as
+ * modifiers on one Button (`reshaped`). The vocabulary and the api are pinned
+ * verbatim against the package by `conformance.test.ts`.
  */
+import { defineApi } from '@sigx/zero-kit';
 
 /** Matrix placement and the artifact column 8 of this system's rows points at. */
 export const matrix = {
@@ -26,9 +23,9 @@ export const matrix = {
 } as const;
 
 export const source = {
-    url: 'https://m3.material.io/styles/color/roles',
+    url: 'https://m3.material.io/components/buttons/specs',
     version: 'Material 3 (2026 spec)',
-    verified: '2026-07-29',
+    verified: '2026-09-28',
 } as const;
 
 export const vocabulary = {
@@ -42,5 +39,17 @@ export const vocabulary = {
         'surface-variant', 'inverse-surface',
         'inverse-primary', 'outline', 'outline-variant', 'scrim', 'shadow',
     ],
-    variants: ['solid', 'outline', 'soft', 'ghost'],
+    variants: ['filled', 'tonal', 'elevated', 'outlined', 'text'],
+    modifiers: ['icon', 'fab', 'zebra', 'hover', 'inline'],
+    axes: { shape: ['circle', 'square', 'rounded', 'round'] },
 } as const;
+
+/** The package's api, restated: `conformance.test.ts` holds the two equal. */
+const m3Sizes = { size: { values: { sm: 's', md: 'm', lg: 'l' } } } as const;
+
+export const api = defineApi(vocabulary, {
+    variant: {},
+    axes: { shape: {} },
+    modifiers: { icon: {}, fab: {}, zebra: {}, hover: {}, inline: {} },
+    components: { button: m3Sizes, toggle: m3Sizes },
+});

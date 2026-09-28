@@ -4,13 +4,14 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "typecheck": "tsgo --noEmit -p tsconfig.register.json && tsgo --noEmit -p tsconfig.components.json && tsgo --noEmit -p tsconfig.api.json"
+        "typecheck": "tsgo --noEmit -p tsconfig.register.json && tsgo --noEmit -p tsconfig.components.json && tsgo --noEmit -p tsconfig.api.json && tsgo --noEmit -p tsconfig.material.json"
     },
     "dependencies": {
         "@sigx/zero": "workspace:^",
         "@sigx/zero-basic": "workspace:^",
         "@sigx/zero-carbon": "workspace:^",
         "@sigx/zero-heroui": "workspace:^",
+        "@sigx/zero-material": "workspace:^",
         "sigx": "catalog:"
     },
     "devDependencies": {
