@@ -47,6 +47,9 @@ create-zero-ds <name> --brief <id> [options]
                          brief; none: the brief's Button only
   --targets web[,lynx]   emit targets (default: web)
   --dir <path>           output directory (default: ./<last segment of name>)
+  --workspace            for a package inside a pnpm workspace that holds
+                         @sigx/zero itself (this monorepo): workspace:^
+                         ranges, tsgo scripts, private, version 0.0.0
   --dry-run              print the file plan, write nothing — it refuses a
                          non-empty directory exactly as the real run does
   --force                write into a non-empty directory; the file list
@@ -64,6 +67,31 @@ prompt. Exit 1 is a failure outside the argument grammar: an unknown brief, a
 non-empty directory without `--force` (with or without `--dry-run`), or
 missing templates. `--help` and `--version` work even then — the version is
 the package's own.
+
+## Inside the zero monorepo: `--workspace`
+
+The default output is the published shape: `^X` registry ranges on
+`@sigx/zero` and `@sigx/zero-kit`, `tsc` from the package's own `typescript`
+devDependency, and a public package with `files`. That is right for a design
+system that lives in its own repository — and wrong inside the zero monorepo,
+where pnpm does not link workspace packages for a plain semver range (no
+`linkWorkspacePackages`), so a `^X` range installs the published `@sigx/zero`
+rather than the one being edited, or fails before the first publish.
+
+`--workspace` writes the in-repo shape instead, the one `examples/mail/ds`
+carries:
+
+- `workspace:^` for `@sigx/zero` (peer and dev) and `@sigx/zero-kit`;
+- `tsgo` in `build`, `typecheck` and `validate` — the repo's compiler (the
+  `typescript` devDependency stays, as in the repo's own design systems);
+- `"private": true`, version `0.0.0`, no `files`.
+
+It is never switched on for you. When `--workspace` is absent and a
+`pnpm-workspace.yaml` sits at or above the target directory, the command
+prints one line on stderr — `inside a pnpm workspace (<root>); pass
+--workspace to link @sigx/* with workspace:^` — and scaffolds the default
+anyway. An ordinary app monorepo does not hold `@sigx/zero`, and a
+`workspace:^` range there would not install.
 
 ## Ecosystem components
 

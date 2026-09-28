@@ -267,6 +267,67 @@ describe('options', () => {
     });
 });
 
+describe('workspace mode (#449)', () => {
+    type Pkg = {
+        version: string;
+        private?: boolean;
+        files?: string[];
+        scripts: Record<string, string>;
+        peerDependencies: Record<string, string>;
+        devDependencies: Record<string, string>;
+    };
+    const pkgOf = (workspace?: boolean): { raw: string; pkg: Pkg } => {
+        const raw = planScaffold({ name: 'zero-ws', brief: 'corporate', workspace }, templates)
+            .find((f) => f.path === 'package.json')!.content;
+        return { raw, pkg: JSON.parse(raw) as Pkg };
+    };
+
+    it('links @sigx/zero and @sigx/zero-kit with workspace:^, builds with tsgo, and is private', () => {
+        const { pkg } = pkgOf(true);
+        expect(pkg.peerDependencies['@sigx/zero']).toBe('workspace:^');
+        expect(pkg.devDependencies['@sigx/zero']).toBe('workspace:^');
+        expect(pkg.devDependencies['@sigx/zero-kit']).toBe('workspace:^');
+        expect(pkg.private).toBe(true);
+        expect(pkg.version).toBe('0.0.0');
+        expect(pkg.files).toBeUndefined();
+        expect(pkg.scripts).toEqual({
+            build: 'tsgo -p tsconfig.json && node build.mjs',
+            typecheck: 'tsgo --noEmit -p tsconfig.json',
+            validate: 'tsgo -p tsconfig.json && sigx zero:validate --report',
+        });
+        // Kept, like packages/zero-basic and examples/mail/ds.
+        expect(pkg.devDependencies.typescript).toBe(templates.versions.typescript);
+    });
+
+    it('the default is the published shape: registry ranges, tsc, public, files', () => {
+        const range = `^${templates.versions.version}`;
+        for (const workspace of [undefined, false]) {
+            const { raw, pkg } = pkgOf(workspace);
+            expect(pkg.peerDependencies['@sigx/zero']).toBe(range);
+            expect(pkg.devDependencies['@sigx/zero']).toBe(range);
+            expect(pkg.devDependencies['@sigx/zero-kit']).toBe(range);
+            expect(pkg.private).toBeUndefined();
+            expect(pkg.version).toBe('0.1.0');
+            expect(pkg.files).toEqual(['dist', 'src']);
+            expect(pkg.scripts.build).toBe('tsc -p tsconfig.json && node build.mjs');
+            expect(raw).not.toMatch(/workspace:|tsgo/);
+        }
+        const plan = planScaffold({ name: 'zero-ws', brief: 'corporate' }, templates);
+        for (const file of plan) expect(file.content, file.path).not.toMatch(/workspace:|tsgo/);
+    });
+
+    it('only package.json, build.mjs and README.md differ from the default plan', () => {
+        const byPath = (workspace: boolean): Map<string, string> =>
+            new Map(planScaffold({ name: 'zero-ws', brief: 'corporate', workspace }, templates).map((f) => [f.path, f.content]));
+        const ws = byPath(true);
+        const std = byPath(false);
+        expect([...ws.keys()]).toEqual([...std.keys()]);
+        expect([...ws.keys()].filter((path) => ws.get(path) !== std.get(path)).sort())
+            .toEqual(['README.md', 'build.mjs', 'package.json']);
+        expect(ws.get('README.md')).toContain('# tsgo, then compile');
+    });
+});
+
 describe('designSystemName', () => {
     it('is the last segment minus a leading zero-', () => {
         expect(designSystemName('zero-acme')).toBe('acme');

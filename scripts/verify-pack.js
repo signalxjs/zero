@@ -487,6 +487,15 @@ function main() {
     ];
     for (const { name, brief, targets } of scaffolds) {
         run(`node ${JSON.stringify(createBin)} ${name} --brief ${brief} --targets ${targets}`, { cwd: appDir });
+        // The published default must stay the registry shape — `--workspace`
+        // (#449) is opt-in, and a leak of it would not install outside the repo.
+        const scaffoldedPkg = JSON.parse(readFileSync(join(appDir, name, 'package.json'), 'utf-8'));
+        if (JSON.stringify(scaffoldedPkg).includes('workspace:')) {
+            throw new Error(`${name}: the default scaffold wrote a workspace: range into package.json`);
+        }
+        if (scaffoldedPkg.private !== undefined) {
+            throw new Error(`${name}: the default scaffold set "private" in package.json`);
+        }
         run(`node ${JSON.stringify(tscBin)} -p ${name}/tsconfig.json`, { cwd: appDir });
         run(`node ${name}/build.mjs`, { cwd: appDir });
         const css = join(appDir, name, 'dist', 'css', 'index.css');

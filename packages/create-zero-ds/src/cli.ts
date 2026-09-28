@@ -4,7 +4,8 @@
  * so a missing argument is an exit code and a usage line, never a prompt.
  */
 import { parseArgs } from 'node:util';
-import { resolve } from 'node:path';
+import { existsSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { checkPlan, defaultDir, planScaffold, validatePackageName, writePlan } from './scaffold.js';
 import type { ScaffoldOptions } from './scaffold.js';
 import { loadTemplates, ownVersion } from './templates.js';
@@ -30,11 +31,27 @@ const USAGE = `Usage: create-zero-ds <name> --brief <id> [options]
                        to the brief's vocabulary; none: the brief's Button only
   --targets web[,lynx] emit targets (default: web)
   --dir <path>         output directory (default: ./<last segment of name>)
+  --workspace          link @sigx/* with workspace:^, tsgo scripts, private —
+                       for a package inside the zero monorepo
   --dry-run            print the file plan, write nothing (same
                        non-empty check as a real run)
   --force              write into a non-empty directory (lists what it overwrites)
   -h, --help           this text
   -v, --version        print the version`;
+
+/**
+ * The nearest directory at or above `dir` that holds a `pnpm-workspace.yaml`,
+ * or `undefined`. `dir` need not exist yet — the walk simply goes up.
+ */
+export function findWorkspaceRoot(dir: string): string | undefined {
+    let current = resolve(dir);
+    for (;;) {
+        if (existsSync(join(current, 'pnpm-workspace.yaml'))) return current;
+        const parent = dirname(current);
+        if (parent === current) return undefined;
+        current = parent;
+    }
+}
 
 export const EXIT_OK = 0;
 export const EXIT_FAILED = 1;
@@ -64,6 +81,7 @@ export async function main(argv: readonly string[], io: CliIo = {
                 baseline: { type: 'string' },
                 targets: { type: 'string' },
                 dir: { type: 'string' },
+                workspace: { type: 'boolean' },
                 'dry-run': { type: 'boolean' },
                 force: { type: 'boolean' },
                 help: { type: 'boolean', short: 'h' },
@@ -135,6 +153,7 @@ export async function main(argv: readonly string[], io: CliIo = {
             brief: values.brief as string,
             baseline: (values.baseline as 'basic' | 'none' | undefined) ?? 'basic',
             targets: values.targets ? parseTargets(values.targets as string) : ['web'],
+            workspace: values.workspace === true,
         };
     } catch (error) {
         io.stderr(`create-zero-ds: ${(error as Error).message}`);
@@ -142,6 +161,14 @@ export async function main(argv: readonly string[], io: CliIo = {
     }
 
     const dir = resolve(io.cwd, (values.dir as string | undefined) ?? defaultDir(name));
+    if (!options.workspace) {
+        // A hint, never a mode switch: the default output is what the
+        // published package promises, wherever it runs.
+        const root = findWorkspaceRoot(dir);
+        if (root !== undefined) {
+            io.stderr(`create-zero-ds: inside a pnpm workspace (${root}); pass --workspace to link @sigx/* with workspace:^`);
+        }
+    }
     try {
         const plan = planScaffold(options, templates);
         const force = values.force === true;
@@ -162,7 +189,7 @@ export async function main(argv: readonly string[], io: CliIo = {
         io.stdout('Next:');
         io.stdout(`  cd ${dir}`);
         io.stdout('  pnpm install');
-        io.stdout('  pnpm build                       # tsc + compile to dist/css');
+        io.stdout(`  pnpm build                       # ${options.workspace ? 'tsgo' : 'tsc'} + compile to dist/css`);
         io.stdout('  export ZERO_ITERATION_LOG=.zero-iterations.jsonl  # optional: a trend line per validate run');
         io.stdout('  npx sigx zero:validate --report  # then iterate — see node_modules/@sigx/zero-kit/skills/design-system/SKILL.md');
         io.stdout('  npx sigx zero:audit              # does what you built say what it claims (the compiled CSS)');

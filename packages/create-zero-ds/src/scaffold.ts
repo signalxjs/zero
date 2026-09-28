@@ -26,6 +26,12 @@ export interface ScaffoldOptions {
     brief: string;
     baseline?: 'basic' | 'none';
     targets?: readonly Target[];
+    /**
+     * Scaffold for a package inside the zero monorepo's pnpm workspace:
+     * `workspace:^` for `@sigx/zero` / `@sigx/zero-kit`, `tsgo` scripts,
+     * `private: true`, version 0.0.0, no `files`. Default false.
+     */
+    workspace?: boolean;
 }
 
 export interface PlannedFile {
@@ -94,6 +100,7 @@ export function planScaffold(options: ScaffoldOptions, templates: Templates): Pl
         hasButton: split.button !== undefined,
         baselineRecipeCount: baselineRecipeCount(templates.baselineRecipes),
         versions: templates.versions,
+        workspace: options.workspace ?? false,
     };
 
     const briefSource = options.brief === 'basic'
