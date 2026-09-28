@@ -4642,6 +4642,70 @@ export const combobox: RecipeInput = {
     },
     targets: {
         web: { parts: { popup: { base: anchoredListbox } } },
+        // lynx-zero's combobox (signalxjs/lynx#1278): a native text field in
+        // a painted `control` view, the list in the overlay outlet.
+        lynx: {
+            parts: {
+                // select's bounds (signalxjs/lynx#1146): 20rem, never wider
+                // than the container. The web's 13rem control floor
+                // overflowed any cell narrower than 208px on a phone; the
+                // control fills the root instead.
+                root: { base: { width: '20rem', maxWidth: '100%', minWidth: '3rem' } },
+                // The web `:hover` border is dropped on a touch platform. The
+                // ring is the box-shadow spelling (signalxjs/lynx#1163): lynx
+                // has no `outline-offset`, and its outline ignores the radius.
+                control: {
+                    base: { minWidth: '3rem', width: '100%' },
+                    states: lynxFocus(),
+                },
+                // `color: inherit` never reaches a native text field, and
+                // `::placeholder` does not exist: the ink is explicit, and the
+                // placeholder takes lynx's `-x-placeholder-color` — the web's
+                // 60% mix, baked per theme (input's spelling; its constant is
+                // declared below this recipe, so the value is restated).
+                input: {
+                    base: {
+                        color: 'var(--color-base-content)',
+                        '-x-placeholder-color': 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
+                        flexGrow: '1',
+                        flexShrink: '1',
+                    },
+                },
+                // The chevron and the × are `<view>`s holding a glyph: centred
+                // in the stretched row (a lynx view lays its child out at the
+                // top), in explicit ink. A held chevron comes up to full ink —
+                // the touch answer to the web's resting 60%. The clear-trigger
+                // declares no pressed flag; its feedback is the text leaving.
+                trigger: {
+                    base: { color: 'var(--color-base-content)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+                    states: { pressed: { opacity: '1' } },
+                },
+                'clear-trigger': {
+                    base: { color: 'var(--color-base-content)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+                },
+                // The chip's ring is the lynx one; its remove button's ring is
+                // drawn inside, so it never paints over the chip's label.
+                tag: { states: lynxFocus() },
+                'tag-remove': {
+                    base: { color: 'var(--color-base-content)' },
+                    states: lynxFocus({ inset: true }),
+                },
+                // The popup renders in the overlay outlet, outside the root,
+                // so it cannot inherit `--combobox-accent`, and an unresolved
+                // `var()` on lynx has no fallback (select's
+                // signalxjs/lynx#1168). The popup restates the accent; its
+                // colour-axis twins are in `variants.color` below.
+                popup: { base: { '--combobox-accent': 'var(--color-primary)' } },
+                // A touch list has no pointer highlight: a held option takes
+                // the highlighted wash.
+                item: { states: { pressed: { background: 'var(--color-base-200)' } } },
+            },
+            variants: {
+                color: Object.fromEntries(ROLES.map((c) => [c, { popup: { base: {
+                    '--combobox-accent': `var(--color-${c})`,
+                } } }])),
+            },
+        },
     },
 };
 
