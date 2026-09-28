@@ -3,12 +3,12 @@
  * non-empty-directory refusal, and the usage text naming the briefs. Runs
  * against templates collected from the workspace, like the scaffold suite.
  */
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { collectTemplates } from '../src/collect.js';
-import { EXIT_FAILED, EXIT_OK, EXIT_USAGE, main } from '../src/cli.js';
+import { EXIT_FAILED, EXIT_OK, EXIT_USAGE, findWorkspaceRoot, main } from '../src/cli.js';
 import type { CliIo } from '../src/cli.js';
 import { loadTemplates } from '../src/templates.js';
 import type { Templates } from '../src/templates.js';
@@ -151,5 +151,58 @@ describe('create-zero-ds', () => {
         expect(help.out.join('\n')).toContain('Briefs: basic, brutalist, corporate, glass, riso, seeded, terminal');
         const version = await run(['-v'], cwd);
         expect(version.out).toEqual([templates.versions.version]);
+    });
+    describe('--workspace (#449)', () => {
+        const hint = (r: Run): string | undefined => r.err.find((l) => l.includes('pass --workspace'));
+
+        it('writes workspace:^ ranges and tsgo scripts, and says tsgo in the next steps', async () => {
+            const cwd = tempDir();
+            const r = await run(['zero-ws', '--brief', 'corporate', '--workspace'], cwd);
+            expect(r.code).toBe(EXIT_OK);
+            const pkg = JSON.parse(readFileSync(join(cwd, 'zero-ws', 'package.json'), 'utf8')) as {
+                private?: boolean;
+                scripts: Record<string, string>;
+                peerDependencies: Record<string, string>;
+                devDependencies: Record<string, string>;
+            };
+            expect(pkg.peerDependencies['@sigx/zero']).toBe('workspace:^');
+            expect(pkg.devDependencies['@sigx/zero-kit']).toBe('workspace:^');
+            expect(pkg.private).toBe(true);
+            expect(pkg.scripts.build).toMatch(/^tsgo /);
+            expect(r.out.join('\n')).toContain('# tsgo + compile');
+        });
+
+        it('hints at --workspace below a pnpm-workspace.yaml, without switching mode', async () => {
+            const root = tempDir();
+            writeFileSync(join(root, 'pnpm-workspace.yaml'), "packages:\n  - 'packages/*'\n");
+            mkdirSync(join(root, 'packages'));
+            const r = await run(['zero-ws', '--brief', 'corporate', '--dir', 'packages/zero-ws'], root);
+            expect(r.code).toBe(EXIT_OK);
+            expect(r.err).toEqual([`create-zero-ds: inside a pnpm workspace (${root}); pass --workspace to link @sigx/* with workspace:^`]);
+            const pkg = readFileSync(join(root, 'packages', 'zero-ws', 'package.json'), 'utf8');
+            expect(pkg).not.toMatch(/workspace:/);
+
+            // The dry run hints too; --workspace silences it.
+            expect(hint(await run(['zero-dry', '--brief', 'corporate', '--dry-run'], root))).toBeDefined();
+            const ws = await run(['zero-ws2', '--brief', 'corporate', '--dir', 'packages/zero-ws2', '--workspace'], root);
+            expect(ws.code).toBe(EXIT_OK);
+            expect(ws.err).toEqual([]);
+        });
+
+        it('prints no hint outside a workspace', async () => {
+            const cwd = tempDir();
+            // Only meaningful if the OS temp dir is not itself inside one.
+            expect(findWorkspaceRoot(cwd)).toBeUndefined();
+            const r = await run(['zero-ws', '--brief', 'corporate', '--dry-run'], cwd);
+            expect(r.code).toBe(EXIT_OK);
+            expect(hint(r)).toBeUndefined();
+        });
+
+        it('findWorkspaceRoot walks up from a directory that does not exist yet', () => {
+            const root = tempDir();
+            writeFileSync(join(root, 'pnpm-workspace.yaml'), '');
+            expect(findWorkspaceRoot(join(root, 'a', 'b', 'c'))).toBe(root);
+            expect(findWorkspaceRoot(root)).toBe(root);
+        });
     });
 });

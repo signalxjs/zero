@@ -3,7 +3,7 @@
  * brief. The bin (`create-zero-ds`, behind `pnpm create @sigx/zero-ds`) is the
  * intended surface; this module exposes the same plumbing programmatically.
  */
-export { main, EXIT_FAILED, EXIT_OK, EXIT_USAGE } from './cli.js';
+export { main, findWorkspaceRoot, EXIT_FAILED, EXIT_OK, EXIT_USAGE } from './cli.js';
 export type { CliIo } from './cli.js';
 export { checkPlan, defaultDir, designSystemName, planScaffold, validatePackageName, writePlan } from './scaffold.js';
 export type { PlannedFile, ScaffoldOptions, WriteOptions } from './scaffold.js';

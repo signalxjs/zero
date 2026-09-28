@@ -19,12 +19,19 @@ export interface RenderContext {
     /** How many recipes the baseline template's list holds (`baselineRecipeCount`). */
     baselineRecipeCount: number;
     versions: Versions;
+    /**
+     * A package inside a pnpm workspace that holds `@sigx/zero` itself (the
+     * zero monorepo): `workspace:^` ranges, `tsgo` scripts, private, no
+     * `files`. Off by default — the published scaffold's output never changes.
+     */
+    workspace: boolean;
 }
 
 const lynx = (ctx: RenderContext): boolean => ctx.targets.includes('lynx');
 
 export function renderPackageJson(ctx: RenderContext): string {
-    const range = `^${ctx.versions.version}`;
+    const range = ctx.workspace ? 'workspace:^' : `^${ctx.versions.version}`;
+    const tsc = ctx.workspace ? 'tsgo' : 'tsc';
     const exports: Record<string, unknown> = {
         '.': { types: './dist/index.d.ts', import: './dist/index.js' },
         // The compiled input, so an app can run `sigx zero:extend` against
@@ -47,9 +54,9 @@ export function renderPackageJson(ctx: RenderContext): string {
         exports['./lynx/tokens.css'] = './dist/lynx/tokens.css';
         exports['./lynx/manifest.json'] = './dist/lynx/manifest.json';
     }
-    const pkg = {
+    const pkg: Record<string, unknown> = {
         name: ctx.packageName,
-        version: '0.1.0',
+        version: ctx.workspace ? '0.0.0' : '0.1.0',
         description: `A SignalX Zero design system — scaffolded from the "${ctx.brief}" brief by @sigx/create-zero-ds.`,
         type: 'module',
         main: './dist/index.js',
@@ -58,9 +65,9 @@ export function renderPackageJson(ctx: RenderContext): string {
         files: ['dist', 'src'],
         sideEffects: false,
         scripts: {
-            build: 'tsc -p tsconfig.json && node build.mjs',
-            typecheck: 'tsc --noEmit -p tsconfig.json',
-            validate: 'tsc -p tsconfig.json && sigx zero:validate --report',
+            build: `${tsc} -p tsconfig.json && node build.mjs`,
+            typecheck: `${tsc} --noEmit -p tsconfig.json`,
+            validate: `${tsc} -p tsconfig.json && sigx zero:validate --report`,
         },
         peerDependencies: { '@sigx/zero': range },
         devDependencies: {
@@ -70,12 +77,18 @@ export function renderPackageJson(ctx: RenderContext): string {
             typescript: ctx.versions.typescript,
         },
     };
+    if (ctx.workspace) {
+        // Never published from inside the workspace: nothing to list in
+        // `files`, and `private` keeps a stray `pnpm publish -r` off it.
+        delete pkg.files;
+        pkg.private = true;
+    }
     return `${JSON.stringify(pkg, null, 4)}\n`;
 }
 
 export function renderBuildMjs(ctx: RenderContext): string {
     const lines = [
-        '// Compile the design system to CSS artifacts. Runs after tsc has emitted',
+        `// Compile the design system to CSS artifacts. Runs after ${ctx.workspace ? 'tsgo' : 'tsc'} has emitted`,
         '// dist/*.js (the design-system module) — see the package build script.',
         '// The pipeline (validate → compile → report → writeArtifacts) lives in',
         "// @sigx/zero-kit/build; this file is only the package's data.",
@@ -210,7 +223,7 @@ export function renderReadme(ctx: RenderContext): string {
         '',
         '```sh',
         'pnpm install',
-        'pnpm build                      # tsc, then compile tokens + recipes to dist/css',
+        `pnpm build                      # ${ctx.workspace ? 'tsgo' : 'tsc'}, then compile tokens + recipes to dist/css`,
         'export ZERO_ITERATION_LOG=.zero-iterations.jsonl  # optional: one trend line per run, gitignored',
         'npx sigx zero:validate --report # the generate → validate → fix loop',
         'npx sigx zero:audit             # …and the audit: does the compiled CSS say what it claims',
