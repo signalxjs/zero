@@ -5639,9 +5639,9 @@ export const textarea: RecipeInput = {
     // lands on top of the 2px gap and paints one solid band. A fixed-height
     // box never re-lays out; this auto-height one does, as its native field
     // measures and grows. So the ring is spelled with one outset shadow and
-    // one inset shadow, which paint disjoint areas and cannot swap: the ring
+    // inset shadows, which paint areas the outset never reaches: the ring
     // just outside the box, the box's own border repainted as the base-100
-    // gap, and the hairline redrawn inside it by the inset spread, in the
+    // gap, and the hairline redrawn inside it by the edge inset's spread, in the
     // edge colour (`--textarea-edge`, the error colour while invalid). The
     // gap is the border's width instead of the web's 2px.
     //

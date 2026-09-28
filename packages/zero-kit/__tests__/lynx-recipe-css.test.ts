@@ -1260,7 +1260,7 @@ describe('assertNoCalcVarChains', () => {
             }
         });
 
-        it('the textarea ring is one outset shadow plus insets the border makes order-proof', () => {
+        it('the textarea ring is one outset ring plus two insets, and their order cannot break it', () => {
             const css = lynxCss()['textarea']!;
             const ring = body(css, '.zx-textarea__textarea.zx-f-focus-visible')!;
             expect(ring).toContain('outline: none;');
