@@ -2977,7 +2977,8 @@ export const combobox: RecipeInput = {
                 borderRadius: 'var(--radius-selector)',
                 ...label,
             },
-            states: { disabled: {} },
+            // Arrowed onto from the input (#411).
+            states: { disabled: {}, ...focusRing },
         },
         'tag-label': { base: { whiteSpace: 'nowrap' } },
         'tag-remove': {

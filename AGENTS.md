@@ -132,7 +132,10 @@ from `dist/`), then `pnpm --filter zero-playground dev`.
 
 Real-browser interaction tests (Playwright over the playground; press-feedback
 contract plus per-component interaction specs on chromium/firefox/webkit —
-combobox, menu-submenu, menu-keyboard (ArrowUp opens on the last item; Enter
+combobox (since #411 the tag keyboard: real focus walks the tags,
+Backspace/Delete remove, a printable key typed on a tag lands in the input,
+and Tab never stops on a tag or its remove button), menu-submenu,
+menu-keyboard (ArrowUp opens on the last item; Enter
 on an asChild link item really navigates, #175; Tab and Shift+Tab close the
 whole chain while focus moves on to the neighbouring tab stop, #263; a
 `Menu.Arrow` over its trigger's centre, #279), menubar (#289: one roving

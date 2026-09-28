@@ -584,17 +584,211 @@ describe('Combobox over the collection (#445)', () => {
             expect(document.activeElement).toBe(input());
         });
 
-        it('Backspace on an empty input removes the last value; with text it edits the text', () => {
+        it('Backspace on an empty input focuses the last tag, the next one removes it; with text it edits the text (#411)', async () => {
             const state = signal({ values: ['apple', 'banana'], query: 'x' });
             render(<Combobox.Root items={FRUITS} multiple itemValue={(f) => f.value} model={[state, 'values']} model:inputValue={[state, 'query']} />, container);
+            input().focus();
             key(input(), 'Backspace');
             expect(state.values).toEqual(['apple', 'banana']);
+            expect(document.activeElement).toBe(input());
             type(input(), '');
             key(input(), 'Backspace');
+            expect(state.values).toEqual(['apple', 'banana']);
+            expect(document.activeElement).toBe(tags()[1]);
+            key(tags()[1]!, 'Backspace');
             expect(state.values).toEqual(['apple']);
-            key(input(), 'Backspace');
-            key(input(), 'Backspace');
+            await tick();
+            // Backspace moves back: the previous tag holds focus.
+            expect(document.activeElement).toBe(tags()[0]);
+            key(tags()[0]!, 'Backspace');
             expect(state.values).toEqual([]);
+            expect(document.activeElement).toBe(input());
+        });
+
+        describe('tag keyboard (#411)', () => {
+            const values = (state: { values: string[] }) => state.values;
+            const setup = (extra: Record<string, unknown> = {}, init = ['apple', 'banana', 'cherry']) => {
+                const state = signal({ values: init, query: '' });
+                render(
+                    <Combobox.Root
+                        items={FRUITS}
+                        multiple
+                        itemValue={(f) => f.value}
+                        model={[state, 'values']}
+                        model:inputValue={[state, 'query']}
+                        {...extra}
+                    />,
+                    container,
+                );
+                input().focus();
+                return state;
+            };
+            const caret = (at: number) => input().setSelectionRange(at, at);
+
+            it('tags and their remove buttons are focusable but out of the Tab order', () => {
+                setup();
+                expect(tags().every((t) => t.tabIndex === -1)).toBe(true);
+                expect(tags()[0]!.getAttribute('aria-keyshortcuts')).toBe('Backspace Delete');
+                const removes = [...container.querySelectorAll<HTMLButtonElement>('[data-part="tag-remove"]')];
+                expect(removes.every((b) => b.tabIndex === -1)).toBe(true);
+                expect(tags()[0]!.hasAttribute('role')).toBe(false);
+                expectAnatomy(container, comboboxAnatomy);
+            });
+
+            it('ArrowLeft at caret 0 focuses the last tag — not with the caret further in the text', () => {
+                const state = setup();
+                type(input(), 'ch');
+                caret(1);
+                key(input(), 'ArrowLeft');
+                expect(document.activeElement).toBe(input());
+                caret(0);
+                key(input(), 'ArrowLeft');
+                expect(document.activeElement).toBe(tags()[2]);
+                // The typed query survives the trip onto the tags.
+                expect(state.query).toBe('ch');
+                expect(values(state)).toEqual(['apple', 'banana', 'cherry']);
+            });
+
+            it('moving onto a tag closes the list but keeps the query', async () => {
+                const state = setup();
+                type(input(), 'a');
+                expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+                caret(0);
+                key(input(), 'ArrowLeft');
+                await tick();
+                expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('closed');
+                expect(state.query).toBe('a');
+            });
+
+            it('arrows move between tags and past the last back into the input; Home/End jump', () => {
+                setup();
+                key(input(), 'ArrowLeft');
+                expect(document.activeElement).toBe(tags()[2]);
+                key(tags()[2]!, 'ArrowLeft');
+                expect(document.activeElement).toBe(tags()[1]);
+                key(tags()[1]!, 'ArrowLeft');
+                key(tags()[0]!, 'ArrowLeft');
+                expect(document.activeElement).toBe(tags()[0]);
+                key(tags()[0]!, 'ArrowRight');
+                expect(document.activeElement).toBe(tags()[1]);
+                key(tags()[1]!, 'End');
+                expect(document.activeElement).toBe(input());
+                key(input(), 'ArrowLeft');
+                key(tags()[2]!, 'Home');
+                expect(document.activeElement).toBe(tags()[0]);
+                key(tags()[0]!, 'ArrowRight');
+                key(tags()[1]!, 'ArrowRight');
+                key(tags()[2]!, 'ArrowRight');
+                expect(document.activeElement).toBe(input());
+                expect(input().selectionStart).toBe(0);
+            });
+
+            it('Delete removes the tag and focuses the one taking its place, or the input after the last', async () => {
+                const state = setup();
+                key(input(), 'ArrowLeft');
+                key(tags()[2]!, 'Home');
+                key(tags()[0]!, 'Delete');
+                expect(values(state)).toEqual(['banana', 'cherry']);
+                await tick();
+                expect(document.activeElement).toBe(tags()[0]);
+                expect(tags()[0]!.textContent).toBe('Banana×');
+                key(tags()[0]!, 'ArrowRight');
+                key(tags()[1]!, 'Delete');
+                expect(values(state)).toEqual(['banana']);
+                expect(document.activeElement).toBe(input());
+            });
+
+            it('Backspace on the first tag focuses the new first tag', async () => {
+                const state = setup();
+                key(input(), 'ArrowLeft');
+                key(tags()[2]!, 'Home');
+                key(tags()[0]!, 'Backspace');
+                expect(values(state)).toEqual(['banana', 'cherry']);
+                await tick();
+                expect(document.activeElement).toBe(tags()[0]);
+            });
+
+            it('Escape returns to the input; ArrowDown returns and opens the list', async () => {
+                setup();
+                key(input(), 'ArrowLeft');
+                key(tags()[2]!, 'Escape');
+                expect(document.activeElement).toBe(input());
+                key(input(), 'ArrowLeft');
+                key(tags()[2]!, 'ArrowDown');
+                await tick();
+                expect(document.activeElement).toBe(input());
+                expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+            });
+
+            it('a printable key on a tag moves focus to the input', () => {
+                setup();
+                key(input(), 'ArrowLeft');
+                key(tags()[2]!, 'b');
+                expect(document.activeElement).toBe(input());
+            });
+
+            it('readonly: the tags are reachable, but nothing is removed', () => {
+                const state = setup({ readonly: true });
+                key(input(), 'Backspace');
+                expect(document.activeElement).toBe(tags()[2]);
+                key(tags()[2]!, 'Backspace');
+                key(tags()[2]!, 'Delete');
+                expect(values(state)).toEqual(['apple', 'banana', 'cherry']);
+                expect(tags()[0]!.hasAttribute('aria-keyshortcuts')).toBe(false);
+            });
+
+            it('focus leaving the combobox from a tag drops the query, as from the input', async () => {
+                const state = setup();
+                const outside = document.createElement('button');
+                document.body.appendChild(outside);
+                type(input(), 'ch');
+                caret(0);
+                key(input(), 'ArrowLeft');
+                await tick();
+                outside.focus();
+                await tick();
+                expect(state.query).toBe('');
+                outside.remove();
+            });
+
+            it('under rtl the arrows swap: ArrowRight is the way onto the tags', () => {
+                container.setAttribute('dir', 'rtl');
+                container.style.direction = 'rtl';
+                setup();
+                key(input(), 'ArrowLeft');
+                expect(document.activeElement).toBe(input());
+                key(input(), 'ArrowRight');
+                expect(document.activeElement).toBe(tags()[2]);
+                key(tags()[2]!, 'ArrowRight');
+                expect(document.activeElement).toBe(tags()[1]);
+                key(tags()[1]!, 'ArrowLeft');
+                expect(document.activeElement).toBe(tags()[2]);
+                container.removeAttribute('dir');
+                container.style.direction = '';
+            });
+
+            it('hand-written Combobox.Tags navigate the same way', () => {
+                const state = signal({ values: ['a', 'b'], query: '' });
+                render(
+                    <Combobox.Root multiple model={[state, 'values']} model:inputValue={[state, 'query']}>
+                        <Combobox.Control>
+                            <Combobox.Tags />
+                            <Combobox.Input />
+                        </Combobox.Control>
+                        <Combobox.Popup>
+                            <Combobox.Item value="a">A</Combobox.Item>
+                            <Combobox.Item value="b">B</Combobox.Item>
+                        </Combobox.Popup>
+                    </Combobox.Root>,
+                    container,
+                );
+                input().focus();
+                key(input(), 'Backspace');
+                expect(document.activeElement).toBe(tags()[1]);
+                key(tags()[1]!, 'ArrowLeft');
+                key(tags()[0]!, 'Delete');
+                expect(state.values).toEqual(['b']);
+            });
         });
 
         it('disabled and readonly tags cannot be removed', () => {

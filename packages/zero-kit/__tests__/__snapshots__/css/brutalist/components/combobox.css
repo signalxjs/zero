@@ -81,6 +81,11 @@
         font-size: var(--text-xs);
     }
 
+    [data-scope="combobox"][data-part="tag"][data-focus-visible] {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
     [data-scope="combobox"][data-part="tag-label"] {
         white-space: nowrap;
     }

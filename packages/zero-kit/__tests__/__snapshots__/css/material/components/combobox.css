@@ -75,6 +75,11 @@
         letter-spacing: var(--tracking-wide);
     }
 
+    [data-scope="combobox"][data-part="tag"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
     [data-scope="combobox"][data-part="tag-label"] {
         white-space: nowrap;
     }
