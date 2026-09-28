@@ -1,4 +1,5 @@
 import { component } from 'sigx';
+import type { PartProps } from '@sigx/zero';
 import {
     Avatar, Badge, Button, Checkbox, Col, EmptyState, Menu, Row, Select, Skeleton, Stack, Tabs, Toggle,
 } from '@sigx/zero';
@@ -302,8 +303,9 @@ export const MessageList = component(() => () => {
             </Col>
             {st.loading ? <LoadingRows /> : list.length === 0 ? <Empty /> : (
                 <Menu.Root onSelect={rowAction}>
-                    <Menu.ContextTrigger>
-                        <MailList.Root
+                    <Menu.ContextTrigger asChild>
+                        {(p: PartProps) => <MailList.Root
+                            lend={p}
                             label={`${heading()} — ${list.length} conversations`}
                             mods={{ compact: st.density === 'compact' }}
                             count={list.length}
@@ -315,7 +317,7 @@ export const MessageList = component(() => () => {
                             onToggle={(i: number) => { const t = list[i]; if (t) toggleSelected(t.id); }}
                             // The window can briefly ask for an index past a list that just shrank.
                             renderRow={(i) => (list[i] ? <Row_ thread={list[i]!} index={i} /> : null)}
-                        />
+                        />}
                     </Menu.ContextTrigger>
                     <RowMenu />
                 </Menu.Root>

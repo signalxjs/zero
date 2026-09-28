@@ -101,8 +101,9 @@ import { createPointerGrace, pointInTriangle, safeTriangle, type Point, type Poi
 import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
+import { mergePartProps } from '../../contract/merge-part-props.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithLend, WithVariantAxes } from '../../contract/props.js';
 import { menuAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
 import { derivedModel } from '../../behaviors/derived-model.js';
@@ -695,6 +696,12 @@ export type MenuContextTriggerProps =
     & WithClass
     & WithHtmlAttrs
     & WithAsChild
+    /**
+     * Another zero part's asChild bag (#452). Its handlers and ref run
+     * before the surface's own, its IDREF ARIA joins, and its anatomy is
+     * dropped: the surface keeps its own.
+     */
+    & WithLend
     & Define.Slot<'default', PartProps>;
 
 /**
@@ -704,13 +711,31 @@ export type MenuContextTriggerProps =
  * keyboard has no pointer position). iOS has no native `contextmenu`
  * event; pair with `-webkit-touch-callout: none` and a long-press
  * recognizer of your own until zero grows one.
+ *
+ * The surface is absorbable (#450): lend its bag to a zero component that
+ * takes `lend` — a `Card.Root`, a `Box`, an ecosystem list — and no wrapper
+ * `<div>` renders at all. The host keeps its own anatomy and gains
+ * `aria-haspopup`/`aria-controls` and the handlers; Shift+F10 anchors the
+ * menu to the host's own box, since the ref reaches the host's element:
+ *
+ * ```tsx
+ * <Menu.ContextTrigger asChild>
+ *     {(p) => <Card.Root lend={p}>…</Card.Root>}
+ * </Menu.ContextTrigger>
+ * ```
+ *
+ * To turn the surface off there, disable the host (`aria-disabled="true"`
+ * or its own `disabled`): an inert host skips the lent contextmenu and
+ * keydown handlers. `disabled` on the ContextTrigger still works too.
  */
 const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, signal }) => {
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
 
-    const bag = (): PartProps => ({
+    // A lent bag (#452) merges under the surface's own: its anatomy dropped,
+    // its handlers and ref chained first.
+    const bag = (): PartProps => mergePartProps(props.lend, {
         ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'context-trigger',
@@ -782,7 +807,7 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, s
         // from an open context menu restores focus here.
         onFocus: () => { focus.visible = isFocusVisible(el); },
         onBlur: () => { focus.visible = false; },
-    });
+    } as PartProps);
 
     return () => {
         const b = bag();

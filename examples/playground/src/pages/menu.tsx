@@ -1,6 +1,6 @@
 import { component } from 'sigx';
 import type { PartProps } from '@sigx/zero';
-import { Menu } from '@sigx/zero';
+import { Button, Card, Menu } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const MenuDemos = component(() => () => (
@@ -72,6 +72,38 @@ const MenuDemos = component(() => () => (
                 <Menu.Item value="inspect">Inspect</Menu.Item>
             </Menu.Popup>
         </Menu.Root>
+
+        <h3>Lent to a zero component</h3>
+        <p>
+            When the surface is itself a zero component, lend it the bag:{' '}
+            <code>{'<Menu.ContextTrigger asChild>{(p) => <Card.Root lend={p}>…'}</code>.
+            No wrapper renders, so the card is the flex item that fills this
+            column, it keeps its own anatomy, and Shift+F10 anchors the menu
+            to the card's own box.
+        </p>
+        <div class="demo-context-column" data-demo="context-card">
+            <Menu.Root onSelect={(v) => console.log('card context select:', v)}>
+                <Menu.ContextTrigger asChild>
+                    {(p: PartProps) => (
+                        <Card.Root lend={p}>
+                            <Card.Header>
+                                <Card.Title>Quarterly report</Card.Title>
+                                <Card.Description>Right-click anywhere on this card</Card.Description>
+                            </Card.Header>
+                            <Card.Body>
+                                <Button.Root>Focus me, then Shift+F10</Button.Root>
+                            </Card.Body>
+                        </Card.Root>
+                    )}
+                </Menu.ContextTrigger>
+                <Menu.Popup>
+                    <Menu.Item value="open">Open</Menu.Item>
+                    <Menu.Item value="share">Share</Menu.Item>
+                    <Menu.Separator />
+                    <Menu.Item value="archive">Archive</Menu.Item>
+                </Menu.Popup>
+            </Menu.Root>
+        </div>
 
         <h2>Link items</h2>
         <p>

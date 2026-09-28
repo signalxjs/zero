@@ -85,17 +85,5 @@ export const patches: Record<string, RecipePatch> = {
             },
         },
     },
-    menu: {
-        variants: ghostTrigger.variants,
-        parts: {
-            ...ghostTrigger.parts,
-            // A context trigger wraps whatever it opens on — here the whole
-            // virtualised list — so it must pass the column's height through
-            // rather than collapse to its content (#440: the wrapper element
-            // is unstyled and sits in the layout).
-            'context-trigger': {
-                base: { display: 'flex', flexDirection: 'column', flex: '1 1 auto', minBlockSize: '0', minInlineSize: '0' },
-            },
-        },
-    },
+    menu: ghostTrigger,
 };
