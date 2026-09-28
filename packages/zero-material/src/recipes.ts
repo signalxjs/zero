@@ -2685,7 +2685,10 @@ const sliderNativeThumb: CssProps = {
     border: 'none',
     background: 'var(--slider-accent)',
     boxShadow: sliderGap,
-    transition: 'width var(--duration-spatial-fast) var(--ease-spatial-fast)',
+    // Width and height: upright, the narrowing handle is its height.
+    transition:
+        'width var(--duration-spatial-fast) var(--ease-spatial-fast), '
+        + 'height var(--duration-spatial-fast) var(--ease-spatial-fast)',
 };
 
 export const slider: RecipeInput = {
@@ -2747,7 +2750,12 @@ export const slider: RecipeInput = {
                 pressed: { '--slider-handle-width': dp(2) },
                 // Readonly answers to nothing, so it does not invite a click.
                 readonly: { cursor: 'default' },
-                disabled: { cursor: 'not-allowed' },
+                // After `invalid`, so a disabled slider a Field forces
+                // invalid still takes M3's disabled colour, not the error.
+                disabled: {
+                    cursor: 'not-allowed',
+                    '--slider-accent': 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+                },
             },
             selectors: {
                 '&::-webkit-slider-runnable-track': {
@@ -2833,6 +2841,7 @@ export const slider: RecipeInput = {
                 touchAction: 'none',
                 transition:
                     'width var(--duration-spatial-fast) var(--ease-spatial-fast), '
+                    + 'height var(--duration-spatial-fast) var(--ease-spatial-fast), '
                     + 'margin var(--duration-spatial-fast) var(--ease-spatial-fast)',
             },
             states: {

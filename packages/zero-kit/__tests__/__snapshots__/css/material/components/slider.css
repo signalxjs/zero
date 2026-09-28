@@ -58,6 +58,7 @@
 
     [data-scope="slider"][data-part="control"][data-disabled] {
         cursor: not-allowed;
+        --slider-accent: color-mix(in oklch, var(--color-base-content) 38%, transparent);
     }
 
     [data-scope="slider"][data-part="control"]::-webkit-slider-runnable-track {
@@ -75,7 +76,7 @@
         border: none;
         background: var(--slider-accent);
         box-shadow: 0 0 0 var(--slider-gap) var(--tf-surface);
-        transition: width var(--duration-spatial-fast) var(--ease-spatial-fast);
+        transition: width var(--duration-spatial-fast) var(--ease-spatial-fast), height var(--duration-spatial-fast) var(--ease-spatial-fast);
         margin-top: calc((var(--slider-track-size) - var(--slider-handle-size)) / 2);
     }
 
@@ -98,7 +99,7 @@
         border: none;
         background: var(--slider-accent);
         box-shadow: 0 0 0 var(--slider-gap) var(--tf-surface);
-        transition: width var(--duration-spatial-fast) var(--ease-spatial-fast);
+        transition: width var(--duration-spatial-fast) var(--ease-spatial-fast), height var(--duration-spatial-fast) var(--ease-spatial-fast);
     }
 
     [data-scope="slider"][data-part="control"][data-focus-visible]::-moz-range-thumb {
@@ -201,7 +202,7 @@
         cursor: pointer;
         outline: none;
         touch-action: none;
-        transition: width var(--duration-spatial-fast) var(--ease-spatial-fast), margin var(--duration-spatial-fast) var(--ease-spatial-fast);
+        transition: width var(--duration-spatial-fast) var(--ease-spatial-fast), height var(--duration-spatial-fast) var(--ease-spatial-fast), margin var(--duration-spatial-fast) var(--ease-spatial-fast);
     }
 
     [data-scope="slider"][data-part="thumb"][data-pressed] {
