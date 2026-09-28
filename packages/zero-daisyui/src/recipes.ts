@@ -4830,7 +4830,19 @@ export const numberInput: RecipeInput = {
                     base: { overflow: 'visible' },
                     states: { 'focus-visible': lynxFocusRing('var(--number-input-accent)') },
                 },
-                input: { base: { color: 'var(--color-base-content)', flexGrow: '1' } },
+                // `::placeholder` does not exist on lynx, so the web's 60%
+                // mix rides lynx's own `-x-placeholder-color` (baked per
+                // theme) — without it the platform default reads dark on
+                // dark (signalxjs/lynx#1222). Spelled out, not the
+                // `textFieldPlaceholder` const: that one is declared further
+                // down the module, after this literal is evaluated.
+                input: {
+                    base: {
+                        color: 'var(--color-base-content)',
+                        '-x-placeholder-color': 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
+                        flexGrow: '1',
+                    },
+                },
                 'increment-trigger': {
                     base: {
                         display: 'flex',
