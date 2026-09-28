@@ -88,6 +88,6 @@ export const e2 = <Host lend={{ id: 'a' }} />;
 // @ts-expect-error — Tabs.Tab is not a lend host
 export const e3 = <Tabs.Tab value="a" lend={p}>A</Tabs.Tab>;
 // @ts-expect-error — Menu.Item is not a lend host
-export const e5 = <Menu.Item value="a" lend={p}>A</Menu.Item>;
+export const e4 = <Menu.Item value="a" lend={p}>A</Menu.Item>;
 // @ts-expect-error — Card.Header is not a lend host
-export const e4 = <Card.Header lend={p}>x</Card.Header>;
+export const e5 = <Card.Header lend={p}>x</Card.Header>;
