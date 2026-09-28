@@ -4503,6 +4503,15 @@
         color: var(--hero-muted);
     }
 
+    [data-scope="input"][data-part="input"]::-webkit-search-cancel-button {
+        appearance: none;
+        display: none;
+    }
+
+    [data-scope="input"][data-part="input"]::-webkit-search-decoration {
+        appearance: none;
+    }
+
     [data-scope="input"][data-part="adornment"] {
         display: inline-flex;
         align-items: center;

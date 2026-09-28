@@ -4070,6 +4070,10 @@ export const input: RecipeInput = {
             },
             selectors: {
                 '&::placeholder': { color: 'var(--color-surface-variant-content)' },
+                // zero draws its own ClearTrigger and clears on Escape, and Firefox
+                // draws no native clear: hide the engine's cancel button everywhere (#446).
+                '&::-webkit-search-cancel-button': { appearance: 'none', display: 'none' },
+                '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
         // M3's leading / trailing icon (and prefix / suffix text):

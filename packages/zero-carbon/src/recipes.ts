@@ -3867,6 +3867,10 @@ export const input: RecipeInput = {
             },
             selectors: {
                 '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+                // zero draws its own ClearTrigger and clears on Escape, and Firefox
+                // draws no native clear: hide the engine's cancel button everywhere (#446).
+                '&::-webkit-search-cancel-button': { appearance: 'none', display: 'none' },
+                '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
         // Carbon's in-field icon ($icon-secondary), at one edge, ordered
