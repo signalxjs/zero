@@ -427,9 +427,11 @@ describe('compileLynxRecipeCss', () => {
         const report = emptyReport();
         const css = compileLynxRecipeCss({
             component: 'button',
-            parts: { root: { base: { backgroundImage: 'none, var(--fx-noise)', backgroundSize: 'auto' } } },
+            // CSS function names are case-insensitive: `VAR()` is the same read.
+            parts: { root: { base: { backgroundImage: 'none, var(--fx-noise)', background: 'VAR(--fx-noise)', backgroundSize: 'auto' } } },
         }, button, report, [], new Set(['--fx-noise']));
         expect(css).not.toContain('--fx-noise');
+        expect(report.dropped.filter((f) => f.detail.includes('reads --fx-noise'))).toHaveLength(2);
         expect(css).toContain('background-size: auto;');
         expect(report.dropped.some((f) => f.what.includes('var(--fx-noise)') && f.detail.includes('reads --fx-noise'))).toBe(true);
         const kfReport = emptyReport();

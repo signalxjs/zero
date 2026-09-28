@@ -59,7 +59,7 @@ const isScalableText = (prop: string): boolean =>
     prop.startsWith(TEXT_PREFIX) && !prop.startsWith(TEXT_FIXED_PREFIX);
 
 /** `var(--anything)` with an optional fallback, for the substitution pass. */
-const VAR_REF = /var\(\s*(--[A-Za-z0-9_-]+)\s*(?:,\s*([^()]*))?\)/;
+const VAR_REF = /var\(\s*(--[A-Za-z0-9_-]+)\s*(?:,\s*([^()]*))?\)/i;
 
 /**
  * Substitute non-color `var()` references with the literal values the same

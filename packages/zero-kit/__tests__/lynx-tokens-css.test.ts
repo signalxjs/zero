@@ -197,7 +197,7 @@ describe('compileLynxTokensCss', () => {
                 l: {
                     colorScheme: 'light',
                     colors: { 'base-100': '#ffffff', 'base-content': '#111111' },
-                    extra: { '--noise-tile': 'url("data:image/svg+xml,%3Csvg/%3E")', '--alias': 'var(--noise-tile)', '--keep': '4px' },
+                    extra: { '--noise-tile': 'url("data:image/svg+xml,%3Csvg/%3E")', '--alias': 'var(--noise-tile)', '--shout': 'VAR(--noise-tile)', '--keep': '4px' },
                 },
             },
         };
@@ -205,8 +205,8 @@ describe('compileLynxTokensCss', () => {
         expect(css).not.toMatch(/data:image/);
         expect(css).toContain('--keep: 4px;');
         // Once per emitted block: the default theme rides `.zx-root` and its own class.
-        expect(new Set(report.dropped.filter((f) => f.detail.includes('signalxjs/lynx#1215')).map((f) => f.what.split(':')[0]))).toEqual(new Set(['--noise-tile', '--alias']));
-        expect([...lynxRefusedImageTokens(input)].sort()).toEqual(['--alias', '--noise-tile']);
+        expect(new Set(report.dropped.filter((f) => f.detail.includes('signalxjs/lynx#1215')).map((f) => f.what.split(':')[0]))).toEqual(new Set(['--noise-tile', '--alias', '--shout']));
+        expect([...lynxRefusedImageTokens(input)].sort()).toEqual(['--alias', '--noise-tile', '--shout']);
         expect(lynxRefusedImageTokens(daisyTokens as never).has('--fx-noise')).toBe(true);
     });
 

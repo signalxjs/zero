@@ -245,7 +245,7 @@ const STANDALONE_TRANSFORM = /^(?:translate|rotate|scale)$/;
 const REFUSED_PROPERTY_IN_TEXT = /(?:^|[{;\s])(?:(?:inset|margin|padding)-(?:block|inline)(?:-(?:start|end))?|translate|rotate|scale)\s*:/i;
 
 /** Every `var(--x)` a value reads. */
-const ANY_VAR = /var\(\s*(--[A-Za-z0-9_-]+)/g;
+const ANY_VAR = /var\(\s*(--[A-Za-z0-9_-]+)/gi;
 
 /**
  * The first `var()` in a value that per-theme baking cannot resolve.
