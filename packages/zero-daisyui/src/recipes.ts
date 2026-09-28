@@ -6061,6 +6061,62 @@ export const badge: RecipeInput = {
     },    keyframes: {
         'zero-daisy-badge-pulse': 'from { box-shadow: 0 0 0 0 color-mix(in oklch, var(--badge-dot) 45%, transparent); } to { box-shadow: 0 0 0 0.5em transparent; }',
     },
+    /**
+     * Lynx (signalxjs/lynx#1234). The dot's `currentColor` never resolves
+     * there (lynx#1079), so the uncoloured dot and its ring take the pill's
+     * ink token, the value `currentColor` names on the web. The running halo
+     * and pulse mix the recipe-local `--badge-dot`, which cannot bake, so the
+     * halo is its own token mixed from each role's `--color-*` (baked per
+     * theme) and the pulse breathes opacity instead of the halo's spread.
+     * `inline-size`/`block-size` do not resolve on lynx (lynx#1145): the dot
+     * is sized physically. A lynx view has no inline formatting context, so
+     * the pill is content-sized with an explicit row (lynx#1165), and its
+     * hairline and the dot's ring are longhands (lynx#1161/#1162).
+     */
+    targets: {
+        lynx: {
+            tokens: {
+                '--badge-dot': 'var(--badge-ink)',
+                '--badge-dot-ring': 'var(--badge-ink)',
+                '--badge-dot-halo': 'color-mix(in oklch, var(--color-base-content) 35%, transparent)',
+            },
+            parts: {
+                root: {
+                    base: {
+                        ...lynxBtnFit,
+                        flexDirection: 'row',
+                        border: '0 solid transparent',
+                        ...lynxSides('border{}Width', 'var(--border)'),
+                    },
+                },
+                dot: {
+                    base: {
+                        display: 'flex',
+                        width: '0.5em',
+                        height: '0.5em',
+                        flexShrink: '0',
+                        border: '0 solid transparent',
+                        ...lynxSides('border{}Width', '0.1em'),
+                        ...lynxSides('border{}Color', 'var(--badge-dot-ring)'),
+                    },
+                    states: {
+                        running: {
+                            boxShadow: '0 0 0 0.2em var(--badge-dot-halo)',
+                            animation: 'zero-daisy-badge-pulse 1.6s ease-in-out infinite',
+                        },
+                    },
+                },
+            },
+            variants: {
+                color: Object.fromEntries(ROLES.map((c) => [c, {
+                    dot: { base: { '--badge-dot-halo': `color-mix(in oklch, var(--color-${c}) 35%, transparent)` } },
+                }])),
+            },
+            keyframes: {
+                'zero-daisy-badge-pulse': 'from, to { opacity: 1; } 50% { opacity: 0.45; }',
+            },
+        },
+    },
 };
 
 /** daisy "divider": the base-300 rule, thickening with the ramp. */
@@ -6286,6 +6342,35 @@ export const kbd: RecipeInput = {
             xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-xs) var(--space-lg)' } } },
         },
     },
+    /**
+     * Lynx (signalxjs/lynx#1234). `min-inline-size` and the logical bottom
+     * edge do not resolve on lynx (lynx#1145, #1084), so the cap's floor is
+     * a physical `min-width` and its doubled bottom edge a physical
+     * longhand; the whole hairline is longhands so a var-bearing shorthand
+     * cannot expand over the thicker edge (lynx#1161/#1162). A lynx view has
+     * no inline formatting context: the cap is content-sized with an
+     * explicit row (lynx#1165).
+     */
+    targets: {
+        lynx: {
+            parts: {
+                root: {
+                    base: {
+                        ...lynxBtnFit,
+                        flexDirection: 'row',
+                        minWidth: '1.75em',
+                        border: '0 solid transparent',
+                        ...lynxSides('border{}Width', 'var(--border)', ['Top', 'Right', 'Left']),
+                        borderBottomWidth: 'calc(var(--border) * 2)',
+                        ...lynxSides('border{}Color', 'var(--color-base-300)'),
+                    },
+                },
+            },
+            variants: {
+                size: { xs: { root: { base: { minWidth: '1.5em' } } } },
+            },
+        },
+    },
 };
 
 /**
@@ -6325,6 +6410,37 @@ export const status: RecipeInput = {
             md: {},
             lg: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3)' } } },
             xl: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3.5)' } } },
+        },
+    },
+    /**
+     * Lynx (signalxjs/lynx#1234). The halo mixes the recipe-local
+     * `--status-ink`, which cannot bake, so it is its own token mixed from
+     * each role's `--color-*` (baked per theme). `inline-size`/`block-size`
+     * do not resolve on lynx (lynx#1145): the dot is sized physically, and
+     * it is a flex box rather than an inline-block the engine has no
+     * formatting context for.
+     */
+    targets: {
+        lynx: {
+            tokens: {
+                '--status-halo': 'color-mix(in oklch, var(--color-base-content) 25%, transparent)',
+            },
+            parts: {
+                root: {
+                    base: {
+                        display: 'flex',
+                        flexShrink: '0',
+                        width: 'var(--status-size)',
+                        height: 'var(--status-size)',
+                        boxShadow: '0 0 0 calc(var(--status-size) / 4) var(--status-halo)',
+                    },
+                },
+            },
+            variants: {
+                color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+                    '--status-halo': `color-mix(in oklch, var(--color-${c}) 25%, transparent)`,
+                } } }])),
+            },
         },
     },
 };
