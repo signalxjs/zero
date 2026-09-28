@@ -219,6 +219,11 @@ test.describe('a tooltip lent to a Button (#494)', () => {
         const b = button(page);
         const hoveredAt = Date.now();
         await b.hover();
+        // Mid-delay probe, as in the hover-delay test above: 250 ms into the
+        // 600 ms intent window the tooltip is still closed — a single read,
+        // since a polling "closed" would pass on its first sample.
+        await page.waitForTimeout(250);
+        expect(await tip(page).getAttribute('data-state')).toBe('closed');
         await expect(tip(page)).toHaveAttribute('data-state', 'open');
         await expect(tip(page)).toBeVisible();
         // Lower bound only: the intent delay (600 ms) must have passed.
