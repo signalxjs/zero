@@ -6076,6 +6076,25 @@ export const emptyState: RecipeInput = {
             xl: { root: { base: { padding: 'calc(var(--space-2xl) * 2) var(--space-2xl)', gap: 'var(--space-lg)' } }, icon: { base: { fontSize: 'var(--text-2xl)' } }, title: { base: { fontSize: 'var(--text-2xl)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
         },
     },
+    // signalxjs/lynx#1236 — the lynx replacements for what the shared
+    // sections cannot say there.
+    targets: {
+        lynx: {
+            parts: {
+                // Physical margins: Android resolves no logical margin
+                // (signalxjs/lynx#1084).
+                icon: { base: { marginBottom: 'var(--space-xs)' } },
+                // Title and description are lynx `<text>`: a view's
+                // `text-align` and `color` do not reach one unless the app
+                // turned CSS inheritance on, so each states its own ink and
+                // centring. The web's 36ch measure becomes the root's width:
+                // `ch` is unmeasured on lynx.
+                title: { base: { color: 'var(--color-base-content)', textAlign: 'center' } },
+                description: { base: { textAlign: 'center', maxInlineSize: '100%' } },
+                actions: { base: { flexDirection: 'row', marginTop: 'var(--space-sm)' } },
+            },
+        },
+    },
 };
 
 /**
@@ -6248,6 +6267,11 @@ export const divider: RecipeInput = {
     },
     targets: {
         lynx: {
+            // `auto` behind a custom property, so the labelled root's size
+            // is var-bearing too and can beat the var-bearing line thickness
+            // below (lynx expands var() declarations after the cascade,
+            // signalxjs/lynx#1161).
+            tokens: { '--divider-fit': 'auto' },
             parts: {
                 // Lynx drops the ::before/::after segments the rule is drawn
                 // with above, which left the lynx divider with no line and,
@@ -6262,7 +6286,64 @@ export const divider: RecipeInput = {
                         '&[data-orientation="vertical"]': { inlineSize: 'var(--divider-thickness)' },
                     },
                 },
+                // The label's inset, physical (Android resolves no logical
+                // padding, signalxjs/lynx#1084), and flush on the side its
+                // placement gave up. Lynx has no descendant combinator from
+                // the root, so lynx-zero stamps the root's orientation on the
+                // label itself; vertical, the inset turns to the block axis.
+                // Every zero is spelled through var() so it beats the
+                // var-bearing inset (signalxjs/lynx#1161).
+                label: {
+                    base: {
+                        paddingLeft: 'var(--space-md)',
+                        paddingRight: 'var(--space-md)',
+                    },
+                    selectors: {
+                        '&[data-placement="start"]': { paddingLeft: 'calc(var(--space-md) * 0)' },
+                        '&[data-placement="end"]': { paddingRight: 'calc(var(--space-md) * 0)' },
+                        '&[data-orientation="vertical"]': {
+                            paddingLeft: 'calc(var(--space-md) * 0)',
+                            paddingRight: 'calc(var(--space-md) * 0)',
+                            paddingTop: 'var(--space-sm)',
+                            paddingBottom: 'var(--space-sm)',
+                        },
+                        '&[data-orientation="vertical"][data-placement="start"]': { paddingTop: 'calc(var(--space-sm) * 0)' },
+                        '&[data-orientation="vertical"][data-placement="end"]': { paddingBottom: 'calc(var(--space-sm) * 0)' },
+                    },
+                },
             },
+            // A labelled divider (signalxjs/lynx#1236). With no pseudo-
+            // elements, lynx-zero draws the rule's two segments as views
+            // carrying the root's own line classes plus `zx-m-segment` —
+            // so each paints this recipe's line, ink and thickness ramp — and
+            // leaves out the one on the label's placed side (the web's
+            // `:has(> [data-placement])::before { display: none }`). The root
+            // holding them is stamped `zx-m-labelled` and stops being a line:
+            // no fill, its cross size following the label, a row when
+            // horizontal. Both are lynx-zero rendering details, not
+            // modifiers an author sets, so they are styled from raw lynx css
+            // (the toggle-group join ends' reasoning).
+            css: `
+.zx-divider__root.zx-m-labelled {
+    --divider-ink: transparent;
+}
+.zx-divider__root.zx-m-labelled.zx-o-horizontal {
+    flex-direction: row;
+    block-size: var(--divider-fit);
+}
+.zx-divider__root.zx-m-labelled.zx-o-vertical {
+    inline-size: var(--divider-fit);
+}
+.zx-divider__root.zx-m-segment {
+    flex: 1 1 0;
+}
+.zx-divider__root.zx-m-segment.zx-o-horizontal {
+    min-width: 0;
+}
+.zx-divider__root.zx-m-segment.zx-o-vertical {
+    min-height: 0;
+}
+`,
         },
     },
 };
@@ -6626,6 +6707,90 @@ export const stats: RecipeInput = {
             md: {},
             lg: { value: { base: { fontSize: 'var(--text-3xl)' } } },
             xl: { value: { base: { fontSize: 'var(--text-3xl)' } } },
+        },
+    },
+    // signalxjs/lynx#1236 — the lynx replacements for what the shared
+    // sections cannot say there.
+    targets: {
+        lynx: {
+            parts: {
+                // A row unless vertical: a lynx flex container does not
+                // default to one.
+                root: { base: { flexDirection: 'row' } },
+                // Lynx has no grid, so `display: grid` left the item in the
+                // engine's default linear layout. The bands stack in a
+                // centred column instead, and the figure is pinned to the
+                // item's end edge (below). The padding as longhands, so the
+                // `figure` rule below can widen one side by specificity (a
+                // var-bearing `padding` shorthand would expand over it,
+                // signalxjs/lynx#1161).
+                item: {
+                    base: {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        position: 'relative',
+                        padding: '0',
+                        paddingTop: 'var(--space-lg)',
+                        paddingBottom: 'var(--space-lg)',
+                        paddingLeft: 'var(--space-xl)',
+                        paddingRight: 'var(--space-xl)',
+                    },
+                    selectors: {
+                        // The seams: lynx has no sibling combinator, so the
+                        // web's `item + item` edge cannot be selected. Every
+                        // item draws its leading seam and the `first`
+                        // modifier takes it off the first (raw css below).
+                        '&[data-orientation="horizontal"]': {
+                            borderLeftWidth: 'var(--border)',
+                            borderLeftStyle: 'solid',
+                            borderLeftColor: 'var(--color-base-200)',
+                        },
+                        '&[data-orientation="vertical"]': {
+                            borderTopWidth: 'var(--border)',
+                            borderTopStyle: 'solid',
+                            borderTopColor: 'var(--color-base-200)',
+                        },
+                    },
+                },
+                // The web's second grid column, spanning the three bands and
+                // centred on them: pinned to the item's end edge, inside its
+                // padding, and centred top to bottom.
+                figure: {
+                    base: {
+                        position: 'absolute',
+                        top: '0',
+                        bottom: '0',
+                        right: 'var(--space-xl)',
+                        // The web centres the grid cell with align-self; the
+                        // insets place it here.
+                        alignSelf: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                    },
+                },
+            },
+            // lynx-zero stamps the row's first item `zx-m-first` (mount
+            // order; no `:first-child`) and an item holding a figure
+            // `zx-m-figure`. Rendering details, not author modifiers, so raw
+            // lynx css (the toggle-group join ends' reasoning). The first
+            // item drops the leading seam, its zero width spelled through
+            // var() to beat the var-bearing seam (signalxjs/lynx#1161). An
+            // item with a figure keeps the figure's column clear: the
+            // padding, the web's `--space-md` column gap, and a 2rem figure
+            // (daisy's `stat-figure` holds a `size-8` icon or avatar).
+            css: `
+.zx-stats__item.zx-m-first.zx-o-horizontal {
+    border-left-width: calc(var(--border) * 0);
+}
+.zx-stats__item.zx-m-first.zx-o-vertical {
+    border-top-width: calc(var(--border) * 0);
+}
+.zx-stats__item.zx-m-figure {
+    padding-right: calc(var(--space-xl) + var(--space-md) + 2rem);
+}
+`,
         },
     },
 };

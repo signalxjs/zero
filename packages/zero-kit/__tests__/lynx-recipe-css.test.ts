@@ -1270,6 +1270,76 @@ describe('assertNoCalcVarChains', () => {
             expect(body(css, '.zx-textarea__textarea.zx-f-invalid')).toContain('--textarea-edge: var(--color-error);');
         });
     });
+
+    describe('zero-daisyui divider, stats and empty-state on lynx (signalxjs/lynx#1236)', () => {
+        const lynxCss = () => compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] }).componentCss;
+        const body = (css: string, selector: string): string | undefined => {
+            const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const bodies = [...css.matchAll(new RegExp(`^${escaped} \\{([^}]*)\\}`, 'gm'))].map((m) => m[1]!);
+            return bodies.length > 0 ? bodies.join('\n') : undefined;
+        };
+
+        it('divider: the label inset is physical and flush on its placed side, block-wise when vertical', () => {
+            const css = lynxCss()['divider']!;
+            expect(css).not.toMatch(/padding-inline/);
+            const label = body(css, '.zx-divider__label')!;
+            expect(label).toContain('padding-left: var(--space-md);');
+            expect(label).toContain('padding-right: var(--space-md);');
+            expect(body(css, '.zx-divider__label.zx-p-start')).toContain('padding-left: calc(var(--space-md) * 0);');
+            expect(body(css, '.zx-divider__label.zx-p-end')).toContain('padding-right: calc(var(--space-md) * 0);');
+            const vertical = body(css, '.zx-divider__label.zx-o-vertical')!;
+            expect(vertical).toContain('padding-top: var(--space-sm);');
+            expect(vertical).toContain('padding-left: calc(var(--space-md) * 0);');
+            expect(body(css, '.zx-divider__label.zx-o-vertical.zx-p-start')).toContain('padding-top: calc(var(--space-sm) * 0);');
+            expect(body(css, '.zx-divider__label.zx-o-vertical.zx-p-end')).toContain('padding-bottom: calc(var(--space-sm) * 0);');
+        });
+
+        it('divider: a labelled root stops being the line, and its segments grow; both after the thickness ramp', () => {
+            const css = lynxCss()['divider']!;
+            expect(body(css, '.zx-divider__root')).toContain('--divider-fit: auto;');
+            expect(body(css, '.zx-divider__root.zx-m-labelled')).toContain('--divider-ink: transparent;');
+            const labelled = body(css, '.zx-divider__root.zx-m-labelled.zx-o-horizontal')!;
+            expect(labelled).toContain('flex-direction: row;');
+            expect(labelled).toContain('block-size: var(--divider-fit);');
+            expect(body(css, '.zx-divider__root.zx-m-labelled.zx-o-vertical')).toContain('inline-size: var(--divider-fit);');
+            expect(body(css, '.zx-divider__root.zx-m-segment')).toContain('flex: 1 1 0;');
+            // Same specificity as the size ramp's thickness: source order decides.
+            expect(css.indexOf('.zx-divider__root.zx-m-labelled.zx-o-horizontal {'))
+                .toBeGreaterThan(css.indexOf('.zx-divider__root.zx-o-horizontal.zx-a-size-xl {'));
+        });
+
+        it('stats: flex items (no grid), the figure pinned to the end edge, seams off the first item', () => {
+            const css = lynxCss()['stats']!;
+            expect(body(css, '.zx-stats__root')).toContain('flex-direction: row;');
+            const item = body(css, '.zx-stats__item')!;
+            expect(item).toContain('display: flex;');
+            expect(item).not.toContain('display: grid;');
+            expect(item).toContain('flex-direction: column;');
+            expect(item).toContain('padding-right: var(--space-xl);');
+            const figure = body(css, '.zx-stats__figure')!;
+            expect(figure).toContain('position: absolute;');
+            expect(figure).toContain('right: var(--space-xl);');
+            expect(body(css, '.zx-stats__item.zx-o-horizontal')).toContain('border-left-width: var(--border);');
+            expect(body(css, '.zx-stats__item.zx-o-vertical')).toContain('border-top-width: var(--border);');
+            expect(body(css, '.zx-stats__item.zx-m-first.zx-o-horizontal')).toContain('border-left-width: calc(var(--border) * 0);');
+            expect(body(css, '.zx-stats__item.zx-m-first.zx-o-vertical')).toContain('border-top-width: calc(var(--border) * 0);');
+            // rem is written out at 16px (signalxjs/lynx#1183).
+            expect(body(css, '.zx-stats__item.zx-m-figure')).toContain('padding-right: calc(var(--space-xl) + var(--space-md) + 32px);');
+        });
+
+        it('empty-state: physical margins, and the text parts carry their own ink and centring', () => {
+            const css = lynxCss()['empty-state']!;
+            expect(css).not.toMatch(/margin-block/);
+            expect(body(css, '.zx-empty-state__icon')).toContain('margin-bottom: var(--space-xs);');
+            const actions = body(css, '.zx-empty-state__actions')!;
+            expect(actions).toContain('margin-top: var(--space-sm);');
+            expect(actions).toContain('flex-direction: row;');
+            const title = body(css, '.zx-empty-state__title')!;
+            expect(title).toContain('color: var(--color-base-content);');
+            expect(title).toContain('text-align: center;');
+            expect(body(css, '.zx-empty-state__description')).toContain('text-align: center;');
+        });
+    });
 });
 
 describe('assertNoDanglingVars', () => {
