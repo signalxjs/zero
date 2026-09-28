@@ -4496,6 +4496,11 @@ export const toggle: RecipeInput = {
     },
 };
 
+/** A toggle-group end item's outer corner: the frame's radius inside its hairline. */
+const joinInnerRadius = 'calc(var(--radius-field) - var(--border))';
+/** A zero seam width that still holds var(), so it can beat the var-bearing seam on lynx. */
+const noSeam = 'calc(var(--border) * 0)';
+
 // daisy "join" of btns: one bordered capsule, hairline seams between items,
 // the on item filled with the accent.
 export const toggleGroup: RecipeInput = {
@@ -4625,15 +4630,13 @@ export const toggleGroup: RecipeInput = {
                         ...lynxSides('border{}Width', 'var(--border)'),
                         ...lynxSides('border{}Color', 'var(--color-base-300)'),
                     },
-                    selectors: {
-                        // The join seams: lynx has no sibling combinator, so
-                        // the web's `item + item` edge cannot be selected.
-                        // Every item draws its leading seam instead (below),
-                        // and the frame gives up that edge — the first item's
-                        // seam stands in for it, inside the frame's clip.
-                        '&[data-orientation="horizontal"]': { borderLeftWidth: '0' },
-                        '&[data-orientation="vertical"]': { borderTopWidth: '0' },
-                    },
+                    // The frame keeps all four edges (signalxjs/lynx#1218).
+                    // It used to give up its leading edge to the first item's
+                    // seam and trust its own clip to round that item's
+                    // corners, but on iOS the frame's clip does not round the
+                    // leading corners: the first item painted square, and its
+                    // seam was lost with them. The `first`/`last` modifiers
+                    // below carry the join's ends instead.
                 },
                 item: {
                     base: { flexShrink: '0', flexWrap: 'nowrap' },
@@ -4649,6 +4652,10 @@ export const toggleGroup: RecipeInput = {
                     },
                     selectors: {
                         '&[data-state="on"][data-pressed]': { background: 'var(--toggle-group-accent)' },
+                        // The join seams: lynx has no sibling combinator, so
+                        // the web's `item + item` edge cannot be selected.
+                        // Every item draws its leading seam, and the `first`
+                        // modifier takes it off the item at the frame's edge.
                         '&[data-orientation="horizontal"]': {
                             borderLeftWidth: 'var(--border)',
                             borderLeftStyle: 'solid',
@@ -4662,6 +4669,40 @@ export const toggleGroup: RecipeInput = {
                     },
                 },
             },
+            // The ends of the join (signalxjs/lynx#1218). Lynx has no
+            // `:first-child` or `:last-child`, so lynx-zero stamps the end
+            // items itself, as `data-mod-first` / `data-mod-last` (the
+            // `zx-m-first` / `zx-m-last` classes). They are a lynx-zero
+            // rendering detail, not modifiers an author sets, so they are
+            // not declared in the vocabulary and are styled from raw lynx
+            // css. The end items round their own outer corners to the
+            // frame's inner radius, so an on or held end item follows the
+            // frame's corners without relying on its clip; `first` also
+            // drops the leading seam, which would double the frame's edge.
+            // That zero width is spelled through var() on purpose: a static
+            // longhand loses to the var-bearing seam width whatever its
+            // specificity (lynx expands var() declarations after the
+            // cascade, signalxjs/lynx#1161).
+            css: `
+.zx-toggle-group__item.zx-m-first.zx-o-horizontal {
+    border-left-width: ${noSeam};
+    border-top-left-radius: ${joinInnerRadius};
+    border-bottom-left-radius: ${joinInnerRadius};
+}
+.zx-toggle-group__item.zx-m-first.zx-o-vertical {
+    border-top-width: ${noSeam};
+    border-top-left-radius: ${joinInnerRadius};
+    border-top-right-radius: ${joinInnerRadius};
+}
+.zx-toggle-group__item.zx-m-last.zx-o-horizontal {
+    border-top-right-radius: ${joinInnerRadius};
+    border-bottom-right-radius: ${joinInnerRadius};
+}
+.zx-toggle-group__item.zx-m-last.zx-o-vertical {
+    border-bottom-left-radius: ${joinInnerRadius};
+    border-bottom-right-radius: ${joinInnerRadius};
+}
+`,
         },
     },
 };
@@ -5459,6 +5500,10 @@ export const input: RecipeInput = {
     },
 };
 
+/** The lynx textarea floor: two field heights, as ONE calc() (signalxjs/lynx#1219). */
+const textareaFloor = (step: keyof typeof FIELD_STEPS): string =>
+    `calc(var(--size-field) * ${FIELD_STEPS[step] * 2})`;
+
 /**
  * daisy "textarea" flavor. The `fieldControl` box minus its `height`: the
  * whole point of a textarea is that its height is the content's (and the
@@ -5531,12 +5576,54 @@ export const textarea: RecipeInput = {
     // are explicit here — `color: inherit` and `::placeholder` never reach a
     // native widget — and the web's `:hover` border and outline ring become
     // the lynx focus ring in the root's accent (signalxjs/lynx#1163).
+    //
+    // The floor is one flat `calc(var(--size-field) * n)` per size
+    // (signalxjs/lynx#1219): the shared `calc(fieldHeight * 2)` nests a
+    // calc() in a calc(), and on device the box never took it — an empty
+    // textarea sat one line tall.
+    //
+    // The focus ring is NOT `lynxFocusRing`'s two stacked outset shadows
+    // (signalxjs/lynx#1220). Lynx iOS re-inserts a view's outset shadow
+    // layers at a stale index whenever it re-lays the view out
+    // (`LynxBackgroundManager.updateShadow` reads the sublayer count before
+    // removing the old layers), which reverses their stacking: the 4px ring
+    // lands on top of the 2px gap and paints one solid band. A fixed-height
+    // box never re-lays out; this auto-height one does, as its native field
+    // measures and grows. So the ring is spelled with one outset shadow and
+    // one inset shadow, which paint disjoint areas and cannot swap: the ring
+    // just outside the box, the box's own border repainted as the base-100
+    // gap, and the hairline redrawn inside it by the inset spread, in the
+    // edge colour (`--textarea-edge`, the error colour while invalid). The
+    // gap is the border's width instead of the web's 2px.
     targets: {
         lynx: {
             parts: {
                 textarea: {
-                    base: { color: 'var(--color-base-content)', '-x-placeholder-color': textFieldPlaceholder },
-                    states: { 'focus-visible': lynxFocusRing('var(--textarea-accent)') },
+                    base: {
+                        color: 'var(--color-base-content)',
+                        '-x-placeholder-color': textFieldPlaceholder,
+                        '--textarea-edge': 'var(--color-base-300)',
+                        minHeight: textareaFloor('md'),
+                    },
+                    states: {
+                        invalid: { '--textarea-edge': 'var(--color-error)' },
+                        'focus-visible': {
+                            outline: 'none',
+                            borderColor: 'var(--color-base-100)',
+                            boxShadow: '0 0 0 2px var(--textarea-accent), '
+                                // Twice the border (1px in every shipped
+                                // theme): the inner half shows as the hairline.
+                                + 'inset 0 0 0 2px var(--textarea-edge)',
+                        },
+                    },
+                },
+            },
+            variants: {
+                size: {
+                    xs: { textarea: { base: { minHeight: textareaFloor('xs') } } },
+                    sm: { textarea: { base: { minHeight: textareaFloor('sm') } } },
+                    lg: { textarea: { base: { minHeight: textareaFloor('lg') } } },
+                    xl: { textarea: { base: { minHeight: textareaFloor('xl') } } },
                 },
             },
         },

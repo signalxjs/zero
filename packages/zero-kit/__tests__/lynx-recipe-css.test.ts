@@ -1112,6 +1112,69 @@ describe('assertNoCalcVarChains', () => {
                 .toContain('0 0 0 2px var(--color-base-200)');
         });
     });
+
+    describe('zero-daisyui toggle-group and textarea on lynx (signalxjs/lynx#1218, #1219, #1220)', () => {
+        const lynxCss = () => compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] }).componentCss;
+        const body = (css: string, selector: string): string | undefined => {
+            const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // Every rule with exactly this selector, joined (a part's token
+            // block and its base are two rules).
+            const bodies = [...css.matchAll(new RegExp(`^${escaped} \\{([^}]*)\\}`, 'gm'))].map((m) => m[1]!);
+            return bodies.length > 0 ? bodies.join('\n') : undefined;
+        };
+
+        it('the toggle-group frame keeps all four edges', () => {
+            const css = lynxCss()['toggle-group']!;
+            const root = body(css, '.zx-toggle-group__root')!;
+            for (const side of ['top', 'right', 'bottom', 'left']) {
+                expect(root, side).toContain(`border-${side}-width: var(--border);`);
+            }
+            // No orientation rule gives an edge up any more.
+            expect(body(css, '.zx-toggle-group__root.zx-o-horizontal') ?? '').not.toMatch(/border-left-width/);
+            expect(body(css, '.zx-toggle-group__root.zx-o-vertical') ?? '').not.toMatch(/border-top-width/);
+        });
+
+        it('the end items carry the join\'s outer corners and the first drops its seam', () => {
+            const css = lynxCss()['toggle-group']!;
+            const inner = 'calc(var(--radius-field) - var(--border))';
+            const firstH = body(css, '.zx-toggle-group__item.zx-m-first.zx-o-horizontal')!;
+            expect(firstH).toContain('border-left-width: calc(var(--border) * 0);');
+            expect(firstH).toContain(`border-top-left-radius: ${inner};`);
+            expect(firstH).toContain(`border-bottom-left-radius: ${inner};`);
+            const firstV = body(css, '.zx-toggle-group__item.zx-m-first.zx-o-vertical')!;
+            expect(firstV).toContain('border-top-width: calc(var(--border) * 0);');
+            expect(firstV).toContain(`border-top-left-radius: ${inner};`);
+            expect(firstV).toContain(`border-top-right-radius: ${inner};`);
+            const lastH = body(css, '.zx-toggle-group__item.zx-m-last.zx-o-horizontal')!;
+            expect(lastH).toContain(`border-top-right-radius: ${inner};`);
+            expect(lastH).toContain(`border-bottom-right-radius: ${inner};`);
+            const lastV = body(css, '.zx-toggle-group__item.zx-m-last.zx-o-vertical')!;
+            expect(lastV).toContain(`border-bottom-left-radius: ${inner};`);
+            expect(lastV).toContain(`border-bottom-right-radius: ${inner};`);
+            // The end rules come after the seams they override.
+            expect(css.indexOf('.zx-toggle-group__item.zx-m-first.zx-o-horizontal {'))
+                .toBeGreaterThan(css.indexOf('.zx-toggle-group__item.zx-o-horizontal {'));
+        });
+
+        it('the textarea floor is one flat calc per size', () => {
+            const css = lynxCss()['textarea']!;
+            expect(css).not.toMatch(/calc\(calc\(/);
+            expect(body(css, '.zx-textarea__textarea')).toContain('min-height: calc(var(--size-field) * 24);');
+            for (const [size, n] of [['xs', 16], ['sm', 20], ['lg', 28], ['xl', 32]] as const) {
+                expect(body(css, `.zx-textarea__textarea.zx-a-size-${size}`), size).toContain(`min-height: calc(var(--size-field) * ${n});`);
+            }
+        });
+
+        it('the textarea ring is one outset and one inset shadow, which cannot swap', () => {
+            const css = lynxCss()['textarea']!;
+            const ring = body(css, '.zx-textarea__textarea.zx-f-focus-visible')!;
+            expect(ring).toContain('outline: none;');
+            expect(ring).toContain('border-color: var(--color-base-100);');
+            expect(ring).toContain('box-shadow: 0 0 0 2px var(--textarea-accent), inset 0 0 0 2px var(--textarea-edge);');
+            expect(body(css, '.zx-textarea__textarea')).toContain('--textarea-edge: var(--color-base-300);');
+            expect(body(css, '.zx-textarea__textarea.zx-f-invalid')).toContain('--textarea-edge: var(--color-error);');
+        });
+    });
 });
 
 describe('assertNoDanglingVars', () => {
