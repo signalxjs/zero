@@ -1138,11 +1138,11 @@ describe('assertNoCalcVarChains', () => {
             const css = lynxCss()['toggle-group']!;
             const inner = 'calc(var(--radius-field) - var(--border))';
             const firstH = body(css, '.zx-toggle-group__item.zx-m-first.zx-o-horizontal')!;
-            expect(firstH).toContain('border-left-width: 0;');
+            expect(firstH).toContain('border-left-width: calc(var(--border) * 0);');
             expect(firstH).toContain(`border-top-left-radius: ${inner};`);
             expect(firstH).toContain(`border-bottom-left-radius: ${inner};`);
             const firstV = body(css, '.zx-toggle-group__item.zx-m-first.zx-o-vertical')!;
-            expect(firstV).toContain('border-top-width: 0;');
+            expect(firstV).toContain('border-top-width: calc(var(--border) * 0);');
             expect(firstV).toContain(`border-top-left-radius: ${inner};`);
             expect(firstV).toContain(`border-top-right-radius: ${inner};`);
             const lastH = body(css, '.zx-toggle-group__item.zx-m-last.zx-o-horizontal')!;

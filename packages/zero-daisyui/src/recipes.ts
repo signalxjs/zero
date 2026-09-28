@@ -4498,6 +4498,8 @@ export const toggle: RecipeInput = {
 
 /** A toggle-group end item's outer corner: the frame's radius inside its hairline. */
 const joinInnerRadius = 'calc(var(--radius-field) - var(--border))';
+/** A zero seam width that still holds var(), so it can beat the var-bearing seam on lynx. */
+const noSeam = 'calc(var(--border) * 0)';
 
 // daisy "join" of btns: one bordered capsule, hairline seams between items,
 // the on item filled with the accent.
@@ -4677,14 +4679,18 @@ export const toggleGroup: RecipeInput = {
             // frame's inner radius, so an on or held end item follows the
             // frame's corners without relying on its clip; `first` also
             // drops the leading seam, which would double the frame's edge.
+            // That zero width is spelled through var() on purpose: a static
+            // longhand loses to the var-bearing seam width whatever its
+            // specificity (lynx expands var() declarations after the
+            // cascade, signalxjs/lynx#1161).
             css: `
 .zx-toggle-group__item.zx-m-first.zx-o-horizontal {
-    border-left-width: 0;
+    border-left-width: ${noSeam};
     border-top-left-radius: ${joinInnerRadius};
     border-bottom-left-radius: ${joinInnerRadius};
 }
 .zx-toggle-group__item.zx-m-first.zx-o-vertical {
-    border-top-width: 0;
+    border-top-width: ${noSeam};
     border-top-left-radius: ${joinInnerRadius};
     border-top-right-radius: ${joinInnerRadius};
 }
