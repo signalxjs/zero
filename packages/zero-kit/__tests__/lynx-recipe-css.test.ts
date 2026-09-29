@@ -271,6 +271,21 @@ describe('compileLynxRecipeCss', () => {
         });
     });
 
+    it('compiles the app-shell frame (#459) with nothing dropped, in longhands', () => {
+        // lynx-zero renders no app-shell (it scrolls through a native
+        // <scroll-view>), so this CSS is inert there — but it must compile
+        // clean: `100dvh`, `overflow: clip` and `overscroll-behavior` all
+        // pass, and the flex sizing never reaches lynx as the shorthand.
+        const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
+        const { componentCss, report } = compileDesignSystemLynx(basicDS as never, manifest);
+        const css = componentCss['app-shell']!;
+        expectFlatCompounds(css);
+        expect(css).toContain('.zx-app-shell__region');
+        expect(css).toMatch(/\.zx-app-shell__root \{[^}]*height: 100dvh;/);
+        expect(css).not.toMatch(/(^|[\s;{])flex:/);
+        expect(report.dropped.filter((f) => f.scope === 'app-shell' || f.where.includes('"app-shell"'))).toEqual([]);
+    });
+
     it('projects layout attribute selectors onto the class grammar', () => {
         // The branch exists so the `zx-l-` grammar is not dead code: without
         // it every layout rule would be dropped and the layout tier would

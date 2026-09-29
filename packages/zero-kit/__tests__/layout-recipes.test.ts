@@ -248,6 +248,47 @@ describe('Stack root grow (#459)', () => {
     });
 });
 
+describe('the app-shell recipe (#459)', () => {
+    const recipe = () => layoutRecipes(basicDS.tokens as TokensInput).find((r) => r.component === 'app-shell')!;
+    const base = (part: string) =>
+        (recipe().parts as Record<string, { base?: Record<string, unknown> }>)[part]!.base!;
+
+    it('is geometry only: no colour read, no axis wired', () => {
+        expect(JSON.stringify(recipe())).not.toContain('--color-');
+        expect(recipe().variants).toBeUndefined();
+        expect(recipe().compoundVariants).toBeUndefined();
+        expect(Object.keys(recipe().parts).sort()).toEqual(['body', 'main', 'region', 'root']);
+    });
+
+    it('scrolls in the region and nowhere else', () => {
+        // The root clips (it never scrolls — `hidden` would make it a scroll
+        // container a deep `focus()` could move); body and main only shrink.
+        for (const part of ['root', 'body', 'main']) {
+            expect(Object.keys(base(part)).filter((k) => k.startsWith('overflow') && k !== 'overflow'), part).toEqual([]);
+        }
+        expect(base('root')['overflow']).toBe('clip');
+        expect(base('body')).not.toHaveProperty('overflow');
+        expect(base('main')).not.toHaveProperty('overflow');
+        expect(base('region')['overflow']).toBe('auto');
+        expect(base('region')['overscrollBehavior']).toBe('contain');
+        // A block scroll box, so a growing child keeps its natural height.
+        expect(base('region')['display']).toBe('flow-root');
+    });
+
+    it('claims the viewport, capped by a sized parent', () => {
+        expect(base('root')['blockSize']).toBe('100dvh');
+        expect(base('root')['maxBlockSize']).toBe('100%');
+    });
+
+    it('lets the frame shrink so the pressure lands on the region', () => {
+        for (const part of ['body', 'main', 'region']) {
+            expect(base(part), part).toMatchObject({
+                flexGrow: '1', flexShrink: '1', flexBasis: 'auto', minBlockSize: '0', minInlineSize: '0',
+            });
+        }
+    });
+});
+
 describe('Container', () => {
     it('is border-box, so its padding stays inside the column it is given', () => {
         // zero ships no reset: in the content box, `inline-size: 100%` plus

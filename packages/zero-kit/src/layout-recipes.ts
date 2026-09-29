@@ -56,7 +56,7 @@ import type { LayoutAttrName } from './contract.js';
 import { structuralToken } from './structural.js';
 
 /** The scopes this pack paints. Grows as the layout tier does. */
-export const LAYOUT_SCOPES = ['stack', 'spacer', 'grid', 'center', 'box', 'container'] as const;
+export const LAYOUT_SCOPES = ['stack', 'spacer', 'grid', 'center', 'box', 'container', 'app-shell'] as const;
 
 /**
  * The layout attributes the emitted scopes actually consume.
@@ -279,7 +279,10 @@ export const layoutScopes: Readonly<Record<string, ScopeVocabulary>> = Object.fr
  * does not change as the pack learns to read more of it.
  */
 export function layoutRecipes(tokens: TokensInput): RecipeInput[] {
-    return [stackRecipe(), spacerRecipe(), gridRecipe(), centerRecipe(), boxRecipe(tokens), containerRecipe()];
+    return [
+        stackRecipe(), spacerRecipe(), gridRecipe(), centerRecipe(), boxRecipe(tokens), containerRecipe(),
+        appShellRecipe(),
+    ];
 }
 
 /**
@@ -601,6 +604,73 @@ function containerRecipe(): RecipeInput {
                     marginInline: 'auto',
                     paddingInline: 'var(--l-pad-x)',
                     paddingBlock: 'var(--l-pad-y)',
+                },
+            },
+        },
+    };
+}
+
+/**
+ * AppShell — the frame (#459): claim the viewport, and hand scrolling to the
+ * regions inside it.
+ *
+ * Geometry only — no `--color-*`, no axes — which is why it is generated here
+ * rather than authored per skin. A skin that wants paint on the frame (a
+ * background on `main`, a thin scrollbar on a region) patches this recipe.
+ *
+ * - The root is `100dvh` capped at `100%`: the viewport in an app, a sized
+ *   parent's height when embedded (a docs page, a demo), and — under a
+ *   parent of `auto` height, where the percentage resolves to `none` — the
+ *   viewport again.
+ * - The root clips with `overflow: clip`, not `hidden`. `hidden` makes it a
+ *   scroll container, and a `focus()` deep inside could then scroll the
+ *   frame itself with no way back; `clip` cannot scroll, and fixed-position
+ *   descendants (a toast viewport, a top-layer sheet) still escape it.
+ * - `body` and `main` grow into what is left and may shrink below their
+ *   content (`min-*-size: 0`), so the pressure lands on the region.
+ * - The region is the scroll box, and a `flow-root` block rather than a flex
+ *   column: as a flex column, a growing child (whose `min-block-size` is 0)
+ *   could shrink below its content, and its padding and background would
+ *   end early while the content went on scrolling. As a block, its children
+ *   keep their natural height. `overscroll-behavior: contain` stops a scroll
+ *   that reaches the end chaining out to the document.
+ *
+ * Flex longhands, never `flex`: the lynx target mis-parses the shorthand.
+ */
+function appShellRecipe(): RecipeInput {
+    const fill = {
+        flexGrow: '1',
+        flexShrink: '1',
+        flexBasis: 'auto',
+        minBlockSize: '0',
+        minInlineSize: '0',
+    };
+    return {
+        component: 'app-shell',
+        parts: {
+            root: {
+                base: {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    blockSize: '100dvh',
+                    maxBlockSize: '100%',
+                    minInlineSize: '0',
+                    overflow: 'clip',
+                },
+            },
+            body: {
+                base: { display: 'flex', flexDirection: 'row', ...fill },
+            },
+            main: {
+                // No overflow: the region inside is the scroll box.
+                base: { display: 'flex', flexDirection: 'column', ...fill },
+            },
+            region: {
+                base: {
+                    display: 'flow-root',
+                    ...fill,
+                    overflow: 'auto',
+                    overscrollBehavior: 'contain',
                 },
             },
         },

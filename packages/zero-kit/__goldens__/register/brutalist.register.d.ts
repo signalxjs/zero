@@ -87,6 +87,17 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** app-shell — no axis wired by brutalist; every axis errors under this register module. */
+            'app-shell': {
+                /** Accepts `color` at runtime, but brutalist declares no color axis for app-shell — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but brutalist declares no size axis for app-shell — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but brutalist declares no variant axis for app-shell — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** button — color, size, variant wired. */
             'button': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';

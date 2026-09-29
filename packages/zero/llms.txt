@@ -146,7 +146,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-64 components ship today. Every part each renders is listed below, in
+65 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -618,6 +618,21 @@ component renders; the root is called out separately where it carries props.
   size at all. `full` is `none`, not 100% — a container told not to bound
   itself should have no maximum. Unbounded by default. No colour: a container
   is a constraint, not a surface — wrap it around a Box.
+- AppShell: Root/Body/Main/Region(label REQUIRED) — the application frame
+  (scope app-shell). Root claims the viewport (block-size: 100dvh, capped by
+  max-block-size: 100% so a sized parent bounds it when embedded) and clips
+  with overflow: clip, never scrolling itself. Body is the row under the app
+  bar (a docked sidebar beside Main); Main renders <main>; Region renders a
+  <section aria-label={label} tabindex="0"> — a named region landmark and
+  THE scroll box (overflow: auto, overscroll-behavior: contain, display:
+  flow-root so its children keep their natural height). Body, Main and
+  Region grow and may shrink below their content (min-*-size: 0), so the
+  pressure lands on the region. Always focusable, because WebKit does not
+  make a scroller focusable and axe's scrollable-region-focusable fails
+  without it. Geometry only: no layout attributes, no axes, no asChild; the
+  kit's layoutRecipes generates its recipe for every skin. It complements
+  the Navbar + Drawer + NavList composition rather than replacing it:
+  Navbar stays the banner, Drawer.Panel the sidebar, NavList the <nav>.
 - Box: Root only(color, pad/padX/padY) — the layout tier's one scope that
   PAINTS: a padded surface tinted by meaning. Card is the structured sibling
   (header/body/footer); Box is the unstructured one — a callout, a well, a

@@ -93,7 +93,7 @@ describe('every declared axis value is honoured or claimed', () => {
         const optedOutOfSize = Object.keys(carbon.componentCss)
             .filter((scope) => carbon.components[scope]?.offered?.size?.length === 0)
             .sort();
-        expect(optedOutOfSize).toEqual(['box', 'center', 'container', 'grid', 'spacer', 'stack']);
+        expect(optedOutOfSize).toEqual(['app-shell', 'box', 'center', 'container', 'grid', 'spacer', 'stack']);
         expect(participatingCells(carbon).filter((c) => c.axis === 'size').length)
             .toBe(Object.keys(carbon.componentCss).length - optedOutOfSize.length);
     });

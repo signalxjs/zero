@@ -312,11 +312,17 @@ skins that draw it, the tabs indicator lands on the active tab (#283). It
 exists because a `transform` has no logical spelling, so the kit's
 physical-direction lint cannot see it — the two checks are complementary, not
 redundant;
-the **app-shell spec** (`e2e/app-shell.spec.ts`, #133) — the Navbar +
-responsive Drawer + NavList + Container composition, three engines: the
-same NavList is the docked sidebar beside `<main>` at `md` and a sheet
-below it, the trigger in the bar hides when docked, and the shell keeps one
-header and one navigation landmark either way;
+the **app-shell spec** (`e2e/app-shell.spec.ts`, #133, #459) — the
+`AppShell` frame around the Navbar + responsive Drawer + NavList
+composition, three engines: the same NavList is the docked sidebar beside
+`<main>` at `md` and a sheet below it, the trigger in the bar hides when
+docked, and the shell keeps one header, one navigation landmark, exactly
+one `<main>` (the `app-shell` part) and two named regions either way; the
+frame holds its box when a region's content grows (the root never
+overflows, the window never moves); a real wheel over either region
+scrolls it and neither the other region nor the window; and a region
+reached by `focus()` — not Tab, which WebKit's default order would make
+prove nothing — scrolls on PageDown;
 the **swipe-dismiss spec** (`e2e/swipe-dismiss.spec.ts`, #293) — chromium
 and webkit, measured in boxes: in all six skins a toast and a bottom sheet
 follow a real mouse drag along the dismiss axis (the recipe composed
