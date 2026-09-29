@@ -12,7 +12,10 @@
  * The platform supplies keyboard behavior, form participation and a11y;
  * design systems style the input's track/thumb pseudo-elements against
  * `[data-scope="slider"][data-part="control"]`. The current fraction is
- * exposed as `--slider-percent` for track-fill styling.
+ * exposed as `--slider-percent` for track-fill styling, and as the unitless
+ * `--slider-fraction` (#468) — with `--slider-start-fraction`, the lowest
+ * thumb's, while a range model has several — so a recipe can cut a gap in
+ * the track around each handle.
  *
  * Range / multi-thumb, composed projection (#325): `model` accepts
  * `number[]`, and the consumer composes the real parts —
@@ -265,6 +268,26 @@ function isRtl(el: HTMLElement | null): boolean {
         // :dir() unsupported — fall through to computed style.
     }
     return typeof getComputedStyle === 'function' && getComputedStyle(el).direction === 'rtl';
+}
+
+/**
+ * The handle geometry the root publishes (#468): `--slider-percent` (the
+ * highest value's position, v1), the same as a unitless `--slider-fraction`,
+ * and — only while several thumbs share the rail — the lowest one's
+ * `--slider-start-fraction`. Unitless, so a recipe can multiply them: the
+ * native thumb's centre travels `calc(w / 2 + (100% - w) * f)` for a thumb
+ * `w` wide, a composed thumb's sits at `f * 100%`. That is what a skin needs
+ * to cut a real gap around a handle instead of painting the surface
+ * behind the slider over its track.
+ */
+function handleGeometry(vals: readonly number[], percent: number, percentOf: (v: number) => number): Record<string, string> {
+    const fraction = (p: number): string => String(Math.round(p * 100) / 10000);
+    const style: Record<string, string> = {
+        '--slider-percent': `${percent}%`,
+        '--slider-fraction': fraction(percent),
+    };
+    if (vals.length > 1) style['--slider-start-fraction'] = fraction(percentOf(Math.min(...vals)));
+    return style;
 }
 
 /**
@@ -587,7 +610,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             data-invalid={dataAttr(ctx.invalid())}
             data-readonly={dataAttr(ctx.readonly())}
             data-focus-visible={dataAttr(focusVisible.visible)}
-            style={{ '--slider-percent': `${ctx.percent()}%` }}
+            style={handleGeometry(values(), ctx.percent(), ctx.percentOf)}
             {...fc.axisAttrs()}
             class={props.class}
             ref={(node: HTMLElement | null) => { rootEl = node; }}

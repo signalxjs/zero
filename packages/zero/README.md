@@ -290,6 +290,31 @@ so they flip with the reading direction.
 </Input.Root>
 ```
 
+**An outline a floated label can notch (#468).** `Input.Outline` (optional,
+inside `Input.Control`) renders the field's outline as an `aria-hidden`
+`<fieldset>` (part `outline`) holding an empty `<legend>` (part `notch`).
+The runtime publishes the layout inline size of the input's visible label —
+its `Input.Label`, or a `Field.Label` whose field the input adopted — on
+the outline as `--input-label-inline-size` (px, measured before transforms
+and kept current by a `ResizeObserver`; `0px` for a visually hidden label or
+none). A design system whose label floats onto the border sizes the notch
+from it at the scale it floats the label with, and the engine cuts the
+fieldset's border behind the label: no paint stands in for the surface
+behind the field, so the notch is right over an image or a gradient too.
+Material's outlined field draws its outline this way; the other five skins,
+whose labels never float, leave the part undisplayed and keep the control's
+own border.
+
+```tsx
+<Input.Root variant="outlined" model={() => state.name}>
+    <Input.Label>Full name</Input.Label>
+    <Input.Control>
+        <Input.Input />
+        <Input.Outline />
+    </Input.Control>
+</Input.Root>
+```
+
 **Readonly reaches every value control, not only text (#267).** Input,
 Textarea, NumberInput, Combobox, RatingGroup — and Checkbox, Switch,
 RadioGroup, Select and Slider — take `readonly` (`WithReadonly`), the prop OR
@@ -743,7 +768,10 @@ root and handle, `aria-disabled`, out of the tab order, no keys, no drag.
 **Values a recipe can read** (#537). Progress and RadialProgress write
 `--progress-percent` on their root (one name for both, so one recipe idiom
 paints a bar and a ring; absent while indeterminate), Slider
-`--slider-percent` and Diff `--diff-percent` on theirs, and Countdown the
+`--slider-percent` — beside it the unitless `--slider-fraction` and, while
+several thumbs share the rail, the lowest one's `--slider-start-fraction`
+(#468), so a recipe can cut the track around a handle — and Diff
+`--diff-percent` on theirs, and Countdown the
 raw number as `--countdown-value` on its value part. Each anatomy declares
 its names as `runtimeProperties`, so `manifest.json` lists them per
 component; they are web-only runtime properties (`RUNTIME_PROPERTIES`) a

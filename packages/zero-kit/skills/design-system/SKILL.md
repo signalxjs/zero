@@ -409,6 +409,15 @@ component's anatomy). No component code is ever written or changed.
      tooltip, menu, select, combobox) are **outside the rule entirely**, not
      waived by it: the revealed thing floats above the page and takes focus, so
      whether the trigger also changes is your call and the guard never asks.
+   - **A floating label notches a real outline, never a painted one.** If your
+     text field floats its label onto the border, style Input's optional
+     `outline` (a `<fieldset>` laid over the control) and its `notch` (the
+     `<legend>`, #468): size the notch from the runtime-published
+     `--input-label-inline-size` at the scale you float the label with, open
+     it only while the label is floated, and let the engine cut the border.
+     Backing the label with the surface colour is wrong over any image,
+     gradient or container you did not anticipate. A skin whose label never
+     floats sets both parts `display: none` and keeps the control's border.
    - **Spell direction logically. It is a correctness rule, not a style.**
      `inset-inline-start` / `margin-inline-*` / `padding-inline-*` /
      `border-inline-*`, never `left` / `right` / `margin-left` / `border-left`.
@@ -635,7 +644,10 @@ component's anatomy). No component code is ever written or changed.
        Chrome treats range inputs as ALWAYS `:focus-visible` — even on
        mouse focus — so an input-box outline reads as a stuck rectangle on
        press; the halo must BE the focus indicator. Fill the track with the
-       runtime-published `--slider-percent` as a gradient stop, and revert
+       runtime-published `--slider-percent` as a gradient stop (a handle
+       that stands in a gap cuts it from the unitless `--slider-fraction`
+       and `--slider-start-fraction` — never paint the surface behind the
+       slider over the track, #468), and revert
        to `appearance: 'auto'` under `forced-colors` (native rendering
        knows forced colors better than a custom skin).
    - **Popup geometry is published too — size floating parts from it.** The

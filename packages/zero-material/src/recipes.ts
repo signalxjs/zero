@@ -503,9 +503,12 @@ const TF_FILLED: CssProps = {
 /**
  * The outlined field: a 1dp outline (2dp focused, drawn as an inset ring so
  * nothing reflows), extra-small corners all round, and the floated label
- * notched into the top edge — its background is the surface behind the field
- * (`--tf-surface`, the page's `surface` unless a container says otherwise),
- * since CSS cannot cut a gap in a border it cannot measure (#468).
+ * notched into the top edge. An input holding `Input.Outline` has a real
+ * notch: the outline is its fieldset, cut by a legend the runtime sizes to
+ * the label (#468, `tfOutline`). A scope without that part — textarea,
+ * number-input, select, combobox — still backs the floated label with the
+ * surface behind the field (`--tf-surface`, the page's `surface` unless a
+ * container says otherwise), which is right on a flat surface only.
  */
 const TF_OUTLINED: CssProps = {
     '--tf-fill': 'transparent',
@@ -706,6 +709,73 @@ const tfLabelRules = (host: string, floated: string): Record<string, CssProps> =
         color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
         opacity: '1',
     },
+});
+
+/**
+ * A host whose input holds the optional outline part (#468): the outline
+ * really is cut behind the floated label, so the label needs no backing.
+ */
+const NOTCHED = ':has([data-scope="input"][data-part="outline"])';
+
+/**
+ * The label over a notched outline: transparent, so it sits in the cut
+ * rather than over a painted stand-in for the surface. Forced colours hide
+ * the outline (the box's own system border stays), so there the label
+ * backs itself with Canvas, as the surface paint did.
+ */
+const tfNotchedLabel = (host: string, floated: string): Pick<PartStyles, 'selectors' | 'at'> => ({
+    selectors: { [`${host}${NOTCHED} > &`]: { background: 'transparent' } },
+    at: { 'forced-colors': { selectors: { [`${host}${NOTCHED}${floated} > &`]: { background: 'Canvas' } } } },
+});
+
+/**
+ * The outline part (#468): a fieldset laid over the box's border, drawing
+ * M3's outline — 1dp, 2dp and the accent while focused — with its legend,
+ * the notch, cut as wide as the floated label. The runtime publishes the
+ * label's layout inline size (`--input-label-inline-size`); the notch takes
+ * it at the 0.75 the label floats with, starts where the floated label
+ * does, and closes to nothing while the label rests. A filled field has no
+ * outline width, so the part draws nothing there.
+ */
+const TF_FLOATED = ':is(:focus-within, :not([data-placeholder]))';
+
+const tfOutline = (): PartStyles => ({
+    base: {
+        position: 'absolute',
+        inset: 'calc(-1 * var(--tf-outline-width))',
+        boxSizing: 'border-box',
+        margin: '0',
+        padding: '0',
+        minInlineSize: '0',
+        border: 'calc(var(--tf-outline-width) + var(--tf-ring)) solid var(--tf-outline-color)',
+        borderRadius: 'var(--tf-radius)',
+        pointerEvents: 'none',
+        transition: motion('border-color'),
+    },
+    at: {
+        'reduced-motion': { base: { transition: 'none' } },
+        'forced-colors': { base: { display: 'none' } },
+    },
+});
+
+const tfNotch = (scope: string): PartStyles => ({
+    base: {
+        display: 'block',
+        boxSizing: 'border-box',
+        inlineSize: '0',
+        blockSize: '0',
+        padding: '0',
+        marginInlineStart: 'calc(var(--tf-label-start-floated) - var(--tf-outline-width) - var(--tf-ring))',
+        fontSize: '0',
+        lineHeight: '0',
+        transition: 'inline-size var(--duration-short3) var(--ease-standard)',
+    },
+    selectors: {
+        [`[data-scope="${scope}"][data-part="root"]${TF_FLOATED} &`]: {
+            inlineSize: 'calc(var(--input-label-inline-size, 0px) * 0.75)',
+        },
+    },
+    at: { 'reduced-motion': { base: { transition: 'none' } } },
 });
 
 /** A text-field scope's own label (`Input.Label` & co). */
@@ -2803,10 +2873,14 @@ export const field: RecipeInput = {
                 // field holds no value and is unfocused. `Field.Root` mirrors
                 // its control's emptiness as its own `data-placeholder`
                 // (#469), so the label reads its field, not the control.
-                ...tfLabelRules(FIELD_HOST, ':is(:focus-within, :not([data-placeholder]))'),
+                ...tfLabelRules(FIELD_HOST, TF_FLOATED),
+                ...tfNotchedLabel(FIELD_HOST, TF_FLOATED).selectors,
                 [`${FIELD_HOST} > &[data-required]::after`]: { color: 'inherit' },
             },
-            at: { 'reduced-motion': { selectors: { [`${FIELD_HOST} > &`]: { transition: 'none' } } } },
+            at: {
+                'reduced-motion': { selectors: { [`${FIELD_HOST} > &`]: { transition: 'none' } } },
+                ...tfNotchedLabel(FIELD_HOST, TF_FLOATED).at,
+            },
         },
         // M3's supporting text and error text: body-small, 16dp in so it
         // lines up with the field's text, error in the error role.
@@ -2892,13 +2966,20 @@ export const fieldset: RecipeInput = {
 };
 
 /**
- * The M3 Expressive handle as a box shadow list: the gap it stands in (the
- * surface behind the slider, painted over the track either side — CSS cannot
- * cut a track it does not own, the #468 answer), and on keyboard focus the
- * two-tone ring outside that gap.
+ * The M3 Expressive handle stands in a gap cut out of the track (#468). The
+ * runtime publishes where each handle is — `--slider-fraction`, and the low
+ * one's `--slider-start-fraction` while a range model has two — so the
+ * track is painted with the gap left out rather than the surface behind
+ * the slider painted over it. On keyboard focus a ring outside the gap: an
+ * outline offset by the gap, which leaves the gap itself unpainted.
  */
-const sliderGap = '0 0 0 var(--slider-gap) var(--tf-surface)';
-const sliderFocusRing = `${sliderGap}, 0 0 0 calc(var(--slider-gap) + 2px) var(--color-secondary)`;
+const sliderFocusRing: CssProps = {
+    outline: '2px solid var(--color-secondary)',
+    outlineOffset: 'var(--slider-gap)',
+};
+
+/** Half the handle plus its gap: how far the track stops short of a handle's centre. */
+const sliderClear = 'calc(var(--slider-handle-width) / 2 + var(--slider-gap))';
 
 /** The native thumb, shared by both engines' pseudo: the bar in its gap. */
 const sliderNativeThumb: CssProps = {
@@ -2909,7 +2990,6 @@ const sliderNativeThumb: CssProps = {
     borderRadius: 'calc(var(--slider-handle-width) / 2)',
     border: 'none',
     background: 'var(--slider-accent)',
-    boxShadow: sliderGap,
     // Width and height: upright, the narrowing handle is its height.
     transition:
         'width var(--duration-spatial-fast) var(--ease-spatial-fast), '
@@ -2949,8 +3029,9 @@ export const slider: RecipeInput = {
         // A custom skin (`appearance: none`): Blink ignores thumb-pseudo
         // styling on a native slider, and Chrome treats a range input as
         // always `:focus-visible`, so a generic ring would stay on after a
-        // mouse press. The filled track reads the runtime-published
-        // `--slider-percent` (set on the root, inherited) as a gradient stop.
+        // mouse press. The track reads the runtime-published
+        // `--slider-fraction` (set on the root, inherited, #468) to stop the
+        // fill and resume the inactive track a gap either side of the thumb.
         //
         // The inactive track is M3's surface-container-highest
         // (md.comp.slider.inactive.track.color) — never the accent. M3
@@ -2966,8 +3047,15 @@ export const slider: RecipeInput = {
                 cursor: 'pointer',
                 outline: 'none',
                 accentColor: 'var(--slider-accent)',
+                // The native thumb's leading edge travels 0 → 100% minus its
+                // own width; the fill stops a gap before it and the inactive
+                // track resumes a gap after it.
+                '--slider-track-dir': 'to right',
                 '--slider-track':
-                    'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--slider-inactive) 0)',
+                    'linear-gradient(var(--slider-track-dir), '
+                    + 'var(--slider-accent) calc((100% - var(--slider-handle-width)) * var(--slider-fraction, 0.5) - var(--slider-gap)), '
+                    + 'transparent 0 calc((100% - var(--slider-handle-width)) * var(--slider-fraction, 0.5) + var(--slider-handle-width) + var(--slider-gap)), '
+                    + 'var(--slider-inactive) 0)',
             },
             states: {
                 // `invalid` is semantic, not an accent: it stays error under
@@ -2986,6 +3074,8 @@ export const slider: RecipeInput = {
                 },
             },
             selectors: {
+                // The thumb travels from the reading start.
+                [`&${rtl}`]: { '--slider-track-dir': 'to left' },
                 '&::-webkit-slider-runnable-track': {
                     height: 'var(--slider-track-size)',
                     borderRadius: 'calc(var(--slider-track-size) / 2)',
@@ -2995,14 +3085,14 @@ export const slider: RecipeInput = {
                     ...sliderNativeThumb,
                     marginTop: 'calc((var(--slider-track-size) - var(--slider-handle-size)) / 2)',
                 },
-                '&[data-focus-visible]::-webkit-slider-thumb': { boxShadow: sliderFocusRing },
+                '&[data-focus-visible]::-webkit-slider-thumb': sliderFocusRing,
                 '&::-moz-range-track': {
                     height: 'var(--slider-track-size)',
                     borderRadius: 'calc(var(--slider-track-size) / 2)',
                     background: 'var(--slider-track)',
                 },
                 '&::-moz-range-thumb': sliderNativeThumb,
-                '&[data-focus-visible]::-moz-range-thumb': { boxShadow: sliderFocusRing },
+                '&[data-focus-visible]::-moz-range-thumb': sliderFocusRing,
             },
             at: {
                 // Native rendering knows forced colors better than we do; the
@@ -3017,18 +3107,35 @@ export const slider: RecipeInput = {
             },
         },
         // The composed range projection (#325): the same track, handle and
-        // gap as real parts, and the stop indicator at the track's end.
+        // gap as real parts, and the stop indicator at the track's end. The
+        // inactive track is the `::before`, cut around each handle from the
+        // published geometry (#468): a handle's centre sits at its fraction
+        // of the track. Without a start fraction (one value) the first cut
+        // falls off the track's start.
         track: {
             base: {
                 position: 'relative',
                 height: 'var(--slider-track-size)',
                 marginBlock: 'calc((var(--slider-handle-size) - var(--slider-track-size)) / 2)',
                 borderRadius: 'calc(var(--slider-track-size) / 2)',
-                background: 'var(--slider-inactive)',
                 cursor: 'pointer',
+                '--slider-track-dir': 'to right',
             },
             states: { readonly: { cursor: 'default' }, disabled: { cursor: 'not-allowed' } },
             selectors: {
+                [`&${rtl}`]: { '--slider-track-dir': 'to left' },
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    borderRadius: 'inherit',
+                    pointerEvents: 'none',
+                    background:
+                        'linear-gradient(var(--slider-track-dir), '
+                        + `var(--slider-inactive) calc(var(--slider-start-fraction, -1) * 100% - ${sliderClear}), `
+                        + `transparent 0 calc(var(--slider-fraction, 0.5) * 100% + ${sliderClear}), `
+                        + 'var(--slider-inactive) 0)',
+                },
                 // M3's stop indicator: a 4dp dot in the accent at the end of a
                 // continuous track, showing where the range ends.
                 '&::after': {
@@ -3045,13 +3152,24 @@ export const slider: RecipeInput = {
                 '&:has([data-part="mark"])::after': { content: 'none' },
             },
         },
+        // The filled span stops a gap short of each handle on it: a
+        // transparent border at the handle's end (both ends between two
+        // handles), the fill clipped inside it.
         range: {
             base: {
+                boxSizing: 'border-box',
                 height: '100%',
                 borderRadius: 'calc(var(--slider-track-size) / 2)',
                 background: 'var(--slider-accent)',
+                backgroundClip: 'padding-box',
+                borderInlineEnd: `${sliderClear} solid transparent`,
             },
             states: { disabled: {} },
+            selectors: {
+                '[data-part="track"]:has(> [data-part="thumb"] ~ [data-part="thumb"]) > &': {
+                    borderInlineStart: `${sliderClear} solid transparent`,
+                },
+            },
         },
         thumb: {
             base: {
@@ -3063,7 +3181,6 @@ export const slider: RecipeInput = {
                 marginInlineStart: 'calc(var(--slider-handle-width) / -2)',
                 borderRadius: 'calc(var(--slider-handle-width) / 2)',
                 background: 'var(--slider-accent)',
-                boxShadow: sliderGap,
                 cursor: 'pointer',
                 outline: 'none',
                 touchAction: 'none',
@@ -3075,7 +3192,7 @@ export const slider: RecipeInput = {
             states: {
                 // M3 Expressive's press: the handle narrows to 2dp.
                 pressed: { '--slider-handle-width': dp(2) },
-                'focus-visible': { boxShadow: sliderFocusRing },
+                'focus-visible': sliderFocusRing,
                 // Readonly answers to nothing, so it does not invite a click.
                 readonly: { cursor: 'default' },
                 disabled: { cursor: 'not-allowed' },
@@ -3170,7 +3287,7 @@ export const slider: RecipeInput = {
                         '&[data-orientation="vertical"]': {
                             width: 'var(--slider-handle-size)',
                             height: 'var(--slider-length)',
-                            '--slider-track': 'linear-gradient(to top, var(--slider-accent) var(--slider-percent, 50%), var(--slider-inactive) 0)',
+                            '--slider-track-dir': 'to top',
                         },
                         '&[data-orientation="vertical"]::-webkit-slider-runnable-track': {
                             width: 'var(--slider-track-size)',
@@ -3214,6 +3331,7 @@ export const slider: RecipeInput = {
                             width: 'var(--slider-track-size)',
                             height: 'var(--slider-length)',
                             marginBlock: '0',
+                            '--slider-track-dir': 'to top',
                             marginInline: 'calc((var(--slider-handle-size) - var(--slider-track-size)) / 2)',
                         },
                         // The stop indicator sits at the top of an upright track.
@@ -3223,9 +3341,20 @@ export const slider: RecipeInput = {
                         },
                     },
                 },
+                // Upright, the span grows from the foot: its handle end is
+                // the top, the low handle's the bottom.
                 range: {
                     selectors: {
-                        '&[data-orientation="vertical"]': { insetInlineStart: '0', width: '100%' },
+                        '&[data-orientation="vertical"]': {
+                            insetInlineStart: '0',
+                            width: '100%',
+                            borderInline: '0',
+                            borderBlockStart: `${sliderClear} solid transparent`,
+                        },
+                        '[data-part="track"]:has(> [data-part="thumb"] ~ [data-part="thumb"]) > &[data-orientation="vertical"]': {
+                            borderInlineStart: '0',
+                            borderBlockEnd: `${sliderClear} solid transparent`,
+                        },
                     },
                 },
                 thumb: {
@@ -3283,7 +3412,10 @@ export const progress: RecipeInput = {
     tokens: {
         '--progress-accent': 'var(--color-primary)',
         // M3's linear indicator: 4dp, the active bar standing in a 4dp gap
-        // (painted in the surface behind it, #468) with a 4dp stop at the end.
+        // with a 4dp stop at the end. The gap is still the surface behind
+        // it (`--tf-surface`): unlike the slider's handles (#468), the
+        // indeterminate sweep's position is a keyframe, not published
+        // geometry, so there is nothing to cut the track at.
         '--progress-track-size': dp(4),
     },
     keyframes: {
@@ -4707,13 +4839,27 @@ export const input: RecipeInput = {
         root: withPresence(tfRoot(), {
             states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
         }),
-        label: withPresence(tfLabel('input'), {
+        label: withPresence(withPresence(tfLabel('input'), tfNotchedLabel('[data-scope="input"][data-part="root"]', TF_FLOATED)), {
             states: { disabled: {}, invalid: {}, required: {} },
         }),
         control: withPresence(tfBox(), {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
+            },
+            selectors: {
+                // The outline part draws the outline (#468): the box keeps
+                // its border's room, unpainted, and drops the focus ring.
+                '&:has(> [data-part="outline"])': {
+                    position: 'relative',
+                    borderColor: 'transparent',
+                    boxShadow: 'inset 0 calc(-1 * var(--tf-indicator)) 0 var(--tf-indicator-color)',
+                },
+            },
+            at: {
+                // The outline hides under forced colours: the box's own
+                // system border is the field's bounds again.
+                'forced-colors': { selectors: { '&:has(> [data-part="outline"])': { borderColor: 'CanvasText' } } },
             },
             states: {
                 invalid: {},
@@ -4745,6 +4891,8 @@ export const input: RecipeInput = {
                 '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
+        outline: tfOutline(),
+        notch: tfNotch('input'),
         // M3's leading / trailing icon: 24dp in on-surface-variant, centred
         // in the container 12dp from its edge, ordered logically. A leading
         // one moves the resting label past it (`tfRoot`).

@@ -426,7 +426,10 @@ component renders; the root is called out separately where it carries props.
   inset-inline-start percents — RTL mirrors for free) and paints nothing:
   recipes center the thumb with a negative margin-inline-start of half its
   width and own every color. --slider-percent still tracks the (highest)
-  value's fraction. valueCommit (an event, NOT a model — no <n>Change pair)
+  value's fraction; --slider-fraction is the same as a unitless 0-1, and
+  --slider-start-fraction the lowest thumb's while a range model has several
+  (#468) — the handle geometry a recipe cuts the track's gap around.
+  valueCommit (an event, NOT a model — no <n>Change pair)
   fires with the model's shape once per drag end, per keyboard step and on
   the native control's change, each only when the value moved.
 - Progress: Root/Label/Track/Range/ValueText; `value: number | null`
@@ -466,7 +469,7 @@ component renders; the root is called out separately where it carries props.
   platform's legend exemption). Flags: root disabled/readonly/invalid,
   legend disabled/invalid.
 - Input: Root(model=string, model:visible)/Label/Control/Input/Adornment/Affix/ClearTrigger/
-  VisibilityTrigger, a single-line text field.
+  VisibilityTrigger/Outline, a single-line text field.
   `type` is text|email|password|search|tel|url only (number is NumberInput;
   the selection and date/time types are not text fields). The model writes
   through on every keystroke — no draft/commit split; `modelModifiers`
@@ -486,7 +489,12 @@ component renders; the root is called out separately where it carries props.
   defaultVisible / visibleChange, and while visible a type=password input
   renders type=text; slot gets { visible }). In a type=search field Escape
   clears a non-empty value and is preventDefault-ed so dismiss layers
-  yield; an empty field lets it through.
+  yield; an empty field lets it through. Outline (optional, #468) renders an
+  aria-hidden <fieldset> part `outline` with an empty <legend> part `notch`
+  and publishes --input-label-inline-size on it: the input's visible label's
+  (Input.Label or an adopted Field.Label) layout inline size in px, before
+  transforms, 0px without one — a skin sizes the notch from it so a floated
+  label sits in a real cut in the border.
 - Card: Root/Media/Header/Title/Description/Body/Footer. No state, no
   context, no ids — a styling container. Title renders <h3> so a page of
   cards is navigable from a heading list. Every part below Root is optional.

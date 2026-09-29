@@ -247,6 +247,7 @@ export type {
     InputAffixProps,
     InputClearTriggerProps,
     InputVisibilityTriggerProps,
+    InputOutlineProps,
     InputHandle,
     InputType,
     InputMode,

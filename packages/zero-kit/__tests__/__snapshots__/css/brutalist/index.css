@@ -6575,6 +6575,14 @@
         background: var(--color-base-content);
     }
 
+    [data-scope="input"][data-part="outline"] {
+        display: none;
+    }
+
+    [data-scope="input"][data-part="notch"] {
+        display: none;
+    }
+
     [data-scope="input"][data-part="root"][data-color="primary"] {
         --input-accent: var(--color-primary);
     }

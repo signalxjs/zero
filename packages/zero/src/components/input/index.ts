@@ -8,6 +8,7 @@ export type {
     InputAffixProps,
     InputClearTriggerProps,
     InputVisibilityTriggerProps,
+    InputOutlineProps,
     InputHandle,
     InputType,
 } from './Input.js';

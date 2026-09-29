@@ -174,10 +174,18 @@ indicator's box `--tabs-indicator-inset-inline-start`/
 `--tabs-indicator-block-size` (#283: the active tab's box relative to the
 list's padding box, the inline offset from its inline-start edge so RTL
 needs no correction; the indicator stays `display: none` until measured, so
-no transition plays from nowhere), and the toast stack quartet
+no transition plays from nowhere), the toast stack quartet
 `--toast-index`/`--toast-count`/`--toast-height`/`--toast-offset` (#292:
 each root's place in the stack and, measured, its own height and the summed
-heights of the newer toasts in front of it). The scoped ones are declared
+heights of the newer toasts in front of it), the slider's handle geometry
+`--slider-fraction`/`--slider-start-fraction` (#468: unitless, the highest
+value's fraction and — only while several thumbs share the rail — the
+lowest's, so a recipe cuts a real gap in the track around each handle
+instead of painting the surface behind the slider over it), and
+`--input-label-inline-size` on Input's optional `outline` (#468: the
+visible label's layout inline size before transforms, which the `notch`
+legend is sized from at the recipe's own float scale, so the fieldset's
+border is really cut behind a floated label). The scoped ones are declared
 where they are written: each of zero's anatomies lists its own as
 `runtimeProperties` (#537), which the manifest carries, and the kit's
 `RUNTIME_PROPERTIES` is a derived copy — the behavior list plus every
