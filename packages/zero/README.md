@@ -2046,7 +2046,9 @@ once:
 ```
 
 The page keeps one banner (the Navbar's `<header>`, at document scope) and
-one navigation landmark (NavList's `<nav>`) in both regimes.
+one navigation landmark (NavList's `<nav>`) in both regimes. Page CSS
+sits outside or after the four layers — `@layer zero, app;` first in the
+app's entry stylesheet (docs/architecture.md, "App CSS").
 
 **A Navbar knows when content is scrolled under it** (#530). `Navbar.Root`
 carries `data-scrolled` while the content it sits over is scrolled past its
@@ -2058,9 +2060,7 @@ scrolled-under top app bar with surface-container off it.
 
 ```tsx
 <Navbar.Root scrollContainer={() => mainEl}>…</Navbar.Root>
-``` Page CSS
-sits outside or after the four layers — `@layer zero, app;` first in the
-app's entry stylesheet (docs/architecture.md, "App CSS").
+```
 
 **`Stack.Item grow` grows from zero** (#454). The design systems compile
 `grow` to `flex-grow: 1` and `flex-basis: 0`, like Tailwind's `flex-1`, so a
