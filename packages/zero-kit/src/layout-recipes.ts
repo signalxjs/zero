@@ -53,6 +53,7 @@ import type { RecipeInput } from './recipes.js';
 import type { ScopeVocabulary, TokensInput } from './tokens.js';
 import { LAYOUT_ATTR_PREFIX, axisRoles, layoutAttrSpec, resolveRoles } from './contract.js';
 import type { LayoutAttrName } from './contract.js';
+import { structuralToken } from './structural.js';
 
 /** The scopes this pack paints. Grows as the layout tier does. */
 export const LAYOUT_SCOPES = ['stack', 'spacer', 'grid', 'center', 'box', 'container'] as const;
@@ -490,6 +491,11 @@ function centerRecipe(): RecipeInput {
  * fill. It defaults to the role's colour, which reads while the tint is a
  * light wash of it; a skin whose soft fill inverts (Material's containers
  * go dark in the high-contrast schemes) sets it (#421).
+ *
+ * Its corner is the `box` structural role, resolved through the design
+ * system's `system.structural` map (#422): `var(--radius-medium)` in a skin
+ * that plays the role with its own `medium` key, `var(--radius-box)` in one
+ * that keeps the recommended name.
  */
 function boxRecipe(tokens: TokensInput): RecipeInput {
     // `resolveRoles`, not `?? {}`: the declaration grammar distinguishes
@@ -518,7 +524,7 @@ function boxRecipe(tokens: TokensInput): RecipeInput {
                     display: 'flow-root',
                     background: 'var(--box-surface)',
                     color: 'var(--box-ink)',
-                    borderRadius: 'var(--radius-box)',
+                    borderRadius: `var(--${structuralToken(tokens.system, 'radius', 'box')})`,
                     paddingInline: 'var(--l-pad-x)',
                     paddingBlock: 'var(--l-pad-y)',
                 },

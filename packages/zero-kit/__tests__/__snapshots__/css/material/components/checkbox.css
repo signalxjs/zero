@@ -35,7 +35,7 @@
         border: 2px solid var(--color-surface-variant-content);
         background: transparent;
         transition: background var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard);
-        border-radius: var(--radius-selector);
+        border-radius: calc(var(--radius-extra-small) / 2);
     }
 
     [data-scope="checkbox"][data-part="control"][data-state="checked"] {

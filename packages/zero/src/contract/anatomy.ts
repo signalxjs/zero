@@ -10,7 +10,15 @@
  * selector without reading component code.
  */
 
-/** Which contract token groups apply to a part — a styling hint for tooling. */
+/**
+ * Which contract token groups apply to a part — a styling hint for tooling.
+ *
+ * The `radius-*` hints name a structural ROLE by its recommended token, not
+ * a token every design system declares: a design system may map the role
+ * onto a key of its own scale (`system.structural` in `@sigx/zero-kit`,
+ * #422), and its compiled manifest records the token that plays it
+ * (`tokens.structural['radius-box']` → `'radius-medium'`).
+ */
 export type TokenHint =
     | 'color'
     | 'radius-selector'

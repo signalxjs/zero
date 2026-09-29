@@ -22,6 +22,7 @@ export type {
     CustomTokenDecl,
     RolesDecl,
     ScopeVocabulary,
+    StructuralMap,
     SystemTokens,
     ThemeColors,
     ThemeInput,

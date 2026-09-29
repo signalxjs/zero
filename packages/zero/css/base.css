@@ -31,7 +31,11 @@
 
 @layer zero.fallback {
     :root {
-        /* Structural fallbacks — a DS's tokens.css overrides all of these. */
+        /* Structural fallbacks — a DS's tokens.css overrides all of these.
+           The radius and text names are structural ROLES: a design system
+           that plays one with a key of its own (`system.structural`, #422)
+           gets the role emitted as `var(--<its key>)`, so a reference by the
+           name below still reads its value. */
         --radius-selector: 0.25rem;
         --radius-field: 0.25rem;
         --radius-box: 0.5rem;

@@ -115,9 +115,6 @@
         --radius-extra-large-increased: 2rem;
         --radius-extra-extra-large: 3rem;
         --radius-full: 624.9375rem;
-        --radius-selector: 0.125rem;
-        --radius-field: 0.25rem;
-        --radius-box: 0.75rem;
         --size-selector: 0.25rem;
         --size-field: 0.25rem;
         --font-display-large: var(--font-sans);
@@ -275,6 +272,9 @@
         --ease-effects-slow: linear(0, 0.075, 0.218, 0.378, 0.523, 0.639, 0.735, 0.808, 0.861, 0.901, 0.93, 0.95, 0.965, 0.976, 0.983, 0.988, 0.992, 0.994, 0.996, 0.997, 0.998, 0.999, 0.999, 0.999, 1);
         --border: 1px;
         --disabled-opacity: 0.38;
+        --radius-selector: var(--radius-extra-small);
+        --radius-field: var(--radius-extra-small);
+        --radius-box: var(--radius-medium);
         --state-hover: 0.08;
         --state-focus: 0.1;
         --state-pressed: 0.1;

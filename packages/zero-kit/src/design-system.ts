@@ -12,6 +12,7 @@ import type { DesignSystemDerivation } from './extend.js';
 import { deriveComponentApi, scopeApi } from './api.js';
 import type { CustomTokenDecl, RolesDecl, ScopeVocabulary, SystemTokens, TokensInput } from './tokens.js';
 import { compileTokensCss } from './targets/web/tokens-css.js';
+import { structuralTokenMap } from './structural.js';
 import type { RecipeHooks, RecipeInput } from './recipes.js';
 import { resolveRecipeForTarget } from './recipes.js';
 import { compileRecipeCss } from './targets/web/recipe-css.js';
@@ -211,6 +212,15 @@ export interface CompiledDesignSystem {
         system: Record<string, unknown>;
         /** Overrides applied to dark-scheme themes. */
         systemDark: Record<string, unknown>;
+        /**
+         * Every structural token by its recommended name → the token that
+         * plays it here, resolved through `system.structural` (#422):
+         * `{ 'radius-box': 'radius-medium', 'text-md': 'text-md', … }`. The
+         * anatomy's `radius-*` token hints are recommended names, so this is
+         * how a reader turns `card.root`'s `radius-box` into the token this
+         * design system's cards actually read.
+         */
+        structural: Record<string, string>;
         /**
          * Every custom property this design system emits, flat and sorted —
          * what editor completion, the docs site and cross-platform emitters
@@ -521,6 +531,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
             ),
             system: (ds.tokens.system ?? {}) as Record<string, unknown>,
             systemDark: (ds.tokens.systemDark ?? {}) as Record<string, unknown>,
+            structural: structuralTokenMap(ds.tokens.system),
             properties: emittedProperties(tokensCss),
         },
     };

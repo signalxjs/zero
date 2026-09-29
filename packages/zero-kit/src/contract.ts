@@ -159,6 +159,25 @@ export const TOKEN_CATEGORIES = [
 export type TokenCategoryId = typeof TOKEN_CATEGORIES[number]['id'];
 
 /**
+ * The structural roles (#422): the keys zero itself reads by NAME rather than
+ * leaving to a recipe — the anatomy's `radius-selector` / `radius-field` /
+ * `radius-box` token hints, `@sigx/zero/css`'s structural fallbacks, the
+ * kit's layout Box. A design system maps each role onto a key of its own
+ * scale with `system.structural` (`radius: { box: 'medium' }`); an unmapped
+ * role resolves to the key of the same name, the recommended vocabulary.
+ *
+ * Per category, the roles are exactly that category's `recommended` keys —
+ * `structural.test.ts` holds the two lists together.
+ */
+export const STRUCTURAL_ROLES = {
+    radius: ['selector', 'field', 'box'],
+    text: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'],
+} as const;
+
+/** A category whose recommended keys are structural roles a design system may remap. */
+export type StructuralCategory = keyof typeof STRUCTURAL_ROLES;
+
+/**
  * Token keys become the tail of a custom property, so unlike color roles they
  * may start with a digit (`--text-2xl`).
  */

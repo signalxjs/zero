@@ -111,12 +111,16 @@ const role = (size: number, lineHeight: number, weight: 400 | 500, tracking: str
 
 export const system = {
     /**
-     * M3's corner-radius scale. `selector` / `field` / `box` are zero's
-     * recommended names: kept as aliases because the anatomy's token hints,
-     * `@sigx/zero`'s structural fallbacks and the kit's layout Box read them
-     * by those names (#422). They point at M3's checkbox, text-field
-     * and card corners.
+     * Which M3 corner plays each of zero's structural radius roles — the
+     * names the anatomy's token hints, `@sigx/zero`'s structural fallbacks
+     * and the kit's layout Box read. Text fields and cards are M3's
+     * `extra-small` and `medium`; the selection controls take `extra-small`
+     * too (the checkbox itself draws M3's 2dp as half of it, `recipes.ts`).
      */
+    structural: {
+        radius: { selector: 'extra-small', field: 'extra-small', box: 'medium' },
+    },
+    /** M3's corner-radius scale, by M3's own names. */
     radius: {
         none: '0',
         'extra-small': dp(4),
@@ -128,9 +132,6 @@ export const system = {
         'extra-large-increased': dp(32),
         'extra-extra-large': dp(48),
         full: '624.9375rem',
-        selector: dp(2),
-        field: dp(4),
-        box: dp(12),
     },
     size: { selector: dp(4), field: dp(4) },
     border: '1px',

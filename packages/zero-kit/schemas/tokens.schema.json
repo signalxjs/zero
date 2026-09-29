@@ -437,10 +437,13 @@
             }
         },
         "systemTokens": {
-            "description": "The closed category set (mirrors TOKEN_CATEGORIES): radius, size, typography, spacing, shadow, motion, border, disabledOpacity.",
+            "description": "The closed category set (mirrors TOKEN_CATEGORIES): radius, size, typography, spacing, shadow, motion, border, disabledOpacity — plus `structural`, the map of structural roles onto the design system's own keys.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
+                "structural": {
+                    "$ref": "#/$defs/structural"
+                },
                 "radius": {
                     "$ref": "#/$defs/scale"
                 },
@@ -469,6 +472,40 @@
                     "$ref": "#/$defs/tokenValue"
                 }
             }
+        },
+        "structural": {
+            "description": "Which key of this design system's own scale plays each structural role (#422) — the names the anatomy's token hints, @sigx/zero/css's structural fallbacks and the layout Box read. An unmapped role resolves to the key of the same name. Each value must be a key the category declares in system, and a role mapped elsewhere may not also be declared under its own name (`sigx zero:validate` enforces both). Declared once: a theme cannot remap a role.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "radius": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "selector": { "$ref": "#/$defs/structuralKey" },
+                        "field": { "$ref": "#/$defs/structuralKey" },
+                        "box": { "$ref": "#/$defs/structuralKey" }
+                    }
+                },
+                "text": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "xs": { "$ref": "#/$defs/structuralKey" },
+                        "sm": { "$ref": "#/$defs/structuralKey" },
+                        "md": { "$ref": "#/$defs/structuralKey" },
+                        "lg": { "$ref": "#/$defs/structuralKey" },
+                        "xl": { "$ref": "#/$defs/structuralKey" },
+                        "2xl": { "$ref": "#/$defs/structuralKey" },
+                        "3xl": { "$ref": "#/$defs/structuralKey" }
+                    }
+                }
+            }
+        },
+        "structuralKey": {
+            "description": "A key the category declares under system.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
         },
         "themeSystem": {
             "description": "systemTokens as an override tier: same shape, but typography may not declare a `scale`. (The TypeScript type additionally narrows keys to those the design system declared \u2014 a cross-field constraint JSON Schema cannot express; `sigx zero:validate` enforces it.)",

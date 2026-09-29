@@ -238,6 +238,30 @@ because they carry semantics tooling needs; the vocabulary within is yours.
 Omitting a category is fine — `@sigx/zero/css` ships fallbacks for the
 recommended keys, so absence is never a validation error.
 
+The recommended `radius` and `text` keys double as **structural roles** —
+the names zero reads a corner or a type step by: the anatomy's
+`radius-selector|field|box` token hints, the structural fallbacks, the layout
+Box. A design system that names its scale its own way maps the roles onto it
+instead of keeping aliases (#422):
+
+```ts
+system: {
+    structural: { radius: { selector: 'extra-small', field: 'extra-small', box: 'medium' } },
+    radius: { 'extra-small': '0.25rem', medium: '0.75rem', full: '9999px' },
+},
+```
+
+An unmapped role resolves to the key of the same name. A mapped role is
+emitted as an indirection (`--radius-box: var(--radius-medium)`), so a recipe
+or pack that reads the recommended name still gets the design system's
+value; the layout Box reads `--radius-medium` directly; and the manifest's
+`tokens.structural` records every role's resolved token
+(`"radius-box": "radius-medium"`) for tooling reading the hints.
+`sigx zero:validate` refuses a mapping onto an undeclared key, a role both
+mapped and declared by its own name, and a remap in `systemDark` or a theme
+(`resolveStructural` / `structuralToken` / `structuralTokenMap` expose the
+resolution).
+
 ```bash
 sigx zero:validate   # tokens, WCAG contrast (a failing pair carries a suggested passing value), recipe structure + content, CSS property spelling (`paddding` is an error naming `padding`)
 sigx zero:validate --report   # what the design system covers, not what's wrong

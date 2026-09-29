@@ -81,6 +81,24 @@
   it through unchanged. Every design system's compiled `stack` CSS gains
   the rule.
 
+- **`system.structural` maps the structural roles onto a design system's own
+  keys (#422).** The recommended `radius` (`selector`/`field`/`box`) and
+  `text` (`xs`…`3xl`) keys are the names zero reads by — the anatomy's
+  `radius-*` token hints, the structural fallbacks, the layout Box — and a
+  design system that names its scale its own way now maps them instead of
+  declaring aliases: `structural: { radius: { box: 'medium' } }`. An
+  unmapped role resolves to its own name, so nothing changes for a design
+  system without a map. A mapped role is emitted as `--radius-box:
+  var(--radius-medium)` (restated by every theme block that re-emits the
+  key; inlined to a literal on lynx), the layout Box reads the resolved
+  token, and the DS manifest (and the lynx one) gains
+  `tokens.structural`: every recommended structural token → the token that
+  plays it. `sigx zero:validate` refuses a mapping onto an undeclared key, a
+  role both mapped and declared by its own name, an unknown category or
+  role, and a remap in `systemDark` or a theme. New exports:
+  `STRUCTURAL_ROLES`, `StructuralMap`, `StructuralCategory`,
+  `resolveStructural`, `structuralToken`, `structuralTokenMap`.
+
 ## [0.17.0] - 2026-09-29
 
 ### Added

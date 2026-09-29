@@ -106,6 +106,17 @@ export interface MotionDecl {
 }
 
 /**
+ * Structural role → the design system's own key, per category (#422). Each
+ * value must be a key the category declares in `system`, and a role mapped
+ * elsewhere may not also be declared under its own name — the role would
+ * then have two values.
+ */
+export interface StructuralMap {
+    radius?: Partial<Record<RadiusKey, string>>;
+    text?: Partial<Record<TextKey, string>>;
+}
+
+/**
  * Design-system-level values for every non-color token category — the
  * declaration the per-theme override type is derived from.
  *
@@ -116,6 +127,16 @@ export interface MotionDecl {
  * "all dark themes want this" case.
  */
 export interface SystemTokens {
+    /**
+     * Which key of this design system's own scale plays each structural
+     * role (#422) — `radius: { selector: 'extra-small', box: 'medium' }`.
+     * The anatomy's token hints, the structural fallbacks and the layout
+     * Box read the roles by the recommended names; a design system that
+     * names its scale its own way maps them here instead of keeping aliases.
+     * An unmapped role resolves to the key of the same name. Declared once,
+     * here: a theme cannot remap a role.
+     */
+    structural?: StructuralMap;
     radius?: Scale<RadiusKey>;
     size?: Scale<SizeKey>;
     typography?: TypographyDecl;

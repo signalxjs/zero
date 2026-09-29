@@ -11,7 +11,7 @@
         display: flow-root;
         background: var(--box-surface);
         color: var(--box-ink);
-        border-radius: var(--radius-box);
+        border-radius: var(--radius-medium);
         padding-inline: var(--l-pad-x);
         padding-block: var(--l-pad-y);
     }

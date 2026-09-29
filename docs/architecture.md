@@ -519,6 +519,34 @@ Two mechanisms serve shapes the enumerated axes cannot:
 `defaultVariants` lives at **recipe** level: values applied when the axis
 attribute is absent, i.e. CSS-only defaults.
 
+### 3.1a Structural roles map onto a design system's own names
+
+Token categories are closed, their keys open — but zero itself reads a few
+keys by NAME: the anatomy's `radius-selector|field|box` token hints, the
+`radius` and `text` entries of `css/base.css`'s structural fallbacks
+(`STRUCTURAL_FALLBACKS`), and the kit's layout Box. Those recommended keys
+are **structural roles** (`STRUCTURAL_ROLES`), and a design system that
+names its scale its own way (zero-material's M3 corners, `extra-small …
+full`) maps each role onto one of its keys with `system.structural`
+(#422) rather than declaring aliases. `packages/zero-kit/src/structural.ts`
+resolves it; an unmapped role resolves to its own name.
+
+- **Emission:** `resolveSystemTokens` emits a mapped role as
+  `--radius-box: var(--radius-medium)` — on the web in `zero.tokens`, over
+  base.css's fallback, and restated by every theme block that re-emits the
+  key (a `var()` substitutes where it is declared); on lynx inlined to the
+  key's literal. A shared recipe, an ecosystem pack or app CSS reading the
+  recommended name keeps working.
+- **The layout Box** reads the resolved token directly.
+- **The manifest** records `tokens.structural`: every recommended token →
+  the one that plays it (`"radius-box": "radius-medium"`), identity entries
+  included. The anatomy manifest stays design-system-neutral — its hints
+  name roles — and this map is where a reader resolves one.
+- **Validation:** the mapped key must exist (a `typography.scale`'s
+  generated steps count); a role mapped away may not also be declared under
+  its own name (two values for one role); the map is declared once in
+  `tokens.system` — `systemDark` and theme tiers cannot remap a role.
+
 ### 3.1b Spacing is a ramp, and the ramp is a mechanism
 
 `--space-2xs` … `--space-2xl` is not a convenience scale. Because a recipe
@@ -1111,7 +1139,8 @@ rather than sniffing keys), `zeroVersion` (the kit's own version; lockstep
 makes them the same train), `name`, `themes`, `tokens` (roles, sizes,
 variants, axes, modifiers, scopes, custom, breakpoints, `typeRoles` (each
 declared type role → the properties it binds, [§3.1c](#31c-type-roles-are-a-unit-over-the-ramps)),
-system/systemDark, and `properties` — every custom property the compiled tokens.css actually
+system/systemDark, the resolved `structural` role map ([§3.1a](#31a-structural-roles-map-onto-a-design-systems-own-names)),
+and `properties` — every custom property the compiled tokens.css actually
 emits, read back off the stylesheet so it cannot drift), and `components` —
 a **record**, scope → the harvested `CompiledComponentAxes`
 ([§3.4](#34-harvest)) — plus, per scope, the recipe's declared public

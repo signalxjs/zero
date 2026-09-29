@@ -23,6 +23,7 @@ export type {
     Scale,
     ScopeVocabulary,
     SizeKey,
+    StructuralMap,
     SystemTokens,
     TextKey,
     ThemeColors,
@@ -32,6 +33,8 @@ export type {
     TokensInput,
 } from './tokens.js';
 export { defineTokens } from './tokens.js';
+export type { ResolvedStructural } from './structural.js';
+export { resolveStructural, structuralToken, structuralTokenMap } from './structural.js';
 export { compileTokensCss } from './targets/web/tokens-css.js';
 export { compileBreakpointsCss } from './targets/web/breakpoints-css.js';
 
@@ -227,6 +230,7 @@ export type {
     RecommendedSize,
     SizeScale,
     BaseSurfaceToken,
+    StructuralCategory,
     TokenCategory,
     TokenCategoryId,
     TokenCategoryShape,
@@ -245,6 +249,7 @@ export {
     BASE_SURFACE_TOKEN_LIST,
     LAYER_ORDER_STATEMENT,
     TOKEN_CATEGORIES,
+    STRUCTURAL_ROLES,
     TOKEN_KEY_PATTERN,
     AXIS_VALUE_PATTERN,
     TEXT_FIXED_PREFIX,

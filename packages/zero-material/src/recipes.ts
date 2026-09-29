@@ -2379,8 +2379,10 @@ export const checkbox: RecipeInput = {
         // M3's 40dp state layer over the 18dp box, scaling with the size step.
         control: withPresence(pressableCentered('checkbox', 'calc(var(--checkbox-size) * 40 / 18)', 'var(--checkbox-accent)'), {
             ...checkboxTick,
-            // M3's checkbox corner is 2dp: this vocabulary's `selector` radius.
-            base: { ...checkboxTick.base, borderRadius: 'var(--radius-selector)' },
+            // M3's checkbox corner is 2dp, a component token that is no step
+            // of the corner scale: half the `extra-small` step, so it still
+            // follows the scale.
+            base: { ...checkboxTick.base, borderRadius: 'calc(var(--radius-extra-small) / 2)' },
             states: {
                 ...checkboxTick.states,
                 /**
@@ -4824,7 +4826,7 @@ export const textarea: RecipeInput = {
 // ── Content tier (#311) ───────────────────────────────────────────────────
 /**
  * Material's elevated card: a tonal surface container rather than base-100,
- * the `radius-box` corner, and one elevation step. The role rides the same
+ * the `medium` corner (the structural `box` role), and one elevation step. The role rides the same
  * `--md-*` indirection the rest of this skin uses.
  */
 export const card: RecipeInput = {
@@ -5788,7 +5790,7 @@ export const timeline: RecipeInput = {
     },
 };
 
-/** Material chat: tonal bubbles, the seated corner at selector radius. */
+/** Material chat: tonal bubbles, the seated corner at the `extra-small` radius. */
 export const chat: RecipeInput = {
     component: 'chat',
     tokens: { '--chat-fill': 'var(--color-surface-container)', '--chat-ink': 'var(--color-surface-container-content)' },
@@ -5891,7 +5893,7 @@ export const chat: RecipeInput = {
  * ChatLog — a tonal surface that scrolls (no outline: M3 separates with
  * tone, not hairlines), bubbles on `surface-container` inside it. The jump
  * trigger is M3's small extended FAB: the role's solid pair at `level3`,
- * the field radius, an 8%/12% state layer of its own ink for hover and
+ * the `medium` corner, an 8%/12% state layer of its own ink for hover and
  * press — floated over the rows by `position: sticky` at the box's foot.
  * Its negative block margin gives back the line it would take, so
  * appearing moves no row.
@@ -7511,7 +7513,7 @@ export const fileUpload: RecipeInput = {
 };
 
 /**
- * Carousel — MD3: the viewport rides the shaped `radius-box` corner, nav
+ * Carousel — MD3: the viewport rides the shaped `extra-large` corner, nav
  * triggers are tonal circles with the state layers, and the dots follow
  * the hero-carousel spec's shape play: a muted ring resting, the accent
  * pill when active (the dot stretches — shape signals state, not colour
