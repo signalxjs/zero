@@ -14,6 +14,12 @@
 - Boolean flags are presence-only: `data-disabled=""`, never ="false".
   Vocabulary: disabled, highlighted, selected, invalid, required, readonly,
   placeholder, focus-visible, pressed, press-animating, swiping, clearable.
+- Domain flags (#457; ECOSYSTEM parts only, never zero's own): a fragment
+  part declares `domainFlags: ['unread']` and renders `data-x-unread=""`
+  (`domainFlagAttrs({ unread })`, presence-only). The shared vocabulary above
+  stays closed: a domain flag is never a shared flag, state, state synonym
+  or interaction state. Recipes key it `'x-unread'` (lynx: `zx-f-x-unread`).
+  It carries NO accessibility meaning — expose the fact as text or ARIA too.
 - `data-clearable` (#387; select trigger, value, indicator): present exactly
   while the Select.ClearTrigger renders — a skin reserves the button's width
   off it (no `:has()`; lynx stamps it as `zx-f-clearable`).

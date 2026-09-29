@@ -131,6 +131,33 @@ the recipe's own transition springs it back. `start`/`end` resolve against
 the reading direction at the press. Like `press-animating` it is a gesture
 frame, not a resting style, so the contrast matrices do not cross it.
 
+**Domain flags are namespaced, not shared** (#457). An ecosystem component
+has facts of its own domain that zero has no word for — a mail row is
+unread, a stepper item is optional — and before this it could only borrow a
+design system's modifier, which moved a component fact into the skin. The
+shared vocabularies stay closed: `FLAG_VOCABULARY`, `STATE_VOCABULARY` and
+the synonym table are unchanged. Instead a part declares
+`domainFlags: ['unread']` and renders `data-x-unread=""`
+(`domainFlagAttrs({ unread })`, presence-only like every flag). The
+namespace is **fixed**, `DOMAIN_FLAG_PREFIX = 'data-x-'`, not derived from
+the scope's vendor prefix: the vendor prefix is a SHOULD the kit cannot
+check (`stepper` is a legal scope), a fixed prefix survives a fork renaming
+its scope, it follows `data-mod-` and `data-l-` in being reserved once and
+parity-tested, and two scopes declaring the same name never collide because
+every compiled selector is compounded with `[data-scope][data-part]`. After
+the anatomy the flag is keyed `x-<name>` (`domainFlagKey`): the
+`selectors` key, a recipe's `states` key, a contrast cell's flag and the
+lynx class (`zx-f-x-unread`) — so it can never collide with a state, a
+shared flag or an interaction state, and every `data-${flag}` code path
+works unchanged. Domain flags are **ecosystem-only** (no zero anatomy
+declares one; the anatomy suite holds that), never named like a shared
+flag, a state, a state synonym or an interaction state, and never on a
+pseudo or absorbable part. `data-x-*` is reserved everywhere else:
+`htmlAttrs` refuses it from an app, `lend` drops the lender's, and no axis
+may be named `x-…`. A domain flag is a styling and tooling fact the scope
+owns and carries **no accessibility meaning**: the component still exposes
+the fact as text or ARIA.
+
 **Runtime-published properties are a closed list.** Beside the attributes,
 the DOM runtime writes a few custom properties that recipes may read —
 `RUNTIME_PROPERTIES` in zero-kit's contract: the press trio and the swipe
@@ -798,6 +825,12 @@ the value reads it, so nothing on the root lost a property. Lynx needs nothing n
 from the nearest provider ([§10](#10-known-limitations-and-open-directions)),
 and a re-carrier is one more provider.
 
+A domain flag (#457) needs no lynx grammar of its own: its key `x-unread`
+is a flag name, so the lynx target emits `.zx-<scope>__<part>.zx-f-x-unread`
+for `states: { 'x-unread': … }` and translates `&[data-x-unread]` the same
+way, both through `partFlagKeys`. `CLASS_GRAMMAR_VERSION` stays 2. The lynx
+runtime stamping those classes is follow-up work.
+
 Other compilation facts a reader needs:
 
 - **Defaults are mirrored onto absence.** A single-axis rule whose value is
@@ -1112,14 +1145,15 @@ Two different artifacts share the filename `manifest.json`, and they share
 published as the `./manifest.json` subpath, governed by
 `packages/zero-kit/schemas/manifest.schema.json`. It carries `$schema`,
 `zeroVersion`, the `attributeSpec` (attribute names, flag form, the flag /
-state / placement vocabularies, the synonym table, the variant axes, and the
+state / placement vocabularies, the synonym table, the domain-flag namespace
+as `domainFlagPrefix` (`data-x-`), the variant axes, and the
 layout family as `layoutPrefix` plus a `layoutVocabulary` of attribute →
 permitted values and whether it varies per breakpoint), the
 token grammar (`colors`, `categories`, recommended ramps), and `components`
 — an **array** of `anatomy.toJSON()` snapshots, each part with its
-`parent`, `states`, `flags`, `placements`, `layout`, `carries`, `hiddenIn`, `paint`, `pseudo`, hints, and
+`parent`, `states`, `flags`, `domainFlags` (ecosystem parts only, #457), `placements`, `layout`, `carries`, `hiddenIn`, `paint`, `pseudo`, hints, and
 ready-made per-state selector fragments (what the recipe compiler
-consumes), with `absorbable: true` on a part that may lend its asChild bag
+consumes; a domain flag `d` under the key `x-d` → `[data-x-d]`), with `absorbable: true` on a part that may lend its asChild bag
 to a host and then renders no element of its own (#452, [§2](#2-the-anatomy-contract)), and — for a component whose API carries state — `models`: one
 entry per model with what it binds (`name`, absent for the unnamed `model`
 prop), its `concept`, its value `type`, the compound `member` that carries
@@ -1171,6 +1205,10 @@ ecosystem surface — flags against `FLAG_VOCABULARY`, states against
 states`, `carries` (named axes only, non-empty and unrepeated, never on the
 carrier or a `pseudo` part), `absorbable` (presence-only, requires
 `asChild: true`, never a `parent`, never with `hiddenIn`/`layout`/`pseudo`),
+`domainFlags` (non-empty and unrepeated, kebab names, none a shared flag,
+state, state synonym or interaction state — each refusal with its hint —
+never on a `pseudo` or `absorbable` part, and
+`selectors['x-<name>'] === '[data-x-<name>]'` for each),
 `parent` acyclicity, and `paint` (`true` or a
 non-empty `{ glyph, only, host }`, never on a `pseudo` part, `only` one of
 the part's flags, `host` a rendered part inside the declared parent, which must exist). A scope collision is a hard error naming
@@ -1624,6 +1662,12 @@ the architecture facts, briefly:
   builds its element's props), and a part that lends its own asChild bag
   declares `absorbable` in its anatomy, which `mergeManifests` holds to the
   same invariants as zero's own.
+- A fact of its own domain is a **domain flag** (#457): `domainFlags` on
+  the part, `data-x-<name>` on the element, `'x-<name>'` in a recipe. It is
+  the one flag family an ecosystem scope names itself — the shared
+  vocabularies stay closed — and it carries no accessibility meaning, so
+  the component still says the fact in text or ARIA
+  ([§2](#2-the-anatomy-contract)).
 - It reaches design systems as **data**: a fragment
   (`{ version, package, components }`) plus an optional recipe pack written
   against the recommended token grammar, from an entry whose module graph

@@ -122,6 +122,23 @@ export interface PartSpec {
     /** Boolean `data-*` flags this part can carry (from the flag vocabulary). */
     flags?: readonly string[];
     /**
+     * Presence-only DOMAIN facts this part can carry (#457), rendered as
+     * `data-x-<name>=""` — a mail row's `unread`, a stepper item's
+     * `optional`. ECOSYSTEM scopes only: zero's own anatomies never declare
+     * one (the anatomy suite holds that), because the shared `flags`
+     * vocabulary is closed and a fact zero's own components need belongs
+     * there. A name is kebab-case and never a shared flag, a state, a state
+     * synonym or an interaction state (`mergeManifests` refuses each, with a
+     * hint); after the anatomy it is keyed `x-<name>` — in `selectors`, a
+     * recipe's `states` and the contrast matrix.
+     *
+     * A styling and tooling fact the scope owns, with NO accessibility
+     * meaning: the component must still expose the fact as text or ARIA. A
+     * part that carries none OMITS the key rather than declaring `[]`, on
+     * the `hiddenIn` reasoning.
+     */
+    domainFlags?: readonly string[];
+    /**
      * States in which the runtime hides this part outright: it sets the
      * `hidden` attribute, so while the part is in one of these states it
      * paints nothing and is absent from the accessibility tree.
@@ -317,7 +334,8 @@ export interface PartJSON extends PartSpec {
     /**
      * Ready-made CSS selector fragments per state/flag — what the recipe
      * compiler and raw-CSS validators consume. `states` values map to
-     * `[data-state="x"]`, flags to `[data-x]`.
+     * `[data-state="s"]`, flags to `[data-f]`, and a domain flag `d` to the
+     * key `x-d` → `[data-x-d]`.
      */
     selectors: Record<string, string>;
 }
@@ -342,9 +360,9 @@ export interface Anatomy<S extends string = string, P extends string = string> {
      * CSS selector builder:
      * `dialogAnatomy.selector('trigger')` →
      * `[data-scope="dialog"][data-part="trigger"]`, optionally narrowed by a
-     * state and/or flags.
+     * state, flags and/or domain flags (`[data-x-<name>]`).
      */
-    selector(part: P, opts?: { state?: string; flags?: readonly string[] }): string;
+    selector(part: P, opts?: { state?: string; flags?: readonly string[]; domainFlags?: readonly string[] }): string;
     /** JSON-safe snapshot for tooling/AI — includes per-state selectors. */
     toJSON(): AnatomyJSON;
 }
@@ -357,11 +375,14 @@ export function defineAnatomy<S extends string, P extends string>(
     // No runtime guard that `pseudo.of` names a real part — defineAnatomy is
     // on every component's size budget, and zero's own anatomies (the only
     // web callers) are checked by the anatomy test suite instead.
-    const selector = (part: P, o?: { state?: string; flags?: readonly string[] }): string => {
+    const selector = (part: P, o?: { state?: string; flags?: readonly string[]; domainFlags?: readonly string[] }): string => {
         const pseudo = parts[part].pseudo;
         let sel = `[data-scope="${scope}"][data-part="${pseudo?.of ?? part}"]`;
         if (o?.state) sel += `[data-state="${o.state}"]`;
         for (const flag of o?.flags ?? []) sel += `[data-${flag}]`;
+        // `data-x-<name>` spelled out rather than through DOMAIN_FLAG_PREFIX:
+        // this module stays import-free (it is on every component's budget).
+        for (const flag of o?.domainFlags ?? []) sel += `[data-x-${flag}]`;
         return pseudo ? sel + pseudo.selector : sel;
     };
 
@@ -383,6 +404,9 @@ export function defineAnatomy<S extends string, P extends string>(
                 }
                 for (const flag of spec.flags ?? []) {
                     selectors[flag] = `[data-${flag}]`;
+                }
+                for (const flag of spec.domainFlags ?? []) {
+                    selectors[`x-${flag}`] = `[data-x-${flag}]`;
                 }
                 return { name, ...spec, selectors };
             }),

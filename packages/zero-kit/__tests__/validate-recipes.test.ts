@@ -7,9 +7,9 @@
  * much as the first.
  */
 import { describe, it, expect } from 'vitest';
-import { validateDesignSystem } from '@sigx/zero-kit';
+import { FRAGMENT_VERSION, compileDesignSystem, mergeManifests, validateDesignSystem } from '@sigx/zero-kit';
 import type { CssProps, DesignSystemInput, ManifestComponent, RecipeInput } from '@sigx/zero-kit';
-import { anatomies } from '@sigx/zero/anatomy';
+import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
@@ -1014,5 +1014,42 @@ describe('press feedback', () => {
             },
             defaultVariants: { mode: 'press-animating' },
         }).warnings).not.toContainEqual(expect.stringContaining('never sets an animation'));
+    });
+});
+
+// ── Domain flags (#457): keyed `x-<name>`, resolved like any flag ──
+describe('a domain flag in a recipe', () => {
+    const rowManifest = mergeManifests(manifest, {
+        version: FRAGMENT_VERSION,
+        package: '@acme/zero-row',
+        components: [defineAnatomy('acme-row', {
+            'root': { element: 'div', flags: ['selected'], domainFlags: ['unread'] },
+        }).toJSON() as ManifestComponent],
+    });
+    const rowRecipe = (states: Record<string, CssProps>, skip?: string[]): RecipeInput => ({
+        component: 'acme-row',
+        parts: { root: { base: { color: 'var(--color-base-content)' }, states } },
+        ...(skip ? { skipStates: { root: skip } } : {}),
+    });
+
+    it('compiles `x-unread` to the part compounded with [data-x-unread]', () => {
+        const ds = dsWith(rowRecipe({ 'x-unread': { fontWeight: '600' } }));
+        expect(validateDesignSystem(ds, rowManifest).errors).toEqual([]);
+        const css = compileDesignSystem(ds, rowManifest).componentCss['acme-row']!;
+        expect(css).toContain('[data-scope="acme-row"][data-part="root"][data-x-unread]');
+    });
+
+    it('refuses an undeclared domain flag, and the bare name', () => {
+        expect(() => compileDesignSystem(dsWith(rowRecipe({ 'x-nope': { fontWeight: '600' } })), rowManifest))
+            .toThrow(/styles unknown state "x-nope"/);
+        expect(() => compileDesignSystem(dsWith(rowRecipe({ unread: { fontWeight: '600' } })), rowManifest))
+            .toThrow(/styles unknown state "unread"/);
+    });
+
+    it('lets skipStates name the key, and only the key', () => {
+        const ok = validateDesignSystem(dsWith(rowRecipe({}, ['x-unread'])), rowManifest);
+        expect(ok.errors.filter((e) => e.message.includes('neither a state nor a flag'))).toEqual([]);
+        const bare = validateDesignSystem(dsWith(rowRecipe({}, ['unread'])), rowManifest);
+        expect(bare.errors.map((e) => e.message).join('\n')).toMatch(/"unread" is neither a state nor a flag of "root" \(has: selected, x-unread\)/);
     });
 });

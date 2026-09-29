@@ -33,6 +33,7 @@ import {
     BASE_SURFACE_TOKEN_LIST,
     BASE_BREAKPOINT_KEY,
     RESERVED_AXES,
+    DOMAIN_FLAG_PREFIX,
     RESERVED_ROLE_NAMES,
     STRUCTURAL_ROLES,
     TOKEN_CATEGORIES,
@@ -953,6 +954,9 @@ export function validateDesignSystem<R extends RolesDecl>(
         if (RESERVED_AXES.has(axis)) {
             error('tokens.axes', `"${axis}" is part of the anatomy contract — data-${axis} already means something, and zero refuses to set it from \`axes\``);
         }
+        if (`data-${axis}`.startsWith(DOMAIN_FLAG_PREFIX)) {
+            error('tokens.axes', `"${axis}" is inside the domain-flag namespace — ${DOMAIN_FLAG_PREFIX}* is reserved for an ecosystem part's declared domainFlags (#457), and zero refuses it from \`axes\``);
+        }
         checkAxisValues(`tokens.axes.${axis}`, values);
     }
 
@@ -1047,6 +1051,9 @@ export function validateDesignSystem<R extends RolesDecl>(
             restrict('variants', entry.variants);
             restrict('modifiers', entry.modifiers);
             for (const [axis, values] of Object.entries(entry.axes ?? {})) {
+                if (`data-${axis}`.startsWith(DOMAIN_FLAG_PREFIX)) {
+                    error(`${where}.axes`, `"${axis}" is inside the domain-flag namespace — ${DOMAIN_FLAG_PREFIX}* is reserved for an ecosystem part's declared domainFlags (#457)`);
+                }
                 unions[axis] = ds.tokens.axes?.[axis];
                 unionSite[axis] = `tokens.axes.${axis}`;
                 restrict(axis, values);

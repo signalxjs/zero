@@ -44,11 +44,16 @@ import {
     STATE_NAMES,
     dataAttr,
     stateAttr,
+    DOMAIN_FLAG_PREFIX,
+    domainFlagAttrs,
+    domainFlagKey,
     TOKEN_CATEGORIES,
     resolveColorToken,
     tokenProperty,
+    type PartSpec,
 } from '@sigx/zero/contract/core';
 import { expectAnatomyElements, type ElementLike } from '../../src/testing/expect-anatomy-core.js';
+import type { Equal, MustBeTrue } from '../assert.js';
 
 // ---- class grammar ---------------------------------------------------------
 
@@ -88,6 +93,19 @@ const categories: number = TOKEN_CATEGORIES.length;
 const colorVar: string = resolveColorToken('primary');
 const radius = TOKEN_CATEGORIES.find((c) => c.id === 'radius')!;
 const prop: string = tokenProperty(radius, 'field');
+
+// ---- domain flags (#457) ---------------------------------------------------
+
+const domainPrefix: string = DOMAIN_FLAG_PREFIX;
+const unreadKey: 'x-unread' = domainFlagKey('unread');
+const unread = domainFlagAttrs({ unread: true });
+// Exactly the one namespaced key, presence-typed — no index signature.
+export type DomainFlagAttrsExact = MustBeTrue<Equal<typeof unread, { 'data-x-unread': '' | undefined }>>;
+export type DomainFlagsDeclared = MustBeTrue<Equal<PartSpec['domainFlags'], readonly string[] | undefined>>;
+export type DomainFlagAttrsTwo = MustBeTrue<Equal<
+    keyof ReturnType<typeof domainFlagAttrs<{ unread: boolean; 'has-attachment': unknown }>>,
+    'data-x-unread' | 'data-x-has-attachment'
+>>;
 
 // ---- anatomies -------------------------------------------------------------
 
@@ -141,5 +159,5 @@ expectAnatomyElements([el], anatomies.switch);
 export const probe = {
     version, classes, attrs, reserved, prefix, named, flags, placements, isState,
     disabledAttr, state, categories, colorVar, prop, scopes, switchParts, flip,
-    ordered, fakeEl, segments, picked, count,
+    ordered, fakeEl, segments, picked, count, domainPrefix, unreadKey, unread,
 };

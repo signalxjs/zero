@@ -2673,6 +2673,22 @@ same behaviors, held to the same conformance assertion:
   and `unsorted` are the rejected synonyms). `FRAGMENT_VERSION` is the version a
   fragment declares — here so a package's `./fragment` entry can read it at
   runtime without the kit, which is only its devDependency.
+- Domain flags (#457) are the one flag family an ecosystem scope names
+  itself. A part declares `domainFlags: ['unread']` and renders
+  `data-x-unread=""` through `domainFlagAttrs({ unread })` (presence-only;
+  `false`/`undefined` removes it, a non-kebab name throws). The namespace is
+  fixed (`DOMAIN_FLAG_PREFIX`, `data-x-`) and the key after the anatomy is
+  `x-<name>` (`domainFlagKey`): `toJSON()` emits
+  `selectors['x-unread'] = '[data-x-unread]'`, a recipe keys
+  `states: { 'x-unread': … }`, and lynx stamps `zx-f-x-unread`. The shared
+  vocabularies stay closed, so `mergeManifests` refuses a domain flag named
+  like a shared flag, a state, a state synonym or an interaction state, on
+  a pseudo or an absorbable part. `expectAnatomy` fails an undeclared or
+  valued `data-x-*`; `htmlAttrs` refuses one from the app and `lend` drops
+  the lender's. zero's own anatomies never declare one. A domain flag is a
+  styling and tooling fact the scope owns, with no accessibility meaning:
+  the component still exposes it as text or ARIA (`Unread, …` in a row's
+  label, a visually hidden ", optional").
 - `@sigx/zero/behaviors` — controllable state, SSR-safe ids (`createId`, plus
   `idToken(value: string)` to put a user-supplied string inside an id —
   injective over strings, so distinct values never share an id: whitespace

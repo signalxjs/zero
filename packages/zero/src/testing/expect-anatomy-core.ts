@@ -9,6 +9,7 @@
 import type { Anatomy } from '../contract/anatomy.js';
 import { MOD_ATTR_PREFIX, RESERVED_AXES, VARIANT_AXES } from '../contract/variant-attrs.js';
 import { TOKEN_KEY_PATTERN as AXIS_NAME_PATTERN } from '../contract/tokens.js';
+import { DOMAIN_FLAG_PREFIX } from '../contract/data-attrs.js';
 import { LAYOUT_ATTR_NAMES, LAYOUT_ATTR_PREFIX, describeLayoutValues, isLayoutValue, parseLayoutAttr } from '../contract/layout-attrs.js';
 
 /**
@@ -51,7 +52,8 @@ function fail(anatomy: Anatomy, message: string): never {
 /**
  * The anatomy doubles as a test oracle: check every rendered part of a scope
  * against the declaration — known part, `data-state` from the closed set,
- * flags from the declared set, presence-only flag values, and the `hidden`
+ * flags and domain flags (`data-x-*`) from the declared sets, presence-only
+ * flag values, and the `hidden`
  * attribute exactly where `hiddenIn` says it goes (`hidden="until-found"`
  * aside: that keeps the part's box, so it is not what `hiddenIn` means).
  *
@@ -88,6 +90,11 @@ export function expectAnatomyElements(
         // namespace and skip the presence-only check that walk enforces.
         if (`data-${axis}`.startsWith(MOD_ATTR_PREFIX)) {
             fail(anatomy, `axes: "${axis}" is inside the modifier namespace (${MOD_ATTR_PREFIX}*) — declare it through mods, not axes`);
+        }
+        // An "x-…" axis would exempt a domain flag (#457) from the check that
+        // it is declared on the part and presence-only.
+        if (`data-${axis}`.startsWith(DOMAIN_FLAG_PREFIX)) {
+            fail(anatomy, `axes: "${axis}" is inside the domain-flag namespace (${DOMAIN_FLAG_PREFIX}*) — declare it as the part's domainFlags, not axes`);
         }
     }
     const axisAttrs = new Set((options.axes ?? []).map((axis) => `data-${axis}`));
@@ -235,6 +242,19 @@ export function expectAnatomyElements(
             if (attr.startsWith(MOD_ATTR_PREFIX)) {
                 if (el.getAttribute(attr) !== '') {
                     fail(anatomy, `modifier ${attr} on part "${partName}" must be presence-only, got "${el.getAttribute(attr)}"`);
+                }
+                continue;
+            }
+            // Domain flags (#457) are namespaced like modifiers but declared
+            // per part like flags: the name must be one of the part's own
+            // `domainFlags`, and the value presence-only.
+            if (attr.startsWith(DOMAIN_FLAG_PREFIX)) {
+                const name = attr.slice(DOMAIN_FLAG_PREFIX.length);
+                if (!(spec.domainFlags ?? []).includes(name)) {
+                    fail(anatomy, `part "${partName}" renders undeclared domain flag "x-${name}" (declares: [${(spec.domainFlags ?? []).join(', ')}])`);
+                }
+                if (el.getAttribute(attr) !== '') {
+                    fail(anatomy, `domain flag ${attr} on part "${partName}" must be presence-only, got "${el.getAttribute(attr)}"`);
                 }
                 continue;
             }

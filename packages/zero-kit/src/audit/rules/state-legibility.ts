@@ -53,6 +53,11 @@
  * browser behaviour rather than on a styling decision is a false green, and a
  * false green is worse than no rule because it is trusted.
  *
+ * Flags are never crossed here, shared or domain (`x-<name>`, #457): the rules
+ * compare `data-state` VALUES pairwise, and a flag is presence on top of a
+ * state, not a state of its own. That is deliberate — do not "fix" it by
+ * folding `partFlagKeys` in.
+ *
  * Lifted verbatim from `__tests__/state-legibility.test.ts` (#403). That file
  * now calls these primitives for the six in-repo skins and keeps its teeth.
  */

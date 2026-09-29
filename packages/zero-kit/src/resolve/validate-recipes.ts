@@ -9,7 +9,7 @@
  */
 import { parse, converter } from 'culori';
 import type { ManifestPart, ZeroManifest } from '../contract.js';
-import { AXIS_VALUE_PATTERN, RESERVED_AXES, TOKEN_KEY_PATTERN } from '../contract.js';
+import { AXIS_VALUE_PATTERN, RESERVED_AXES, TOKEN_KEY_PATTERN, partFlagKeys } from '../contract.js';
 import { badAxisValue } from './messages.js';
 import { CSS_PROPERTIES, CSS_PROPERTIES_SOURCE } from './css-properties.js';
 import { nearestOf } from './nearest.js';
@@ -341,10 +341,10 @@ function locallyDefined(recipe: RecipeInput): Set<string> {
     return names;
 }
 
-/** Every state/flag name a part can carry. */
+/** Every state/flag key a part can carry — its domain flags as `x-<name>` (#457). */
 const partVocabulary = (part: ManifestPart): string[] => [
     ...(part.states ?? []),
-    ...(part.flags ?? []),
+    ...partFlagKeys(part),
 ];
 
 export function validateRecipes(

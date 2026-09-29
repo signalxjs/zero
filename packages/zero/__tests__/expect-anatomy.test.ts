@@ -114,6 +114,36 @@ describe('expectAnatomy (public conformance helper)', () => {
     });
 });
 
+describe('expectAnatomy domain flags (#457)', () => {
+    const row = defineAnatomy('demo-stepper', {
+        'root': { element: 'div', flags: ['selected'], domainFlags: ['unread'] },
+        'step': { element: 'button', parent: 'root' },
+    });
+
+    it('passes a declared domain flag', () => {
+        const root = part('root', { 'data-x-unread': '', 'data-selected': '' });
+        root.append(part('step'));
+        expect(() => expectAnatomy(mount(root), row)).not.toThrow();
+    });
+
+    it('fails an undeclared domain flag, on a part declaring others and on one declaring none', () => {
+        expect(() => expectAnatomy(mount(part('root', { 'data-x-foo': '' })), row))
+            .toThrow(/part "root" renders undeclared domain flag "x-foo" \(declares: \[unread\]\)/);
+        const root = part('root');
+        root.append(part('step', { 'data-x-unread': '' }));
+        expect(() => expectAnatomy(mount(root), row)).toThrow(/part "step" renders undeclared domain flag "x-unread"/);
+    });
+
+    it('holds a domain flag to presence-only', () => {
+        expect(() => expectAnatomy(mount(part('root', { 'data-x-unread': 'true' })), row))
+            .toThrow(/domain flag data-x-unread on part "root" must be presence-only, got "true"/);
+    });
+
+    it('refuses an axes exemption inside the namespace', () => {
+        expect(() => expectAnatomy(mount(part('root')), row, { axes: ['x-foo'] })).toThrow(/domain-flag namespace/);
+    });
+});
+
 describe('expectAnatomy re-carried axes (#94)', () => {
     const carried = defineAnatomy('demo-rail', {
         'root': { element: 'ol' },

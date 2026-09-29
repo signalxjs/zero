@@ -24,6 +24,20 @@ describe('defineAnatomy', () => {
         expect(() => JSON.stringify(json)).not.toThrow();
     });
 
+    it('emits and builds domain-flag selectors under the x- key (#457)', () => {
+        const row = defineAnatomy('acme-row', {
+            root: { element: 'div', flags: ['selected'], domainFlags: ['unread', 'has-attachment'] },
+        });
+        const root = row.toJSON().parts[0]!;
+        expect(root.domainFlags).toEqual(['unread', 'has-attachment']);
+        expect(root.selectors['x-unread']).toBe('[data-x-unread]');
+        expect(root.selectors['x-has-attachment']).toBe('[data-x-has-attachment]');
+        // The bare name is not a key: it would collide with states and flags.
+        expect(root.selectors.unread).toBeUndefined();
+        expect(row.selector('root', { flags: ['selected'], domainFlags: ['unread'] }))
+            .toBe('[data-scope="acme-row"][data-part="root"][data-selected][data-x-unread]');
+    });
+
     describe('pseudo parts', () => {
         const withPseudo = defineAnatomy('demo', {
             popup: { element: 'dialog', states: ['open', 'closed'] },
@@ -153,6 +167,16 @@ describe('anatomy registry', () => {
                 for (const flag of part.flags ?? []) {
                     expect(vocabulary.has(flag), `${anatomy.scope}: flag "${flag}"`).toBe(true);
                 }
+            }
+        }
+    });
+
+    it('no zero anatomy declares a domain flag — the shared vocabularies stay closed (#457)', () => {
+        // Domain flags are the ECOSYSTEM's namespace. A fact zero's own
+        // components need belongs in FLAG_VOCABULARY, where every skin sees it.
+        for (const anatomy of Object.values(anatomies)) {
+            for (const [name, part] of Object.entries(anatomy.parts)) {
+                expect(part.domainFlags, `${anatomy.scope}.${name}`).toBeUndefined();
             }
         }
     });

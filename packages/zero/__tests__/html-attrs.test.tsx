@@ -54,6 +54,8 @@ describe('htmlAttrs', () => {
         'data-scope', 'data-part', 'data-state', 'data-orientation', 'data-placement',
         'data-color', 'data-size', 'data-variant', 'data-disabled', 'data-focus-visible',
         'data-mod-block', 'data-l-gap', 'data-l-md-gap', 'data-autosize',
+        // A domain flag is the component's own fact (#457), never the app's.
+        'data-x-unread',
     ])('throws on the contract-owned %s', (name) => {
         expect(() => htmlAttrs({ [name]: 'x' })).toThrow(/anatomy contract/);
     });

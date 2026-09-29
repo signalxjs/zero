@@ -4,6 +4,25 @@
 
 ### Added
 
+- **Domain flags for ecosystem fragments (#457).** A fragment part may
+  declare `domainFlags: ['unread']`, rendered as `data-x-unread=""` and
+  keyed `x-unread` everywhere after the anatomy. `mergeManifests` validates
+  the declaration: a non-empty array without duplicates, kebab names, none a
+  shared flag, a governed state, a state synonym (with the member as the
+  hint) or an interaction state, not on a pseudo or an absorbable part, and
+  `selectors['x-<name>'] === '[data-x-<name>]'` for each. New exports
+  `DOMAIN_FLAG_PREFIX`, `domainFlagKey` (parity-tested against
+  `@sigx/zero`) and `partFlagKeys(part)`, which every flag consumer now
+  reads: recipe validation (`states: { 'x-unread': … }` compiles to
+  `[data-x-unread]`), the lynx target (`.zx-f-x-unread`, and
+  `&[data-x-unread]` translates), coverage in the report and score, and
+  the contrast cells. `manifest.schema.json` accepts `part.domainFlags` and
+  requires `attributeSpec.domainFlagPrefix` (`"data-x-"`);
+  `fragment.schema.json` takes the key through the part definition.
+  `FRAGMENT_VERSION` stays 1, so, as with `carries`, `absorbable`, `models`
+  and `runtimeProperties`, an older kit rejects a fragment that declares
+  `domainFlags` through the schema rather than by name.
+
 - **`RoleDecl.axis` (#425, part of #413).** A role can now say whether it
   is a value of the `color` axis. Left out, membership is inferred as
   before: a role with `content: false` or `soft: false` is a fill, every
@@ -27,6 +46,11 @@
   that does not reach `floors.content` on its own tint.
 
 ### Changed
+
+- **Axis names starting `x-` are refused (#457).** `tokens.axes`,
+  `tokens.scopes.*.axes` and an api `as:` rename in the `x-` prefix would
+  render inside the `data-x-` domain-flag namespace, which zero's runtime
+  refuses.
 
 - **The layout Box inks a coloured surface with `-soft-content` (#421).**
   `--box-ink` was the role itself, which only reads while the tint stays a

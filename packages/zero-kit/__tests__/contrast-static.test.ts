@@ -17,9 +17,9 @@
  * back in (recorded in the PR).
  */
 import { describe, it, expect } from 'vitest';
-import { anatomies } from '@sigx/zero/anatomy';
+import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
 import {
-    auditDesignSystem, indicatorChains, paintSpecs, uncoveredPaintParts,
+    FRAGMENT_VERSION, auditDesignSystem, indicatorChains, mergeManifests, paintSpecs, uncoveredPaintParts,
 } from '@sigx/zero-kit';
 import type {
     AuditRuleId, ContrastCell, DesignSystemInput, ManifestComponent, RecipeInput, TokensInput, UnmeasuredReason,
@@ -256,6 +256,34 @@ describe('contrast/text', () => {
         expect(find(cells, (c) => c.part === 'sub-trigger' && c.state === 'open' && c.flag === 'highlighted').verdict).toBe('fail');
         expect(find(cells, (c) => c.part === 'sub-trigger' && !c.state && c.flag === 'highlighted').verdict).toBe('pass');
         expect(find(cells, (c) => c.part === 'sub-trigger' && c.state === 'open' && !c.flag).verdict).toBe('pass');
+    });
+
+    it('#457: a domain flag is crossed like a shared one, keyed x-<name>, and measured on data-x-<name>', () => {
+        const rowManifest = mergeManifests(manifest, {
+            version: FRAGMENT_VERSION,
+            package: '@acme/zero-row',
+            components: [defineAnatomy('acme-row', {
+                'root': { element: 'div', states: ['active', 'inactive'], flags: ['disabled'], domainFlags: ['unread'], tokens: ['text'] },
+            }).toJSON() as ManifestComponent],
+        });
+        const ds = fixture([{
+            component: 'acme-row',
+            parts: {
+                root: {
+                    base: { color: 'var(--color-base-content)', background: 'var(--color-base-100)' },
+                    // Unread paints near-white ink on the page: only the flag's cells fail.
+                    states: { 'x-unread': { color: '#f4f4f4' }, active: {}, inactive: {}, disabled: {} },
+                },
+            },
+        }]);
+        const cells = auditDesignSystem(ds, rowManifest, { rules: CONTRAST }).contrast.themes[0]!.cells
+            .filter((c) => c.scope === 'acme-row');
+        const unread = cells.filter((c) => c.flag === 'x-unread');
+        // Bare, and crossed with each state — the shared-flag product.
+        expect(unread.map((c) => c.state ?? '')).toEqual(['', 'active', 'inactive']);
+        expect(unread.every((c) => c.key.includes('/x-unread'))).toBe(true);
+        expect(unread.every((c) => c.verdict === 'fail')).toBe(true);
+        expect(find(cells, (c) => !c.state && !c.flag).verdict).toBe('pass');
     });
 
     it('#207: a disabled label answers to the 2:1 floor on the pair BEFORE its fade', () => {

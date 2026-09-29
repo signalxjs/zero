@@ -18,8 +18,10 @@
  */
 import type { ManifestComponent, ZeroManifest } from './contract.js';
 import {
+    DOMAIN_FLAG_PREFIX,
     FLAG_VOCABULARY,
     FRAGMENT_VERSION,
+    INTERACTION_STATES,
     PLACEMENT_VOCABULARY,
     LAYOUT_ATTR_NAMES,
     STATE_NAMES,
@@ -27,6 +29,7 @@ import {
     TOKEN_KEY_PATTERN,
     VARIANT_AXES,
     carrierPart,
+    domainFlagKey,
 } from './contract.js';
 
 export { FRAGMENT_VERSION };
@@ -181,6 +184,45 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                         }
                     }
                 }
+                if (part.domainFlags !== undefined) {
+                    // Domain flags (#457): the scope's OWN presence-only
+                    // facts, namespaced under `data-x-` so the shared
+                    // vocabularies stay closed. That is exactly why a name
+                    // the shared vocabularies already give a meaning is
+                    // refused — the namespace is for what zero has no word
+                    // for, not a second spelling of a word it has.
+                    if (!Array.isArray(part.domainFlags) || part.domainFlags.length === 0) {
+                        throw new Error(`[zero-kit] ${at(part.name)} has a "domainFlags" that is not a non-empty array — omit the key when the part carries none`);
+                    }
+                    if (new Set(part.domainFlags).size !== part.domainFlags.length) {
+                        throw new Error(`[zero-kit] ${at(part.name)} lists a name in "domainFlags" twice`);
+                    }
+                    for (const name of part.domainFlags) {
+                        if (typeof name !== 'string' || !TOKEN_KEY_PATTERN.test(name)) {
+                            throw new Error(`[zero-kit] ${at(part.name)} declares domain flag "${String(name)}", which is not a kebab-case identifier — it becomes the attribute ${DOMAIN_FLAG_PREFIX}<name>`);
+                        }
+                        if (flagSet.has(name)) {
+                            throw new Error(`[zero-kit] ${at(part.name)} declares domain flag "${name}", which is a shared flag — declare it in "flags"`);
+                        }
+                        if (STATE_NAMES.has(name)) {
+                            throw new Error(`[zero-kit] ${at(part.name)} declares domain flag "${name}", which is a governed state — declare it in "states"`);
+                        }
+                        if (Object.hasOwn(STATE_SYNONYMS, name)) {
+                            throw new Error(`[zero-kit] ${at(part.name)} declares domain flag "${name}", which is a synonym of state "${STATE_SYNONYMS[name]}" — declare "${STATE_SYNONYMS[name]}" in "states"`);
+                        }
+                        if (Object.hasOwn(INTERACTION_STATES, name)) {
+                            throw new Error(`[zero-kit] ${at(part.name)} declares domain flag "${name}", which is an interaction state (${INTERACTION_STATES[name]}) — recipes key it already`);
+                        }
+                        const key = domainFlagKey(name);
+                        const expected = `[${DOMAIN_FLAG_PREFIX}${name}]`;
+                        if (part.selectors[key] !== expected) {
+                            throw new Error(`[zero-kit] ${at(part.name)} declares domain flag "${name}" but selectors["${key}"] is ${part.selectors[key] === undefined ? 'missing' : `"${part.selectors[key]}"`} — expected "${expected}" (defineAnatomy().toJSON() emits it)`);
+                        }
+                    }
+                    if (part.pseudo) {
+                        throw new Error(`[zero-kit] ${at(part.name)} is a pseudo part — it renders no element to carry a domain flag`);
+                    }
+                }
                 if (part.carries !== undefined) {
                     // A second carrier in one scope (#94): only the named
                     // axes (a custom axis is design-system vocabulary the
@@ -220,7 +262,7 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                     if (child) {
                         throw new Error(`[zero-kit] ${at(part.name)} is absorbable but is the parent of "${child.name}" — an absorbed part renders no element to contain it`);
                     }
-                    for (const key of ['hiddenIn', 'layout', 'pseudo'] as const) {
+                    for (const key of ['hiddenIn', 'layout', 'pseudo', 'domainFlags'] as const) {
                         if (part[key] !== undefined) {
                             throw new Error(`[zero-kit] ${at(part.name)} is absorbable and declares "${key}" — an absorbed part renders no element of its own`);
                         }

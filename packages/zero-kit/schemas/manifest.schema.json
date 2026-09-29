@@ -20,7 +20,7 @@
             "description": "How the anatomy contract is spelled in the DOM: the attribute names, the presence-only flag form, the closed flag vocabulary, and the variant axes.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["scope", "part", "state", "flagForm", "flagVocabulary", "stateVocabulary", "stateSynonyms", "placementVocabulary", "layoutPrefix", "layoutVocabulary", "variantAxes", "extraAxisForm"],
+            "required": ["scope", "part", "state", "flagForm", "flagVocabulary", "stateVocabulary", "stateSynonyms", "placementVocabulary", "domainFlagPrefix", "layoutPrefix", "layoutVocabulary", "variantAxes", "extraAxisForm"],
             "properties": {
                 "scope": { "const": "data-scope" },
                 "part": { "const": "data-part" },
@@ -56,6 +56,10 @@
                     "type": "array",
                     "items": { "$ref": "#/$defs/kebabToken" },
                     "minItems": 1
+                },
+                "domainFlagPrefix": {
+                    "description": "The namespace an ecosystem part's declared domainFlags render under (#457): domainFlags [\"unread\"] renders data-x-unread=\"\" and is keyed x-unread in selectors, recipes and the contrast matrix. zero's own parts never declare one.",
+                    "const": "data-x-"
                 },
                 "layoutPrefix": {
                     "description": "The namespace every layout attribute renders under. A per-breakpoint value puts the breakpoint in prefix position: data-l-gap=\"md\" and data-l-md-gap=\"lg\".",
@@ -295,6 +299,13 @@
                     "description": "Boolean data-* flags this part can carry, drawn from attributeSpec.flagVocabulary.",
                     "type": "array",
                     "items": { "$ref": "#/$defs/kebabToken" }
+                },
+                "domainFlags": {
+                    "description": "Presence-only domain facts this part can carry (#457) — ecosystem scopes only, rendered under attributeSpec.domainFlagPrefix (data-x-unread=\"\") and keyed x-<name> in selectors (selectors[\"x-unread\"] = \"[data-x-unread]\"), recipes and the contrast matrix. Never a shared flag, a state, a state synonym or an interaction state, never on a pseudo or absorbable part. A styling and tooling fact with no accessibility meaning: the component still exposes it as text or ARIA. Omitted entirely for parts that carry none; never empty.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 1,
+                    "uniqueItems": true
                 },
                 "placements": {
                     "description": "The data-placement values this part can carry, drawn from attributeSpec.placementVocabulary — the anchored-position behavior writes the attribute on open floats, and Toast stamps its viewport and roots. Omitted entirely for parts the runtime never stamps; never empty.",

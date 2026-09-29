@@ -20,6 +20,7 @@
  * | part        | `[data-scope="tabs"][data-part="tab"]`   | `zx-tabs__tab`   |
  * | state       | `[data-state="open"]`                    | `zx-s-open`      |
  * | flag        | `[data-disabled]`                        | `zx-f-disabled`  |
+ * | domain flag | `[data-x-unread]`                        | `zx-f-x-unread`  |
  * | axis value  | `[data-size="xs"]`                       | `zx-a-size-xs`   |
  * | modifier    | `[data-mod-block]`                       | `zx-m-block`     |
  * | orientation | `[data-orientation="vertical"]`          | `zx-o-vertical`  |
@@ -27,6 +28,10 @@
  * | layout      | `[data-l-gap="md"]`                      | `zx-l-gap-md`    |
  * | theme       | `[data-theme="dark"]`                    | `zx-theme-dark`  |
  * | token host  | `:root`                                  | `zx-root`        |
+ *
+ * A domain flag (#457, an ecosystem part's `domainFlags`) is a flag whose
+ * name is its key `x-<name>`, so it needs no class family of its own — which
+ * is why declaring one did not bump the grammar version.
  *
  * State/flag/axis classes are deliberately scope-agnostic: semantics attach
  * through the compound with the part class (`.zx-tabs__tab.zx-s-active`), and

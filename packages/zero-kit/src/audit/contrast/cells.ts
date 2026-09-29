@@ -12,7 +12,7 @@
  * chain ROOT and never on the measured element.
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
-import { carrierPart } from '../../contract.js';
+import { carrierPart, partFlagKeys } from '../../contract.js';
 
 /** One renderable attribute combination for a part. */
 export interface Combo { state?: string; flag?: string }
@@ -22,7 +22,9 @@ export function combosFor(part: ManifestPart): Combo[] {
     const states = part.states ?? [];
     // `press-animating` is a one-shot animation frame and `swiping` a gesture
     // frame (#293, a transform and no ink) — neither is a resting style.
-    const flags = (part.flags ?? []).filter((f) => f !== 'press-animating' && f !== 'swiping');
+    // A domain flag (#457) is crossed like a shared one, under its `x-<name>`
+    // key — the matrix renders `data-x-<name>` from it unchanged.
+    const flags = partFlagKeys(part).filter((f) => f !== 'press-animating' && f !== 'swiping');
     const combos: Combo[] = [{}];
     for (const state of states) combos.push({ state });
     for (const flag of flags) combos.push({ flag });
@@ -119,7 +121,7 @@ export function chainFor(component: ManifestComponent, path: readonly string[]):
             part: name,
             element: part.element ?? 'div',
             states: part.states ?? [],
-            flags: part.flags ?? [],
+            flags: partFlagKeys(part),
             ...(pin ? { pin } : {}),
             ...(part.carries?.length ? { carries: part.carries } : {}),
         };

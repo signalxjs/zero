@@ -17,7 +17,7 @@
  * a mapping the artifact doesn't implement — they are the same data.
  */
 import type { ManifestComponent } from './contract.js';
-import { RESERVED_AXES, TOKEN_KEY_PATTERN, VARIANT_AXES, carrierPart, resolveRoles, resolveSizes } from './contract.js';
+import { DOMAIN_FLAG_PREFIX, RESERVED_AXES, TOKEN_KEY_PATTERN, VARIANT_AXES, carrierPart, resolveRoles, resolveSizes } from './contract.js';
 import type { RolesDecl } from './tokens.js';
 import type { CompiledComponentAxes } from './design-system.js';
 import type { ValidationIssue } from './resolve/validate.js';
@@ -362,6 +362,10 @@ export function validateApi(
             error(where, `as: "${as}" is zero's own prop for an axis — a prop of that name could never route anywhere else`);
         } else if (RESERVED_AXES.has(as)) {
             error(where, `as: "${as}" is part of the anatomy contract — a prop of that name would shadow what zero already renders`);
+        } else if (as.startsWith('x-')) {
+            // `data-x-*` is the domain-flag namespace (#457): zero refuses an
+            // axis named there, so a prop routed to one could never render.
+            error(where, `as: "${as}" is inside the domain-flag namespace (${DOMAIN_FLAG_PREFIX}*) — zero refuses an axis there, so the prop could never render`);
         } else if (CONTRACT_PROPS.has(as)) {
             error(where, `as: "${as}" is a structural prop on every zero component — the adapter could never forward it`);
         }

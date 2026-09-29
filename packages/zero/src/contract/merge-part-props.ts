@@ -16,7 +16,7 @@
  * DOM-free at runtime and in its types, so the DOM-less contract entry
  * (`contract/core.ts`) exports it too.
  */
-import { FLAG_VOCABULARY } from './data-attrs.js';
+import { DOMAIN_FLAG_PREFIX, FLAG_VOCABULARY } from './data-attrs.js';
 import { MOD_ATTR_PREFIX, VARIANT_AXES } from './variant-attrs.js';
 
 /**
@@ -109,7 +109,8 @@ const tokens = (value: unknown): string[] =>
  *
  * - `outer` undefined: `own`, unchanged (the same object).
  * - Anatomy the runtime writes (`data-scope`/`part`/`state`/`orientation`/
- *   `placement`, every flag, `data-visually-hidden`, `data-autosize`):
+ *   `placement`, every flag, every domain flag `data-x-*`,
+ *   `data-visually-hidden`, `data-autosize`):
  *   dropped. Paint set on the lender (`data-color`/`size`/`variant`,
  *   `data-mod-*`, `data-l-*`) throws — set it on the host. Any other lender
  *   `data-*` is dropped; `hidden` on the lender throws.
@@ -153,7 +154,9 @@ export function mergePartProps<T extends Record<string, unknown>>(outer: LentBag
         const value = outer[key];
 
         if (key.startsWith('data-')) {
-            if (DROPPED.has(key)) continue;
+            // A domain flag (`data-x-*`, #457) is the lender's own runtime
+            // anatomy, like its shared flags: the host writes its own.
+            if (DROPPED.has(key) || key.startsWith(DOMAIN_FLAG_PREFIX)) continue;
             if (isPaint(key)) {
                 if (value === undefined) continue;
                 throw new Error(`[zero] ${key} on the lent ${lender} — set it on the host`);

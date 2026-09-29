@@ -516,6 +516,22 @@ export const VARIANT_AXES: Record<string, string> = {
 export const MOD_ATTR_PREFIX = 'data-mod-';
 
 /**
+ * The namespace an ecosystem part's declared `domainFlags` render into
+ * (#457): `unread` → `data-x-unread=""`. Mirrors `DOMAIN_FLAG_PREFIX` in
+ * `@sigx/zero/contract` (parity-tested). A fixed namespace like
+ * `data-mod-`, so no domain flag can collide with a shared flag, a state or
+ * a custom axis, and an axis may never be named inside it.
+ */
+export const DOMAIN_FLAG_PREFIX = 'data-x-';
+
+/**
+ * The key a domain flag takes after the anatomy — in `selectors`, a recipe's
+ * `states`, a contrast cell and a lynx flag class: `unread` → `x-unread`.
+ * Mirrors `domainFlagKey` in `@sigx/zero/contract` (parity-tested).
+ */
+export const domainFlagKey = <N extends string>(name: N): `x-${N}` => `x-${name}`;
+
+/**
  * The version of the fragment CONTRACT this kit understands. A fragment
  * declares the version it was built against; the merge hard-errors on a
  * missing or unknown one, because an unversioned fragment merges whatever
@@ -789,6 +805,14 @@ export interface ManifestPart {
     states?: readonly string[];
     flags?: readonly string[];
     /**
+     * Presence-only domain facts this part can carry (#457) — ecosystem
+     * scopes only, rendered as `data-x-<name>` and keyed `x-<name>` in
+     * `selectors`, recipes and the contrast matrix. Never a shared flag,
+     * state, state synonym or interaction state (`mergeManifests` refuses
+     * each). Read it through `partFlagKeys`, never `flags` alone.
+     */
+    domainFlags?: readonly string[];
+    /**
      * The `data-placement` values this part can carry — declared contract
      * data, a subset of `PLACEMENT_VOCABULARY`. Absent for parts the runtime
      * never stamps.
@@ -910,6 +934,17 @@ export interface ManifestComponent {
      * api-mode import specifiers both depend on.
      */
     package?: string;
+}
+
+/**
+ * Every flag KEY a part can carry — its shared `flags`, then its domain
+ * flags as `x-<name>` (#457). The one enumeration every flag consumer uses
+ * (recipe validation, the lynx flag classes, coverage, the contrast cells),
+ * so a domain flag is a flag everywhere after the anatomy and each key
+ * resolves through `part.selectors` like any other.
+ */
+export function partFlagKeys(part: Pick<ManifestPart, 'flags' | 'domainFlags'>): string[] {
+    return [...(part.flags ?? []), ...(part.domainFlags ?? []).map(domainFlagKey)];
 }
 
 /**

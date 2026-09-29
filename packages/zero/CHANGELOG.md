@@ -4,6 +4,24 @@
 
 ### Added
 
+- **Domain flags for ecosystem components (#457).** A fragment part
+  declares `domainFlags: ['unread']` and renders `data-x-unread=""`, so a
+  component can say a fact of its own domain (a mail row's unread, a
+  stepper item's optional) without claiming a word of the closed shared
+  flag vocabulary. New exports, on the root, `./contract` and the DOM-free
+  `./contract/core`: `DOMAIN_FLAG_PREFIX` (`'data-x-'`), `domainFlagKey`
+  (`unread` → `x-unread`, the key in `selectors`, recipes and the contrast
+  matrix) and `domainFlagAttrs({ unread })` (presence-only, throws on a
+  non-kebab name). `PartSpec.domainFlags`, with `toJSON()` emitting
+  `selectors['x-<name>'] = '[data-x-<name>]'` and `selector(part,
+  { domainFlags })`. `expectAnatomy` fails an undeclared `data-x-*` or one
+  with a value, and `manifest.json` records `attributeSpec.domainFlagPrefix`.
+  A domain flag carries no accessibility meaning: the component still
+  exposes the fact as text or ARIA. `FRAGMENT_VERSION` stays 1: the key is
+  additive and optional, so, as with `carries`, `absorbable`, `models` and
+  `runtimeProperties`, an older kit rejects a fragment that uses it through
+  the schema.
+
 - **`Combobox.Root` `filterItems` (#458).** Hand-written `Combobox.Item`s
   are filtered by the query when it is set: each item's label (`textValue`,
   else its text) is matched with the default case-insensitive
@@ -56,6 +74,11 @@
   '-soft-content'`.
 
 ### Changed
+
+- **`data-x-*` is reserved for domain flags (#457).** `htmlAttrs` throws on
+  an app's `data-x-*` (a forged domain flag would make the skin paint a
+  fact the part never said), `mergePartProps` drops the lender's, and
+  `variantAttrs` and `expectAnatomy`'s `axes` refuse an axis named `x-…`.
 
 - **`Stack.Item grow` grows from zero (#454).** The design systems now
   compile `grow` to `flex-grow: 1` plus `flex-basis: 0`, like Tailwind's

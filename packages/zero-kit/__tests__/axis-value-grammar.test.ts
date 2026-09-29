@@ -123,6 +123,25 @@ describe('the validator', () => {
         expect(issues.map((i) => i.message)).toContainEqual(expect.stringContaining('"kind--x" is not a kebab-case identifier'));
     });
 
+    it('refuses an axis name inside the domain-flag namespace, design-system-wide and per scope (#457)', () => {
+        const ds = dsWith('solid', {
+            axes: { 'x-tone': ['a'] },
+            scopes: { button: { variants: ['solid'], axes: { 'x-tone': ['a'] } } },
+        });
+        const issues = validateDesignSystem(ds, manifest).errors;
+        expect(issues).toContainEqual(expect.objectContaining({
+            where: 'tokens.axes',
+            message: expect.stringContaining('"x-tone" is inside the domain-flag namespace'),
+        }));
+        expect(issues).toContainEqual(expect.objectContaining({
+            where: 'tokens.scopes.button.axes',
+            message: expect.stringContaining('"x-tone" is inside the domain-flag namespace'),
+        }));
+        // `xl-tone` is not in the namespace: the prefix is `x-`, whole.
+        expect(messages(dsWith('solid', { axes: { 'xl-tone': ['a'] } }))
+            .some((m) => m.includes('domain-flag'))).toBe(false);
+    });
+
     it('keeps the empty-declaration error for a custom axis, and only there', () => {
         // `variants: []` is a claim — "no variant axis" (#200/#295), the
         // grammar `sizes: []` uses — so it is no longer "declared but empty".
