@@ -442,6 +442,32 @@ const disclosureTrigger: PartStyles = {
     },
 };
 
+/**
+ * The disclosure mark (#437): `collapsible.indicator` and
+ * `accordion.indicator`, the optional part an app places inside the
+ * trigger. A solid wedge in the trigger's ink — it inverts with the open
+ * slab's fill — that flips outright rather than turning: brutalism cuts,
+ * it does not ease. Symmetric, so nothing mirrors under RTL; the trigger's
+ * `space-between` puts it at the trailing edge.
+ */
+const DISCLOSURE_WEDGE = 'polygon(0% 20%, 100% 20%, 50% 85%)';
+const disclosureIndicator: PartStyles = {
+    base: {
+        flex: 'none',
+        width: '0.75em',
+        height: '0.75em',
+        background: 'currentColor',
+        clipPath: DISCLOSURE_WEDGE,
+    },
+    states: { open: { rotate: '180deg' }, closed: {} },
+    at: {
+        // Forced colours revalue the fill the clip cuts, and print drops
+        // backgrounds: keep the wedge the trigger's ink.
+        'forced-colors': { base: { forcedColorAdjust: 'none' } },
+        print: { base: { printColorAdjust: 'exact' } },
+    },
+};
+
 /** The accent default: the fixed `accent` role, exactly as before #321. */
 const disclosureTokens = {
     '--disclosure-accent': 'var(--color-accent)',
@@ -491,6 +517,7 @@ export const collapsible: RecipeInput = withNonNative({
     parts: {
         root: withPresence(disclosurePresence, { base: { ...inked, boxShadow: 'var(--shadow-sm)' }, states: { open: {}, closed: {} } }),
         trigger: disclosureTrigger,
+        indicator: disclosureIndicator,
         panel: {
             base: {
                 padding: 'var(--space-md)',
@@ -518,6 +545,7 @@ export const accordion: RecipeInput = {
             selectors: { '[data-scope="accordion"][data-part="root"][data-orientation="horizontal"] > &': { flex: '1 1 0', minInlineSize: '0' } },
         }),
         trigger: disclosureTrigger,
+        indicator: disclosureIndicator,
         panel: {
             base: {
                 padding: 'var(--space-md)',
@@ -2866,6 +2894,24 @@ export const toggleGroup: RecipeInput = {
                 // A shallower stamp than the free-standing button: the item
                 // has no shadow to collapse into, and the frame clips it.
                 '&[data-pressed]:not([data-disabled])': { transform: 'translate(1px, 1px)' },
+            },
+        },
+        // The item's optional check (#437): the toast's carved tick at
+        // label scale in the item's ink — inverted with the on fill —
+        // present only while on.
+        'item-indicator': {
+            base: {
+                display: 'none',
+                flexShrink: '0',
+                width: '0.9em',
+                height: '0.9em',
+                background: 'currentColor',
+                clipPath: TOAST_CHECK,
+            },
+            states: { on: { display: 'inline-block' }, off: {} },
+            at: {
+                'forced-colors': { base: { forcedColorAdjust: 'none' } },
+                print: { base: { printColorAdjust: 'exact' } },
             },
         },
     },
