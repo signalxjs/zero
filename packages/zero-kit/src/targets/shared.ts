@@ -19,6 +19,7 @@ import { AXIS_VALUE_PATTERN, TOKEN_CATEGORIES, TOKEN_KEY_PATTERN, systemNodeAt, 
 import type { CssProps, RecipeContext } from '../recipes.js';
 import { BELOW_PREFIX, BUILTIN_CONDITIONS } from '../recipes.js';
 import { generateTypeScale } from '../scale.js';
+import { structuralAliases } from '../structural.js';
 import { withTypeRoles } from '../type-roles.js';
 import type { SystemTokens, ThemeSystem, TypographyDecl } from '../tokens.js';
 
@@ -428,6 +429,17 @@ export function resolveSystemTokens(...tiers: (AnyTokenSystem | undefined)[]): R
             }
         }
     }
+    // The structural roles a design system mapped onto keys of its own
+    // (#422): the recommended name becomes an indirection to the mapped key,
+    // so a reference by that name — a shared recipe, an ecosystem pack, app
+    // CSS — reads the design system's value rather than base.css's neutral
+    // fallback. Read from the base tier only: `structural` is a declaration,
+    // and a theme cannot remap a role. A mapped role is never also declared
+    // (`validateDesignSystem` refuses it), and a target that does not exist
+    // is refused there too; both guards here keep a direct caller safe.
+    for (const [alias, target] of Object.entries(structuralAliases(tiers[0]))) {
+        if (!(alias in props) && target in props) props[alias] = `var(${target})`;
+    }
     return props;
 }
 
@@ -463,6 +475,12 @@ export function assertKeyframesName(name: string, scope: string): void {
  * cannot drift. Target-neutral since #403: the static contrast matrix reads
  * the same table (`--disabled-opacity` above all) as the floor under every
  * theme's own tokens, which is what a real page resolves them against.
+ *
+ * Keyed by the recommended names on purpose (#422). A design system that
+ * maps a structural role onto a key of its own (`system.structural`) must
+ * declare that key, and `resolveSystemTokens` then emits the recommended
+ * name as `var(--<its key>)` — so the fallback here is overridden by the
+ * design system's own value exactly as if it had declared the role itself.
  */
 export const STRUCTURAL_FALLBACKS: Record<string, string> = {
     '--radius-selector': '0.25rem',

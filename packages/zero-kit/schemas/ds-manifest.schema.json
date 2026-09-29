@@ -111,6 +111,11 @@
                     "description": "Overrides applied to dark-scheme themes.",
                     "type": "object"
                 },
+                "structural": {
+                    "description": "Every structural token by its recommended name → the token that plays it in this design system, resolved through system.structural (#422): { \"radius-box\": \"radius-medium\" }. The anatomy manifest's radius-* token hints are recommended names; this is where a reader resolves one. Identity entries are included, so no default needs to be known.",
+                    "type": "object",
+                    "additionalProperties": { "type": "string", "pattern": "^[a-z]+-[a-z0-9]+(-[a-z0-9]+)*$" }
+                },
                 "properties": {
                     "description": "Every custom property the compiled tokens.css emits, flat and sorted.",
                     "type": "array",

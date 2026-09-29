@@ -30,6 +30,7 @@ import {
 } from '../../contract.js';
 import { DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, assertTokenValue, badPropertySyntaxMessage, dependentInitialValue, resolveSystemTokens, softMixPercent, substitutionFunction } from '../shared.js';
 import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tokens.js';
+import { structuralAliases } from '../../structural.js';
 
 const softVar = (role: string, mix: number): string =>
     `color-mix(in oklab, var(--color-${role}) ${softMixPercent(mix)}, var(--color-base-100))`;
@@ -406,6 +407,13 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
     // so an explicit theme wins regardless of source order, and a nested
     // `[data-theme]` element re-themes its subtree via inheritance. App CSS
     // is unlayered, so it still wins over everything here.
+    // Mapped key → the structural role properties that alias it (#422).
+    const aliasesOf = new Map<string, string[]>();
+    for (const [alias, target] of Object.entries(structuralAliases(input.system))) {
+        if (!(alias in nonColorLight)) continue;
+        aliasesOf.set(target, [...(aliasesOf.get(target) ?? []), alias]);
+    }
+
     const blocks: string[] = [block(':where(:root)', [
         ...rootDecls(light, dark, roles, nonColorLight),
         ...breakpointDecls(input.breakpoints),
@@ -445,7 +453,13 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
         // alias already lives.)
         // Iterating the set while adding is safe: an added alias never passes
         // `isScalableText`, so nothing cascades.
+        // A mapped structural role (#422) is the same kind of alias — the
+        // recommended name declared as `var(--<mapped key>)` — so a theme
+        // that re-emits the mapped key restates the role too. Added before
+        // its own fixed alias is considered: iterating a Set visits what is
+        // added during the walk, so a text role's `--text-fixed-*` follows.
         for (const prop of emit) {
+            for (const alias of aliasesOf.get(prop) ?? []) emit.add(alias);
             if (isScalableText(prop)) emit.add(`${TEXT_FIXED_PREFIX}${prop.slice(TEXT_PREFIX.length)}`);
         }
         // A theme that doesn't define a scheme-divergent property still has to

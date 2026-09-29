@@ -34,6 +34,7 @@ import {
     BASE_BREAKPOINT_KEY,
     RESERVED_AXES,
     RESERVED_ROLE_NAMES,
+    STRUCTURAL_ROLES,
     TOKEN_CATEGORIES,
     AXIS_VALUE_PATTERN,
     TOKEN_KEY_PATTERN,
@@ -57,7 +58,7 @@ import { tokenVocabulary } from './vocabulary.js';
 import { formatOklch, solveContentLightness } from '../palette.js';
 import { tryBakeColorValue } from './color-bake.js';
 import { compositeOver, measureRolePair, parseCssColor, withDerivedSoft } from './role-contrast.js';
-import { CSS_BREAKOUT, DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, badPropertySyntaxMessage, breakoutMessage, dependentInitialValue, softMixPercent } from '../targets/shared.js';
+import { CSS_BREAKOUT, DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, badPropertySyntaxMessage, breakoutMessage, dependentInitialValue, resolveSystemTokens, softMixPercent } from '../targets/shared.js';
 
 export interface ValidationIssue {
     level: 'error' | 'warning';
@@ -344,10 +345,22 @@ export function validateDesignSystem<R extends RolesDecl>(
             nestedAliases.set(category.path[category.path.length - 1]!, category.path);
         }
     }
-    const checkSystemKeys = (where: string, source: unknown) => {
+    const checkSystemKeys = (where: string, source: unknown, declaration = false) => {
         if (!isKeyMap(source)) return;
         for (const key of Object.keys(source)) {
             if (categoryRoots.has(key)) continue;
+            if (key === 'structural') {
+                // A declaration, like `typography.scale`: which key plays a
+                // role is design-system identity, and a per-theme remap would
+                // leave the manifest's one resolved map lying for that theme.
+                if (!declaration) {
+                    error(
+                        `${where}.structural`,
+                        'remaps the structural roles, which are declared once in tokens.system.structural — a theme overrides the mapped key\'s VALUE instead',
+                    );
+                }
+                continue;
+            }
             // The likely mistakes are naming a nested category by its id or
             // by its leaf, so say where the category actually lives.
             const nested = nestedAliases.get(key);
@@ -358,8 +371,68 @@ export function validateDesignSystem<R extends RolesDecl>(
             );
         }
     };
-    checkSystemKeys('tokens.system', declaredSystem);
+    checkSystemKeys('tokens.system', declaredSystem, true);
     checkSystemKeys('tokens.systemDark', ds.tokens.systemDark);
+
+    // ── Structural roles (#422) ──
+    // `system.structural` maps a role (`radius.box`) onto a key of the design
+    // system's own scale. The compiler emits the role as `var(--<key>)`, so
+    // the key must exist — else every reference by the recommended name
+    // resolves to nothing — and the role may not ALSO be declared under its
+    // own name, which would give it two values and leave the manifest's
+    // resolved map naming the one the cascade does not use.
+    const structural = isKeyMap(declaredSystem) ? declaredSystem['structural'] : undefined;
+    if (structural !== undefined) {
+        if (!isKeyMap(structural)) {
+            error('tokens.system.structural', `must be an object of category → { role: key }, got ${Array.isArray(structural) ? 'an array' : typeof structural}`);
+        } else {
+            // Scale expansion included: a `typography.scale` mints the keys a
+            // text role may be mapped onto.
+            const emitted = resolveSystemTokens(declaredSystem as never);
+            for (const [categoryId, map] of Object.entries(structural)) {
+                const where = `tokens.system.structural.${categoryId}`;
+                const roles = (STRUCTURAL_ROLES as Record<string, readonly string[]>)[categoryId];
+                if (!roles) {
+                    error(where, `"${categoryId}" has no structural roles — only ${Object.keys(STRUCTURAL_ROLES).join(', ')} do`);
+                    continue;
+                }
+                if (!isKeyMap(map)) {
+                    error(where, `must be an object of role → key, got ${Array.isArray(map) ? 'an array' : typeof map}`);
+                    continue;
+                }
+                const category = TOKEN_CATEGORIES.find((c) => c.id === categoryId)!;
+                const path = `tokens.system.${category.path.join('.')}`;
+                for (const [role, key] of Object.entries(map)) {
+                    if (!roles.includes(role)) {
+                        error(where, `"${role}" is not a structural ${categoryId} role (${roles.join(', ')})`);
+                        continue;
+                    }
+                    if (typeof key !== 'string' || !TOKEN_KEY_PATTERN.test(key)) {
+                        error(`${where}.${role}`, `must name a key of ${path} as a kebab-case string, got ${JSON.stringify(key)}`);
+                        continue;
+                    }
+                    if (key === role) continue;
+                    const target = tokenProperty(category, key);
+                    if (!(target in emitted)) {
+                        error(
+                            `${where}.${role}`,
+                            `maps the "${role}" role onto "${key}", which ${path} never declares — ${category.prefix}${role} would resolve to nothing`,
+                        );
+                    }
+                    // Read off the resolved ramp rather than the `sizes`
+                    // node, so a role a `typography.scale` generates counts;
+                    // the compiler's own alias for the role is not a clash.
+                    const own = emitted[tokenProperty(category, role)];
+                    if (own !== undefined && own !== `var(${target})`) {
+                        error(
+                            `${where}.${role}`,
+                            `maps the "${role}" role onto "${key}", but ${path} also declares "${role}" — the role would have two values. Drop one: the mapping, or the key`,
+                        );
+                    }
+                }
+            }
+        }
+    }
     for (const category of TOKEN_CATEGORIES) {
         const path = category.path.join('.');
         const node = systemNodeAt(declaredSystem, category.path);

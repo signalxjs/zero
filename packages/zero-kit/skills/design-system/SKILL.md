@@ -167,6 +167,15 @@ component's anatomy). No component code is ever written or changed.
    - The keys inside a category are **yours**: `recommended` is what
      `@sigx/zero/css` ships fallbacks for, not a limit. Declare
      `radius: { pill: '9999px' }` and it flows into your manifest.
+   - If the brief names its own shape scale or type ramp (M3's
+     `extra-small … full`), declare it by those names and **map** zero's
+     structural roles onto it rather than adding `selector`/`field`/`box`
+     aliases: `system.structural: { radius: { selector: 'extra-small',
+     field: 'extra-small', box: 'medium' } }` (`text` roles map the same
+     way). Token hints, fallbacks and the layout Box resolve through it, the
+     manifest records `tokens.structural`, and `var(--radius-box)` still
+     works — the kit emits it as `var(--radius-medium)`. A mapped key must be
+     declared, and a mapped role must not also be declared by its own name.
    - **Typography is the axis a style brief leans on hardest.**
      `typography` declares `fonts` (FAMILIES — `--font-sans` is a stack, never
      a size), `weights`, `leading`, `tracking`, and the `--text-*` size ramp.
