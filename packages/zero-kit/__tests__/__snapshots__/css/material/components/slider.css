@@ -245,10 +245,10 @@
         border-radius: var(--radius-full);
         background: var(--color-inverse-surface);
         color: var(--color-inverse-surface-content);
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-label-large);
         line-height: var(--leading-label-large);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
         white-space: nowrap;
         pointer-events: none;
