@@ -14,6 +14,29 @@
   axis. The tokens, DS-manifest and lynx-manifest schemas accept the key.
   `axis: true` with `content: false` is a validation error, because an axis
   value needs the `-content` ink a control paints its label with.
+- **`<role>-soft-content`, the soft tint's own ink (#421, part of #413).**
+  Every role that emits `-soft` now also emits `--color-<role>-soft-content`.
+  A theme may set it, and it defaults to `var(--color-<role>)`, so a theme
+  that never sets it paints what it painted before. The validator measures
+  it against the tint in every theme, as it does `<role>`/`<role>-content`
+  (below 3:1 an error, below 4.5:1 a warning, with a `suggest`). The default
+  is measured too. The report's per-theme contrast table includes the pair,
+  the lynx target bakes it, `fitRecipesToVocabulary` falls a missing one
+  back to `base-content`, and the manifest's colour convention gains
+  `softContentSuffix`. `derivePalette` emits the token only for a role
+  that does not reach `floors.content` on its own tint.
+
+### Changed
+
+- **The layout Box inks a coloured surface with `-soft-content` (#421).**
+  `--box-ink` was the role itself, which only reads while the tint stays a
+  light wash of the role. A design system whose roles already read on their
+  tints renders unchanged. One whose soft fill inverts, like Material's
+  containers in the high-contrast schemes, sets the ink.
+- **A theme whose role does not read on its own tint now fails validation
+  (#421).** The pair was never measured before, so a theme that validated
+  clean may now report `contrast <role>-soft vs <role>-soft-content`. Set
+  `<role>-soft-content` to the suggested value.
 
 - **`typography.roles`: composite type roles (#423, part of #413).**
   `system.typography.roles` declares a role whole — name →
