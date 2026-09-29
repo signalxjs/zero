@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **`Stack.Item grow` grows from a zero basis (#454).** `layoutRecipes()`'s
+  stack item rule gives `[data-l-grow="1"]` `flex-basis: 0` beside
+  `flex-grow: 1`, like Tailwind's `flex-1`. A grow item that held long
+  truncated (nowrap) text used to start from the whole text's width,
+  overflow its row, and squeeze its fixed siblings: a timestamp beside a
+  subject wrapped. It now takes only the room its siblings leave.
+  Behaviour change: several `grow` siblings split the free space equally
+  instead of in proportion to their content, and a grow item in a column
+  stack with no definite height grows from 0 rather than from its content
+  height. Written as the `flex-basis` longhand, so the lynx target passes
+  it through unchanged. Every design system's compiled `stack` CSS gains
+  the rule.
+
 ## [0.17.0] - 2026-09-29
 
 ### Added

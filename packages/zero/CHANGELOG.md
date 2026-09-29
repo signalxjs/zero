@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **`Stack.Item grow` grows from zero (#454).** The design systems now
+  compile `grow` to `flex-grow: 1` plus `flex-basis: 0`, like Tailwind's
+  `flex-1`, so a truncated grow item gives way to a fixed sibling instead
+  of squeezing it. Several `grow` siblings now split the free space
+  equally rather than in proportion to their content. The README
+  documents the pattern.
+
 ## [0.17.0] - 2026-09-29
 
 ### Added
