@@ -8,7 +8,7 @@ audit findings.
 - `src/tokens.ts`: the palette and the system tokens. It also holds the
   vocabulary the mail kit's typography keys on:
   - `tone` and `weight` axes;
-  - `truncate`, `clamp`, `unread` and `compact` modifiers.
+  - `truncate`, `clamp` and `compact` modifiers.
 - `src/baseline.ts`: zero-basic's recipes, copied by the scaffold and fitted
   to this vocabulary (plus zero-basic's later non-native collapsible rules,
   #453).

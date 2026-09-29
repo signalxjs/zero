@@ -129,7 +129,7 @@ const Row_ = component<{ thread: Thread; index: number }>(({ props }) => () => {
             itemKey={t.id}
             active={openThread.value?.id === t.id}
             selected={selected}
-            mods={{ unread: !t.read }}
+            unread={!t.read}
             aria-label={`${t.read ? '' : 'Unread, '}${lead.name}: ${t.subject}`}
         >
             <Row gap="md" align="start">
