@@ -563,9 +563,11 @@ const STATIC_COVERAGE: Record<(typeof DESIGN_SYSTEMS)[number], number> = {
     // `+active` × loading — the same `brightness()` filter, no new reason.
     daisyui: 86.5,
     // 100 → 99.9 with #416: M3's floating label is a parent reading its
-    // child (`:has()`), which the matcher answers as unknown — 5 cells, the
-    // field label and the select value, not a new paint (#469).
-    material: 99.9,
+    // child (`:has()`), which the matcher answered as unknown — 5 cells, the
+    // field label and the select value. Back to 100 with #469: the label
+    // reads its field's own `data-placeholder`, and the matcher answers the
+    // rest of its `:has()` from the probe chain, the nodes this spec renders.
+    material: 100,
     brutalist: 100,
     // The half star is a hard-stop gradient on `::before`.
     heroui: 96.6,
