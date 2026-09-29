@@ -67,10 +67,10 @@
         padding-inline-end: var(--space-sm);
         padding-block-start: var(--tf-in-top, calc((var(--tf-height) - 1.5rem) / 2));
         padding-block-end: var(--tf-in-bottom, calc((var(--tf-height) - 1.5rem) / 2));
-        font-family: var(--font-sans);
+        font-family: var(--font-body-large);
         font-size: var(--text-body-large);
         line-height: var(--leading-body-large);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-large);
         letter-spacing: var(--tracking-body-large);
     }
 
@@ -266,10 +266,10 @@
         min-block-size: 3rem;
         box-sizing: border-box;
         padding-inline: var(--space-sm);
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-label-large);
         line-height: var(--leading-label-large);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
         cursor: pointer;
     }

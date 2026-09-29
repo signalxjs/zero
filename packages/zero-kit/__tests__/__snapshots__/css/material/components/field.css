@@ -78,9 +78,9 @@
     }
 
     [data-scope="field"][data-part="label"] {
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-label-large);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
         color: var(--field-accent);
     }
@@ -104,10 +104,10 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         pointer-events: none;
-        font-family: var(--font-sans);
+        font-family: var(--font-body-large);
         font-size: var(--text-body-large);
         line-height: var(--leading-body-large);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-large);
         letter-spacing: var(--tracking-body-large);
         color: var(--color-surface-variant-content);
         padding-inline: var(--tf-label-pad);
@@ -146,10 +146,10 @@
 
     [data-scope="field"][data-part="description"] {
         margin: 0;
-        font-family: var(--font-sans);
+        font-family: var(--font-body-small);
         font-size: var(--text-body-small);
         line-height: var(--leading-body-small);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-small);
         letter-spacing: var(--tracking-body-small);
         color: var(--color-surface-variant-content);
     }
@@ -160,10 +160,10 @@
 
     [data-scope="field"][data-part="error"] {
         margin: 0;
-        font-family: var(--font-sans);
+        font-family: var(--font-body-small);
         font-size: var(--text-body-small);
         line-height: var(--leading-body-small);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-small);
         letter-spacing: var(--tracking-body-small);
         color: var(--color-error);
     }

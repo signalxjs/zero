@@ -50,29 +50,29 @@
 
     [data-scope="card"][data-part="title"] {
         margin: 0;
-        font-family: var(--font-sans);
+        font-family: var(--font-title-medium);
         font-size: var(--text-title-medium);
         line-height: var(--leading-title-medium);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-title-medium);
         letter-spacing: var(--tracking-title-medium);
     }
 
     [data-scope="card"][data-part="description"] {
         margin: 0;
-        font-family: var(--font-sans);
+        font-family: var(--font-body-medium);
         font-size: var(--text-body-medium);
         line-height: var(--leading-body-medium);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-medium);
         letter-spacing: var(--tracking-body-medium);
         color: var(--card-subtle, var(--color-surface-variant-content));
     }
 
     [data-scope="card"][data-part="body"] {
         padding: var(--card-pad);
-        font-family: var(--font-sans);
+        font-family: var(--font-body-medium);
         font-size: var(--text-body-medium);
         line-height: var(--leading-body-medium);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-medium);
         letter-spacing: var(--tracking-body-medium);
     }
 

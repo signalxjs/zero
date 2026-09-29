@@ -16,10 +16,10 @@
         --btn-square: var(--radius-medium);
         --btn-pressed: var(--radius-small);
         --btn-outline: 1px;
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-label-large);
         line-height: var(--leading-label-large);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
         block-size: var(--btn-height);
         padding-inline: var(--btn-pad);
@@ -222,10 +222,10 @@
 
     [data-scope="drawer"][data-part="title"] {
         margin: 0 0 var(--space-md);
-        font-family: var(--font-sans);
+        font-family: var(--font-title-large);
         font-size: var(--text-title-large);
         line-height: var(--leading-title-large);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-title-large);
         letter-spacing: var(--tracking-title-large);
         color: var(--color-surface-variant-content);
     }
@@ -245,9 +245,9 @@
         background: transparent;
         color: var(--color-primary);
         border-radius: 1.25rem;
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-label-large);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
         cursor: pointer;
     }
@@ -344,10 +344,10 @@
         --btn-square: var(--radius-medium);
         --btn-pressed: var(--radius-small);
         --btn-outline: 1px;
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-label-large);
         line-height: var(--leading-label-large);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
     }
 
@@ -360,10 +360,10 @@
         --btn-square: var(--radius-large);
         --btn-pressed: var(--radius-medium);
         --btn-outline: 1px;
-        font-family: var(--font-sans);
+        font-family: var(--font-title-medium);
         font-size: var(--text-title-medium);
         line-height: var(--leading-title-medium);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-title-medium);
         letter-spacing: var(--tracking-title-medium);
     }
 
@@ -376,10 +376,10 @@
         --btn-square: var(--radius-extra-large);
         --btn-pressed: var(--radius-large);
         --btn-outline: 2px;
-        font-family: var(--font-sans);
+        font-family: var(--font-headline-small);
         font-size: var(--text-headline-small);
         line-height: var(--leading-headline-small);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-headline-small);
         letter-spacing: var(--tracking-headline-small);
     }
 
@@ -392,10 +392,10 @@
         --btn-square: var(--radius-extra-large);
         --btn-pressed: var(--radius-large);
         --btn-outline: 3px;
-        font-family: var(--font-sans);
+        font-family: var(--font-headline-large);
         font-size: var(--text-headline-large);
         line-height: var(--leading-headline-large);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-headline-large);
         letter-spacing: var(--tracking-headline-large);
     }
 

@@ -8,10 +8,10 @@
         padding-inline: var(--space-2xs);
         background: var(--color-surface);
         color: var(--color-surface-content);
-        font-family: var(--font-sans);
+        font-family: var(--font-body-medium);
         font-size: var(--text-body-medium);
         line-height: var(--leading-body-medium);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-medium);
         letter-spacing: var(--tracking-body-medium);
     }
 
@@ -22,10 +22,10 @@
         flex: 1 1 0%;
         justify-content: flex-start;
         padding-inline-start: var(--space-sm);
-        font-family: var(--font-sans);
+        font-family: var(--font-title-large);
         font-size: var(--text-title-large);
         line-height: var(--leading-title-large);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-title-large);
         letter-spacing: var(--tracking-title-large);
     }
 
@@ -131,10 +131,10 @@
     @scope ([data-scope="navbar"][data-part="root"][data-variant="center-aligned"]) to ([data-scope="navbar"][data-part="root"]) {
         [data-scope="navbar"][data-part="center"] {
             flex: 1 1 auto;
-            font-family: var(--font-sans);
+            font-family: var(--font-title-large);
             font-size: var(--text-title-large);
             line-height: var(--leading-title-large);
-            font-weight: var(--weight-normal);
+            font-weight: var(--weight-title-large);
             letter-spacing: var(--tracking-title-large);
         }
     }
@@ -152,10 +152,10 @@
             grid-area: center;
             justify-content: flex-start;
             padding-inline: var(--space-sm);
-            font-family: var(--font-sans);
+            font-family: var(--font-headline-small);
             font-size: var(--text-headline-small);
             line-height: var(--leading-headline-small);
-            font-weight: var(--weight-normal);
+            font-weight: var(--weight-headline-small);
             letter-spacing: var(--tracking-headline-small);
         }
     }
@@ -173,10 +173,10 @@
             grid-area: center;
             justify-content: flex-start;
             padding-inline: var(--space-sm);
-            font-family: var(--font-sans);
+            font-family: var(--font-headline-medium);
             font-size: var(--text-headline-medium);
             line-height: var(--leading-headline-medium);
-            font-weight: var(--weight-normal);
+            font-weight: var(--weight-headline-medium);
             letter-spacing: var(--tracking-headline-medium);
         }
     }
