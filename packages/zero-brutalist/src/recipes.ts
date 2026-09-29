@@ -578,10 +578,11 @@ const overlayTrigger: PartStyles = {
 
 /**
  * The axes for the four slab overlay triggers (#321). Dialog, popover,
- * tooltip and menu carry their axis attributes on the TRIGGER — the
- * anatomy's carrier part — and their popups are top-layer siblings the
- * compiled `@scope` donut can never reach, so the axes style the slab
- * itself. Colour is the solid button's move: a flat role fill under the
+ * tooltip and menu carry their axis props on the TRIGGER — the anatomy's
+ * carrier part. Their popups, top-layer siblings, mirror every axis
+ * attribute the trigger renders (#514, `mirrorsAxes`), but this skin keeps
+ * the axes on the slab: a colour or a size is the opener's, and the surface
+ * stays the one black-bordered sheet whichever button opened it. Colour is the solid button's move: a flat role fill under the
  * black border, with the `-content` ink whose contrast the token pair
  * guarantees (brutalist light's `accent`/`warning` are far too pale to be
  * inks, so an ink treatment is not available here anyway). The hover shove
@@ -701,8 +702,8 @@ export const dialog: RecipeInput = {
             states: { hover: shift('1px'), disabled: {}, ...focusRing },
         },
     },
-    // Trigger-carried axes — see `overlayTriggerColors` for why the popup is
-    // out of reach and the trigger is the whole story here.
+    // Trigger-carried axes — see `overlayTriggerColors` for why they stay on
+    // the trigger although the popup mirrors them (#514).
     variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
@@ -967,8 +968,8 @@ export const menu: RecipeInput = {
             base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-base-content)' },
         },
     },
-    // Trigger-carried axes — same wiring as dialog, same reason. The popup
-    // and its items are top-layer siblings the donut cannot reach.
+    // Trigger-carried axes — same wiring as dialog, same reason: the popup
+    // and its items see them (#514), and stay the same sheet by choice.
     variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 

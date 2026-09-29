@@ -1210,9 +1210,11 @@ const btn: NonNullable<PartStyles['base']> = {
 
 /**
  * The axes for the four btn-wearing overlay triggers (#321). Dialog, popover,
- * tooltip and menu carry their axis attributes on the TRIGGER — the anatomy's
- * carrier part — and their popups are top-layer siblings the compiled
- * `@scope` donut can never reach, so the axes style the btn itself.
+ * tooltip and menu carry their axis props on the TRIGGER — the anatomy's
+ * carrier part. Their popups, top-layer siblings, mirror every axis
+ * attribute the trigger renders (#514, `mirrorsAxes`), but daisy's
+ * `btn-{color}` / `btn-{size}` are the button's classes, never the
+ * dropdown's or the modal box's — so the axes style the btn itself.
  *
  * Colour is daisy's own `btn-{color}`: solid role fill, `-content` ink. The
  * hover/open states restate the fill under the solid button's brightness dip
@@ -1403,8 +1405,8 @@ export const dialog: RecipeInput = {
             },
         },
     },
-    // Trigger-carried axes — see `btnColors` for why the popup is out of
-    // reach and the trigger is the whole story here.
+    // Trigger-carried axes — see `btnColors` for why they stay on the btn
+    // although the popup mirrors them (#514).
     variants: { color: btnColors(), size: btnSizes },
     // The btn paddings and the footer's push-down, restated physically —
     // see `lynxBtnPad` for the #1084 verdict this answers — and the btns'
@@ -1777,8 +1779,8 @@ export const menu: RecipeInput = {
             },
         },
     },
-    // Trigger-carried axes — same wiring as dialog, same reason. The dropdown
-    // and its items are top-layer siblings the donut cannot reach.
+    // Trigger-carried axes — same wiring as dialog, same reason: the dropdown
+    // and its items see them (#514), and stay daisy's menu by choice.
     variants: { color: btnColors(), size: btnSizes },
     // The btn paddings, restated physically — see `lynxBtnPad` (#1084) —
     // and the trigger's press rendering, as popover's (`lynxBtnPressed`).
@@ -9351,8 +9353,8 @@ export const drawer: RecipeInput = {
             },
         },
     },
-    // Trigger-carried axes — see `btnColors` for why the panel is out of
-    // reach and the trigger is the whole story here.
+    // Trigger-carried axes — see `btnColors` for why they stay on the btn
+    // although the panel mirrors them (#514).
     variants: { color: btnColors(), size: btnSizes },
     targets: {
         // Swipe to dismiss (#293) — web only, since the runtime's `--swipe-*`

@@ -24,7 +24,7 @@ express M3 is filed as an `m3-finding` issue rather than worked around quietly.
 | M3 Expressive's springs (spatial and effects × fast/default/slow) | simulated and sampled into `linear()` easings, each with a same-named duration |
 | Elevation `level0`–`level5` | open keys inside the closed `shadow` category, deepened under dark themes |
 | State layers: hover 8%, focus 10%, pressed 10%, dragged 16% | `--state-*` custom tokens, including the focus layer beside the focus ring. Theme-independent, so they are set once in `system.custom` and emitted under `:root` rather than in each of the six themes (#424) |
-| Window size classes at 600 / 840 / 1200 / 1600 | `breakpoints` `sm` / `md` / `lg` / `xl`, driving a full-screen dialog below `sm` |
+| Window size classes at 600 / 840 / 1200 / 1600 | `breakpoints` `sm` / `md` / `lg` / `xl`, the ramp responsive props and the layout tier resolve against. The full-screen dialog is not tied to one: M3 picks it per use, so it is a variant (#514) |
 
 ## The M3 component API (#415)
 
@@ -96,10 +96,11 @@ by default, outlined with `variant="outlined"`.
 |---|---|
 | Motion: a surface enters on emphasized-decelerate (400ms) and leaves on emphasized-accelerate (200ms) | `popupPresence` puts the entry on `open` and the exit on the base, so menus, popovers, tooltips and dialogs share M3's pair |
 | Cards: elevated (surface-container-low, level 1), filled (surface-container-highest), outlined (surface under a 1dp outline-variant), on the medium corner, 16dp in | Card's `variant`. A `color` makes it tonal: the role's container under its on-container ink |
-| Dialog: surface-container-high on the extra-large corner at level 3, 280–560dp wide, headline-small over body-medium, text-button actions, the scrim at 32% | full-screen below `sm`. A full-screen dialog chosen per use rather than per viewport needs a popup variant zero can't pass (#514) |
+| Dialog: surface-container-high on the extra-large corner at level 3, 280–560dp wide, headline-small over body-medium, text-button actions, the scrim at 32% | Dialog, `variant="basic"` (the default) at every width |
+| Full-screen dialog, chosen per use (a long form) rather than per viewport | Dialog, `variant="full-screen"` on the trigger: the popup mirrors its trigger's axes (#514), so the variant reaches the surface — the whole viewport, square and flat |
 | Menus and listboxes: surface-container at level 2 on the extra-small corner, 48dp label-large items 12dp in, outline-variant dividers | Menu, submenus, and the Select and Combobox listboxes |
-| Plain tooltip: inverse-surface, body-small, 24dp tall at least, 200dp wide at most | Tooltip |
-| Rich tooltip: surface-container at level 2 on the medium corner, a title-small subhead, body-medium text, text-button actions | Popover and HoverCard. Tooltip can't take a `rich` variant: its popup can't see the trigger's axes (#514) |
+| Plain tooltip: inverse-surface, body-small, 24dp tall at least, 200dp wide at most | Tooltip, `variant="plain"` (the default) |
+| Rich tooltip: surface-container at level 2 on the medium corner, a title-small subhead, body-medium text, text-button actions | Tooltip, `variant="rich"` on the trigger, for the surface (#514: the popup mirrors its trigger's axes). A tooltip is never interactive and has no title or action parts, so a rich tooltip with a subhead or actions is a Popover or a HoverCard, which wear the same surface |
 | Snackbar: inverse-surface at level 3 on the extra-small corner, body-medium, an inverse-primary action | Toast. A role colours the leading marker as its container, ringed in the snackbar's ink. The promise indicator is monochrome, because no role has an ink for the inverse surface in every scheme |
 | Sheets: surface-container-low, the large corner on a side sheet's inner edge, the bottom sheet's extra-large top and its 32 × 4dp drag handle, level 1 once modal | Drawer |
 | Overlay triggers and dismiss actions | the outlined button and the text button from #415, with M3's disabled colours |

@@ -199,8 +199,6 @@ const NO_VARIANT: Record<string, string> = {
         + 'splitted; no shipped skin declares a vocabulary for it yet (#321).',
     collapsible: 'no surveyed system varies a bare disclosure — the chrome '
         + 'belongs to the accordion it usually composes into.',
-    dialog: 'no surveyed system varies a dialog\'s chrome — Radix, HeroUI and '
-        + 'Material all size it and leave the surface singular.',
     field: 'no surveyed system varies a form-field wrapper — the variant '
         + 'lives on the control inside it (Radix TextField\'s '
         + 'classic | surface | soft).',
@@ -221,9 +219,6 @@ const NO_VARIANT: Record<string, string> = {
     toast: 'Chakra\'s toast varies as solid | subtle | left-accent | '
         + 'top-accent; no shipped skin declares a vocabulary for it yet '
         + '(#321) — colour, its actual axis here, IS wired (toast.color).',
-    tooltip: 'Ant Design Tooltip varies by `color`, not a chrome variant; '
-        + 'HeroUI colours it through its fused variant, undeclared for '
-        + 'tooltip in the shipped skins.',
 
     // ── The content-tier sweep (#334). ──
     kbd: 'no surveyed system varies a keycap — daisyUI\'s kbd carries only a '
@@ -288,7 +283,7 @@ const NO_VARIANT: Record<string, string> = {
         + 'Ant Design\'s Steps `type` (default | navigation | inline) changes '
         + 'the LAYOUT of the rail rather than its chrome, and daisyUI\'s steps '
         + 'vary by colour only, wired here as the color axis.',
-    drawer: 'no surveyed system varies a drawer\'s chrome — like dialog: '
+    drawer: 'no surveyed system varies a drawer\'s chrome — '
         + 'HeroUI\'s Drawer varies by placement/size/backdrop (all structural '
         + 'or metric), Material\'s standard-vs-modal split is zero\'s modal '
         + 'prop, and daisyUI\'s drawer has layout modifiers only.',

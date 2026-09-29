@@ -807,8 +807,9 @@ export const switchRecipe: RecipeInput = {
 /**
  * The size axis for the four ghost overlay triggers (#321). Dialog, popover,
  * tooltip and menu carry `data-size` on the TRIGGER — the anatomy's carrier
- * part; their popups are top-layer siblings the compiled `@scope` donut can
- * never reach, so size means the control itself. The ramp is the Button's
+ * part. Their popups mirror it (#514, `mirrorsAxes`), but Carbon sizes a
+ * surface by its content, not by the button that opened it, so size means
+ * the control itself. The ramp is the Button's
  * verbatim, including its anchor: `ghostTrigger` rests at Carbon's 48px
  * `lg`, exactly as the button does, so `lg` is the empty entry and `md`
  * SHRINKS the un-attributed render — and, past `lg`, the tall steps top-align

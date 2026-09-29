@@ -142,12 +142,13 @@ type AccordionProps = {
 type AccordionAdapted = Adapted<typeof ZAccordion, ZeroAxisProp, AccordionProps>;
 export declare const Accordion: AccordionAdapted & AdaptedStatics<typeof ZAccordion> & { Root: AccordionAdapted };
 
-/** dialog — no vendor route; the wired surface keeps zero's names. */
+/** dialog — variant ← variant. Attributes stay zero-spelled. */
 type DialogProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    'variant'?: 'basic' | 'full-screen';
 };
-type DialogAdapted = Adapted<typeof ZDialog, ZeroAxisProp, DialogProps>;
+type DialogAdapted = Adapted<typeof ZDialog, ZeroAxisProp | 'variant', DialogProps>;
 export declare const Dialog: DialogAdapted & AdaptedStatics<typeof ZDialog> & { Root: DialogAdapted };
 
 /** popover — no vendor route; the wired surface keeps zero's names. */
@@ -158,12 +159,13 @@ type PopoverProps = {
 type PopoverAdapted = Adapted<typeof ZPopover, ZeroAxisProp, PopoverProps>;
 export declare const Popover: PopoverAdapted & AdaptedStatics<typeof ZPopover> & { Root: PopoverAdapted };
 
-/** tooltip — no vendor route; the wired surface keeps zero's names. */
+/** tooltip — variant ← variant. Attributes stay zero-spelled. */
 type TooltipProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    'variant'?: 'plain' | 'rich';
 };
-type TooltipAdapted = Adapted<typeof ZTooltip, ZeroAxisProp, TooltipProps>;
+type TooltipAdapted = Adapted<typeof ZTooltip, ZeroAxisProp | 'variant', TooltipProps>;
 export declare const Tooltip: TooltipAdapted & AdaptedStatics<typeof ZTooltip> & { Root: TooltipAdapted };
 
 /** hover-card — no vendor route; the wired surface keeps zero's names. */

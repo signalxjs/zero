@@ -659,9 +659,9 @@ const pressableOverlayTrigger: PartStyles = {
 /**
  * The size axis for the four overlay triggers (#321). Dialog, popover,
  * tooltip and menu carry `data-size` on the TRIGGER — the anatomy's carrier
- * part; their popups are top-layer siblings the compiled `@scope` donut can
- * never reach, so size means the control itself, stepped exactly as the
- * button steps its own box. (There is no colour axis to wire: `roles: {}`.)
+ * part. Their popups mirror it (#514, `mirrorsAxes`), but HeroUI sizes the
+ * button, not the surface it opens, so size means the control itself,
+ * stepped exactly as the button steps its own box. (There is no colour axis to wire: `roles: {}`.)
  */
 const overlayTriggerSizes: Record<string, Record<string, PartStyles>> = {
     sm: { trigger: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
