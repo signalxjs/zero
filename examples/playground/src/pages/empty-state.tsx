@@ -1,7 +1,7 @@
 import { component, signal } from 'sigx';
 import { Button, EmptyState } from '@sigx/zero';
 import type { PartProps } from '@sigx/zero';
-import { pickRole, pickVariant } from '../design-systems';
+import { pickRole, pickScopeVariant } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const EmptyStateDemos = component(() => {
@@ -29,7 +29,7 @@ const EmptyStateDemos = component(() => {
                     </EmptyState.Description>
                     <EmptyState.Actions>
                         <Button.Root color={pickRole('primary')}>New project</Button.Root>
-                        <Button.Root asChild variant={pickVariant('ghost', 'tertiary')}>
+                        <Button.Root asChild variant={pickScopeVariant('button', 'ghost', 'tertiary', 'text')}>
                             {(p: PartProps) => <a href="#/empty-state" {...p}>Browse templates</a>}
                         </Button.Root>
                     </EmptyState.Actions>

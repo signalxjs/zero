@@ -353,7 +353,13 @@ function theme(
  * filled, tonal, elevated, outlined and text. Button offers all five, toggle
  * the four M3 toggles. Exported `as const` so `defineApi` narrows against it.
  */
-export const variants = ['filled', 'tonal', 'elevated', 'outlined', 'text'] as const;
+export const variants = [
+    'filled', 'tonal', 'elevated', 'outlined', 'text',
+    // Cards (#418) take elevated / filled / outlined from the list above.
+    'primary', 'secondary',
+    'small', 'center-aligned', 'medium', 'large', 'bottom',
+    'drawer', 'rail', 'bar',
+] as const;
 
 /**
  * Presence-only modifiers, each narrowed to its scope in `scopes`:
@@ -408,6 +414,10 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         combobox: { variants: ['filled', 'outlined'] },
         // M3's cards (#418).
         card: { variants: ['elevated', 'filled', 'outlined'] },
+        // M3's navigation (#419).
+        tabs: { variants: ['primary', 'secondary'] },
+        navbar: { variants: ['small', 'center-aligned', 'medium', 'large', 'bottom'] },
+        'nav-list': { variants: ['drawer', 'rail', 'bar'] },
         // A field reads its text field's variant to float its label there,
         // and has none of its own.
         field: { variants: [] },
