@@ -287,6 +287,10 @@ and emitted in two layers. A scope-agnostic **step table**
 (`[data-l-gap="md"] { --l-gap: var(--space-md) }`) is emitted once per design
 system through `DesignSystemInput.css`; each layout part declares its
 defaults as component tokens and consumes them (`column-gap: var(--l-gap-x)`).
+A growing stack part (root or item, `[data-l-grow="1"]`) also gets
+`flex-basis: 0` and `min-block-size: 0`, so a region inside it can scroll
+(#454, #459); the floor is keyed on `grow`, never unconditional, so a
+non-growing header Row keeps its content height.
 
 Both halves of that shape are load-bearing. Putting the table in the recipes
 instead would emit one design-system-wide fact once per layout scope and

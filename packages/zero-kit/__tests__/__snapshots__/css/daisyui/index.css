@@ -333,6 +333,7 @@
         --l-align: stretch;
         --l-justify: flex-start;
         --l-wrap: nowrap;
+        --l-grow: 0;
     }
 
     [data-scope="stack"][data-part="root"] {
@@ -345,6 +346,7 @@
         align-items: var(--l-align);
         justify-content: var(--l-justify);
         flex-wrap: var(--l-wrap);
+        flex-grow: var(--l-grow);
     }
 
     [data-scope="stack"][data-part="root"][data-orientation="horizontal"] {
@@ -355,6 +357,11 @@
         flex-direction: column;
     }
 
+    [data-scope="stack"][data-part="root"][data-l-grow="1"] {
+        flex-basis: 0;
+        min-block-size: 0;
+    }
+
     [data-scope="stack"][data-part="item"] {
         --l-grow: 0;
         flex-grow: var(--l-grow);
@@ -363,6 +370,7 @@
 
     [data-scope="stack"][data-part="item"][data-l-grow="1"] {
         flex-basis: 0;
+        min-block-size: 0;
     }
 }
 

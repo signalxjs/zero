@@ -100,6 +100,24 @@ describe('Stack', () => {
         expectAnatomy(container, stackAnatomy);
     });
 
+    it('Stack, Row and Col take grow on the root (#459)', () => {
+        // A nested Row or Col fills what its parent has left by growing
+        // itself — a growing Stack.Item wrapper cannot hand its height on.
+        const rootOf = (node: ReturnType<typeof Row>): HTMLElement => {
+            const host = document.createElement('div');
+            document.body.append(host);
+            render(node, host);
+            expectAnatomy(host, stackAnatomy);
+            return host.querySelector<HTMLElement>('[data-scope="stack"][data-part="root"]')!;
+        };
+        expect(rootOf(<Col grow />).getAttribute('data-l-grow')).toBe('1');
+        expect(rootOf(<Row grow />).getAttribute('data-l-grow')).toBe('1');
+        expect(rootOf(<Stack grow />).getAttribute('data-l-grow')).toBe('1');
+        // `false` and absent both mean no attribute: the default is 0.
+        expect(rootOf(<Row grow={false} />).hasAttribute('data-l-grow')).toBe(false);
+        expect(rootOf(<Col />).hasAttribute('data-l-grow')).toBe(false);
+    });
+
     it('refuses a value outside the attribute\'s closed set', () => {
         // Contract data zero owns, so a typo is an error rather than an
         // attribute that silently matches nothing.
