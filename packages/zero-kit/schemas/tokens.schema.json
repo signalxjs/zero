@@ -116,7 +116,7 @@
             }
         },
         "custom": {
-            "description": "DS-declared custom tokens: name \u2192 metadata. Values live per-theme in each theme's `custom`. Names may be spelled with or without the leading `--`.",
+            "description": "DS-declared custom tokens: name \u2192 metadata. Values live in `system.custom` (design-system level, emitted once under :root) and/or in each theme's `custom` (which wins). Names may be spelled with or without the leading `--`.",
             "type": "object",
             "additionalProperties": {
                 "type": "object",
@@ -437,7 +437,7 @@
             }
         },
         "systemTokens": {
-            "description": "The closed category set (mirrors TOKEN_CATEGORIES): radius, size, typography, spacing, shadow, motion, border, disabledOpacity — plus `structural`, the map of structural roles onto the design system's own keys.",
+            "description": "The closed category set (mirrors TOKEN_CATEGORIES): radius, size, typography, spacing, shadow, motion, border, disabledOpacity — plus `structural`, the map of structural roles onto the design system's own keys, and `custom`, the design-system-level values of declared custom tokens.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -470,6 +470,13 @@
                 },
                 "disabledOpacity": {
                     "$ref": "#/$defs/tokenValue"
+                },
+                "custom": {
+                    "description": "Design-system-level values for declared `custom` tokens (#424): name \u2192 value, emitted once under :root. A theme may omit a token set here, or override it in its own `custom`. Every key must be declared in tokens.custom (`sigx zero:validate` enforces it). Declared once: systemDark and a theme's `system` carry no `custom`.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/$defs/tokenValue"
+                    }
                 }
             }
         },
@@ -584,7 +591,7 @@
                     "$ref": "#/$defs/themeSystem"
                 },
                 "custom": {
-                    "description": "Values for the design system's declared `custom` tokens.",
+                    "description": "Values for the design system's declared `custom` tokens. Required for each declared token that has no `system.custom` value; overrides that value where it has one.",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/$defs/cssText"

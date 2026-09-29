@@ -10,7 +10,8 @@
  *   declared. Absence of a category is never an error — `css/base.css` ships
  *   fallbacks for the recommended keys.
  * - Token completeness: every declared role (+ `-content` where declared),
- *   every base surface, and every declared custom token present per theme;
+ *   every base surface, and every declared custom token present per theme
+ *   (or valued once in `system.custom`, #424);
  *   colors parseable. Color keys a theme defines but the DS never declared
  *   are errors — declare the role or drop the value.
  * - Contrast: WCAG ratio on every declared `role` / `role-content` pair and
@@ -58,7 +59,7 @@ import { tokenVocabulary } from './vocabulary.js';
 import { formatOklch, solveContentLightness } from '../palette.js';
 import { tryBakeColorValue } from './color-bake.js';
 import { compositeOver, measureRolePair, parseCssColor, withDerivedSoft } from './role-contrast.js';
-import { CSS_BREAKOUT, DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, badPropertySyntaxMessage, breakoutMessage, dependentInitialValue, resolveSystemTokens, softMixPercent } from '../targets/shared.js';
+import { CSS_BREAKOUT, DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, badPropertySyntaxMessage, breakoutMessage, dependentInitialValue, resolveSystemTokens, softMixPercent, systemCustomProps } from '../targets/shared.js';
 
 export interface ValidationIssue {
     level: 'error' | 'warning';
@@ -361,6 +362,18 @@ export function validateDesignSystem<R extends RolesDecl>(
                 }
                 continue;
             }
+            if (key === 'custom') {
+                // Design-system-level custom values (#424) are the base a
+                // theme overrides — in its own `custom`, the one per-theme
+                // spelling, so an override tier holds none.
+                if (!declaration) {
+                    error(
+                        `${where}.custom`,
+                        'sets custom token values, which are declared once in tokens.system.custom — a theme overrides one in its own `custom` instead',
+                    );
+                }
+                continue;
+            }
             // The likely mistakes are naming a nested category by its id or
             // by its leaf, so say where the category actually lives.
             const nested = nestedAliases.get(key);
@@ -373,6 +386,34 @@ export function validateDesignSystem<R extends RolesDecl>(
     };
     checkSystemKeys('tokens.system', declaredSystem, true);
     checkSystemKeys('tokens.systemDark', ds.tokens.systemDark);
+
+    // ── Design-system-level custom values (#424) ──
+    // `system.custom` gives a declared custom token its value once, under
+    // the root. Only declared tokens, so each still surfaces in the manifest
+    // with its metadata, and each value is written verbatim like a theme's.
+    const systemCustomNode = isKeyMap(declaredSystem) ? declaredSystem['custom'] : undefined;
+    /** Normalized property → the design-system-level value. */
+    const systemCustom = new Map<string, string>();
+    if (systemCustomNode !== undefined) {
+        if (!isKeyMap(systemCustomNode)) {
+            error('tokens.system.custom', `must be an object of custom token name → value, got ${Array.isArray(systemCustomNode) ? 'an array' : typeof systemCustomNode}`);
+        } else {
+            for (const [name, value] of Object.entries(systemCustomNode)) {
+                if (!declaredCustom.has(normProp(name))) {
+                    error('tokens.system.custom', `custom token "${name}" is not declared in tokens.custom`);
+                    continue;
+                }
+                if (typeof value !== 'string' && typeof value !== 'number') {
+                    error('tokens.system.custom', `"${name}": must be a string or a number, got ${value === null ? 'null' : Array.isArray(value) ? 'an array' : typeof value}`);
+                    continue;
+                }
+                if (CSS_BREAKOUT.test(String(value))) {
+                    error('tokens.system.custom', `"${name}": the value ${breakoutMessage(String(value))}`);
+                }
+            }
+            for (const [prop, value] of Object.entries(systemCustomProps(declaredSystem))) systemCustom.set(prop, value);
+        }
+    }
 
     // ── Structural roles (#422) ──
     // `system.structural` maps a role (`radius.box`) onto a key of the design
@@ -721,7 +762,10 @@ export function validateDesignSystem<R extends RolesDecl>(
                 if (readable[`${name}-soft`] || !colors['base-100']) continue;
                 readable[`${name}-soft`] = `color-mix(in oklab, ${colors[name]} ${softMixPercent(mix)}, ${colors['base-100']})`;
             }
-            const customValues = new Map(Object.entries(theme.custom ?? {}).map(([name, value]) => [normProp(name), value]));
+            const customValues = new Map([
+                ...systemCustom,
+                ...Object.entries(theme.custom ?? {}).map(([name, value]) => [normProp(name), String(value)] as const),
+            ]);
             for (const { fg, bg, min, decl } of declaredPairs) {
                 const fgColor = pairEndColor(fg, readable, customValues, theme.colorScheme);
                 const bgColor = pairEndColor(bg, readable, customValues, theme.colorScheme);
@@ -771,8 +815,8 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
         const themeCustom = new Set(Object.keys(theme.custom ?? {}).map(normProp));
         for (const name of Object.keys(customDecls)) {
-            if (!themeCustom.has(normProp(name))) {
-                error(`themes.${themeName}`, `missing value for declared custom token "${name}"`);
+            if (!themeCustom.has(normProp(name)) && !systemCustom.has(normProp(name))) {
+                error(`themes.${themeName}`, `missing value for declared custom token "${name}" — set it in this theme's custom, or once for every theme in tokens.system.custom`);
             }
         }
         for (const [name, value] of Object.entries(theme.custom ?? {})) {
@@ -814,15 +858,20 @@ export function validateDesignSystem<R extends RolesDecl>(
     // still applies, only typed interpolation is lost.
     const lightTheme = ds.tokens.themes[ds.tokens.defaultLight];
     if (lightTheme) {
-        const lightCustom = new Map(Object.entries(lightTheme.custom ?? {}).map(([name, value]) => [normProp(name), String(value)]));
+        const lightOwn = new Set(Object.keys(lightTheme.custom ?? {}).map(normProp));
+        const lightCustom = new Map([
+            ...systemCustom,
+            ...Object.entries(lightTheme.custom ?? {}).map(([name, value]) => [normProp(name), String(value)] as const),
+        ]);
         for (const [name, decl] of Object.entries(customDecls)) {
             if (!decl.syntax || decl.syntax === '*') continue;
             const value = lightCustom.get(normProp(name));
             const why = value === undefined ? undefined : dependentInitialValue(value);
             if (why) {
+                const fromSystem = !lightOwn.has(normProp(name));
                 warn(
-                    `themes.${ds.tokens.defaultLight}`,
-                    `custom token "${name}" has the light value "${value}", which is not computationally independent (${why}) — it cannot be an @property initial-value, so @property ${normProp(name)} is not registered and the token loses its ${decl.syntax} typing; give ${ds.tokens.defaultLight} a literal ${decl.syntax} value that depends on nothing (e.g. px rather than em, a literal colour rather than var()), or declare syntax '*'`,
+                    fromSystem ? 'tokens.system.custom' : `themes.${ds.tokens.defaultLight}`,
+                    `custom token "${name}" has the light value "${value}", which is not computationally independent (${why}) — it cannot be an @property initial-value, so @property ${normProp(name)} is not registered and the token loses its ${decl.syntax} typing; give ${fromSystem ? 'tokens.system.custom' : ds.tokens.defaultLight} a literal ${decl.syntax} value that depends on nothing (e.g. px rather than em, a literal colour rather than var()), or declare syntax '*'`,
                 );
             }
         }
@@ -1209,6 +1258,7 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
     };
     collectCategories('tokens.system', ds.tokens.system);
+    for (const [prop, value] of systemCustom) tokenDeclarations.push({ where: 'tokens.system.custom', prop, value });
     collectCategories('tokens.systemDark', ds.tokens.systemDark);
     /** themeName → that theme's own definitions, for per-theme cycle detection. */
     const themeDeclarations = new Map<string, Array<{ prop: string; value: string }>>();

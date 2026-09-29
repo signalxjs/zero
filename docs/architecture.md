@@ -547,6 +547,21 @@ resolves it; an unmapped role resolves to its own name.
   its own name (two values for one role); the map is declared once in
   `tokens.system` — `systemDark` and theme tiers cannot remap a role.
 
+**Custom token values have a design-system tier too** (#424). A token the
+closed categories do not name is declared in `tokens.custom` (metadata:
+`description`, `syntax`), and its value is set either once in
+`system.custom` or per theme in `theme.custom` — or both, the theme's
+winning. `resolveSystemTokens` emits the base tier's `custom` like any
+category value, so on the web it lands once in `:where(:root)` and a theme
+block restates it only where the theme overrides it (or where the value
+reads a colour, the rule below). A theme may omit a token that has a
+`system.custom` value; one with neither is a validation error, as is a
+`system.custom` key `tokens.custom` never declared, and a `custom` inside
+`systemDark` or a theme's `system` — the override spelling is the theme's
+own `custom`. A typed token's `@property` `initial-value` is the resolved
+light value, whichever tier set it. zero-material's M3 state-layer
+opacities are the first user.
+
 ### 3.1b Spacing is a ramp, and the ramp is a mechanism
 
 `--space-2xs` … `--space-2xl` is not a convenience scale. Because a recipe
