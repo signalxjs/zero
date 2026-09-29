@@ -11,7 +11,7 @@ import {
     activateDesignSystem,
     activeDesignSystemId,
     designSystems,
-    pickVariant,
+    pickScopeVariant,
     type DesignSystemEntry,
 } from './design-systems';
 
@@ -174,13 +174,16 @@ export const Toolbar = component(() => {
                       * looks like. Here a variant IS the right expression, and
                       * it is picked from the live vocabulary rather than
                       * named: `solid` under the four that declare it,
-                      * `primary` under heroui and carbon.
+                      * `primary` under heroui and carbon, `filled` under
+                      * material. Asked of BUTTON's vocabulary, not the union:
+                      * material's union also holds tabs' `primary` (#419),
+                      * which a button would render and nothing would paint.
                       */}
                     <Button.Root
                         size="sm"
                         variant={current
-                            ? pickVariant('ghost', 'outline', 'tertiary')
-                            : pickVariant('solid', 'primary')}
+                            ? pickScopeVariant('button', 'ghost', 'outline', 'tertiary', 'outlined')
+                            : pickScopeVariant('button', 'solid', 'primary', 'filled')}
                         onClick={() => themeController().setTheme(null)}
                     >
                         system

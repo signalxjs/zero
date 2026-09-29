@@ -1,7 +1,8 @@
 import { component, signal } from 'sigx';
 import { Badge, Drawer, Kbd, NavList } from '@sigx/zero';
 import type { PartProps } from '@sigx/zero';
-import { pickRole, pickSize } from '../design-systems';
+import { activeVocabulary, pickRole, pickSize } from '../design-systems';
+import { AxisLabel, DemoRow } from '../demo/Section';
 import type { PageEntry } from './registry';
 
 // Every link points at this page: the playground's router owns the hash,
@@ -116,9 +117,46 @@ const NavListDemos = component(() => {
     );
 }, { name: 'NavListDemos' });
 
+/**
+ * One list per variant the live design system declares for nav-list —
+ * Material 3's navigation drawer, rail and bar (#419) — read from the
+ * manifest, so a skin with none renders nothing here.
+ */
+const NavListFlavors = component(() => {
+    const flavors = () => activeVocabulary().perScope['nav-list']?.variants ?? [];
+    return () => (
+        <>
+            {flavors().map((variant) => (
+                <DemoRow>
+                    <AxisLabel>{variant}</AxisLabel>
+                    <NavList.Root label={`${variant} navigation`} variant={variant}>
+                        <NavList.List>
+                            {VIEWS.map((v, i) => (
+                                <NavList.Item>
+                                    <NavList.Link href="#/nav-list" current={i === 0}>
+                                        <NavList.Icon>{v.icon}</NavList.Icon>
+                                        {v.label}
+                                    </NavList.Link>
+                                </NavList.Item>
+                            ))}
+                        </NavList.List>
+                    </NavList.Root>
+                </DemoRow>
+            ))}
+        </>
+    );
+}, { name: 'NavListFlavors' });
+
+const NavListPage = component(() => () => (
+    <>
+        <NavListDemos />
+        <NavListFlavors />
+    </>
+), { name: 'NavListPage' });
+
 export const navListPage: PageEntry = {
     id: 'nav-list',
     title: 'NavList',
     category: 'Navigation & structure',
-    Demos: NavListDemos,
+    Demos: NavListPage,
 };

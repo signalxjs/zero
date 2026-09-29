@@ -105,6 +105,18 @@ by default, outlined with `variant="outlined"`.
 | Overlay triggers and dismiss actions | the outlined button and the text button from #415, with M3's disabled colours |
 | Dividers | 1dp outline-variant |
 
+## M3 navigation and communication (#419)
+
+| M3 | How it lands |
+|---|---|
+| Tabs: primary (3dp rounded indicator, the active label in the role) and secondary (2dp flat indicator, the active label on-surface); 48dp title-small tabs over a 1dp outline-variant divider | Tabs' `variant`. The indicator spans the tab: zero publishes the tab's box, not its label's (#530) |
+| Top app bar: small (64dp, a title-large headline), center-aligned, medium and large (112 / 152dp, the headline on its own row in headline-small / headline-medium); bottom app bar (80dp, surface-container) | Navbar's `variant`. The `center` part is the headline for center-aligned, medium and large. There is no scrolled-under fill: the bar publishes no scroll state (#530) |
+| Navigation drawer: 56dp pill rows, label-large, the active row on secondary-container, title-small headings | NavList, `variant="drawer"` (the default) |
+| Navigation rail and navigation bar: icon over label-medium label, the active pill (56 × 32dp) behind the icon alone; the bar is 80dp on surface-container | NavList, `variant="rail"` / `"bar"`. The pill rides the `icon` part, so no new component was needed (settles #420's rail/bar question) |
+| Linear progress: 4dp, the active bar in a 4dp gap, a stop indicator at the end | Progress. The gap is painted in `--tf-surface` (#468). No Expressive wavy variant yet |
+| Circular progress: 48dp determinate over a surface-container-highest track, 40dp indeterminate with no track, 4dp stroke | RadialProgress and Spinner |
+| Badge: 16dp, fully round, label-small, error / on-error | Badge |
+
 ## What the recipes prove
 
 | Material | How it lands |

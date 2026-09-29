@@ -1,7 +1,7 @@
 @layer zero.recipes {
     [data-scope="progress"][data-part="root"] {
         --progress-accent: var(--color-primary);
-        --progress-track-size: calc(var(--size-field) * 1.5);
+        --progress-track-size: 0.25rem;
     }
 
     [data-scope="progress"][data-part="root"] {
@@ -25,10 +25,25 @@
         overflow: hidden;
     }
 
+    [data-scope="progress"][data-part="track"]::after {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-end: 0;
+        inline-size: var(--progress-track-size);
+        border-radius: 50%;
+        background: var(--progress-accent);
+    }
+
+    [data-scope="progress"][data-part="track"]:has([data-state="indeterminate"])::after {
+        content: none;
+    }
+
     [data-scope="progress"][data-part="range"] {
         height: 100%;
         border-radius: 624rem;
         background: var(--progress-accent);
+        box-shadow: 0 0 0 var(--space-2xs) var(--tf-surface);
         transition: width var(--duration-short2) var(--ease-standard), background var(--duration-short2) var(--ease-standard);
         --progress-sweep-dir: 1;
     }
@@ -84,23 +99,19 @@
     }
 
     [data-scope="progress"][data-part="root"][data-size="xs"] {
-        --progress-track-size: calc(var(--size-field) * 0.75);
+        --progress-track-size: 0.125rem;
     }
 
     [data-scope="progress"][data-part="root"][data-size="sm"] {
-        --progress-track-size: var(--size-field);
-    }
-
-    [data-scope="progress"][data-part="root"][data-size="md"] {
-        --progress-track-size: calc(var(--size-field) * 1.5);
+        --progress-track-size: 0.1875rem;
     }
 
     [data-scope="progress"][data-part="root"][data-size="lg"] {
-        --progress-track-size: calc(var(--size-field) * 2);
+        --progress-track-size: 0.5rem;
     }
 
     [data-scope="progress"][data-part="root"][data-size="xl"] {
-        --progress-track-size: calc(var(--size-field) * 3);
+        --progress-track-size: 0.75rem;
     }
 
     @media (prefers-reduced-motion: reduce) {
