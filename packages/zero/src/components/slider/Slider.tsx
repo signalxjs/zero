@@ -271,12 +271,6 @@ function isRtl(el: HTMLElement | null): boolean {
 }
 
 /**
- * The structural position of a point on the rail: logical inline-start when
- * horizontal (RTL mirrors for free), physical `bottom` when vertical — a
- * vertical slider runs bottom-to-top whatever the reading direction (APG),
- * which is also what the pointer math measures against (`clientY`).
- */
-/**
  * The handle geometry the root publishes (#468): `--slider-percent` (the
  * highest value's position, v1), the same as a unitless `--slider-fraction`,
  * and — only while several thumbs share the rail — the lowest one's
@@ -296,6 +290,12 @@ function handleGeometry(vals: readonly number[], percent: number, percentOf: (v:
     return style;
 }
 
+/**
+ * The structural position of a point on the rail: logical inline-start when
+ * horizontal (RTL mirrors for free), physical `bottom` when vertical — a
+ * vertical slider runs bottom-to-top whatever the reading direction (APG),
+ * which is also what the pointer math measures against (`clientY`).
+ */
 function positionStyle(orientation: Orientation, percent: number): Record<string, string> {
     return orientation === 'vertical'
         ? { position: 'absolute', bottom: `${percent}%` }
