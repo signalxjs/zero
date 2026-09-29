@@ -45,6 +45,22 @@ export const collapsibleAnatomy = defineAnatomy('collapsible', {
         asChild: true,
         absorbable: true,
     },
+    // The trigger's optional disclosure mark (#437) — a chevron the recipe
+    // draws, turned by the disclosure's `open|closed`. Rendered only where
+    // the app places `Collapsible.Indicator` inside its trigger. `parent`
+    // names the root, not the trigger: the trigger is absorbable (its bag
+    // may be lent to a host that keeps its own anatomy), so no part may
+    // declare it as its container — `paint.host` still measures the mark on
+    // the trigger it sits in, menu's `item-indicator` idiom.
+    indicator: {
+        element: 'span',
+        // No glyph: zero renders an empty, aria-hidden span and the recipe
+        // draws the chevron.
+        paint: { host: 'trigger' },
+        parent: 'root',
+        states: ['open', 'closed'],
+        tokens: ['color'],
+    },
     panel: {
         element: 'div',
         parent: 'root',

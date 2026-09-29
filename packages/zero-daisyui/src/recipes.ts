@@ -751,10 +751,57 @@ const disclosureSizes: Record<string, Record<string, PartStyles>> = {
     },
 };
 
+/**
+ * daisy's collapse-arrow as a part (#437): `collapsible.indicator` and
+ * `accordion.indicator`, the optional mark an app places inside the trigger.
+ * The same two-border arrow the trigger's `::after` draws, so a trigger that
+ * holds an indicator hands its arrow over (`disclosureArrowHandOff`) and
+ * reads exactly as one without. The trigger's `space-between` puts it at the
+ * trailing edge.
+ */
+const disclosureIndicator: PartStyles = {
+    base: {
+        flex: 'none',
+        width: '0.5rem',
+        height: '0.5rem',
+        border: '2px solid currentColor',
+        borderTop: 'none',
+        borderLeft: 'none',
+        transform: 'rotate(45deg)',
+        transition: 'transform var(--duration-normal) var(--ease-standard)',
+        opacity: '0.6',
+    },
+    states: { open: { transform: 'rotate(225deg)' }, closed: {} },
+};
+
+/**
+ * The arrow on lynx, where `currentColor` does not resolve: the two edges in
+ * the open heading's ink, as longhands (a var-bearing `border` shorthand
+ * expands after the cascade, lynx#1161/#1162).
+ */
+const lynxDisclosureIndicator = (scope: 'collapsible' | 'accordion'): PartStyles => ({
+    base: {
+        borderRightWidth: '2px',
+        borderRightStyle: 'solid',
+        borderRightColor: `var(--${scope}-accent)`,
+        borderBottomWidth: '2px',
+        borderBottomStyle: 'solid',
+        borderBottomColor: `var(--${scope}-accent)`,
+    },
+});
+
+/** The trigger's own arrow steps aside while an indicator part draws it. */
+const disclosureArrowHandOff = (scope: 'collapsible' | 'accordion'): Record<string, CssProps> => ({
+    [`&:has(> [data-scope="${scope}"][data-part="indicator"])::after`]: { display: 'none' },
+});
+
 // daisy "collapse collapse-arrow" flavor.
 export const collapsible: RecipeInput = withNonNative({
     component: 'collapsible',
-    targets: disclosureExit('collapsible'),
+    targets: {
+        ...disclosureExit('collapsible'),
+        lynx: { parts: { indicator: lynxDisclosureIndicator('collapsible') } },
+    },
     // Public to a design system derived from this one (#73).
     hooks: {
         properties: {
@@ -811,8 +858,10 @@ export const collapsible: RecipeInput = withNonNative({
                 '&[data-state="open"]::after': {
                     transform: 'rotate(225deg)',
                 },
+                ...disclosureArrowHandOff('collapsible'),
             },
         },
+        indicator: disclosureIndicator,
         panel: {
             base: { padding: '0 var(--space-2xl) var(--space-xl)', fontSize: 'var(--text-md)' },
             states: { open: {}, closed: {} },
@@ -3094,8 +3143,8 @@ export const accordion: RecipeInput = {
             parts: {
                 // No hover on a touch platform: the held trigger takes daisy's
                 // hover fill. The ::after chevron has no lynx counterpart (no
-                // pseudo-elements, and the anatomy declares no part for it) —
-                // an app draws its own glyph in the trigger.
+                // pseudo-elements): there the arrow is the `indicator` part
+                // (#437), drawn where the app places `Accordion.Indicator`.
                 //
                 // The item card clips (`overflow: hidden`) and the trigger
                 // fills it, so an outside ring is clipped away entirely
@@ -3110,6 +3159,7 @@ export const accordion: RecipeInput = {
                         },
                     },
                 },
+                indicator: lynxDisclosureIndicator('accordion'),
             },
         },
     },
@@ -3165,8 +3215,10 @@ export const accordion: RecipeInput = {
                     opacity: '0.6',
                 },
                 '&[data-state="open"]::after': { transform: 'rotate(225deg)' },
+                ...disclosureArrowHandOff('accordion'),
             },
         },
+        indicator: disclosureIndicator,
         panel: {
             base: { padding: '0 var(--space-2xl) var(--space-xl)', fontSize: 'var(--text-md)' },
             states: { open: {}, closed: {} },
@@ -5057,6 +5109,25 @@ export const toggleGroup: RecipeInput = {
                 },
             },
         },
+        // The item's optional check (#437): daisy's toast tick at label
+        // scale in the item's own ink, present only while on.
+        'item-indicator': {
+            base: {
+                display: 'none',
+                flexShrink: '0',
+                width: '0.9em',
+                height: '0.9em',
+                background: 'currentColor',
+                clipPath: TOAST_CHECK,
+            },
+            states: { on: { display: 'inline-block' }, off: {} },
+            at: {
+                // Forced colours revalue the fill the clip cuts, and print
+                // drops backgrounds: keep the mark the item's ink.
+                'forced-colors': { base: { forcedColorAdjust: 'none' } },
+                print: { base: { printColorAdjust: 'exact' } },
+            },
+        },
     },
     variants: {
         // The group is a frame around its items, so the ramp lands on the
@@ -5142,6 +5213,22 @@ export const toggleGroup: RecipeInput = {
                             borderTopStyle: 'solid',
                             borderTopColor: 'var(--color-base-300)',
                         },
+                    },
+                },
+                // The check (#437) without clip-path or currentColor: daisy's
+                // own tick construction, two edges of a narrow box turned
+                // 45°, in the on item's ink.
+                'item-indicator': {
+                    base: {
+                        width: '0.35em',
+                        height: '0.65em',
+                        borderRightWidth: '2px',
+                        borderRightStyle: 'solid',
+                        borderRightColor: 'var(--toggle-group-on-accent)',
+                        borderBottomWidth: '2px',
+                        borderBottomStyle: 'solid',
+                        borderBottomColor: 'var(--toggle-group-on-accent)',
+                        transform: 'rotate(45deg)',
                     },
                 },
             },

@@ -9,6 +9,10 @@
  * </ToggleGroup.Root>
  * ```
  *
+ * An item may hold a `ToggleGroup.ItemIndicator` (#437) — an empty,
+ * `aria-hidden` span mirroring the item's `on|off` that a design system
+ * draws a check in.
+ *
  * The model follows `multiple`, Select's rule: single mode holds the pressed
  * value as a `string` (`''` when none), `multiple` holds a `string[]` — the
  * exported root is typed through the overload cast (#443), so a string
@@ -87,6 +91,13 @@ function makeInert(): ToggleGroupContext {
 }
 
 export const useToggleGroupContext = defineInjectable<ToggleGroupContext>(() => makeInert());
+
+/** What an `ItemIndicator` reads from the item it sits in. */
+interface ToggleGroupItemContext {
+    on(): boolean;
+}
+
+const useToggleGroupItemContext = defineInjectable<ToggleGroupItemContext>(() => ({ on: () => false }));
 
 // ── Root ──
 
@@ -315,6 +326,7 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onMount
     });
 
     const isOn = (): boolean => group.selected().includes(props.value);
+    defineProvide(useToggleGroupItemContext, () => ({ on: isOn }));
 
     const isTabbable = (): boolean => {
         // One tab stop: the first enabled on item, else the first enabled
@@ -383,7 +395,35 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onMount
     };
 }, { name: 'ToggleGroup.Item' });
 
+// ── ItemIndicator ──
+
+/** Decorative: always `aria-hidden` — the item's `aria-pressed` carries the state. */
+export type ToggleGroupItemIndicatorProps = WithClass & Omit<WithHtmlAttrs, 'aria-hidden'> & Define.Slot<'default'>;
+
+/**
+ * The item's optional mark (#437): place it inside a `ToggleGroup.Item`
+ * and it mirrors the item's `on|off` — a design system draws a check there
+ * (Material's segmented button slides one in before the label). Zero renders
+ * an empty span; children (an icon) are the app's own.
+ */
+const ToggleGroupItemIndicator = component<ToggleGroupItemIndicatorProps>(({ props, slots }) => {
+    const item = useToggleGroupItemContext();
+    return () => (
+        <span
+            {...htmlAttrs(props)}
+            data-scope={SCOPE}
+            data-part="item-indicator"
+            data-state={stateAttr(item.on(), 'on', 'off')}
+            aria-hidden="true"
+            class={props.class}
+        >
+            {slots.default?.()}
+        </span>
+    );
+}, { name: 'ToggleGroup.ItemIndicator' });
+
 export const ToggleGroup = compound(ToggleGroupRoot, {
     Root: ToggleGroupRoot,
     Item: ToggleGroupItem,
+    ItemIndicator: ToggleGroupItemIndicator,
 });

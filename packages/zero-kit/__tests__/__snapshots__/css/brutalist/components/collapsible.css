@@ -68,6 +68,18 @@
         box-sizing: border-box;
     }
 
+    [data-scope="collapsible"][data-part="indicator"] {
+        flex: none;
+        width: 0.75em;
+        height: 0.75em;
+        background: currentColor;
+        clip-path: polygon(0% 20%, 100% 20%, 50% 85%);
+    }
+
+    [data-scope="collapsible"][data-part="indicator"][data-state="open"] {
+        rotate: 180deg;
+    }
+
     [data-scope="collapsible"][data-part="panel"] {
         padding: var(--space-md);
         border-top: var(--border) solid var(--color-base-content);
@@ -163,6 +175,18 @@
 
         [data-scope="collapsible"][data-part="panel"] {
             padding: var(--space-xl);
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="collapsible"][data-part="indicator"] {
+            forced-color-adjust: none;
+        }
+    }
+
+    @media print {
+        [data-scope="collapsible"][data-part="indicator"] {
+            print-color-adjust: exact;
         }
     }
 

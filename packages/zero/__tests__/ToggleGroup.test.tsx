@@ -372,4 +372,53 @@ describe('ToggleGroup', () => {
         span.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
         expect(span.getAttribute('data-state')).toBe('off');
     });
+
+    describe('ItemIndicator (#437)', () => {
+        const marks = () => [...container.querySelectorAll<HTMLElement>('[data-part="item-indicator"]')];
+
+        it('mirrors its item\'s on/off, aria-hidden, inside the item', () => {
+            const state = signal({ value: 'left' });
+            render(
+                <ToggleGroup.Root model={[state, 'value']}>
+                    <ToggleGroup.Item value="left"><ToggleGroup.ItemIndicator />Left</ToggleGroup.Item>
+                    <ToggleGroup.Item value="right"><ToggleGroup.ItemIndicator />Right</ToggleGroup.Item>
+                </ToggleGroup.Root>,
+                container,
+            );
+            expectAnatomy(container, toggleGroupAnatomy);
+            expect(marks().map((m) => m.getAttribute('data-state'))).toEqual(['on', 'off']);
+            expect(marks().every((m) => m.getAttribute('aria-hidden') === 'true')).toBe(true);
+            expect(marks()[0]!.closest('[data-part="item"]')).toBe(items(container)[0]);
+            // Empty by default: the recipe draws the mark.
+            expect(marks()[0]!.textContent).toBe('');
+
+            items(container)[1]!.click();
+            expect(marks().map((m) => m.getAttribute('data-state'))).toEqual(['off', 'on']);
+            expectAnatomy(container, toggleGroupAnatomy);
+        });
+
+        it('follows every pressed item under multiple, and renders an app icon', () => {
+            render(
+                <ToggleGroup.Root multiple defaultValue={['b']}>
+                    <ToggleGroup.Item value="a"><ToggleGroup.ItemIndicator>*</ToggleGroup.ItemIndicator>A</ToggleGroup.Item>
+                    <ToggleGroup.Item value="b"><ToggleGroup.ItemIndicator>*</ToggleGroup.ItemIndicator>B</ToggleGroup.Item>
+                </ToggleGroup.Root>,
+                container,
+            );
+            expect(marks().map((m) => m.getAttribute('data-state'))).toEqual(['off', 'on']);
+            items(container)[0]!.click();
+            expect(marks().map((m) => m.getAttribute('data-state'))).toEqual(['on', 'on']);
+            expect(marks()[0]!.textContent).toBe('*');
+        });
+
+        it('is optional: an item without one renders none', () => {
+            mountGroup(container, { defaultValue: 'left' });
+            expect(marks()).toHaveLength(0);
+        });
+
+        it('reads off outside an item', () => {
+            render(<ToggleGroup.ItemIndicator />, container);
+            expect(marks()[0]!.getAttribute('data-state')).toBe('off');
+        });
+    });
 });

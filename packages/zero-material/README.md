@@ -49,7 +49,7 @@ import { Button, Toggle, ToggleGroup, Join } from '@sigx/zero-material/component
 | Icon buttons (standard, filled, tonal, outlined) | the `icon` modifier on Button or Toggle. `text` + `icon` is the standard icon button, in on-surface-variant |
 | FAB, medium and large FAB, extended FAB | the `fab` modifier: the role's container at level 3 on the large corner, stepping 40 / 56 / 80 / 96dp with size. With `icon` it is the square FAB, without it the extended one. `filled` takes the role colour itself, `elevated` gives the surface FAB |
 | Toggle buttons | `Toggle`, with M3's unselected → selected colours per style and the selected shape swap (round turns square, square turns round) |
-| Segmented button | `ToggleGroup`: an outlined pill at 40dp, selected segments on secondary-container with the check sliding in before the label |
+| Segmented button | `ToggleGroup`: an outlined pill at 40dp, selected segments on secondary-container, and M3's state layer and ripple on every segment. The check slides in before the label from `ToggleGroup.ItemIndicator` (#437), an optional part inside the item — render one per item for M3's selected check |
 | Connected button group and split button | `Join`: segments 2dp apart with small inner corners, and the split button's menu half fully round while its menu is open |
 | Disabled buttons | M3's explicit colours: the label at 38% on-surface over a 10% container. Outlined and text buttons get no container, and the outline goes to 10% |
 
@@ -130,14 +130,16 @@ and styles every component in zero's manifest.
 
 ## Places Material's own spec had to be read, not copied
 
-- **An expanded disclosure header takes the selected container.** Collapsible
-  and accordion declare no `indicator` part, and `pressable()` already owns
-  both `::before` (the state layer) and `::after` (the ripple), so a chevron
-  has nowhere to draw. The trigger says it itself: `open` takes the
-  primary container, its on-container ink and an inset hairline at its
-  block-end. `--weight-semibold` is deliberately not used; this vocabulary
-  maps it to the same 500 as `medium`, so a weight bump would compile to
-  nothing.
+- **An expanded disclosure header takes the selected container, and the
+  chevron is a part.** `pressable()` owns both of the trigger's
+  pseudo-elements (`::before` the state layer, `::after` the ripple), so the
+  expand chevron lives in the optional `indicator` part collapsible and
+  accordion declare inside the trigger (#437): M3's 24dp `expand_more`,
+  turned half a turn while open. Because the part is optional, the trigger
+  still says it itself: `open` takes the primary container, its
+  on-container ink and an inset hairline at its block-end.
+  `--weight-semibold` is deliberately not used; this vocabulary maps it to
+  the same 500 as `medium`, so a weight bump would compile to nothing.
 - **`toast({ color })` lands on a status marker, not on the container.** M3
   snackbars are monochrome by spec, so the container stays
   surface-container-high at level 3 whatever role you pass; tinting the whole
@@ -199,7 +201,8 @@ still puts the control's thumb outside its own track.
 What moved here: the toast viewport's start/end placements, the switch thumb,
 the collapsed tree indicator and the indeterminate progress sweep. There is no
 submenu chevron to turn around — `pressable()` owns both pseudo-elements, so a
-chevron is content the app supplies.
+chevron is content the app supplies. The disclosure chevron (#437) is
+symmetric and only turns about its own centre, so it needs no RTL rule.
 
 The half-star gradient's RTL rule also lost the specificity it never meant to
 have: written bare, `:dir(rtl)` outranked the `forced-colors` override beneath

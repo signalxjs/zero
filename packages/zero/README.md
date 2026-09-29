@@ -542,6 +542,34 @@ documented alternative. A design system collapses the closed panel itself
 there is no `::details-content`; all six bundled skins do, and reset the
 UA button paint a `<summary>` never had. Accordion has no such mode yet.
 
+**Optional marks: a check in a toggle item, a chevron in a disclosure
+trigger** (#437). `ToggleGroup.ItemIndicator`, placed inside a
+`ToggleGroup.Item`, renders `toggle-group.item-indicator` — an empty,
+`aria-hidden` span whose `data-state` mirrors its item's `on|off`.
+`Collapsible.Indicator` and `Accordion.Indicator`, placed inside the
+trigger, render each scope's `indicator` the same way with `open|closed`.
+The design system draws the mark (a check before the label, a chevron that
+turns), so a skin whose items or triggers already spend both
+pseudo-elements — a state layer and a ripple — still has a slot for it;
+children (an icon) are the app's own. None is rendered unless the app
+places it, so a skin keeps the item or trigger itself legible without one.
+`collapsible.indicator` declares `parent: 'root'` rather than the trigger:
+the trigger is absorbable (it may lend its bag to a host with its own
+anatomy), so it can never be a declared container — `paint.host` measures
+the mark on the trigger it sits in.
+
+```tsx
+<ToggleGroup.Root label="View" defaultValue="week">
+    <ToggleGroup.Item value="day"><ToggleGroup.ItemIndicator />Day</ToggleGroup.Item>
+    <ToggleGroup.Item value="week"><ToggleGroup.ItemIndicator />Week</ToggleGroup.Item>
+</ToggleGroup.Root>
+
+<Collapsible.Root>
+    <Collapsible.Trigger>Release notes<Collapsible.Indicator /></Collapsible.Trigger>
+    <Collapsible.Panel>…</Collapsible.Panel>
+</Collapsible.Root>
+```
+
 **A Tabs indicator can slide** (#283). `Tabs.Indicator` is an optional,
 `aria-hidden` span placed inside `Tabs.List`. It publishes the active tab's
 box as `--tabs-indicator-inset-inline-start`,

@@ -34,6 +34,18 @@ export const accordionAnatomy = defineAnatomy('accordion', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
     },
+    // The trigger's optional disclosure mark (#437) — a chevron the recipe
+    // draws, turned by the trigger's `open|closed`. Rendered only where the
+    // app places `Accordion.Indicator` inside its trigger.
+    indicator: {
+        element: 'span',
+        // No glyph: zero renders an empty, aria-hidden span and the recipe
+        // draws the chevron.
+        paint: true,
+        parent: 'trigger',
+        states: ['open', 'closed'],
+        tokens: ['color'],
+    },
     panel: {
         element: 'div',
         parent: 'item',

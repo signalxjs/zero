@@ -55,6 +55,20 @@
   manifest's `tokens.colors.convention` carries `softContentSuffix:
   '-soft-content'`.
 
+- **Optional indicator parts: a check in a toggle item, a chevron in a
+  disclosure trigger (#437).** `ToggleGroup.ItemIndicator`, placed inside a
+  `ToggleGroup.Item`, renders the new `toggle-group.item-indicator` part —
+  an empty, `aria-hidden` span whose `data-state` mirrors its item's
+  `on|off`. `Collapsible.Indicator` and `Accordion.Indicator`, placed inside
+  the trigger, render each scope's new `indicator` part with `open|closed`.
+  All three are paint parts the design system draws (a check before the
+  label, a chevron that turns), so a skin whose item or trigger already
+  spends both pseudo-elements still has a slot; none renders unless the app
+  places it. `collapsible.indicator` declares `parent: 'root'` and
+  `paint: { host: 'trigger' }`, because the trigger is absorbable and can
+  never be a declared parent. New prop types: `ToggleGroupItemIndicatorProps`,
+  `CollapsibleIndicatorProps`, `AccordionIndicatorProps`.
+
 ### Changed
 
 - **`Stack.Item grow` grows from zero (#454).** The design systems now

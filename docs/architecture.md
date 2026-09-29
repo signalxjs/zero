@@ -353,7 +353,9 @@ renders without children (`▾`, `✓`, `›`, `★`), the flag the part cannot
 exist without (`select.item-indicator` mounts only while `selected`), and
 the part the mark is measured on when `parent` names only the containing
 one (menu's `item-indicator` sits in a checkbox or radio row; `parent` is
-the popup, `host` the checkbox row). A mark's chain is derived from the part tree, with
+the popup, `host` the checkbox row; collapsible's optional `indicator`,
+#437, names the root because its trigger is absorbable and so can never be
+a declared parent, and `host` puts it back on the trigger). A mark's chain is derived from the part tree, with
 every presence surface above it pinned `open`: a popup, or a part that
 declares `placements` (toast's `viewport` and `root`, whose `closed` is an
 enter/exit frame, never a resting look). A trigger's `open` is not pinned —

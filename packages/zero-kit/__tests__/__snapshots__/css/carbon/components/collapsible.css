@@ -63,6 +63,10 @@
         rotate: 270deg;
     }
 
+    [data-scope="collapsible"][data-part="trigger"]:has(> :is([data-scope="collapsible"], [data-scope="accordion"])[data-part="indicator"])::after {
+        display: none;
+    }
+
     [data-scope="collapsible"][data-part="trigger"][data-pressed]:not([data-disabled]) {
         background: var(--color-base-300);
     }
@@ -80,6 +84,20 @@
         text-align: start;
         inline-size: 100%;
         box-sizing: border-box;
+    }
+
+    [data-scope="collapsible"][data-part="indicator"] {
+        flex: none;
+        width: 1rem;
+        height: 1rem;
+        margin-inline-start: auto;
+        background: currentColor;
+        clip-path: polygon(6% 32%, 17% 21%, 50% 54%, 83% 21%, 94% 32%, 50% 76%);
+        transition: rotate var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="collapsible"][data-part="indicator"][data-state="open"] {
+        rotate: 180deg;
     }
 
     [data-scope="collapsible"][data-part="panel"] {
@@ -128,6 +146,18 @@
     @scope ([data-scope="collapsible"][data-part="root"][data-size="2xl"]) to ([data-scope="collapsible"][data-part="root"]) {
         [data-scope="collapsible"][data-part="trigger"] {
             min-height: 5rem;
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="collapsible"][data-part="indicator"] {
+            forced-color-adjust: none;
+        }
+    }
+
+    @media print {
+        [data-scope="collapsible"][data-part="indicator"] {
+            print-color-adjust: exact;
         }
     }
 

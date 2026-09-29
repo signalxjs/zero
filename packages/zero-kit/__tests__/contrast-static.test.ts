@@ -145,6 +145,13 @@ describe('the cell product is the browser spec\'s', () => {
             // Positioned presence surfaces pin open like popups (#292): a
             // toast's `closed` is its enter/exit frame, never a resting look.
             'toast/indicator': ['viewport=open', 'root=open'],
+            // #437: the optional marks. A trigger's `open` is a resting
+            // look, never pinned; collapsible's mark reaches its trigger
+            // through `paint.host` (the trigger is absorbable, so never a
+            // declared parent).
+            'toggle-group/item-indicator': ['root', 'item'],
+            'collapsible/indicator': ['root', 'trigger'],
+            'accordion/indicator': ['root', 'item', 'trigger'],
         };
         const derived = Object.fromEntries(indicatorChains(manifest.components).map(({ spec, ancestors }) => [`${spec.scope}/${spec.part}`, ancestors]));
         expect(derived).toEqual(hand);
@@ -157,6 +164,7 @@ describe('the cell product is the browser spec\'s', () => {
             .map(({ scope, part, ...rest }) => [`${scope}/${part}`, rest]));
         expect(facts).toEqual({
             'menu/item-indicator': { host: 'checkbox-item' },
+            'collapsible/indicator': { host: 'trigger' },
             'select/indicator': { glyph: '▾' },
             'select/item-indicator': { glyph: '✓', only: 'selected' },
             'combobox/item-indicator': { glyph: '✓', only: 'selected' },

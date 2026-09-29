@@ -99,6 +99,14 @@
   `STRUCTURAL_ROLES`, `StructuralMap`, `StructuralCategory`,
   `resolveStructural`, `structuralToken`, `structuralTokenMap`.
 
+- **The disclosure guidance knows the optional indicator (#437).** With
+  collapsible and accordion now declaring an optional `indicator`, the
+  design-system skill and the `state-legibility/disclosure` notes say to
+  style it and still keep the trigger legible on its own, since a trigger
+  the app renders without one has nothing else. The rule's behaviour is
+  unchanged; its finding on those scopes now names the indicator as the
+  other place the signal may live.
+
 ## [0.17.0] - 2026-09-29
 
 ### Added

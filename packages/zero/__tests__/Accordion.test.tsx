@@ -407,3 +407,56 @@ describe('panel presence (#276)', () => {
         expect(items[1]!.open).toBe(true);
     });
 });
+
+describe('Accordion.Indicator / Collapsible.Indicator (#437)', () => {
+    const marks = (scope: string) => [...container.querySelectorAll<HTMLElement>(`[data-scope="${scope}"][data-part="indicator"]`)];
+
+    it('an accordion indicator mirrors its item and sits inside the trigger', () => {
+        const state = signal({ open: ['a'] as string[] });
+        render(
+            <Accordion.Root model={[state, 'open']}>
+                <Accordion.Item value="a">
+                    <Accordion.Trigger>A<Accordion.Indicator /></Accordion.Trigger>
+                    <Accordion.Panel>Content A</Accordion.Panel>
+                </Accordion.Item>
+                <Accordion.Item value="b">
+                    <Accordion.Trigger>B<Accordion.Indicator /></Accordion.Trigger>
+                    <Accordion.Panel>Content B</Accordion.Panel>
+                </Accordion.Item>
+            </Accordion.Root>,
+            container,
+        );
+        expectAnatomy(container, accordionAnatomy);
+        expect(marks('accordion').map((m) => m.getAttribute('data-state'))).toEqual(['open', 'closed']);
+        expect(marks('accordion').every((m) => m.getAttribute('aria-hidden') === 'true')).toBe(true);
+        expect(marks('accordion')[1]!.closest('[data-part="trigger"]')).toBe(triggers()[1]);
+        expect(marks('accordion')[0]!.textContent).toBe('');
+        // The mark is decoration: the trigger's name is its label alone.
+        expect(triggers()[0]!.textContent).toBe('A');
+
+        triggers()[1]!.click();
+        expect(marks('accordion').map((m) => m.getAttribute('data-state'))).toEqual(['closed', 'open']);
+        expectAnatomy(container, accordionAnatomy);
+    });
+
+    it.each([true, false])('a collapsible indicator mirrors the disclosure (native=%s)', (native) => {
+        const state = signal({ open: false });
+        render(
+            <Collapsible.Root native={native} model={[state, 'open']}>
+                <Collapsible.Trigger>More<Collapsible.Indicator /></Collapsible.Trigger>
+                <Collapsible.Panel>Body</Collapsible.Panel>
+            </Collapsible.Root>,
+            container,
+        );
+        expectAnatomy(container, collapsibleAnatomy);
+        const [mark] = marks('collapsible');
+        expect(mark!.getAttribute('data-state')).toBe('closed');
+        expect(mark!.getAttribute('aria-hidden')).toBe('true');
+        expect(mark!.closest('[data-part="trigger"]')).not.toBeNull();
+
+        container.querySelector<HTMLElement>('[data-scope="collapsible"][data-part="trigger"]')!.click();
+        expect(state.open).toBe(true);
+        expect(mark!.getAttribute('data-state')).toBe('open');
+        expectAnatomy(container, collapsibleAnatomy);
+    });
+});

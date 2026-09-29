@@ -358,8 +358,31 @@ const disclosureTrigger: PartStyles = {
             transition: motion('transform'),
         },
         '&[data-state="open"]::after': { transform: 'rotate(225deg)' },
+        // An `indicator` part (#437) draws the chevron instead: the row's own
+        // steps aside, so a trigger reads the same with or without one.
+        '&:has(> :is([data-scope="collapsible"], [data-scope="accordion"])[data-part="indicator"])::after': { display: 'none' },
         '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
     },
+};
+
+/**
+ * The disclosure chevron as a part (#437): `collapsible.indicator` and
+ * `accordion.indicator`, the optional mark an app places inside the
+ * trigger. The row's own `::after` chevron verbatim — two muted borders
+ * turned about their own centre — so the hand-off above is invisible.
+ */
+const disclosureIndicator: PartStyles = {
+    base: {
+        flex: 'none',
+        width: '0.4em',
+        height: '0.4em',
+        border: 'solid var(--hero-muted)',
+        borderWidth: '0 2px 2px 0',
+        marginInlineEnd: 'var(--space-2xs)',
+        transform: 'rotate(45deg)',
+        transition: motion('transform'),
+    },
+    states: { open: { transform: 'rotate(225deg)' }, closed: {} },
 };
 
 const disclosurePanel: PartStyles = {
@@ -467,6 +490,7 @@ export const collapsible: RecipeInput = withNonNative({
             },
         }),
         trigger: disclosureTrigger,
+        indicator: disclosureIndicator,
         panel: disclosurePanel,
     },
     variants: { size: disclosureSizes },
@@ -1907,6 +1931,7 @@ export const accordion: RecipeInput = {
             },
         }),
         trigger: disclosureTrigger,
+        indicator: disclosureIndicator,
         panel: disclosurePanel,
     },
     variants: { size: disclosureSizes },
@@ -3433,6 +3458,11 @@ export const toggleGroup: RecipeInput = {
         item: {
             base: {
                 appearance: 'none',
+                // A row, so an `item-indicator` (#437) sits beside the label.
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-xs)',
                 border: 'none',
                 background: 'transparent',
                 padding: 'var(--space-xs) var(--space-md)',
@@ -3461,6 +3491,25 @@ export const toggleGroup: RecipeInput = {
             },
             selectors: {
                 '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
+            },
+        },
+        // The item's optional check (#437): the toast's tick at label scale
+        // in the item's ink, present only on the raised pill.
+        'item-indicator': {
+            base: {
+                display: 'none',
+                flexShrink: '0',
+                width: '0.85em',
+                height: '0.85em',
+                background: 'currentColor',
+                clipPath: TOAST_CHECK,
+            },
+            states: { on: { display: 'inline-block' }, off: {} },
+            at: {
+                // Forced colours revalue the fill the clip cuts, and print
+                // drops backgrounds: keep the mark the item's ink.
+                'forced-colors': { base: { forcedColorAdjust: 'none' } },
+                print: { base: { printColorAdjust: 'exact' } },
             },
         },
     },
