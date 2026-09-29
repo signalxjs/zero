@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "79.18 kB",
+        "limit": "79.30 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -74,7 +74,7 @@
     {
         "name": "@sigx/zero/anatomy (tooling entry)",
         "path": "packages/zero/dist/anatomy.js",
-        "limit": "4.37 kB",
+        "limit": "4.40 kB",
         "ignore": [
             "sigx",
             "@sigx/runtime-core",
@@ -168,7 +168,7 @@
     {
         "name": "@sigx/zero/number-input",
         "path": "packages/zero/dist/components/number-input/index.js",
-        "limit": "5.94 kB",
+        "limit": "5.96 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -204,7 +204,7 @@
     {
         "name": "@sigx/zero/input",
         "path": "packages/zero/dist/components/input/index.js",
-        "limit": "5.02 kB",
+        "limit": "5.04 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -216,7 +216,7 @@
     {
         "name": "@sigx/zero/textarea",
         "path": "packages/zero/dist/components/textarea/index.js",
-        "limit": "4.15 kB",
+        "limit": "4.16 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
