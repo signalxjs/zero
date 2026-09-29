@@ -122,50 +122,50 @@
 
     [data-scope="accordion"][data-part="root"][data-color="primary"] {
         --disclosure-accent: var(--color-primary);
-        --disclosure-soft: var(--color-primary-container);
-        --disclosure-on-soft: var(--color-primary-container-content);
+        --disclosure-soft: var(--color-primary-soft);
+        --disclosure-on-soft: var(--color-primary-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="secondary"] {
         --disclosure-accent: var(--color-secondary);
-        --disclosure-soft: var(--color-secondary-container);
-        --disclosure-on-soft: var(--color-secondary-container-content);
+        --disclosure-soft: var(--color-secondary-soft);
+        --disclosure-on-soft: var(--color-secondary-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="tertiary"] {
         --disclosure-accent: var(--color-tertiary);
-        --disclosure-soft: var(--color-tertiary-container);
-        --disclosure-on-soft: var(--color-tertiary-container-content);
+        --disclosure-soft: var(--color-tertiary-soft);
+        --disclosure-on-soft: var(--color-tertiary-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="error"] {
         --disclosure-accent: var(--color-error);
-        --disclosure-soft: var(--color-error-container);
-        --disclosure-on-soft: var(--color-error-container-content);
+        --disclosure-soft: var(--color-error-soft);
+        --disclosure-on-soft: var(--color-error-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="neutral"] {
         --disclosure-accent: var(--color-neutral);
-        --disclosure-soft: var(--color-neutral-container);
-        --disclosure-on-soft: var(--color-neutral-container-content);
+        --disclosure-soft: var(--color-neutral-soft);
+        --disclosure-on-soft: var(--color-neutral-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="info"] {
         --disclosure-accent: var(--color-info);
-        --disclosure-soft: var(--color-info-container);
-        --disclosure-on-soft: var(--color-info-container-content);
+        --disclosure-soft: var(--color-info-soft);
+        --disclosure-on-soft: var(--color-info-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="success"] {
         --disclosure-accent: var(--color-success);
-        --disclosure-soft: var(--color-success-container);
-        --disclosure-on-soft: var(--color-success-container-content);
+        --disclosure-soft: var(--color-success-soft);
+        --disclosure-on-soft: var(--color-success-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="warning"] {
         --disclosure-accent: var(--color-warning);
-        --disclosure-soft: var(--color-warning-container);
-        --disclosure-on-soft: var(--color-warning-container-content);
+        --disclosure-soft: var(--color-warning-soft);
+        --disclosure-on-soft: var(--color-warning-soft-content);
     }
 
     @scope ([data-scope="accordion"][data-part="root"][data-size="xs"]) to ([data-scope="accordion"][data-part="root"]) {

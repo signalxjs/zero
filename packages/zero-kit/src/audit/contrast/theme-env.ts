@@ -4,7 +4,7 @@
  *
  * A real page resolves them through three stylesheets: `@sigx/zero`'s
  * `css/base.css` (the structural fallbacks, lowest), the design system's
- * `tokens.css` (roles, `-content`, `-soft`, base surfaces, every declared
+ * `tokens.css` (roles, `-content`, `-soft`, `-soft-content`, base surfaces, every declared
  * category, `custom` and `extra`), and the recipe rules on top. The first
  * two are reproduced here as one flat map per theme, with the colours
  * already BAKED to literals by the same evaluator the lynx target uses
@@ -77,6 +77,12 @@ function bakedColors(
     for (const token of BASE_SURFACE_TOKEN_LIST) push(token);
     for (const [name, decl] of Object.entries(roles)) {
         if (decl.soft === false) continue;
+        // The soft tint's ink (#421): explicit, else the role colour.
+        if (colors[`${name}-soft-content`]) push(`${name}-soft-content`);
+        else if (out[name]) {
+            out[`${name}-soft-content`] = out[name];
+            if (written[name] !== undefined) written[`${name}-soft-content`] = written[name];
+        }
         if (colors[`${name}-soft`]) { push(`${name}-soft`); continue; }
         const role = colors[name];
         const base = colors['base-100'];

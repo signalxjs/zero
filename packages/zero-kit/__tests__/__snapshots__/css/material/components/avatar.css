@@ -60,43 +60,43 @@
     }
 
     [data-scope="avatar"][data-part="root"][data-color="primary"] {
-        --avatar-accent: var(--color-primary-container);
-        --avatar-on-accent: var(--color-primary-container-content);
+        --avatar-accent: var(--color-primary-soft);
+        --avatar-on-accent: var(--color-primary-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="secondary"] {
-        --avatar-accent: var(--color-secondary-container);
-        --avatar-on-accent: var(--color-secondary-container-content);
+        --avatar-accent: var(--color-secondary-soft);
+        --avatar-on-accent: var(--color-secondary-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="tertiary"] {
-        --avatar-accent: var(--color-tertiary-container);
-        --avatar-on-accent: var(--color-tertiary-container-content);
+        --avatar-accent: var(--color-tertiary-soft);
+        --avatar-on-accent: var(--color-tertiary-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="error"] {
-        --avatar-accent: var(--color-error-container);
-        --avatar-on-accent: var(--color-error-container-content);
+        --avatar-accent: var(--color-error-soft);
+        --avatar-on-accent: var(--color-error-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="neutral"] {
-        --avatar-accent: var(--color-neutral-container);
-        --avatar-on-accent: var(--color-neutral-container-content);
+        --avatar-accent: var(--color-neutral-soft);
+        --avatar-on-accent: var(--color-neutral-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="info"] {
-        --avatar-accent: var(--color-info-container);
-        --avatar-on-accent: var(--color-info-container-content);
+        --avatar-accent: var(--color-info-soft);
+        --avatar-on-accent: var(--color-info-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="success"] {
-        --avatar-accent: var(--color-success-container);
-        --avatar-on-accent: var(--color-success-container-content);
+        --avatar-accent: var(--color-success-soft);
+        --avatar-on-accent: var(--color-success-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="warning"] {
-        --avatar-accent: var(--color-warning-container);
-        --avatar-on-accent: var(--color-warning-container-content);
+        --avatar-accent: var(--color-warning-soft);
+        --avatar-on-accent: var(--color-warning-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-size="xs"] {

@@ -18,41 +18,41 @@
 
     [data-scope="box"][data-part="root"][data-color="primary"] {
         --box-surface: var(--color-primary-soft);
-        --box-ink: var(--color-primary);
+        --box-ink: var(--color-primary-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="secondary"] {
         --box-surface: var(--color-secondary-soft);
-        --box-ink: var(--color-secondary);
+        --box-ink: var(--color-secondary-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="accent"] {
         --box-surface: var(--color-accent-soft);
-        --box-ink: var(--color-accent);
+        --box-ink: var(--color-accent-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="neutral"] {
         --box-surface: var(--color-neutral-soft);
-        --box-ink: var(--color-neutral);
+        --box-ink: var(--color-neutral-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="info"] {
         --box-surface: var(--color-info-soft);
-        --box-ink: var(--color-info);
+        --box-ink: var(--color-info-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="success"] {
         --box-surface: var(--color-success-soft);
-        --box-ink: var(--color-success);
+        --box-ink: var(--color-success-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="warning"] {
         --box-surface: var(--color-warning-soft);
-        --box-ink: var(--color-warning);
+        --box-ink: var(--color-warning-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="error"] {
         --box-surface: var(--color-error-soft);
-        --box-ink: var(--color-error);
+        --box-ink: var(--color-error-soft-content);
     }
 }

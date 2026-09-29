@@ -145,6 +145,9 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     breakpoints: { sm: '640px', md: '900px', lg: '1200px' },
     defaultLight: 'brutalist',
     defaultDark: 'brutalist-dark',
+    // A `<role>-soft-content` is set only where the role itself does not
+    // read at AA on its own soft tint — the ink a soft surface (the layout
+    // Box) paints with; every other soft ink defaults to the role (#421).
     themes: {
         brutalist: {
             colorScheme: 'light',
@@ -162,10 +165,12 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
 
                 primary: 'oklch(56% 0.24 28)',
                 'primary-content': 'oklch(100% 0 0)',
+                'primary-soft-content': 'oklch(54.3% 0.221 28)',
                 secondary: 'oklch(45% 0.2 265)',
                 'secondary-content': 'oklch(100% 0 0)',
                 accent: 'oklch(80% 0.18 92)',
                 'accent-content': 'oklch(0% 0 0)',
+                'accent-soft-content': 'oklch(53.5% 0.109 92)',
                 neutral: 'oklch(0% 0 0)',
                 'neutral-content': 'oklch(100% 0 0)',
 
@@ -175,8 +180,10 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'success-content': 'oklch(100% 0 0)',
                 warning: 'oklch(80% 0.18 92)',
                 'warning-content': 'oklch(0% 0 0)',
+                'warning-soft-content': 'oklch(53.5% 0.109 92)',
                 error: 'oklch(56% 0.24 28)',
                 'error-content': 'oklch(100% 0 0)',
+                'error-soft-content': 'oklch(54.3% 0.221 28)',
             },
         },
         'brutalist-dark': {

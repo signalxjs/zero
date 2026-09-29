@@ -12,10 +12,12 @@
  * - The color contract is a naming GRAMMAR, not a vocabulary: each design
  *   system declares its own role names (via `@sigx/zero-kit`), and every
  *   color token is `--color-<role>`, optionally paired with
- *   `--color-<role>-content` (readable foreground on the role color) and
+ *   `--color-<role>-content` (readable foreground on the role color),
  *   `--color-<role>-soft` (tinted surface derived against `base-100`, mixed
  *   in oklab at the theme's `softMix` — every emit target derives it the
- *   same way, so one theme tints identically everywhere).
+ *   same way, so one theme tints identically everywhere) and
+ *   `--color-<role>-soft-content` (readable foreground on the soft surface;
+ *   the role color unless a theme sets it, #421).
  *   Zero itself knows no role names — only the convention.
  * - The base surfaces (`base-100/200/300/base-content`) are the one fixed
  *   color vocabulary: they anchor soft derivation, `light-dark()` root
@@ -42,7 +44,7 @@
  * `css/base.css` ships fallbacks for, so a category a design system never
  * mentions still resolves.
  *
- * - Colors:    `--color-<role>[-content|-soft]` per the DS's declaration,
+ * - Colors:    `--color-<role>[-content|-soft|-soft-content]` per the DS's declaration,
  *              plus the fixed `--color-base-100/200/300` / `--color-base-content`
  * - Categories: `--radius-*`, `--size-*`, `--text-*`, `--border`,
  *              `--disabled-opacity` — see `TOKEN_CATEGORIES`

@@ -51,50 +51,50 @@
 
     [data-scope="empty-state"][data-part="root"][data-color="primary"] {
         --empty-accent: var(--color-primary);
-        --empty-tint: var(--color-primary-container);
-        --empty-on-tint: var(--color-primary-container-content);
+        --empty-tint: var(--color-primary-soft);
+        --empty-on-tint: var(--color-primary-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="secondary"] {
         --empty-accent: var(--color-secondary);
-        --empty-tint: var(--color-secondary-container);
-        --empty-on-tint: var(--color-secondary-container-content);
+        --empty-tint: var(--color-secondary-soft);
+        --empty-on-tint: var(--color-secondary-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="tertiary"] {
         --empty-accent: var(--color-tertiary);
-        --empty-tint: var(--color-tertiary-container);
-        --empty-on-tint: var(--color-tertiary-container-content);
+        --empty-tint: var(--color-tertiary-soft);
+        --empty-on-tint: var(--color-tertiary-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="error"] {
         --empty-accent: var(--color-error);
-        --empty-tint: var(--color-error-container);
-        --empty-on-tint: var(--color-error-container-content);
+        --empty-tint: var(--color-error-soft);
+        --empty-on-tint: var(--color-error-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="neutral"] {
         --empty-accent: var(--color-neutral);
-        --empty-tint: var(--color-neutral-container);
-        --empty-on-tint: var(--color-neutral-container-content);
+        --empty-tint: var(--color-neutral-soft);
+        --empty-on-tint: var(--color-neutral-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="info"] {
         --empty-accent: var(--color-info);
-        --empty-tint: var(--color-info-container);
-        --empty-on-tint: var(--color-info-container-content);
+        --empty-tint: var(--color-info-soft);
+        --empty-on-tint: var(--color-info-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="success"] {
         --empty-accent: var(--color-success);
-        --empty-tint: var(--color-success-container);
-        --empty-on-tint: var(--color-success-container-content);
+        --empty-tint: var(--color-success-soft);
+        --empty-on-tint: var(--color-success-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="warning"] {
         --empty-accent: var(--color-warning);
-        --empty-tint: var(--color-warning-container);
-        --empty-on-tint: var(--color-warning-container-content);
+        --empty-tint: var(--color-warning-soft);
+        --empty-on-tint: var(--color-warning-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-size="xs"] {

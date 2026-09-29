@@ -128,7 +128,7 @@ const manifest = {
     },
     tokens: {
         colors: {
-            convention: { prefix: '--color-', contentSuffix: '-content', softSuffix: '-soft' },
+            convention: { prefix: '--color-', contentSuffix: '-content', softSuffix: '-soft', softContentSuffix: '-soft-content' },
             required: BASE_SURFACE_TOKEN_LIST.map((t) => `--color-${t}`),
             recommendedRoles: [...RECOMMENDED_ROLE_LIST],
         },

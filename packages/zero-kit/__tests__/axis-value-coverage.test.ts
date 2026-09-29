@@ -148,17 +148,14 @@ describe('every declared axis value is honoured or claimed', () => {
                 `${s.name}/${u.axis}: ${u.value}${u.reason === 'unclaimed' ? ' (unclaimed)' : ''}`));
         expect(ledger.sort()).toEqual([
             'material/color: error-container',
-            'material/color: info-container',
             'material/color: inverse-primary',
             'material/color: inverse-surface',
-            'material/color: neutral-container',
             'material/color: outline',
             'material/color: outline-variant',
             'material/color: primary-container',
             'material/color: scrim',
             'material/color: secondary-container',
             'material/color: shadow',
-            'material/color: success-container',
             'material/color: surface',
             'material/color: surface-bright',
             'material/color: surface-container',
@@ -169,7 +166,6 @@ describe('every declared axis value is honoured or claimed', () => {
             'material/color: surface-dim',
             'material/color: surface-variant',
             'material/color: tertiary-container',
-            'material/color: warning-container',
         ]);
         // …and the audit lists exactly those as waivers, by the mechanism
         // that excuses them, rather than dropping them on the floor.
@@ -177,17 +173,14 @@ describe('every declared axis value is honoured or claimed', () => {
             audit(s.name, 'axis-value-coverage/unused').waived.map((w) => `${s.name}/${w.where} (${w.waivedBy.mechanism})`));
         expect(waived.sort()).toEqual([
             'material/color.error-container (role-decl)',
-            'material/color.info-container (role-decl)',
             'material/color.inverse-primary (role-decl)',
             'material/color.inverse-surface (role-decl)',
-            'material/color.neutral-container (role-decl)',
             'material/color.outline (role-decl)',
             'material/color.outline-variant (role-decl)',
             'material/color.primary-container (role-decl)',
             'material/color.scrim (role-decl)',
             'material/color.secondary-container (role-decl)',
             'material/color.shadow (role-decl)',
-            'material/color.success-container (role-decl)',
             'material/color.surface (role-decl)',
             'material/color.surface-bright (role-decl)',
             'material/color.surface-container (role-decl)',
@@ -198,7 +191,6 @@ describe('every declared axis value is honoured or claimed', () => {
             'material/color.surface-dim (role-decl)',
             'material/color.surface-variant (role-decl)',
             'material/color.tertiary-container (role-decl)',
-            'material/color.warning-container (role-decl)',
         ]);
     });
 });

@@ -7,6 +7,13 @@
  * (`--duration-short2`, `--ease-emphasized-decelerate`), the elevation
  * levels and the state-layer opacities (`--state-hover` …). The per-component
  * M3 specs land phase by phase under #413.
+ *
+ * A role's tonal pair is zero's soft pair: `--color-<role>-soft` is the M3
+ * container and `--color-<role>-soft-content` its on-container ink, so a
+ * recipe that follows the `color` axis onto the tonal fill reads
+ * `-soft` / `-soft-content` (#421). The four key-colour containers are also
+ * roles of their own, for the places M3 names one outright — the
+ * secondary-container selection indicator, the primary-container FAB.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
 import { axisRoles, popupArrow, popupArrowHost, tableStackAt } from '@sigx/zero-kit/define';
@@ -826,8 +833,8 @@ const buttonColors = (part: string): Record<string, Record<string, PartStyles>> 
     Object.fromEntries(ROLES.map((c) => [c, { [part]: { base: {
         '--btn-accent': `var(--color-${c})`,
         '--btn-on-accent': `var(--color-${c}-content)`,
-        '--btn-soft': `var(--color-${c}-container)`,
-        '--btn-on-soft': `var(--color-${c}-container-content)`,
+        '--btn-soft': `var(--color-${c}-soft)`,
+        '--btn-on-soft': `var(--color-${c}-soft-content)`,
         '--btn-ink': `var(--color-${c})`,
     } } }]));
 
@@ -1195,8 +1202,8 @@ const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable
 const disclosureColors = (): Record<string, Record<string, PartStyles>> =>
     Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
         '--disclosure-accent': `var(--color-${c})`,
-        '--disclosure-soft': `var(--color-${c}-container)`,
-        '--disclosure-on-soft': `var(--color-${c}-container-content)`,
+        '--disclosure-soft': `var(--color-${c}-soft)`,
+        '--disclosure-on-soft': `var(--color-${c}-soft-content)`,
     } } }]));
 
 /**
@@ -2242,7 +2249,7 @@ export const switchRecipe: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--switch-accent': `var(--color-${c})`,
             '--switch-on-accent': `var(--color-${c}-content)`,
-            '--switch-soft': `var(--color-${c}-container)`,
+            '--switch-soft': `var(--color-${c}-soft)`,
         } } }])),
     },
     skipStates: { root: ['focus-visible'] },
@@ -3392,8 +3399,8 @@ export const avatar: RecipeInput = {
         // the role's container and its on-container ink. Unattributed
         // it stays on the neutral surface container it always used.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--avatar-accent': `var(--color-${c}-container)`,
-            '--avatar-on-accent': `var(--color-${c}-container-content)`,
+            '--avatar-accent': `var(--color-${c}-soft)`,
+            '--avatar-on-accent': `var(--color-${c}-soft-content)`,
         } } }])),
         size: {
             xs: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 6)' } }, fallback: { base: { fontSize: 'var(--text-xs)' } } },
@@ -3484,8 +3491,8 @@ export const avatarGroup: RecipeInput = {
     })),
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--avatar-group-accent': `var(--color-${c}-container)`,
-            '--avatar-group-on-accent': `var(--color-${c}-container-content)`,
+            '--avatar-group-accent': `var(--color-${c}-soft)`,
+            '--avatar-group-on-accent': `var(--color-${c}-soft-content)`,
         } } }])),
         size: {
             ...Object.fromEntries(Object.entries(avatarGroupSteps).map(([size, [box, text]]) => [size, {
@@ -3704,7 +3711,7 @@ export const toast: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((role) => [
             role,
-            { root: { base: { '--toast-accent': `var(--color-${role}-container)` } } },
+            { root: { base: { '--toast-accent': `var(--color-${role}-soft)` } } },
         ])),
         // Size moves the snackbar's box — padding and type — never the
         // status marker. The description steps only at the wide end.
@@ -3976,8 +3983,8 @@ export const toggle: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--btn-accent': `var(--color-${c})`,
             '--btn-on-accent': `var(--color-${c}-content)`,
-            '--btn-soft': `var(--color-${c}-container)`,
-            '--btn-on-soft': `var(--color-${c}-container-content)`,
+            '--btn-soft': `var(--color-${c}-soft)`,
+            '--btn-on-soft': `var(--color-${c}-soft-content)`,
             '--btn-ink': `var(--color-${c})`,
             '--btn-selected': `var(--color-${c})`,
             '--btn-on-selected': `var(--color-${c}-content)`,
@@ -4191,8 +4198,8 @@ export const toggleGroup: RecipeInput = {
             {
                 item: {
                     base: {
-                        '--toggle-group-fill': `var(--color-${c}-container)`,
-                        '--toggle-group-on-fill': `var(--color-${c}-container-content)`,
+                        '--toggle-group-fill': `var(--color-${c}-soft)`,
+                        '--toggle-group-on-fill': `var(--color-${c}-soft-content)`,
                     },
                 },
             },
@@ -4924,9 +4931,9 @@ export const card: RecipeInput = {
         // M3 has no coloured card; a role here is the tonal one — the
         // role's container under its on-container ink, whatever the variant.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--card-fill': `var(--color-${c}-container)`,
-            '--card-ink': `var(--color-${c}-container-content)`,
-            '--card-subtle': `var(--color-${c}-container-content)`,
+            '--card-fill': `var(--color-${c}-soft)`,
+            '--card-ink': `var(--color-${c}-soft-content)`,
+            '--card-subtle': `var(--color-${c}-soft-content)`,
         } } }])),
         size: {
             xs: { root: { base: { '--card-pad': 'var(--space-sm)' } } },
@@ -4943,8 +4950,8 @@ export const card: RecipeInput = {
 export const alert: RecipeInput = {
     component: 'alert',
     tokens: {
-        '--alert-tint': 'var(--color-info-container)',
-        '--alert-on-tint': 'var(--color-info-container-content)',
+        '--alert-tint': 'var(--color-info-soft)',
+        '--alert-on-tint': 'var(--color-info-soft-content)',
         '--alert-accent': 'var(--color-info)',
     },
     parts: {
@@ -5015,8 +5022,8 @@ export const alert: RecipeInput = {
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--alert-tint': `var(--color-${c}-container)`,
-            '--alert-on-tint': `var(--color-${c}-container-content)`,
+            '--alert-tint': `var(--color-${c}-soft)`,
+            '--alert-on-tint': `var(--color-${c}-soft-content)`,
             '--alert-accent': `var(--color-${c})`,
         } } }])),
         size: {
@@ -5099,8 +5106,8 @@ export const emptyState: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--empty-accent': `var(--color-${c})`,
-            '--empty-tint': `var(--color-${c}-container)`,
-            '--empty-on-tint': `var(--color-${c}-container-content)`,
+            '--empty-tint': `var(--color-${c}-soft)`,
+            '--empty-on-tint': `var(--color-${c}-soft-content)`,
         } } }])),
         size: {
             xs: { root: { base: { padding: 'var(--space-md)', gap: 'var(--space-2xs)' } }, icon: { base: { fontSize: 'var(--text-xl)' } }, title: { base: { fontSize: 'var(--text-sm)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
@@ -6465,8 +6472,8 @@ export const navList: RecipeInput = {
         },
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--nav-accent': `var(--color-${c})`,
-            '--nav-tint': `var(--color-${c}-container)`,
-            '--nav-on-tint': `var(--color-${c}-container-content)`,
+            '--nav-tint': `var(--color-${c}-soft)`,
+            '--nav-on-tint': `var(--color-${c}-soft-content)`,
         } } }])),
         size: {
             xs: { root: { base: { fontSize: 'var(--text-xs)' } }, link: { base: { padding: 'var(--space-2xs) var(--space-md)' } } },

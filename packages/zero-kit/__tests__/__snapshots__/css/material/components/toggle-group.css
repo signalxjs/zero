@@ -134,64 +134,64 @@
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="primary"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-primary-container);
-            --toggle-group-on-fill: var(--color-primary-container-content);
+            --toggle-group-fill: var(--color-primary-soft);
+            --toggle-group-on-fill: var(--color-primary-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="secondary"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-secondary-container);
-            --toggle-group-on-fill: var(--color-secondary-container-content);
+            --toggle-group-fill: var(--color-secondary-soft);
+            --toggle-group-on-fill: var(--color-secondary-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"]:not([data-color])) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-secondary-container);
-            --toggle-group-on-fill: var(--color-secondary-container-content);
+            --toggle-group-fill: var(--color-secondary-soft);
+            --toggle-group-on-fill: var(--color-secondary-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="tertiary"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-tertiary-container);
-            --toggle-group-on-fill: var(--color-tertiary-container-content);
+            --toggle-group-fill: var(--color-tertiary-soft);
+            --toggle-group-on-fill: var(--color-tertiary-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="error"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-error-container);
-            --toggle-group-on-fill: var(--color-error-container-content);
+            --toggle-group-fill: var(--color-error-soft);
+            --toggle-group-on-fill: var(--color-error-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="neutral"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-neutral-container);
-            --toggle-group-on-fill: var(--color-neutral-container-content);
+            --toggle-group-fill: var(--color-neutral-soft);
+            --toggle-group-on-fill: var(--color-neutral-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="info"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-info-container);
-            --toggle-group-on-fill: var(--color-info-container-content);
+            --toggle-group-fill: var(--color-info-soft);
+            --toggle-group-on-fill: var(--color-info-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="success"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-success-container);
-            --toggle-group-on-fill: var(--color-success-container-content);
+            --toggle-group-fill: var(--color-success-soft);
+            --toggle-group-on-fill: var(--color-success-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="warning"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-warning-container);
-            --toggle-group-on-fill: var(--color-warning-container-content);
+            --toggle-group-fill: var(--color-warning-soft);
+            --toggle-group-on-fill: var(--color-warning-soft-content);
         }
     }
 

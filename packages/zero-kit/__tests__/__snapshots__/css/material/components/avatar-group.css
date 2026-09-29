@@ -42,43 +42,43 @@
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="primary"] {
-        --avatar-group-accent: var(--color-primary-container);
-        --avatar-group-on-accent: var(--color-primary-container-content);
+        --avatar-group-accent: var(--color-primary-soft);
+        --avatar-group-on-accent: var(--color-primary-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="secondary"] {
-        --avatar-group-accent: var(--color-secondary-container);
-        --avatar-group-on-accent: var(--color-secondary-container-content);
+        --avatar-group-accent: var(--color-secondary-soft);
+        --avatar-group-on-accent: var(--color-secondary-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="tertiary"] {
-        --avatar-group-accent: var(--color-tertiary-container);
-        --avatar-group-on-accent: var(--color-tertiary-container-content);
+        --avatar-group-accent: var(--color-tertiary-soft);
+        --avatar-group-on-accent: var(--color-tertiary-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="error"] {
-        --avatar-group-accent: var(--color-error-container);
-        --avatar-group-on-accent: var(--color-error-container-content);
+        --avatar-group-accent: var(--color-error-soft);
+        --avatar-group-on-accent: var(--color-error-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="neutral"] {
-        --avatar-group-accent: var(--color-neutral-container);
-        --avatar-group-on-accent: var(--color-neutral-container-content);
+        --avatar-group-accent: var(--color-neutral-soft);
+        --avatar-group-on-accent: var(--color-neutral-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="info"] {
-        --avatar-group-accent: var(--color-info-container);
-        --avatar-group-on-accent: var(--color-info-container-content);
+        --avatar-group-accent: var(--color-info-soft);
+        --avatar-group-on-accent: var(--color-info-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="success"] {
-        --avatar-group-accent: var(--color-success-container);
-        --avatar-group-on-accent: var(--color-success-container-content);
+        --avatar-group-accent: var(--color-success-soft);
+        --avatar-group-on-accent: var(--color-success-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="warning"] {
-        --avatar-group-accent: var(--color-warning-container);
-        --avatar-group-on-accent: var(--color-warning-container-content);
+        --avatar-group-accent: var(--color-warning-soft);
+        --avatar-group-on-accent: var(--color-warning-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-size="xs"] {

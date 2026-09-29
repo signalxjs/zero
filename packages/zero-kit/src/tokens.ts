@@ -18,7 +18,7 @@ type SoftRole<R extends RolesDecl> =
 /** Theme-authorable color tokens for a role declaration. */
 export type ThemeColors<R extends RolesDecl> =
     Record<RoleName<R> | `${ContentRole<R>}-content` | typeof BASE_SURFACE_TOKEN_LIST[number], string>
-    & Partial<Record<`${SoftRole<R>}-soft`, string>>;
+    & Partial<Record<`${SoftRole<R>}-soft` | `${SoftRole<R>}-soft-content`, string>>;
 
 export type TokenValue = string | number;
 

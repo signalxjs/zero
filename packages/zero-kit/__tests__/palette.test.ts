@@ -143,17 +143,30 @@ describe.each(SCHEMES)('derivePalette (%s)', (scheme) => {
                 const harmony = (['analogous', 'complementary', 'split', 'triadic'] as const)[i % 4];
                 const colors = derivePalette({ roles, scheme, seeds, harmony }) as Record<string, string>;
 
-                // Exactly the contract's keys, in its order — never `-soft`.
-                expect(Object.keys(colors)).toEqual(required);
+                // The contract's keys, in its order — never `-soft` — then
+                // only the soft inks a role needed (#421).
+                const keys = Object.keys(colors);
+                expect(keys.slice(0, required.length)).toEqual(required);
+                for (const extra of keys.slice(required.length)) {
+                    expect(extra).toMatch(/-soft-content$/);
+                    expect(roleNames).toContain(extra.slice(0, -'-soft-content'.length));
+                }
 
                 for (const [token, value] of Object.entries(colors)) {
                     expect(value, token).toMatch(/^oklch\([\d.]+% [\d.]+ [\d.]+\)$/);
                     expect(displayable(value), `${token} ${value} is outside sRGB`).toBe(true);
                 }
 
+                // The soft pair is read as the compiler paints it: the derived
+                // tint, under the emitted ink or else the role (#421).
+                const paint = (token: string): string => {
+                    if (colors[token]) return colors[token]!;
+                    if (token.endsWith('-soft-content')) return colors[token.slice(0, -'-soft-content'.length)]!;
+                    return formatHex(interpolate([colors['base-100']!, colors[token.slice(0, -'-soft'.length)]!], 'oklab')(0.16));
+                };
                 for (const [bg, fg] of pairs) {
                     const floor = bg === 'base-100' ? 7 : 4.5;
-                    const ratio = wcagContrast(colors[bg]!, colors[fg]!);
+                    const ratio = wcagContrast(paint(bg), paint(fg));
                     expect(ratio, `${bg} vs ${fg}: ${colors[bg]} / ${colors[fg]} (seeds ${JSON.stringify(seeds)})`)
                         .toBeGreaterThanOrEqual(floor);
                 }
@@ -214,6 +227,7 @@ describe('derivePalette defaults', () => {
             "success-content": "oklch(98% 0.01 155)",
             "warning": "oklch(61% 0.12 85)",
             "warning-content": "oklch(18% 0.036 85)",
+            "warning-soft-content": "oklch(51.4% 0.105 85)",
           }
         `);
     });

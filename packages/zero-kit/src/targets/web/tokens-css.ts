@@ -34,6 +34,13 @@ import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tok
 const softVar = (role: string, mix: number): string =>
     `color-mix(in oklab, var(--color-${role}) ${softMixPercent(mix)}, var(--color-base-100))`;
 
+/**
+ * The soft tint's ink when a theme sets none (#421): the role colour, which
+ * is what every soft surface painted before the token existed. A reference
+ * rather than a copy, so an app that overrides `--color-<role>` moves it too.
+ */
+const softContentVar = (role: string): string => `var(--color-${role})`;
+
 /* eslint-disable @typescript-eslint/no-explicit-any -- `R` appears in both
    variance positions, so internal plumbing erases it. */
 type AnyTheme = ThemeInput<any, any>;
@@ -88,6 +95,7 @@ function colorDecls(theme: AnyTheme, roles: RolesDecl): string[] {
         if (decl.soft === false) continue;
         const explicit = color(theme, `${name}-soft`);
         decls.push(`--color-${name}-soft: ${explicit ?? softVar(name, mix)};`);
+        decls.push(`--color-${name}-soft-content: ${color(theme, `${name}-soft-content`) ?? softContentVar(name)};`);
     }
     return decls;
 }
@@ -156,6 +164,9 @@ function rootDecls(
         const lv = color(light, `${name}-soft`) ?? softVar(name, light.softMix ?? DEFAULT_SOFT_MIX);
         const dv = color(dark, `${name}-soft`) ?? softVar(name, dark.softMix ?? DEFAULT_SOFT_MIX);
         decls.push(`--color-${name}-soft: ${lv === dv ? lv : `light-dark(${lv}, ${dv})`};`);
+        const lc = color(light, `${name}-soft-content`) ?? softContentVar(name);
+        const dc = color(dark, `${name}-soft-content`) ?? softContentVar(name);
+        decls.push(`--color-${name}-soft-content: ${lc === dc ? lc : `light-dark(${lc}, ${dc})`};`);
     }
     decls.push(...systemDecls(nonColorLight));
     return decls;

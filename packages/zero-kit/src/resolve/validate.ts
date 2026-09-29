@@ -56,7 +56,7 @@ import { hookIssues, privateNameIssues } from './hooks.js';
 import { tokenVocabulary } from './vocabulary.js';
 import { formatOklch, solveContentLightness } from '../palette.js';
 import { tryBakeColorValue } from './color-bake.js';
-import { compositeOver, measureRolePair, parseCssColor } from './role-contrast.js';
+import { compositeOver, measureRolePair, parseCssColor, withDerivedSoft } from './role-contrast.js';
 import { CSS_BREAKOUT, DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, badPropertySyntaxMessage, breakoutMessage, dependentInitialValue, softMixPercent } from '../targets/shared.js';
 
 export interface ValidationIssue {
@@ -245,7 +245,7 @@ export function validateDesignSystem<R extends RolesDecl>(
             );
         }
     }
-    // A role emits `--color-<role>` plus `-content`/`-soft` per its
+    // A role emits `--color-<role>` plus `-content`/`-soft`/`-soft-content` per its
     // declaration, so two roles can quietly emit the same property: role
     // "danger-soft" lands on `--color-danger-soft`, which is exactly what role
     // "danger" derives. Both are written into the same block, the later one
@@ -255,7 +255,7 @@ export function validateDesignSystem<R extends RolesDecl>(
     for (const [name, decl] of Object.entries(roles)) {
         const props = [`--color-${name}`];
         if (decl.content !== false) props.push(`--color-${name}-content`);
-        if (decl.soft !== false) props.push(`--color-${name}-soft`);
+        if (decl.soft !== false) props.push(`--color-${name}-soft`, `--color-${name}-soft-content`);
         for (const prop of props) {
             const clash = emittedByRole.get(prop);
             if (clash !== undefined && clash !== name) {
@@ -512,7 +512,7 @@ export function validateDesignSystem<R extends RolesDecl>(
     const required = requiredColorTokens(roles);
     const declared = new Set<string>([
         ...required,
-        ...Object.entries(roles).flatMap(([name, decl]) => (decl.soft === false ? [] : [`${name}-soft`])),
+        ...Object.entries(roles).flatMap(([name, decl]) => (decl.soft === false ? [] : [`${name}-soft`, `${name}-soft-content`])),
     ]);
     const pairs = contrastPairs(roles);
 
@@ -586,8 +586,11 @@ export function validateDesignSystem<R extends RolesDecl>(
                 error(`themes.${themeName}`, `color token "${token}" is not in the declared vocabulary — add it to tokens.roles or remove it`);
             }
         }
+        // The soft pair is measured as painted: a tint the theme leaves out
+        // is the compiler's derivation, an unset `-soft-content` the role.
+        const measurable = withDerivedSoft(colors, roles, theme.softMix ?? DEFAULT_SOFT_MIX);
         for (const [bg, fg] of pairs) {
-            const reading = measureRolePair(colors, bg, fg);
+            const reading = measureRolePair(measurable, bg, fg);
             if (!reading) continue;
             if ('unmeasured' in reading) {
                 error(`themes.${themeName}`, `contrast ${bg} vs ${fg} cannot be measured: ${reading.unmeasured}`);
@@ -601,7 +604,12 @@ export function validateDesignSystem<R extends RolesDecl>(
             // paste and move on from.
             const level = ratio < 3 ? 'error' : 'warning';
             const composited = reading.translucentBg ? ` — ${bg} is translucent, composited over base-100` : '';
-            const said = `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (${ratio < 3 ? '< 3:1' : `< ${CONTRAST_AA}:1 AA`})${composited}`;
+            // An unset soft ink is the role colour: say so, since the token
+            // the fix names is one the theme has never spelled.
+            const defaulted = fg.endsWith('-soft-content') && !colors[fg]
+                ? ` — ${fg} is unset, so it is ${fg.slice(0, -'-soft-content'.length)}`
+                : '';
+            const said = `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (${ratio < 3 ? '< 3:1' : `< ${CONTRAST_AA}:1 AA`})${composited}${defaulted}`;
             if (reading.translucentFg) {
                 // A translucent ink gets no suggestion: its lightness is not its paint.
                 (level === 'error' ? errors : warnings).push({
@@ -635,7 +643,9 @@ export function validateDesignSystem<R extends RolesDecl>(
             const readable: Record<string, string> = { ...colors };
             const mix = theme.softMix ?? DEFAULT_SOFT_MIX;
             for (const [name, decl] of Object.entries(roles)) {
-                if (decl.soft === false || readable[`${name}-soft`] || !colors[name] || !colors['base-100']) continue;
+                if (decl.soft === false || !colors[name]) continue;
+                readable[`${name}-soft-content`] ??= colors[name];
+                if (readable[`${name}-soft`] || !colors['base-100']) continue;
                 readable[`${name}-soft`] = `color-mix(in oklab, ${colors[name]} ${softMixPercent(mix)}, ${colors['base-100']})`;
             }
             const customValues = new Map(Object.entries(theme.custom ?? {}).map(([name, value]) => [normProp(name), value]));

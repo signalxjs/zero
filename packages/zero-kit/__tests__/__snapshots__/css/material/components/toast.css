@@ -299,35 +299,35 @@
     }
 
     [data-scope="toast"][data-part="root"][data-color="primary"] {
-        --toast-accent: var(--color-primary-container);
+        --toast-accent: var(--color-primary-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="secondary"] {
-        --toast-accent: var(--color-secondary-container);
+        --toast-accent: var(--color-secondary-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="tertiary"] {
-        --toast-accent: var(--color-tertiary-container);
+        --toast-accent: var(--color-tertiary-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="error"] {
-        --toast-accent: var(--color-error-container);
+        --toast-accent: var(--color-error-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="neutral"] {
-        --toast-accent: var(--color-neutral-container);
+        --toast-accent: var(--color-neutral-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="info"] {
-        --toast-accent: var(--color-info-container);
+        --toast-accent: var(--color-info-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="success"] {
-        --toast-accent: var(--color-success-container);
+        --toast-accent: var(--color-success-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="warning"] {
-        --toast-accent: var(--color-warning-container);
+        --toast-accent: var(--color-warning-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-size="xs"] {

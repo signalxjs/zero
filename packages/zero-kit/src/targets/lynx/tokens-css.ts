@@ -126,6 +126,9 @@ function bakedColors(
     for (const token of BASE_SURFACE_TOKEN_LIST) push(token);
     for (const [name, decl] of Object.entries(roles)) {
         if (decl.soft === false) continue;
+        // The soft tint's ink (#421): explicit, else the role colour baked.
+        const ink = color(theme, `${name}-soft-content`) ?? color(theme, name);
+        if (ink) out[`${name}-soft-content`] = bakeColor(ink, where);
         const explicit = color(theme, `${name}-soft`);
         if (explicit) {
             out[`${name}-soft`] = bakeColor(explicit, where);

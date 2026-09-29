@@ -13,10 +13,6 @@
 @property --color-secondary-container { syntax: '<color>'; inherits: true; initial-value: #E8DEF8; }
 @property --color-tertiary-container { syntax: '<color>'; inherits: true; initial-value: #FFD9E3; }
 @property --color-error-container { syntax: '<color>'; inherits: true; initial-value: #FFDAD6; }
-@property --color-info-container { syntax: '<color>'; inherits: true; initial-value: #D9E2FF; }
-@property --color-success-container { syntax: '<color>'; inherits: true; initial-value: #9EF6B0; }
-@property --color-warning-container { syntax: '<color>'; inherits: true; initial-value: #FFDCBD; }
-@property --color-neutral-container { syntax: '<color>'; inherits: true; initial-value: #E7E0EB; }
 @property --color-surface { syntax: '<color>'; inherits: true; initial-value: #FDF8FD; }
 @property --color-surface-dim { syntax: '<color>'; inherits: true; initial-value: #DDD8DD; }
 @property --color-surface-bright { syntax: '<color>'; inherits: true; initial-value: #FDF8FD; }
@@ -65,14 +61,6 @@
         --color-tertiary-container-content: light-dark(#633B48, #FFD9E3);
         --color-error-container: light-dark(#FFDAD6, #93000A);
         --color-error-container-content: light-dark(#93000A, #FFDAD6);
-        --color-info-container: light-dark(#D9E2FF, #1A4390);
-        --color-info-container-content: light-dark(#1A4390, #D9E2FF);
-        --color-success-container: light-dark(#9EF6B0, #005226);
-        --color-success-container-content: light-dark(#005226, #9EF6B0);
-        --color-warning-container: light-dark(#FFDCBD, #693C00);
-        --color-warning-container-content: light-dark(#693C00, #FFDCBD);
-        --color-neutral-container: light-dark(#E7E0EB, #49454E);
-        --color-neutral-container-content: light-dark(#49454E, #CAC4CF);
         --color-surface: light-dark(#FDF8FD, #141316);
         --color-surface-content: light-dark(#1C1B1E, #E6E1E6);
         --color-surface-dim: light-dark(#DDD8DD, #141316);
@@ -103,13 +91,21 @@
         --color-base-300: light-dark(#ECE7EB, #2B292D);
         --color-base-content: light-dark(#1C1B1E, #E6E1E6);
         --color-primary-soft: light-dark(#E9DDFF, #4F378A);
+        --color-primary-soft-content: light-dark(#4F378A, #E9DDFF);
         --color-secondary-soft: light-dark(#E8DEF8, #4A4458);
+        --color-secondary-soft-content: light-dark(#4A4458, #E8DEF8);
         --color-tertiary-soft: light-dark(#FFD9E3, #633B48);
+        --color-tertiary-soft-content: light-dark(#633B48, #FFD9E3);
         --color-error-soft: light-dark(#FFDAD6, #93000A);
+        --color-error-soft-content: light-dark(#93000A, #FFDAD6);
         --color-neutral-soft: light-dark(#E7E0EB, #49454E);
+        --color-neutral-soft-content: light-dark(#49454E, #CAC4CF);
         --color-info-soft: light-dark(#D9E2FF, #1A4390);
+        --color-info-soft-content: light-dark(#1A4390, #D9E2FF);
         --color-success-soft: light-dark(#9EF6B0, #005226);
+        --color-success-soft-content: light-dark(#005226, #9EF6B0);
         --color-warning-soft: light-dark(#FFDCBD, #693C00);
+        --color-warning-soft-content: light-dark(#693C00, #FFDCBD);
         --radius-none: 0;
         --radius-extra-small: 0.25rem;
         --radius-small: 0.5rem;
@@ -350,14 +346,6 @@
         --color-tertiary-container-content: #633B48;
         --color-error-container: #FFDAD6;
         --color-error-container-content: #93000A;
-        --color-info-container: #D9E2FF;
-        --color-info-container-content: #1A4390;
-        --color-success-container: #9EF6B0;
-        --color-success-container-content: #005226;
-        --color-warning-container: #FFDCBD;
-        --color-warning-container-content: #693C00;
-        --color-neutral-container: #E7E0EB;
-        --color-neutral-container-content: #49454E;
         --color-surface: #FDF8FD;
         --color-surface-content: #1C1B1E;
         --color-surface-dim: #DDD8DD;
@@ -388,13 +376,21 @@
         --color-base-300: #ECE7EB;
         --color-base-content: #1C1B1E;
         --color-primary-soft: #E9DDFF;
+        --color-primary-soft-content: #4F378A;
         --color-secondary-soft: #E8DEF8;
+        --color-secondary-soft-content: #4A4458;
         --color-tertiary-soft: #FFD9E3;
+        --color-tertiary-soft-content: #633B48;
         --color-error-soft: #FFDAD6;
+        --color-error-soft-content: #93000A;
         --color-neutral-soft: #E7E0EB;
+        --color-neutral-soft-content: #49454E;
         --color-info-soft: #D9E2FF;
+        --color-info-soft-content: #1A4390;
         --color-success-soft: #9EF6B0;
+        --color-success-soft-content: #005226;
         --color-warning-soft: #FFDCBD;
+        --color-warning-soft-content: #693C00;
         --shadow-level1: 0 1px 2px 0 oklch(0% 0 0 / 0.3), 0 1px 3px 1px oklch(0% 0 0 / 0.15);
         --shadow-level2: 0 1px 2px 0 oklch(0% 0 0 / 0.3), 0 2px 6px 2px oklch(0% 0 0 / 0.15);
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.15), 0 1px 3px 0 oklch(0% 0 0 / 0.3);
@@ -429,14 +425,6 @@
         --color-tertiary-container-content: #FFD9E3;
         --color-error-container: #93000A;
         --color-error-container-content: #FFDAD6;
-        --color-info-container: #1A4390;
-        --color-info-container-content: #D9E2FF;
-        --color-success-container: #005226;
-        --color-success-container-content: #9EF6B0;
-        --color-warning-container: #693C00;
-        --color-warning-container-content: #FFDCBD;
-        --color-neutral-container: #49454E;
-        --color-neutral-container-content: #CAC4CF;
         --color-surface: #141316;
         --color-surface-content: #E6E1E6;
         --color-surface-dim: #141316;
@@ -467,13 +455,21 @@
         --color-base-300: #2B292D;
         --color-base-content: #E6E1E6;
         --color-primary-soft: #4F378A;
+        --color-primary-soft-content: #E9DDFF;
         --color-secondary-soft: #4A4458;
+        --color-secondary-soft-content: #E8DEF8;
         --color-tertiary-soft: #633B48;
+        --color-tertiary-soft-content: #FFD9E3;
         --color-error-soft: #93000A;
+        --color-error-soft-content: #FFDAD6;
         --color-neutral-soft: #49454E;
+        --color-neutral-soft-content: #CAC4CF;
         --color-info-soft: #1A4390;
+        --color-info-soft-content: #D9E2FF;
         --color-success-soft: #005226;
+        --color-success-soft-content: #9EF6B0;
         --color-warning-soft: #693C00;
+        --color-warning-soft-content: #FFDCBD;
         --shadow-level1: 0 1px 2px 0 oklch(0% 0 0 / 0.6), 0 1px 3px 1px oklch(0% 0 0 / 0.45);
         --shadow-level2: 0 1px 2px 0 oklch(0% 0 0 / 0.6), 0 2px 6px 2px oklch(0% 0 0 / 0.45);
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.45), 0 1px 3px 0 oklch(0% 0 0 / 0.6);
@@ -508,14 +504,6 @@
         --color-tertiary-container-content: #FFFFFF;
         --color-error-container: #CF2C27;
         --color-error-container-content: #FFFFFF;
-        --color-info-container: #486AB9;
-        --color-info-container-content: #FFFFFF;
-        --color-success-container: #237C43;
-        --color-success-container-content: #FFFFFF;
-        --color-warning-container: #9F5E00;
-        --color-warning-container-content: #FFFFFF;
-        --color-neutral-container: #E7E0EB;
-        --color-neutral-container-content: #38353D;
         --color-surface: #FDF8FD;
         --color-surface-content: #121114;
         --color-surface-dim: #CAC5CA;
@@ -546,13 +534,21 @@
         --color-base-300: #E0DBE0;
         --color-base-content: #121114;
         --color-primary-soft: #765FB4;
+        --color-primary-soft-content: #FFFFFF;
         --color-secondary-soft: #716A80;
+        --color-secondary-soft-content: #FFFFFF;
         --color-tertiary-soft: #8E606F;
+        --color-tertiary-soft-content: #FFFFFF;
         --color-error-soft: #CF2C27;
+        --color-error-soft-content: #FFFFFF;
         --color-neutral-soft: #E7E0EB;
+        --color-neutral-soft-content: #38353D;
         --color-info-soft: #486AB9;
+        --color-info-soft-content: #FFFFFF;
         --color-success-soft: #237C43;
+        --color-success-soft-content: #FFFFFF;
         --color-warning-soft: #9F5E00;
+        --color-warning-soft-content: #FFFFFF;
         --shadow-level1: 0 1px 2px 0 oklch(0% 0 0 / 0.3), 0 1px 3px 1px oklch(0% 0 0 / 0.15);
         --shadow-level2: 0 1px 2px 0 oklch(0% 0 0 / 0.3), 0 2px 6px 2px oklch(0% 0 0 / 0.15);
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.15), 0 1px 3px 0 oklch(0% 0 0 / 0.3);
@@ -587,14 +583,6 @@
         --color-tertiary-container-content: #000000;
         --color-error-container: #FF5449;
         --color-error-container-content: #000000;
-        --color-info-container: #6D8FE0;
-        --color-info-container-content: #000000;
-        --color-success-container: #4CA264;
-        --color-success-container-content: #000000;
-        --color-warning-container: #CB8024;
-        --color-warning-container-content: #000000;
-        --color-neutral-container: #49454E;
-        --color-neutral-container-content: #E0DAE5;
         --color-surface: #141316;
         --color-surface-content: #FFFFFF;
         --color-surface-dim: #141316;
@@ -625,13 +613,21 @@
         --color-base-300: #343236;
         --color-base-content: #FFFFFF;
         --color-primary-soft: #9A83DB;
+        --color-primary-soft-content: #000000;
         --color-secondary-soft: #958DA4;
+        --color-secondary-soft-content: #000000;
         --color-tertiary-soft: #B58392;
+        --color-tertiary-soft-content: #000000;
         --color-error-soft: #FF5449;
+        --color-error-soft-content: #000000;
         --color-neutral-soft: #49454E;
+        --color-neutral-soft-content: #E0DAE5;
         --color-info-soft: #6D8FE0;
+        --color-info-soft-content: #000000;
         --color-success-soft: #4CA264;
+        --color-success-soft-content: #000000;
         --color-warning-soft: #CB8024;
+        --color-warning-soft-content: #000000;
         --shadow-level1: 0 1px 2px 0 oklch(0% 0 0 / 0.6), 0 1px 3px 1px oklch(0% 0 0 / 0.45);
         --shadow-level2: 0 1px 2px 0 oklch(0% 0 0 / 0.6), 0 2px 6px 2px oklch(0% 0 0 / 0.45);
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.45), 0 1px 3px 0 oklch(0% 0 0 / 0.6);
@@ -666,14 +662,6 @@
         --color-tertiary-container-content: #FFFFFF;
         --color-error-container: #98000A;
         --color-error-container-content: #FFFFFF;
-        --color-info-container: #1D4593;
-        --color-info-container-content: #FFFFFF;
-        --color-success-container: #005527;
-        --color-success-container-content: #FFFFFF;
-        --color-warning-container: #6C3E00;
-        --color-warning-container-content: #FFFFFF;
-        --color-neutral-container: #E7E0EB;
-        --color-neutral-container-content: #000000;
         --color-surface: #FDF8FD;
         --color-surface-content: #000000;
         --color-surface-dim: #BCB7BC;
@@ -704,13 +692,21 @@
         --color-base-300: #D8D3D8;
         --color-base-content: #000000;
         --color-primary-soft: #513A8D;
+        --color-primary-soft-content: #FFFFFF;
         --color-secondary-soft: #4C465B;
+        --color-secondary-soft-content: #FFFFFF;
         --color-tertiary-soft: #663D4B;
+        --color-tertiary-soft-content: #FFFFFF;
         --color-error-soft: #98000A;
+        --color-error-soft-content: #FFFFFF;
         --color-neutral-soft: #E7E0EB;
+        --color-neutral-soft-content: #000000;
         --color-info-soft: #1D4593;
+        --color-info-soft-content: #FFFFFF;
         --color-success-soft: #005527;
+        --color-success-soft-content: #FFFFFF;
         --color-warning-soft: #6C3E00;
+        --color-warning-soft-content: #FFFFFF;
         --shadow-level1: 0 1px 2px 0 oklch(0% 0 0 / 0.3), 0 1px 3px 1px oklch(0% 0 0 / 0.15);
         --shadow-level2: 0 1px 2px 0 oklch(0% 0 0 / 0.3), 0 2px 6px 2px oklch(0% 0 0 / 0.15);
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.15), 0 1px 3px 0 oklch(0% 0 0 / 0.3);
@@ -745,14 +741,6 @@
         --color-tertiary-container-content: #1D020D;
         --color-error-container: #FFAEA4;
         --color-error-container-content: #220001;
-        --color-info-container: #ABC2FF;
-        --color-info-container-content: #000A25;
-        --color-success-container: #7ED592;
-        --color-success-container-content: #000F03;
-        --color-warning-container: #FFB361;
-        --color-warning-container-content: #150800;
-        --color-neutral-container: #49454E;
-        --color-neutral-container-content: #FFFFFF;
         --color-surface: #141316;
         --color-surface-content: #FFFFFF;
         --color-surface-dim: #141316;
@@ -783,13 +771,21 @@
         --color-base-300: #3D3B3E;
         --color-base-content: #FFFFFF;
         --color-primary-soft: #CCB8FF;
+        --color-primary-soft-content: #0F0033;
         --color-secondary-soft: #C8BFD8;
+        --color-secondary-soft-content: #0D081A;
         --color-tertiary-soft: #EBB4C4;
+        --color-tertiary-soft-content: #1D020D;
         --color-error-soft: #FFAEA4;
+        --color-error-soft-content: #220001;
         --color-neutral-soft: #49454E;
+        --color-neutral-soft-content: #FFFFFF;
         --color-info-soft: #ABC2FF;
+        --color-info-soft-content: #000A25;
         --color-success-soft: #7ED592;
+        --color-success-soft-content: #000F03;
         --color-warning-soft: #FFB361;
+        --color-warning-soft-content: #150800;
         --shadow-level1: 0 1px 2px 0 oklch(0% 0 0 / 0.6), 0 1px 3px 1px oklch(0% 0 0 / 0.45);
         --shadow-level2: 0 1px 2px 0 oklch(0% 0 0 / 0.6), 0 2px 6px 2px oklch(0% 0 0 / 0.45);
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.45), 0 1px 3px 0 oklch(0% 0 0 / 0.6);
@@ -955,42 +951,42 @@
 
     [data-scope="box"][data-part="root"][data-color="primary"] {
         --box-surface: var(--color-primary-soft);
-        --box-ink: var(--color-primary);
+        --box-ink: var(--color-primary-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="secondary"] {
         --box-surface: var(--color-secondary-soft);
-        --box-ink: var(--color-secondary);
+        --box-ink: var(--color-secondary-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="tertiary"] {
         --box-surface: var(--color-tertiary-soft);
-        --box-ink: var(--color-tertiary);
+        --box-ink: var(--color-tertiary-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="error"] {
         --box-surface: var(--color-error-soft);
-        --box-ink: var(--color-error);
+        --box-ink: var(--color-error-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="neutral"] {
         --box-surface: var(--color-neutral-soft);
-        --box-ink: var(--color-neutral);
+        --box-ink: var(--color-neutral-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="info"] {
         --box-surface: var(--color-info-soft);
-        --box-ink: var(--color-info);
+        --box-ink: var(--color-info-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="success"] {
         --box-surface: var(--color-success-soft);
-        --box-ink: var(--color-success);
+        --box-ink: var(--color-success-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="warning"] {
         --box-surface: var(--color-warning-soft);
-        --box-ink: var(--color-warning);
+        --box-ink: var(--color-warning-soft-content);
     }
 }
 
@@ -1141,64 +1137,64 @@
     [data-scope="button"][data-part="root"][data-color="primary"] {
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
-        --btn-soft: var(--color-primary-container);
-        --btn-on-soft: var(--color-primary-container-content);
+        --btn-soft: var(--color-primary-soft);
+        --btn-on-soft: var(--color-primary-soft-content);
         --btn-ink: var(--color-primary);
     }
 
     [data-scope="button"][data-part="root"][data-color="secondary"] {
         --btn-accent: var(--color-secondary);
         --btn-on-accent: var(--color-secondary-content);
-        --btn-soft: var(--color-secondary-container);
-        --btn-on-soft: var(--color-secondary-container-content);
+        --btn-soft: var(--color-secondary-soft);
+        --btn-on-soft: var(--color-secondary-soft-content);
         --btn-ink: var(--color-secondary);
     }
 
     [data-scope="button"][data-part="root"][data-color="tertiary"] {
         --btn-accent: var(--color-tertiary);
         --btn-on-accent: var(--color-tertiary-content);
-        --btn-soft: var(--color-tertiary-container);
-        --btn-on-soft: var(--color-tertiary-container-content);
+        --btn-soft: var(--color-tertiary-soft);
+        --btn-on-soft: var(--color-tertiary-soft-content);
         --btn-ink: var(--color-tertiary);
     }
 
     [data-scope="button"][data-part="root"][data-color="error"] {
         --btn-accent: var(--color-error);
         --btn-on-accent: var(--color-error-content);
-        --btn-soft: var(--color-error-container);
-        --btn-on-soft: var(--color-error-container-content);
+        --btn-soft: var(--color-error-soft);
+        --btn-on-soft: var(--color-error-soft-content);
         --btn-ink: var(--color-error);
     }
 
     [data-scope="button"][data-part="root"][data-color="neutral"] {
         --btn-accent: var(--color-neutral);
         --btn-on-accent: var(--color-neutral-content);
-        --btn-soft: var(--color-neutral-container);
-        --btn-on-soft: var(--color-neutral-container-content);
+        --btn-soft: var(--color-neutral-soft);
+        --btn-on-soft: var(--color-neutral-soft-content);
         --btn-ink: var(--color-neutral);
     }
 
     [data-scope="button"][data-part="root"][data-color="info"] {
         --btn-accent: var(--color-info);
         --btn-on-accent: var(--color-info-content);
-        --btn-soft: var(--color-info-container);
-        --btn-on-soft: var(--color-info-container-content);
+        --btn-soft: var(--color-info-soft);
+        --btn-on-soft: var(--color-info-soft-content);
         --btn-ink: var(--color-info);
     }
 
     [data-scope="button"][data-part="root"][data-color="success"] {
         --btn-accent: var(--color-success);
         --btn-on-accent: var(--color-success-content);
-        --btn-soft: var(--color-success-container);
-        --btn-on-soft: var(--color-success-container-content);
+        --btn-soft: var(--color-success-soft);
+        --btn-on-soft: var(--color-success-soft-content);
         --btn-ink: var(--color-success);
     }
 
     [data-scope="button"][data-part="root"][data-color="warning"] {
         --btn-accent: var(--color-warning);
         --btn-on-accent: var(--color-warning-content);
-        --btn-soft: var(--color-warning-container);
-        --btn-on-soft: var(--color-warning-container-content);
+        --btn-soft: var(--color-warning-soft);
+        --btn-on-soft: var(--color-warning-soft-content);
         --btn-ink: var(--color-warning);
     }
 
@@ -1787,50 +1783,50 @@
 
     [data-scope="collapsible"][data-part="root"][data-color="primary"] {
         --disclosure-accent: var(--color-primary);
-        --disclosure-soft: var(--color-primary-container);
-        --disclosure-on-soft: var(--color-primary-container-content);
+        --disclosure-soft: var(--color-primary-soft);
+        --disclosure-on-soft: var(--color-primary-soft-content);
     }
 
     [data-scope="collapsible"][data-part="root"][data-color="secondary"] {
         --disclosure-accent: var(--color-secondary);
-        --disclosure-soft: var(--color-secondary-container);
-        --disclosure-on-soft: var(--color-secondary-container-content);
+        --disclosure-soft: var(--color-secondary-soft);
+        --disclosure-on-soft: var(--color-secondary-soft-content);
     }
 
     [data-scope="collapsible"][data-part="root"][data-color="tertiary"] {
         --disclosure-accent: var(--color-tertiary);
-        --disclosure-soft: var(--color-tertiary-container);
-        --disclosure-on-soft: var(--color-tertiary-container-content);
+        --disclosure-soft: var(--color-tertiary-soft);
+        --disclosure-on-soft: var(--color-tertiary-soft-content);
     }
 
     [data-scope="collapsible"][data-part="root"][data-color="error"] {
         --disclosure-accent: var(--color-error);
-        --disclosure-soft: var(--color-error-container);
-        --disclosure-on-soft: var(--color-error-container-content);
+        --disclosure-soft: var(--color-error-soft);
+        --disclosure-on-soft: var(--color-error-soft-content);
     }
 
     [data-scope="collapsible"][data-part="root"][data-color="neutral"] {
         --disclosure-accent: var(--color-neutral);
-        --disclosure-soft: var(--color-neutral-container);
-        --disclosure-on-soft: var(--color-neutral-container-content);
+        --disclosure-soft: var(--color-neutral-soft);
+        --disclosure-on-soft: var(--color-neutral-soft-content);
     }
 
     [data-scope="collapsible"][data-part="root"][data-color="info"] {
         --disclosure-accent: var(--color-info);
-        --disclosure-soft: var(--color-info-container);
-        --disclosure-on-soft: var(--color-info-container-content);
+        --disclosure-soft: var(--color-info-soft);
+        --disclosure-on-soft: var(--color-info-soft-content);
     }
 
     [data-scope="collapsible"][data-part="root"][data-color="success"] {
         --disclosure-accent: var(--color-success);
-        --disclosure-soft: var(--color-success-container);
-        --disclosure-on-soft: var(--color-success-container-content);
+        --disclosure-soft: var(--color-success-soft);
+        --disclosure-on-soft: var(--color-success-soft-content);
     }
 
     [data-scope="collapsible"][data-part="root"][data-color="warning"] {
         --disclosure-accent: var(--color-warning);
-        --disclosure-soft: var(--color-warning-container);
-        --disclosure-on-soft: var(--color-warning-container-content);
+        --disclosure-soft: var(--color-warning-soft);
+        --disclosure-on-soft: var(--color-warning-soft-content);
     }
 
     @scope ([data-scope="collapsible"][data-part="root"][data-size="xs"]) to ([data-scope="collapsible"][data-part="root"]) {
@@ -2044,50 +2040,50 @@
 
     [data-scope="accordion"][data-part="root"][data-color="primary"] {
         --disclosure-accent: var(--color-primary);
-        --disclosure-soft: var(--color-primary-container);
-        --disclosure-on-soft: var(--color-primary-container-content);
+        --disclosure-soft: var(--color-primary-soft);
+        --disclosure-on-soft: var(--color-primary-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="secondary"] {
         --disclosure-accent: var(--color-secondary);
-        --disclosure-soft: var(--color-secondary-container);
-        --disclosure-on-soft: var(--color-secondary-container-content);
+        --disclosure-soft: var(--color-secondary-soft);
+        --disclosure-on-soft: var(--color-secondary-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="tertiary"] {
         --disclosure-accent: var(--color-tertiary);
-        --disclosure-soft: var(--color-tertiary-container);
-        --disclosure-on-soft: var(--color-tertiary-container-content);
+        --disclosure-soft: var(--color-tertiary-soft);
+        --disclosure-on-soft: var(--color-tertiary-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="error"] {
         --disclosure-accent: var(--color-error);
-        --disclosure-soft: var(--color-error-container);
-        --disclosure-on-soft: var(--color-error-container-content);
+        --disclosure-soft: var(--color-error-soft);
+        --disclosure-on-soft: var(--color-error-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="neutral"] {
         --disclosure-accent: var(--color-neutral);
-        --disclosure-soft: var(--color-neutral-container);
-        --disclosure-on-soft: var(--color-neutral-container-content);
+        --disclosure-soft: var(--color-neutral-soft);
+        --disclosure-on-soft: var(--color-neutral-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="info"] {
         --disclosure-accent: var(--color-info);
-        --disclosure-soft: var(--color-info-container);
-        --disclosure-on-soft: var(--color-info-container-content);
+        --disclosure-soft: var(--color-info-soft);
+        --disclosure-on-soft: var(--color-info-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="success"] {
         --disclosure-accent: var(--color-success);
-        --disclosure-soft: var(--color-success-container);
-        --disclosure-on-soft: var(--color-success-container-content);
+        --disclosure-soft: var(--color-success-soft);
+        --disclosure-on-soft: var(--color-success-soft-content);
     }
 
     [data-scope="accordion"][data-part="root"][data-color="warning"] {
         --disclosure-accent: var(--color-warning);
-        --disclosure-soft: var(--color-warning-container);
-        --disclosure-on-soft: var(--color-warning-container-content);
+        --disclosure-soft: var(--color-warning-soft);
+        --disclosure-on-soft: var(--color-warning-soft-content);
     }
 
     @scope ([data-scope="accordion"][data-part="root"][data-size="xs"]) to ([data-scope="accordion"][data-part="root"]) {
@@ -4944,49 +4940,49 @@
     [data-scope="switch"][data-part="root"][data-color="primary"] {
         --switch-accent: var(--color-primary);
         --switch-on-accent: var(--color-primary-content);
-        --switch-soft: var(--color-primary-container);
+        --switch-soft: var(--color-primary-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="secondary"] {
         --switch-accent: var(--color-secondary);
         --switch-on-accent: var(--color-secondary-content);
-        --switch-soft: var(--color-secondary-container);
+        --switch-soft: var(--color-secondary-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="tertiary"] {
         --switch-accent: var(--color-tertiary);
         --switch-on-accent: var(--color-tertiary-content);
-        --switch-soft: var(--color-tertiary-container);
+        --switch-soft: var(--color-tertiary-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="error"] {
         --switch-accent: var(--color-error);
         --switch-on-accent: var(--color-error-content);
-        --switch-soft: var(--color-error-container);
+        --switch-soft: var(--color-error-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="neutral"] {
         --switch-accent: var(--color-neutral);
         --switch-on-accent: var(--color-neutral-content);
-        --switch-soft: var(--color-neutral-container);
+        --switch-soft: var(--color-neutral-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="info"] {
         --switch-accent: var(--color-info);
         --switch-on-accent: var(--color-info-content);
-        --switch-soft: var(--color-info-container);
+        --switch-soft: var(--color-info-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="success"] {
         --switch-accent: var(--color-success);
         --switch-on-accent: var(--color-success-content);
-        --switch-soft: var(--color-success-container);
+        --switch-soft: var(--color-success-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="warning"] {
         --switch-accent: var(--color-warning);
         --switch-on-accent: var(--color-warning-content);
-        --switch-soft: var(--color-warning-container);
+        --switch-soft: var(--color-warning-soft);
     }
 
     @media (hover: none) {
@@ -6720,43 +6716,43 @@
     }
 
     [data-scope="avatar"][data-part="root"][data-color="primary"] {
-        --avatar-accent: var(--color-primary-container);
-        --avatar-on-accent: var(--color-primary-container-content);
+        --avatar-accent: var(--color-primary-soft);
+        --avatar-on-accent: var(--color-primary-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="secondary"] {
-        --avatar-accent: var(--color-secondary-container);
-        --avatar-on-accent: var(--color-secondary-container-content);
+        --avatar-accent: var(--color-secondary-soft);
+        --avatar-on-accent: var(--color-secondary-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="tertiary"] {
-        --avatar-accent: var(--color-tertiary-container);
-        --avatar-on-accent: var(--color-tertiary-container-content);
+        --avatar-accent: var(--color-tertiary-soft);
+        --avatar-on-accent: var(--color-tertiary-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="error"] {
-        --avatar-accent: var(--color-error-container);
-        --avatar-on-accent: var(--color-error-container-content);
+        --avatar-accent: var(--color-error-soft);
+        --avatar-on-accent: var(--color-error-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="neutral"] {
-        --avatar-accent: var(--color-neutral-container);
-        --avatar-on-accent: var(--color-neutral-container-content);
+        --avatar-accent: var(--color-neutral-soft);
+        --avatar-on-accent: var(--color-neutral-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="info"] {
-        --avatar-accent: var(--color-info-container);
-        --avatar-on-accent: var(--color-info-container-content);
+        --avatar-accent: var(--color-info-soft);
+        --avatar-on-accent: var(--color-info-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="success"] {
-        --avatar-accent: var(--color-success-container);
-        --avatar-on-accent: var(--color-success-container-content);
+        --avatar-accent: var(--color-success-soft);
+        --avatar-on-accent: var(--color-success-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-color="warning"] {
-        --avatar-accent: var(--color-warning-container);
-        --avatar-on-accent: var(--color-warning-container-content);
+        --avatar-accent: var(--color-warning-soft);
+        --avatar-on-accent: var(--color-warning-soft-content);
     }
 
     [data-scope="avatar"][data-part="root"][data-size="xs"] {
@@ -6844,43 +6840,43 @@
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="primary"] {
-        --avatar-group-accent: var(--color-primary-container);
-        --avatar-group-on-accent: var(--color-primary-container-content);
+        --avatar-group-accent: var(--color-primary-soft);
+        --avatar-group-on-accent: var(--color-primary-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="secondary"] {
-        --avatar-group-accent: var(--color-secondary-container);
-        --avatar-group-on-accent: var(--color-secondary-container-content);
+        --avatar-group-accent: var(--color-secondary-soft);
+        --avatar-group-on-accent: var(--color-secondary-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="tertiary"] {
-        --avatar-group-accent: var(--color-tertiary-container);
-        --avatar-group-on-accent: var(--color-tertiary-container-content);
+        --avatar-group-accent: var(--color-tertiary-soft);
+        --avatar-group-on-accent: var(--color-tertiary-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="error"] {
-        --avatar-group-accent: var(--color-error-container);
-        --avatar-group-on-accent: var(--color-error-container-content);
+        --avatar-group-accent: var(--color-error-soft);
+        --avatar-group-on-accent: var(--color-error-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="neutral"] {
-        --avatar-group-accent: var(--color-neutral-container);
-        --avatar-group-on-accent: var(--color-neutral-container-content);
+        --avatar-group-accent: var(--color-neutral-soft);
+        --avatar-group-on-accent: var(--color-neutral-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="info"] {
-        --avatar-group-accent: var(--color-info-container);
-        --avatar-group-on-accent: var(--color-info-container-content);
+        --avatar-group-accent: var(--color-info-soft);
+        --avatar-group-on-accent: var(--color-info-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="success"] {
-        --avatar-group-accent: var(--color-success-container);
-        --avatar-group-on-accent: var(--color-success-container-content);
+        --avatar-group-accent: var(--color-success-soft);
+        --avatar-group-on-accent: var(--color-success-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-color="warning"] {
-        --avatar-group-accent: var(--color-warning-container);
-        --avatar-group-on-accent: var(--color-warning-container-content);
+        --avatar-group-accent: var(--color-warning-soft);
+        --avatar-group-on-accent: var(--color-warning-soft-content);
     }
 
     [data-scope="avatar-group"][data-part="root"][data-size="xs"] {
@@ -7273,35 +7269,35 @@
     }
 
     [data-scope="toast"][data-part="root"][data-color="primary"] {
-        --toast-accent: var(--color-primary-container);
+        --toast-accent: var(--color-primary-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="secondary"] {
-        --toast-accent: var(--color-secondary-container);
+        --toast-accent: var(--color-secondary-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="tertiary"] {
-        --toast-accent: var(--color-tertiary-container);
+        --toast-accent: var(--color-tertiary-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="error"] {
-        --toast-accent: var(--color-error-container);
+        --toast-accent: var(--color-error-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="neutral"] {
-        --toast-accent: var(--color-neutral-container);
+        --toast-accent: var(--color-neutral-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="info"] {
-        --toast-accent: var(--color-info-container);
+        --toast-accent: var(--color-info-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="success"] {
-        --toast-accent: var(--color-success-container);
+        --toast-accent: var(--color-success-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-color="warning"] {
-        --toast-accent: var(--color-warning-container);
+        --toast-accent: var(--color-warning-soft);
     }
 
     [data-scope="toast"][data-part="root"][data-size="xs"] {
@@ -8071,8 +8067,8 @@
     [data-scope="toggle"][data-part="root"][data-color="primary"] {
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
-        --btn-soft: var(--color-primary-container);
-        --btn-on-soft: var(--color-primary-container-content);
+        --btn-soft: var(--color-primary-soft);
+        --btn-on-soft: var(--color-primary-soft-content);
         --btn-ink: var(--color-primary);
         --btn-selected: var(--color-primary);
         --btn-on-selected: var(--color-primary-content);
@@ -8081,8 +8077,8 @@
     [data-scope="toggle"][data-part="root"][data-color="secondary"] {
         --btn-accent: var(--color-secondary);
         --btn-on-accent: var(--color-secondary-content);
-        --btn-soft: var(--color-secondary-container);
-        --btn-on-soft: var(--color-secondary-container-content);
+        --btn-soft: var(--color-secondary-soft);
+        --btn-on-soft: var(--color-secondary-soft-content);
         --btn-ink: var(--color-secondary);
         --btn-selected: var(--color-secondary);
         --btn-on-selected: var(--color-secondary-content);
@@ -8091,8 +8087,8 @@
     [data-scope="toggle"][data-part="root"][data-color="tertiary"] {
         --btn-accent: var(--color-tertiary);
         --btn-on-accent: var(--color-tertiary-content);
-        --btn-soft: var(--color-tertiary-container);
-        --btn-on-soft: var(--color-tertiary-container-content);
+        --btn-soft: var(--color-tertiary-soft);
+        --btn-on-soft: var(--color-tertiary-soft-content);
         --btn-ink: var(--color-tertiary);
         --btn-selected: var(--color-tertiary);
         --btn-on-selected: var(--color-tertiary-content);
@@ -8101,8 +8097,8 @@
     [data-scope="toggle"][data-part="root"][data-color="error"] {
         --btn-accent: var(--color-error);
         --btn-on-accent: var(--color-error-content);
-        --btn-soft: var(--color-error-container);
-        --btn-on-soft: var(--color-error-container-content);
+        --btn-soft: var(--color-error-soft);
+        --btn-on-soft: var(--color-error-soft-content);
         --btn-ink: var(--color-error);
         --btn-selected: var(--color-error);
         --btn-on-selected: var(--color-error-content);
@@ -8111,8 +8107,8 @@
     [data-scope="toggle"][data-part="root"][data-color="neutral"] {
         --btn-accent: var(--color-neutral);
         --btn-on-accent: var(--color-neutral-content);
-        --btn-soft: var(--color-neutral-container);
-        --btn-on-soft: var(--color-neutral-container-content);
+        --btn-soft: var(--color-neutral-soft);
+        --btn-on-soft: var(--color-neutral-soft-content);
         --btn-ink: var(--color-neutral);
         --btn-selected: var(--color-neutral);
         --btn-on-selected: var(--color-neutral-content);
@@ -8121,8 +8117,8 @@
     [data-scope="toggle"][data-part="root"][data-color="info"] {
         --btn-accent: var(--color-info);
         --btn-on-accent: var(--color-info-content);
-        --btn-soft: var(--color-info-container);
-        --btn-on-soft: var(--color-info-container-content);
+        --btn-soft: var(--color-info-soft);
+        --btn-on-soft: var(--color-info-soft-content);
         --btn-ink: var(--color-info);
         --btn-selected: var(--color-info);
         --btn-on-selected: var(--color-info-content);
@@ -8131,8 +8127,8 @@
     [data-scope="toggle"][data-part="root"][data-color="success"] {
         --btn-accent: var(--color-success);
         --btn-on-accent: var(--color-success-content);
-        --btn-soft: var(--color-success-container);
-        --btn-on-soft: var(--color-success-container-content);
+        --btn-soft: var(--color-success-soft);
+        --btn-on-soft: var(--color-success-soft-content);
         --btn-ink: var(--color-success);
         --btn-selected: var(--color-success);
         --btn-on-selected: var(--color-success-content);
@@ -8141,8 +8137,8 @@
     [data-scope="toggle"][data-part="root"][data-color="warning"] {
         --btn-accent: var(--color-warning);
         --btn-on-accent: var(--color-warning-content);
-        --btn-soft: var(--color-warning-container);
-        --btn-on-soft: var(--color-warning-container-content);
+        --btn-soft: var(--color-warning-soft);
+        --btn-on-soft: var(--color-warning-soft-content);
         --btn-ink: var(--color-warning);
         --btn-selected: var(--color-warning);
         --btn-on-selected: var(--color-warning-content);
@@ -8454,64 +8450,64 @@
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="primary"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-primary-container);
-            --toggle-group-on-fill: var(--color-primary-container-content);
+            --toggle-group-fill: var(--color-primary-soft);
+            --toggle-group-on-fill: var(--color-primary-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="secondary"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-secondary-container);
-            --toggle-group-on-fill: var(--color-secondary-container-content);
+            --toggle-group-fill: var(--color-secondary-soft);
+            --toggle-group-on-fill: var(--color-secondary-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"]:not([data-color])) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-secondary-container);
-            --toggle-group-on-fill: var(--color-secondary-container-content);
+            --toggle-group-fill: var(--color-secondary-soft);
+            --toggle-group-on-fill: var(--color-secondary-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="tertiary"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-tertiary-container);
-            --toggle-group-on-fill: var(--color-tertiary-container-content);
+            --toggle-group-fill: var(--color-tertiary-soft);
+            --toggle-group-on-fill: var(--color-tertiary-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="error"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-error-container);
-            --toggle-group-on-fill: var(--color-error-container-content);
+            --toggle-group-fill: var(--color-error-soft);
+            --toggle-group-on-fill: var(--color-error-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="neutral"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-neutral-container);
-            --toggle-group-on-fill: var(--color-neutral-container-content);
+            --toggle-group-fill: var(--color-neutral-soft);
+            --toggle-group-on-fill: var(--color-neutral-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="info"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-info-container);
-            --toggle-group-on-fill: var(--color-info-container-content);
+            --toggle-group-fill: var(--color-info-soft);
+            --toggle-group-on-fill: var(--color-info-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="success"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-success-container);
-            --toggle-group-on-fill: var(--color-success-container-content);
+            --toggle-group-fill: var(--color-success-soft);
+            --toggle-group-on-fill: var(--color-success-soft-content);
         }
     }
 
     @scope ([data-scope="toggle-group"][data-part="root"][data-color="warning"]) to ([data-scope="toggle-group"][data-part="root"]) {
         [data-scope="toggle-group"][data-part="item"] {
-            --toggle-group-fill: var(--color-warning-container);
-            --toggle-group-on-fill: var(--color-warning-container-content);
+            --toggle-group-fill: var(--color-warning-soft);
+            --toggle-group-on-fill: var(--color-warning-soft-content);
         }
     }
 
@@ -10277,51 +10273,51 @@
     }
 
     [data-scope="card"][data-part="root"][data-color="primary"] {
-        --card-fill: var(--color-primary-container);
-        --card-ink: var(--color-primary-container-content);
-        --card-subtle: var(--color-primary-container-content);
+        --card-fill: var(--color-primary-soft);
+        --card-ink: var(--color-primary-soft-content);
+        --card-subtle: var(--color-primary-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="secondary"] {
-        --card-fill: var(--color-secondary-container);
-        --card-ink: var(--color-secondary-container-content);
-        --card-subtle: var(--color-secondary-container-content);
+        --card-fill: var(--color-secondary-soft);
+        --card-ink: var(--color-secondary-soft-content);
+        --card-subtle: var(--color-secondary-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="tertiary"] {
-        --card-fill: var(--color-tertiary-container);
-        --card-ink: var(--color-tertiary-container-content);
-        --card-subtle: var(--color-tertiary-container-content);
+        --card-fill: var(--color-tertiary-soft);
+        --card-ink: var(--color-tertiary-soft-content);
+        --card-subtle: var(--color-tertiary-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="error"] {
-        --card-fill: var(--color-error-container);
-        --card-ink: var(--color-error-container-content);
-        --card-subtle: var(--color-error-container-content);
+        --card-fill: var(--color-error-soft);
+        --card-ink: var(--color-error-soft-content);
+        --card-subtle: var(--color-error-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="neutral"] {
-        --card-fill: var(--color-neutral-container);
-        --card-ink: var(--color-neutral-container-content);
-        --card-subtle: var(--color-neutral-container-content);
+        --card-fill: var(--color-neutral-soft);
+        --card-ink: var(--color-neutral-soft-content);
+        --card-subtle: var(--color-neutral-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="info"] {
-        --card-fill: var(--color-info-container);
-        --card-ink: var(--color-info-container-content);
-        --card-subtle: var(--color-info-container-content);
+        --card-fill: var(--color-info-soft);
+        --card-ink: var(--color-info-soft-content);
+        --card-subtle: var(--color-info-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="success"] {
-        --card-fill: var(--color-success-container);
-        --card-ink: var(--color-success-container-content);
-        --card-subtle: var(--color-success-container-content);
+        --card-fill: var(--color-success-soft);
+        --card-ink: var(--color-success-soft-content);
+        --card-subtle: var(--color-success-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="warning"] {
-        --card-fill: var(--color-warning-container);
-        --card-ink: var(--color-warning-container-content);
-        --card-subtle: var(--color-warning-container-content);
+        --card-fill: var(--color-warning-soft);
+        --card-ink: var(--color-warning-soft-content);
+        --card-subtle: var(--color-warning-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-size="xs"] {
@@ -10343,8 +10339,8 @@
 
 @layer zero.recipes {
     [data-scope="alert"][data-part="root"] {
-        --alert-tint: var(--color-info-container);
-        --alert-on-tint: var(--color-info-container-content);
+        --alert-tint: var(--color-info-soft);
+        --alert-on-tint: var(--color-info-soft-content);
         --alert-accent: var(--color-info);
     }
 
@@ -10417,50 +10413,50 @@
     }
 
     [data-scope="alert"][data-part="root"][data-color="primary"] {
-        --alert-tint: var(--color-primary-container);
-        --alert-on-tint: var(--color-primary-container-content);
+        --alert-tint: var(--color-primary-soft);
+        --alert-on-tint: var(--color-primary-soft-content);
         --alert-accent: var(--color-primary);
     }
 
     [data-scope="alert"][data-part="root"][data-color="secondary"] {
-        --alert-tint: var(--color-secondary-container);
-        --alert-on-tint: var(--color-secondary-container-content);
+        --alert-tint: var(--color-secondary-soft);
+        --alert-on-tint: var(--color-secondary-soft-content);
         --alert-accent: var(--color-secondary);
     }
 
     [data-scope="alert"][data-part="root"][data-color="tertiary"] {
-        --alert-tint: var(--color-tertiary-container);
-        --alert-on-tint: var(--color-tertiary-container-content);
+        --alert-tint: var(--color-tertiary-soft);
+        --alert-on-tint: var(--color-tertiary-soft-content);
         --alert-accent: var(--color-tertiary);
     }
 
     [data-scope="alert"][data-part="root"][data-color="error"] {
-        --alert-tint: var(--color-error-container);
-        --alert-on-tint: var(--color-error-container-content);
+        --alert-tint: var(--color-error-soft);
+        --alert-on-tint: var(--color-error-soft-content);
         --alert-accent: var(--color-error);
     }
 
     [data-scope="alert"][data-part="root"][data-color="neutral"] {
-        --alert-tint: var(--color-neutral-container);
-        --alert-on-tint: var(--color-neutral-container-content);
+        --alert-tint: var(--color-neutral-soft);
+        --alert-on-tint: var(--color-neutral-soft-content);
         --alert-accent: var(--color-neutral);
     }
 
     [data-scope="alert"][data-part="root"][data-color="info"] {
-        --alert-tint: var(--color-info-container);
-        --alert-on-tint: var(--color-info-container-content);
+        --alert-tint: var(--color-info-soft);
+        --alert-on-tint: var(--color-info-soft-content);
         --alert-accent: var(--color-info);
     }
 
     [data-scope="alert"][data-part="root"][data-color="success"] {
-        --alert-tint: var(--color-success-container);
-        --alert-on-tint: var(--color-success-container-content);
+        --alert-tint: var(--color-success-soft);
+        --alert-on-tint: var(--color-success-soft-content);
         --alert-accent: var(--color-success);
     }
 
     [data-scope="alert"][data-part="root"][data-color="warning"] {
-        --alert-tint: var(--color-warning-container);
-        --alert-on-tint: var(--color-warning-container-content);
+        --alert-tint: var(--color-warning-soft);
+        --alert-on-tint: var(--color-warning-soft-content);
         --alert-accent: var(--color-warning);
     }
 
@@ -10534,50 +10530,50 @@
 
     [data-scope="empty-state"][data-part="root"][data-color="primary"] {
         --empty-accent: var(--color-primary);
-        --empty-tint: var(--color-primary-container);
-        --empty-on-tint: var(--color-primary-container-content);
+        --empty-tint: var(--color-primary-soft);
+        --empty-on-tint: var(--color-primary-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="secondary"] {
         --empty-accent: var(--color-secondary);
-        --empty-tint: var(--color-secondary-container);
-        --empty-on-tint: var(--color-secondary-container-content);
+        --empty-tint: var(--color-secondary-soft);
+        --empty-on-tint: var(--color-secondary-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="tertiary"] {
         --empty-accent: var(--color-tertiary);
-        --empty-tint: var(--color-tertiary-container);
-        --empty-on-tint: var(--color-tertiary-container-content);
+        --empty-tint: var(--color-tertiary-soft);
+        --empty-on-tint: var(--color-tertiary-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="error"] {
         --empty-accent: var(--color-error);
-        --empty-tint: var(--color-error-container);
-        --empty-on-tint: var(--color-error-container-content);
+        --empty-tint: var(--color-error-soft);
+        --empty-on-tint: var(--color-error-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="neutral"] {
         --empty-accent: var(--color-neutral);
-        --empty-tint: var(--color-neutral-container);
-        --empty-on-tint: var(--color-neutral-container-content);
+        --empty-tint: var(--color-neutral-soft);
+        --empty-on-tint: var(--color-neutral-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="info"] {
         --empty-accent: var(--color-info);
-        --empty-tint: var(--color-info-container);
-        --empty-on-tint: var(--color-info-container-content);
+        --empty-tint: var(--color-info-soft);
+        --empty-on-tint: var(--color-info-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="success"] {
         --empty-accent: var(--color-success);
-        --empty-tint: var(--color-success-container);
-        --empty-on-tint: var(--color-success-container-content);
+        --empty-tint: var(--color-success-soft);
+        --empty-on-tint: var(--color-success-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-color="warning"] {
         --empty-accent: var(--color-warning);
-        --empty-tint: var(--color-warning-container);
-        --empty-on-tint: var(--color-warning-container-content);
+        --empty-tint: var(--color-warning-soft);
+        --empty-on-tint: var(--color-warning-soft-content);
     }
 
     [data-scope="empty-state"][data-part="root"][data-size="xs"] {
@@ -12815,50 +12811,50 @@
 
     [data-scope="nav-list"][data-part="root"][data-color="primary"] {
         --nav-accent: var(--color-primary);
-        --nav-tint: var(--color-primary-container);
-        --nav-on-tint: var(--color-primary-container-content);
+        --nav-tint: var(--color-primary-soft);
+        --nav-on-tint: var(--color-primary-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="secondary"] {
         --nav-accent: var(--color-secondary);
-        --nav-tint: var(--color-secondary-container);
-        --nav-on-tint: var(--color-secondary-container-content);
+        --nav-tint: var(--color-secondary-soft);
+        --nav-on-tint: var(--color-secondary-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="tertiary"] {
         --nav-accent: var(--color-tertiary);
-        --nav-tint: var(--color-tertiary-container);
-        --nav-on-tint: var(--color-tertiary-container-content);
+        --nav-tint: var(--color-tertiary-soft);
+        --nav-on-tint: var(--color-tertiary-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="error"] {
         --nav-accent: var(--color-error);
-        --nav-tint: var(--color-error-container);
-        --nav-on-tint: var(--color-error-container-content);
+        --nav-tint: var(--color-error-soft);
+        --nav-on-tint: var(--color-error-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="neutral"] {
         --nav-accent: var(--color-neutral);
-        --nav-tint: var(--color-neutral-container);
-        --nav-on-tint: var(--color-neutral-container-content);
+        --nav-tint: var(--color-neutral-soft);
+        --nav-on-tint: var(--color-neutral-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="info"] {
         --nav-accent: var(--color-info);
-        --nav-tint: var(--color-info-container);
-        --nav-on-tint: var(--color-info-container-content);
+        --nav-tint: var(--color-info-soft);
+        --nav-on-tint: var(--color-info-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="success"] {
         --nav-accent: var(--color-success);
-        --nav-tint: var(--color-success-container);
-        --nav-on-tint: var(--color-success-container-content);
+        --nav-tint: var(--color-success-soft);
+        --nav-on-tint: var(--color-success-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="warning"] {
         --nav-accent: var(--color-warning);
-        --nav-tint: var(--color-warning-container);
-        --nav-on-tint: var(--color-warning-container-content);
+        --nav-tint: var(--color-warning-soft);
+        --nav-on-tint: var(--color-warning-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-size="xs"] {

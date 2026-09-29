@@ -28,7 +28,7 @@ export const designSystem = defineDesignSystem({
     name: 'acme',
     tokens: defineTokens({
         // The color vocabulary is YOURS: declare any roles (omit for the
-        // recommended eight). Each emits --color-<role> (+ -content/-soft).
+        // recommended eight). Each emits --color-<role> (+ -content/-soft/-soft-content).
         roles: { primary: {}, surface: { axis: false, content: false, soft: false } },
         // The size axis is yours too — omit for the recommended xs–xl ramp.
         sizes: ['compact', 'comfortable', 'spacious'],
@@ -91,6 +91,14 @@ validation error) and is written unrounded — `0.125` is `12.5%`, the ratio
 the lynx target and the contrast audit bake. On `:root` each scheme resolves
 its own side, so system dark with no `data-theme` paints the dark theme's
 tint (its explicit value or its own `softMix`), not the light one's.
+Each soft tint has its own ink, `<role>-soft-content` (#421): the theme's
+explicit value, else `var(--color-<role>)` — the role colour, which is what
+soft surfaces painted before the token existed. The validator measures it
+on its tint in every theme like `<role>`/`<role>-content` (below 3:1 an
+error, below 4.5:1 a warning, with a `suggest`), the default included, so a
+role that only reads as a light wash gets told. Set it when the tint does
+not stay a light wash of the role — Material's containers go dark in M3's
+high-contrast schemes. The layout Box inks its coloured surface with it.
 A role is a value of the `color` axis unless it says otherwise:
 `axis: false` marks a fill or a hairline — a token recipes read, not a
 colour a control can be — and `axisRoles(roles)` (on `/define`) lists the
@@ -269,7 +277,7 @@ defineTokens({
 ```
 
 `fg`/`bg` name a declared custom token or a colour token (a role, its
-`-content`/`-soft`, a base surface), with or without `--`; a bare name is a
+`-content`/`-soft`/`-soft-content`, a base surface), with or without `--`; a bare name is a
 custom token first, and `color-<token>` is always the colour token. Each
 pair is checked in every theme, in the role pairs' format (`contrast-floor`,
 with a passing `suggest` solved at the pair's own `min`) — but below `min` is
@@ -715,11 +723,13 @@ surfaces; `floors` moves the targets (4.5:1 per role pair, 7:1 for
 `base-100` against `base-content` by default).
 
 What is guaranteed, measured on the emitted strings: every `<role>` /
-`<role>-content` pair at or above the floor, every value inside the sRGB
-gamut, a seeded hue preserved to the tenth of a degree, and exactly the
-declared key set — no `-content` for a `content: false` role, never a
-`-soft` (the compiler derives those from `softMix`), only the base surfaces
-for `roles: {}`. The derivation is deterministic: the same seeds always
+`<role>-content` pair at or above the floor, every soft tint's ink on the
+tint at the same floor, every value inside the sRGB gamut, a seeded hue
+preserved to the tenth of a degree, and exactly the declared key set — no
+`-content` for a `content: false` role, never a `-soft` (the compiler
+derives those from `softMix`), only the base surfaces for `roles: {}` —
+plus a `<role>-soft-content` for each role that does not read on its own
+tint (#421), placed after the declared keys. The derivation is deterministic: the same seeds always
 produce the same strings, so a derived theme can sit in a golden.
 
 It lives on `@sigx/zero-kit/define`, so a `tokens.ts` in the browser bundle

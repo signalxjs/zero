@@ -11,7 +11,7 @@
     ],
     "properties": {
         "roles": {
-            "description": "The design system's color role vocabulary. Every role emits --color-<role>, plus -content / -soft per its declaration. Omitted \u2192 the recommended eight (primary, secondary, accent, neutral, info, success, warning, error). Role names must be bare kebab-case identifiers starting with a letter \u2014 they become --color-<role>.",
+            "description": "The design system's color role vocabulary. Every role emits --color-<role>, plus -content / -soft / -soft-content per its declaration. Omitted \u2192 the recommended eight (primary, secondary, accent, neutral, info, success, warning, error). Role names must be bare kebab-case identifiers starting with a letter \u2014 they become --color-<role>.",
             "type": "object",
             "propertyNames": {
                 "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
@@ -134,7 +134,7 @@
             }
         },
         "contrast": {
-            "description": "Contrast floors over the design system's own tokens, checked in every theme by `sigx zero:validate` beside the role pairs \u2014 how a `custom` colour token is measured. `fg`/`bg` name a declared custom token or a colour token (a role, its -content/-soft, a base surface), with or without `--`; a `color-` prefix always means the colour token. Below `min` is an error.",
+            "description": "Contrast floors over the design system's own tokens, checked in every theme by `sigx zero:validate` beside the role pairs \u2014 how a `custom` colour token is measured. `fg`/`bg` name a declared custom token or a colour token (a role, its -content/-soft/-soft-content, a base surface), with or without `--`; a `color-` prefix always means the colour token. Below `min` is an error.",
             "type": "array",
             "items": {
                 "type": "object",
@@ -243,7 +243,7 @@
                     "type": "boolean"
                 },
                 "soft": {
-                    "description": "Emit a <role>-soft tint (explicit value or softMix derivation). Default true.",
+                    "description": "Emit a <role>-soft tint (explicit value or softMix derivation) and its ink, <role>-soft-content (explicit value, else the role colour; contrast-checked against the tint, #421). Default true.",
                     "type": "boolean"
                 },
                 "axis": {
@@ -531,7 +531,7 @@
                     "maximum": 1
                 },
                 "colors": {
-                    "description": "Color token name \u2192 CSS color. Keys are declared role names, their -content / -soft derivatives, and the fixed base surfaces (base-100/200/300/base-content). Completeness against the role declaration is checked by `sigx zero:validate`, not here.",
+                    "description": "Color token name \u2192 CSS color. Keys are declared role names, their -content / -soft / -soft-content derivatives, and the fixed base surfaces (base-100/200/300/base-content). Completeness against the role declaration is checked by `sigx zero:validate`, not here.",
                     "type": "object",
                     "propertyNames": {
                         "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"

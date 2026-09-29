@@ -1,7 +1,7 @@
 @layer zero.recipes {
     [data-scope="alert"][data-part="root"] {
-        --alert-tint: var(--color-info-container);
-        --alert-on-tint: var(--color-info-container-content);
+        --alert-tint: var(--color-info-soft);
+        --alert-on-tint: var(--color-info-soft-content);
         --alert-accent: var(--color-info);
     }
 
@@ -74,50 +74,50 @@
     }
 
     [data-scope="alert"][data-part="root"][data-color="primary"] {
-        --alert-tint: var(--color-primary-container);
-        --alert-on-tint: var(--color-primary-container-content);
+        --alert-tint: var(--color-primary-soft);
+        --alert-on-tint: var(--color-primary-soft-content);
         --alert-accent: var(--color-primary);
     }
 
     [data-scope="alert"][data-part="root"][data-color="secondary"] {
-        --alert-tint: var(--color-secondary-container);
-        --alert-on-tint: var(--color-secondary-container-content);
+        --alert-tint: var(--color-secondary-soft);
+        --alert-on-tint: var(--color-secondary-soft-content);
         --alert-accent: var(--color-secondary);
     }
 
     [data-scope="alert"][data-part="root"][data-color="tertiary"] {
-        --alert-tint: var(--color-tertiary-container);
-        --alert-on-tint: var(--color-tertiary-container-content);
+        --alert-tint: var(--color-tertiary-soft);
+        --alert-on-tint: var(--color-tertiary-soft-content);
         --alert-accent: var(--color-tertiary);
     }
 
     [data-scope="alert"][data-part="root"][data-color="error"] {
-        --alert-tint: var(--color-error-container);
-        --alert-on-tint: var(--color-error-container-content);
+        --alert-tint: var(--color-error-soft);
+        --alert-on-tint: var(--color-error-soft-content);
         --alert-accent: var(--color-error);
     }
 
     [data-scope="alert"][data-part="root"][data-color="neutral"] {
-        --alert-tint: var(--color-neutral-container);
-        --alert-on-tint: var(--color-neutral-container-content);
+        --alert-tint: var(--color-neutral-soft);
+        --alert-on-tint: var(--color-neutral-soft-content);
         --alert-accent: var(--color-neutral);
     }
 
     [data-scope="alert"][data-part="root"][data-color="info"] {
-        --alert-tint: var(--color-info-container);
-        --alert-on-tint: var(--color-info-container-content);
+        --alert-tint: var(--color-info-soft);
+        --alert-on-tint: var(--color-info-soft-content);
         --alert-accent: var(--color-info);
     }
 
     [data-scope="alert"][data-part="root"][data-color="success"] {
-        --alert-tint: var(--color-success-container);
-        --alert-on-tint: var(--color-success-container-content);
+        --alert-tint: var(--color-success-soft);
+        --alert-on-tint: var(--color-success-soft-content);
         --alert-accent: var(--color-success);
     }
 
     [data-scope="alert"][data-part="root"][data-color="warning"] {
-        --alert-tint: var(--color-warning-container);
-        --alert-on-tint: var(--color-warning-container-content);
+        --alert-tint: var(--color-warning-soft);
+        --alert-on-tint: var(--color-warning-soft-content);
         --alert-accent: var(--color-warning);
     }
 

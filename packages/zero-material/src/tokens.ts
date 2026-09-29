@@ -43,20 +43,25 @@ const hairline = { axis: false, content: false, soft: false } as const;
  * Material's colour roles.
  *
  * The eight action roles (primary … warning) form the `color` axis. Their
- * `-soft` token — zero's tonal fill — is set explicitly to the role's M3
- * **container** in every theme rather than mixed, so a recipe written
- * against `--color-<role>-soft` paints M3's tonal colour. The containers are
- * also declared as roles of their own, with their `on-*-container` ink as
- * `-content`, and recipes paint the pair: zero's `-soft` has no ink of its
- * own, and the key colour on its container fails in M3's high-contrast
- * schemes, where the container goes dark (#421). They stay off the axis by
- * declaring `axis: false` (#425).
+ * soft pair — zero's tonal fill and its ink — is set explicitly in every
+ * theme to the role's M3 **container** and `on-*-container`, rather than
+ * mixed and defaulted, so a recipe written against `--color-<role>-soft` /
+ * `-soft-content` paints M3's tonal pairing. The ink has to be set: the key
+ * colour on its container fails in M3's medium- and high-contrast schemes,
+ * where the container goes dark (#421).
+ *
+ * M3's four key-colour containers are roles of their own as well, for the
+ * places M3 names one outright (the secondary-container selection
+ * indicator, the primary-container FAB). They stay off the axis by
+ * declaring `axis: false` (#425). The status and neutral containers the
+ * scheme generator also emits are not M3 scheme roles; they reach the
+ * recipes only as their role's soft pair.
  */
 export const roles = {
-    primary: { description: 'Primary key colour; `-soft` is primary-container' },
-    secondary: { description: 'Secondary key colour; `-soft` is secondary-container' },
-    tertiary: { description: 'Tertiary key colour; `-soft` is tertiary-container' },
-    error: { description: 'Error; `-soft` is error-container' },
+    primary: { description: 'Primary key colour; its soft pair is primary-container and on-primary-container' },
+    secondary: { description: 'Secondary key colour; its soft pair is secondary-container and on-secondary-container' },
+    tertiary: { description: 'Tertiary key colour; its soft pair is tertiary-container and on-tertiary-container' },
+    error: { description: 'Error; its soft pair is error-container and on-error-container' },
     neutral: { description: 'M3 has no neutral role — the inverse-surface pairing (a snackbar\'s colours)' },
     info: { description: 'Custom colour harmonised toward the seed' },
     success: { description: 'Custom colour harmonised toward the seed' },
@@ -66,10 +71,6 @@ export const roles = {
     'secondary-container': { ...fill, description: 'Tonal fill in the secondary hue — selection indicators' },
     'tertiary-container': { ...fill, description: 'Tonal fill in the tertiary hue' },
     'error-container': { ...fill, description: 'Tonal fill for errors' },
-    'info-container': { ...fill, description: 'Tonal fill for info' },
-    'success-container': { ...fill, description: 'Tonal fill for success' },
-    'warning-container': { ...fill, description: 'Tonal fill for warnings' },
-    'neutral-container': { ...fill, description: 'Tonal fill for neutral: surface-variant' },
 
     surface: { ...fill, description: 'The page' },
     'surface-dim': { ...fill, description: 'The dimmest surface' },
@@ -303,20 +304,31 @@ const stateLayers = {
     'state-disabled-container': '0.12',
 } as const;
 
-/** The action roles whose `-soft` token is their M3 container. */
+/** The action roles whose soft pair is their M3 container and its on-container ink. */
 const TONAL = ['primary', 'secondary', 'tertiary', 'error', 'neutral', 'info', 'success', 'warning'] as const;
+
+/**
+ * Containers the scheme generator emits that are not declared roles: the
+ * status colours' (a custom colour group's) and neutral's surface-variant
+ * pairing. Their only job is the soft pair, which `theme()` copies them into.
+ */
+const SOFT_ONLY = new Set(['info', 'success', 'warning', 'neutral'].flatMap((r) => [`${r}-container`, `${r}-container-content`]));
 
 function theme(
     name: SchemeName,
     colorScheme: 'light' | 'dark',
     pair: SchemeName,
 ): ThemeInput<typeof roles, typeof system> {
-    const colors = schemes[name];
-    const soft = Object.fromEntries(TONAL.map((r) => [`${r}-soft`, colors[`${r}-container`]]));
+    const generated = schemes[name] as Record<string, string>;
+    const colors = Object.fromEntries(Object.entries(generated).filter(([token]) => !SOFT_ONLY.has(token)));
+    const soft = Object.fromEntries(TONAL.flatMap((r) => [
+        [`${r}-soft`, generated[`${r}-container`]!],
+        [`${r}-soft-content`, generated[`${r}-container-content`]!],
+    ]));
     return {
         colorScheme,
         pair,
-        colors: { ...colors, ...soft },
+        colors: { ...colors, ...soft } as ThemeInput<typeof roles, typeof system>['colors'],
         custom: { ...stateLayers, 'tf-surface': 'var(--color-surface)' },
     };
 }

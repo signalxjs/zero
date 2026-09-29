@@ -210,16 +210,18 @@ describe('declared but unwired', () => {
         // validator — only `variant`, `tokens.axes` and `modifiers` do — so
         // this report is the only place the gap is stated.
         const material = reportFor(materialDS as DesignSystemInput);
-        // M3's full role set (#414): eight action roles plus 23 fills and
-        // hairlines — containers, surfaces, outlines, scrim and shadow.
-        expect(material.vocabulary.roles).toHaveLength(31);
+        // M3's full role set (#414): eight action roles plus 19 fills and
+        // hairlines — the key-colour containers, surfaces, outlines, scrim
+        // and shadow. (The status and neutral containers went with #421:
+        // they only ever reached the recipes as a soft pair.)
+        expect(material.vocabulary.roles).toHaveLength(27);
         expect(material.unwired.color).toEqual([
-            'error-container', 'info-container', 'inverse-primary', 'inverse-surface',
-            'neutral-container', 'outline', 'outline-variant', 'primary-container',
-            'scrim', 'secondary-container', 'shadow', 'success-container', 'surface',
+            'error-container', 'inverse-primary', 'inverse-surface',
+            'outline', 'outline-variant', 'primary-container',
+            'scrim', 'secondary-container', 'shadow', 'surface',
             'surface-bright', 'surface-container', 'surface-container-high',
             'surface-container-highest', 'surface-container-low', 'surface-container-lowest',
-            'surface-dim', 'surface-variant', 'tertiary-container', 'warning-container',
+            'surface-dim', 'surface-variant', 'tertiary-container',
         ]);
     });
 
