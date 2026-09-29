@@ -2,6 +2,52 @@
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-09-29
+
+### Added
+
+- **The overlay triggers take `lend` (#495).** `Menu.Trigger`,
+  `Popover.Trigger`, `Popover.Close`, `Dialog.Trigger`, `Dialog.Close`,
+  `Dialog.Cancel` and `HoverCard.Trigger` are hosts, so they lend and host
+  alike: `<Tooltip.Trigger asChild>{(t) => <Menu.Trigger asChild lend={t}>{(m)
+  => <Button.Root lend={m}>…</Button.Root>}</Menu.Trigger>}</Tooltip.Trigger>`
+  is one Button with the menu button's ARIA and keys and a hover label. A
+  lent Menubar trigger keeps `role="menuitem"` and the roving `tabIndex`. A
+  closer lent to a Button closes before the Button's `onClick`: veto on the
+  closer's `onClick`; an inert (`loading`, disabled) Button closes nothing.
+  Every host puts its own `class` in the merged bag, so a lent `class`
+  concatenates rather than replacing it (`Tooltip.Trigger` and
+  `Button.Root` included), and passes one ref for the part's life, so a
+  chain never detaches and re-attaches its lenders' refs on a re-render.
+  Focus handed back by the menu's native Escape close lands on the Button
+  mid-hide, when no popover may show: the tooltip shows once the hide is
+  done, and `Menu.Popup` moves focus into the menu untracked, so the
+  tooltip's state never re-runs the menu's show.
+- **`Collapsible.Root` `native={false}` (#453).** A composable mode for a
+  disclosure whose trigger sits inside another part's layout (a Card
+  header): the root renders a `<div>`, the trigger a `<button
+  aria-expanded aria-controls>` anywhere inside it, with `asChild` and
+  `lend`, and the panel `hidden="until-found"` while closed. Find-in-page
+  and text fragments still open it (`beforematch` writes the model; a
+  disabled root refuses), and the close plays as in native mode.
+  `collapsible.trigger` is now `absorbable` and a lend host, in this mode
+  only: `asChild` or `lend` on a native trigger throws. The default stays
+  the native `<details>`/`<summary>`, and the anatomy's `element` records
+  it. `expectAnatomy` no longer counts `hidden="until-found"` as `hidden`
+  (it keeps the box, so it is not what `hiddenIn` means), and the six
+  bundled skins collapse the until-found panel, grow it on open and reset
+  the UA button paint on a button trigger.
+
+### Fixed — zero-daisyui lynx targets (#522, signalxjs/lynx#1292, #1294, #1299)
+
+- **tree-view:** on lynx the rows transition `background` only, so a row
+  selected live paints its label and chevron with the selected ink
+  (Lynx's animator never propagates a transitioned `color` to children).
+- **file-upload:** on lynx `item-size` and `item-remove` take
+  `flex-shrink: 0`, so only the name ellipsizes in a narrow row.
+- **table:** on lynx `sort-indicator` takes `flex-shrink: 0`, so an xl
+  sort header no longer breaks its label mid-word.
+
 ## [0.16.0] - 2026-09-28
 
 ### Added — composing zero parts (#452, #492)
@@ -51,37 +97,6 @@
   is a host too, so lenders chain. The README's Patterns section teaches
   the rule: a raw element spreads the bag, a zero component takes
   `lend={p}`.
-- **The overlay triggers take `lend` (#495).** `Menu.Trigger`,
-  `Popover.Trigger`, `Popover.Close`, `Dialog.Trigger`, `Dialog.Close`,
-  `Dialog.Cancel` and `HoverCard.Trigger` are hosts, so they lend and host
-  alike: `<Tooltip.Trigger asChild>{(t) => <Menu.Trigger asChild lend={t}>{(m)
-  => <Button.Root lend={m}>…</Button.Root>}</Menu.Trigger>}</Tooltip.Trigger>`
-  is one Button with the menu button's ARIA and keys and a hover label. A
-  lent Menubar trigger keeps `role="menuitem"` and the roving `tabIndex`. A
-  closer lent to a Button closes before the Button's `onClick`: veto on the
-  closer's `onClick`; an inert (`loading`, disabled) Button closes nothing.
-  Every host puts its own `class` in the merged bag, so a lent `class`
-  concatenates rather than replacing it (`Tooltip.Trigger` and
-  `Button.Root` included), and passes one ref for the part's life, so a
-  chain never detaches and re-attaches its lenders' refs on a re-render.
-  Focus handed back by the menu's native Escape close lands on the Button
-  mid-hide, when no popover may show: the tooltip shows once the hide is
-  done, and `Menu.Popup` moves focus into the menu untracked, so the
-  tooltip's state never re-runs the menu's show.
-- **`Collapsible.Root` `native={false}` (#453).** A composable mode for a
-  disclosure whose trigger sits inside another part's layout (a Card
-  header): the root renders a `<div>`, the trigger a `<button
-  aria-expanded aria-controls>` anywhere inside it, with `asChild` and
-  `lend`, and the panel `hidden="until-found"` while closed. Find-in-page
-  and text fragments still open it (`beforematch` writes the model; a
-  disabled root refuses), and the close plays as in native mode.
-  `collapsible.trigger` is now `absorbable` and a lend host, in this mode
-  only: `asChild` or `lend` on a native trigger throws. The default stays
-  the native `<details>`/`<summary>`, and the anatomy's `element` records
-  it. `expectAnatomy` no longer counts `hidden="until-found"` as `hidden`
-  (it keeps the box, so it is not what `hiddenIn` means), and the six
-  bundled skins collapse the until-found panel, grow it on open and reset
-  the UA button paint on a button trigger.
 
 ### Changed
 
