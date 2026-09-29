@@ -172,3 +172,4 @@ test('the indicator slides, and does not under reduced motion (#283)', async ({ 
         : 'no transition ran on the indicator after the selection moved').toBe(!reduced);
     await expectIndicatorOn(page, 'History');
 });
+
