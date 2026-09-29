@@ -510,3 +510,111 @@ describe('Input affordances (#281)', () => {
         expect(part(container, 'affix').getAttribute('data-disabled')).toBe('');
     });
 });
+
+describe('Input.Outline (#468)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    const settle = () => new Promise<void>((resolve) => queueMicrotask(() => queueMicrotask(resolve)));
+    const published = (c: HTMLElement) => part(c, 'outline').style.getPropertyValue('--input-label-inline-size');
+
+    /** happy-dom lays nothing out: give every label a layout width. */
+    function withLabelWidth(width: number, run: () => Promise<void>) {
+        const desc = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
+            configurable: true,
+            get(this: HTMLElement) { return this.tagName === 'LABEL' ? width : 0; },
+        });
+        return run().finally(() => {
+            if (desc) Object.defineProperty(HTMLElement.prototype, 'offsetWidth', desc);
+            else delete (HTMLElement.prototype as { offsetWidth?: number }).offsetWidth;
+        });
+    }
+
+    it('renders a decorative fieldset with its notch legend, a valid anatomy', () => {
+        render(
+            <Input.Root>
+                <Input.Label>Email</Input.Label>
+                <Input.Control>
+                    <Input.Input />
+                    <Input.Outline />
+                </Input.Control>
+            </Input.Root>,
+            container,
+        );
+        expectAnatomy(container, inputAnatomy);
+        const outline = part(container, 'outline');
+        expect(outline.tagName).toBe('FIELDSET');
+        expect(outline.getAttribute('aria-hidden')).toBe('true');
+        expect(outline.parentElement).toBe(part(container, 'control'));
+        const notch = part(container, 'notch');
+        expect(notch.tagName).toBe('LEGEND');
+        expect(notch.parentElement).toBe(outline);
+    });
+
+    it('renders only where the app places it', () => {
+        mount(container);
+        expect(container.querySelector('[data-part="outline"]')).toBeNull();
+        expect(container.querySelector('[data-part="notch"]')).toBeNull();
+    });
+
+    it('publishes the visible label\'s inline size', () => withLabelWidth(64, async () => {
+        render(
+            <Input.Root>
+                <Input.Label>Email</Input.Label>
+                <Input.Control>
+                    <Input.Outline />
+                    <Input.Input />
+                </Input.Control>
+            </Input.Root>,
+            container,
+        );
+        await settle();
+        expect(published(container)).toBe('64px');
+    }));
+
+    it('measures a Field.Label the input adopted', () => withLabelWidth(40, async () => {
+        render(
+            <Field.Root>
+                <Field.Label>Name</Field.Label>
+                <Input.Root>
+                    <Input.Control>
+                        <Input.Input />
+                        <Input.Outline />
+                    </Input.Control>
+                </Input.Root>
+            </Field.Root>,
+            container,
+        );
+        await settle();
+        expect(published(container)).toBe('40px');
+    }));
+
+    it('opens no notch for a visually hidden label, or none', () => withLabelWidth(64, async () => {
+        render(
+            <div>
+                <Input.Root>
+                    <Input.Label visuallyHidden>Search</Input.Label>
+                    <Input.Control>
+                        <Input.Input />
+                        <Input.Outline />
+                    </Input.Control>
+                </Input.Root>
+                <Input.Root>
+                    <Input.Control>
+                        <Input.Input aria-label="Unlabelled" />
+                        <Input.Outline />
+                    </Input.Control>
+                </Input.Root>
+            </div>,
+            container,
+        );
+        await settle();
+        const sizes = [...container.querySelectorAll<HTMLElement>('[data-part="outline"]')]
+            .map((el) => el.style.getPropertyValue('--input-label-inline-size'));
+        expect(sizes).toEqual(['0px', '0px']);
+    }));
+});

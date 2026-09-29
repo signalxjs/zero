@@ -27,6 +27,15 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *   characters are shown, `aria-pressed` carrying the same to AT. Only a
  *   `type="password"` root switches the input to `text` while it is on.
  *
+ * - `outline` — optional (#468): the field's outline as a `<fieldset>`
+ *   laid over the control, whose `notch` (its `<legend>`) cuts the gap a
+ *   floated label sits in. Decorative (`aria-hidden`). The runtime publishes
+ *   the input's visible label's layout inline size on it as
+ *   `--input-label-inline-size` (px; `0px` without a visible label) — the
+ *   geometry a skin needs to size the notch at the scale it floats the label
+ *   with. A design system that draws its border on the control, with no
+ *   floating label, may leave it undisplayed.
+ *
  * There is no `hidden-input`, unlike every other form scope here. Checkbox,
  * Switch and NumberInput all post through a hidden mirror because their
  * visible control is not a form control (a `<span>`) or not the canonical
@@ -95,9 +104,22 @@ export const inputAnatomy = defineAnatomy('input', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
     },
+    outline: {
+        element: 'fieldset',
+        parent: 'control',
+        tokens: ['color', 'radius-field'],
+    },
+    notch: {
+        element: 'legend',
+        parent: 'outline',
+        tokens: ['text'],
+    },
 }, {
     models: [
         { concept: 'value', type: 'string', formControl: true },
         { name: 'visible', concept: 'visible', type: 'boolean' },
     ],
+    // On the optional outline: the visible label's layout inline size (px,
+    // before transforms), which a recipe sizes the notch from (#468).
+    runtimeProperties: ['--input-label-inline-size'],
 });

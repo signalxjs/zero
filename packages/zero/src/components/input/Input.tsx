@@ -35,13 +35,14 @@
  * </Input.Root>
  * ```
  */
-import { component, compound, defineInjectable, defineProvide, watch } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define, ModelModifiers } from 'sigx';
 import { createControllableState, createInertState, namedModel, type ControllableState } from '../../behaviors/controllable.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { mountScope } from '../../behaviors/mount-scope.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { useTextControlBinding } from '../../behaviors/text-control-binding.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -644,6 +645,111 @@ const InputVisibilityTrigger = component<InputVisibilityTriggerProps>(({ props, 
     };
 }, { name: 'Input.VisibilityTrigger' });
 
+// ── Outline ──
+
+/** Always `aria-hidden`: the outline is decoration; the label names the field. */
+export type InputOutlineProps = WithClass & WithHtmlAttrs;
+
+/**
+ * The label the outline is notched for: the first visible `<label>` of the
+ * input — `Input.Label`, or a `Field.Label` whose field the input adopted.
+ * A visually hidden label floats nowhere, so it opens no notch.
+ */
+function notchLabel(input: HTMLInputElement | null): HTMLElement | null {
+    const labels = input?.labels;
+    if (!labels) return null;
+    for (const label of Array.from(labels)) {
+        if (!label.hasAttribute('data-visually-hidden')) return label;
+    }
+    return null;
+}
+
+/**
+ * The label's layout inline size — its border box before any transform, so
+ * a floated label a recipe scales still reports the size it was laid out at
+ * and the recipe applies its own scale (#468).
+ */
+function labelInlineSize(label: HTMLElement): number {
+    const horizontal = (getComputedStyle(label).writingMode || 'horizontal-tb').startsWith('horizontal');
+    return horizontal ? label.offsetWidth : label.offsetHeight;
+}
+
+/**
+ * The field's outline, drawn by a `<fieldset>` whose `<legend>` — the
+ * `notch` — cuts the gap a floated label sits in (#468). Optional: a design
+ * system that draws its border on the control needs neither. The runtime
+ * publishes the input's visible label's inline size on the outline as
+ * `--input-label-inline-size` (px, `0px` without a visible label), measured
+ * before transforms and kept current by a ResizeObserver; the recipe sizes
+ * the notch from it at the scale it floats the label with, and opens it only
+ * while the label is floated. The border then really is cut — no paint
+ * stands in for the surface behind the field.
+ */
+const InputOutline = component<InputOutlineProps>(({ props, signal, onMounted, onUnmounted }) => {
+    const ctx = useInputContext();
+    const state = signal({ size: 0 });
+    let observer: ResizeObserver | null = null;
+    let observed: HTMLElement | null = null;
+    let alive = true;
+
+    const measure = (): void => {
+        const input = ctx.inputEl() ?? (typeof document !== 'undefined'
+            ? document.getElementById(ctx.inputId()) as HTMLInputElement | null
+            : null);
+        const label = notchLabel(input);
+        if (label !== observed) {
+            if (observed) observer?.unobserve(observed);
+            observed = label;
+            if (label) observer?.observe(label);
+        }
+        const size = label ? Math.round(labelInlineSize(label) * 100) / 100 : 0;
+        if (size !== state.size) state.size = size;
+    };
+
+    const scoped = mountScope();
+    onMounted(() => scoped(() => {
+        if (typeof ResizeObserver === 'function') {
+            observer = new ResizeObserver((entries) => {
+                const entry = entries[entries.length - 1];
+                const box = entry?.borderBoxSize?.[0];
+                // The observed label's border box, logical and untransformed;
+                // a hidden-then-shown label, or a new one, re-resolves.
+                if (box && entry.target === observed && !observed.hasAttribute('data-visually-hidden')) {
+                    const size = Math.round(box.inlineSize * 100) / 100;
+                    if (size !== state.size) state.size = size;
+                } else {
+                    measure();
+                }
+            });
+        }
+        // After every sibling's mount: the input and its label may mount
+        // after the outline does.
+        effect(() => {
+            void ctx.inputId();
+            queueMicrotask(() => { if (alive) measure(); });
+        });
+    }));
+    onUnmounted(() => {
+        alive = false;
+        observer?.disconnect();
+        observer = null;
+        observed = null;
+    });
+
+    return () => (
+        <fieldset
+            {...htmlAttrs(props)}
+            aria-hidden="true"
+            data-scope={SCOPE}
+            data-part="outline"
+            class={props.class}
+            style={{ '--input-label-inline-size': `${state.size}px` }}
+        >
+            <legend data-scope={SCOPE} data-part="notch" />
+        </fieldset>
+    );
+}, { name: 'Input.Outline' });
+
 export const Input = compound(InputRoot, {
     Root: InputRoot,
     Label: InputLabel,
@@ -653,4 +759,5 @@ export const Input = compound(InputRoot, {
     Affix: InputAffix,
     ClearTrigger: InputClearTrigger,
     VisibilityTrigger: InputVisibilityTrigger,
+    Outline: InputOutline,
 });

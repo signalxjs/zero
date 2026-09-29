@@ -433,7 +433,14 @@ export const BEHAVIOR_RUNTIME_PROPERTIES = [
  * swipe-to-dismiss behavior's drag offset (px, physical, clamped to the
  * dismiss axis — #293), written on a Toast root and a Drawer sheet while it
  * is being swiped and kept after a swipe dismisses it, so the exit leaves from
- * where it was let go. The `POSITION_PROPERTIES` five come from the anchored-position
+ * where it was let go. The slider's handle geometry (#468) is written on its
+ * root beside `--slider-percent`: `--slider-fraction` (the highest value,
+ * unitless 0–1) and, only while a range model has several thumbs,
+ * `--slider-start-fraction` (the lowest), so a recipe can cut the track
+ * around a handle. `--input-label-inline-size` (#468) is written on Input's
+ * optional `outline`: the layout inline size of the input's visible label
+ * (px, before transforms; `0px` without one), so a recipe sizes the notch
+ * the floated label sits in. The `POSITION_PROPERTIES` five come from the anchored-position
  * strategy, on every floating popup it positions, and the `ARROW_PROPERTIES`
  * pair from the same strategy, on a popup's arrow part.
  *
@@ -455,6 +462,8 @@ export const RUNTIME_PROPERTIES = [
     ...BEHAVIOR_RUNTIME_PROPERTIES,
     '--progress-percent',
     '--slider-percent',
+    '--slider-fraction',
+    '--slider-start-fraction',
     '--diff-percent',
     '--countdown-value',
     '--accordion-panel-height',
@@ -469,6 +478,7 @@ export const RUNTIME_PROPERTIES = [
     '--toast-count',
     '--toast-height',
     '--toast-offset',
+    '--input-label-inline-size',
 ] as const;
 
 /**

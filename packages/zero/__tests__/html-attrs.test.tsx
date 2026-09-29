@@ -472,6 +472,7 @@ describe('the pass-through reaches every part', () => {
                     <Input.Input {...p('input')} />
                     <Input.ClearTrigger {...p('clear-trigger')} />
                     <Input.VisibilityTrigger {...p('visibility-trigger')} />
+                    <Input.Outline {...p('outline')} />
                 </Input.Control>
             </Input.Root>
         ),
@@ -729,6 +730,7 @@ describe('the pass-through reaches every part', () => {
         select: ['item-indicator', 'hidden-input', 'spacer', 'group-heading'],
         countdown: ['digits'],
         'file-upload': ['input'],
+        input: ['notch'],
         'number-input': ['hidden-input'],
         pagination: ['item', 'ellipsis', 'first-trigger', 'prev-trigger', 'next-trigger', 'last-trigger'],
         'radio-group': ['item-control', 'item-indicator', 'item-label', 'hidden-input'],

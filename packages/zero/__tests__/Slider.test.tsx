@@ -793,3 +793,28 @@ describe('Slider minStepsBetweenThumbs (#272)', () => {
         expect(state.price).toEqual([39, 50]);
     });
 });
+
+describe('Slider handle geometry (#468)', () => {
+    const root = () => container.querySelector<HTMLElement>('[data-scope="slider"][data-part="root"]')!;
+    const prop = (name: string) => root().style.getPropertyValue(name);
+
+    it('a range model publishes both ends as unitless fractions', () => {
+        const state = signal({ price: [20, 75] });
+        mountRange(state);
+        expect(prop('--slider-percent')).toBe('75%');
+        expect(prop('--slider-fraction')).toBe('0.75');
+        expect(prop('--slider-start-fraction')).toBe('0.2');
+    });
+
+    it('a scalar model publishes no start: no handle stands there', () => {
+        render(
+            <Slider.Root defaultValue={30} min={0} max={200}>
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        expect(prop('--slider-percent')).toBe('15%');
+        expect(prop('--slider-fraction')).toBe('0.15');
+        expect(prop('--slider-start-fraction')).toBe('');
+    });
+});

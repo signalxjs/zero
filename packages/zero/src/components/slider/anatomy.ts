@@ -91,6 +91,8 @@ export const sliderAnatomy = defineAnatomy('slider', {
     models: [
         { concept: 'value', type: 'number | number[]', formControl: true },
     ],
-    // On the root, the value as a percent of the range.
-    runtimeProperties: ['--slider-percent'],
+    // On the root: the value as a percent of the range, the same as a
+    // unitless fraction, and — only while several thumbs share the rail —
+    // the lowest value's fraction (#468).
+    runtimeProperties: ['--slider-percent', '--slider-fraction', '--slider-start-fraction'],
 });
