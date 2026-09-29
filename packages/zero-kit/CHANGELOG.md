@@ -4,6 +4,21 @@
 
 ### Added
 
+- **Axis rules anchor on a part that mirrors its carrier (#514).** A part
+  declaring `mirrorsAxes` (zero's overlay popups, whose carrier is the
+  trigger) renders the carrier's whole axis surface, so it is an axis
+  anchor of its own. New `axisAnchor(component, part)`: the carrier or the
+  nearest mirroring part up the declared tree. The web compiler emits a
+  rule for such a part flat on its own attribute and, for a part inside
+  it, in `@scope ([part][attr]) to ([part])`; variants, modifiers,
+  compounds and the default twin all follow. The dead-rule validator
+  counts those rules as alive, `carriersOf` stops at the part, and the
+  contrast cells root their chains there (a dialog's title is measured
+  inside `dialog.popup`, with the axes on the popup) and probe the part
+  itself with the axes on it. `mergeManifests` and `manifest.schema.json`
+  accept `part.mirrorsAxes`: presence-only, never the carrier, never with
+  `parent`, `pseudo`, `absorbable` or `carries`.
+
 - **The `scrolled` flag and the tabs content geometry (#530).**
   `FLAG_VOCABULARY` gains `scrolled`, mirroring zero, so a fragment may
   declare it. `RUNTIME_PROPERTIES` gains
