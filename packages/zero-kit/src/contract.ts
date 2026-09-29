@@ -444,8 +444,10 @@ export const BEHAVIOR_RUNTIME_PROPERTIES = [
  * target section.
  *
  * The list is the behavior-level entries (`BEHAVIOR_RUNTIME_PROPERTIES`) plus
- * the scoped ones, which mirror what zero's anatomies declare as
- * `runtimeProperties`. An ecosystem fragment adds its own per component,
+ * the scoped ones, which are exactly what zero's anatomies declare as
+ * `runtimeProperties` — a derived copy, parity-checked against the
+ * anatomies by `contract-parity.test.ts` (#537), so the kit stays free of a
+ * runtime dependency on zero. An ecosystem fragment adds its own per component,
  * under its scope's prefix (#456); `runtimePropertiesOf(manifest)` is the full
  * set a build against that manifest knows.
  */

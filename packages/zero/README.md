@@ -517,6 +517,8 @@ state from `var(--accordion-panel-height)` to `0`. No animation (none
 declared, `prefers-reduced-motion: reduce`) closes at once; reopening
 mid-exit cancels it; find-in-page and fragment navigation still sync the
 model as above. Five of the six bundled skins animate it; brutalist cuts.
+Both anatomies declare their pair as `runtimeProperties` (#537), so the
+names reach `manifest.json` beside the parts.
 
 **Collapsible's non-native mode** (#453). A `<summary>` only works as the
 first child of its `<details>`: nested anywhere else — in a Card header, a
@@ -604,6 +606,7 @@ indicator is `display: none`, so a transition on those properties never
 plays on first paint. basic, material and carbon slide their underline with
 it and hand the active tab's own underline over to it; daisyui, brutalist
 and heroui keep their static active style and render it `display: none`.
+The four names are the tabs anatomy's declared `runtimeProperties` (#537).
 
 ```tsx
 <Tabs.Root defaultValue="a" lazyMount>
@@ -736,6 +739,15 @@ Up to 6 and Down to 4, where rounding to the nearest used to skip to 8.
 Diff's handle speaks `getValueText(value)` as `aria-valuetext` (default
 `"50%"`), and `disabled` on `Diff.Root` freezes it: `data-disabled` on the
 root and handle, `aria-disabled`, out of the tab order, no keys, no drag.
+
+**Values a recipe can read** (#537). Progress and RadialProgress write
+`--progress-percent` on their root (one name for both, so one recipe idiom
+paints a bar and a ring; absent while indeterminate), Slider
+`--slider-percent` and Diff `--diff-percent` on theirs, and Countdown the
+raw number as `--countdown-value` on its value part. Each anatomy declares
+its names as `runtimeProperties`, so `manifest.json` lists them per
+component; they are web-only runtime properties (`RUNTIME_PROPERTIES`) a
+recipe reads bare, without declaring a token.
 
 **NumberInput speaks a locale** (#300). `locale` (a BCP 47 tag) and
 `formatOptions` (`Intl.NumberFormatOptions`) on `NumberInput.Root` hand
@@ -1884,7 +1896,8 @@ pause the timers), or always with `expand="always"` — and `closed` at rest
 heights of the newer toasts in front of it, in px. That is enough for a
 recipe to lay a resting stack out as a deck of cards and fan it into a
 column when it opens (zero-basic and zero-heroui do; the other skins keep a
-plain column). All four are web runtime properties (`RUNTIME_PROPERTIES`).
+plain column). All four are web runtime properties (`RUNTIME_PROPERTIES`),
+declared as the toast anatomy's `runtimeProperties` (#537).
 
 **Toasts over a modal dialog.** A toast raised while the viewport is
 already showing re-shows it (`hidePopover()` + `showPopover()`), the only

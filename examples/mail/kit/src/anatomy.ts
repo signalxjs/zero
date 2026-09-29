@@ -43,6 +43,10 @@ export const mailRowAnatomy = defineAnatomy('mail-row', {
         element: 'div',
         states: ['active', 'inactive'],
         flags: ['selected', 'highlighted', 'focus-visible'],
+        // An unread message: `data-x-unread`, a fact of the mail domain rather
+        // than the shared flag vocabulary. It stood in as a design-system
+        // modifier until domain flags existed (#457 closed that gap).
+        domainFlags: ['unread'],
         tokens: ['color', 'text'],
     },
 });

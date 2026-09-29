@@ -91,4 +91,6 @@ export const sliderAnatomy = defineAnatomy('slider', {
     models: [
         { concept: 'value', type: 'number | number[]', formControl: true },
     ],
+    // On the root, the value as a percent of the range.
+    runtimeProperties: ['--slider-percent'],
 });

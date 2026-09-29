@@ -2,8 +2,8 @@
  * Recipes for the kit's own scopes (examples/mail/kit). These are the
  * components zero lacks (#440); the anatomy comes in through the kit's
  * manifest fragment, and the look comes from here, keyed on this design
- * system's own axes (`tone`, `weight`) and modifiers (`truncate`, `clamp`,
- * `unread`).
+ * system's own axes (`tone`, `weight`) and modifiers (`truncate`, `clamp`).
+ * `mail-row` also keys its root on the kit's `x-unread` domain flag.
  */
 import type { PartStyles, RecipeInput } from '@sigx/zero-kit';
 import { TONES } from './tokens.js';
@@ -236,28 +236,25 @@ export const mailRow: RecipeInput = {
                 },
                 inactive: {},
                 selected: { '--row-bg': 'color-mix(in oklab, var(--color-primary) 5%, var(--color-base-100))' },
+                // The kit's domain flag (`data-x-unread`). It sets no bar, so
+                // `active` still owns it; the dot is under `selectors` below.
+                'x-unread': { color: 'var(--color-base-content)', fontWeight: 'var(--weight-semibold)' },
                 'focus-visible': {
                     outline: '2px solid var(--color-primary)',
                     outlineOffset: '-2px',
                 },
             },
-        },
-    },
-    modifiers: {
-        unread: {
-            root: {
-                base: { color: 'var(--color-base-content)', fontWeight: 'var(--weight-semibold)' },
-                selectors: {
-                    '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        insetInlineStart: 'var(--space-xs)',
-                        insetBlockStart: 'calc(var(--space-md) + 0.55em)',
-                        inlineSize: '0.375rem',
-                        blockSize: '0.375rem',
-                        borderRadius: '9999px',
-                        background: 'var(--color-primary)',
-                    },
+            selectors: {
+                // The unread dot.
+                '&[data-x-unread]::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetInlineStart: 'var(--space-xs)',
+                    insetBlockStart: 'calc(var(--space-md) + 0.55em)',
+                    inlineSize: '0.375rem',
+                    blockSize: '0.375rem',
+                    borderRadius: '9999px',
+                    background: 'var(--color-primary)',
                 },
             },
         },

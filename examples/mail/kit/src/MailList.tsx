@@ -4,7 +4,7 @@
  * ```tsx
  * <MailList.Root label="Inbox" count={ids.length} itemKey={(i) => ids[i]}
  *     model={() => st.highlight} onOpen={(i) => open(ids[i])} onToggle={(i) => select(ids[i])}
- *     renderRow={(i) => <MailRow.Root index={i} active={…} selected={…} mods={{ unread: … }}>…</MailRow.Root>} />
+ *     renderRow={(i) => <MailRow.Root index={i} active={…} selected={…} unread={…}>…</MailRow.Root>} />
  * ```
  *
  * Zero ships the windowing (`createVirtualList`) but only as a behavior: the
@@ -17,7 +17,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, watch } from 'sigx';
 import type { Define, Model } from 'sigx';
-import { createControllableState, createInertState, createVirtualList, dataAttr, htmlAttrs, isFocusVisible, mergePartProps, variantAttrs } from '@sigx/zero';
+import { createControllableState, createInertState, createVirtualList, dataAttr, domainFlagAttrs, htmlAttrs, isFocusVisible, mergePartProps, variantAttrs } from '@sigx/zero';
 import type { PartProps, VirtualList, WithClass, WithHtmlAttrs, WithLend, WithVariantAxesOpen } from '@sigx/zero';
 import { mailListAnatomy, mailRowAnatomy } from './anatomy.js';
 
@@ -177,6 +177,8 @@ export type MailRowRootProps =
     & Define.Prop<'active', boolean, false>
     /** Checked for a bulk action — `data-selected`. */
     & Define.Prop<'selected', boolean, false>
+    /** An unread message: `data-x-unread`. The accessible announcement stays with the row's label. */
+    & Define.Prop<'unread', boolean, false>
     & Define.Slot<'default'>;
 
 const MailRowRoot = component<MailRowRootProps>(({ props, slots, signal }) => {
@@ -204,6 +206,7 @@ const MailRowRoot = component<MailRowRootProps>(({ props, slots, signal }) => {
                 // The keyboard cursor (j/k, arrows) — shown even while focus is elsewhere.
                 data-highlighted={dataAttr(list.highlight.value === props.index)}
                 data-focus-visible={dataAttr(focus.visible)}
+                {...domainFlagAttrs({ unread: props.unread })}
                 {...variantAttrs(props)}
                 onFocus={() => {
                     focus.visible = isFocusVisible(el);

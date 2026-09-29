@@ -141,6 +141,55 @@ describe('Stepper (ecosystem acceptance)', () => {
         expect(b!.hasAttribute('aria-current')).toBe(false);
     });
 
+    describe('an optional step (a domain flag, #457)', () => {
+        it('renders data-x-optional="" and passes the published conformance assertion', () => {
+            render(
+                <Stepper.Root defaultStep="a" label="Steps">
+                    <Stepper.Item value="a">A</Stepper.Item>
+                    <Stepper.Item value="b" optional>B</Stepper.Item>
+                </Stepper.Root>,
+                container,
+            );
+            const [a, b] = items(container);
+            expect(b!.getAttribute('data-x-optional')).toBe('');
+            // Presence-only: absent, never ="false", on a required step.
+            expect(a!.hasAttribute('data-x-optional')).toBe(false);
+            expectAnatomy(container, stepperAnatomy);
+        });
+
+        it('says it in text too: the native button\'s name ends in ", optional"', () => {
+            render(
+                <Stepper.Root defaultStep="a" label="Steps">
+                    <Stepper.Item value="a">A</Stepper.Item>
+                    <Stepper.Item value="b" optional>Shipping</Stepper.Item>
+                </Stepper.Root>,
+                container,
+            );
+            const [a, b] = items(container);
+            expect(b!.textContent).toBe('Shipping, optional');
+            expect(b!.querySelector('[data-visually-hidden]')?.textContent).toBe(', optional');
+            expect(a!.textContent).toBe('A');
+        });
+
+        it('an asChild item gets the flag but no injected text: the app owns the name', () => {
+            render(
+                <Stepper.Root defaultStep="a" label="Steps">
+                    <Stepper.Item value="a">A</Stepper.Item>
+                    <Stepper.Item value="b" optional asChild>
+                        {(p) => <a href="#b" {...p}>B</a>}
+                    </Stepper.Item>
+                </Stepper.Root>,
+                container,
+            );
+            const b = items(container)[1]!;
+            expect(b.tagName).toBe('A');
+            expect(b.getAttribute('data-x-optional')).toBe('');
+            expect(b.textContent).toBe('B');
+            expect(b.querySelector('[data-visually-hidden]')).toBeNull();
+            expectAnatomy(container, stepperAnatomy);
+        });
+    });
+
     it('a label wins over an app aria-label on the root', () => {
         render(
             <Stepper.Root label="Checkout" aria-label="Ignored">

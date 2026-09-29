@@ -60,7 +60,8 @@ Rules that make it a *zero* anatomy:
   a shared flag, a state or a synonym of one (the merge refuses those, with
   a hint), never on a pseudo or absorbable part. It carries no
   accessibility meaning: say the fact in text or ARIA as well (a visually
-  hidden ", optional", an `aria-label` prefix).
+  hidden ", optional", an `aria-label` prefix). `@sigx/zero-ext-example`'s
+  optional Stepper step is the worked example.
 - A part the runtime hides with `hidden` in some state declares `hiddenIn`.
 - A part whose job is paint rather than text — a check, a dot, a needle —
   declares `paint` (`true`, or `{ glyph?, only?, host? }`), and the contrast

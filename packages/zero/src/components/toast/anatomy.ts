@@ -58,4 +58,13 @@ export const toastAnatomy = defineAnatomy('toast', {
         tokens: ['color', 'radius-selector'],
         asChild: true,
     },
+}, {
+    // On every root: its place in the stack and, measured, its own height and
+    // the summed heights of the newer toasts in front of it (#292).
+    runtimeProperties: [
+        '--toast-index',
+        '--toast-count',
+        '--toast-height',
+        '--toast-offset',
+    ],
 });

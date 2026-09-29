@@ -15,6 +15,13 @@
  * Tabs/ToggleGroup convention); click/Space/Enter select. A step BEFORE the
  * current one renders `data-state="complete"`, derived from registration
  * order, which is DOM order.
+ *
+ * An `optional` step renders the domain flag `data-x-optional=""` (#457), a
+ * fact of the stepper's own domain that a design system paints through the
+ * recipe key `x-optional`. A data attribute carries no accessibility
+ * meaning, so the native button also says it in text: a visually hidden
+ * ", optional" after its label. With `asChild` the app owns the element and
+ * its accessible name, so nothing is injected there; say it yourself.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -25,11 +32,13 @@ import {
     createPressFeedback,
     createRovingKeydown,
     dataAttr,
+    domainFlagAttrs,
     htmlAttrs,
     isFocusVisible,
     renderAsChild,
     synthesizesClickFrom,
     variantAttrs,
+    VisuallyHidden,
 } from '@sigx/zero';
 import type {
     ControllableState,
@@ -159,6 +168,12 @@ const StepperRoot = component<StepperRootProps>(({ props, slots, emit, signal })
 
 export type StepperItemProps =
     & Define.Prop<'value', string, true>
+    /**
+     * An optional step, `data-x-optional`; not required to advance. The
+     * native button appends a visually hidden ", optional" to its name; an
+     * `asChild` element names itself.
+     */
+    & Define.Prop<'optional', boolean, false>
     & WithDisabled
     & WithClass
     & WithAsChild
@@ -226,6 +241,7 @@ const StepperItem = component<StepperItemProps>(({ props, slots, onUnmounted, si
         'data-state': phase(),
         'data-disabled': dataAttr(disabled()),
         'data-focus-visible': dataAttr(focus.visible),
+        ...domainFlagAttrs({ optional: props.optional }),
         tabIndex: isTabbable() ? 0 : -1,
         'aria-current': phase() === 'active' ? 'step' : undefined,
         // asChild elements get the button contract supplied by hand: the
@@ -272,6 +288,7 @@ const StepperItem = component<StepperItemProps>(({ props, slots, onUnmounted, si
         return (
             <button type="button" class={props.class} disabled={disabled()} {...b}>
                 {slots.default?.(b)}
+                {props.optional ? <VisuallyHidden>, optional</VisuallyHidden> : null}
             </button>
         );
     };

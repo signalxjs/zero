@@ -5,7 +5,7 @@
  *
  * There is no recipe pack here on purpose. These components exist for one
  * design system, and its own recipes key the axes and modifiers it declares
- * (`tone`, `weight`, `unread`, …), which a grammar-generic pack could not.
+ * (`tone`, `weight`, `truncate`, …), which a grammar-generic pack could not.
  */
 import { FRAGMENT_VERSION } from '@sigx/zero/contract';
 import { mailAnatomies } from './anatomy.js';

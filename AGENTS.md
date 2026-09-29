@@ -278,7 +278,8 @@ claim and one for the DOM ones, asserting that every
 happy-dom cannot resolve), that no element renders a
 `data-color`/`data-size`/`data-variant`/`data-mod-*` value the live manifest
 does not declare (and, since #129, no `data-<axis>` value of a declared
-custom axis the scope does not wire — `data-shape` on avatar is the first), that a toolbar switch leaves exactly one live
+custom axis the scope does not wire — `data-shape` on avatar is the first; and, since #539, no
+`data-x-*` domain flag its part's anatomy does not declare, nor one with a value), that a toolbar switch leaves exactly one live
 `link[data-zero-ds]` and refetches the vocabulary and theme registry, and that
 boot logs no console error); the **reduced-motion spec** (`e2e/reduced-motion.spec.ts`) — the two
 components whose resting state is an infinite loop (Skeleton, Spinner) across

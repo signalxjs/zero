@@ -17,6 +17,11 @@ export const stepperAnatomy = defineAnatomy('ext-stepper', {
         states: ['active', 'complete', 'inactive'],
         flags: ['disabled', 'focus-visible'],
         tokens: ['color', 'radius-selector', 'text'],
+        // A fact of the stepper's own domain, not the shared vocabulary
+        // (#457): an optional step renders `data-x-optional=""`, keyed
+        // `x-optional` in selectors and recipe `states`. It carries no
+        // accessibility meaning, so the item says it in text as well.
+        domainFlags: ['optional'],
         asChild: true,
     },
 }, {

@@ -87,6 +87,12 @@ export const recipes: RecipeInput[] = [{
                     borderColor: 'var(--color-primary)',
                 },
                 inactive: {},
+                // The domain flag (#457), keyed `x-<name>`: an optional step
+                // draws its border dashed. The base already sets a 1px width,
+                // so the dash paints without one here.
+                'x-optional': {
+                    borderStyle: 'dashed',
+                },
                 'focus-visible': {
                     outline: '2px solid var(--color-primary)',
                     outlineOffset: '2px',

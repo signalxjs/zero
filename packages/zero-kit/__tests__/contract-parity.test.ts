@@ -166,6 +166,27 @@ describe('kit ↔ zero contract parity', () => {
         expect([...kit.RESERVED_ROLE_NAMES].sort()).toEqual([...zero.CSS_COLOR_KEYWORDS].sort());
     });
 
+    // Runtime properties (#537). The kit's list is a hand-kept copy of what
+    // zero writes: the behavior-level entries no scope owns, plus every name
+    // zero's own anatomies declare as `runtimeProperties`. Held as derived, so
+    // a component that starts writing one — or stops — fails here until both
+    // sides say so.
+    it('RUNTIME_PROPERTIES is the behavior list plus every name zero\'s anatomies declare', () => {
+        const declared = Object.values(anatomies).flatMap((a) => a.runtimeProperties ?? []);
+        const derived = new Set([...kit.BEHAVIOR_RUNTIME_PROPERTIES, ...declared]);
+        expect(new Set(kit.RUNTIME_PROPERTIES)).toEqual(derived);
+        // No name twice in the kit's list — a Set comparison alone would
+        // hide one.
+        expect(kit.RUNTIME_PROPERTIES.length).toBe(new Set(kit.RUNTIME_PROPERTIES).size);
+    });
+
+    it('BEHAVIOR_RUNTIME_PROPERTIES carries the anchored-position strategy\'s geometry', () => {
+        const behavior: readonly string[] = kit.BEHAVIOR_RUNTIME_PROPERTIES;
+        for (const name of [...zero.POSITION_PROPERTIES, ...zero.ARROW_PROPERTIES]) {
+            expect(behavior, name).toContain(name);
+        }
+    });
+
     // ── 2. completeness ──
     it('every shared export name is covered by the table above', () => {
         const shared = Object.keys(zero)

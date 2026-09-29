@@ -15,6 +15,11 @@ import type { PageEntry } from './registry';
  * property the fragment declares (#456); the pack's web grid reads it, which
  * `e2e/ext-stepper.spec.ts` measures.
  *
+ * "Details" is an optional step: the item renders the domain flag
+ * `data-x-optional=""` (#457), which the pack paints as a dashed border, and
+ * its accessible name ends in ", optional". `ds-smoke.spec.ts` holds every
+ * `data-x-*` on the page to the part that declares it.
+ *
  * The other four skins do not adopt the fragment: there it renders
  * unstyled-but-accessible, which is the documented outcome, not a defect.
  */
@@ -33,7 +38,7 @@ const StepperDemos = component(() => {
             </p>
             <ExtStepper.Root model={[checkout, 'step']} label="Checkout (ecosystem)">
                 <ExtStepper.Item value="cart">Cart</ExtStepper.Item>
-                <ExtStepper.Item value="details">Details</ExtStepper.Item>
+                <ExtStepper.Item value="details" optional>Details</ExtStepper.Item>
                 <ExtStepper.Item value="pay">Pay</ExtStepper.Item>
                 <ExtStepper.Item value="done" disabled>Done</ExtStepper.Item>
             </ExtStepper.Root>

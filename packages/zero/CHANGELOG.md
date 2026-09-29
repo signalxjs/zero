@@ -15,6 +15,15 @@
   (#133) rather than replacing it. New exports: `AppShell`,
   `appShellAnatomy`, `AppShellRootProps`, `AppShellBodyProps`,
   `AppShellMainProps`, `AppShellRegionProps`.
+- **Zero's own anatomies declare their runtime properties (#537).**
+  Progress and RadialProgress (`--progress-percent`, shared so one recipe
+  idiom serves both), Slider (`--slider-percent`), Diff (`--diff-percent`),
+  Countdown (`--countdown-value`), Accordion and Collapsible (the panel
+  height/width pair), Tabs (the four `--tabs-indicator-*`) and Toast (the
+  `--toast-*` quartet) list them as `runtimeProperties`, so `manifest.json`
+  gains the key on those nine components. Nothing a component renders
+  changes, and no skin's CSS does. The suite holds each name to its scope's
+  prefix and to a write in the scope's own sources.
 
 - **Domain flags for ecosystem components (#457).** A fragment part
   declares `domainFlags: ['unread']` and renders `data-x-unread=""`, so a

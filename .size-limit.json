@@ -26,7 +26,7 @@
     {
         "name": "@sigx/zero/tabs",
         "path": "packages/zero/dist/components/tabs/index.js",
-        "limit": "5.1 kB",
+        "limit": "5.12 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -74,7 +74,7 @@
     {
         "name": "@sigx/zero/anatomy (tooling entry)",
         "path": "packages/zero/dist/anatomy.js",
-        "limit": "4.49 kB",
+        "limit": "4.61 kB",
         "ignore": [
             "sigx",
             "@sigx/runtime-core",
@@ -468,7 +468,7 @@
     {
         "name": "@sigx/zero/radial-progress",
         "path": "packages/zero/dist/components/radial-progress/index.js",
-        "limit": "2.4 kB",
+        "limit": "2.41 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -540,7 +540,7 @@
     {
         "name": "@sigx/zero/diff",
         "path": "packages/zero/dist/components/diff/index.js",
-        "limit": "3.53 kB",
+        "limit": "3.54 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

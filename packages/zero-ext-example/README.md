@@ -44,6 +44,21 @@ while the shared section keeps the flex row, so an adopter's lynx build keeps
 the scope. `examples/playground/e2e/ext-stepper.spec.ts` measures the tracks
 in basic and heroui.
 
+**A domain flag: the optional step** (#457). `<ExtStepper.Item optional>`
+marks a step the user need not complete to advance. The anatomy declares it
+on the item (`domainFlags: ['optional']`), so the fragment carries it and its
+selector (`selectors['x-optional'] = '[data-x-optional]'`), and the item
+renders it presence-only through zero's public `domainFlagAttrs`:
+`data-x-optional=""`, absent (never `="false"`) on a required step. The pack
+paints it under the recipe key `'x-optional'` in the item's `states`, as a
+dashed border. A data attribute carries no accessibility meaning, so the
+native button also says it in text: a `VisuallyHidden` ", optional" after
+its label, making the accessible name "Shipping, optional". With `asChild`
+the app owns the element and its name, so the item adds the attribute but
+injects no text there; put the word in your own element's name. The
+playground's "Details" step is optional, and `ds-smoke` holds every
+`data-x-*` on the page to the part whose anatomy declares it.
+
 `@sigx/zero-basic` consumes both — which makes it the end-to-end proof that a
 merged scope compiles, that the generated `register.d.ts` takes the
 `Exclude<…>` form and still typechecks (`type-tests/ecosystem/`), and that a

@@ -31,7 +31,11 @@
  *      design system's manifest does not declare. An unmatched axis attribute
  *      is silent — it is just an attribute nobody styled — which is how the
  *      toolbar shipped a `solid` variant carbon has never declared (#215) and
- *      a hardcoded `success|warning|error` role row (#216).
+ *      a hardcoded `success|warning|error` role row (#216). The same sweep
+ *      holds domain flags (`data-x-*`, #457): each must sit on a part whose
+ *      anatomy declares that name, presence-only. That claim is the
+ *      anatomy's, not the skin's, so its table comes from zero's manifest
+ *      and the ecosystem fragments the playground renders.
  *   3. **Swap, don't stack.** Exactly one `link[data-zero-ds]` with a live
  *      sheet once each switch has settled. Note the wording: the invariant is
  *      one live *sheet*, not one `<link>` ELEMENT.
@@ -147,6 +151,37 @@ function vocabularyOf(id: string): Vocabulary {
 }
 
 const vocabularies = new Map(DESIGN_SYSTEMS.map((ds) => [ds.id, vocabularyOf(ds.id)]));
+
+/**
+ * `scope/part` → the domain flags that part declares (#457). Design-system
+ * independent: a domain flag is anatomy, so the table is zero's own
+ * manifest plus every ecosystem fragment the playground renders, read by
+ * path from `dist/` like `vocabularyOf`. A part rendering `data-x-<name>`
+ * without declaring `<name>` is the same silent mistake as an undeclared
+ * axis value — `expectAnatomy` catches it in a unit test, this catches it
+ * wherever a demo composes it.
+ */
+type DomainFlags = Record<string, string[]>;
+
+function domainFlagsOf(paths: readonly string[]): DomainFlags {
+    const table: DomainFlags = {};
+    for (const path of paths) {
+        const source = JSON.parse(readFileSync(join(repoRoot, path), 'utf8')) as {
+            components: { scope: string; parts: { name: string; domainFlags?: string[] }[] }[];
+        };
+        for (const component of source.components) {
+            for (const part of component.parts) {
+                if (part.domainFlags?.length) table[`${component.scope}/${part.name}`] = [...part.domainFlags];
+            }
+        }
+    }
+    return table;
+}
+
+const DOMAIN_FLAGS = domainFlagsOf([
+    'packages/zero/dist/manifest.json',
+    'packages/zero-ext-example/dist/fragment.json',
+]);
 
 const vocabularyFor = (id: string): Vocabulary => {
     const vocabulary = vocabularies.get(id);
@@ -269,7 +304,7 @@ interface RenderedAxes {
  * on something that is not a zero part is itself a finding worth the failure.
  */
 const readAxes = (page: Page, vocabulary: Vocabulary): Promise<RenderedAxes> =>
-    page.evaluate((declared) => {
+    page.evaluate(({ domainFlags, ...declared }) => {
         const undeclared: string[] = [];
         const seen = {
             colors: new Set<string>(),
@@ -329,6 +364,24 @@ const readAxes = (page: Page, vocabulary: Vocabulary): Promise<RenderedAxes> =>
                     );
                 }
             }
+            // A domain flag (#457) belongs to the part that declares it, and
+            // is presence-only. Not the skin's vocabulary: the table is the
+            // anatomy's, the same for every design system.
+            for (const attribute of el.attributes) {
+                if (!attribute.name.startsWith('data-x-')) continue;
+                const name = attribute.name.slice('data-x-'.length);
+                const part = el.getAttribute('data-part');
+                const declaredFlags = scope !== null && part !== null ? domainFlags[`${scope}/${part}`] ?? [] : [];
+                if (!declaredFlags.includes(name)) {
+                    undeclared.push(
+                        `${where(el)} ${attribute.name} — ${scope !== null && part !== null
+                            ? `${scope}/${part} declares ${declaredFlags.length > 0 ? declaredFlags.join(' | ') : 'no domain flag'}`
+                            : 'not a [data-scope][data-part] part'}`,
+                    );
+                } else if (attribute.value !== '') {
+                    undeclared.push(`${where(el)} ${attribute.name}="${attribute.value}" — a domain flag is presence-only`);
+                }
+            }
             for (const attribute of el.attributes) {
                 if (!attribute.name.startsWith('data-mod-')) continue;
                 const name = attribute.name.slice('data-mod-'.length);
@@ -363,7 +416,7 @@ const readAxes = (page: Page, vocabulary: Vocabulary): Promise<RenderedAxes> =>
             sizes: sorted(seen.sizes),
             variants: sorted(seen.variants),
         };
-    }, vocabulary);
+    }, { ...vocabulary, domainFlags: DOMAIN_FLAGS });
 
 // ── Invariant 3: exactly one live sheet ────────────────────────────────────
 
@@ -577,7 +630,8 @@ test.describe('the toolbar switcher', () => {
                 `${ds.id}: rendered an axis value its manifest does not declare — nothing styles it, so `
                 + `the mistake is silent. Declared: colors=[${vocabulary.colors.join('|')}] `
                 + `sizes=[${vocabulary.sizes.join('|')}] variants=[${vocabulary.variants.join('|')}] `
-                + `modifiers=[${vocabulary.modifiers.join('|')}]`,
+                + `modifiers=[${vocabulary.modifiers.join('|')}] `
+                + `domainFlags=[${Object.entries(DOMAIN_FLAGS).map(([part, flags]) => `${part}: ${flags.join('|')}`).join(', ')}]`,
             ).toEqual([]);
 
             // …and the converse, which is what proves the vocabulary was
