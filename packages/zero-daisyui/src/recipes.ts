@@ -5581,6 +5581,15 @@ const lynxTreeRowStates: Record<string, CssProps> = {
     ...lynxFocus({ inset: true }),
 };
 
+/**
+ * The tree rows' lynx base: the fill still eases, the ink snaps — a
+ * transitioned `color` never reaches the row's inheriting label on lynx
+ * (signalxjs/lynx#1292; see the tree-view recipe's `targets`).
+ */
+const lynxTreeRowBase: CssProps = {
+    transition: 'background var(--duration-fast) var(--ease-standard)',
+};
+
 /** A held selected row keeps its accent fill (the web's `:not([data-selected])`). */
 const lynxTreeRowSelectors: Record<string, CssProps> = {
     '&[data-selected][data-pressed]': { background: 'var(--tree-accent)' },
@@ -5741,11 +5750,23 @@ export const treeView: RecipeInput = {
     // those carry is restated on the part the runtime stamps. The skin's
     // `:dir(rtl)` mirror and the `@media` stops have no lynx form (no RTL
     // flow, no conditions) and stay dropped.
+    //
+    // The rows transition `background` only (signalxjs/lynx#1292, zero#521).
+    // A row's label is the author's `<text>`, inked by inheritance from the
+    // row. Lynx's new animator (on by default) takes a transitioned `color`
+    // change away from the element's own style pass and ticks it into the
+    // row's paint alone, and the row's children inherit its computed colour
+    // only in that pass, so they kept the OLD ink: a row selected live
+    // painted base-content text on the accent fill, while a row selected at
+    // mount (no transition runs) was right. Read in Lynx's
+    // `fiber_element.cc` (`ConsumeStyleInternal`) and
+    // `css_transition_manager.cc` (`ConsumeCSSProperty`). Without a `color`
+    // transition the new ink is set in the style pass and reaches the label.
     targets: {
         lynx: {
             parts: {
-                item: { states: lynxTreeRowStates, selectors: lynxTreeRowSelectors },
-                'branch-trigger': { states: lynxTreeRowStates, selectors: lynxTreeRowSelectors },
+                item: { base: lynxTreeRowBase, states: lynxTreeRowStates, selectors: lynxTreeRowSelectors },
+                'branch-trigger': { base: lynxTreeRowBase, states: lynxTreeRowStates, selectors: lynxTreeRowSelectors },
                 // `inline-block` is not a lynx display value. The glyph is a
                 // `<text>` part: a 1em box centred on it, so the quarter turn
                 // pivots on the chevron instead of swinging it sideways.
@@ -9487,6 +9508,13 @@ export const table: RecipeInput = {
                     base: { flexDirection: 'row' },
                     states: { pressed: { color: 'var(--table-accent)' }, ...lynxFocus() },
                 },
+                // The mark never takes its width out of the header's word
+                // (signalxjs/lynx#1299): lynx's flex has no automatic
+                // minimum, so the ▲ (kept in layout while unsorted) squeezed
+                // "Name" into "Nam / e" at xl. lynx-zero holds the label's
+                // `<text>` at its content width; a header too narrow for
+                // both overflows whole, as the web's column grows.
+                'sort-indicator': { base: { flexShrink: '0' } },
             },
             variants: {
                 color: Object.fromEntries(ROLES.map((c) => {
@@ -9740,7 +9768,15 @@ export const fileUpload: RecipeInput = {
                     base: { alignSelf: 'stretch', display: 'flex', flexDirection: 'column' },
                 },
                 item: { base: { flexDirection: 'row' } },
+                // Only the name gives way in a narrow row (signalxjs/lynx#1294).
+                // Lynx's flex has no automatic minimum, so every item
+                // shrank below its content: "1.5 kB" wrapped to two lines
+                // and the × squeezed into an oval. The size and the × keep
+                // their content width, as the web's do; the name
+                // (`flex: 1 1 auto; min-width: 0`) ellipsizes.
+                'item-size': { base: { flexShrink: '0' } },
                 'item-remove': {
+                    base: { flexShrink: '0' },
                     states: { pressed: { background: 'var(--color-base-200)' }, ...lynxFocus() },
                 },
                 'clear-trigger': {

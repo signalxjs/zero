@@ -1456,6 +1456,44 @@ describe('assertNoCalcVarChains', () => {
         });
     });
 
+    describe('zero-daisyui tree-view, file-upload and table rows on lynx (signalxjs/lynx#1292, #1294, #1299)', () => {
+        let compiled: Record<string, string> | undefined;
+        const lynxCss = (): Record<string, string> => (compiled ??= compileDesignSystemLynx(daisyDS as never, {
+            components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
+        }).componentCss);
+        const body = (css: string, selector: string): string => {
+            const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return [...css.matchAll(new RegExp(`^${escaped} \\{([^}]*)\\}`, 'gm'))].map((m) => m[1]!).join('\n');
+        };
+        const last = (decls: string, prop: string): string | undefined =>
+            [...decls.matchAll(new RegExp(`^\\s*${prop}: ([^;]+);`, 'gm'))].map((m) => m[1]!).at(-1);
+
+        it('tree rows never transition color, so a live selection re-inks the label', () => {
+            const css = lynxCss()['tree-view']!;
+            for (const part of ['item', 'branch-trigger']) {
+                const decls = body(css, `.zx-tree-view__${part}`);
+                expect(last(decls, 'transition')).toBe('background var(--duration-fast) var(--ease-standard)');
+                expect(decls).not.toMatch(/transition:[^;]*\bcolor\b/);
+                // The selected ink itself still ships.
+                expect(last(body(css, `.zx-tree-view__${part}.zx-f-selected`), 'color')).toBe('var(--tree-on-accent)');
+            }
+        });
+
+        it('a file-upload item row shrinks only its name', () => {
+            const css = lynxCss()['file-upload']!;
+            expect(last(body(css, '.zx-file-upload__item-size'), 'flex-shrink')).toBe('0');
+            expect(last(body(css, '.zx-file-upload__item-remove'), 'flex-shrink')).toBe('0');
+            const name = body(css, '.zx-file-upload__item-name');
+            expect(name).toContain('flex: 1 1 auto;');
+            expect(last(name, 'min-width')).toBe('0');
+        });
+
+        it('the table sort mark never takes its width out of the header label', () => {
+            const css = lynxCss()['table']!;
+            expect(last(body(css, '.zx-table__sort-indicator'), 'flex-shrink')).toBe('0');
+        });
+    });
+
     describe('zero-daisyui combobox on lynx (signalxjs/lynx#1278, #503)', () => {
         // Compiled once for the block: every test reads the same stylesheet.
         let compiled: string | undefined;
