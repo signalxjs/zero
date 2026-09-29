@@ -5,12 +5,19 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  *
  * `control` is the field chrome wrapping the input (the Combobox/NumberInput
  * split): the focus ring and the invalid tint draw on the box, not on the bare
- * `<input>`. It is also the row the three affordances sit in (#281):
+ * `<input>`. It is also the row the affordances sit in (#281):
  *
- * - `adornment` — consumer content (an icon, a unit, a prefix) at one logical
+ * - `adornment` — a leading or trailing ICON (or any graphic) at one logical
  *   edge, named by `data-placement` (`start` | `end`). A press on it that
  *   lands on nothing interactive focuses the input, as a press on the box's
  *   own padding would. Recipes order it with `order`, never physical margins.
+ * - `affix` — prefix or suffix TEXT (`https://`, `.com`, `kg`, `$`), with the
+ *   same placement and the same press. A separate part because a design
+ *   system lays the two out differently (#467): Material centres an icon in
+ *   the container and moves a resting label past a leading one, while affix
+ *   text sits on the input's own text line, shows only once the label has
+ *   floated, and never moves the label. A skin must not have to guess which
+ *   one it holds from the content.
  * - `clear-trigger` — empties the value like typing would, then focuses the
  *   input. Out of the tab order (the keyboard path is select-all + delete,
  *   or Escape in a `search` field), and it renders nothing while the value is
@@ -62,6 +69,13 @@ export const inputAnatomy = defineAnatomy('input', {
         tokens: ['color', 'text', 'size'],
     },
     adornment: {
+        element: 'span',
+        parent: 'control',
+        placements: ['start', 'end'],
+        flags: ['disabled'],
+        tokens: ['color', 'text', 'size'],
+    },
+    affix: {
         element: 'span',
         parent: 'control',
         placements: ['start', 'end'],

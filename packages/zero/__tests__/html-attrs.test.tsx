@@ -466,6 +466,7 @@ describe('the pass-through reaches every part', () => {
                 <Input.Label {...p('label')}>Name</Input.Label>
                 <Input.Control {...p('control')}>
                     <Input.Adornment {...p('adornment')} placement="start">@</Input.Adornment>
+                    <Input.Affix {...p('affix')} placement="end">kg</Input.Affix>
                     <Input.Input {...p('input')} />
                     <Input.ClearTrigger {...p('clear-trigger')} />
                     <Input.VisibilityTrigger {...p('visibility-trigger')} />

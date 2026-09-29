@@ -240,12 +240,16 @@ the control reports itself after the root renders; server markup carries
 none, and a field around a control with no notion of empty (a checkbox, a
 slider) never has it.
 
-**Input's control holds three affordances (#281).** `Input.Adornment`
-(part `adornment`, `placement="start" | "end"` → `data-placement`) puts
-consumer content — an icon, a unit, a prefix — at a logical edge of the
-control; a press on it that lands on nothing interactive focuses the input
-and keeps its caret. `aria-hidden` is not forced: whether it speaks is the
-app's call. `Input.ClearTrigger` (part `clear-trigger`) empties the value
+**Input's control holds the affordances (#281).** `Input.Adornment`
+(part `adornment`, `placement="start" | "end"` → `data-placement`) puts an
+icon at a logical edge of the control, and `Input.Affix` (part `affix`, the
+same `placement`) puts prefix or suffix text there — `https://`, `.com`,
+`kg` (#467). They are two parts because a design system lays them out
+apart: Material centres an icon in the box and moves a resting label past a
+leading one, but sets affix text on the input's text line, leaves the label
+where it is, and shows the affix only once the label has floated. A press
+on either that lands on nothing interactive focuses the input and keeps its
+caret. `aria-hidden` is not forced: whether it speaks is the app's call. `Input.ClearTrigger` (part `clear-trigger`) empties the value
 the way typing would — the model writes, `valueChange` fires, and an
 `input` event reaches the app's own listeners — then focuses the input. It
 is out of the tab order (`tabindex="-1"`), points at the input through
@@ -273,6 +277,15 @@ so they flip with the reading direction.
         <Input.Input />
         <Input.ClearTrigger />
         <Input.VisibilityTrigger />
+    </Input.Control>
+</Input.Root>
+
+<Input.Root type="url" model={() => state.site}>
+    <Input.Label>Website</Input.Label>
+    <Input.Control>
+        <Input.Affix placement="start">https://</Input.Affix>
+        <Input.Input />
+        <Input.Affix placement="end">.com</Input.Affix>
     </Input.Control>
 </Input.Root>
 ```

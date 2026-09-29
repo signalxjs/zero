@@ -204,11 +204,12 @@ describe('anatomy registry', () => {
         // Every part the runtime stamps `data-placement` on, and no other:
         // the six anchored-position popups, toast's viewport/root pair, and
         // the content-tier parts that anchor along an axis (#334), and
-        // input's adornment, which names the control edge it sits at (#281),
+        // input's adornment and affix, which name the control edge they sit
+        // at (#281, #467),
         // and divider's label, the rule edge it is set at (#298).
         // The DOM half is asserted by expectAnatomy in each component's tests.
         expect(declared.sort()).toEqual([
-            'chat.root', 'combobox.popup', 'divider.label', 'drawer.panel', 'hover-card.popup', 'indicator.item', 'input.adornment', 'menu.popup', 'menu.sub-popup',
+            'chat.root', 'combobox.popup', 'divider.label', 'drawer.panel', 'hover-card.popup', 'indicator.item', 'input.adornment', 'input.affix', 'menu.popup', 'menu.sub-popup',
             'popover.popup', 'select.popup', 'timeline.content', 'toast.root', 'toast.viewport', 'tooltip.popup',
         ]);
     });

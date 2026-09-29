@@ -21,7 +21,8 @@
  * disabled/invalid/required flags and its `aria-describedby`, so `Input.Label`
  * becomes optional there. Standalone it wires its own label.
  *
- * The control is also where the three affordances sit (#281):
+ * The control is also where the affordances sit (#281) — an icon is an
+ * `Adornment`, prefix/suffix text an `Affix` (#467):
  *
  * ```tsx
  * <Input.Root type="password" model:visible={() => state.shown}>
@@ -455,7 +456,7 @@ const InputInput = component<InputInputProps>(({ props, expose, onMounted, onUnm
     };
 }, { name: 'Input.Input' });
 
-// ── Adornment ──
+// ── Adornment / Affix ──
 
 export type InputAdornmentProps =
     /** Which logical edge of the control it sits at; rendered as `data-placement`. */
@@ -464,41 +465,62 @@ export type InputAdornmentProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
+/** `Input.Affix` takes exactly what `Input.Adornment` takes. */
+export type InputAffixProps = InputAdornmentProps;
+
 /** What a press may land on inside an adornment and keep for itself. */
 const INTERACTIVE = 'a[href], button, input, select, textarea, label, [tabindex], [contenteditable]';
 
 /**
- * Consumer content at one edge of the control — an icon, a unit, a prefix.
- * `aria-hidden` is not forced: whether it says something is the app's call.
+ * The adornment and the affix are one element with one press; only the part
+ * name differs, and it is what lets a design system lay them out apart
+ * (#467).
  */
-const InputAdornment = component<InputAdornmentProps>(({ props, slots }) => {
-    const ctx = useInputContext();
-    return () => (
-        <span
-            {...htmlAttrs(props)}
-            data-scope={SCOPE}
-            data-part="adornment"
-            data-placement={props.placement}
-            data-disabled={dataAttr(ctx.disabled())}
-            class={props.class}
-            onMousedown={(e: MouseEvent) => {
-                // The box's own padding focuses the field; so does its
-                // decoration. Cancelled so the caret the input already has
-                // survives, and so the text under the press is not selected.
-                const target = e.target as Element | null;
-                const host = e.currentTarget as Element;
-                const hit = target?.closest?.(INTERACTIVE);
-                if (hit && host.contains(hit)) return;
-                const input = ctx.inputEl();
-                if (!input || ctx.disabled()) return;
-                e.preventDefault();
-                input.focus();
-            }}
-        >
-            {slots.default?.()}
-        </span>
-    );
-}, { name: 'Input.Adornment' });
+function edgeContent(part: 'adornment' | 'affix', name: string) {
+    return component<InputAdornmentProps>(({ props, slots }) => {
+        const ctx = useInputContext();
+        return () => (
+            <span
+                {...htmlAttrs(props)}
+                data-scope={SCOPE}
+                data-part={part}
+                data-placement={props.placement}
+                data-disabled={dataAttr(ctx.disabled())}
+                class={props.class}
+                onMousedown={(e: MouseEvent) => {
+                    // The box's own padding focuses the field; so does its
+                    // decoration. Cancelled so the caret the input already has
+                    // survives, and so the text under the press is not selected.
+                    const target = e.target as Element | null;
+                    const host = e.currentTarget as Element;
+                    const hit = target?.closest?.(INTERACTIVE);
+                    if (hit && host.contains(hit)) return;
+                    const input = ctx.inputEl();
+                    if (!input || ctx.disabled()) return;
+                    e.preventDefault();
+                    input.focus();
+                }}
+            >
+                {slots.default?.()}
+            </span>
+        );
+    }, { name });
+}
+
+/**
+ * A leading or trailing icon (or any graphic) at one edge of the control.
+ * Text — a prefix or a suffix — is `Input.Affix`. `aria-hidden` is not
+ * forced: whether it says something is the app's call.
+ */
+const InputAdornment = edgeContent('adornment', 'Input.Adornment');
+
+/**
+ * Prefix or suffix text at one edge of the control — `https://`, `.com`,
+ * `kg`. A design system sets it on the input's text line, where an icon
+ * (`Input.Adornment`) is centred in the box (#467). Not `aria-hidden` either:
+ * a unit is often part of what the field means.
+ */
+const InputAffix = edgeContent('affix', 'Input.Affix');
 
 // ── ClearTrigger ──
 
@@ -628,6 +650,7 @@ export const Input = compound(InputRoot, {
     Control: InputControl,
     Input: InputInput,
     Adornment: InputAdornment,
+    Affix: InputAffix,
     ClearTrigger: InputClearTrigger,
     VisibilityTrigger: InputVisibilityTrigger,
 });

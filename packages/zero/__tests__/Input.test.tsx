@@ -282,7 +282,9 @@ describe('Input affordances (#281)', () => {
                 <Input.Label>Secret</Input.Label>
                 <Input.Control>
                     <Input.Adornment placement="start"><svg data-icon="" /></Input.Adornment>
+                    <Input.Affix placement="start"><span data-prefix="">https://</span></Input.Affix>
                     <Input.Input onInput={extra.onInput} />
+                    <Input.Affix placement="end">.com</Input.Affix>
                     <Input.Adornment placement="end"><button type="button" data-own="">?</button></Input.Adornment>
                     <Input.ClearTrigger />
                     <Input.VisibilityTrigger />
@@ -295,14 +297,31 @@ describe('Input affordances (#281)', () => {
     it('renders a valid anatomy with every part', () => {
         mountAll({ type: 'password', defaultValue: 'hunter2' });
         expectAnatomy(container, inputAnatomy);
-        for (const name of ['adornment', 'clear-trigger', 'visibility-trigger']) {
+        for (const name of ['adornment', 'affix', 'clear-trigger', 'visibility-trigger']) {
             expect(part(container, name), `input/${name} must render`).toBeTruthy();
         }
-        const [start, end] = container.querySelectorAll('[data-part="adornment"]');
-        expect(start!.getAttribute('data-placement')).toBe('start');
-        expect(end!.getAttribute('data-placement')).toBe('end');
-        // Consumer content decides whether it speaks.
-        expect(start!.hasAttribute('aria-hidden')).toBe(false);
+        for (const name of ['adornment', 'affix']) {
+            const [start, end] = container.querySelectorAll(`[data-part="${name}"]`);
+            expect(start!.getAttribute('data-placement'), name).toBe('start');
+            expect(end!.getAttribute('data-placement'), name).toBe('end');
+            // Consumer content decides whether it speaks.
+            expect(start!.hasAttribute('aria-hidden'), name).toBe(false);
+        }
+    });
+
+    it('icon and text are separate parts, so a skin never guesses from content (#467)', () => {
+        mountAll({});
+        expect(container.querySelector('[data-icon]')!.closest('[data-part]')!.getAttribute('data-part')).toBe('adornment');
+        expect(container.querySelector('[data-prefix]')!.closest('[data-part]')!.getAttribute('data-part')).toBe('affix');
+    });
+
+    it('a press on an affix focuses the input and keeps the caret', () => {
+        mountAll({ defaultValue: 'x' });
+        const prefix = container.querySelector('[data-prefix]')!;
+        const down = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+        prefix.dispatchEvent(down);
+        expect(down.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(field(container));
     });
 
     it('a press on an adornment focuses the input and keeps the caret', () => {
@@ -488,5 +507,6 @@ describe('Input affordances (#281)', () => {
             expect(el.getAttribute('data-disabled'), name).toBe('');
         }
         expect(part(container, 'adornment').getAttribute('data-disabled')).toBe('');
+        expect(part(container, 'affix').getAttribute('data-disabled')).toBe('');
     });
 });
