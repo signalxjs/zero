@@ -495,7 +495,9 @@ describe('a pack that declares an axis out of existence (#64)', () => {
         const { findings, waived } = colorCoverage(out);
         expect(findings).toEqual([]);
         expect(waived.map((w) => w.waivedBy.mechanism)).toEqual(['tokens.scopes']);
-    });
+        // Two full audits of basic: past the 5s default under coverage
+        // instrumentation on a CI runner.
+    }, 20_000);
 
     it('holds a directly supplied pack to the same rule — a pack may only decline', async () => {
         const log = logger();
