@@ -339,6 +339,18 @@ function stackRecipe(): RecipeInput {
                     flexGrow: 'var(--l-grow)',
                     minInlineSize: '0',
                 },
+                selectors: {
+                    // `grow` grows from zero, like Tailwind's `flex-1`
+                    // (#454). Left at `auto`, a grow item holding long
+                    // truncated (nowrap) text starts from the whole text's
+                    // width, overflows the row, and the shrink that follows
+                    // squeezes its fixed siblings — a timestamp beside a
+                    // subject wraps. From a zero basis it takes only what is
+                    // left, and several grow siblings split it equally.
+                    // The `flex-basis` longhand, never `flex`: the lynx
+                    // target mis-parses the shorthand.
+                    '&[data-l-grow="1"]': { flexBasis: '0' },
+                },
             },
         },
     };

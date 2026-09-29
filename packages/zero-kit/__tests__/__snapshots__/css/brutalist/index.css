@@ -235,6 +235,10 @@
         flex-grow: var(--l-grow);
         min-inline-size: 0;
     }
+
+    [data-scope="stack"][data-part="item"][data-l-grow="1"] {
+        flex-basis: 0;
+    }
 }
 
 @layer zero.recipes {

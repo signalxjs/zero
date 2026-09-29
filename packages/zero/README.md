@@ -1918,6 +1918,20 @@ one navigation landmark (NavList's `<nav>`) in both regimes. Page CSS
 sits outside or after the four layers — `@layer zero, app;` first in the
 app's entry stylesheet (docs/architecture.md, "App CSS").
 
+**`Stack.Item grow` grows from zero** (#454). The design systems compile
+`grow` to `flex-grow: 1` and `flex-basis: 0`, like Tailwind's `flex-1`, so a
+grow item takes only the room its siblings leave. A truncated line beside a
+fixed label therefore gives way instead of squeezing the label onto two
+lines, and several `grow` siblings split the free space equally, whatever
+their content:
+
+```tsx
+<Row gap="md" align="center">
+    <Stack.Item grow asChild>{(p) => <span {...p} class="truncate">{subject}</span>}</Stack.Item>
+    <time>Sep 12</time>
+</Row>
+```
+
 **The link button.** A link that looks like a button is `asChild` over an
 `<a>`. It is a real link, with middle-click, "copy link" and the right role,
 and it wears the button's anatomy and recipe:

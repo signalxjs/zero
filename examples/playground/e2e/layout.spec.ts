@@ -289,6 +289,45 @@ test.describe('the layout tier resolves through the design system', () => {
         expect(await widthOfMeasure('xs')).toBeLessThan(await widthOfMeasure('md'));
     });
 
+    test('a grow item gives way to its fixed sibling rather than squeezing it', async ({ page }) => {
+        // #454: `grow` once kept its content basis, so a truncated (nowrap)
+        // line started out as wide as the whole text, overflowed the row,
+        // and the shrink that followed pushed the date beside it down to
+        // its min-content — "Sep 12" wrapped. Growing from a zero basis, the
+        // line takes only what the date leaves. Measured at a phone width,
+        // where the line is far wider than the row.
+        await bootPage(page, 'layout', TIGHT);
+        await page.setViewportSize({ width: 420, height: 900 });
+        const row = rootLabelled(page, 'stack', 'Sep 12');
+        const rowBox = await settledBox(row, 'the truncating row');
+        const item = row.locator(':scope > [data-scope="stack"][data-part="item"][data-l-grow="1"]');
+        const date = row.locator(':scope > span').filter({ hasText: 'Sep 12' });
+        const itemBox = await settledBox(item, 'the grow item');
+        const dateBox = await settledBox(date, 'the date');
+        const { gap, oneLine, truncated } = await row.evaluate((el) => {
+            // The date laid out on its own, on one line: its intrinsic box.
+            const probe = el.querySelector(':scope > span')!.cloneNode(true) as HTMLElement;
+            probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap';
+            el.append(probe);
+            const { width, height } = probe.getBoundingClientRect();
+            probe.remove();
+            const grow = el.querySelector(':scope > [data-part="item"]')!;
+            return {
+                gap: parseFloat(getComputedStyle(el).columnGap),
+                oneLine: { width, height },
+                truncated: grow.scrollWidth > grow.clientWidth,
+            };
+        });
+
+        // Not vacuous: the line really is longer than the room it gets.
+        expect(truncated, 'the grow item overflows its own box').toBe(true);
+        // The date stays one line, at its full intrinsic width…
+        expect(dateBox.height, 'the date is one line high').toBeCloseTo(oneLine.height, 0);
+        expect(dateBox.width, 'the date keeps its full width').toBeCloseTo(oneLine.width, 0);
+        // …and the grow item is exactly the row less the date and the gap.
+        expect(Math.abs(itemBox.width - (rowBox.width - dateBox.width - gap))).toBeLessThanOrEqual(1);
+    });
+
     test('Spacer flexes by default and is fixed when given a step', async ({ page }) => {
         await bootPage(page, 'layout', TIGHT);
         const widthOf = async (sel: string, what: string) =>
