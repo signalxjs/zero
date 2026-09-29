@@ -1,6 +1,6 @@
 import { component, signal } from 'sigx';
 import { Button, Dialog, Menu } from '@sigx/zero';
-import { pickRole } from '../design-systems';
+import { activeVocabulary, pickRole } from '../design-systems';
 import type { DialogCloseDetail, PartProps } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
@@ -68,6 +68,39 @@ const DialogDemos = component(() => {
                     </Dialog.Footer>
                 </Dialog.Popup>
             </Dialog.Root>
+
+            {/*
+              * Surface variants (#514): the trigger takes `variant`, and the
+              * popup — a top-layer sibling of the trigger — mirrors it, so a
+              * design system can vary the dialog ITSELF per use: Material's
+              * `basic` / `full-screen`, chosen for the content rather than
+              * the viewport. One per value the active design system wires for
+              * the dialog scope; none in a skin that wires none.
+              */}
+            <h2>Surface variants</h2>
+            <p>
+                The popup mirrors its trigger's axes, so a variant reaches the
+                surface.
+                {(activeVocabulary().perScope['dialog']?.variants ?? []).length === 0
+                    ? ' This design system wires no dialog variant.'
+                    : ''}
+            </p>
+            <div data-demo="dialog-variants" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {(activeVocabulary().perScope['dialog']?.variants ?? []).map((variant) => (
+                    <Dialog.Root>
+                        <Dialog.Trigger variant={variant}>{`Open ${variant} dialog`}</Dialog.Trigger>
+                        <Dialog.Popup>
+                            <Dialog.Title>{`A ${variant} dialog`}</Dialog.Title>
+                            <Dialog.Description>
+                                The trigger carries the variant; the popup renders it too.
+                            </Dialog.Description>
+                            <Dialog.Footer>
+                                <Dialog.Close>{`Close ${variant} dialog`}</Dialog.Close>
+                            </Dialog.Footer>
+                        </Dialog.Popup>
+                    </Dialog.Root>
+                ))}
+            </div>
 
             <h2>Non-dismissible</h2>
             <p>

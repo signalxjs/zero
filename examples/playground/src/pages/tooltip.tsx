@@ -1,5 +1,6 @@
 import { component } from 'sigx';
 import { Button, Tooltip } from '@sigx/zero';
+import { activeVocabulary } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const TooltipDemos = component(({ signal }) => {
@@ -93,6 +94,32 @@ const TooltipDemos = component(({ signal }) => {
                     <Tooltip.Popup>Move the thread to the archive</Tooltip.Popup>
                 </Tooltip.Root>
                 <output aria-label="Archived threads">archived: {thread.count}</output>
+            </div>
+            {/*
+              * Surface variants (#514): the trigger takes `variant`, and the
+              * popup — a top-layer sibling — mirrors every axis attribute the
+              * trigger renders, so a design system can vary the BUBBLE, not
+              * only the button. One tooltip per value the active design
+              * system wires for the tooltip scope (Material's `plain` /
+              * `rich`); a skin that wires none renders none, since a value it
+              * does not declare is exactly what ds-smoke forbids. The
+              * overlay-variants e2e spec opens each and compares the surfaces.
+              */}
+            <h2>Surface variants</h2>
+            <p>
+                The trigger's axes reach the popup: it mirrors them, so a
+                design system can style the surface per use.
+                {(activeVocabulary().perScope['tooltip']?.variants ?? []).length === 0
+                    ? ' This design system wires no tooltip variant.'
+                    : ''}
+            </p>
+            <div data-demo="tooltip-variants" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {(activeVocabulary().perScope['tooltip']?.variants ?? []).map((variant) => (
+                    <Tooltip.Root>
+                        <Tooltip.Trigger variant={variant}>{`${variant} tooltip`}</Tooltip.Trigger>
+                        <Tooltip.Popup>{`A ${variant} tooltip: the popup takes its trigger's variant`}</Tooltip.Popup>
+                    </Tooltip.Root>
+                ))}
             </div>
         </>
     );
