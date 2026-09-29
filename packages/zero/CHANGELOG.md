@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`Combobox.Root` `filterItems` (#458).** Hand-written `Combobox.Item`s
+  are filtered by the query when it is set: each item's label (`textValue`,
+  else its text) is matched with the default case-insensitive
+  contains-match, or with a `filter` function, which on the hand-written
+  root is given the label. An item that does not match stays registered, so
+  its tag, input text and posted option keep their label, but it renders
+  nothing, and the highlight, the arrows, `aria-activedescendant` and
+  `Combobox.Empty` follow what is shown. Off by default, and ignored in data
+  mode (`items`), which always filters. A listbox item now remembers the
+  text it last rendered, so a hidden item still matches by it.
+
+### Fixed
+
+- **The README no longer says Combobox filters hand-written items (#458).**
+  Filtering by default applies in data mode (`items`); hand-written items
+  are the consumer's to filter unless `filterItems` is set.
+
 ## [0.17.0] - 2026-09-29
 
 ### Added

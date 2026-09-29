@@ -945,7 +945,7 @@ component renders; the root is called out separately where it carries props.
   never `@starting-style`/`allow-discrete` on toast parts, and gate any
   viewport `display` behind `&:popover-open`.
 - Combobox: Root(model=value | value[], model:inputValue, model:open, items,
-  itemKey, itemLabel, itemValue, itemDisabled, itemGroup, filter, emptyText,
+  itemKey, itemLabel, itemValue, itemDisabled, itemGroup, filter, filterItems, emptyText,
   multiple, allowCustom, virtual, estimateItemSize, name, form, required,
   readonly, placeholder; `tag` slot)/Control/Tags/Tag(value)/TagLabel/
   TagRemove(label)/Input/Trigger/Popup/Group/GroupLabel/Item(asChild)/
@@ -960,7 +960,10 @@ component renders; the root is called out separately where it carries props.
   `filter={(item, query) => …}` replaces it, `filter={false}` shows every
   item (a server-filtered list: pass what came back). Hand-written
   Combobox.Item children stay consumer-filtered — what you render is what
-  is visible. Empty renders its content only while the visible list is
+  is visible — unless the root sets `filterItems` (#458): then each item's
+  label (`textValue`, else its text) is matched the same way (a `filter`
+  function is given the label), and one that does not match stays
+  registered but renders nothing; `filterItems` is ignored with `items`. Empty renders its content only while the visible list is
   empty (the data expansion renders it from `emptyText`). A selection fills
   the input with the item's label and closes; under `multiple` it toggles,
   clears the query and stays open. A preset value's label reaches the input

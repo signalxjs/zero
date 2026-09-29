@@ -1595,3 +1595,186 @@ describe('Combobox autoHighlight (#448)', () => {
         expect(el.value).toBe('Germany');
     });
 });
+
+describe('Combobox filterItems (#458)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    const CONTACTS = [
+        { name: 'Maya Chen', email: 'maya@example.com' },
+        { name: 'Marcus Webb', email: 'marcus@example.com' },
+        { name: 'Priya Nair', email: 'priya@example.com' },
+    ];
+    const type = (el: HTMLInputElement, text: string) => { el.value = text; el.dispatchEvent(new Event('input', { bubbles: true })); };
+    function key(el: HTMLElement, k: string) {
+        const e = new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true });
+        el.dispatchEvent(e);
+        return e;
+    }
+    const input = () => container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+    const items = () => [...container.querySelectorAll<HTMLElement>('[data-part="item"]')];
+    const texts = () => items().map((i) => i.textContent!.replace('✓', '').trim());
+    const highlighted = () => container.querySelector<HTMLElement>('[data-part="item"][data-highlighted]');
+    const empty = () => container.querySelector('[data-part="empty"]');
+
+    function contacts(opts: { filterItems?: boolean; textValue?: boolean; filter?: false | ((label: string, query: string) => boolean) } = {}) {
+        const state = signal({ value: '', query: '', open: false });
+        render(
+            <Combobox.Root
+                filterItems={opts.filterItems ?? true}
+                filter={opts.filter}
+                model={[state, 'value']}
+                model:inputValue={[state, 'query']}
+                model:open={[state, 'open']}
+                name="from"
+                aria-label="From"
+            >
+                <Combobox.Control><Combobox.Input /></Combobox.Control>
+                <Combobox.Popup>
+                    {CONTACTS.map((c) => (
+                        <Combobox.Item value={c.email} textValue={opts.textValue === false ? undefined : c.name} key={c.email}>
+                            {c.name}
+                        </Combobox.Item>
+                    ))}
+                    <Combobox.Empty>Nobody found</Combobox.Empty>
+                </Combobox.Popup>
+            </Combobox.Root>,
+            container,
+        );
+        return state;
+    }
+
+    it('without filterItems, hand-written items all stay rendered whatever the query', () => {
+        contacts({ filterItems: false });
+        type(input(), 'zzz');
+        expect(texts()).toEqual(['Maya Chen', 'Marcus Webb', 'Priya Nair']);
+        expect(empty()).toBeNull();
+    });
+
+    it('narrows by textValue, case-insensitively, and shows Combobox.Empty when nothing matches', () => {
+        const state = contacts();
+        type(input(), 'MA');
+        expect(texts()).toEqual(['Maya Chen', 'Marcus Webb']);
+        expect(empty()).toBeNull();
+        type(input(), 'zzz');
+        expect(items()).toHaveLength(0);
+        expect(empty()!.textContent).toBe('Nobody found');
+        type(input(), '');
+        expect(texts()).toEqual(['Maya Chen', 'Marcus Webb', 'Priya Nair']);
+        // The hidden select still posts every registered key.
+        const options = [...container.querySelectorAll<HTMLOptionElement>('select option')].map((o) => o.value);
+        expect(options).toEqual(['']);
+        expect(state.value).toBe('');
+    });
+
+    it('falls back to the item text when there is no textValue', async () => {
+        contacts({ textValue: false });
+        await tick();
+        type(input(), 'nair');
+        expect(texts()).toEqual(['Priya Nair']);
+        // The hidden items' remembered text still matches the next query.
+        type(input(), 'webb');
+        expect(texts()).toEqual(['Marcus Webb']);
+    });
+
+    it('the arrows walk only visible items; aria-activedescendant never names a hidden one', () => {
+        const state = contacts();
+        type(input(), 'ma');
+        key(input(), 'ArrowDown');
+        expect(highlighted()!.textContent).toContain('Maya Chen');
+        key(input(), 'ArrowDown');
+        expect(highlighted()!.textContent).toContain('Marcus Webb');
+        key(input(), 'ArrowDown');
+        expect(highlighted()!.textContent).toContain('Marcus Webb');
+        expect(input().getAttribute('aria-activedescendant')).toBe(highlighted()!.id);
+        // The highlighted item is filtered out: no dangling reference.
+        type(input(), 'maya');
+        expect(highlighted()).toBeNull();
+        expect(input().hasAttribute('aria-activedescendant')).toBe(false);
+        key(input(), 'ArrowDown');
+        key(input(), 'Enter');
+        expect(state.value).toBe('maya@example.com');
+        expect(input().value).toBe('Maya Chen');
+    });
+
+    it('a custom filter function is given the label', () => {
+        const calls: string[] = [];
+        contacts({
+            filter: (label, query) => {
+                calls.push(label);
+                return label.toLowerCase().startsWith(query.toLowerCase());
+            },
+        });
+        type(input(), 'n');
+        expect(items()).toHaveLength(0);
+        expect(calls).toContain('Priya Nair');
+        type(input(), 'p');
+        expect(texts()).toEqual(['Priya Nair']);
+    });
+
+    it('filter={false} keeps everything visible even with filterItems', () => {
+        contacts({ filter: false });
+        type(input(), 'zzz');
+        expect(items()).toHaveLength(3);
+    });
+
+    it('a selected item the query filters out keeps its input label', async () => {
+        const state = contacts({ textValue: false });
+        await tick();
+        type(input(), 'priya');
+        key(input(), 'ArrowDown');
+        key(input(), 'Enter');
+        expect(state.value).toBe('priya@example.com');
+        expect(input().value).toBe('Priya Nair');
+        // A new query hides the chosen item; the close reverts the text to
+        // its remembered label, and the hidden select still names it.
+        type(input(), 'maya');
+        expect(texts()).toEqual(['Maya Chen']);
+        key(input(), 'Escape');
+        await tick();
+        expect(state.query).toBe('Priya Nair');
+        expect(container.querySelector<HTMLOptionElement>('select option[value="priya@example.com"]')!.textContent).toBe('Priya Nair');
+    });
+
+    it('under multiple, a chosen item the query filters out keeps its tag label', async () => {
+        const multi = signal({ values: [] as string[], query: '' });
+        render(
+            <Combobox.Root filterItems multiple model={[multi, 'values']} model:inputValue={[multi, 'query']}>
+                <Combobox.Control><Combobox.Tags /><Combobox.Input /></Combobox.Control>
+                <Combobox.Popup>
+                    {CONTACTS.map((c) => <Combobox.Item value={c.email} key={c.email}>{c.name}</Combobox.Item>)}
+                </Combobox.Popup>
+            </Combobox.Root>,
+            container,
+        );
+        await tick();
+        type(input(), 'maya');
+        key(input(), 'ArrowDown');
+        key(input(), 'Enter');
+        expect(multi.values).toEqual(['maya@example.com']);
+        type(input(), 'priya');
+        expect(texts()).toEqual(['Priya Nair']);
+        expect(container.querySelector('[data-part="tag-label"]')!.textContent).toBe('Maya Chen');
+    });
+
+    it('is ignored in data mode, which filters by its own rule', () => {
+        render(
+            <Combobox.Root
+                items={CONTACTS}
+                itemKey={(c) => c.email}
+                itemLabel={(c) => c.name}
+                filterItems
+                filter={(c, q) => c.email.startsWith(q)}
+                aria-label="To"
+            />,
+            container,
+        );
+        type(input(), 'pri');
+        expect(texts()).toEqual(['Priya Nair']);
+        type(input(), 'nair');
+        expect(items()).toHaveLength(0);
+    });
+});

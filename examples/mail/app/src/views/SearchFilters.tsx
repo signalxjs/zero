@@ -24,7 +24,7 @@ export const SearchFilters = component(() => {
                 <Col gap="md">
                     <Field.Root>
                         <Field.Label>From</Field.Label>
-                        <Combobox.Root model={() => st.filters.from} placeholder="Anyone" clearable openOnClick>
+                        <Combobox.Root filterItems model={() => st.filters.from} placeholder="Anyone" clearable openOnClick>
                             <Combobox.Control>
                                 <Combobox.Input />
                                 <Combobox.ClearTrigger label="Clear sender" />

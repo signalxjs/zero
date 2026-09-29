@@ -721,10 +721,28 @@ selected" becomes `null` from then on (an uncontrolled model seeded `''`
 still reads as empty). The types follow: `items={query.data}` typed
 `T[] | undefined` picks the data overload, so the model is `T | null` (or
 `V | null` with `itemValue`) with no cast. Passing `[]` while loading keeps
-the model's shape fixed from the start. Combobox filters by default — a contains-match on
-the label — `filter` replaces the rule and `filter={false}` shows a
-server-filtered list as is; `Combobox.Empty` renders only while nothing is
-visible. Under `multiple`, Combobox renders each chosen value as a tag in
+the model's shape fixed from the start. In data mode (`items`) Combobox
+filters by default — a contains-match on the label — `filter` replaces the
+rule and `filter={false}` shows a server-filtered list as is. Hand-written
+`Combobox.Item` children are consumer-filtered: render only the ones that
+match `model:inputValue` — or set `filterItems` on the root (#458), and zero
+matches each item's label (`textValue`, else its text) the same way, with a
+`filter` function given the label. An item that does not match stays
+registered (its tag and posted value keep their label) but renders nothing:
+
+```tsx
+<Combobox.Root filterItems model={() => state.from}>
+  <Combobox.Control><Combobox.Input /></Combobox.Control>
+  <Combobox.Popup>
+    {contacts.map((c) => (
+      <Combobox.Item key={c.email} value={c.email} textValue={c.name}>{c.name}</Combobox.Item>
+    ))}
+    <Combobox.Empty>Nobody found</Combobox.Empty>
+  </Combobox.Popup>
+</Combobox.Root>
+```
+
+`Combobox.Empty` renders only while nothing is visible. Under `multiple`, Combobox renders each chosen value as a tag in
 the control (`Combobox.Tags` / `Tag` / `TagLabel` / `TagRemove`; the root's
 `tag` slot supplies per-tag content), and `allowCustom` commits free text on
 Enter.
