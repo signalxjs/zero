@@ -18,7 +18,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
 import type { EffectFn, EffectOptions } from 'sigx';
-import { Checkbox, Dialog, Drawer, HoverCard, Menu, Popover, Select, Tabs, Toast, Tooltip, createToaster, syncPopover } from '@sigx/zero';
+import { Checkbox, Dialog, Drawer, HoverCard, Menu, Popover, Select, Tabs, Toast, Tooltip, createHotkeys, createToaster, syncPopover } from '@sigx/zero';
 
 type Rec = { n: number; runner?: () => void };
 const probe = vi.hoisted(() => ({ tracking: false, runs: [] as Rec[] }));
@@ -250,6 +250,31 @@ describe('effects created in onMounted stop on unmount (#163)', () => {
         t.create({ title: 'Again' });
         await tick();
         expect(totalRuns(recs)).toBe(0);
+    });
+
+    it('createHotkeys: its target watch dies with the component (#460)', async () => {
+        const where = signal({ target: 'a' as 'a' | 'b' });
+        const targets = { a: new EventTarget(), b: new EventTarget() };
+        const addB = vi.spyOn(targets.b, 'addEventListener');
+        const show = signal({ on: false });
+        const C = component(() => {
+            createHotkeys({ j: () => {} }, { target: () => targets[where.target] });
+            return () => <span>x</span>;
+        });
+        const App = component(() => () => <div>{show.on ? <C /> : null}</div>);
+        render(<App />, container);
+
+        // `watch` does not go through the probed `effect`: assert what a
+        // leaked watch would do instead — attach to the new target.
+        show.on = true;
+        await tick();
+        expect(container.querySelector('span')).not.toBeNull();
+        show.on = false;
+        await tick();
+        expect(container.querySelector('span')).toBeNull();
+        where.target = 'b';
+        await tick();
+        expect(addB).not.toHaveBeenCalled();
     });
 
     it('Checkbox: its mount effect is stopped on unmount', async () => {

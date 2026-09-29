@@ -14,8 +14,6 @@ export { MailList, MailRow, useMailListContext } from './MailList.js';
 export type { MailListRootProps, MailRowRootProps } from './MailList.js';
 export { Shell, Split } from './Shell.js';
 export type { ShellRootProps, ShellRegionProps, SplitRootProps, SplitPaneProps } from './Shell.js';
-export { Hotkeys } from './Hotkeys.js';
-export type { HotkeysProps, HotkeyHandler } from './Hotkeys.js';
 export { ActionButton } from './ActionButton.js';
 export type { ActionButtonProps } from './ActionButton.js';
 export { MenuAction } from './MenuAction.js';

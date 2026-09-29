@@ -147,6 +147,10 @@ const SCANS: Record<string, Scan[]> = {
             await expect(page.locator('[data-scope="hover-card"][data-part="popup"][data-state="open"]')).toBeVisible();
         },
     }],
+    hotkeys: [
+        { name: 'hotkeys dialog', open: openDialog('Open hotkeys dialog') },
+        { name: 'hotkeys menu', open: (page) => openMenu(page, 'Hotkeys menu') },
+    ],
     menu: [
         { name: 'Actions menu', open: (page) => openMenu(page, 'Actions') },
         {

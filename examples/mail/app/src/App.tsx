@@ -1,6 +1,6 @@
 import { component, watch } from 'sigx';
-import { Drawer, Toast } from '@sigx/zero';
-import { Hotkeys, Shell, Split } from '@sigx/zero-mail-kit';
+import { Drawer, Hotkeys, Toast } from '@sigx/zero';
+import { Shell, Split } from '@sigx/zero-mail-kit';
 import { mailboxKey, route } from './router';
 import {
     archive, closeThread, compose, onMailboxChange, openThread, openThreadById, setRead, st, startReply, step,

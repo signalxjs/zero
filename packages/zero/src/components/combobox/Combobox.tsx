@@ -1307,6 +1307,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         dismiss: () => { if (triggerMode) trig.dismissed = true; else setOpen(false); },
         escape: false,
         getExtraTargets: () => [control, input, trigger, textEl],
+        ownsKeyboard: true,
     });
 
     // A preset value's label reaches the input at setup — from data, before

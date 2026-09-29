@@ -430,3 +430,7 @@ export type { DiffRootProps, DiffPaneProps, DiffHandleProps } from './components
 // Not a scope — no anatomy, nothing for a design system to style (see its module).
 export { VisuallyHidden } from './components/visually-hidden/index.js';
 export type { VisuallyHiddenProps, VisuallyHiddenBag } from './components/visually-hidden/index.js';
+
+// Not a scope — renders nothing; `createHotkeys` as a component (see its module).
+export { Hotkeys } from './components/hotkeys/index.js';
+export type { HotkeysProps } from './components/hotkeys/index.js';
