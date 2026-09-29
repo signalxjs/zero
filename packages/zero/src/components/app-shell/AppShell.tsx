@@ -3,7 +3,7 @@
  *
  * ```tsx
  * <AppShell.Root>
- *     <Drawer.Root docked="md">
+ *     <Drawer.Root modal={{ below: 'md' }}>
  *         <Navbar.Root>…</Navbar.Root>
  *         <AppShell.Body>
  *             <Drawer.Panel>…</Drawer.Panel>
