@@ -4,6 +4,20 @@
 
 ### Added
 
+- **`system.custom`, design-system-level custom token values (#424, part
+  of #413).** A token declared in `tokens.custom` can take its value once
+  in `system.custom`. It is emitted under `:root` (on lynx, resolved into
+  every theme block), and a theme overrides it in its own `custom`, which
+  wins. A theme no longer has to restate a token that has a `system.custom`
+  value; a token with a value at neither tier is still an error. A typed
+  token's `@property` `initial-value` is the resolved light value, whichever
+  tier set it, and contrast pairs, `var()` resolution and cycle detection
+  read it too. `zero:validate` refuses a `system.custom` key `tokens.custom`
+  never declared, a value that is not a string or number or that breaks out
+  of its declaration, and a `custom` inside `systemDark` or a theme's
+  `system`. The tokens schema accepts `system.custom`. zero-material sets
+  its M3 state-layer opacities there instead of in each of its six themes;
+  its compiled CSS is unchanged.
 - **`RoleDecl.axis` (#425, part of #413).** A role can now say whether it
   is a value of the `color` axis. Left out, membership is inferred as
   before: a role with `content: false` or `soft: false` is a fill, every
