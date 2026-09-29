@@ -395,6 +395,23 @@ export const ARROW_PROPERTIES = [
 ] as const;
 
 /**
+ * The runtime-written custom properties no single scope owns: written by a
+ * BEHAVIOR on whatever part uses it. The press trio (press-feedback), the
+ * swipe pair (swipe-to-dismiss), and the anchored-position strategy's
+ * `POSITION_PROPERTIES` and `ARROW_PROPERTIES`. A fragment can never claim
+ * one of these (`mergeManifests`).
+ */
+export const BEHAVIOR_RUNTIME_PROPERTIES = [
+    '--press-x',
+    '--press-y',
+    '--press-r',
+    '--swipe-x',
+    '--swipe-y',
+    ...POSITION_PROPERTIES,
+    ...ARROW_PROPERTIES,
+] as const;
+
+/**
  * Custom properties the `@sigx/zero` runtime writes on elements — not design
  * tokens, but runtime-published interaction/measurement data recipes may
  * reference. `--press-*` come from the press-feedback behavior (press point
@@ -425,11 +442,15 @@ export const ARROW_PROPERTIES = [
  * `var()` written inline (lynx) has no equivalent mechanism, so its
  * capability set rejects recipes that reference them outside a web-only
  * target section.
+ *
+ * The list is the behavior-level entries (`BEHAVIOR_RUNTIME_PROPERTIES`) plus
+ * the scoped ones, which mirror what zero's anatomies declare as
+ * `runtimeProperties`. An ecosystem fragment adds its own per component,
+ * under its scope's prefix (#456); `runtimePropertiesOf(manifest)` is the full
+ * set a build against that manifest knows.
  */
 export const RUNTIME_PROPERTIES = [
-    '--press-x',
-    '--press-y',
-    '--press-r',
+    ...BEHAVIOR_RUNTIME_PROPERTIES,
     '--progress-percent',
     '--slider-percent',
     '--diff-percent',
@@ -446,10 +467,6 @@ export const RUNTIME_PROPERTIES = [
     '--toast-count',
     '--toast-height',
     '--toast-offset',
-    '--swipe-x',
-    '--swipe-y',
-    ...POSITION_PROPERTIES,
-    ...ARROW_PROPERTIES,
 ] as const;
 
 /**
@@ -927,6 +944,13 @@ export interface ManifestComponent {
     /** The models the API carries; absent when there are none (Card, Badge, …). */
     models?: ManifestModel[];
     /**
+     * CSS custom properties the runtime writes inline on this scope's parts;
+     * absent when there are none. A recipe may read them bare. Web-only: the
+     * lynx target refuses them outside `targets.web`. On a fragment component
+     * `mergeManifests` holds each to the `--<scope>-` prefix (#456).
+     */
+    runtimeProperties?: string[];
+    /**
      * Present exactly on components merged from an ecosystem manifest
      * fragment (`mergeManifests`): the package that owns the scope. Zero's
      * own manifest never carries it — its absence is what marks a scope as
@@ -945,6 +969,19 @@ export interface ManifestComponent {
  */
 export function partFlagKeys(part: Pick<ManifestPart, 'flags' | 'domainFlags'>): string[] {
     return [...(part.flags ?? []), ...(part.domainFlags ?? []).map(domainFlagKey)];
+}
+
+/**
+ * Every runtime-written custom property a build against `manifest` knows:
+ * `RUNTIME_PROPERTIES` (so a hand-built or older manifest still resolves
+ * `--slider-percent`) plus each component's declared `runtimeProperties` —
+ * which is how an ecosystem fragment's own names reach the recipe
+ * vocabulary, the lynx guard and the contrast cascade.
+ */
+export function runtimePropertiesOf(manifest: Pick<ZeroManifest, 'components'>): ReadonlySet<string> {
+    const out = new Set<string>(RUNTIME_PROPERTIES);
+    for (const c of manifest.components) for (const name of c.runtimeProperties ?? []) out.add(name);
+    return out;
 }
 
 /**

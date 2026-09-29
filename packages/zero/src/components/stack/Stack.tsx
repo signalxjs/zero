@@ -7,6 +7,7 @@
  *         <span>Title</span>
  *         <Stack.Item grow>…</Stack.Item>
  *     </Row>
+ *     <Row grow>…fills the height the Col has left…</Row>
  * </Col>
  * ```
  *
@@ -50,6 +51,13 @@ export type StackRootProps =
     & Define.Prop<'align', LayoutProp<'align'>, false>
     & Define.Prop<'justify', LayoutProp<'justify'>, false>
     & Define.Prop<'wrap', LayoutProp<'wrap'>, false>
+    /**
+     * Take the leftover room in the stack this one sits in (#459). A boolean
+     * for `Stack.Item`'s reason; `false` renders no attribute. It is the way
+     * to make a nested Row or Col fill what its parent has left — a growing
+     * `Stack.Item` wrapper cannot pass its height on to the stack inside it.
+     */
+    & Define.Prop<'grow', boolean, false>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -80,6 +88,7 @@ function makeStackRoot(fallbackOrientation: Orientation, name: string) {
                     'align': props.align,
                     'justify': props.justify,
                     'wrap': props.wrap,
+                    'grow': props.grow ? '1' : undefined,
                 }, stackAnatomy.parts.root.layout),
             };
             if (props.asChild) return renderAsChild(slots.default, bag);

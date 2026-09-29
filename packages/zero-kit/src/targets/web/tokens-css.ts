@@ -28,7 +28,7 @@ import {
     systemNodeAt,
     tokenProperty,
 } from '../../contract.js';
-import { DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, assertTokenValue, badPropertySyntaxMessage, dependentInitialValue, resolveSystemTokens, softMixPercent, substitutionFunction } from '../shared.js';
+import { DEFAULT_SOFT_MIX, PROPERTY_SYNTAX_PATTERN, assertTokenValue, badPropertySyntaxMessage, dependentInitialValue, resolveSystemTokens, softMixPercent, substitutionFunction, systemCustomProps } from '../shared.js';
 import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tokens.js';
 import { structuralAliases } from '../../structural.js';
 
@@ -209,9 +209,12 @@ function propertyRegistrations(input: TokensInput<any>, roles: RolesDecl, light:
     }
     // Custom names may be spelled with or without the leading `--`; compare
     // through the normalized property name so spellings can't drift apart.
-    const customValues = Object.fromEntries(
-        Object.entries(light.custom ?? {}).map(([n, v]) => [customProp(n), v]),
-    );
+    // The light value is the design-system-level one (#424) unless the light
+    // theme overrides it.
+    const customValues: Record<string, string> = {
+        ...systemCustomProps(input.system),
+        ...Object.fromEntries(Object.entries(light.custom ?? {}).map(([n, v]) => [customProp(n), v])),
+    };
     for (const [name, decl] of Object.entries(input.custom ?? {})) {
         if (!decl.syntax) continue;
         const prop = customProp(name);
@@ -266,7 +269,8 @@ function withTextFixedAliases(props: Record<string, string>): Record<string, str
 
 /**
  * Every non-color custom property a theme resolves to: the token categories
- * after all three tiers, then the theme's own `custom` / `extra` /
+ * after all three tiers (with `system.custom`'s design-system-level values),
+ * then the theme's own `custom` / `extra` /
  * `components` values, then the derived `--text-fixed-*` aliases.
  *
  * One map, because scheme handling has to apply to all of them equally —
@@ -465,8 +469,9 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
         // A theme that doesn't define a scheme-divergent property still has to
         // state one, or under system dark it would inherit the media block's
         // value instead of the `:root` default it actually resolves to. Only
-        // `extra` and `components` can land here — declared `custom` tokens are
-        // required in every theme, and category values resolve from `system`.
+        // `extra` and `components` can land here — a declared `custom` token
+        // resolves from `system.custom` when the theme does not set it, and
+        // category values resolve from `system`.
         // Iterates the full emit set so a restated `--text-fixed-*` alias is
         // covered too when the theme itself never resolves that text key.
         const source: Record<string, string> = { ...nonColor };

@@ -335,6 +335,39 @@ const disclosureExit = (scope: 'collapsible' | 'accordion'): RecipeInput['target
 });
 
 /**
+ * The disclosure mark (#437) — `collapsible.indicator` and
+ * `accordion.indicator`, the optional part an app places inside the
+ * trigger. A down chevron cut from a `currentColor` block, so it takes the
+ * trigger's ink (the accent once open) and needs no mirroring under RTL: it
+ * is symmetric, and turning it half a turn is the whole state change. The
+ * trigger is a flex row, so the mark rides to the trailing edge.
+ */
+const DISCLOSURE_CHEVRON = 'polygon(6% 32%, 19% 19%, 50% 50%, 81% 19%, 94% 32%, 50% 76%)';
+const disclosureIndicator: PartStyles = {
+    base: {
+        display: 'inline-block',
+        flexShrink: '0',
+        width: '0.85em',
+        height: '0.85em',
+        marginInlineStart: 'auto',
+        background: 'currentColor',
+        clipPath: DISCLOSURE_CHEVRON,
+        opacity: '0.7',
+        transition: 'rotate var(--duration-fast) var(--ease-standard), '
+            + 'opacity var(--duration-fast) var(--ease-standard)',
+    },
+    states: { open: { rotate: '180deg', opacity: '1' }, closed: {} },
+    at: {
+        'reduced-motion': { base: { transition: 'none' } },
+        // Forced colours revalue the fill the clip cuts — opt out, so it
+        // stays `currentColor`, the trigger's forced ink; print would drop
+        // the background altogether.
+        'forced-colors': { base: { forcedColorAdjust: 'none' } },
+        print: { base: { printColorAdjust: 'exact' } },
+    },
+};
+
+/**
  * Collapsible's non-native mode (#453): a `<div>` root, a `<button>` trigger
  * and a panel hidden with `hidden="until-found"`. Nothing lives on
  * `::details-content` there, so the panel does that wrapper's work itself:
@@ -633,7 +666,10 @@ export const collapsible: RecipeInput = withNonNative({
         }),
         trigger: {
             base: {
-                display: 'block',
+                // A row, so an `indicator` (#437) rides the trailing edge.
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
                 padding: 'var(--space-lg) var(--space-xl)',
                 fontSize: 'var(--text-md)',
                 fontWeight: 'var(--weight-medium)',
@@ -661,6 +697,7 @@ export const collapsible: RecipeInput = withNonNative({
             },
             selectors: { ...pressedInk },
         },
+        indicator: disclosureIndicator,
         panel: {
             base: {
                 padding: 'var(--space-lg) var(--space-xl)',
@@ -2398,7 +2435,10 @@ export const accordion: RecipeInput = {
         }),
         trigger: {
             base: {
-                display: 'block',
+                // A row, so an `indicator` (#437) rides the trailing edge.
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
                 padding: 'var(--space-lg) var(--space-xl)',
                 fontSize: 'var(--text-md)',
                 fontWeight: 'var(--weight-medium)',
@@ -2421,6 +2461,7 @@ export const accordion: RecipeInput = {
             },
             selectors: { ...pressedInk },
         },
+        indicator: disclosureIndicator,
         panel: {
             base: {
                 padding: '0 var(--space-xl) var(--space-lg)',
@@ -3906,6 +3947,24 @@ export const toggleGroup: RecipeInput = {
                     borderBlockStart: 'var(--border) solid var(--color-base-300)',
                 },
                 ...pressedInk,
+            },
+        },
+        // The item's optional check (#437): the checkbox's pen stroke at
+        // label scale in the item's own ink, present only while on — an
+        // off segment gives the label its whole width back.
+        'item-indicator': {
+            base: {
+                display: 'none',
+                flexShrink: '0',
+                width: '0.85em',
+                height: '0.85em',
+                background: 'currentColor',
+                clipPath: CHECK_MARK,
+            },
+            states: { on: { display: 'inline-block' }, off: {} },
+            at: {
+                'forced-colors': { base: { forcedColorAdjust: 'none' } },
+                print: { base: { printColorAdjust: 'exact' } },
             },
         },
     },

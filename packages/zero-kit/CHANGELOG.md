@@ -23,6 +23,50 @@
   and `runtimeProperties`, an older kit rejects a fragment that declares
   `domainFlags` through the schema rather than by name.
 
+- **`system.custom`, design-system-level custom token values (#424, part
+  of #413).** A token declared in `tokens.custom` can take its value once
+  in `system.custom`. It is emitted under `:root` (on lynx, resolved into
+  every theme block), and a theme overrides it in its own `custom`, which
+  wins. A theme no longer has to restate a token that has a `system.custom`
+  value; a token with a value at neither tier is still an error. A typed
+  token's `@property` `initial-value` is the resolved light value, whichever
+  tier set it, and contrast pairs, `var()` resolution and cycle detection
+  read it too. `zero:validate` refuses a `system.custom` key `tokens.custom`
+  never declared, a value that is not a string or number or that breaks out
+  of its declaration, and a `custom` inside `systemDark` or a theme's
+  `system`. The tokens schema accepts `system.custom`. zero-material sets
+  its M3 state-layer opacities there instead of in each of its six themes;
+  its compiled CSS is unchanged.
+
+- **Ecosystem fragments declare `runtimeProperties` (#456).** A fragment's
+  component may list the CSS custom properties its runtime writes inline
+  (`defineAnatomy`'s new option), and a recipe then reads them bare, like
+  zero's own `RUNTIME_PROPERTIES`. They are web-only: the lynx target refuses
+  them outside `targets.web`, so a discovered pack reading one in a shared
+  section is degraded to web-only on lynx (`lynx.webOnly`) like any other.
+  `mergeManifests` hard-errors, naming the fragment, scope and property, on a
+  list that is empty or repeats a name; a name that is not `--` plus
+  kebab-case; one that does not start with `--<scope>-`; one under the token
+  grammar (`--color-*`, a scale category's prefix, `--border`,
+  `--disabled-opacity`); one of the kit's runtime or medium properties; and
+  one the base manifest or an earlier fragment already declares. The
+  manifest schema's component (and so the fragment schema's) accepts the
+  key. `FRAGMENT_VERSION` stays 1, since the change is additive, but **an
+  older kit's schema rejects a fragment carrying the key**.
+- **`runtimePropertiesOf(manifest)`, `BEHAVIOR_RUNTIME_PROPERTIES` and
+  `runtimePropertyMatcher` (#456).** `runtimePropertiesOf` is
+  `RUNTIME_PROPERTIES` plus every component's declared names: validation,
+  the lynx compile and the contrast audit all read it now.
+  `BEHAVIOR_RUNTIME_PROPERTIES` is the part of `RUNTIME_PROPERTIES` no scope
+  owns (the press trio, the swipe pair, the position and arrow properties);
+  `RUNTIME_PROPERTIES` keeps its members, reordered to start with it.
+  `runtimePropertyMatcher(names)` builds the lynx guard over a set;
+  `runtimePropertyIn(text, match?)`, `compileLynxTokensCss` and
+  `compileLynxRecipeCss` take one as a trailing optional parameter.
+  `tokenVocabulary(tokens, runtime?)` takes the runtime set, and
+  `ThemeEnv.runtime` carries it into the contrast cascade; both default to
+  `RUNTIME_PROPERTIES`.
+
 - **`RoleDecl.axis` (#425, part of #413).** A role can now say whether it
   is a value of the `color` axis. Left out, membership is inferred as
   before: a role with `content: false` or `soft: false` is a fill, every
@@ -51,6 +95,18 @@
   `tokens.scopes.*.axes` and an api `as:` rename in the `x-` prefix would
   render inside the `data-x-` domain-flag namespace, which zero's runtime
   refuses.
+
+- **The static contrast matrix answers `:has()` from the probe chain (#469,
+  part of #413).** A probe is a closed world: below a node there is exactly
+  the declared chain, which is also all the browser probe renders. So
+  `:has()` on a chain node now reads the chain's own nodes, and a relative
+  selector that no chain node satisfies is `no`, where it was `unknown`
+  and left the cell `unsupported-selector`. A sibling step inside the argument is `no`, since
+  every node below the root is an only child, and a leading `+`/`~` on the
+  chain root stays unknown. `:has()` now takes its most specific argument's
+  specificity, as the browser does. zero-material's five floating-label
+  cells (`field.label`, `select.value`) are now measured, and every skin
+  measures 100% of its cells apart from daisyui's and heroui's paint.
 
 - **The layout Box inks a coloured surface with `-soft-content` (#421).**
   `--box-ink` was the role itself, which only reads while the tint stays a
@@ -92,6 +148,17 @@
 
 ### Changed
 
+- **The stack recipe grows its root, and floors whatever grows (part of
+  #459).** `layoutRecipes()`'s stack root declares `--l-grow: 0` with its
+  other defaults and consumes it as `flex-grow`, and
+  `[data-l-grow="1"]` on the root sets `flex-basis: 0` and
+  `min-block-size: 0`. The item's grow rule gains the same
+  `min-block-size: 0`. Behaviour note for a design system that patches the
+  stack recipe: a growing item in a column can now shrink below its
+  content's height, which is what lets a region inside it scroll; the floor
+  never applies to a part that does not grow. `grow` joins the stack's
+  reserved props, so an api axis can no longer take that name.
+
 - **`Stack.Item grow` grows from a zero basis (#454).** `layoutRecipes()`'s
   stack item rule gives `[data-l-grow="1"]` `flex-basis: 0` beside
   `flex-grow: 1`, like Tailwind's `flex-1`. A grow item that held long
@@ -122,6 +189,14 @@
   role, and a remap in `systemDark` or a theme. New exports:
   `STRUCTURAL_ROLES`, `StructuralMap`, `StructuralCategory`,
   `resolveStructural`, `structuralToken`, `structuralTokenMap`.
+
+- **The disclosure guidance knows the optional indicator (#437).** With
+  collapsible and accordion now declaring an optional `indicator`, the
+  design-system skill and the `state-legibility/disclosure` notes say to
+  style it and still keep the trigger legible on its own, since a trigger
+  the app renders without one has nothing else. The rule's behaviour is
+  unchanged; its finding on those scopes now names the indicator as the
+  other place the signal may live.
 
 ## [0.17.0] - 2026-09-29
 

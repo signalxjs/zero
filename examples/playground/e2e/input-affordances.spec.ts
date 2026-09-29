@@ -2,8 +2,8 @@
  * Input's affordances in real engines (#281).
  *
  * happy-dom holds the wiring — the parts, the names, the model writes. What
- * only a browser can show is focus and layout: a press on an adornment moves
- * focus into the input without selecting the adornment's text, a press on the
+ * only a browser can show is focus and layout: a press on an affix moves
+ * focus into the input without selecting the affix's text, a press on the
  * clear trigger never takes focus away from the field at all, the keyboard
  * path skips the (untabbable) clear trigger and lands on the visibility
  * toggle, and the control's row puts every affordance at the edge it names —
@@ -11,15 +11,17 @@
  * logical padding rather than physical margins.
  *
  * Behaviour on three engines against one skin; the layout on chromium
- * against every skin, in both directions.
+ * against every skin, in both directions. And Material's split between an
+ * icon and affix text (#467), measured in boxes.
  */
-import { test, expect, type Page } from '@playwright/test';
-import { demoLabelled, DESIGN_SYSTEMS, settledBox } from './demo';
+import { test, expect, type Locator, type Page } from '@playwright/test';
+import { demoLabelled, DESIGN_SYSTEMS, rootLabelled, settledBox } from './demo';
 import { bootPage } from './nav';
 
 const search = (page: Page) => demoLabelled(page, 'input', 'Search docs');
 const password = (page: Page) => demoLabelled(page, 'input', 'New password');
 const website = (page: Page) => demoLabelled(page, 'input', 'Website');
+const weight = (page: Page) => demoLabelled(page, 'input', 'Weight');
 
 const media = (name: string) => name === 'reduced-motion' || name === 'forced-colors';
 
@@ -29,10 +31,10 @@ test.describe('behaviour', () => {
         await bootPage(page, 'input', 'basic');
     });
 
-    test('a press on an adornment focuses the input, and typing lands in it', async ({ page }) => {
+    test('a press on an affix focuses the input, and typing lands in it', async ({ page }) => {
         const parts = website(page);
         const input = parts('input');
-        await parts('adornment').filter({ hasText: 'https://' }).click();
+        await parts('affix').filter({ hasText: 'https://' }).click();
         await expect(input).toBeFocused();
         await page.keyboard.press('End');
         await page.keyboard.type('-docs');
@@ -112,13 +114,19 @@ test.describe('layout', () => {
                 const site = website(page);
                 const control = await settledBox(site('control'), 'website control');
                 const input = await settledBox(site('input'), 'website input');
-                const start = await settledBox(site('adornment').filter({ hasText: 'https://' }), 'start adornment');
-                const end = await settledBox(site('adornment').filter({ hasText: '.com' }), 'end adornment');
-                for (const [what, box] of [['start adornment', start], ['end adornment', end], ['input', input]] as const) {
+                const start = await settledBox(site('affix').filter({ hasText: 'https://' }), 'start affix');
+                const end = await settledBox(site('affix').filter({ hasText: '.com' }), 'end affix');
+                for (const [what, box] of [['start affix', start], ['end affix', end], ['input', input]] as const) {
                     expect(inside(box, control), `${what} inside the control`).toBe(true);
                 }
-                expect(before(start, input), 'start adornment precedes the input in reading order').toBe(true);
-                expect(before(input, end), 'end adornment follows the input in reading order').toBe(true);
+                expect(before(start, input), 'start affix precedes the input in reading order').toBe(true);
+                expect(before(input, end), 'end affix follows the input in reading order').toBe(true);
+
+                const icon = await settledBox(search(page)('adornment'), 'search icon');
+                const searchControl = await settledBox(search(page)('control'), 'search control');
+                const searchInput = await settledBox(search(page)('input'), 'search input');
+                expect(inside(icon, searchControl), 'the icon adornment inside the control').toBe(true);
+                expect(before(icon, searchInput), 'the icon adornment precedes the input').toBe(true);
 
                 // The triggers are written before nothing and after the input,
                 // and sit at the reading end, inside the box.
@@ -134,6 +142,74 @@ test.describe('layout', () => {
             });
         }
     }
+});
+
+// #467: an icon and affix text are different parts, so Material lays them
+// out apart instead of guessing from the content. A leading icon moves the
+// resting label past it and is centred in the box; affix text sits on the
+// input's text line, never moves the label, and shows only once the label has
+// floated.
+test.describe('material: icon vs affix', () => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium', 'layout: one engine is enough');
+        await bootPage(page, 'input', 'material');
+    });
+
+    const labelX = async (page: Page, parts: ReturnType<typeof website>) => {
+        const control = await settledBox(parts('control'), 'control');
+        const label = await settledBox(parts('label'), 'label');
+        return label.x - control.x;
+    };
+
+    test('a leading icon moves the resting label past it; a trailing suffix does not move it', async ({ page }) => {
+        const searchParts = search(page);
+        const weightParts = weight(page);
+        // Both rest: empty and unfocused.
+        await searchParts('input').fill('');
+        await page.locator('body').click({ position: { x: 1, y: 1 } });
+        await expect(rootLabelled(page, 'input', 'Search docs')).toHaveAttribute('data-placeholder', '');
+        await expect(rootLabelled(page, 'input', 'Weight')).toHaveAttribute('data-placeholder', '');
+        const withIcon = await labelX(page, searchParts);
+        const withSuffix = await labelX(page, weightParts);
+        expect(withIcon - withSuffix, 'the icon pushes the label 36dp further in').toBeGreaterThan(30);
+    });
+
+    test('an icon is centred in the box; affix text shares the input\'s text line', async ({ page }) => {
+        const searchParts = search(page);
+        const control = await settledBox(searchParts('control'), 'search control');
+        const icon = await settledBox(searchParts('adornment'), 'search icon');
+        const mid = (b: { y: number; height: number }) => b.y + b.height / 2;
+        expect(Math.abs(mid(icon) - mid(control)), 'icon centred on the box').toBeLessThanOrEqual(1);
+
+        const site = website(page);
+        const prefix = site('affix').filter({ hasText: 'https://' });
+        const textMidOf = (loc: Locator) => loc.evaluate((el) => {
+            const r = document.createRange();
+            r.selectNodeContents(el);
+            const rect = r.getBoundingClientRect();
+            return rect.y + rect.height / 2;
+        });
+        const input = await settledBox(site('input'), 'website input');
+        const inputStyle = await site('input').evaluate((el) => {
+            const cs = getComputedStyle(el);
+            return { top: parseFloat(cs.paddingTop), bottom: parseFloat(cs.paddingBottom) };
+        });
+        const textMid = input.y + inputStyle.top + (input.height - inputStyle.top - inputStyle.bottom) / 2;
+        expect(Math.abs((await textMidOf(prefix)) - textMid), 'prefix on the text line').toBeLessThanOrEqual(2);
+    });
+
+    test('an affix paints only once the label has floated', async ({ page }) => {
+        const parts = weight(page);
+        const suffix = parts('affix');
+        await expect(rootLabelled(page, 'input', 'Weight')).toHaveAttribute('data-placeholder', '');
+        await expect(suffix).toHaveCSS('opacity', '0');
+        await parts('input').focus();
+        await expect(suffix).toHaveCSS('opacity', '1');
+        await page.keyboard.type('72');
+        await page.locator('body').click({ position: { x: 1, y: 1 } });
+        await expect(parts('input')).not.toBeFocused();
+        await expect(suffix).toHaveCSS('opacity', '1');
+    });
 });
 
 // #446: a search field draws zero's ClearTrigger and clears on Escape, so the

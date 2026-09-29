@@ -442,6 +442,32 @@ const disclosureTrigger: PartStyles = {
     },
 };
 
+/**
+ * The disclosure mark (#437): `collapsible.indicator` and
+ * `accordion.indicator`, the optional part an app places inside the
+ * trigger. A solid wedge in the trigger's ink — it inverts with the open
+ * slab's fill — that flips outright rather than turning: brutalism cuts,
+ * it does not ease. Symmetric, so nothing mirrors under RTL; the trigger's
+ * `space-between` puts it at the trailing edge.
+ */
+const DISCLOSURE_WEDGE = 'polygon(0% 20%, 100% 20%, 50% 85%)';
+const disclosureIndicator: PartStyles = {
+    base: {
+        flex: 'none',
+        width: '0.75em',
+        height: '0.75em',
+        background: 'currentColor',
+        clipPath: DISCLOSURE_WEDGE,
+    },
+    states: { open: { rotate: '180deg' }, closed: {} },
+    at: {
+        // Forced colours revalue the fill the clip cuts, and print drops
+        // backgrounds: keep the wedge the trigger's ink.
+        'forced-colors': { base: { forcedColorAdjust: 'none' } },
+        print: { base: { printColorAdjust: 'exact' } },
+    },
+};
+
 /** The accent default: the fixed `accent` role, exactly as before #321. */
 const disclosureTokens = {
     '--disclosure-accent': 'var(--color-accent)',
@@ -491,6 +517,7 @@ export const collapsible: RecipeInput = withNonNative({
     parts: {
         root: withPresence(disclosurePresence, { base: { ...inked, boxShadow: 'var(--shadow-sm)' }, states: { open: {}, closed: {} } }),
         trigger: disclosureTrigger,
+        indicator: disclosureIndicator,
         panel: {
             base: {
                 padding: 'var(--space-md)',
@@ -518,6 +545,7 @@ export const accordion: RecipeInput = {
             selectors: { '[data-scope="accordion"][data-part="root"][data-orientation="horizontal"] > &': { flex: '1 1 0', minInlineSize: '0' } },
         }),
         trigger: disclosureTrigger,
+        indicator: disclosureIndicator,
         panel: {
             base: {
                 padding: 'var(--space-md)',
@@ -2868,6 +2896,24 @@ export const toggleGroup: RecipeInput = {
                 '&[data-pressed]:not([data-disabled])': { transform: 'translate(1px, 1px)' },
             },
         },
+        // The item's optional check (#437): the toast's carved tick at
+        // label scale in the item's ink — inverted with the on fill —
+        // present only while on.
+        'item-indicator': {
+            base: {
+                display: 'none',
+                flexShrink: '0',
+                width: '0.9em',
+                height: '0.9em',
+                background: 'currentColor',
+                clipPath: TOAST_CHECK,
+            },
+            states: { on: { display: 'inline-block' }, off: {} },
+            at: {
+                'forced-colors': { base: { forcedColorAdjust: 'none' } },
+                print: { base: { printColorAdjust: 'exact' } },
+            },
+        },
     },
     variants: {
         // The group is a frame around its items, so the ramp lands on the
@@ -3402,9 +3448,37 @@ const insetRing: Record<string, CssProps> = {
 };
 const affixSize = (fontSize: string) => ({
     adornment: { base: { fontSize } },
+    affix: { base: { fontSize } },
     'clear-trigger': { base: { fontSize } },
     'visibility-trigger': { base: { fontSize } },
 });
+
+/**
+ * A stamped cell of the slab: mono caps in full ink, cut off from the
+ * text by an inked rule on its inner edge. `order` and logical
+ * borders, so the cell and its rule flip with the reading direction.
+ *
+ * The same slot holds an icon (`adornment`) or prefix/suffix text
+ * (`affix`, #467): this skin sets both alike, the text kept on one line.
+ */
+const inputEdge: PartStyles = {
+    base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        flex: 'none',
+        ...label,
+        fontSize: 'var(--text-xs)',
+        lineHeight: 'var(--leading-none)',
+        color: 'var(--color-base-content)',
+        background: 'var(--color-base-200)',
+        padding: '0 var(--space-sm)',
+    },
+    states: { disabled: {} },
+    selectors: {
+        '&[data-placement="start"]': { order: '-1', borderInlineEnd: 'var(--border) solid var(--color-base-content)' },
+        '&[data-placement="end"]': { order: '1', borderInlineStart: 'var(--border) solid var(--color-base-content)' },
+    },
+};
 
 /**
  * A slab you type into. Same inked frame and hard shadow as the number
@@ -3473,27 +3547,8 @@ export const input: RecipeInput = {
                 '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
-        // A stamped cell of the slab: mono caps in full ink, cut off from the
-        // text by an inked rule on its inner edge. `order` and logical
-        // borders, so the cell and its rule flip with the reading direction.
-        adornment: {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                flex: 'none',
-                ...label,
-                fontSize: 'var(--text-xs)',
-                lineHeight: 'var(--leading-none)',
-                color: 'var(--color-base-content)',
-                background: 'var(--color-base-200)',
-                padding: '0 var(--space-sm)',
-            },
-            states: { disabled: {} },
-            selectors: {
-                '&[data-placement="start"]': { order: '-1', borderInlineEnd: 'var(--border) solid var(--color-base-content)' },
-                '&[data-placement="end"]': { order: '1', borderInlineStart: 'var(--border) solid var(--color-base-content)' },
-            },
-        },
+        adornment: inputEdge,
+        affix: { ...inputEdge, base: { ...inputEdge.base, whiteSpace: 'nowrap' } },
         // The field buttons are cells too: full height, ruled off, square.
         'clear-trigger': {
             base: fieldButton,

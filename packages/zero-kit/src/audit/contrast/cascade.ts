@@ -479,7 +479,7 @@ export function substituteVars(value: string, lookup: (name: string) => string |
         if (resolved === undefined && name in env.props) resolved = env.props[name];
         if (resolved === undefined) {
             if (fallback !== undefined) resolved = fallback;
-            else if (RUNTIME.has(name)) throw new Unmeasured('runtime-property', name);
+            else if ((env.runtime ?? RUNTIME).has(name)) throw new Unmeasured('runtime-property', name);
             else throw new Unmeasured('unresolved-var', name);
         }
         // What came back may itself reference properties (an env value, a

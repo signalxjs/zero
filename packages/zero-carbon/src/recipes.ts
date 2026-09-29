@@ -379,7 +379,38 @@ const disclosureTrigger: PartStyles = {
             transition: motion('rotate'),
         },
         '&[data-state="open"]::after': { rotate: '270deg' },
+        // An `indicator` part (#437) draws the chevron instead: the row's own
+        // glyph steps aside, so a trigger reads the same with or without one.
+        '&:has(> :is([data-scope="collapsible"], [data-scope="accordion"])[data-part="indicator"])::after': { display: 'none' },
         '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+    },
+};
+
+/**
+ * Carbon's `chevron--down` (16) as a part (#437): `collapsible.indicator`
+ * and `accordion.indicator`, the optional mark an app places inside the
+ * heading. A chevron cut from a `currentColor` block, flush to the row's
+ * end, pointing down closed and swept 180° to point up open — the heading's
+ * own `::after`, drawn instead of glyphed so it keeps Carbon's 16px icon box.
+ * Symmetric, so nothing mirrors under RTL.
+ */
+const DISCLOSURE_CHEVRON = 'polygon(6% 32%, 17% 21%, 50% 54%, 83% 21%, 94% 32%, 50% 76%)';
+const disclosureIndicator: PartStyles = {
+    base: {
+        flex: 'none',
+        width: '1rem',
+        height: '1rem',
+        marginInlineStart: 'auto',
+        background: 'currentColor',
+        clipPath: DISCLOSURE_CHEVRON,
+        transition: motion('rotate'),
+    },
+    states: { open: { rotate: '180deg' }, closed: {} },
+    at: {
+        // Forced colours revalue the fill the clip cuts, and print drops
+        // backgrounds: keep the chevron the heading's ink.
+        'forced-colors': { base: { forcedColorAdjust: 'none' } },
+        print: { base: { printColorAdjust: 'exact' } },
     },
 };
 
@@ -623,6 +654,7 @@ export const collapsible: RecipeInput = withNonNative({
             states: { open: {}, closed: {} },
         }),
         trigger: disclosureTrigger,
+        indicator: disclosureIndicator,
         panel: disclosurePanel,
     },
     variants: { size: disclosureSizes },
@@ -2232,6 +2264,7 @@ export const accordion: RecipeInput = {
             selectors: { '[data-scope="accordion"][data-part="root"][data-orientation="horizontal"] > &': { flex: '1 1 0', minInlineSize: '0' } },
         }),
         trigger: disclosureTrigger,
+        indicator: disclosureIndicator,
         panel: disclosurePanel,
     },
     variants: { size: disclosureSizes },
@@ -3421,6 +3454,23 @@ export const toggleGroup: RecipeInput = {
                 },
             },
         },
+        // The item's optional check (#437): Carbon's 16px `checkmark` in the
+        // item's ink, present only on the selected item.
+        'item-indicator': {
+            base: {
+                display: 'none',
+                flexShrink: '0',
+                width: '1rem',
+                height: '1rem',
+                background: 'currentColor',
+                clipPath: TOAST_CHECK,
+            },
+            states: { on: { display: 'inline-block' }, off: {} },
+            at: {
+                'forced-colors': { base: { forcedColorAdjust: 'none' } },
+                print: { base: { printColorAdjust: 'exact' } },
+            },
+        },
     },
     variants: {
         // The group is flush around its items, so the ramp lands on the items
@@ -3943,6 +3993,29 @@ const fieldButton: NonNullable<PartStyles['base']> = {
 };
 
 /**
+ * Carbon's in-field icon ($icon-secondary), at one edge, ordered
+ * logically.
+ *
+ * The same slot holds an icon (`adornment`) or prefix/suffix text
+ * (`affix`, #467): this skin sets both alike, the text kept on one line.
+ */
+const inputEdge: PartStyles = {
+    base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        flex: 'none',
+        color: iconSecondary,
+        fontSize: 'var(--text-sm)',
+        lineHeight: 'var(--leading-none)',
+    },
+    states: { disabled: {} },
+    selectors: {
+        '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
+        '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+    },
+};
+
+/**
  * Carbon's text input: `field-01` — a filled well with a single strong rule
  * under it, no side or top borders. The inset focus ring and the invalid
  * outline draw on the box, the same way the number input, the select and the
@@ -4009,23 +4082,8 @@ export const input: RecipeInput = {
                 '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
-        // Carbon's in-field icon ($icon-secondary), at one edge, ordered
-        // logically.
-        adornment: {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                flex: 'none',
-                color: iconSecondary,
-                fontSize: 'var(--text-sm)',
-                lineHeight: 'var(--leading-none)',
-            },
-            states: { disabled: {} },
-            selectors: {
-                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
-                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
-            },
-        },
+        adornment: inputEdge,
+        affix: { ...inputEdge, base: { ...inputEdge.base, whiteSpace: 'nowrap' } },
         // Carbon's field icon buttons (the search close, the password
         // toggle): square, full field height, layer hover, inset focus.
         'clear-trigger': {

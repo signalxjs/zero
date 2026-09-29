@@ -23,7 +23,7 @@ express M3 is filed as an `m3-finding` issue rather than worked around quietly.
 | Duration tokens `short1` … `extra-long4`, and the easing set | open keys in `motion`. `emphasized` is M3's two-segment path, sampled into `linear()` |
 | M3 Expressive's springs (spatial and effects × fast/default/slow) | simulated and sampled into `linear()` easings, each with a same-named duration |
 | Elevation `level0`–`level5` | open keys inside the closed `shadow` category, deepened under dark themes |
-| State layers: hover 8%, focus 10%, pressed 10%, dragged 16% | `--state-*` custom tokens, including the focus layer beside the focus ring |
+| State layers: hover 8%, focus 10%, pressed 10%, dragged 16% | `--state-*` custom tokens, including the focus layer beside the focus ring. Theme-independent, so they are set once in `system.custom` and emitted under `:root` rather than in each of the six themes (#424) |
 | Window size classes at 600 / 840 / 1200 / 1600 | `breakpoints` `sm` / `md` / `lg` / `xl`, driving a full-screen dialog below `sm` |
 
 ## The M3 component API (#415)
@@ -49,7 +49,7 @@ import { Button, Toggle, ToggleGroup, Join } from '@sigx/zero-material/component
 | Icon buttons (standard, filled, tonal, outlined) | the `icon` modifier on Button or Toggle. `text` + `icon` is the standard icon button, in on-surface-variant |
 | FAB, medium and large FAB, extended FAB | the `fab` modifier: the role's container at level 3 on the large corner, stepping 40 / 56 / 80 / 96dp with size. With `icon` it is the square FAB, without it the extended one. `filled` takes the role colour itself, `elevated` gives the surface FAB |
 | Toggle buttons | `Toggle`, with M3's unselected → selected colours per style and the selected shape swap (round turns square, square turns round) |
-| Segmented button | `ToggleGroup`: an outlined pill at 40dp, selected segments on secondary-container with the check sliding in before the label |
+| Segmented button | `ToggleGroup`: an outlined pill at 40dp, selected segments on secondary-container, and M3's state layer and ripple on every segment. The check slides in before the label from `ToggleGroup.ItemIndicator` (#437), an optional part inside the item — render one per item for M3's selected check |
 | Connected button group and split button | `Join`: segments 2dp apart with small inner corners, and the split button's menu half fully round while its menu is open |
 | Disabled buttons | M3's explicit colours: the label at 38% on-surface over a 10% container. Outlined and text buttons get no container, and the outline goes to 10% |
 
@@ -72,11 +72,11 @@ by default, outlined with `variant="outlined"`.
 |---|---|
 | Filled field: surface-container-highest, top corners extra-small, a 1dp active indicator that turns 2dp and primary on focus | the box (`control`, `textarea`, `trigger`) reads `--tf-*` custom properties that the variant sets on the root. The indicator is an inset shadow, so nothing reflows |
 | Outlined field: a 1dp outline, 2dp and primary on focus, extra-small corners | the same properties. The focused outline is an inset ring added to the border |
-| The floating label: resting over the input while the field is empty and unfocused, floating to the top edge (filled) or onto the outline (outlined) otherwise | `Input.Label` and friends, or a `Field.Label` over any text field. It rests on `data-placeholder`, which the runtime stamps on an empty field's root and control and on the select trigger (#416), and floats on `:focus-within`. It moves by `transform`, on M3's short3 duration |
+| The floating label: resting over the input while the field is empty and unfocused, floating to the top edge (filled) or onto the outline (outlined) otherwise | `Input.Label` and friends, or a `Field.Label` over any text field. It rests on `data-placeholder`, which the runtime stamps on an empty field's root and control and on the select trigger (#416) and mirrors onto the `Field.Root` holding one (#469), so a `Field.Label` reads its own field rather than a `:has()` into the control, and floats on `:focus-within`. Every one of its cells is measured by the static contrast matrix, which answers the remaining "holds a text field" `:has()` from the probe chain (#469). It moves by `transform`, on M3's short3 duration |
 | The notch in the outline behind the floated label | the label's background is `--tf-surface`, a theme token that defaults to `surface`. A container sets it to its own fill (#468) |
 | The placeholder shows only once the label has floated | while a visible label rests, `::placeholder` and an empty select's value are transparent |
 | Hover, error, disabled | the 8% on-surface state layer in a filled field's fill, a darker outline, the error role on the indicator, label and trailing icon, and M3's 38% / 4% disabled colours |
-| Leading and trailing icons, prefix and suffix, trailing icon buttons | `adornment` in the 24dp slot 12dp from the edge. The resting label moves past a leading icon; affix text sits on the input's text line (#467). The clear and visibility triggers and NumberInput's steppers are 40dp icon buttons in the trailing slot |
+| Leading and trailing icons, prefix and suffix, trailing icon buttons | an icon is `Input.Adornment`: the 24dp slot 12dp from the edge, centred in the container, and the resting label moves past a leading one. Prefix and suffix text is `Input.Affix` (#467): body-large on the input's own text line, 16dp from the edge and 2dp from the text. It never moves the label, and while a visible label rests in the empty field it keeps its room but paints nothing, appearing once the label floats. The anatomy says which is which, so nothing is guessed from the content. The clear and visibility triggers and NumberInput's steppers are 40dp icon buttons in the trailing slot |
 | Supporting and error text | `Field.Description` and `Field.Error` in body-small, 16dp in under a text field |
 | Density | the size axis sets the height (40 / 48 / 56 / 64 / 72dp, `md` = M3's 56), and the padding and label positions follow it |
 
@@ -130,14 +130,16 @@ and styles every component in zero's manifest.
 
 ## Places Material's own spec had to be read, not copied
 
-- **An expanded disclosure header takes the selected container.** Collapsible
-  and accordion declare no `indicator` part, and `pressable()` already owns
-  both `::before` (the state layer) and `::after` (the ripple), so a chevron
-  has nowhere to draw. The trigger says it itself: `open` takes the
-  primary container, its on-container ink and an inset hairline at its
-  block-end. `--weight-semibold` is deliberately not used; this vocabulary
-  maps it to the same 500 as `medium`, so a weight bump would compile to
-  nothing.
+- **An expanded disclosure header takes the selected container, and the
+  chevron is a part.** `pressable()` owns both of the trigger's
+  pseudo-elements (`::before` the state layer, `::after` the ripple), so the
+  expand chevron lives in the optional `indicator` part collapsible and
+  accordion declare inside the trigger (#437): M3's 24dp `expand_more`,
+  turned half a turn while open. Because the part is optional, the trigger
+  still says it itself: `open` takes the primary container, its
+  on-container ink and an inset hairline at its block-end.
+  `--weight-semibold` is deliberately not used; this vocabulary maps it to
+  the same 500 as `medium`, so a weight bump would compile to nothing.
 - **`toast({ color })` lands on a status marker, not on the container.** M3
   snackbars are monochrome by spec, so the container stays
   surface-container-high at level 3 whatever role you pass; tinting the whole
@@ -199,7 +201,8 @@ still puts the control's thumb outside its own track.
 What moved here: the toast viewport's start/end placements, the switch thumb,
 the collapsed tree indicator and the indeterminate progress sweep. There is no
 submenu chevron to turn around — `pressable()` owns both pseudo-elements, so a
-chevron is content the app supplies.
+chevron is content the app supplies. The disclosure chevron (#437) is
+symmetric and only turns about its own centre, so it needs no RTL rule.
 
 The half-star gradient's RTL rule also lost the specificity it never meant to
 have: written bare, `:dir(rtl)` outranked the `forced-colors` override beneath

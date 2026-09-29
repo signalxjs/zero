@@ -112,8 +112,14 @@ with `sizes`, `variants`, `modifiers`, `axes`, `system`, `custom` and
 `breakpoints`, in the DS's `dist/manifest.json` (which also lists every custom
 property the design system emits, and the axis values each recipe wires, per
 component).
+A `custom` token takes its value once for the whole design system in
+`system.custom` — emitted under `:root`, for a token no theme changes, such
+as Material 3's state-layer opacities — or per theme in `theme.custom`, or
+both, the theme's value winning (#424). Each theme needs a value for every
+declared token that has no `system.custom` one.
 A `custom` token that declares a `syntax` is `@property`-registered too, with
-the default light theme's value as its `initial-value`. That value must be
+the default light theme's value (its own, else the `system.custom` one) as
+its `initial-value`. That value must be
 computationally independent (no `var()`, `env()`, `light-dark()`,
 `currentColor`, or font/container-relative unit such as `em`, `rem`, `ch`,
 `cqi`), or the browser drops the whole rule. The compiler skips such a
@@ -1104,6 +1110,36 @@ sits on a pseudo or an absorbable part, or lacks
 A domain flag carries no accessibility meaning: the component still exposes
 the fact as text or ARIA.
 
+**Runtime properties** (#456). A component whose runtime writes CSS custom
+properties inline declares them — `runtimeProperties` on `defineAnatomy`,
+which `toJSON()` carries into the fragment's component — and a recipe may
+then read them bare (`var(--ext-stepper-count)`, no fallback, no token
+declaration), exactly like zero's own `RUNTIME_PROPERTIES`. They are
+**web-only**: the lynx target refuses them outside `targets.web`, so a pack
+that reads one in a shared section is degraded to web-only on lynx (the
+`lynx.webOnly` report entry; `zero:fragment` warns that it is not
+lynx-clean). The merge holds each name to six rules, every one a hard error
+naming the fragment, the scope and the property:
+
+1. the key, when present, is a non-empty list with no duplicates;
+2. each name is `--` then kebab-case;
+3. each starts with `--<scope>-` (`--acme-stepper-progress` for `acme-stepper`);
+4. none sits under the token grammar — `--color-*`, a scale category's
+   prefix (`--radius-`, `--size-`, `--font-`, `--text-`, `--space-`, …) or a
+   scalar category's name (`--border`, `--disabled-opacity`) — so a
+   `text-editor` or `color-picker` scope declares none;
+5. none is one of the kit's own runtime or medium properties (a `swipe`
+   scope cannot claim `--swipe-x`, nor a `print` one `--print-ink`);
+6. none is already declared by the base manifest or an earlier fragment
+   (`acme` and `acme-split` could otherwise both claim `--acme-split-size`).
+
+`runtimePropertiesOf(manifest)` is the merged set — `RUNTIME_PROPERTIES`
+plus every component's declaration — that validation (`tokenVocabulary`'s
+`runtime` parameter), the lynx guard (`runtimePropertyMatcher`) and the
+contrast audit (`ThemeEnv.runtime`) all read. `BEHAVIOR_RUNTIME_PROPERTIES`
+is the part of the list no scope owns: the press trio, the swipe pair and the
+anchored-position geometry.
+
 Provenance travels with the merge. Merged scopes are tracked as *external* on
 the compiled design system (`externalScopes`), the generated `register.d.ts`
 excludes exactly them — by name — from its ZeroScope compile gate (the
@@ -1324,8 +1360,9 @@ What makes it honest rather than merely static: a browser always produces a
 pixel, and a reader of CSS sometimes cannot. Every such cell is `unmeasured`
 with one of a closed set of reasons — `gradient-or-image` (paint whose extent
 the reader cannot see), `unresolved-var`, `runtime-property` (`--press-*`,
-written inline by the runtime), `unsupported-selector` (`:has()` on a node
-with children, `:nth-*()`, sibling combinators), `unparseable-color`,
+written inline by the runtime), `unsupported-selector` (`:nth-*()`, sibling
+combinators — `:has()` is answered from the probe chain's own nodes, the
+same closed world the browser probe renders, #469), `unparseable-color`,
 `currentcolor-cycle`, `filter-or-blend` (light changed after the fact),
 `unknown-geometry` (a transform with no determinant the reader can take),
 `raw-css`, `conditional-rule` (a declaration under `@supports`, `@container`

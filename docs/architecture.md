@@ -158,10 +158,11 @@ may be named `x-…`. A domain flag is a styling and tooling fact the scope
 owns and carries **no accessibility meaning**: the component still exposes
 the fact as text or ARIA.
 
-**Runtime-published properties are a closed list.** Beside the attributes,
+**Runtime-published properties are declared.** Beside the attributes,
 the DOM runtime writes a few custom properties that recipes may read —
-`RUNTIME_PROPERTIES` in zero-kit's contract: the press trio and the swipe
-pair above,
+`RUNTIME_PROPERTIES` in zero-kit's contract: the behavior-level ones
+(`BEHAVIOR_RUNTIME_PROPERTIES` — the press trio and the swipe pair above,
+and the position and arrow properties below), then the scoped ones,
 `--progress-percent`, `--slider-percent`, `--diff-percent`,
 `--countdown-value`, and the disclosure panel sizes
 `--accordion-panel-height`/`--accordion-panel-width` and
@@ -175,7 +176,18 @@ list's padding box, the inline offset from its inline-start edge so RTL
 needs no correction; the indicator stays `display: none` until measured, so
 no transition plays from nowhere). They are web-only
 — the lynx target rejects them outside a `targets.web` section — and the
-vocabulary check accepts them without a declaration. The disclosure sizes
+vocabulary check accepts them without a declaration. An ecosystem component
+declares its own the same way (#456): `runtimeProperties` on
+`defineAnatomy` reaches its fragment's component as a list of names, each
+under the scope's own prefix (`--ext-stepper-count`), and
+`mergeManifests` refuses one outside that prefix, under the token grammar
+(`--color-*`, a scale category's prefix, a scalar category's name), among
+the kit's own runtime or medium properties, or already declared by the
+base manifest or an earlier fragment. Everything downstream reads the
+merged set, `runtimePropertiesOf(manifest)`: the recipe and token
+vocabulary, the lynx guard (`runtimePropertyMatcher`, built once per
+compile) and the contrast cascade (`ThemeEnv.runtime`), so a fragment's
+name is exactly as web-only, and exactly as bare-readable, as zero's own. The disclosure sizes
 pair with a runtime deferral: a close flips `data-state` to `closed` at once
 but keeps the `<details>` `open` until the panel's own animations have
 finished (`createAnimatedExit`, the machinery behind the top-layer exit
@@ -314,6 +326,10 @@ and emitted in two layers. A scope-agnostic **step table**
 (`[data-l-gap="md"] { --l-gap: var(--space-md) }`) is emitted once per design
 system through `DesignSystemInput.css`; each layout part declares its
 defaults as component tokens and consumes them (`column-gap: var(--l-gap-x)`).
+A growing stack part (root or item, `[data-l-grow="1"]`) also gets
+`flex-basis: 0` and `min-block-size: 0`, so a region inside it can scroll
+(#454, #459); the floor is keyed on `grow`, never unconditional, so a
+non-growing header Row keeps its content height.
 
 Both halves of that shape are load-bearing. Putting the table in the recipes
 instead would emit one design-system-wide fact once per layout scope and
@@ -380,7 +396,9 @@ renders without children (`▾`, `✓`, `›`, `★`), the flag the part cannot
 exist without (`select.item-indicator` mounts only while `selected`), and
 the part the mark is measured on when `parent` names only the containing
 one (menu's `item-indicator` sits in a checkbox or radio row; `parent` is
-the popup, `host` the checkbox row). A mark's chain is derived from the part tree, with
+the popup, `host` the checkbox row; collapsible's optional `indicator`,
+#437, names the root because its trigger is absorbable and so can never be
+a declared parent, and `host` puts it back on the trigger). A mark's chain is derived from the part tree, with
 every presence surface above it pinned `open`: a popup, or a part that
 declares `placements` (toast's `viewport` and `root`, whose `closed` is an
 enter/exit frame, never a resting look). A trigger's `open` is not pinned —
@@ -573,6 +591,21 @@ resolves it; an unmapped role resolves to its own name.
   generated steps count); a role mapped away may not also be declared under
   its own name (two values for one role); the map is declared once in
   `tokens.system` — `systemDark` and theme tiers cannot remap a role.
+
+**Custom token values have a design-system tier too** (#424). A token the
+closed categories do not name is declared in `tokens.custom` (metadata:
+`description`, `syntax`), and its value is set either once in
+`system.custom` or per theme in `theme.custom` — or both, the theme's
+winning. `resolveSystemTokens` emits the base tier's `custom` like any
+category value, so on the web it lands once in `:where(:root)` and a theme
+block restates it only where the theme overrides it (or where the value
+reads a colour, the rule below). A theme may omit a token that has a
+`system.custom` value; one with neither is a validation error, as is a
+`system.custom` key `tokens.custom` never declared, and a `custom` inside
+`systemDark` or a theme's `system` — the override spelling is the theme's
+own `custom`. A typed token's `@property` `initial-value` is the resolved
+light value, whichever tier set it. zero-material's M3 state-layer
+opacities are the first user.
 
 ### 3.1b Spacing is a ramp, and the ramp is a mechanism
 
@@ -1154,7 +1187,9 @@ token grammar (`colors`, `categories`, recommended ramps), and `components`
 `parent`, `states`, `flags`, `domainFlags` (ecosystem parts only, #457), `placements`, `layout`, `carries`, `hiddenIn`, `paint`, `pseudo`, hints, and
 ready-made per-state selector fragments (what the recipe compiler
 consumes; a domain flag `d` under the key `x-d` → `[data-x-d]`), with `absorbable: true` on a part that may lend its asChild bag
-to a host and then renders no element of its own (#452, [§2](#2-the-anatomy-contract)), and — for a component whose API carries state — `models`: one
+to a host and then renders no element of its own (#452, [§2](#2-the-anatomy-contract)),
+`runtimeProperties` on a component whose runtime writes custom properties
+inline (#456, [§2](#2-the-anatomy-contract); absent when there are none), and — for a component whose API carries state — `models`: one
 entry per model with what it binds (`name`, absent for the unnamed `model`
 prop), its `concept`, its value `type`, the compound `member` that carries
 it when not Root, `multiple` / `formControl`, and the two companion names
@@ -1716,7 +1751,10 @@ the architecture facts, briefly:
   adopter's: a pack cannot narrow, only decline.
 - **The lynx target degrades for packs and fails for first parties.** The
   lynx emitter rejects references to `RUNTIME_PROPERTIES` (`var(--press-x)`
-  and the rest of the web press-feedback surface). A first-party recipe in
+  and the rest of the web press-feedback surface) and to every
+  `runtimeProperties` name the merged manifest's fragments declare (#456),
+  so a pack reading its own property outside `targets.web` degrades the
+  same way. A first-party recipe in
   that position fails the build, as it should; a discovered pack's loses only
   the lynx target, recorded in `report.json` under `lynx.webOnly` — the
   design system's author neither wrote that recipe nor can fix it, and a
@@ -1853,8 +1891,8 @@ Honesty section. These are the edges the tree knows about today:
   spots are a closed list rather than a silent default: interaction
   pseudo-classes are not measured (the resting render, as in the browser
   matrix), a gradient's extent and a `filter`'s effect are not modelled, a
-  selector outside the emitted grammar (`:has()` on a node with children,
-  `:nth-*()`, sibling combinators) is not evaluated, a condition outside
+  selector outside the emitted grammar (`:nth-*()`, sibling combinators) is
+  not evaluated, a condition outside
   `@media` (`@supports`, `@container`) is not decided, and nested same-scope
   instances are not built. Each surfaces as `unmeasured` with its reason;
   `@media` itself is decided against the fixed reference page the browser
@@ -1865,7 +1903,11 @@ Honesty section. These are the edges the tree knows about today:
   skin. What the browser draws and the static reader models are the same
   page, `REFERENCE_MEDIA` included; the UA stylesheet is modelled for the
   elements whose defaults paint (button, the form controls, `a`, `dialog`),
-  and nothing else.
+  and nothing else. `:has()` is answered against the probe chain as a
+  closed world (#469): below a node there is exactly the declared chain,
+  which is all the browser probe renders too, so a relative selector no
+  chain node satisfies is `no` rather than `unknown` — the probe's
+  coverage, not the app's, and the parity gate holds it.
 - **The dual-controller theme desync** ([§6](#6-the-theme-model)) is known
   and deliberately unfixed; consumers that swap design systems at runtime
   carry the playground's capture/re-apply pattern.

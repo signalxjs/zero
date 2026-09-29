@@ -22,6 +22,36 @@
   `runtimeProperties`, an older kit rejects a fragment that uses it through
   the schema.
 
+- **`defineAnatomy` declares `runtimeProperties` (#456).** A component
+  whose runtime writes CSS custom properties inline lists them in the third
+  argument, beside `models` (`runtimeProperties: ['--ext-stepper-count']`,
+  typed `` `--${string}`[] ``). `Anatomy.runtimeProperties` keeps the
+  declaration, and `toJSON()` emits `runtimeProperties` on the component only
+  when the list is non-empty, as it does `models`. The kit's `mergeManifests`
+  holds an ecosystem fragment's names to its scope's prefix; a recipe then
+  reads them bare, web-only. Zero's own anatomies do not declare theirs yet:
+  they are still listed in the kit's `RUNTIME_PROPERTIES`.
+
+- **`Input.Affix`, prefix and suffix text as its own part (#467, part of
+  #413).** `input.affix` (`placement="start" | "end"` → `data-placement`,
+  the same press-to-focus as the adornment) holds text such as `https://`,
+  `.com` or `kg`; `Input.Adornment` is now for icons. Design systems lay the
+  two out differently — Material centres an icon and moves a resting label
+  past a leading one, but sets affix text on the input's text line, leaves
+  the label alone and shows it once the label floats — and no longer have to
+  guess which one they hold from the content. All six shipped skins style
+  the new part. Move text written in an `Input.Adornment` to `Input.Affix`.
+
+- **`Field.Root` carries `data-placeholder` while its control is empty
+  (#469, part of #413).** A `Field.Root` holding an Input, Textarea,
+  NumberInput, Combobox or Select mirrors that control's own
+  `data-placeholder` onto its root, from mount on, so a skin can style a
+  `Field.Label` (a floating label) from its own field instead of a `:has()`
+  into the control. A control reports it through the new optional
+  `empty()` on `FieldValidityReport`; a field around a control with no
+  notion of empty, or with no control, never carries it. Server markup
+  carries none, since the control reports itself after the root renders.
+
 - **`Combobox.Root` `filterItems` (#458).** Hand-written `Combobox.Item`s
   are filtered by the query when it is set: each item's label (`textValue`,
   else its text) is matched with the default case-insensitive
@@ -73,12 +103,35 @@
   manifest's `tokens.colors.convention` carries `softContentSuffix:
   '-soft-content'`.
 
+- **Optional indicator parts: a check in a toggle item, a chevron in a
+  disclosure trigger (#437).** `ToggleGroup.ItemIndicator`, placed inside a
+  `ToggleGroup.Item`, renders the new `toggle-group.item-indicator` part —
+  an empty, `aria-hidden` span whose `data-state` mirrors its item's
+  `on|off`. `Collapsible.Indicator` and `Accordion.Indicator`, placed inside
+  the trigger, render each scope's new `indicator` part with `open|closed`.
+  All three are paint parts the design system draws (a check before the
+  label, a chevron that turns), so a skin whose item or trigger already
+  spends both pseudo-elements still has a slot; none renders unless the app
+  places it. `collapsible.indicator` declares `parent: 'root'` and
+  `paint: { host: 'trigger' }`, because the trigger is absorbable and can
+  never be a declared parent. New prop types: `ToggleGroupItemIndicatorProps`,
+  `CollapsibleIndicatorProps`, `AccordionIndicatorProps`.
+
 ### Changed
 
 - **`data-x-*` is reserved for domain flags (#457).** `htmlAttrs` throws on
   an app's `data-x-*` (a forged domain flag would make the skin paint a
   fact the part never said), `mergePartProps` drops the lender's, and
   `variantAttrs` and `expectAnatomy`'s `axes` refuse an axis named `x-…`.
+
+- **Stack/Row/Col take `grow` (part of #459).** `stack.root`'s layout
+  attributes gain `grow`, so `<Row grow>` or `<Col grow>` nested in another
+  stack takes the room its parent has left. A growing `Stack.Item` wrapper
+  could not do this, because it cannot hand its height on to the stack
+  inside it. A boolean like the item's: `false` renders no attribute. The
+  design systems give a growing root or item `min-block-size: 0`, keyed on
+  `grow` only, so a region inside it scrolls and a non-growing header keeps
+  its content height. The README documents the pattern.
 
 - **`Stack.Item grow` grows from zero (#454).** The design systems now
   compile `grow` to `flex-grow: 1` plus `flex-basis: 0`, like Tailwind's

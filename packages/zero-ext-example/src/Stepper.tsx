@@ -82,13 +82,40 @@ export type StepperRootProps =
     & Omit<WithHtmlAttrs, 'role'>
     & Define.Slot<'default'>;
 
-const StepperRoot = component<StepperRootProps>(({ props, slots, emit }) => {
+const StepperRoot = component<StepperRootProps>(({ props, slots, emit, signal }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultStep ?? '',
         (v) => emit('stepChange', v),
     );
-    const list = createListController();
+    const inner = createListController();
+    // The item count, published on the root as `--ext-stepper-count` — the
+    // runtime property this scope declares in its anatomy (#456), which a
+    // recipe reads bare (the pack's web grid). Registration is not reactive,
+    // and it happens while the root itself renders its slot, where a write
+    // to the root's own state would be lost — so the tally is re-read once
+    // per microtask after any registration or removal settles.
+    const tally = signal({ items: 0 });
+    let queued = false;
+    const recount = (): void => {
+        if (queued) return;
+        queued = true;
+        queueMicrotask(() => {
+            queued = false;
+            tally.items = inner.items().length;
+        });
+    };
+    const list: ListController = {
+        ...inner,
+        register(item) {
+            const unregister = inner.register(item);
+            recount();
+            return () => {
+                unregister();
+                recount();
+            };
+        },
+    };
 
     const roving = createRovingKeydown({
         list,
@@ -118,6 +145,7 @@ const StepperRoot = component<StepperRootProps>(({ props, slots, emit }) => {
                 data-scope={SCOPE}
                 data-part="root"
                 data-disabled={dataAttr(props.disabled)}
+                style={{ '--ext-stepper-count': String(tally.items) }}
                 {...variantAttrs(props)}
                 class={props.class}
             >

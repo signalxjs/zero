@@ -64,6 +64,10 @@
         transform: rotate(225deg);
     }
 
+    [data-scope="collapsible"][data-part="trigger"]:has(> [data-scope="collapsible"][data-part="indicator"])::after {
+        display: none;
+    }
+
     [data-scope="collapsible"][data-part="trigger"]:where(button) {
         appearance: none;
         margin: 0;
@@ -78,6 +82,22 @@
         text-align: start;
         inline-size: 100%;
         box-sizing: border-box;
+    }
+
+    [data-scope="collapsible"][data-part="indicator"] {
+        flex: none;
+        width: 0.5rem;
+        height: 0.5rem;
+        border: 2px solid currentColor;
+        border-top: none;
+        border-left: none;
+        transform: rotate(45deg);
+        transition: transform var(--duration-normal) var(--ease-standard);
+        opacity: 0.6;
+    }
+
+    [data-scope="collapsible"][data-part="indicator"][data-state="open"] {
+        transform: rotate(225deg);
     }
 
     [data-scope="collapsible"][data-part="panel"] {

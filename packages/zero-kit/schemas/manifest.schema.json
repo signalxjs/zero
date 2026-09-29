@@ -228,6 +228,13 @@
                     "type": "array",
                     "items": { "$ref": "#/$defs/model" },
                     "minItems": 1
+                },
+                "runtimeProperties": {
+                    "description": "CSS custom properties the component's runtime writes inline on its parts — present only when there is at least one. A recipe may read them bare (no fallback, no declaration); they are web-only, so the lynx target refuses them outside targets.web. In an ecosystem fragment each name starts with --<scope>- and stays clear of the token grammar and the behavior-level runtime properties (mergeManifests enforces it).",
+                    "type": "array",
+                    "items": { "type": "string", "pattern": "^--[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "minItems": 1,
+                    "uniqueItems": true
                 }
             }
         },

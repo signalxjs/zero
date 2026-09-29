@@ -42,6 +42,25 @@ const CollapsibleDemos = component(() => () => (
                 </Card.Root>
             </Collapsible.Root>
         </div>
+
+        {/*
+          * The optional indicator (#437): an empty, aria-hidden span inside
+          * the trigger mirroring open|closed, where the design system draws
+          * its chevron. Without one (the first demo) the trigger still says it.
+          */}
+        <div data-demo="collapsible-indicator" style="margin-top: 1rem;">
+            <Collapsible.Root>
+                <Collapsible.Trigger>
+                    Release notes
+                    <Collapsible.Indicator />
+                </Collapsible.Trigger>
+                <Collapsible.Panel>
+                    The chevron is a part of its own, so a skin whose trigger
+                    spends both pseudo-elements on a state layer and a ripple
+                    still has somewhere to draw it.
+                </Collapsible.Panel>
+            </Collapsible.Root>
+        </div>
     </>
 ), { name: 'CollapsibleDemos' });
 

@@ -17,9 +17,12 @@ import {
     compileLynxTokensCss,
     emptyReport,
     lynxRefusedImageTokens,
+    LynxRuntimePropertyError,
     runtimePropertyIn,
+    runtimePropertyMatcher,
     STRUCTURAL_FALLBACKS,
 } from '../src/targets/lynx/index.js';
+import { RUNTIME_PROPERTIES } from '../src/contract.js';
 import type { TokensInput } from '../src/tokens.js';
 import { tokens as basicTokens } from '@sigx/zero-basic';
 import { tokens as daisyTokens } from '@sigx/zero-daisyui';
@@ -84,6 +87,22 @@ describe('capability primitives', () => {
         expect(runtimePropertyIn('var(--press-xylophone)')).toBeUndefined();
         expect(runtimePropertyIn('var(--color-primary)')).toBeUndefined();
     });
+
+    it('builds a matcher over a declared set, the default staying zero-only (#456)', () => {
+        // A fragment-declared name is invisible to the default matcher — it
+        // is the manifest-built one a build threads through that sees it.
+        const match = runtimePropertyMatcher([...RUNTIME_PROPERTIES, '--ext-stepper-count', '--ext-stepper']);
+        expect(runtimePropertyIn('var(--ext-stepper-count)')).toBeUndefined();
+        expect(runtimePropertyIn('var(--ext-stepper-count)', match)).toBe('--ext-stepper-count');
+        // One name prefixing another reports the whole one it met.
+        expect(match('repeat(var(--ext-stepper-count), 1fr)')).toBe('--ext-stepper-count');
+        expect(match('var(--ext-stepper)')).toBe('--ext-stepper');
+        expect(match('var(--ext-stepper-counter)')).toBeUndefined();
+        // Zero's own stay refused either way.
+        expect(runtimePropertyIn('var(--slider-percent)')).toBe('--slider-percent');
+        expect(match('var(--slider-percent)')).toBe('--slider-percent');
+        expect(runtimePropertyMatcher([])('var(--press-x)')).toBeUndefined();
+    });
 });
 
 describe('compileLynxTokensCss', () => {
@@ -131,6 +150,22 @@ describe('compileLynxTokensCss', () => {
             },
         };
         expect(() => compileLynxTokensCss(input, emptyReport())).toThrow(/--press-x.*web-only/s);
+    });
+
+    it("rejects a token reading a fragment-declared runtime property, given the build's matcher (#456)", () => {
+        const input: TokensInput = {
+            defaultLight: 'l',
+            themes: {
+                l: {
+                    colorScheme: 'light',
+                    colors: { 'base-100': '#ffffff', 'base-content': '#111111' },
+                    extra: { '--stepper-cols': 'repeat(var(--ext-stepper-count), 1fr)' },
+                },
+            },
+        };
+        const match = runtimePropertyMatcher([...RUNTIME_PROPERTIES, '--ext-stepper-count']);
+        expect(() => compileLynxTokensCss(input, emptyReport(), match)).toThrow(LynxRuntimePropertyError);
+        expect(() => compileLynxTokensCss(input, emptyReport(), match)).toThrow(/--ext-stepper-count/);
     });
 
     it('inlines non-color var() chains and keeps color references live', () => {

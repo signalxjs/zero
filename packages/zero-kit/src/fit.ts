@@ -242,6 +242,10 @@ function rewriteRefs(value: string, admits: Admits, counters: Counters): string 
             counters.roles += 1;
             return `var(--color-${replacement}`;
         }
+        // A runtime-published name never reaches either branch: zero's own
+        // are in `admits.names`, and a fragment-declared one sits under its
+        // scope's prefix and never under `--color-` or a category prefix
+        // (`mergeManifests` refuses one there, #456) — so it passes untouched.
         // A category step the design system never declared: collapse to the
         // resting step. Anything else — a component token the recipe itself
         // declares (`--btn-accent`), an app-supplied property read with a

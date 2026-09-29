@@ -299,7 +299,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     spacer: ['id', 'role', 'space', 'title'],
     slider: ['defaultValue', 'form', 'getValueText', 'id', 'invalid', 'largeStep', 'marks', 'max', 'min', 'minStepsBetweenThumbs', 'name', 'readonly', 'role', 'step', 'title', 'value'],
     spinner: ['decorative', 'id', 'label', 'title'],
-    stack: ['align', 'gap', 'gapX', 'gapY', 'id', 'justify', 'pad', 'padX', 'padY', 'role', 'title', 'wrap'],
+    stack: ['align', 'gap', 'gapX', 'gapY', 'grow', 'id', 'justify', 'pad', 'padX', 'padY', 'role', 'title', 'wrap'],
     stats: ['id', 'role', 'title'],
     status: ['id', 'label', 'title'],
     steps: ['defaultStep', 'id', 'invalidLabel', 'label', 'lazyMount', 'linear', 'loop', 'title', 'value'],

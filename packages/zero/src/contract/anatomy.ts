@@ -346,6 +346,11 @@ export interface AnatomyJSON {
     parts: PartJSON[];
     /** The models the API carries, companions derived — absent when there are none. */
     models?: ModelJSON[];
+    /**
+     * CSS custom properties the runtime writes inline on this scope's parts —
+     * absent when there are none.
+     */
+    runtimeProperties?: string[];
 }
 
 export interface Anatomy<S extends string = string, P extends string = string> {
@@ -354,6 +359,8 @@ export interface Anatomy<S extends string = string, P extends string = string> {
     orientation?: boolean;
     /** The models the API carries, as declared (see `ModelSpec`). */
     models?: readonly ModelSpec[];
+    /** The custom properties the runtime writes inline, as declared. */
+    runtimeProperties?: readonly string[];
     /** All part names, in declaration order. */
     partNames(): P[];
     /**
@@ -370,7 +377,18 @@ export interface Anatomy<S extends string = string, P extends string = string> {
 export function defineAnatomy<S extends string, P extends string>(
     scope: S,
     parts: Record<P, PartSpec>,
-    opts?: { orientation?: boolean; models?: readonly ModelSpec[] },
+    opts?: {
+        orientation?: boolean;
+        models?: readonly ModelSpec[];
+        /**
+         * CSS custom properties the component's runtime writes inline, which a
+         * recipe may read without declaring them. Web-only: the lynx target
+         * refuses them outside `targets.web`. An ecosystem scope prefixes each
+         * with its own scope (`--ext-stepper-count`), which the kit's
+         * `mergeManifests` enforces.
+         */
+        runtimeProperties?: readonly `--${string}`[];
+    },
 ): Anatomy<S, P> {
     // No runtime guard that `pseudo.of` names a real part — defineAnatomy is
     // on every component's size budget, and zero's own anatomies (the only
@@ -391,6 +409,7 @@ export function defineAnatomy<S extends string, P extends string>(
         parts,
         orientation: opts?.orientation,
         models: opts?.models,
+        runtimeProperties: opts?.runtimeProperties,
         partNames: () => Object.keys(parts) as P[],
         selector,
         toJSON: (): AnatomyJSON => ({
@@ -413,6 +432,7 @@ export function defineAnatomy<S extends string, P extends string>(
             ...(opts?.models?.length
                 ? { models: opts.models.map((m) => ({ ...m, default: defaultPropOf(m.concept), change: changeEventOf(m.concept) })) }
                 : {}),
+            ...(opts?.runtimeProperties?.length ? { runtimeProperties: [...opts.runtimeProperties] } : {}),
         }),
     };
 }

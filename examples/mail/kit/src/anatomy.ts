@@ -62,6 +62,9 @@ export const splitAnatomy = defineAnatomy('mail-split', {
     handle: { element: 'div', parent: 'root', flags: ['focus-visible'] },
 }, {
     models: [{ concept: 'size', type: 'number' }],
+    // The primary pane's size, written inline on the root (#456): declared
+    // here, under the scope's prefix, so a recipe reads it bare.
+    runtimeProperties: ['--mail-split-size'],
 });
 
 /** A `<time>` element that formats itself. */

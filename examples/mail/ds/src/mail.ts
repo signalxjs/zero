@@ -313,10 +313,6 @@ export const shell: RecipeInput = {
 
 export const split: RecipeInput = {
     component: 'mail-split',
-    // The kit's Split.Root publishes the primary pane's size inline. Zero's
-    // RUNTIME_PROPERTIES list is closed to ecosystem components (#440), so it
-    // is declared here as a recipe token with a default instead.
-    tokens: { '--split-size': '380px' },
     parts: {
         root: {
             base: { display: 'flex', flex: '1 1 auto', minBlockSize: '0', minInlineSize: '0' },
@@ -339,7 +335,7 @@ export const split: RecipeInput = {
             base: { display: 'flex', flexDirection: 'column', flex: '1 1 0', minInlineSize: '0', minBlockSize: '0' },
             at: {
                 md: {
-                    selectors: { '&[data-primary]': { flex: '0 0 var(--split-size)' } },
+                    selectors: { '&[data-primary]': { flex: '0 0 var(--mail-split-size)' } },
                 },
             },
         },

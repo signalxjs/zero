@@ -26,6 +26,10 @@
  * measured size as `--accordion-panel-height` / `--accordion-panel-width`,
  * and a closing item stays `open` until its panel's exit animation has played
  * (`data-state` flips at once), so a close can animate (#276).
+ *
+ * An `Accordion.Indicator` inside a trigger (#437) is the item's optional
+ * disclosure mark — an empty, `aria-hidden` span mirroring `open|closed`
+ * that a design system draws a chevron in.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
@@ -319,9 +323,38 @@ const AccordionPanel = component<AccordionPanelProps>(({ props, slots, onUnmount
     };
 }, { name: 'Accordion.Panel' });
 
+// ── Indicator ──
+
+/** Decorative: always `aria-hidden` — the trigger's `aria-expanded` carries the state. */
+export type AccordionIndicatorProps = WithClass & Omit<WithHtmlAttrs, 'aria-hidden'> & Define.Slot<'default'>;
+
+/**
+ * A trigger's optional disclosure mark (#437): place it inside
+ * `Accordion.Trigger` and it mirrors the item's `open|closed` — a design
+ * system draws a chevron there and turns it. Zero renders an empty span;
+ * children (an icon) are the app's own.
+ */
+const AccordionIndicator = component<AccordionIndicatorProps>(({ props, slots }) => {
+    const accordion = useAccordionContext();
+    const item = useAccordionItemContext();
+    return () => (
+        <span
+            {...htmlAttrs(props)}
+            data-scope={SCOPE}
+            data-part="indicator"
+            data-state={stateAttr(accordion.isOpen(item.value()), 'open', 'closed')}
+            aria-hidden="true"
+            class={props.class}
+        >
+            {slots.default?.()}
+        </span>
+    );
+}, { name: 'Accordion.Indicator' });
+
 export const Accordion = compound(AccordionRoot, {
     Root: AccordionRoot,
     Item: AccordionItem,
     Trigger: AccordionTrigger,
     Panel: AccordionPanel,
+    Indicator: AccordionIndicator,
 });

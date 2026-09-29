@@ -237,6 +237,9 @@ component's anatomy). No component code is ever written or changed.
    - DS-specific tokens (a blur radius, a glow color…) go in `custom`
      declarations (name → `{ description, syntax? }`), valued per-theme in
      `custom` — never in `extra`, which the validator flags as undeclared.
+     A value no theme changes (an opacity, a blur) goes once in
+     `system.custom` instead; a theme then omits it, or overrides it in its
+     own `custom`.
      A custom token inside a category namespace (`--radius-…`) is an error;
      declare it in `system` instead.
 
@@ -396,9 +399,11 @@ component's anatomy). No component code is ever written or changed.
      `*trigger` part in a component with **no `popup` part** — collapsible, accordion, tree-view, i.e. the ones
      that disclose *in flow* — must differentiate its states on itself or on a
      sibling `*indicator`. Tree-view's rotating `branch-indicator` is the
-     idiomatic answer; collapsible and accordion declare no indicator part, so
-     the signal has nowhere to go but the header itself — a tint, an accent ink,
-     an inset rule under it. If you have a reason for an in-flow trigger to say
+     idiomatic answer. Collapsible and accordion declare an `indicator` too
+     (#437), a chevron slot inside the trigger — but it is optional, rendered
+     only where the app places `Collapsible.Indicator` / `Accordion.Indicator`,
+     so style it AND keep the header itself saying it (a tint, an accent ink,
+     an inset rule under it): a trigger without one has nothing else. If you have a reason for an in-flow trigger to say
      nothing, `skipStates: { trigger: ['open'] }` waives the rule — state the
      reason. Triggers of components that open an *overlay* (dialog, popover,
      tooltip, menu, select, combobox) are **outside the rule entirely**, not

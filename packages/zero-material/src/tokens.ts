@@ -111,6 +111,17 @@ const role = (size: number, lineHeight: number, weight: 400 | 500, tracking: str
 
 export const system = {
     /**
+     * M3's state-layer opacities: theme-independent, so they are set once
+     * here and emitted under `:root` rather than repeated in every theme.
+     */
+    custom: {
+        'state-hover': '0.08',
+        'state-focus': '0.1',
+        'state-pressed': '0.1',
+        'state-dragged': '0.16',
+        'state-disabled-container': '0.12',
+    },
+    /**
      * Which M3 corner plays each of zero's structural radius roles — the
      * names the anatomy's token hints, `@sigx/zero`'s structural fallbacks
      * and the kit's layout Box read. Text fields and cards are M3's
@@ -293,18 +304,6 @@ export const systemDark = {
     },
 } as const satisfies ThemeSystem<typeof system>;
 
-/**
- * M3's state-layer opacities. Theme-independent, but zero-kit's `custom`
- * tokens only take per-theme values, so every theme repeats them (#424).
- */
-const stateLayers = {
-    'state-hover': '0.08',
-    'state-focus': '0.1',
-    'state-pressed': '0.1',
-    'state-dragged': '0.16',
-    'state-disabled-container': '0.12',
-} as const;
-
 /** The action roles whose soft pair is their M3 container and its on-container ink. */
 const TONAL = ['primary', 'secondary', 'tertiary', 'error', 'neutral', 'info', 'success', 'warning'] as const;
 
@@ -330,7 +329,7 @@ function theme(
         colorScheme,
         pair,
         colors: { ...colors, ...soft } as ThemeInput<typeof roles, typeof system>['colors'],
-        custom: { ...stateLayers, 'tf-surface': 'var(--color-surface)' },
+        custom: { 'tf-surface': 'var(--color-surface)' },
     };
 }
 

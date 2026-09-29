@@ -94,8 +94,27 @@
         transform: rotate(225deg);
     }
 
+    [data-scope="accordion"][data-part="trigger"]:has(> :is([data-scope="collapsible"], [data-scope="accordion"])[data-part="indicator"])::after {
+        display: none;
+    }
+
     [data-scope="accordion"][data-part="trigger"][data-pressed]:not([data-disabled]) {
         background: var(--color-base-300);
+    }
+
+    [data-scope="accordion"][data-part="indicator"] {
+        flex: none;
+        width: 0.4em;
+        height: 0.4em;
+        border: solid var(--hero-muted);
+        border-width: 0 2px 2px 0;
+        margin-inline-end: var(--space-2xs);
+        transform: rotate(45deg);
+        transition: transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="accordion"][data-part="indicator"][data-state="open"] {
+        transform: rotate(225deg);
     }
 
     [data-scope="accordion"][data-part="panel"] {

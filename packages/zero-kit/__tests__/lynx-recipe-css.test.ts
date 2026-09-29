@@ -6,7 +6,9 @@
 import { describe, expect, it } from 'vitest';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
 import type { ManifestComponent } from '@sigx/zero-kit';
-import { assertNoCalcVarChains, assertNoDanglingVars, compileDesignSystemLynx, compileLynxRecipeCss, emptyReport } from '../src/targets/lynx/index.js';
+import { fitRecipesToVocabulary, mergeManifests } from '@sigx/zero-kit';
+import { fragment as stepperFragment, recipes as stepperRecipes } from '@sigx/zero-ext-example/fragment';
+import { assertNoCalcVarChains, assertNoDanglingVars, compileDesignSystemLynx, compileLynxRecipeCss, emptyReport, LynxRuntimePropertyError } from '../src/targets/lynx/index.js';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import type { RecipeInput } from '../src/recipes.js';
@@ -796,6 +798,54 @@ describe('compileLynxRecipeCss', () => {
             .toThrow(/unknown part "nope"/);
         expect(() => compile({ component: 'button', parts: { root: { states: { sideways: { color: 'red' } } } } }))
             .toThrow(/unknown state "sideways"/);
+    });
+});
+
+describe("a fragment's declared runtime property on lynx (#456)", () => {
+    // The ext-stepper root writes `--ext-stepper-count`, declared in its
+    // fragment. The build's matcher comes from the MERGED manifest, so the
+    // name is refused on lynx exactly like zero's own — and allowed where
+    // lynx never looks.
+    const manifest = mergeManifests(
+        { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] },
+        stepperFragment,
+    );
+    const adopter = (recipe: RecipeInput) => ({ ...basicDS, recipes: [recipe] }) as never;
+
+    it('refuses it in a shared declaration and in a keyframes body', () => {
+        expect(() => compileDesignSystemLynx(adopter({
+            component: 'ext-stepper',
+            parts: { root: { base: { gridTemplateColumns: 'repeat(var(--ext-stepper-count), 1fr)' } } },
+        }), manifest)).toThrow(LynxRuntimePropertyError);
+        expect(() => compileDesignSystemLynx(adopter({
+            component: 'ext-stepper',
+            parts: { root: { base: { animation: 'grow 1s' } } },
+            keyframes: { grow: 'from { width: 0; } to { width: calc(var(--ext-stepper-count) * 1px); }' },
+        }), manifest)).toThrow(/keyframes "grow": references --ext-stepper-count/);
+    });
+
+    it('accepts it under targets.web, which the lynx view never reads', () => {
+        const { componentCss } = compileDesignSystemLynx(adopter({
+            component: 'ext-stepper',
+            parts: { root: { base: { display: 'flex' } } },
+            targets: { web: { parts: { root: { base: { gridTemplateColumns: 'repeat(var(--ext-stepper-count), 1fr)' } } } } },
+        }), manifest);
+        expect(componentCss['ext-stepper']).toContain('display: flex');
+        expect(componentCss['ext-stepper']).not.toContain('--ext-stepper-count');
+    });
+
+    it("compiles the ext-example pack itself, whose web grid reads the property", () => {
+        const recipes = fitRecipesToVocabulary(stepperRecipes, basicDS.tokens as never);
+        const { componentCss } = compileDesignSystemLynx({ ...basicDS, recipes } as never, manifest);
+        expect(componentCss['ext-stepper']).toContain('.zx-ext-stepper__root {');
+        expect(componentCss['ext-stepper']).not.toContain('--ext-stepper-count');
+    });
+
+    it("still refuses zero's own with the default matcher", () => {
+        expect(() => compile({
+            component: 'tabs',
+            parts: { indicator: { base: { width: 'var(--slider-percent)' } } },
+        }, tabs)).toThrow(LynxRuntimePropertyError);
     });
 });
 

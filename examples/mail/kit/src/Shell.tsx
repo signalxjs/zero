@@ -119,7 +119,7 @@ const SplitRoot = component<SplitRootProps>(({ props, slots, emit }) => {
             data-part="root"
             {...variantAttrs(props)}
             data-show={props.show}
-            style={{ '--split-size': `${size.value}px` }}
+            style={{ '--mail-split-size': `${size.value}px` }}
         >
             {slots.default?.()}
         </div>

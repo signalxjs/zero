@@ -38,6 +38,21 @@ describe('defineAnatomy', () => {
             .toBe('[data-scope="acme-row"][data-part="root"][data-selected][data-x-unread]');
     });
 
+    it('emits runtimeProperties only when there are some, like models (#456)', () => {
+        // Absent, never empty: the manifest schema holds the key to
+        // `minItems: 1` (validated in zero-kit's schemas suite).
+        expect(a.toJSON()).not.toHaveProperty('runtimeProperties');
+        expect(defineAnatomy('demo', { root: { element: 'div' } }, { runtimeProperties: [] }).toJSON())
+            .not.toHaveProperty('runtimeProperties');
+        const declared = ['--demo-count'] as const;
+        const withRuntime = defineAnatomy('demo', { root: { element: 'div' } }, { runtimeProperties: declared });
+        expect(withRuntime.runtimeProperties).toEqual(['--demo-count']);
+        const json = withRuntime.toJSON();
+        expect(json.runtimeProperties).toEqual(['--demo-count']);
+        // A copy: the JSON is a snapshot, not a view onto the declaration.
+        expect(json.runtimeProperties).not.toBe(declared);
+    });
+
     describe('pseudo parts', () => {
         const withPseudo = defineAnatomy('demo', {
             popup: { element: 'dialog', states: ['open', 'closed'] },
@@ -213,11 +228,12 @@ describe('anatomy registry', () => {
         // Every part the runtime stamps `data-placement` on, and no other:
         // the six anchored-position popups, toast's viewport/root pair, and
         // the content-tier parts that anchor along an axis (#334), and
-        // input's adornment, which names the control edge it sits at (#281),
+        // input's adornment and affix, which name the control edge they sit
+        // at (#281, #467),
         // and divider's label, the rule edge it is set at (#298).
         // The DOM half is asserted by expectAnatomy in each component's tests.
         expect(declared.sort()).toEqual([
-            'chat.root', 'combobox.popup', 'divider.label', 'drawer.panel', 'hover-card.popup', 'indicator.item', 'input.adornment', 'menu.popup', 'menu.sub-popup',
+            'chat.root', 'combobox.popup', 'divider.label', 'drawer.panel', 'hover-card.popup', 'indicator.item', 'input.adornment', 'input.affix', 'menu.popup', 'menu.sub-popup',
             'popover.popup', 'select.popup', 'timeline.content', 'toast.root', 'toast.viewport', 'tooltip.popup',
         ]);
     });

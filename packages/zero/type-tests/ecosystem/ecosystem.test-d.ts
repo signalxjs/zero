@@ -10,6 +10,11 @@
  * full strength for zero-origin scopes.
  */
 import type { ColorValueFor, RecommendedRole, RecommendedSize, SizeScaleFor, ZeroScope, ZeroVocabulary } from '@sigx/zero';
+import { defineAnatomy } from '@sigx/zero/anatomy';
+// The kit's manifest shape, from SOURCE by a relative path: `contract.ts`
+// imports nothing, and the base map resolves `@sigx/zero*` only — a bare
+// `@sigx/zero-kit` would land in the stale dist/ (#316).
+import type { ManifestComponent } from '../../../zero-kit/src/contract.js';
 import type { Equal, MustBeTrue } from '../assert.js';
 
 // The ecosystem scope is IN the augmented vocabulary — its entry narrows
@@ -35,5 +40,15 @@ type _gate = MustBeTrue<
 // the @ts-expect-error, the ecosystem scope leaked into zero's registry.
 // @ts-expect-error — 'ext-stepper' is augmented but is not a ZeroScope
 type _leak = MustBeTrue<keyof ZeroVocabulary['components'] extends ZeroScope ? true : false>;
+
+// A fragment component declaring the runtime properties its runtime writes
+// (#456): what `defineAnatomy` emits is what the kit's manifest takes.
+const counted = defineAnatomy('acme-x', { root: { element: 'div' } }, { runtimeProperties: ['--acme-x-y'] });
+const _asManifest: ManifestComponent = counted.toJSON();
+const _declared: readonly string[] | undefined = counted.runtimeProperties;
+
+// A name is a custom property: the `--` is part of the type.
+// @ts-expect-error — 'acme-x-y' is not `--${string}`
+defineAnatomy('acme-x', { root: { element: 'div' } }, { runtimeProperties: ['acme-x-y'] });
 
 export {};

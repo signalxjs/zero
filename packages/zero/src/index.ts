@@ -17,7 +17,7 @@ export { Tabs, tabsAnatomy, useTabsContext } from './components/tabs/index.js';
 export type { TabsRootProps, TabsListProps, TabsTabProps, TabsPanelProps, TabsContext, TabsActivationMode } from './components/tabs/index.js';
 
 export { Collapsible, collapsibleAnatomy, useCollapsibleContext } from './components/collapsible/index.js';
-export type { CollapsibleRootProps, CollapsibleTriggerProps, CollapsiblePanelProps } from './components/collapsible/index.js';
+export type { CollapsibleRootProps, CollapsibleTriggerProps, CollapsiblePanelProps, CollapsibleIndicatorProps } from './components/collapsible/index.js';
 
 export { Switch, switchAnatomy } from './components/switch/index.js';
 export type { SwitchRootProps } from './components/switch/index.js';
@@ -125,7 +125,7 @@ export type {
 } from './components/slider/index.js';
 
 export { Accordion, accordionAnatomy, useAccordionContext } from './components/accordion/index.js';
-export type { AccordionRootProps, AccordionItemProps, AccordionTriggerProps, AccordionPanelProps } from './components/accordion/index.js';
+export type { AccordionRootProps, AccordionItemProps, AccordionTriggerProps, AccordionPanelProps, AccordionIndicatorProps } from './components/accordion/index.js';
 
 export { Select, selectAnatomy, useSelectContext, useSelectGroupContext } from './components/select/index.js';
 export type {
@@ -176,7 +176,7 @@ export { Toggle, toggleAnatomy } from './components/toggle/index.js';
 export type { ToggleRootProps } from './components/toggle/index.js';
 
 export { ToggleGroup, toggleGroupAnatomy, useToggleGroupContext } from './components/toggle-group/index.js';
-export type { ToggleGroupRootProps, ToggleGroupItemProps } from './components/toggle-group/index.js';
+export type { ToggleGroupRootProps, ToggleGroupItemProps, ToggleGroupItemIndicatorProps } from './components/toggle-group/index.js';
 
 export { NumberInput, numberInputAnatomy, useNumberInputContext } from './components/number-input/index.js';
 export type {
@@ -244,6 +244,7 @@ export type {
     InputControlProps,
     InputInputProps,
     InputAdornmentProps,
+    InputAffixProps,
     InputClearTriggerProps,
     InputVisibilityTriggerProps,
     InputHandle,

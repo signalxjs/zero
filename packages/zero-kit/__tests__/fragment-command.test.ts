@@ -292,6 +292,43 @@ describe('checkFragment', () => {
         expect(warnings(result).join('\n')).toMatch(/not lynx-clean/);
     });
 
+    it("reports a runtime property outside the scope's prefix, from the merge (#456)", () => {
+        const misprefixed = defineAnatomy('acme-stepper', {
+            'root': { element: 'div' },
+            'item': { element: 'button', parent: 'root', states: ['active', 'inactive'] },
+        }, { runtimeProperties: ['--stepper-count'] });
+        const result = checkFragment(input({
+            module: { fragment: fragment({ components: [misprefixed.toJSON()] as ManifestComponent[] }), recipes: [recipe] },
+        }));
+        expect(errors(result).join('\n')).toMatch(/"--stepper-count" does not start with "--acme-stepper-"/);
+    });
+
+    it("warns that a pack reading its own declared runtime property in a shared section is not lynx-clean (#456)", () => {
+        const counted = defineAnatomy('acme-stepper', {
+            'root': { element: 'div' },
+            'item': { element: 'button', parent: 'root', states: ['active', 'inactive'] },
+        }, { runtimeProperties: ['--acme-stepper-count'] });
+        const grid: RecipeInput = {
+            ...recipe,
+            parts: { ...recipe.parts, root: { base: { display: 'grid', gridTemplateColumns: 'repeat(var(--acme-stepper-count), 1fr)' } } },
+        };
+        const result = checkFragment(input({
+            module: { fragment: fragment({ components: [counted.toJSON()] as ManifestComponent[] }), recipes: [grid] },
+        }));
+        expect(errors(result)).toEqual([]);
+        expect(warnings(result).join('\n')).toMatch(/not lynx-clean/);
+        // Under targets.web it reads bare and costs adopters nothing.
+        const webOnly: RecipeInput = {
+            ...recipe,
+            targets: { web: { parts: { root: { base: { display: 'grid', gridTemplateColumns: 'repeat(var(--acme-stepper-count), 1fr)' } } } } },
+        };
+        const clean = checkFragment(input({
+            module: { fragment: fragment({ components: [counted.toJSON()] as ManifestComponent[] }), recipes: [webOnly] },
+        }));
+        expect(errors(clean)).toEqual([]);
+        expect(warnings(clean).join('\n')).not.toMatch(/not lynx-clean/);
+    });
+
     it('lets a pack read the standard token vocabulary bare on the lynx probe (#158)', () => {
         // Every design system defines --space-*, --font-*, … — so a recipe in
         // the recommended grammar reads them without a fallback. The probe

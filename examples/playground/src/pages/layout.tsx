@@ -144,6 +144,40 @@ const LayoutDemos = component(() => () => (
             <span>Sep 12</span>
         </Row>
 
+        <h3>Fill the height that's left</h3>
+        <p>
+            A <code>Row</code> or <code>Col</code> takes <code>grow</code>{' '}
+            itself (#459): a growing <code>Stack.Item</code> wrapper cannot
+            hand its height on to a stack inside it. The growing row takes
+            only what the header leaves, and may shrink below its content, so
+            the region inside it scrolls rather than pushing the column taller.
+            The header does not grow, so it keeps its content height.
+        </p>
+        {/* Bounded by an inline height so there is a "rest" to fill; an app
+            shell would bound it by the viewport instead. */}
+        <Col gap="sm" pad="sm" asChild>
+            {(c: PartProps) => (
+                <div {...c} class={BOUND} style="block-size: 12rem">
+                    <Row gap="sm" align="center" justify="between">
+                        <strong>Inbox, fill demo</strong>
+                        <Cell>12 unread</Cell>
+                    </Row>
+                    <Row class={BOUND} grow>
+                        <Stack.Item grow asChild>
+                            {(p: PartProps) => (
+                                <div {...p} tabIndex={0} role="region" aria-label="Messages" style="overflow: auto">
+                                    {Array.from({ length: 20 }, (_, i) => <p>Message {i + 1}: a line of the list that scrolls.</p>)}
+                                </div>
+                            )}
+                        </Stack.Item>
+                    </Row>
+                </div>
+            )}
+        </Col>
+        <p>
+            <code>{'<Col><Row>…header…</Row><Row grow>…scrolls…</Row></Col>'}</code>, the Col bounded to 12rem.
+        </p>
+
         <h3>Responsive</h3>
         <p>
             A per-instance value per breakpoint —{' '}

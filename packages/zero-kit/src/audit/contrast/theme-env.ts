@@ -37,6 +37,13 @@ export interface ThemeEnv {
      * soft tints are baked.
      */
     props: Record<string, string>;
+    /**
+     * The runtime-published names a bare `var()` may read — an unfallen-back
+     * reference to one is `runtime-property`, not `unresolved-var`. The
+     * matrix sets `runtimePropertiesOf(manifest)` so a fragment's declared
+     * names count (#456); absent, zero's own `RUNTIME_PROPERTIES`.
+     */
+    runtime?: ReadonlySet<string>;
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- the same variance

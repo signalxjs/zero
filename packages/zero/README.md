@@ -233,13 +233,23 @@ keystroke a `lazy` or `debounce` model has not taken yet already clears it.
 It is kept off the native element on purpose: `:placeholder-shown` needs a
 `placeholder` attribute to match at all, and re-rendering the native
 element per keystroke would drop a pending `debounce`.
+A `Field.Root` holding one of these controls, or a Select, mirrors the flag
+onto its own `root` (#469), so a skin styles a `Field.Label` from its own
+field instead of a `:has()` into the control. It is set from mount on, since
+the control reports itself after the root renders; server markup carries
+none, and a field around a control with no notion of empty (a checkbox, a
+slider) never has it.
 
-**Input's control holds three affordances (#281).** `Input.Adornment`
-(part `adornment`, `placement="start" | "end"` → `data-placement`) puts
-consumer content — an icon, a unit, a prefix — at a logical edge of the
-control; a press on it that lands on nothing interactive focuses the input
-and keeps its caret. `aria-hidden` is not forced: whether it speaks is the
-app's call. `Input.ClearTrigger` (part `clear-trigger`) empties the value
+**Input's control holds the affordances (#281).** `Input.Adornment`
+(part `adornment`, `placement="start" | "end"` → `data-placement`) puts an
+icon at a logical edge of the control, and `Input.Affix` (part `affix`, the
+same `placement`) puts prefix or suffix text there — `https://`, `.com`,
+`kg` (#467). They are two parts because a design system lays them out
+apart: Material centres an icon in the box and moves a resting label past a
+leading one, but sets affix text on the input's text line, leaves the label
+where it is, and shows the affix only once the label has floated. A press
+on either that lands on nothing interactive focuses the input and keeps its
+caret. `aria-hidden` is not forced: whether it speaks is the app's call. `Input.ClearTrigger` (part `clear-trigger`) empties the value
 the way typing would — the model writes, `valueChange` fires, and an
 `input` event reaches the app's own listeners — then focuses the input. It
 is out of the tab order (`tabindex="-1"`), points at the input through
@@ -267,6 +277,15 @@ so they flip with the reading direction.
         <Input.Input />
         <Input.ClearTrigger />
         <Input.VisibilityTrigger />
+    </Input.Control>
+</Input.Root>
+
+<Input.Root type="url" model={() => state.site}>
+    <Input.Label>Website</Input.Label>
+    <Input.Control>
+        <Input.Affix placement="start">https://</Input.Affix>
+        <Input.Input />
+        <Input.Affix placement="end">.com</Input.Affix>
     </Input.Control>
 </Input.Root>
 ```
@@ -541,6 +560,34 @@ documented alternative. A design system collapses the closed panel itself
 `display: none`, so the box stays) and animates the open on the panel, since
 there is no `::details-content`; all six bundled skins do, and reset the
 UA button paint a `<summary>` never had. Accordion has no such mode yet.
+
+**Optional marks: a check in a toggle item, a chevron in a disclosure
+trigger** (#437). `ToggleGroup.ItemIndicator`, placed inside a
+`ToggleGroup.Item`, renders `toggle-group.item-indicator` — an empty,
+`aria-hidden` span whose `data-state` mirrors its item's `on|off`.
+`Collapsible.Indicator` and `Accordion.Indicator`, placed inside the
+trigger, render each scope's `indicator` the same way with `open|closed`.
+The design system draws the mark (a check before the label, a chevron that
+turns), so a skin whose items or triggers already spend both
+pseudo-elements — a state layer and a ripple — still has a slot for it;
+children (an icon) are the app's own. None is rendered unless the app
+places it, so a skin keeps the item or trigger itself legible without one.
+`collapsible.indicator` declares `parent: 'root'` rather than the trigger:
+the trigger is absorbable (it may lend its bag to a host with its own
+anatomy), so it can never be a declared container — `paint.host` measures
+the mark on the trigger it sits in.
+
+```tsx
+<ToggleGroup.Root label="View" defaultValue="week">
+    <ToggleGroup.Item value="day"><ToggleGroup.ItemIndicator />Day</ToggleGroup.Item>
+    <ToggleGroup.Item value="week"><ToggleGroup.ItemIndicator />Week</ToggleGroup.Item>
+</ToggleGroup.Root>
+
+<Collapsible.Root>
+    <Collapsible.Trigger>Release notes<Collapsible.Indicator /></Collapsible.Trigger>
+    <Collapsible.Panel>…</Collapsible.Panel>
+</Collapsible.Root>
+```
 
 **A Tabs indicator can slide** (#283). `Tabs.Indicator` is an optional,
 `aria-hidden` span placed inside `Tabs.List`. It publishes the active tab's
@@ -1961,6 +2008,23 @@ their content:
 </Row>
 ```
 
+**A Row or Col can grow itself** (#459). `grow` on `Stack`, `Row` or
+`Col` makes a nested stack take what its parent stack has left: a growing
+`Stack.Item` wrapper cannot hand its height on to a stack inside it.
+Anything that grows (a root or an item) also gets `min-block-size: 0`, so
+it can shrink below its content and a region inside it scrolls instead of
+pushing the column taller. The floor is keyed on `grow` only, so a header
+Row that does not grow keeps its content height:
+
+```tsx
+<Col class="screen">{/* .screen { block-size: 100dvh } in app CSS */}
+    <Row align="center">…toolbar…</Row>
+    <Row grow>
+        <Stack.Item grow asChild>{(p) => <div {...p} class="scroll">…</div>}</Stack.Item>
+    </Row>
+</Col>
+```
+
 **The link button.** A link that looks like a button is `asChild` over an
 `<a>`. It is a real link, with middle-click, "copy link" and the right role,
 and it wears the button's anatomy and recipe:
@@ -2670,7 +2734,12 @@ same behaviors, held to the same conformance assertion:
   alongside `loading` for the wait before it starts and `complete|error`
   for the outcome. A sortable table column has the sort family,
   `ascending|descending|none` — `aria-sort`'s own spellings (`asc`, `desc`
-  and `unsorted` are the rejected synonyms). `FRAGMENT_VERSION` is the version a
+  and `unsorted` are the rejected synonyms). A component whose runtime writes
+  CSS custom properties inline declares them as `runtimeProperties` (the third
+  argument, beside `models`: `runtimeProperties: ['--ext-stepper-count']`),
+  each under its own scope's prefix — `mergeManifests` enforces the prefix on
+  a fragment — and a recipe may then read them bare; they are web-only, so a
+  pack reads them in `targets.web` (#456). `FRAGMENT_VERSION` is the version a
   fragment declares — here so a package's `./fragment` entry can read it at
   runtime without the kit, which is only its devDependency.
 - Domain flags (#457) are the one flag family an ecosystem scope names

@@ -498,10 +498,13 @@ export function indicatorFindings(c: LegibilityCase, waived?: AuditWaiver[]): Au
  * takes the control and its marker in as one thing. All six design systems
  * differentiate `tree-view.branch-trigger` that way and none of them touch the
  * trigger itself, which is correct and must not be reported. Collapsible and
- * accordion declare no indicator part at all, so for them there is nowhere else
- * for the signal to go — which is precisely why #220 was a bug and not a style.
- * The `indicator` rule independently forces that indicator to earn it, so this
- * is not a loophole: it is a hand-off to a stricter rule.
+ * accordion declared no indicator part at all when #220 was found, so there
+ * was nowhere else for the signal to go — which is precisely why it was a bug
+ * and not a style. Since #437 both declare an optional `indicator` inside the
+ * trigger, and the design systems in this repo still differentiate the
+ * trigger itself as well: an app that renders no indicator is left with the
+ * trigger alone. The `indicator` rule independently forces an indicator to
+ * earn it, so this is not a loophole: it is a hand-off to a stricter rule.
  */
 export function disclosureFindings(c: LegibilityCase, waived?: AuditWaiver[]): AuditFinding[] {
     // An overlay component: the revealed thing is not under the control.

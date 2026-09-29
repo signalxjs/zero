@@ -46,13 +46,10 @@ const ALLOWED_UNMEASURED: Record<string, UnmeasuredReason[]> = {
     // `+active` is `filter: brightness(0.92)`; the control fills carry daisy's
     // noise texture as a second background layer; the star preview brightens.
     daisyui: ['filter-or-blend', 'gradient-or-image'],
-    // M3's floating label (#416) is a parent reading its child: a Field.Root
-    // over a text field positions and inks its label from the child's state
-    // (`:has([data-placeholder])`, the child's variant), and a resting label
-    // hides the select's placeholder text the same way. The matcher answers
-    // `:has()` on a node with children as unknown — 5 of ~4,800 cells, the
-    // field label and the select value (#469).
-    material: ['unsupported-selector'],
+    // M3's floating label (#416) reads its field's `data-placeholder` (#469)
+    // and answers "holds a text field" through `:has()`, which the matcher
+    // evaluates against the probe chain's own nodes — every cell measured.
+    material: [],
     brutalist: [],
     // The half star is a hard-stop gradient on `::before`.
     heroui: ['gradient-or-image'],
@@ -96,6 +93,16 @@ describe('the six skins clear the floors statically', () => {
         expect(select.length).toBeGreaterThan(100);
         expect(select.some((c) => c.part === 'item' && c.axes?.color === 'error')).toBe(true);
     });
+
+    it("#469: material's floating-label cells are measured — the field label and the select value", () => {
+        const result = auditDesignSystem(materialDS, manifest, { rules: CONTRAST });
+        for (const theme of result.contrast.themes) {
+            const cells = theme.cells.filter((c) => (c.scope === 'field' && c.part === 'label') || (c.scope === 'select' && c.part === 'value'));
+            expect(cells.length, theme.name).toBeGreaterThan(0);
+            const unmeasured = cells.filter((c) => c.verdict === 'unmeasured').map((c) => `${c.key}: ${c.reason} ${c.detail ?? ''}`);
+            expect(unmeasured, theme.name).toEqual([]);
+        }
+    }, MATRIX_TIMEOUT);
 
     it('a theme filter measures only that theme', () => {
         const result = auditDesignSystem(basicDS, manifest, { rules: CONTRAST, themes: ['basic-dark'] });
@@ -145,6 +152,13 @@ describe('the cell product is the browser spec\'s', () => {
             // Positioned presence surfaces pin open like popups (#292): a
             // toast's `closed` is its enter/exit frame, never a resting look.
             'toast/indicator': ['viewport=open', 'root=open'],
+            // #437: the optional marks. A trigger's `open` is a resting
+            // look, never pinned; collapsible's mark reaches its trigger
+            // through `paint.host` (the trigger is absorbable, so never a
+            // declared parent).
+            'toggle-group/item-indicator': ['root', 'item'],
+            'collapsible/indicator': ['root', 'trigger'],
+            'accordion/indicator': ['root', 'item', 'trigger'],
         };
         const derived = Object.fromEntries(indicatorChains(manifest.components).map(({ spec, ancestors }) => [`${spec.scope}/${spec.part}`, ancestors]));
         expect(derived).toEqual(hand);
@@ -157,6 +171,7 @@ describe('the cell product is the browser spec\'s', () => {
             .map(({ scope, part, ...rest }) => [`${scope}/${part}`, rest]));
         expect(facts).toEqual({
             'menu/item-indicator': { host: 'checkbox-item' },
+            'collapsible/indicator': { host: 'trigger' },
             'select/indicator': { glyph: '▾' },
             'select/item-indicator': { glyph: '✓', only: 'selected' },
             'combobox/item-indicator': { glyph: '✓', only: 'selected' },
@@ -437,6 +452,20 @@ describe('contrast/unmeasured — never a silent pass', () => {
         // `info` never counts against the design system.
         expect(result.summary.errors).toBe(0);
         expect(result.summary.info).toBe(1);
+    });
+
+    it("reads a manifest-declared runtime property as runtime-property, not unresolved-var (#456)", () => {
+        // The matrix hands the cascade `runtimePropertiesOf(manifest)`, so a
+        // name a component declares (as a fragment's do) is known to be the
+        // runtime's to write.
+        const declaring = {
+            components: manifest.components.map((c) => (c.scope === 'kbd' ? { ...c, runtimeProperties: ['--kbd-ink'] } : c)),
+        };
+        const recipe: RecipeInput = { component: 'kbd', parts: { root: { base: { color: 'var(--kbd-ink)' } } } };
+        const reasons = (m: typeof manifest) => [...new Set(auditDesignSystem(fixture([recipe]), m, { rules: CONTRAST })
+            .contrast.themes[0]!.cells.filter((c) => c.scope === 'kbd').map((c) => c.reason))];
+        expect(reasons(declaring)).toEqual(['runtime-property']);
+        expect(reasons(manifest)).toEqual(['unresolved-var']);
     });
 
     it('the chained cell budget is a ceiling, tripped rather than silently applied', () => {

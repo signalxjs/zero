@@ -462,7 +462,8 @@ const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => (
  * input while the field is empty and unfocused, and floats to the top edge
  * (filled) or onto the outline (outlined) otherwise. "Empty" is
  * `data-placeholder`, which the runtime stamps on the text controls' roots
- * and on the select trigger (#416).
+ * and on the select trigger (#416), and mirrors onto a `Field.Root` holding
+ * one (#469).
  */
 
 /** The text-field scopes, by the root a `Field.Root` would hold. */
@@ -1139,21 +1140,21 @@ export const tabs: RecipeInput = {
 // component stylesheets, so each must name (and declare) its own keyframe.
 //
 // ── WHY THE TRIGGER ITSELF HAS TO SAY IT (#220) ───────────────────────────
-// The collapsible and accordion anatomies declare `trigger` and `panel` and
-// no `indicator`, so there is no part whose job is to point. `justify-content:
-// space-between` reserves the trailing slot an app can fill with its own
-// glyph, but an app that fills nothing — the playground included — is left
-// with the trigger's own paint as the only signal. It used to be `open: {}`
-// and `closed: {}`, both empty, so an expanded header was byte-identical to a
-// collapsed one.
+// Until #437 the collapsible and accordion anatomies declared `trigger` and
+// `panel` and no `indicator`, so there was no part whose job is to point, and
+// the trigger's own paint was the only signal. Now each declares an optional
+// `indicator` inside the trigger, and this skin draws M3's expand chevron
+// there (`disclosureIndicator`, below) — but it stays OPTIONAL: an app that
+// renders none (the trigger's `justify-content: space-between` leaves the
+// trailing slot to it) still has to read open from closed. So the trigger
+// keeps saying it itself.
 //
 // ── WHAT CAN CARRY IT ──────────────────────────────────────────────────────
 // Not a pseudo-element: `pressable()` owns BOTH — `::before` is the MD3 state
 // layer and `::after` is the ink ripple — and it is the most-shared helper in
-// this package (~26 call sites), so a chevron here would mean either taking a
-// pseudo-element off every pressable part or forking the helper. Not weight
-// either: this vocabulary maps `medium` and `semibold` to the same 500, so a
-// bump to `--weight-semibold` would compile to no change at all.
+// this package (~26 call sites). Not weight either: this vocabulary maps
+// `medium` and `semibold` to the same 500, so a bump to `--weight-semibold`
+// would compile to no change at all.
 //
 // What is left is the element's own box, and MD3 already has a word for it:
 // the SELECTED CONTAINER. An expanded header takes the tonal container fill
@@ -1197,6 +1198,36 @@ const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable
         },
     },
 });
+
+/** M3's expand icon (Material Symbols `expand_more`), drawn as a mask in `currentColor`. */
+const EXPAND_MASK =
+    'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E'
+    + '%3Cpath d=\'M12 15.4 6 9.4 7.4 8l4.6 4.6L16.6 8 18 9.4z\'/%3E%3C/svg%3E") center / contain no-repeat';
+
+/**
+ * The disclosure chevron (#437): `collapsible.indicator` and
+ * `accordion.indicator`, an app's optional mark inside the trigger. M3's
+ * 24dp `expand_more` in the trigger's ink, turned half a turn while open —
+ * the expanded list item's `expand_less`, reached by motion rather than a
+ * glyph swap. Symmetric, so nothing mirrors under RTL.
+ */
+const disclosureIndicator: PartStyles = {
+    base: {
+        flex: 'none',
+        inlineSize: dp(24),
+        blockSize: dp(24),
+        background: 'currentColor',
+        mask: EXPAND_MASK,
+        transition: motion('rotate'),
+    },
+    states: { open: { rotate: '180deg' }, closed: {} },
+    at: {
+        'reduced-motion': { base: { transition: 'none' } },
+        // A mask paints its box's background, which forced colours revalue —
+        // opt out so the chevron stays the trigger's (forced) ink.
+        'forced-colors': { base: { forcedColorAdjust: 'none' } },
+    },
+};
 
 /** The selected-container pair, per role — what `variants.color` rebinds. */
 const disclosureColors = (): Record<string, Record<string, PartStyles>> =>
@@ -1257,6 +1288,7 @@ export const collapsible: RecipeInput = withNonNative({
             states: { open: {}, closed: {} },
         }),
         trigger: disclosureTrigger('collapsible'),
+        indicator: disclosureIndicator,
         panel: {
             base: { padding: '0 var(--space-md) var(--space-md)', lineHeight: 'var(--leading-normal)' },
             states: { open: {}, closed: {} },
@@ -1291,6 +1323,7 @@ export const accordion: RecipeInput = {
             selectors: { '[data-scope="accordion"][data-part="root"][data-orientation="horizontal"] > &': { flex: '1 1 0', minInlineSize: '0' } },
         }),
         trigger: disclosureTrigger('accordion'),
+        indicator: disclosureIndicator,
         panel: {
             base: { padding: '0 var(--space-md) var(--space-md)', lineHeight: 'var(--leading-normal)' },
             states: { open: {}, closed: {} },
@@ -2767,9 +2800,10 @@ export const field: RecipeInput = {
             selectors: {
                 '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' },
                 // Over a text field, the M3 floating label: resting while the
-                // field holds no value (`data-placeholder` anywhere inside —
-                // a text root, or the select trigger) and is unfocused.
-                ...tfLabelRules(FIELD_HOST, ':is(:focus-within, :not(:has([data-placeholder])))'),
+                // field holds no value and is unfocused. `Field.Root` mirrors
+                // its control's emptiness as its own `data-placeholder`
+                // (#469), so the label reads its field, not the control.
+                ...tfLabelRules(FIELD_HOST, ':is(:focus-within, :not([data-placeholder]))'),
                 [`${FIELD_HOST} > &[data-required]::after`]: { color: 'inherit' },
             },
             at: { 'reduced-motion': { selectors: { [`${FIELD_HOST} > &`]: { transition: 'none' } } } },
@@ -4048,26 +4082,6 @@ export const toggle: RecipeInput = {
     defaultVariants: { variant: 'filled', size: 'sm', shape: 'round' },
 };
 
-/**
- * `pressable()`'s state layer without its ripple, which frees `::after` for
- * a mark of the part's own. The segmented button needs that: M3 draws its
- * selected check in front of the label, and `toggle-group.item` declares no
- * indicator part to draw it in (#437).
- */
-const stateLayerOnly = (ink: string): PartStyles => {
-    const layer = pressable('unused', ink);
-    const {
-        '&::after': _ripple,
-        '&[data-press-animating]::after': _wave,
-        ...selectors
-    } = layer.selectors ?? {};
-    return {
-        ...layer,
-        selectors,
-        at: { ...layer.at, 'forced-colors': { selectors: { '&::before': { display: 'none' } } } },
-    };
-};
-
 /** M3's check icon (Material Symbols `check`), drawn as a mask in `currentColor`. */
 const CHECK_MASK =
     'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E'
@@ -4076,9 +4090,10 @@ const CHECK_MASK =
 /**
  * M3's segmented button (#415): an outlined pill of connected segments at
  * 40dp, the selected ones on secondary-container with a check sliding in
- * before the label. The check is `::after` placed first with `order`, grown
- * from zero width so the label moves over rather than jumping; the segment
- * keeps M3's state layer and gives up the ripple for it.
+ * before the label. The check is the `item-indicator` part (#437), grown
+ * from zero width so the label moves over rather than jumping — which leaves
+ * both of the segment's pseudo-elements to `pressable()`: M3's state layer
+ * and its ripple.
  */
 export const toggleGroup: RecipeInput = {
     component: 'toggle-group',
@@ -4109,7 +4124,7 @@ export const toggleGroup: RecipeInput = {
                 '&[data-orientation="vertical"]': { flexDirection: 'column', borderRadius: 'var(--radius-large)' },
             },
         },
-        item: withPresence(stateLayerOnly('var(--toggle-group-ink)'), {
+        item: withPresence(pressable('toggle-group', 'var(--toggle-group-ink)'), {
             base: {
                 appearance: 'none',
                 boxSizing: 'border-box',
@@ -4152,38 +4167,47 @@ export const toggleGroup: RecipeInput = {
                 '&[data-orientation="vertical"] + &': {
                     borderBlockStart: 'var(--border) solid var(--color-outline)',
                 },
-                // The check: zero-width and cancelling the gap while off,
-                // 18dp and in front of the label while on.
-                '&::after': {
-                    content: '""',
-                    order: '-1',
-                    flex: 'none',
-                    inlineSize: '0',
-                    blockSize: dp(18),
-                    marginInlineEnd: 'calc(var(--space-xs) * -1)',
-                    background: 'currentColor',
-                    mask: CHECK_MASK,
-                    opacity: '0',
-                    transition:
-                        'inline-size var(--duration-short4) var(--ease-emphasized-decelerate), '
-                        + 'margin var(--duration-short4) var(--ease-emphasized-decelerate), '
-                        + 'opacity var(--duration-short2) var(--ease-standard)',
-                },
-                '&[data-state="on"]::after': { inlineSize: dp(18), marginInlineEnd: '0', opacity: '1' },
                 '&[data-state="on"][data-disabled]': {
                     background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
                 },
             },
             at: {
-                'reduced-motion': { selectors: { '&::after': { transition: 'none' } } },
-                // A mask paints its box's background, which forced colours
-                // revalue — opt the check out so it stays the item's ink.
                 'forced-colors': {
                     states: { on: { background: 'Highlight', color: 'HighlightText' } },
-                    selectors: { '&::after': { forcedColorAdjust: 'none' } },
                 },
             },
         }),
+        // The check (#437): zero-width and cancelling the item's gap while
+        // off, 18dp in front of the label while on — placed first by the
+        // app, it slides in as the label moves over.
+        'item-indicator': {
+            base: {
+                // Leading wherever the app placed it: M3 draws the check
+                // before the label.
+                order: '-1',
+                flex: 'none',
+                inlineSize: '0',
+                blockSize: dp(18),
+                marginInlineEnd: 'calc(var(--space-xs) * -1)',
+                background: 'currentColor',
+                mask: CHECK_MASK,
+                opacity: '0',
+                transition:
+                    'inline-size var(--duration-short4) var(--ease-emphasized-decelerate), '
+                    + 'margin var(--duration-short4) var(--ease-emphasized-decelerate), '
+                    + 'opacity var(--duration-short2) var(--ease-standard)',
+            },
+            states: {
+                on: { inlineSize: dp(18), marginInlineEnd: '0', opacity: '1' },
+                off: {},
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+                // A mask paints its box's background, which forced colours
+                // revalue — opt the check out so it stays the item's ink.
+                'forced-colors': { base: { forcedColorAdjust: 'none' } },
+            },
+        },
     },
     variants: {
         // M3 densities: the segment's height steps, the frame follows.
@@ -4207,6 +4231,7 @@ export const toggleGroup: RecipeInput = {
             },
         ])),
     },
+    keyframes: rippleKeyframes('toggle-group'),
     defaultVariants: { color: 'secondary' },
 };
 
@@ -4710,41 +4735,69 @@ export const input: RecipeInput = {
             selectors: {
                 '&::placeholder': { color: 'var(--color-surface-variant-content)' },
                 ...tfRestingPlaceholder('[data-scope="input"][data-part="root"]', '&::placeholder'),
+                // Beside an affix the text keeps M3's 2dp from it; the affix
+                // carries the 16dp from the container edge (#467).
+                '[data-scope="input"][data-part="control"]:has(> [data-part="affix"][data-placement="start"]) > &': { paddingInlineStart: dp(2) },
+                '[data-scope="input"][data-part="control"]:has(> [data-part="affix"][data-placement="end"]) > &': { paddingInlineEnd: dp(2) },
                 // zero draws its own ClearTrigger and clears on Escape, and Firefox
                 // draws no native clear: hide the engine's cancel button everywhere (#446).
                 '&::-webkit-search-cancel-button': { appearance: 'none', display: 'none' },
                 '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
-        // M3's leading / trailing icon (and prefix / suffix text): 24dp in
-        // on-surface-variant, 12dp from the container edge, ordered logically.
+        // M3's leading / trailing icon: 24dp in on-surface-variant, centred
+        // in the container 12dp from its edge, ordered logically. A leading
+        // one moves the resting label past it (`tfRoot`).
         adornment: {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                alignSelf: 'center',
                 flex: 'none',
                 minInlineSize: dp(24),
+                blockSize: dp(24),
                 color: affixInk,
-                // Prefix and suffix text in M3's body-large, on the input's
-                // own text band (a labelled filled field sets it lower); an
-                // svg icon in the 24dp slot, centred in the container. The
-                // anatomy cannot say which one it holds, so the svg decides
-                // (#467).
-                ...type('body-large'),
-                alignSelf: 'stretch',
-                paddingBlockStart: `var(--tf-in-top, calc((var(--tf-height) - ${dp(24)}) / 2))`,
-                paddingBlockEnd: `var(--tf-in-bottom, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+                fontSize: dp(24),
+                lineHeight: 'var(--leading-none)',
             },
             states: { disabled: {} },
             selectors: {
                 '& > svg': { inlineSize: dp(24), blockSize: dp(24) },
-                '&:has(> svg)': { paddingBlock: '0' },
                 '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-sm)' },
                 '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-sm)' },
                 // An error turns the trailing icon error, as M3 does.
                 '[data-invalid] > &[data-placement="end"]': { color: 'var(--color-error)' },
             },
+        },
+        // M3's prefix / suffix text (#467): body-large on the input's own
+        // text line (a labelled filled field sets it lower), 16dp from the
+        // container edge and 2dp from the text. It never moves the label,
+        // and it shows only once the label has floated out of its way —
+        // while a visible label rests in the empty field it keeps its room
+        // but paints nothing, so the text does not jump when it appears.
+        affix: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                alignSelf: 'stretch',
+                flex: 'none',
+                whiteSpace: 'nowrap',
+                color: affixInk,
+                ...type('body-large'),
+                paddingBlockStart: `var(--tf-in-top, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+                paddingBlockEnd: `var(--tf-in-bottom, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+                transition: motion('opacity'),
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
+                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+                [`[data-scope="input"][data-part="root"]${LABELLED}[data-placeholder]:not(:focus-within) &, ${FIELD_HOST}${LABELLED}[data-placeholder]:not(:focus-within) &`]: {
+                    opacity: '0',
+                },
+            },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
         // M3's trailing icon button: a 40dp circle, on-surface-variant, with
         // the 8% state layer on hover.

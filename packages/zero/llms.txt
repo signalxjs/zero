@@ -465,7 +465,7 @@ component renders; the root is called out separately where it carries props.
   controls inside the Legend answer to the fieldsets OUTSIDE (the
   platform's legend exemption). Flags: root disabled/readonly/invalid,
   legend disabled/invalid.
-- Input: Root(model=string, model:visible)/Label/Control/Input/Adornment/ClearTrigger/
+- Input: Root(model=string, model:visible)/Label/Control/Input/Adornment/Affix/ClearTrigger/
   VisibilityTrigger, a single-line text field.
   `type` is text|email|password|search|tel|url only (number is NumberInput;
   the selection and date/time types are not text fields). The model writes
@@ -474,8 +474,10 @@ component renders; the root is called out separately where it carries props.
   <input>. `control` is the field chrome (border/ring/invalid tint), the
   <input> inside it is transparent. NO hidden input: the visible <input> IS
   the form control and carries `name`. AFFORDANCES live in the control:
-  Adornment(placement: start|end → data-placement; consumer content, a
-  press on non-interactive content focuses the input), ClearTrigger(label,
+  Adornment(placement: start|end → data-placement; an ICON, a press on
+  non-interactive content focuses the input), Affix(the same placement and
+  press, for prefix/suffix TEXT — a separate part so a skin lays text and
+  icons out apart, #467), ClearTrigger(label,
   default "Clear"; tabindex=-1, aria-controls the input, rendered only while
   the value is non-empty, disabled while disabled or readonly; empties the
   value like typing — model write, valueChange, an input event — and
@@ -592,7 +594,7 @@ component renders; the root is called out separately where it carries props.
   the radius of the control inside it, so put the item attributes ON the
   control.
 - Stack: Root(orientation, gap/gapX/gapY, pad/padX/padY, align, justify,
-  wrap)/Item(asChild, grow) — the flex row or column an application layout
+  wrap, grow)/Item(asChild, grow) — the flex row or column an application layout
   is made of. Row and Col are the SAME scope with a different default
   orientation, exported as presets: two scopes would mean two recipes and
   two chances for a skin to paint them differently. Prefer them over
@@ -602,7 +604,10 @@ component renders; the root is called out separately where it carries props.
   --space-* ramp (or a breakpoint record), never a length. Item exists only
   so a child can opt into growing, and supports asChild for Join's reason:
   flex-grow applies to the flex ITEM, so a wrapper cannot grow the control
-  inside it. No role — a stack is visual grouping.
+  inside it. Root takes grow too, so a nested Row/Col fills what its parent
+  stack has left (a growing Item wrapper cannot pass its height on); a
+  growing root or item also gets min-block-size: 0, keyed on grow only, so
+  a region inside it can scroll. No role — a stack is visual grouping.
 - Container: Root only(measure, pad/padX/padY) — bounds the page width and
   keeps content off the edges. `measure` is xs|sm|md|lg|xl|prose|full from
   the design system's own --measure-* ramp, a token category of its own
@@ -1165,7 +1170,10 @@ the conformance assertion expectAnatomy (@sigx/zero/testing — throws plain
 Error, any test runner). Convention: vendor-prefix the scope (`acme-…`),
 publish a manifest fragment `{package: "<npm specifier>", components:
 [anatomy.toJSON()]}` and optionally a recipe pack (RecipeInput[] against the
-recommended token grammar). A design system opts in by MERGING the fragment
+recommended token grammar). CSS custom properties the component's runtime
+writes inline are declared as `runtimeProperties` on defineAnatomy, each
+named `--<scope>-…` (mergeManifests enforces it); a recipe reads them bare,
+and they are web-only, so read them in `targets.web`. A design system opts in by MERGING the fragment
 (`mergeManifests(base, fragment)` from @sigx/zero-kit, or `--extra-manifest`
 on zero:build/zero:validate) and writing or adopting a recipe; one that never
 merges it leaves the component unstyled but accessible. ZeroScope stays

@@ -119,7 +119,12 @@ const normProp = (name: string): string => (name.startsWith('--') ? name : `--${
 const EMPTY_RESTRICTED: ReadonlySet<string> = new Set();
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- variance-erased plumbing */
-export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary {
+/**
+ * `runtime` is the runtime-published names a recipe may read bare — zero's
+ * `RUNTIME_PROPERTIES` by default; a build passes `runtimePropertiesOf(manifest)`
+ * so the names an ecosystem fragment declares resolve too (#456).
+ */
+export function tokenVocabulary(tokens: TokensInput<any, any>, runtime: Iterable<string> = RUNTIME_PROPERTIES): TokenVocabulary {
     const names = new Set<string>();
 
     // ── colors, per the declared role vocabulary ──
@@ -165,10 +170,11 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
         }
     }
 
-    // ── runtime-published properties: the zero runtime writes these on
-    // elements (press point, progress/slider percent), so a recipe may
-    // reference them even though no design system declares them ──
-    for (const name of RUNTIME_PROPERTIES) names.add(name);
+    // ── runtime-published properties: the zero runtime (or an ecosystem
+    // component, through its fragment) writes these on elements (press
+    // point, progress/slider percent), so a recipe may reference them even
+    // though no design system declares them ──
+    for (const name of runtime) names.add(name);
 
     // ── medium properties: `@sigx/zero/css` declares these, so a recipe may
     // reference one whether or not this design system overrides it ──
