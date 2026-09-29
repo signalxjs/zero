@@ -142,8 +142,9 @@ describe('state legibility', () => {
         expect(inFlow.sort()).toEqual(['accordion', 'chat-log', 'collapsible', 'input', 'table', 'tree-view']);
         // …and the escape hatch is load-bearing for exactly one of them: every
         // design system differentiates tree-view on `branch-indicator` and none
-        // on `branch-trigger`, while collapsible and accordion have no
-        // indicator part to hand the signal to.
+        // on `branch-trigger`, while collapsible's and accordion's
+        // `indicator` (#437) is optional, so every design system still
+        // differentiates their triggers themselves.
         const tree = CASES.find((c) => c.ds === 'basic' && c.scope === 'tree-view')!;
         expect(disclosureFindings(tree)).toEqual([]);
         expect(ownGroups(tree, 'branch-trigger')
@@ -459,7 +460,9 @@ describe('the in-flow disclosure control', () => {
         expect(disclosureFindings(c)).toHaveLength(1);
         expect(messages(disclosureFindings(c))[0]).toContain('collapsible.trigger');
         expect(messages(disclosureFindings(c))[0]).toContain('"open"/"closed"');
-        expect(messages(disclosureFindings(c))[0]).toContain('no indicator part');
+        // Since #437 the scope declares an optional indicator: the message
+        // names it as the other place the signal may live.
+        expect(messages(disclosureFindings(c))[0]).toContain('declares "indicator"');
     });
 
     it('the false green: assertion A clears what assertion C reports', () => {

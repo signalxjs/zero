@@ -137,7 +137,9 @@ describe('state-legibility through the audit', () => {
         const ds = fixture([{ component: 'collapsible', parts: { trigger: blindTrigger } }]);
         const [finding] = auditDesignSystem(ds, manifest, { rules: ['state-legibility/disclosure'] }).findings;
         expect(finding?.where).toBe('collapsible.trigger');
-        expect(finding?.message).toContain('no indicator part');
+        // Since #437 the scope declares an optional indicator, and the
+        // message points there as the other place the signal may live.
+        expect(finding?.message).toContain('declares "indicator"');
     });
 
     it('accepts the twin whose control says which way it points', () => {
