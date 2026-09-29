@@ -64,7 +64,11 @@
   CARRIER part (root, else the first part). A part that declares `carries`
   in its anatomy (timeline's marker, steps' item: ['color']) re-carries
   that axis: it takes the prop and renders the attribute itself, and the
-  nearest carrier wins.
+  nearest carrier wins. A part that declares `mirrorsAxes` (the overlay
+  popups, #514) takes NO prop: the runtime copies every axis attribute the
+  carrier (the Trigger) renders onto it, and the compiler anchors axis
+  rules for it and the parts inside it there — so `<Dialog.Trigger
+  variant="full-screen">` styles the dialog itself.
 - Layout attributes render under the data-l- prefix from a CLOSED
   vocabulary zero owns (gap, gap-x, gap-y, pad, pad-x, pad-y, align,
   justify, wrap, cols, span, track, grow, axis, space). A part declares
@@ -1133,8 +1137,9 @@ RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
 Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
 Table, FileUpload, Carousel, Swap, Countdown, Diff and TreeView;
 that is every component. Where the Root renders a fragment (a
-dialog/menu/popover/tooltip/hover-card) the props live on the Trigger, which renders the
-carrier part the compiled axis selectors anchor on, and Toast routes the
+dialog/menu/popover/tooltip/hover-card/drawer) the props live on the Trigger, which renders the
+carrier part, and the popup mirrors them (#514: every axis attribute the
+Trigger renders is copied onto it, so a recipe can vary the surface), and Toast routes the
 queue's `toast({ color })` through the same pass-through with an explicit prop
 on a composed Root winning. The axes pass through as
 data-* and zero attaches no styling to them. Button is the worked example:
