@@ -81,6 +81,15 @@
 
 ### Changed
 
+- **Stack/Row/Col take `grow` (part of #459).** `stack.root`'s layout
+  attributes gain `grow`, so `<Row grow>` or `<Col grow>` nested in another
+  stack takes the room its parent has left. A growing `Stack.Item` wrapper
+  could not do this, because it cannot hand its height on to the stack
+  inside it. A boolean like the item's: `false` renders no attribute. The
+  design systems give a growing root or item `min-block-size: 0`, keyed on
+  `grow` only, so a region inside it scrolls and a non-growing header keeps
+  its content height. The README documents the pattern.
+
 - **`Stack.Item grow` grows from zero (#454).** The design systems now
   compile `grow` to `flex-grow: 1` plus `flex-basis: 0`, like Tailwind's
   `flex-1`, so a truncated grow item gives way to a fixed sibling instead

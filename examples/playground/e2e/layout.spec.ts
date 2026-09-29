@@ -16,7 +16,7 @@
  */
 import { expect, test } from '@playwright/test';
 import { bootPage } from './nav';
-import { rootLabelled, settledBox } from './demo';
+import { partsOf, rootLabelled, settledBox } from './demo';
 
 /**
  * How many tracks a grid computes to.
@@ -326,6 +326,53 @@ test.describe('the layout tier resolves through the design system', () => {
         expect(dateBox.width, 'the date keeps its full width').toBeCloseTo(oneLine.width, 0);
         // …and the grow item is exactly the row less the date and the gap.
         expect(Math.abs(itemBox.width - (rowBox.width - dateBox.width - gap))).toBeLessThanOrEqual(1);
+    });
+
+    test('a growing Row fills the height a bounded Col has left, without squashing its header', async ({ page }) => {
+        // #459: `grow` on a stack root. The Col is bounded by an inline
+        // height; its header Row keeps its content height, and the `Row
+        // grow` takes exactly the rest — from a zero basis, with the
+        // grow-keyed `min-block-size: 0` letting it shrink below its long
+        // content so the region inside scrolls instead. Both extreme skins,
+        // since the gap and padding rungs are each skin's own.
+        for (const ds of [TIGHT, COARSE]) {
+            const fresh = await page.context().newPage();
+            await bootPage(fresh, 'layout', ds);
+            await fresh.setViewportSize({ width: 1280, height: 900 });
+            const col = rootLabelled(fresh, 'stack', 'Inbox, fill demo')
+                .and(fresh.locator('[data-orientation="vertical"]'));
+            const rows = partsOf(col, 'stack')('root');
+            const header = rows.filter({ hasText: 'Inbox, fill demo' });
+            const grown = rows.and(fresh.locator('[data-l-grow="1"]'));
+
+            const colBox = await settledBox(col, `the bounded col under ${ds}`);
+            const headerBox = await settledBox(header, `the header row under ${ds}`);
+            const grownBox = await settledBox(grown, `the growing row under ${ds}`);
+            const { gap, padEnd, headerFits, regionScrolls } = await col.evaluate((el) => {
+                const cs = getComputedStyle(el);
+                const head = [...el.children].find((c) => !c.hasAttribute('data-l-grow'))!;
+                const region = el.querySelector('[role="region"]')!;
+                return {
+                    gap: parseFloat(cs.rowGap),
+                    padEnd: parseFloat(cs.paddingBottom) + parseFloat(cs.borderBottomWidth),
+                    headerFits: head.clientHeight >= head.scrollHeight,
+                    regionScrolls: region.scrollHeight > region.clientHeight,
+                };
+            });
+
+            // Not vacuous: the content really is taller than the room left.
+            expect(regionScrolls, `${ds}: the region inside scrolls`).toBe(true);
+            // The header keeps its content height…
+            expect(headerFits, `${ds}: the header is not squashed`).toBe(true);
+            // …the growing row starts right below it…
+            expect(Math.abs(grownBox.y - (headerBox.y + headerBox.height + gap)), `${ds}: top edge`)
+                .toBeLessThanOrEqual(1);
+            // …and ends at the Col's content edge, inside the Col.
+            expect(Math.abs((grownBox.y + grownBox.height) - (colBox.y + colBox.height - padEnd)), `${ds}: bottom edge`)
+                .toBeLessThanOrEqual(1);
+            expect(grownBox.y + grownBox.height).toBeLessThanOrEqual(colBox.y + colBox.height + 1);
+            await fresh.close();
+        }
     });
 
     test('Spacer flexes by default and is fixed when given a step', async ({ page }) => {

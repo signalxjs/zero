@@ -18,6 +18,12 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * `flex-grow` applies to the flex item itself — so the child should carry the
  * part attributes.
  *
+ * `root` takes `grow` too (#459), so a Row or Col nested in another stack can
+ * grow itself. `item` stays for a child that is not a stack, but it cannot
+ * stand in here: a wrapper item that grows cannot hand its height on to the
+ * Row inside it, and `lend` carries no anatomy — the root has to be the flex
+ * item.
+ *
  * No `role`: a stack is visual grouping. A consumer who means `list` or
  * `toolbar` writes that role on their own element through `asChild` — on
  * `root` (#275) for the stack itself, a `<ul>` or a `<nav>`, and on `item`
@@ -26,7 +32,7 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const stackAnatomy = defineAnatomy('stack', {
     root: {
         element: 'div',
-        layout: ['gap', 'gap-x', 'gap-y', 'pad', 'pad-x', 'pad-y', 'align', 'justify', 'wrap'],
+        layout: ['gap', 'gap-x', 'gap-y', 'pad', 'pad-x', 'pad-y', 'align', 'justify', 'wrap', 'grow'],
         asChild: true,
     },
     item: {

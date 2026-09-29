@@ -215,17 +215,36 @@ describe('Stack.Item grow', () => {
         // Left at `auto`, a grow item holding long truncated text started from
         // the whole text's width and the shrink squeezed its fixed siblings.
         const css = compileDesignSystem(basicDS, manifest).componentCss['stack']!;
-        expect(css).toMatch(/\[data-scope="stack"\]\[data-part="item"\]\[data-l-grow="1"\] \{\s*flex-basis: 0;\s*\}/);
+        expect(css).toMatch(/\[data-scope="stack"\]\[data-part="item"\]\[data-l-grow="1"\] \{\s*flex-basis: 0;\s*min-block-size: 0;\s*\}/);
         const base = /\[data-scope="stack"\]\[data-part="item"\] \{([^}]*)\}/.exec(css)![1]!;
         expect(base).not.toContain('flex-basis');
+        expect(base).not.toContain('min-block-size');
     });
 
     it('reaches lynx as the longhand, untouched', () => {
         // The lynx target mis-parses the `flex` shorthand, so the recipe
         // never writes it — the longhand has to pass straight through.
         const css = compileDesignSystemLynx(basicDS as never, manifest).componentCss['stack']!;
-        expect(css).toMatch(/\.zx-stack__item\.zx-l-grow-1 \{\s*flex-basis: 0;\s*\}/);
+        expect(css).toMatch(/\.zx-stack__item\.zx-l-grow-1 \{\s*flex-basis: 0;\s*min-height: 0;\s*\}/);
         expect(css).not.toMatch(/(^|[\s;{])flex:/);
+    });
+});
+
+describe('Stack root grow (#459)', () => {
+    const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
+
+    it('consumes --l-grow, and floors its block size only while growing', () => {
+        // The floor lets a growing Row or Col shrink so a region inside it
+        // can scroll. Unconditional, it would squash a non-growing header Row
+        // below its content — so it rides on grow alone.
+        const css = compileDesignSystem(basicDS, manifest).componentCss['stack']!;
+        const base = /\[data-scope="stack"\]\[data-part="root"\] \{([^}]*)\}/g;
+        const blocks = [...css.matchAll(base)].map((m) => m[1]!).join('\n');
+        expect(blocks).toContain('flex-grow: var(--l-grow)');
+        expect(blocks).toContain('--l-grow: 0');
+        expect(blocks).not.toContain('min-block-size');
+        expect(blocks).not.toContain('flex-basis');
+        expect(css).toMatch(/\[data-scope="stack"\]\[data-part="root"\]\[data-l-grow="1"\] \{\s*flex-basis: 0;\s*min-block-size: 0;\s*\}/);
     });
 });
 

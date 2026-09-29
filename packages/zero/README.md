@@ -1995,6 +1995,23 @@ their content:
 </Row>
 ```
 
+**A Row or Col can grow itself** (#459). `grow` on `Stack`, `Row` or
+`Col` makes a nested stack take what its parent stack has left: a growing
+`Stack.Item` wrapper cannot hand its height on to a stack inside it.
+Anything that grows (a root or an item) also gets `min-block-size: 0`, so
+it can shrink below its content and a region inside it scrolls instead of
+pushing the column taller. The floor is keyed on `grow` only, so a header
+Row that does not grow keeps its content height:
+
+```tsx
+<Col class="screen">{/* .screen { block-size: 100dvh } in app CSS */}
+    <Row align="center">…toolbar…</Row>
+    <Row grow>
+        <Stack.Item grow asChild>{(p) => <div {...p} class="scroll">…</div>}</Stack.Item>
+    </Row>
+</Col>
+```
+
 **The link button.** A link that looks like a button is `asChild` over an
 `<a>`. It is a real link, with middle-click, "copy link" and the right role,
 and it wears the button's anatomy and recipe:

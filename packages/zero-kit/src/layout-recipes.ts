@@ -306,6 +306,7 @@ function stackRecipe(): RecipeInput {
             '--l-align': 'stretch',
             '--l-justify': 'flex-start',
             '--l-wrap': 'nowrap',
+            '--l-grow': '0',
         },
         parts: {
             root: {
@@ -322,6 +323,12 @@ function stackRecipe(): RecipeInput {
                     alignItems: 'var(--l-align)',
                     justifyContent: 'var(--l-justify)',
                     flexWrap: 'var(--l-wrap)',
+                    // A root is itself a flex item when it sits in another
+                    // stack, and `grow` makes a nested Row or Col fill what
+                    // its parent has left (#459). `0` unless the table says
+                    // otherwise — declared in `tokens`, so a nested stack
+                    // never inherits its parent's growth.
+                    flexGrow: 'var(--l-grow)',
                 },
                 selectors: {
                     // `Row` and `Col` are the same scope with a different
@@ -329,6 +336,14 @@ function stackRecipe(): RecipeInput {
                     // attribute zero already had rather than a new one.
                     '&[data-orientation="horizontal"]': { flexDirection: 'row' },
                     '&[data-orientation="vertical"]': { flexDirection: 'column' },
+                    // A growing root grows from a zero basis, like a growing
+                    // item (#454), and may shrink below its content's height:
+                    // without the `min-block-size` floor a column item keeps
+                    // `min-height: auto`, so a region inside it that should
+                    // scroll pushes the whole column taller instead. Keyed on
+                    // grow ONLY — made unconditional, the floor would let a
+                    // non-growing header Row be squashed below its content.
+                    '&[data-l-grow="1"]': { flexBasis: '0', minBlockSize: '0' },
                 },
             },
             item: {
@@ -348,9 +363,12 @@ function stackRecipe(): RecipeInput {
                     // squeezes its fixed siblings — a timestamp beside a
                     // subject wraps. From a zero basis it takes only what is
                     // left, and several grow siblings split it equally.
-                    // The `flex-basis` longhand, never `flex`: the lynx
-                    // target mis-parses the shorthand.
-                    '&[data-l-grow="1"]': { flexBasis: '0' },
+                    // The `min-block-size` floor is the root's (#459): it lets
+                    // a growing item in a column shrink so a region inside it
+                    // can scroll, and is keyed on grow for the same reason.
+                    // Longhands, never `flex`: the lynx target mis-parses the
+                    // shorthand.
+                    '&[data-l-grow="1"]': { flexBasis: '0', minBlockSize: '0' },
                 },
             },
         },
