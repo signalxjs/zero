@@ -63,6 +63,14 @@ Rules that make it a *zero* anatomy:
   hidden ", optional", an `aria-label` prefix). `@sigx/zero-ext-example`'s
   optional Stepper step is the worked example.
 - A part the runtime hides with `hidden` in some state declares `hiddenIn`.
+- An overlay whose axis props ride its trigger, with a popup that is a
+  top-layer sibling of it, declares `mirrorsAxes: true` on the popup and
+  mirrors them with `createAxisMirror()` from `@sigx/zero/behaviors`: the
+  trigger publishes `variantAttrs(props)` from its setup
+  (`onUnmounted(mirror.publish(() => variantAttrs(props)))`), and the popup
+  spreads `mirror.attrs()`. The compiler then anchors your recipe pack's
+  axis rules for the popup on the popup itself — zero's own overlays do the
+  same (#514).
 - A part whose job is paint rather than text — a check, a dot, a needle —
   declares `paint` (`true`, or `{ glyph?, only?, host? }`), and the contrast
   audit measures it against the 3:1 non-text floor like zero's own marks.

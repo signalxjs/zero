@@ -81,7 +81,8 @@ the tree: `expectAnatomy` asserts the declared parent appears among the
 element's same-scope ancestors, the contrast audit derives its ancestor
 chains from it instead of hand-maintaining them, and the recipe compiler uses
 containment to bound descendant-anchored axis rules
-([§3.3](#33-compilation)) and to detect dead rules on rootless scopes.
+([§3.3](#33-compilation)), to find each part's axis anchor (the carrier, or
+a popup that mirrors it) and to detect dead rules on rootless scopes.
 
 **States are governed.** `STATE_VOCABULARY`
 (`packages/zero/src/contract/data-attrs.ts`) closes the `data-state` value
@@ -399,6 +400,27 @@ it (#112) by declaring `carries` on the part and taking the prop there —
 the root colours the rail. Stats' `item` is the third (#161): `<Stats.Item
 color="warning">` paints one figure while the root colours the row. The compiler, the emitters and the audits read the
 declaration, not the scope.
+
+**A popup may mirror its trigger's axes (#514).** The fragment-rooted scopes
+— dialog, popover, tooltip, menu, hover-card, and drawer — carry the axis
+props on the Trigger, and their popup (drawer's `panel`) is a top-layer
+*sibling* of it, so no rule rooted on the trigger can ever reach the surface.
+`PartSpec.mirrorsAxes: true` on the popup says the runtime copies every axis
+attribute the carrier renders — `data-color`, `data-size`, `data-variant`,
+each custom `data-<axis>` and each `data-mod-*` — onto that part too, kept in
+step reactively (`createAxisMirror`: the Trigger publishes
+`variantAttrs(props)` from setup, the popup spreads it, server markup
+included). It is not a second prop surface: there is no prop on the popup,
+so the two copies can never disagree, and a popup rendered without a Trigger
+mirrors nothing. The mirroring part is an **axis anchor** of its own — the
+compiler roots every axis rule for it, and for each part inside it, there
+([§3.3](#33-compilation)) — so a design system can vary the SURFACE per use
+(zero-material's `full-screen` dialog and `rich` tooltip). Closed on purpose:
+never the carrier, never a part with a `parent` (a part inside the carrier is
+reached already), never a `pseudo` or `absorbable` part (each needs an
+element), and never with `carries` (it has every axis). `expectAnatomy`
+accepts the named-axis attributes on it, and `mergeManifests` holds fragments
+to the same rules.
 
 **`hiddenIn` is a styling fact.** A part the runtime hides with the `hidden`
 attribute in some state declares those states (`hiddenIn: ['error']` on
@@ -827,9 +849,13 @@ the set down). The other rules worth knowing:
 
 `packages/zero-kit/src/targets/web/recipe-css.ts`. Axis rules are anchored
 on the **carrier part**: the part named `root`, else the first declared part
-(`carrierPart` in the kit's contract module). Five scopes have no `root` —
-dialog, menu, popover, tooltip, hover-card render a fragment Root — so their carrier is
-the **trigger**, and their axis attributes live there.
+(`carrierPart` in the kit's contract module). Six scopes have no `root` —
+dialog, menu, popover, tooltip, hover-card and drawer render a fragment
+Root — so their carrier is the **trigger**, and their axis props live there.
+Precisely, a rule is anchored on the part's **axis anchor** (`axisAnchor`):
+the nearest part up its declared tree that is the carrier or MIRRORS it
+(`mirrorsAxes`, #514, [§2](#2-the-anatomy-contract)) — the popup of each of
+those six scopes, which renders the trigger's attributes itself.
 
 For the carrier itself the rule is flat: the attribute sits on the element,
 `[data-scope="s"][data-part="trigger"][data-variant="v"]`. For any other
@@ -846,12 +872,20 @@ The lower bound is any nested same-scope carrier — its subtree leaves the
 scope. Two CSS facts make this correct: scoping proximity outranks source
 order, so each part resolves to its *nearest* carrier; and an unscoped rule
 counts as infinitely distant, so the axis refinement still beats the flat
-base rules. Because the four rootless scopes render their popups as
-**top-layer siblings** of the trigger, the donut can never reach them — so
-the validator errors on any variant/modifier/compound rule for a part whose
-declared `parent` chain does not reach the carrier: those selectors would
-compile but never match ("dead rules"). Axis styling on those scopes styles
-the trigger, in each skin's button idiom.
+base rules. The rootless scopes render their popups as **top-layer
+siblings** of the trigger, which a donut rooted on the trigger can never
+reach — so the popup mirrors the trigger's attributes, and a rule for the
+popup or a part inside it is anchored there instead: flat on the popup,
+`[data-scope="dialog"][data-part="popup"][data-variant="full-screen"]`, and
+`@scope ([popup][attr]) to ([popup])` for a part inside it (a sub-popup
+included — it is a DOM descendant of the root popup). Same shape, same
+proximity semantics, the popup as the root and the bound. The validator
+errors on any variant/modifier/compound rule for a part whose declared
+`parent` chain reaches neither the carrier nor a mirroring part (popover's
+`anchor`, menu's `context-trigger`): those selectors would compile but never
+match ("dead rules"). Each shipped skin keeps colour and size on the trigger
+in its button idiom — a menu does not take its opener's role — and uses the
+mirror only where the vendor varies the surface itself.
 
 **A re-carried axis (#94) is the same mechanism one level down.** Every
 `variants.<axis>.<value>` rule that targets a part declaring `carries:
@@ -872,8 +906,8 @@ and a re-carrier always sits between the carrier and the part it styles, so
 source order agrees with proximity. The browser does not need that, but a
 reader that ranks equal-specificity scoped rules by order does (the static
 contrast matrix, [§9](#9-the-verification-architecture)). A re-carrier the
-carrier can never contain (a top-layer popup of a rootless scope) drops the
-dead carrier-anchored copy, and the dead-rule validator counts its rules as
+carrier can never contain (a top-layer popup of a rootless scope that does
+not mirror its trigger) drops the dead carrier-anchored copy, and the dead-rule validator counts its rules as
 alive. Nothing changes in the skins that key the part already: all four
 colour-bearing ones keyed `variants.color.<c>.marker` before the contract had
 a word for it. Steps (#112) had keyed its colour on the root, so adopting
@@ -1158,9 +1192,10 @@ literal is constrained to `ZeroScope`, so a typo'd literal
 (`WithVariantAxes<'buton'>`) is a compile error rather than a silently
 *different* type taking the open fallback. Ecosystem components use
 `WithVariantAxesOpen<S extends string>`: the open constraint is the
-deliberate cost of an out-of-tree scope. For the four rootless scopes the
+deliberate cost of an out-of-tree scope. For the six rootless scopes the
 axis props sit on the **Trigger**, not the fragment Root, matching where the
-compiler anchors the rules ([§3.3](#33-compilation)). A part that re-carries
+compiler anchors the rules ([§3.3](#33-compilation)); the popup takes no
+axis prop — it mirrors the Trigger's (#514). A part that re-carries
 an axis takes that one prop from the same scope's vocabulary
 (`WithColor<'timeline'>` on `Timeline.Marker`, `WithColor<'steps'>` on
 `Steps.Item`) and renders the attribute itself; it composes nothing else of
@@ -1213,7 +1248,7 @@ layout family as `layoutPrefix` plus a `layoutVocabulary` of attribute →
 permitted values and whether it varies per breakpoint), the
 token grammar (`colors`, `categories`, recommended ramps), and `components`
 — an **array** of `anatomy.toJSON()` snapshots, each part with its
-`parent`, `states`, `flags`, `domainFlags` (ecosystem parts only, #457), `placements`, `layout`, `carries`, `hiddenIn`, `paint`, `pseudo`, hints, and
+`parent`, `states`, `flags`, `domainFlags` (ecosystem parts only, #457), `placements`, `layout`, `carries`, `mirrorsAxes` (#514), `hiddenIn`, `paint`, `pseudo`, hints, and
 ready-made per-state selector fragments (what the recipe compiler
 consumes; a domain flag `d` under the key `x-d` → `[data-x-d]`), with `absorbable: true` on a part that may lend its asChild bag
 to a host and then renders no element of its own (#452, [§2](#2-the-anatomy-contract)),
@@ -1267,7 +1302,8 @@ selector-breakout characters, and then the shared vocabularies on the
 ecosystem surface — flags against `FLAG_VOCABULARY`, states against
 `STATE_NAMES` with synonyms in the message, placements, `hiddenIn ⊆
 states`, `carries` (named axes only, non-empty and unrepeated, never on the
-carrier or a `pseudo` part), `absorbable` (presence-only, requires
+carrier or a `pseudo` part), `mirrorsAxes` (presence-only, never the
+carrier, never with `parent`/`pseudo`/`absorbable`/`carries`), `absorbable` (presence-only, requires
 `asChild: true`, never a `parent`, never with `hiddenIn`/`layout`/`pseudo`),
 `domainFlags` (non-empty and unrepeated, kebab names, none a shared flag,
 state, state synonym or interaction state — each refusal with its hint —
@@ -1894,7 +1930,7 @@ checking a fraction of what it claimed.)
 | Typed-app capstone | `examples/typed-app` (CI, after build) | The consumer side: three isolated programs against **emitted `dist/`** through real package exports — register narrowing, the no-register components surface, and carbon's values remap. |
 | Interaction e2e (25 specs) | `examples/playground/e2e/` — press-feedback, accordion, dialog, drawer, popover, tooltip, hover-card, menu-submenu, context-menu, combobox, select, toast-presence, tabs, tree-view, slider, number-input, rating-group, carousel, diff, chat-log | Real-browser contracts (chromium/firefox/webkit, plus reduced-motion and forced-colors projects), under the **locator law** (`e2e/demo.ts`): a part is located through a named root, never page-wide selectors or cross-demo positional indexing. |
 | Static contrast matrix | `zero-kit/src/audit/contrast/` via the `contrast/*` audit rules; `contrast-static.test.ts` (the six skins at zero `contrast/*` errors and a named set of unmeasured reasons each; one red fixture per browser finding — #210, #116, #211, #207 — and one per `unmeasured` reason), `contrast-selector.test.ts`, `contrast-cascade.test.ts` | The browser contrast audit's two matrices computed from **compiled CSS**: the same cell product (ported; the marks are the anatomy's declared `paint` parts, #31, and their chains are derived from the part tree), a three-valued selector matcher for the emitted grammar, a computed-style model for what a reading depends on, the same compositing and floors. Every cell the reader cannot judge is `unmeasured` with a closed reason and reported as `info` — never a pass. Reachable by a design system built outside this repo. |
-| Contrast audit | `e2e/contrast-audit.spec.ts` | Two matrices over every state combination × skin × theme: text legibility for text-bearing parts and indicator paint for parts whose job is paint, measured in their real ancestor chains (derived from the part tree); each skin's wired axis surface rides the text matrix, and a mark on a part that re-carries a colour axis (#94, timeline's marker) is measured once per wired colour with the attribute on the part itself (`axisHost`: the nearest re-carrier in the chain, else the root) — as is text on or inside such a part (#112, steps' item: the active title, the disc's digit; #161, stats' item: its title, value and desc), even in a scope with no variant, where colour is otherwise left to the token validator; 3:1 hard floor, 2:1 for `disabled` measured pre-fade. The ground truth the static matrix answers to. |
+| Contrast audit | `e2e/contrast-audit.spec.ts` | Two matrices over every state combination × skin × theme: text legibility for text-bearing parts and indicator paint for parts whose job is paint, measured in their real ancestor chains (derived from the part tree); each skin's wired axis surface rides the text matrix, and a mark on a part that re-carries a colour axis (#94, timeline's marker) is measured once per wired colour with the attribute on the part itself (`axisHost`: the nearest re-carrier in the chain, else the root) — as is text on or inside such a part (#112, steps' item: the active title, the disc's digit; #161, stats' item: its title, value and desc), even in a scope with no variant, where colour is otherwise left to the token validator; a chain is rooted at the part's axis anchor, so an overlay popup that mirrors its trigger (#514) carries the axes itself and the text inside it is measured inside it; 3:1 hard floor, 2:1 for `disabled` measured pre-fade. The ground truth the static matrix answers to. |
 | Contrast parity gate | `e2e/contrast-audit.spec.ts`, the parity block in every `contrast:` / `indicator contrast:` test, plus `reference media` | The static matrix against the browser matrix on every cell the static side CLAIMS: one cell product (the spec imports `textCells`/`axisCellsFor`/`indicatorCellsFor`/`cellKey` from the kit — a reading the static side does not list, or a claim the browser has no reading for, is a disagreement), painted-at-all agrees, ratios agree to `max(0.15, 2%)` (8-bit premultiplied canvas compositing of a translucent wash over a dark surface), floor verdicts agree except within tolerance of the floor (annotated). The measured share is pinned per skin from BOTH ends (`STATIC_COVERAGE`, +5 points of headroom): the estimate can neither retreat into `unmeasured` unnoticed nor quietly claim more. `reference media` holds the chromium project to `REFERENCE_MEDIA`. Its first run found three misreads in the estimate — `calc()` border widths read as zero, the UA stylesheet's `buttontext` on real form controls, and `color-mix()` inventing a hue for an achromatic endpoint — all fixed in the kit, never by bending the browser side. The converse came later (#123): an achromatic colour WRITTEN in the mix's own space (`oklch(100% 0 0)` mixed `in oklch`) is never converted, so its hue is real and the browser interpolates toward it — the baker keeps the components an operand wrote in the mix space, and the theme environment hands `color-mix()` the tokens as written. |
 | DS smoke | `e2e/ds-smoke.spec.ts` | All six skins: `hidden` computes `display: none`, no undeclared axis/mod value or domain flag renders, the runtime swap leaves one live stylesheet and re-seeds vocabulary + themes, boot logs no console error. |
 | Reduced motion / RTL | `e2e/reduced-motion.spec.ts`, `e2e/rtl.spec.ts` | The two loops (Skeleton, Spinner) assert `animation-name` running under chromium **and** `none` under reduced-motion — both directions, or a never-animating recipe passes; RTL measures rendered boxes across all six skins, complementing the physical-direction lint's `transform` blind spot ([§5](#5-the-compiler-and-css-architecture)). |

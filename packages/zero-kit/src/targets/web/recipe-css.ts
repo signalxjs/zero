@@ -18,7 +18,7 @@
  * this module owns only the web selector shapes.
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
-import { INTERACTION_STATES, MOD_ATTR_PREFIX, VARIANT_AXES, carrierPart, carriersOf, reachesCarrier } from '../../contract.js';
+import { INTERACTION_STATES, MOD_ATTR_PREFIX, VARIANT_AXES, axisAnchor, carrierPart, carriersOf } from '../../contract.js';
 import type { ComposedScope, CssProps, PartStyles, RecipeContext, RecipeInput } from '../../recipes.js';
 import type { Condition, ConditionRegistry, Sink } from '../shared.js';
 import {
@@ -103,18 +103,25 @@ function partProjection(
  * donut is an at-rule: it joins the emission sink as a condition on the
  * rule's path (nesting correctly under/over `@media` and friends), not as a
  * selector fragment.
+ *
+ * The anchor is the part's `axisAnchor`: the carrier, or — for a part at or
+ * inside a part that MIRRORS the carrier's axes (#514, the overlay popups,
+ * top-layer siblings of the trigger) — that mirroring part, which renders
+ * the same attributes. The donut's shape is the same either way, rooted on
+ * the anchor and bounded by it. A part that reaches neither keeps the
+ * carrier-rooted donut (dead CSS the recipe validator reports).
  */
 function variantTarget(
     component: ManifestComponent,
     part: string,
     axisAttrs: string,
 ): { selector: string; scopePrelude?: string } {
-    const carrier = carrierPart(component);
-    if (part === carrier) return { selector: `${partSelector(component.scope, part)}${axisAttrs}` };
-    const carrierSelector = partSelector(component.scope, carrier);
+    const anchor = axisAnchor(component, part) ?? carrierPart(component);
+    if (part === anchor) return { selector: `${partSelector(component.scope, part)}${axisAttrs}` };
+    const anchorSelector = partSelector(component.scope, anchor);
     return {
         selector: partSelector(component.scope, part),
-        scopePrelude: `@scope (${carrierSelector}${axisAttrs}) to (${carrierSelector})`,
+        scopePrelude: `@scope (${anchorSelector}${axisAttrs}) to (${anchorSelector})`,
     };
 }
 
@@ -558,10 +565,11 @@ export function compileRecipeCss(
         const { host, suffix } = partProjection(component, partName);
         const where = `recipe for "${component.scope}"."${partName}"`;
         const own = carried === undefined || !recarried.has(carried) ? [] : carriersOf(component, host, carried);
-        // The carrier's reading, as always — unless the part can never sit
-        // under the carrier (a top-layer popup) and a re-carrier is the only
-        // thing that reaches it, where the carrier-anchored rule is dead CSS.
-        if (own.length === 0 || reachesCarrier(component, host)) {
+        // The anchor's reading, as always — unless the part can reach
+        // neither the carrier nor a part mirroring it (#514) and a re-carrier
+        // is the only thing that reaches it, where the anchored rule is dead
+        // CSS.
+        if (own.length === 0 || axisAnchor(component, host) !== undefined) {
             const target = variantTarget(component, host, axisAttrs);
             const path = target.scopePrelude
                 ? [resolveCondition(target.scopePrelude, context, where, registry)]
@@ -577,8 +585,12 @@ export function compileRecipeCss(
             // Bounded by the carrier and by EVERY part that re-carries this
             // axis — a nested re-carrier, of the same part or another,
             // answers for its own subtree, so two re-carriers' donuts never
-            // overlap and emission order cannot decide between them.
-            const bounds = [carrierPart(component), ...component.parts.filter((p) => p.carries?.includes(carried!)).map((p) => p.name)];
+            // overlap and emission order cannot decide between them. A part
+            // that mirrors the carrier (#514) bounds it the same way.
+            const bounds = [
+                carrierPart(component),
+                ...component.parts.filter((p) => p.mirrorsAxes || p.carries?.includes(carried!)).map((p) => p.name),
+            ];
             const prelude = `@scope (${anchorSelector}) to (${bounds.map((p) => partSelector(component.scope, p)).join(', ')})`;
             deferred.push(() => emitPartStyles(
                 component, partName, styles, partSelector(component.scope, host), sink, context, registry, suffix,

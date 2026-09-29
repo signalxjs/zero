@@ -333,6 +333,10 @@
                     "minItems": 1,
                     "uniqueItems": true
                 },
+                "mirrorsAxes": {
+                    "description": "Present when the part mirrors the carrier's whole axis surface (#514): the runtime copies every axis attribute the carrier renders — data-color, data-size, data-variant, each custom data-<axis> and each data-mod-* — onto this part and keeps the copy in step, so the recipe compiler anchors every axis rule for this part (and each part inside it) on this part's own attributes. The fragment-rooted scopes' popups declare it: top-layer siblings of the trigger that carries the axes. Presence-only; never on the carrier, never with parent, pseudo, absorbable or carries.",
+                    "const": true
+                },
                 "hiddenIn": {
                     "description": "States in which the runtime sets the hidden attribute on this part, so it paints nothing and leaves the accessibility tree (avatar's image while \"error\"). Always a subset of `states`. A rule targeting one of these states can never render, so styling it identically to a visible state is correct — the difference is presence, and the runtime owns it. Omitted entirely for parts the runtime never hides.",
                     "type": "array",

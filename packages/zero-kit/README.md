@@ -190,6 +190,19 @@ as every shipped skin keys `variants.color.<c>.marker` and, since zero#112,
 re-carrying part, and the components artifact gives the member (`Marker`) the
 carrier's vendor surface for the axes it carries.
 
+A part may **mirror** the carrier instead (zero#514): the overlay popups —
+dialog, popover, tooltip, menu, hover-card and drawer, whose carrier is the
+trigger — declare `mirrorsAxes: true`, and the runtime copies every axis
+attribute the trigger renders onto the popup. The compiler anchors every
+axis rule for such a part, and for each part inside it, on the part itself
+(`axisAnchor`): flat on the popup,
+`[data-part="popup"][data-variant="full-screen"]`, and in a donut rooted on
+it for a part inside (`@scope ([popup][attr]) to ([popup])`). Modifiers,
+compounds and the default twin all follow, since the popup renders every
+attribute the trigger does. Nothing to author beyond keying the popup:
+`variants.variant['full-screen'].popup` is zero-material's full-screen
+dialog, and the validator no longer calls such a rule dead.
+
 Not every modifier is an axis, either. An axis answers *which one* and always
 carries a value; some design-system modifiers answer *is it on* and carry none
 — daisyUI's `block` and `wide`, Radix's `high-contrast`, HeroUI's `icon-only`.
@@ -1085,7 +1098,9 @@ merge hard-errors on a scope collision, which is why fragment scopes should
 carry a vendor prefix (`acme-stepper`). It also holds the fragment to the
 shared vocabularies — flags, governed states (a synonym like `expanded` fails
 with "use `open`"), placements, `hiddenIn ⊆ states`, `carries` (named axes
-only, never on the carrier or a pseudo part), `absorbable` (presence-only,
+only, never on the carrier or a pseudo part), `mirrorsAxes` (presence-only,
+never the carrier, never with `parent`/`pseudo`/`absorbable`/`carries`),
+`absorbable` (presence-only,
 requires `asChild: true`, never another part's `parent`, never with
 `hiddenIn`/`layout`/`pseudo` — a lent part renders no element, #452), an
 acyclic part tree, and the naming rule on any `models` it declares (`default<Concept>` +

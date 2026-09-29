@@ -31,6 +31,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define } from 'sigx';
+import { createAxisMirror, INERT_AXIS_MIRROR, type AxisMirror } from '../../behaviors/axis-mirror.js';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
@@ -105,6 +106,8 @@ const TooltipGroup = component<TooltipGroupProps>(({ props, slots }) => {
 
 interface TooltipContext {
     state: ControllableState<boolean>;
+    /** The Trigger's axis attributes, mirrored onto the popup (#514, `mirrorsAxes`). */
+    axes: AxisMirror;
     ids: { popup: string };
     show(immediate?: boolean): void;
     /**
@@ -125,6 +128,7 @@ interface TooltipContext {
 function makeInert(): TooltipContext {
     return {
         state: createInertState<boolean>(false),
+        axes: INERT_AXIS_MIRROR,
         ids: { popup: 'zx-tooltip-inert' },
         show: () => {},
         hide: () => {},
@@ -201,6 +205,7 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
 
     const ctx: TooltipContext = {
         state,
+        axes: createAxisMirror(),
         ids: { popup: `${baseId}-popup` },
         show(immediate = false) {
             if (immediate) {
@@ -291,8 +296,10 @@ export type TooltipTriggerProps =
     & WithInteractionHandlers
     & Define.Slot<'default', PartProps>;
 
-const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
+const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots, onUnmounted }) => {
     const tooltip = useTooltipContext();
+    // The popup renders the same axis attributes (#514).
+    onUnmounted(tooltip.axes.publish(() => variantAttrs(props)));
     // Set by a press, cleared by the pointer leaving: a pressed trigger
     // stays quiet until the pointer has left and come back, so the tooltip
     // does not re-open over whatever the press opened (a menu, a dialog).
@@ -409,6 +416,7 @@ const TooltipPopup = component<TooltipPopupProps>(({ props, slots, onMounted }) 
     return () => (
         <div
             {...htmlAttrs(props)}
+            {...tooltip.axes.attrs()}
             id={tooltip.ids.popup}
             data-scope={SCOPE}
             data-part="popup"

@@ -4,6 +4,22 @@
 
 ### Added
 
+- **Overlay popups mirror their trigger's axes (#514).** Dialog, Drawer,
+  Popover, Tooltip, Menu and HoverCard take their axis props on the
+  Trigger, and the popup (Drawer's panel) is a top-layer sibling no
+  selector rooted there can reach. The popup now renders every axis
+  attribute the Trigger does (`data-color`, `data-size`, `data-variant`,
+  each custom `data-<axis>`, each `data-mod-*`), kept in step with the
+  Trigger's props and present in server markup, so a design system can
+  vary the surface per use (`<Dialog.Trigger variant="full-screen">`).
+  There is no second prop surface: a popup rendered without its Trigger
+  carries none. The anatomy declares it as `PartSpec.mirrorsAxes: true` on
+  the six popups, `manifest.json` carries the key, and `expectAnatomy`
+  accepts the named axes on a mirroring part. New
+  `createAxisMirror()` / `INERT_AXIS_MIRROR` (and the `AxisMirror` /
+  `AxisAttrs` types) on `./behaviors` and `./behaviors/core`, for an
+  ecosystem overlay doing the same.
+
 - **Tabs publish the active label's extent; Navbar knows when content is
   scrolled under it (#530).** `Tabs.TabLabel` renders an optional
   `tabs.tab-label` span (`parent: 'tab'`) around a tab's text. When the

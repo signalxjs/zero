@@ -22,8 +22,8 @@ import './app.css';
 // stylesheet exchanged at runtime, which is the honest form of the claim that
 // a design system is data. zero-material is the strongest case: thirteen
 // colour roles instead of eight, a level1–level5 elevation ramp, its own
-// easings and a dialog that goes full-screen below its own breakpoint — and
-// still nothing here changes, because nothing here knows which DS is loaded.
+// easings and a full-screen dialog the popup takes from its trigger's
+// variant (#514) — and still nothing here changes, because nothing here knows which DS is loaded.
 import { activateDesignSystem, resolvePersistedDesignSystem } from './design-systems';
 import { App } from './App';
 

@@ -88,17 +88,18 @@
         transform: translateY(24px) scale(0.94);
         transition: opacity var(--duration-short4) var(--ease-emphasized-accelerate), transform var(--duration-short4) var(--ease-emphasized-accelerate), display var(--duration-short4) allow-discrete, overlay var(--duration-short4) allow-discrete;
         box-sizing: border-box;
-        width: 100%;
-        height: 100dvh;
-        max-width: none;
-        max-height: none;
-        margin: 0;
+        width: calc(100% - var(--space-2xl));
+        min-width: min(17.5rem, calc(100% - var(--space-2xl)));
+        max-width: 35rem;
+        height: fit-content;
+        max-height: calc(100% - var(--space-2xl));
+        margin: auto;
         padding: var(--space-lg);
         background: var(--color-surface-container-high);
         color: var(--color-surface-container-high-content);
         border: none;
-        border-radius: 0;
-        box-shadow: none;
+        border-radius: var(--radius-extra-large);
+        box-shadow: var(--shadow-level3);
         --tf-surface: var(--color-surface-container-high);
     }
 
@@ -381,6 +382,17 @@
         letter-spacing: var(--tracking-headline-large);
     }
 
+    [data-scope="dialog"][data-part="popup"][data-variant="full-screen"] {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        height: 100dvh;
+        max-height: none;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
     @media (hover: none) {
         [data-scope="dialog"][data-part="trigger"]:hover:not([data-disabled])::before {
             opacity: 0;
@@ -418,22 +430,6 @@
 
         [data-scope="dialog"][data-part="cancel"]::after {
             display: none;
-        }
-    }
-
-    @media (min-width: 600px) {
-        [data-scope="dialog"][data-part="popup"] {
-            width: calc(100% - var(--space-2xl));
-            min-width: min(17.5rem, calc(100% - var(--space-2xl)));
-            max-width: 35rem;
-            height: fit-content;
-            max-height: calc(100% - var(--space-2xl));
-            margin: auto;
-            background: var(--color-surface-container-high);
-            color: var(--color-surface-container-high-content);
-            border: none;
-            border-radius: var(--radius-extra-large);
-            box-shadow: var(--shadow-level3);
         }
     }
 

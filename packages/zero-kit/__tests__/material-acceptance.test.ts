@@ -97,20 +97,37 @@ describe('open keys inside the closed categories', () => {
     });
 });
 
-describe('breakpoints and the responsive dialog', () => {
+describe('breakpoints', () => {
     it('uses Material’s own window-size classes', () => {
         // Medium, expanded, large and extra-large, by their lower bounds.
         expect(compiled.tokens.breakpoints).toEqual({ sm: '600px', md: '840px', lg: '1200px', xl: '1600px' });
     });
 
-    it('makes the dialog full-screen below sm', () => {
+});
+
+describe('the dialog and tooltip surfaces are popup variants (#514)', () => {
+    const popup = (scope: string) => `[data-scope="${scope}"][data-part="popup"]`;
+
+    it('makes the dialog full-screen per use, not per viewport', () => {
         const dialog = compiled.componentCss.dialog!;
-        const media = dialog.indexOf('@media (min-width: 600px)');
-        expect(media).toBeGreaterThan(-1);
-        // Mobile-first: the flat full-bleed sheet is the base, and the raised
-        // card is what the breakpoint adds.
-        expect(dialog.slice(0, media)).toContain('height: 100dvh');
-        expect(dialog.slice(media)).toContain('max-width: 35rem');
+        // M3 picks a full-screen dialog for the content (a long form), so no
+        // breakpoint switches it: the basic dialog is the base at every width…
+        expect(dialog).not.toContain('@media (min-width');
+        expect(dialog).toContain('max-width: 35rem');
+        // …and the full-screen one is the variant the popup mirrors from its
+        // trigger, anchored on the popup itself.
+        const rule = dialog.indexOf(`${popup('dialog')}[data-variant="full-screen"] {`);
+        expect(rule).toBeGreaterThan(-1);
+        expect(dialog.slice(rule)).toContain('height: 100dvh');
+        expect(compiled.components.dialog?.variant).toEqual(['basic', 'full-screen']);
+    });
+
+    it('gives the tooltip M3\'s rich surface as a variant, plain by default', () => {
+        const tooltip = compiled.componentCss.tooltip!;
+        const rule = tooltip.indexOf(`${popup('tooltip')}[data-variant="rich"] {`);
+        expect(rule).toBeGreaterThan(-1);
+        expect(tooltip.slice(rule)).toContain('--tooltip-surface: var(--color-surface-container)');
+        expect(compiled.components.tooltip?.variant).toEqual(['plain', 'rich']);
     });
 });
 

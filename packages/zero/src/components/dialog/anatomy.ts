@@ -14,8 +14,11 @@ export const dialogAnatomy = defineAnatomy('dialog', {
         asChild: true,
         absorbable: true,
     },
+    // Mirrors the trigger's axis attributes (#514): the popup is a top-layer
+    // sibling of the carrier, so this is how a variant reaches the surface.
     popup: {
         element: 'dialog',
+        mirrorsAxes: true,
         states: ['open', 'closed'],
         tokens: ['color', 'radius-box'],
     },

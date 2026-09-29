@@ -19,6 +19,9 @@ export { createRovingKeydown } from './roving.js';
 
 export { isFocusVisible } from './focus-visible.js';
 
+export { createAxisMirror, INERT_AXIS_MIRROR } from './axis-mirror.js';
+export type { AxisMirror, AxisAttrs } from './axis-mirror.js';
+
 export { createHoverIntent } from './hover-intent.js';
 export type { HoverIntent } from './hover-intent.js';
 

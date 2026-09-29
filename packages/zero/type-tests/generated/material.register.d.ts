@@ -121,12 +121,11 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** dialog — color, size wired. */
+            /** dialog — color, size, variant wired. */
             'dialog': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-                /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                variant: never;
+                variant: 'basic' | 'full-screen';
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
@@ -139,12 +138,11 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** tooltip — color, size wired. */
+            /** tooltip — color, size, variant wired. */
             'tooltip': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-                /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                variant: never;
+                variant: 'plain' | 'rich';
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };

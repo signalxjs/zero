@@ -48,6 +48,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
+import { createAxisMirror, INERT_AXIS_MIRROR, type AxisMirror } from '../../behaviors/axis-mirror.js';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { askToPrevent, createDismissable, type InteractOutsideEvent } from '../../behaviors/dismiss.js';
@@ -118,6 +119,8 @@ export interface DrawerCloseDetail {
 
 interface DrawerContext {
     state: ControllableState<boolean>;
+    /** The Trigger's axis attributes, mirrored onto the popup (#514, `mirrorsAxes`). */
+    axes: AxisMirror;
     /** Close for a reason: the one write path every zero-owned close takes. */
     requestClose(reason: DrawerCloseReason, value?: string): void;
     modal(): boolean;
@@ -152,6 +155,7 @@ function makeInert(): DrawerContext {
     return {
         state,
         requestClose: () => { state.value = false; },
+        axes: INERT_AXIS_MIRROR,
         modal: () => true,
         dock: undefined,
         dockQuery: undefined,
@@ -317,6 +321,7 @@ const DrawerRoot = component<DrawerRootProps>(({ props, slots, emit, signal }) =
 
     const ctx: DrawerContext = {
         state,
+        axes: createAxisMirror(),
         requestClose,
         // A block-edge drawer that asked to dock is a sheet (see `dock`):
         // with no breakpoint left, the object form is simply `!== false`.
@@ -371,8 +376,10 @@ export type DrawerTriggerProps =
     & WithInteractionHandlers
     & Define.Slot<'default', PartProps>;
 
-const DrawerTrigger = component<DrawerTriggerProps>(({ props, slots, signal }) => {
+const DrawerTrigger = component<DrawerTriggerProps>(({ props, slots, signal, onUnmounted }) => {
     const drawer = useDrawerContext();
+    // The panel renders the same axis attributes (#514).
+    onUnmounted(drawer.axes.publish(() => variantAttrs(props)));
     let el: HTMLElement | null = null;
     const sheetOpen = (): boolean => drawer.state.value && !drawer.docked();
     const focus = signal({ visible: false });
@@ -625,6 +632,7 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted, onUn
         return (
             <dialog
                 {...attrs}
+                {...drawer.axes.attrs()}
                 id={drawer.ids.panel}
                 data-scope={SCOPE}
                 data-part="panel"

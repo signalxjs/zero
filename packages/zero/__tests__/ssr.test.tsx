@@ -311,6 +311,19 @@ describe('SSR', () => {
     // emits `open` so the page paints it open instead of flashing open at
     // hydration (#38). A modal one stays closed: the top layer is a
     // `showModal()` call, never markup.
+    // The popup mirrors its trigger's axes in server markup too (#514): a
+    // variant that changes the surface must be right on first paint.
+    it('renders the trigger\'s axis attributes on a popup server-side', async () => {
+        const html = await renderApp(
+            <Dialog.Root>
+                <Dialog.Trigger variant="full-screen" color="primary">Open</Dialog.Trigger>
+                <Dialog.Popup>Form</Dialog.Popup>
+            </Dialog.Root>,
+        );
+        expect(html).toMatch(/<dialog[^>]*data-variant="full-screen"/);
+        expect(html).toMatch(/<dialog[^>]*data-color="primary"/);
+    });
+
     it('emits the open attribute for a default-open non-modal Dialog and Drawer only', async () => {
         const inlineDrawer = await renderApp(
             <Drawer.Root defaultOpen modal={false} label="Nav">

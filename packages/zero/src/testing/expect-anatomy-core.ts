@@ -177,8 +177,10 @@ export function expectAnatomyElements(
         // when its anatomy declares it re-carries that axis (`carries`) —
         // declared rather than exempted, like `placements`: an undeclared
         // `data-color` on a part is a value no design system compiles a rule
-        // for.
-        if (partName !== carrier) {
+        // for. A part that mirrors the carrier's whole surface (#514,
+        // `mirrorsAxes` — the overlay popups) renders every axis the carrier
+        // does, and the compiler anchors rules there for it.
+        if (partName !== carrier && !spec.mirrorsAxes) {
             const carries: readonly string[] = spec.carries ?? [];
             for (const [axis, attr] of Object.entries(VARIANT_AXES)) {
                 if (el.getAttribute(attr) !== null && !carries.includes(axis)) {

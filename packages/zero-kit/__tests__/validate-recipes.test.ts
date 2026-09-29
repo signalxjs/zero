@@ -694,15 +694,30 @@ describe('variants', () => {
     });
 
     it('errors on variants that style an unreachable part of a rootless component', () => {
-        // dialog/popover/tooltip/menu render no root element, so the carrier
-        // falls back to `trigger` and the popup is a top-layer SIBLING — a
-        // variant rule for it compiles to a donut rooted where the part never
-        // sits, i.e. dead CSS.
+        // popover renders no root element, so the carrier falls back to
+        // `trigger`, and `Popover.Anchor` is a top-level part that neither
+        // sits under it nor mirrors its axes — a variant rule for it compiles
+        // to a donut rooted where the part never sits, i.e. dead CSS.
+        expect(check({
+            component: 'popover',
+            parts: { trigger: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { color: { primary: { anchor: { base: { borderColor: 'var(--color-primary)' } } } } },
+        }).errors).toContainEqual(expect.stringContaining('no "root" part'));
+    });
+
+    it('accepts variants on a popup that mirrors its trigger\'s axes, and on the parts inside it (#514)', () => {
+        // The popup is a top-layer sibling of the trigger, but it renders the
+        // trigger's axis attributes itself (`mirrorsAxes`), so the compiler
+        // anchors the rules there and they are alive.
         expect(check({
             component: 'dialog',
             parts: { trigger: { states: { 'focus-visible': { outline: '1px solid' } } } },
-            variants: { color: { primary: { popup: { base: { borderColor: 'var(--color-primary)' } } } } },
-        }).errors).toContainEqual(expect.stringContaining('no "root" part'));
+            variants: { variant: { wide: {
+                popup: { base: { borderColor: 'var(--color-primary)' } },
+                title: { base: { color: 'var(--color-base-content)' } },
+            } } },
+            modifiers: { dense: { popup: { base: { padding: '0' } } } },
+        }).errors.filter((e) => e.includes('no "root" part'))).toEqual([]);
     });
 
     it('accepts variants that stay on a rootless component\'s carrier part', () => {

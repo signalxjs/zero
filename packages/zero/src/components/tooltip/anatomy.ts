@@ -12,8 +12,10 @@ export const tooltipAnatomy = defineAnatomy('tooltip', {
     // Anchor-positioned: carries `data-placement` plus the published
     // POSITION_PROPERTIES — `--anchor-width`/`--anchor-height`,
     // `--available-width`/`--available-height`, `--transform-origin`.
+    // Mirrors the trigger's axis attributes (#514) — see `PartSpec.mirrorsAxes`.
     popup: {
         element: 'div',
+        mirrorsAxes: true,
         states: ['open', 'closed'],
         placements: [...PLACEMENT_VOCABULARY],
         tokens: ['color', 'radius-field', 'text'],

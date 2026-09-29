@@ -157,9 +157,10 @@ export function axisHost(chain: readonly NodeSpec[], axis: string): number {
  * as nothing — the browser silently falls back to the inherited colour and
  * calls it a pass, the static reader reports `unresolved-var`. Neither is a
  * measurement of the design system. Inside its chain the part reads what it
- * really reads. A part with no path to the carrier (menu's popup, a
- * top-layer sibling of the trigger) stays a probe — nothing above it exists
- * to inherit from in the real DOM either.
+ * really reads. A top-layer sibling of the carrier (menu's popup) stays a
+ * probe — nothing above it exists to inherit from in the real DOM either —
+ * and since the overlay popups mirror their trigger's axes (#514) the parts
+ * inside one are measured inside it, the chain rooted on the popup.
  */
 export function textCells(components: readonly ManifestComponent[]): Cell[] {
     return components.flatMap((component) => {
@@ -215,7 +216,12 @@ export function colourBearingAxes(wired: WiredAxes): Record<string, readonly str
  * popup ancestor the pin is the difference between measuring and not — a
  * closed popup is `visibility: hidden`, which inherits.
  *
- * `undefined` means the tree declares no path from the carrier down to the
+ * The chain's root is the part's axis ANCHOR: the carrier, or a part that
+ * mirrors it (`mirrorsAxes`, #514) — an overlay popup renders its trigger's
+ * axis attributes itself, so a dialog's title is measured inside
+ * `dialog.popup`, with the axes on the popup. `[]` for an anchor itself.
+ *
+ * `undefined` means the tree declares no path from an anchor down to the
  * part — the browser spec's `axis coverage` guard turns that into a named
  * failure instead of letting the cells vanish.
  */
@@ -224,7 +230,10 @@ export function derivedChainAncestors(component: ManifestComponent, part: Manife
     const byName = new Map(component.parts.map((p) => [p.name, p]));
     const ancestors: string[] = [];
     let cursor: ManifestPart | undefined = part;
-    while (cursor && cursor.name !== carrier) {
+    // A part that mirrors the carrier's axes (#514, the overlay popups) roots
+    // a chain like the carrier does: the compiler anchors the axis rules for
+    // everything inside it there, so the axis attributes go on it.
+    while (cursor && cursor.name !== carrier && !cursor.mirrorsAxes) {
         const parent: ManifestPart | undefined = cursor.parent === undefined ? undefined : byName.get(cursor.parent);
         if (!parent) return undefined;
         ancestors.unshift(parent.states?.includes('open') ? `${parent.name}=open` : parent.name);
@@ -292,13 +301,18 @@ export function axisCellsFor(
         }
         const modSets: string[][] = [[], ...(wired.mods ?? []).map((m) => [m])];
 
-        // Two shapes, one product: a carrier that renders text is measured by
-        // the one-element probe; text BELOW the carrier through the chain the
-        // part tree derives, with the axis attributes on the chain's root.
+        // Two shapes, one product: an axis anchor that renders text — the
+        // carrier, or a part mirroring it (#514) — is measured by the
+        // one-element probe, the attributes on the probe itself; text BELOW
+        // an anchor through the chain the part tree derives, with the axis
+        // attributes on the chain's root.
         const targets: Array<{ part: ManifestPart; chain?: NodeSpec[] }> = [];
-        if (carrier.tokens?.includes('text')) targets.push({ part: carrier });
         for (const part of component.parts) {
-            if (part.name === carrier.name || !part.tokens?.includes('text')) continue;
+            if (!part.tokens?.includes('text')) continue;
+            if (part.name === carrier.name || part.mirrorsAxes) {
+                targets.push({ part });
+                continue;
+            }
             const ancestors = derivedChainAncestors(component, part);
             if (!ancestors) continue;
             targets.push({ part, chain: chainFor(component, [...ancestors, part.name]) });

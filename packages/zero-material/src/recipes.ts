@@ -1490,12 +1490,16 @@ const overlayTriggerTokens = {};
 
 /**
  * The axes for the outlined overlay triggers (#321). Dialog, popover,
- * tooltip and menu carry their axis attributes on the TRIGGER — the
- * anatomy's carrier part — and their popups are top-layer siblings the
- * compiled `@scope` donut can never reach, so the axes style the pill
- * itself: colour re-inks the label (Material's role tokens are inks by
- * construction — the same raw-role ink the button's outlined variant
- * uses), size steps the pill on the button's own ramp.
+ * tooltip and menu carry their axis props on the TRIGGER — the anatomy's
+ * carrier part. Colour and size style the pill itself: colour re-inks the
+ * label (Material's role tokens are inks by construction — the same
+ * raw-role ink the button's outlined variant uses), size steps the pill on
+ * the button's own ramp. The popup mirrors every axis attribute the trigger
+ * renders (#514, `mirrorsAxes`), so an axis COULD reach the surface; these
+ * two deliberately leave it alone — a Material menu or dialog does not take
+ * its opener's role or size. The surface-level choices M3 does make are
+ * popup variants: dialog's `basic` / `full-screen` and tooltip's `plain` /
+ * `rich`.
  */
 const overlayTriggerColors = (): Record<string, Record<string, PartStyles>> =>
     Object.fromEntries(ROLES.map((c) => [c, { trigger: { base: {
@@ -1521,43 +1525,30 @@ export const dialog: RecipeInput = {
             states: { open: {}, closed: {}, disabled: disabledFade, ...focusRing },
         }),
         popup: withPresence(popupPresence('translateY(24px) scale(0.94)'), {
-            // Mobile-first: Material's full-screen dialog below `sm`.
+            // M3's basic dialog, at every width: a full-screen dialog is
+            // chosen per use (a long form), not per viewport, so it is the
+            // `full-screen` variant below — the trigger's `variant`, which
+            // the popup mirrors (#514).
             base: {
                 // A <dialog> keeps the UA's `content-box`, and zero ships no
                 // reset — so a width or max-width meant to leave a gutter
                 // grew by the padding, and at phone width the popup ran past
                 // both edges (#101). Its box is the border box.
                 boxSizing: 'border-box',
-                width: '100%',
-                height: '100dvh',
-                maxWidth: 'none',
-                maxHeight: 'none',
-                margin: '0',
+                width: 'calc(100% - var(--space-2xl))',
+                // M3's basic dialog: 280-560dp wide.
+                minWidth: `min(${dp(280)}, calc(100% - var(--space-2xl)))`,
+                maxWidth: '35rem',
+                // `auto` stretches an inset-positioned modal to fill; `fit-content`
+                // is the UA's own dialog default and hugs the content (#114).
+                height: 'fit-content',
+                maxHeight: 'calc(100% - var(--space-2xl))',
+                margin: 'auto',
                 padding: 'var(--space-lg)',
-                background: 'var(--color-surface-container-high)',
-                color: 'var(--color-surface-container-high-content)',
-                border: 'none',
-                borderRadius: '0',
-                boxShadow: 'none',
+                ...raised('level3'),
                 '--tf-surface': 'var(--color-surface-container-high)',
             },
             states: { open: {}, closed: {} },
-            at: {
-                sm: {
-                    base: {
-                        width: 'calc(100% - var(--space-2xl))',
-                        // M3's basic dialog: 280-560dp wide.
-                        minWidth: `min(${dp(280)}, calc(100% - var(--space-2xl)))`,
-                        maxWidth: '35rem',
-                        // `auto` stretches an inset-positioned modal to fill; `fit-content`
-                        // is the UA's own dialog default and hugs the content (#114).
-                        height: 'fit-content',
-                        maxHeight: 'calc(100% - var(--space-2xl))',
-                        margin: 'auto',
-                        ...raised('level3'),
-                    },
-                },
-            },
         }),
         backdrop: {
             base: { background: 'color-mix(in oklch, var(--color-scrim) 32%, transparent)' },
@@ -1601,9 +1592,33 @@ export const dialog: RecipeInput = {
         }),
     },
     keyframes: rippleKeyframes('dialog'),
-    // Trigger-carried axes — see `overlayTriggerColors` for why the popup is
-    // out of reach and the trigger is the whole story here.
-    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
+    // Colour and size style the trigger — see `overlayTriggerColors`. The
+    // variant styles the SURFACE, through the axes the popup mirrors from
+    // its trigger (#514): `basic` is the base above, and `full-screen` is
+    // M3's full-screen dialog — the whole viewport, square, flat, on the
+    // same container — chosen per use, at any width.
+    variants: {
+        color: overlayTriggerColors(),
+        size: overlayTriggerSizes,
+        variant: {
+            basic: {},
+            'full-screen': {
+                popup: {
+                    base: {
+                        width: '100%',
+                        minWidth: '0',
+                        maxWidth: 'none',
+                        height: '100dvh',
+                        maxHeight: 'none',
+                        margin: '0',
+                        borderRadius: '0',
+                        boxShadow: 'none',
+                    },
+                },
+            },
+        },
+    },
+    defaultVariants: { variant: 'basic' },
 };
 
 // ── Floating surfaces ─────────────────────────────────────────────────────
@@ -1632,7 +1647,8 @@ const floating: CssProps = {
 };
 
 /**
- * M3's rich tooltip (#418) — what Popover and HoverCard are here:
+ * M3's rich tooltip (#418) — what Popover and HoverCard are here, and the
+ * surface of Tooltip's `rich` variant (#514):
  * surface-container at level 2 on the medium corner, 12dp over 8dp and 16dp
  * in, a title-small subhead and body-medium supporting text, both
  * on-surface-variant, at most 320dp wide.
@@ -1731,10 +1747,13 @@ export const tooltip: RecipeInput = {
         },
         popup: withPresence(popupPresence('scale(0.85)'), {
             // M3's plain tooltip: inverse-surface, body-small, 24dp tall at
-            // least, 4 x 8dp in, at most 200dp wide, no elevation.
+            // least, 4 x 8dp in, at most 200dp wide, no elevation. The
+            // surface is a variable the arrow reads too, so the `rich`
+            // variant below repaints both.
             base: {
                 boxSizing: 'border-box',
-                background: 'var(--color-inverse-surface)',
+                '--tooltip-surface': 'var(--color-inverse-surface)',
+                background: 'var(--tooltip-surface)',
                 color: 'var(--color-inverse-surface-content)',
                 borderRadius: 'var(--radius-extra-small)',
                 minBlockSize: dp(24),
@@ -1747,11 +1766,32 @@ export const tooltip: RecipeInput = {
             states: { open: {}, closed: {} },
             selectors: popupArrowHost('tooltip'),
         }),
-        arrow: surfaceArrow('tooltip', 'var(--color-inverse-surface)'),
+        arrow: surfaceArrow('tooltip', 'var(--tooltip-surface)'),
     },
-    // Trigger-carried axes — same wiring as dialog, same reason. The bubble
-    // stays Material's inverse-surface tooltip whatever the trigger's colour.
-    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
+    // Colour and size style the trigger, same as dialog: the bubble stays
+    // Material's tooltip whatever the trigger's colour. The variant picks
+    // the bubble (#514 — the popup mirrors its trigger's axes): `plain` is
+    // the base above, and `rich` is M3's rich tooltip surface, the one
+    // Popover and HoverCard wear. A tooltip is never interactive, so a rich
+    // tooltip with a subhead and actions stays a Popover or a HoverCard.
+    variants: {
+        color: overlayTriggerColors(),
+        size: overlayTriggerSizes,
+        variant: {
+            plain: {},
+            rich: {
+                popup: {
+                    base: {
+                        ...richTooltip,
+                        '--tooltip-surface': 'var(--color-surface-container)',
+                        background: 'var(--tooltip-surface)',
+                        minBlockSize: '0',
+                    },
+                },
+            },
+        },
+    },
+    defaultVariants: { variant: 'plain' },
 };
 
 /**
@@ -1954,8 +1994,8 @@ export const menu: RecipeInput = {
         },
     },
     keyframes: rippleKeyframes('menu'),
-    // Trigger-carried axes — same wiring as dialog, same reason. The popup
-    // and its items are top-layer siblings the donut cannot reach.
+    // Trigger-carried axes — same wiring as dialog, same reason: the popup
+    // and its items see them (#514), and stay M3's menu by choice.
     variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 

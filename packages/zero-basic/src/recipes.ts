@@ -628,10 +628,12 @@ const quietTriggerSizes: Record<string, Record<string, PartStyles>> = {
 
 /**
  * The colour wiring for a trigger-carried overlay scope (#321). Dialog, menu,
- * popover and tooltip carry their axis attributes on the TRIGGER — the
- * anatomy's carrier part — and their popup is a top-layer sibling the
- * compiler's `@scope` donut can never reach. So colour here means the
- * trigger: the label takes the role's readable ink (`softInk`, the same
+ * popover and tooltip carry their axis props on the TRIGGER — the anatomy's
+ * carrier part. The popup, a top-layer sibling, mirrors every axis attribute
+ * the trigger renders (#514, `mirrorsAxes`), so a recipe could style the
+ * surface too; this skin keeps colour on the opener, where the choice reads
+ * as an action colour, and leaves the surface neutral. So colour here means
+ * the trigger: the label takes the role's readable ink (`softInk`, the same
  * deepening every on-paper ink in this file uses) and `open` holds the role
  * on the hairline instead of the neutral wash alone. The focus ring stays
  * petrol — one-ink focus is design-system law.
@@ -996,8 +998,8 @@ export const dialog: RecipeInput = {
         // dismiss chrome; the destructive sibling is the app's own button.
         cancel: dismissAction,
     },
-    // Trigger-carried axes — see `quietTriggerColors` for why the popup is
-    // out of reach and the trigger is the whole colour story here.
+    // Trigger-carried axes — see `quietTriggerColors` for why colour stays
+    // on the trigger although the popup mirrors it (#514).
     variants: { color: quietTriggerColors(), size: quietTriggerSizes },
 };
 
@@ -1396,8 +1398,8 @@ export const menu: RecipeInput = {
             },
         },
     },
-    // Trigger-carried axes — same wiring as dialog, same reason. The popup
-    // and its items are top-layer siblings the donut cannot reach.
+    // Trigger-carried axes — same wiring as dialog, same reason: the popup
+    // and its items see them (#514), and stay neutral by choice.
     variants: { color: quietTriggerColors(), size: quietTriggerSizes },
     // The marker rail's pulled-back padding, restated physically: logical
     // spellings resolve on iOS but not on Android (measured,
@@ -7209,8 +7211,8 @@ export const drawer: RecipeInput = {
         },
         close: dismissAction,
     },
-    // Trigger-carried axes — see `quietTriggerColors` for why the panel is
-    // out of reach and the trigger is the whole colour story here.
+    // Trigger-carried axes — see `quietTriggerColors` for why colour stays
+    // on the trigger although the panel mirrors it (#514).
     variants: { color: quietTriggerColors(), size: quietTriggerSizes },
     targets: {
         // Swipe to dismiss (#293) — web only, since the runtime's `--swipe-*`

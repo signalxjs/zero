@@ -1103,6 +1103,24 @@ runtime properties (`RUNTIME_PROPERTIES`). A press on an interactive
 descendant, a secondary button, or a press while text in the part is
 selected never starts a swipe.
 
+**Popup axes (#514).** Dialog, Drawer, Popover, Tooltip, Menu and HoverCard
+take their axis props on the Trigger, and the popup (Drawer's panel) — a
+top-layer sibling of it — renders the same `data-color`, `data-size`,
+`data-variant`, custom `data-<axis>` and `data-mod-*` attributes, kept in
+step with the Trigger's props and present in server markup. So a design
+system can vary the surface per use, not only the button that opens it:
+
+```tsx
+<Dialog.Root>
+    <Dialog.Trigger variant="full-screen">Edit profile</Dialog.Trigger>
+    <Dialog.Popup>…</Dialog.Popup>   {/* renders data-variant="full-screen" */}
+</Dialog.Root>
+```
+
+The popup has no axis props of its own, so it can never disagree with its
+Trigger, and a popup opened without a Trigger (only through its model)
+carries none.
+
 Popup geometry is published the same way (#278). Every popup the built-in
 position strategy places — Select, Combobox, Menu and its submenus, Popover,
 Tooltip, HoverCard — carries, beside `data-placement`, the custom properties
@@ -2789,7 +2807,9 @@ same behaviors, held to the same conformance assertion:
   (`parent` — which same-scope part each part renders inside) and, for parts
   that carry `data-placement`, the `placements` subset; parts that take
   layout attributes name theirs as `layout`; a part that re-carries a named
-  axis beside the scope's carrier names it in `carries`; a part whose job
+  axis beside the scope's carrier names it in `carries`; a top-level part
+  that renders the carrier's whole axis surface too (an overlay popup)
+  declares `mirrorsAxes` and spreads `createAxisMirror`'s attributes; a part whose job
   is paint rather than text (a check, a thumb, a dot) declares `paint` — and `toJSON()`
   emits exactly the shape zero's own `manifest.json` carries per component.
   States are governed: every value must be a member of `STATE_VOCABULARY`
@@ -2891,8 +2911,8 @@ same behaviors, held to the same conformance assertion:
   only, states from the closed set, flags declared and presence-only,
   `data-placement` from the part's declared subset, DOM nesting matching the
   declared part tree, `hidden` exactly where `hiddenIn` says, and
-  `data-color`/`data-size`/`data-variant` only on the carrier or a part that
-  declares it `carries` that axis. It throws a
+  `data-color`/`data-size`/`data-variant` only on the carrier, a part that
+  declares it `carries` that axis, or a part that declares `mirrorsAxes`. It throws a
   plain `Error`, so it works under any test runner. A component rendering
   custom axes names them: `expectAnatomy(el, anatomy, { axes: ['emphasis'] })`.
   The rules themselves are platform-neutral: `expectAnatomyElements`
@@ -2951,6 +2971,19 @@ downstream platform's build.
   color="warning">` paints one figure in a row. The nearest carrier wins: a design system's
   compiled CSS lets the part's own value outrank the carrier's, and a part
   without one follows the carrier.
+- A part's `mirrorsAxes` says it renders the carrier's whole axis surface
+  as well (#514): the overlay popups — `dialog.popup`, `popover.popup`,
+  `tooltip.popup`, `menu.popup`, `hover-card.popup`, `drawer.panel` — are
+  top-layer siblings of the Trigger that carries the axes, so the runtime
+  copies every axis attribute the Trigger renders (`data-color`,
+  `data-size`, `data-variant`, each custom `data-<axis>`, each `data-mod-*`)
+  onto the popup and keeps it in step, server markup included. The popup
+  takes no axis prop: `<Tooltip.Trigger variant="rich">` is the one way in,
+  and a design system's rules for the popup, and for every part inside it,
+  are anchored on the popup. A popup rendered without its Trigger mirrors
+  nothing. An ecosystem overlay does the same with `createAxisMirror` from
+  `@sigx/zero/behaviors`: the trigger publishes `variantAttrs(props)`, the
+  popup spreads `mirror.attrs()`.
 - A part's `paint` says its job is PAINT rather than text (#31) — a check,
   a thumb, a range, a dot, a spinner, the rating star. The contrast audit
   measures every declared paint part against the 3:1 non-text floor, in

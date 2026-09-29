@@ -11,8 +11,11 @@
  * (`filled`, `tonal`, `elevated`, `outlined`, `text` — `exact`), its
  * `round` / `square` shapes (`exact`), and the icon-button and FAB
  * configurations, which M3 ships as separate components and zero as
- * modifiers on one Button (`reshaped`). The vocabulary and the api are pinned
- * verbatim against the package by `conformance.test.ts`.
+ * modifiers on one Button (`reshaped`). Since #514 the overlay popups mirror
+ * their trigger's axes, so the vocabulary also names M3's surface-level
+ * overlay choices: dialog's `basic` / `full-screen` and tooltip's `plain` /
+ * `rich`. The vocabulary and the api are pinned verbatim against the package
+ * by `conformance.test.ts`.
  */
 import { defineApi } from '@sigx/zero-kit';
 
@@ -44,6 +47,7 @@ export const vocabulary = {
         'primary', 'secondary',
         'small', 'center-aligned', 'medium', 'large', 'bottom',
         'drawer', 'rail', 'bar',
+        'basic', 'full-screen', 'plain', 'rich',
     ],
     modifiers: ['icon', 'fab', 'zebra', 'hover', 'inline'],
     axes: { shape: ['circle', 'square', 'rounded', 'round'] },

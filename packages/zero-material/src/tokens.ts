@@ -344,6 +344,8 @@ export const variants = [
     'primary', 'secondary',
     'small', 'center-aligned', 'medium', 'large', 'bottom',
     'drawer', 'rail', 'bar',
+    // Surface variants the overlay popups mirror from their trigger (#514).
+    'basic', 'full-screen', 'plain', 'rich',
 ] as const;
 
 /**
@@ -406,6 +408,10 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         // A field reads its text field's variant to float its label there,
         // and has none of its own.
         field: { variants: [] },
+        // M3's surface-level overlay choices (#514): the trigger takes the
+        // variant and the popup mirrors it.
+        dialog: { variants: ['basic', 'full-screen'] },
+        tooltip: { variants: ['plain', 'rich'] },
         table: { modifiers: ['zebra', 'hover'] },
         // A countdown set inside a sentence (#57).
         countdown: { modifiers: ['inline'] },

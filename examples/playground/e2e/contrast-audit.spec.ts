@@ -388,8 +388,9 @@ test('indicator coverage: every paint-only part has an ancestor chain', ({}, tes
 
 /**
  * Every text-bearing part of a colour-bearing scope has to be REACHED — by the
- * one-element probe when it is the carrier, or through a chain the part tree
- * derives (rooted at the carrier by construction) when it is not.
+ * one-element probe when it is the carrier (or a part that mirrors it, #514:
+ * an overlay popup renders its trigger's axes itself), or through a chain the
+ * part tree derives (rooted at one of those by construction) when it is not.
  *
  * Before #297 this said something narrower and stricter: the carrier had to be
  * the only text-bearing part, full stop. That was the honest statement of what
@@ -420,7 +421,7 @@ test('axis coverage: every text-bearing part of a variant-wiring scope is reacha
             const carrier = carrierPart(component);
             for (const part of component.parts) {
                 if (!part.tokens?.includes('text')) continue;
-                if (part.name === carrier) continue;
+                if (part.name === carrier || part.mirrorsAxes) continue;
                 if (!derivedChainAncestors(component, part)) {
                     unreachable.push(
                         `${ds}/${scope}/${part.name} — text below the carrier "${carrier}" with no parent path to it`,
@@ -440,26 +441,28 @@ test('axis coverage: every text-bearing part of a variant-wiring scope is reacha
  * The derivation itself, held to the same two checks the hand list used to
  * get: every derived chain resolves against the anatomy (a dangling parent or
  * a pin on a state the part lost throws in `chainFor`), and it is rooted at
- * the carrier by construction — asserted anyway, because the axis attributes
- * go on `nodes[0]` and a chain rooted anywhere else would measure the
- * unvaried colour and call it a pass.
+ * the carrier — or at a part that mirrors the carrier's axes (#514, the
+ * overlay popups) — by construction. Asserted anyway, because the axis
+ * attributes go on `nodes[0]` and a chain rooted anywhere else would measure
+ * the unvaried colour and call it a pass.
  */
-test('axis chains: every derived chain resolves against the anatomy, rooted at the carrier', ({}, testInfo) => {
+test('axis chains: every derived chain resolves against the anatomy, rooted at an axis anchor', ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
 
     let derived = 0;
     for (const component of anatomy.components) {
         const carrier = carrierPart(component);
+        const anchors = [carrier, ...component.parts.filter((p) => p.mirrorsAxes).map((p) => p.name)];
         for (const part of component.parts) {
-            if (part.name === carrier || !part.tokens?.includes('text')) continue;
+            if (part.name === carrier || part.mirrorsAxes || !part.tokens?.includes('text')) continue;
             const ancestors = derivedChainAncestors(component, part);
             if (!ancestors) continue;
             derived += 1;
             expect(() => chainFor(component, [...ancestors, part.name])).not.toThrow();
             expect(
-                ancestors[0]?.split('=')[0],
-                `derived chain for ${component.scope}/${part.name} must be rooted at the carrier`,
-            ).toBe(carrier);
+                anchors,
+                `derived chain for ${component.scope}/${part.name} must be rooted at the carrier or a part mirroring it`,
+            ).toContain(ancestors[0]?.split('=')[0]);
         }
     }
     // The guard must not pass vacuously — select alone contributes three.

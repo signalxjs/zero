@@ -725,8 +725,13 @@ reopen the PR (or push an empty commit to it) to start CI.
 - Contract variant props pass through as `data-color` / `data-size` /
   `data-variant`. Zero attaches **no styling** to any of these. Every
   component carries the axis surface (`WithVariantAxes`); for the
-  fragment-rooted scopes (dialog, menu, popover, tooltip, hover-card) the props live on
-  the Trigger, which renders the carrier part.
+  fragment-rooted scopes (dialog, menu, popover, tooltip, hover-card,
+  drawer) the props live on the Trigger, which renders the carrier part.
+  The popup (drawer's panel) declares `mirrorsAxes: true` (#514): the
+  runtime copies every axis attribute the Trigger renders — named, custom
+  and `data-mod-*` — onto it, kept in step (`createAxisMirror`), and the
+  compiler anchors axis rules for the popup and the parts inside it on the
+  popup. No second prop surface: the popup takes no axis prop of its own.
 - A non-carrier part that takes an axis prop of its own declares it:
   `carries: ['color']` on `timeline.marker` (#94), `steps.item` (#112) and
   `stats.item` (#161).

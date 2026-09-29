@@ -36,6 +36,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define } from 'sigx';
+import { createAxisMirror, INERT_AXIS_MIRROR, type AxisMirror } from '../../behaviors/axis-mirror.js';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
@@ -62,6 +63,8 @@ const HOVER_CARD_CLOSE_DELAY = 300;
 
 interface HoverCardContext {
     state: ControllableState<boolean>;
+    /** The Trigger's axis attributes, mirrored onto the popup (#514, `mirrorsAxes`). */
+    axes: AxisMirror;
     ids: { popup: string };
     /** Pointer entered / left the trigger or the popup. */
     enter(e: PointerEvent, on: 'trigger' | 'popup'): void;
@@ -83,6 +86,7 @@ interface HoverCardContext {
 function makeInert(): HoverCardContext {
     return {
         state: createInertState<boolean>(false),
+        axes: INERT_AXIS_MIRROR,
         ids: { popup: 'zx-hover-card-inert' },
         enter: () => {},
         leave: () => {},
@@ -183,6 +187,7 @@ const HoverCardRoot = component<HoverCardRootProps>(({ props, slots, emit, onUnm
 
     const ctx: HoverCardContext = {
         state,
+        axes: createAxisMirror(),
         ids: { popup: `${baseId}-popup` },
         enter(e, on) {
             // Touch has no hover: its pointerenter is the first beat of a
@@ -307,8 +312,10 @@ export type HoverCardTriggerProps =
     & WithLend
     & Define.Slot<'default', PartProps>;
 
-const HoverCardTrigger = component<HoverCardTriggerProps>(({ props, slots, signal }) => {
+const HoverCardTrigger = component<HoverCardTriggerProps>(({ props, slots, signal, onUnmounted }) => {
     const card = useHoverCardContext();
+    // The popup renders the same axis attributes (#514).
+    onUnmounted(card.axes.publish(() => variantAttrs(props)));
     const focus = signal({ visible: false });
 
     // One ref for the part's life: a ref that changed between renders is
@@ -404,6 +411,7 @@ const HoverCardPopup = component<HoverCardPopupProps>(({ props, slots, onMounted
     return () => (
         <div
             {...htmlAttrs(props)}
+            {...card.axes.attrs()}
             id={card.ids.popup}
             data-scope={SCOPE}
             data-part="popup"

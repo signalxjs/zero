@@ -207,6 +207,27 @@ export interface PartSpec {
      */
     carries?: readonly CarriedAxis[];
     /**
+     * Present when the part MIRRORS the carrier's whole axis surface (#514):
+     * the runtime copies every axis attribute the carrier renders —
+     * `data-color`, `data-size`, `data-variant`, each custom `data-<axis>`
+     * and each `data-mod-*` — onto this part as well, and keeps the copy in
+     * step. It is how the fragment-rooted scopes (dialog, popover, tooltip,
+     * menu, hover-card, drawer), whose axes ride the trigger, reach a popup
+     * that is a top-layer SIBLING of that trigger: a variant can style the
+     * surface, not only the button that opens it.
+     *
+     * No prop of its own — the carrier's props are the only way in, so the
+     * two can never disagree. The recipe compiler anchors every axis rule
+     * for this part, and for each part inside it, on this part's own
+     * attributes (the `@scope` donut rooted here instead of on the carrier).
+     * Presence-only, like `absorbable`; a part that mirrors nothing OMITS
+     * the key. Invariants (zero's anatomy suite; `mergeManifests` for
+     * ecosystem fragments): never the carrier, never inside it (a part under
+     * the carrier is reached by its attributes already), no `parent`, no
+     * `pseudo`, not `absorbable`, and no `carries` (it has every axis).
+     */
+    mirrorsAxes?: true;
+    /**
      * True (or the mark's facts, `PartPaint`) when the part's job is PAINT
      * rather than text — a check, a thumb, a range, a dot, a spinner, a
      * star. A reader who cannot see it cannot use the control, so it answers
