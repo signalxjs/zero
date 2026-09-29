@@ -47,8 +47,9 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
+import { mergePartProps } from '../../contract/merge-part-props.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithLend, WithVariantAxes } from '../../contract/props.js';
 import { popoverAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
 
@@ -225,6 +226,13 @@ export type PopoverTriggerProps =
      * `disabled`. They reach an `asChild` element through the bag.
      */
     & WithInteractionHandlers
+    /**
+     * Another zero part's asChild bag (#452) — a `Tooltip.Trigger`'s, say —
+     * so lenders chain: tooltip → popover → a `Button.Root` that renders the
+     * element. Its handlers and ref run before the trigger's own, its IDREF
+     * ARIA joins, and its anatomy is dropped: the trigger keeps its own.
+     */
+    & WithLend
     & Define.Slot<'default', PartProps>;
 
 const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal }) => {
@@ -237,10 +245,20 @@ const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal })
         isDisabled: () => !!props.disabled,
     });
 
-    const bag = (): PartProps => ({
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which a host chaining this one
+    // through `lend` would feel on every re-render.
+    const setEl = (node: HTMLElement | null): void => { el = node; popover.setTrigger(node); };
+
+    // A lent bag (#452) merges under the part's own: its anatomy dropped,
+    // its handlers and ref chained first.
+    const bag = (): PartProps => mergePartProps(props.lend, {
         ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'trigger',
+        // In the bag so a lent class concatenates; kept off an asChild bag,
+        // where the slot's element owns its class.
+        ...(props.asChild ? {} : { class: props.class }),
         ...variantAttrs(props),
         'data-state': stateAttr(popover.state.value, 'open', 'closed'),
         'data-disabled': dataAttr(props.disabled),
@@ -271,14 +289,14 @@ const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal })
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
         onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; popover.setTrigger(node); },
-    });
+        ref: setEl,
+    } satisfies PartProps);
 
     return () => {
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <button type="button" class={props.class} {...b} disabled={props.disabled}>
+            <button type="button" {...b} disabled={props.disabled}>
                 {slots.default?.(b)}
             </button>
         );
@@ -518,6 +536,14 @@ export type PopoverCloseProps =
      * `onBlur` run after the part's own handling.
      */
     & WithInteractionHandlers
+    /**
+     * Another zero part's asChild bag (#452) — a `Tooltip.Trigger`'s, say.
+     * Its handlers and ref run before the close's own, its IDREF ARIA
+     * joins, and its anatomy is dropped: the close keeps its own. Lent on
+     * to a `Button.Root` in turn, the close closes BEFORE the Button's own
+     * `onClick` runs: veto in this part's `onClick`, not the Button's.
+     */
+    & WithLend
     & Define.Slot<'default', PartProps>;
 
 const PopoverClose = component<PopoverCloseProps>(({ props, slots, signal }) => {
@@ -530,10 +556,20 @@ const PopoverClose = component<PopoverCloseProps>(({ props, slots, signal }) => 
         isDisabled: () => !!props.disabled,
     });
 
-    const bag = (): PartProps => ({
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which a host chaining this one
+    // through `lend` would feel on every re-render.
+    const setEl = (node: HTMLElement | null): void => { el = node; };
+
+    // A lent bag (#452) merges under the part's own: its anatomy dropped,
+    // its handlers and ref chained first.
+    const bag = (): PartProps => mergePartProps(props.lend, {
         ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'close',
+        // In the bag so a lent class concatenates; kept off an asChild bag,
+        // where the slot's element owns its class.
+        ...(props.asChild ? {} : { class: props.class }),
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
         onClick: (e: MouseEvent) => {
@@ -561,14 +597,14 @@ const PopoverClose = component<PopoverCloseProps>(({ props, slots, signal }) => 
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
         onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; },
-    });
+        ref: setEl,
+    } satisfies PartProps);
 
     return () => {
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <button type="button" class={props.class} {...b} disabled={props.disabled}>
+            <button type="button" {...b} disabled={props.disabled}>
                 {slots.default?.(b)}
             </button>
         );

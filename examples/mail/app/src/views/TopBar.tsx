@@ -1,7 +1,7 @@
 import { component } from 'sigx';
 import { Avatar, Button, Drawer, Input, Kbd, Menu, Navbar, Row, Swap, themeController } from '@sigx/zero';
 import type { InputHandle } from '@sigx/zero';
-import { ActionButton, Heading, Icon, Text } from '@sigx/zero-mail-kit';
+import { ActionButton, Heading, Icon, MenuAction, Text } from '@sigx/zero-mail-kit';
 import { initials } from '../data/mock';
 import { compose, ME, st } from '../store';
 import { SearchFilters } from './SearchFilters';
@@ -61,11 +61,11 @@ export const TopBar = component(() => {
                         if (v === 'shortcuts') st.shortcutsOpen = true;
                     }}
                 >
-                    <Menu.Trigger variant="ghost" size="sm" aria-label="Account">
+                    <MenuAction label="Account" placement="bottom-end">
                         <Avatar.Root size="xs" color="primary">
                             <Avatar.Fallback>{initials(ME.name)}</Avatar.Fallback>
                         </Avatar.Root>
-                    </Menu.Trigger>
+                    </MenuAction>
                     <Menu.Popup>
                         <Menu.Group>
                             <Menu.GroupLabel>

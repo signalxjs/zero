@@ -297,6 +297,10 @@ const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
     // stays quiet until the pointer has left and come back, so the tooltip
     // does not re-open over whatever the press opened (a menu, a dialog).
     let suppressUntilLeave = false;
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which a host chaining this one
+    // through `lend` would feel on every re-render.
+    const setAnchor = (node: HTMLElement | null): void => tooltip.setAnchor(node);
 
     const bag = (): PartProps => {
         const attrs = htmlAttrs(props);
@@ -304,6 +308,9 @@ const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
             ...attrs,
             'data-scope': SCOPE,
             'data-part': 'trigger',
+            // In the bag so a lent class concatenates; kept off an asChild bag,
+            // where the slot's element owns its class.
+            ...(props.asChild ? {} : { class: props.class }),
             ...variantAttrs(props),
             'data-state': stateAttr(tooltip.state.value, 'open', 'closed'),
             'data-disabled': dataAttr(props.disabled),
@@ -344,15 +351,15 @@ const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
             },
             // Escape is handled by the dismiss layer in Root (document-level,
             // WCAG 1.4.13) — no trigger-local keydown needed.
-            ref: (node: HTMLElement | null) => tooltip.setAnchor(node),
-        });
+            ref: setAnchor,
+        } satisfies PartProps);
     };
 
     return () => {
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <button type="button" class={props.class} {...b} disabled={props.disabled}>
+            <button type="button" {...b} disabled={props.disabled}>
                 {slots.default?.(b)}
             </button>
         );
@@ -378,8 +385,20 @@ const TooltipPopup = component<TooltipPopupProps>(({ props, slots, onMounted }) 
             if (!node || typeof node.showPopover !== 'function') return;
             if (open) exit.cancel();
             const showing = node.matches(':popover-open');
-            if (open && !showing) node.showPopover();
-            else if (!open && showing) {
+            if (open && !showing) {
+                try {
+                    node.showPopover();
+                } catch {
+                    // A popover cannot show while another one is mid show or
+                    // hide: focus handed back from a menu closing by keyboard
+                    // lands on this trigger inside the menu's hide (#495).
+                    // A task, not a microtask: a native hide runs its focus
+                    // listeners with microtask checkpoints of their own.
+                    setTimeout(() => {
+                        if (tooltip.state.value && node.isConnected && !node.matches(':popover-open')) node.showPopover();
+                    }, 0);
+                }
+            } else if (!open && showing) {
                 exit.close(node, () => {
                     if (!tooltip.state.value && node.matches(':popover-open')) node.hidePopover!();
                 });

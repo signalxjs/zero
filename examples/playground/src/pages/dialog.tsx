@@ -1,7 +1,7 @@
 import { component, signal } from 'sigx';
 import { Button, Dialog, Menu } from '@sigx/zero';
 import { pickRole } from '../design-systems';
-import type { DialogCloseDetail } from '@sigx/zero';
+import type { DialogCloseDetail, PartProps } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const DialogDemos = component(() => {
@@ -9,6 +9,7 @@ const DialogDemos = component(() => {
         dialogOpen: false, findOpen: false, lastClose: 'none yet', lastConfirm: 'none yet',
         restored: false, restoredOpen: false,
         renameOpen: false, dirty: true, vetoed: 0,
+        lastProfile: 'none yet', saved: 0,
     });
     let renameInput: HTMLElement | null = null;
     const onAlertClose = (d: DialogCloseDetail): void => {
@@ -16,6 +17,9 @@ const DialogDemos = component(() => {
     };
     const onConfirmClose = (d: DialogCloseDetail): void => {
         state.lastConfirm = d.value === undefined ? d.reason : `${d.reason} · ${d.value}`;
+    };
+    const onProfileClose = (d: DialogCloseDetail): void => {
+        state.lastProfile = d.value === undefined ? d.reason : `${d.reason} · ${d.value}`;
     };
 
     return () => (
@@ -160,6 +164,38 @@ const DialogDemos = component(() => {
                 </Dialog.Popup>
             </Dialog.Root>
             <p data-demo="confirm-reason">Last confirm: {state.lastConfirm}</p>
+
+            <h2>Lent to a Button</h2>
+            <p>
+                The trigger and the close as zero Buttons (#495): each lends
+                its bag through <code>lend</code> —{' '}
+                <code>{'<Dialog.Close asChild value="save">{(p) => <Button.Root lend={p}>…'}</code>.
+                One element, the Button's own anatomy and paint and press
+                feedback. The close runs before the Button's own{' '}
+                <code>onClick</code>, so a veto belongs on{' '}
+                <code>Dialog.Close</code>'s <code>onClick</code>.
+            </p>
+            <Dialog.Root onClose={onProfileClose}>
+                <Dialog.Trigger asChild>
+                    {(p: PartProps) => <Button.Root lend={p}>Edit profile</Button.Root>}
+                </Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Title>Edit profile</Dialog.Title>
+                    <Dialog.Description>
+                        Save and close is a <code>Button.Root</code> hosting{' '}
+                        <code>Dialog.Close</code>.
+                    </Dialog.Description>
+                    <Dialog.Footer>
+                        <Dialog.Close>Cancel</Dialog.Close>
+                        <Dialog.Close asChild value="save">
+                            {(p: PartProps) => (
+                                <Button.Root lend={p} onClick={() => { state.saved += 1; }}>Save and close</Button.Root>
+                            )}
+                        </Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Popup>
+            </Dialog.Root>
+            <p data-demo="profile-reason">Last profile close: {state.lastProfile} (saved {state.saved}×)</p>
 
             <h2>Focus, scroll and asking first</h2>
             <p>

@@ -51,6 +51,23 @@
   is a host too, so lenders chain. The README's Patterns section teaches
   the rule: a raw element spreads the bag, a zero component takes
   `lend={p}`.
+- **The overlay triggers take `lend` (#495).** `Menu.Trigger`,
+  `Popover.Trigger`, `Popover.Close`, `Dialog.Trigger`, `Dialog.Close`,
+  `Dialog.Cancel` and `HoverCard.Trigger` are hosts, so they lend and host
+  alike: `<Tooltip.Trigger asChild>{(t) => <Menu.Trigger asChild lend={t}>{(m)
+  => <Button.Root lend={m}>…</Button.Root>}</Menu.Trigger>}</Tooltip.Trigger>`
+  is one Button with the menu button's ARIA and keys and a hover label. A
+  lent Menubar trigger keeps `role="menuitem"` and the roving `tabIndex`. A
+  closer lent to a Button closes before the Button's `onClick`: veto on the
+  closer's `onClick`; an inert (`loading`, disabled) Button closes nothing.
+  Every host puts its own `class` in the merged bag, so a lent `class`
+  concatenates rather than replacing it (`Tooltip.Trigger` and
+  `Button.Root` included), and passes one ref for the part's life, so a
+  chain never detaches and re-attaches its lenders' refs on a re-render.
+  Focus handed back by the menu's native Escape close lands on the Button
+  mid-hide, when no popover may show: the tooltip shows once the hide is
+  done, and `Menu.Popup` moves focus into the menu untracked, so the
+  tooltip's state never re-runs the menu's show.
 
 ### Changed
 

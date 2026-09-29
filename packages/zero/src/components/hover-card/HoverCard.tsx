@@ -46,8 +46,9 @@ import { pointInTriangle, safeTriangleTo } from '../../behaviors/safe-triangle.j
 import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
+import { mergePartProps } from '../../contract/merge-part-props.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithInteractionHandlers, WithVariantAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithHtmlAttrs, WithInteractionHandlers, WithLend, WithVariantAxes } from '../../contract/props.js';
 import { hoverCardAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
 
@@ -297,16 +298,33 @@ export type HoverCardTriggerProps =
      * `asChild` element through the bag.
      */
     & WithInteractionHandlers
+    /**
+     * Another zero part's asChild bag (#452) — a `Tooltip.Trigger`'s, say —
+     * so lenders chain: tooltip → hover card → a `Button.Root` that renders the
+     * element. Its handlers and ref run before the trigger's own, its IDREF
+     * ARIA joins, and its anatomy is dropped: the trigger keeps its own.
+     */
+    & WithLend
     & Define.Slot<'default', PartProps>;
 
 const HoverCardTrigger = component<HoverCardTriggerProps>(({ props, slots, signal }) => {
     const card = useHoverCardContext();
     const focus = signal({ visible: false });
 
-    const bag = (): PartProps => ({
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which a host chaining this one
+    // through `lend` would feel on every re-render.
+    const setEl = (node: HTMLElement | null): void => card.setAnchor(node);
+
+    // A lent bag (#452) merges under the part's own: its anatomy dropped,
+    // its handlers and ref chained first.
+    const bag = (): PartProps => mergePartProps(props.lend, {
         ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'trigger',
+        // In the bag so a lent class concatenates; kept off an asChild bag,
+        // where the slot's element owns its class.
+        ...(props.asChild ? {} : { class: props.class }),
         ...variantAttrs(props),
         'data-state': stateAttr(card.state.value, 'open', 'closed'),
         'data-focus-visible': dataAttr(focus.visible),
@@ -327,14 +345,14 @@ const HoverCardTrigger = component<HoverCardTriggerProps>(({ props, slots, signa
         },
         onClick: (e: MouseEvent) => props.onClick?.(e),
         onKeydown: (e: KeyboardEvent) => props.onKeydown?.(e),
-        ref: (node: HTMLElement | null) => card.setAnchor(node),
-    });
+        ref: setEl,
+    } satisfies PartProps);
 
     return () => {
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <a href={props.href} class={props.class} {...b}>
+            <a {...b}>
                 {slots.default?.(b)}
             </a>
         );

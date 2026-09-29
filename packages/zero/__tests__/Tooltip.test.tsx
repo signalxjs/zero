@@ -445,3 +445,71 @@ describe('Tooltip.Trigger handler ordering (#486)', () => {
         expect(state.open).toBe(false);
     });
 });
+
+describe('Tooltip.Popup mid another popover\'s hide (#495)', () => {
+    type PopoverProto = { showPopover?: () => void; hidePopover?: () => void };
+    const proto = HTMLElement.prototype as PopoverProto;
+    const saved = { show: proto.showPopover, hide: proto.hidePopover, matches: Element.prototype.matches };
+    let busy = false;
+    let container: HTMLElement;
+    beforeEach(() => {
+        vi.useFakeTimers();
+        // A popover API that refuses to show while another popover is mid
+        // show or hide, as the engines do.
+        proto.showPopover = function (this: HTMLElement) {
+            if (busy) throw new DOMException('another popover is being shown or hidden', 'InvalidStateError');
+            this.setAttribute('data-test-popover-open', '');
+        };
+        proto.hidePopover = function (this: HTMLElement) { this.removeAttribute('data-test-popover-open'); };
+        (Element.prototype as { matches(sel: string): boolean }).matches = function (this: Element, sel: string) {
+            return sel === ':popover-open' ? this.hasAttribute('data-test-popover-open') : saved.matches.call(this, sel);
+        };
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    afterEach(() => {
+        render(null, container);
+        vi.useRealTimers();
+        container.remove();
+        busy = false;
+        if (saved.show) proto.showPopover = saved.show; else delete proto.showPopover;
+        if (saved.hide) proto.hidePopover = saved.hide; else delete proto.hidePopover;
+        Element.prototype.matches = saved.matches;
+    });
+
+    it('shows once the other popover is done, instead of throwing', () => {
+        const state = signal({ open: false });
+        render(
+            <Tooltip.Root model={[state, 'open']}>
+                <Tooltip.Trigger>Save</Tooltip.Trigger>
+                <Tooltip.Popup>Save the document</Tooltip.Popup>
+            </Tooltip.Root>,
+            container,
+        );
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        busy = true;
+        expect(() => { state.open = true; }).not.toThrow();
+        expect(popup.hasAttribute('data-test-popover-open')).toBe(false);
+        busy = false;
+        vi.advanceTimersByTime(0);
+        expect(popup.hasAttribute('data-test-popover-open')).toBe(true);
+    });
+
+    it('does not show late if it closed meanwhile', () => {
+        const state = signal({ open: false });
+        render(
+            <Tooltip.Root model={[state, 'open']}>
+                <Tooltip.Trigger>Save</Tooltip.Trigger>
+                <Tooltip.Popup>Save the document</Tooltip.Popup>
+            </Tooltip.Root>,
+            container,
+        );
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        busy = true;
+        state.open = true;
+        state.open = false;
+        busy = false;
+        vi.advanceTimersByTime(0);
+        expect(popup.hasAttribute('data-test-popover-open')).toBe(false);
+    });
+});
