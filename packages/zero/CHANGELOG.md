@@ -4,6 +4,16 @@
 
 ### Added
 
+- **`Input.Affix`, prefix and suffix text as its own part (#467, part of
+  #413).** `input.affix` (`placement="start" | "end"` → `data-placement`,
+  the same press-to-focus as the adornment) holds text such as `https://`,
+  `.com` or `kg`; `Input.Adornment` is now for icons. Design systems lay the
+  two out differently — Material centres an icon and moves a resting label
+  past a leading one, but sets affix text on the input's text line, leaves
+  the label alone and shows it once the label floats — and no longer have to
+  guess which one they hold from the content. All six shipped skins style
+  the new part. Move text written in an `Input.Adornment` to `Input.Affix`.
+
 - **`Field.Root` carries `data-placeholder` while its control is empty
   (#469, part of #413).** A `Field.Root` holding an Input, Textarea,
   NumberInput, Combobox or Select mirrors that control's own
