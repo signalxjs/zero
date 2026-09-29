@@ -26,6 +26,24 @@ const ToggleGroupDemos = component(() => {
                     <ToggleGroup.Item value="strike" disabled><s>S</s></ToggleGroup.Item>
                 </ToggleGroup.Root>
             </DemoRow>
+            <p>
+                An item may hold a <code>ToggleGroup.ItemIndicator</code>: an
+                empty, <code>aria-hidden</code> span mirroring the item's{' '}
+                <code>on|off</code>, where a design system draws a check —
+                Material's segmented button slides one in before the label.
+            </p>
+            <DemoRow gap="1rem">
+                <ToggleGroup.Root defaultValue="week" deselectable={false} label="Calendar view">
+                    <ToggleGroup.Item value="day"><ToggleGroup.ItemIndicator />Day</ToggleGroup.Item>
+                    <ToggleGroup.Item value="week"><ToggleGroup.ItemIndicator />Week</ToggleGroup.Item>
+                    <ToggleGroup.Item value="month"><ToggleGroup.ItemIndicator />Month</ToggleGroup.Item>
+                </ToggleGroup.Root>
+                <ToggleGroup.Root multiple defaultValue={['wifi']} label="Connections">
+                    <ToggleGroup.Item value="wifi"><ToggleGroup.ItemIndicator />Wi-Fi</ToggleGroup.Item>
+                    <ToggleGroup.Item value="bluetooth"><ToggleGroup.ItemIndicator />Bluetooth</ToggleGroup.Item>
+                    <ToggleGroup.Item value="cellular" disabled><ToggleGroup.ItemIndicator />Cellular</ToggleGroup.Item>
+                </ToggleGroup.Root>
+            </DemoRow>
         </>
     );
 }, { name: 'ToggleGroupDemos' });

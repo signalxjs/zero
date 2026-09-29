@@ -236,7 +236,8 @@ test('menu: the trigger ripples; a real item press activates and closes', async 
 
 test('disclosure triggers ripple on their native summaries', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
-    await part(page, 'collapsible', 'trigger').click();
+    // The Collapsible page renders more than one since #437: name the demo.
+    await demoLabelled(page, 'collapsible', 'What is zero?')('trigger').click();
     const log = await logWith(page, 'anim:collapsible-ripple');
     expectSequence(log, ['collapsible/trigger:data-pressed:on', 'anim:collapsible-ripple']);
 });
