@@ -4,6 +4,16 @@
 
 ### Added
 
+- **`defineAnatomy` declares `runtimeProperties` (#456).** A component
+  whose runtime writes CSS custom properties inline lists them in the third
+  argument, beside `models` (`runtimeProperties: ['--ext-stepper-count']`,
+  typed `` `--${string}`[] ``). `Anatomy.runtimeProperties` keeps the
+  declaration, and `toJSON()` emits `runtimeProperties` on the component only
+  when the list is non-empty, as it does `models`. The kit's `mergeManifests`
+  holds an ecosystem fragment's names to its scope's prefix; a recipe then
+  reads them bare, web-only. Zero's own anatomies do not declare theirs yet:
+  they are still listed in the kit's `RUNTIME_PROPERTIES`.
+
 - **`Combobox.Root` `filterItems` (#458).** Hand-written `Combobox.Item`s
   are filtered by the query when it is set: each item's label (`textValue`,
   else its text) is matched with the default case-insensitive

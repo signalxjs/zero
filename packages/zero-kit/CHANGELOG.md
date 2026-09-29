@@ -18,6 +18,36 @@
   `system`. The tokens schema accepts `system.custom`. zero-material sets
   its M3 state-layer opacities there instead of in each of its six themes;
   its compiled CSS is unchanged.
+
+- **Ecosystem fragments declare `runtimeProperties` (#456).** A fragment's
+  component may list the CSS custom properties its runtime writes inline
+  (`defineAnatomy`'s new option), and a recipe then reads them bare, like
+  zero's own `RUNTIME_PROPERTIES`. They are web-only: the lynx target refuses
+  them outside `targets.web`, so a discovered pack reading one in a shared
+  section is degraded to web-only on lynx (`lynx.webOnly`) like any other.
+  `mergeManifests` hard-errors, naming the fragment, scope and property, on a
+  list that is empty or repeats a name; a name that is not `--` plus
+  kebab-case; one that does not start with `--<scope>-`; one under the token
+  grammar (`--color-*`, a scale category's prefix, `--border`,
+  `--disabled-opacity`); one of the kit's runtime or medium properties; and
+  one the base manifest or an earlier fragment already declares. The
+  manifest schema's component (and so the fragment schema's) accepts the
+  key. `FRAGMENT_VERSION` stays 1, since the change is additive, but **an
+  older kit's schema rejects a fragment carrying the key**.
+- **`runtimePropertiesOf(manifest)`, `BEHAVIOR_RUNTIME_PROPERTIES` and
+  `runtimePropertyMatcher` (#456).** `runtimePropertiesOf` is
+  `RUNTIME_PROPERTIES` plus every component's declared names: validation,
+  the lynx compile and the contrast audit all read it now.
+  `BEHAVIOR_RUNTIME_PROPERTIES` is the part of `RUNTIME_PROPERTIES` no scope
+  owns (the press trio, the swipe pair, the position and arrow properties);
+  `RUNTIME_PROPERTIES` keeps its members, reordered to start with it.
+  `runtimePropertyMatcher(names)` builds the lynx guard over a set;
+  `runtimePropertyIn(text, match?)`, `compileLynxTokensCss` and
+  `compileLynxRecipeCss` take one as a trailing optional parameter.
+  `tokenVocabulary(tokens, runtime?)` takes the runtime set, and
+  `ThemeEnv.runtime` carries it into the contrast cascade; both default to
+  `RUNTIME_PROPERTIES`.
+
 - **`RoleDecl.axis` (#425, part of #413).** A role can now say whether it
   is a value of the `color` axis. Left out, membership is inferred as
   before: a role with `content: false` or `soft: false` is a fill, every
