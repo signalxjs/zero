@@ -462,7 +462,8 @@ const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => (
  * input while the field is empty and unfocused, and floats to the top edge
  * (filled) or onto the outline (outlined) otherwise. "Empty" is
  * `data-placeholder`, which the runtime stamps on the text controls' roots
- * and on the select trigger (#416).
+ * and on the select trigger (#416), and mirrors onto a `Field.Root` holding
+ * one (#469).
  */
 
 /** The text-field scopes, by the root a `Field.Root` would hold. */
@@ -2799,9 +2800,10 @@ export const field: RecipeInput = {
             selectors: {
                 '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' },
                 // Over a text field, the M3 floating label: resting while the
-                // field holds no value (`data-placeholder` anywhere inside —
-                // a text root, or the select trigger) and is unfocused.
-                ...tfLabelRules(FIELD_HOST, ':is(:focus-within, :not(:has([data-placeholder])))'),
+                // field holds no value and is unfocused. `Field.Root` mirrors
+                // its control's emptiness as its own `data-placeholder`
+                // (#469), so the label reads its field, not the control.
+                ...tfLabelRules(FIELD_HOST, ':is(:focus-within, :not([data-placeholder]))'),
                 [`${FIELD_HOST} > &[data-required]::after`]: { color: 'inherit' },
             },
             at: { 'reduced-motion': { selectors: { [`${FIELD_HOST} > &`]: { transition: 'none' } } } },

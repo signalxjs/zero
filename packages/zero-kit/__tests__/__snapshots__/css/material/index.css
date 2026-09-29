@@ -5911,7 +5911,7 @@
         transform-origin: top right;
     }
 
-    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])):is(:focus-within, :not(:has([data-placeholder]))) > [data-scope="field"][data-part="label"] {
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])):is(:focus-within, :not([data-placeholder])) > [data-scope="field"][data-part="label"] {
         transform: translateY(var(--tf-float-y)) scale(0.75);
         inset-inline-start: var(--tf-label-start-floated);
         background: var(--tf-notch);
