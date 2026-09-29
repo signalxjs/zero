@@ -135,7 +135,7 @@ export function renderIndexTs(_ctx: RenderContext): string {
 export function renderDesignSystemTs(ctx: RenderContext): string {
     return [
         "import type { DesignSystemInput } from '@sigx/zero-kit';",
-        "import { layoutCss, layoutRecipes } from '@sigx/zero-kit/define';",
+        "import { documentCss, layoutCss, layoutRecipes } from '@sigx/zero-kit/define';",
         "import { roles, tokens } from './tokens.js';",
         "import { recipes } from './recipes.js';",
         '',
@@ -153,7 +153,8 @@ export function renderDesignSystemTs(ctx: RenderContext): string {
         `    name: '${ctx.dsName}',`,
         '    tokens,',
         '    recipes: [...layoutRecipes(tokens), ...recipes],',
-        '    css: [layoutCss(tokens)],',
+        "    // The page's margin, ground and type (#455) — drop it to leave the document alone.",
+        '    css: [layoutCss(tokens), documentCss(tokens)],',
         '};',
         '',
         'export default designSystem;',

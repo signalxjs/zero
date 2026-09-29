@@ -576,6 +576,31 @@ also builds lynx both halves go in `targets.web`. `left: var(--arrow-x)` is
 exempt from the physical-direction lint, like `--press-x`: it measures the
 glass.
 
+### `documentCss` — the document baseline
+
+Zero's own CSS stays free of visual design, so nothing removes the UA's 8px
+body margin or puts a skin's ground and type on the page: an app whose root
+claims the viewport scrolls by 16px. `documentCss(tokens, options?)` is the
+opt-in answer (#455), added to a design system's `css`:
+
+```ts
+import { documentCss, layoutCss } from '@sigx/zero-kit/define';
+
+css: [layoutCss(tokens), documentCss(tokens, { ground: 'base-200' })],
+```
+
+```css
+html, body { margin: 0; block-size: 100%; }
+body { background: var(--color-base-200); color: var(--color-base-content); font-family: var(--font-sans); }
+```
+
+`ground` is `base-100` (default), `base-200` or `base-300`; `font` is a
+typography font key (default `sans`), and `font-family` is written only when
+`system.typography.fonts` declares it; `fullHeight: false` drops the
+`block-size`. It wraps nothing in a layer of its own: a design system's `css`
+lands inside `@layer zero.recipes`, so unlayered app CSS still beats it.
+`create-zero-ds` scaffolds include it.
+
 ## Extending a design system
 
 A design system derived from another — a product skin on top of

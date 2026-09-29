@@ -189,6 +189,15 @@ describe("the brief's signature survives the composition", () => {
         expect(all).not.toMatch(/var\(--color-(?!base-|riso-)/);
     });
 
+    it('ships the document baseline in its own ground and type (#455)', async () => {
+        const dir = scaffoldDir();
+        writePlan(dir, planScaffold({ name: 'zero-doc', brief: 'riso' }, templates));
+        const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
+        const { indexCss } = compileDesignSystem(designSystem, manifest);
+        expect(indexCss).toContain('html,\nbody {\n    margin: 0;');
+        expect(indexCss).toContain('background: var(--color-base-100);');
+    });
+
     it('brutalist: the tracked-out mono type and zero radius are what every component wears', async () => {
         const dir = scaffoldDir();
         writePlan(dir, planScaffold({ name: 'zero-brut', brief: 'brutalist' }, templates));

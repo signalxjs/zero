@@ -55,6 +55,17 @@
   `TYPE_ROLE_FIELDS` and the `TypeRoleDecl` type are exported. A kit older
   than this rejects a manifest carrying `typeRoles` against its schema.
 
+- **`documentCss`, an opt-in document baseline (#455).** On
+  `@sigx/zero-kit/define` (and the barrel): `documentCss(tokens, options?)`
+  returns `html, body { margin: 0; block-size: 100% }` and a `body` on
+  `var(--color-<ground>)` in `var(--color-base-content)`, set in
+  `var(--font-<font>)` only when the design system declares that font.
+  Options: `ground` (`base-100` default, `base-200`, `base-300`; anything
+  else throws), `font` (default `sans`), `fullHeight` (default `true`). A
+  design system adds it to its `css`, which compiles inside
+  `@layer zero.recipes`, so unlayered app CSS still wins. Zero's own CSS
+  stays free of visual design; `create-zero-ds` scaffolds now include it.
+
 ### Changed
 
 - **`Stack.Item grow` grows from a zero basis (#454).** `layoutRecipes()`'s

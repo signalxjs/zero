@@ -35,6 +35,12 @@ the blocks those axes would have wired and redraws every undeclared role in
 `base-content` on `base-100`. Diverge from the baseline freely; delete the fit
 call once every recipe speaks your own vocabulary.
 
+`design-system.ts` also adds `documentCss(tokens)` to the design system's
+`css`: the page's `html, body { margin: 0 }` plus its ground and type from
+your tokens (#455). Zero's own CSS paints nothing, so without it the UA's 8px
+body margin stays. Pass options to change the ground, or delete the call to
+leave the document alone.
+
 ## Options
 
 ```

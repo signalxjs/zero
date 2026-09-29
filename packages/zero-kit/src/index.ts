@@ -43,6 +43,8 @@ export type { DerivePaletteOptions, DeriveThemePairOptions, Harmony, Oklch, Role
 export { clampChroma, contrastRatio, derivePalette, deriveThemePair, formatOklch, solveContentLightness } from './palette.js';
 
 export { LAYOUT_SCOPES, layoutCss, layoutRecipes, layoutScopes } from './layout-recipes.js';
+export type { DocumentCssOptions, DocumentGround } from './document-css.js';
+export { documentCss } from './document-css.js';
 export type { TableStackPart } from './table-stack.js';
 export { tableStackAt, tableStackCss } from './table-stack.js';
 export type { PopupArrowOptions } from './popup-arrow.js';

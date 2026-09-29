@@ -1,5 +1,5 @@
 import type { DesignSystemInput } from '@sigx/zero-kit';
-import { layoutCss, layoutRecipes } from '@sigx/zero-kit/define';
+import { documentCss, layoutCss, layoutRecipes } from '@sigx/zero-kit/define';
 import { roles, tokens } from './tokens.js';
 import { recipes } from './recipes.js';
 
@@ -13,20 +13,6 @@ import { recipes } from './recipes.js';
  * baseline copy. Override any of it by adding your own recipe for the same
  * component AFTER the spread.
  */
-/**
- * The page itself. Zero ships no document baseline (#440), so an app whose
- * root claims the viewport inherits the UA's 8px body margin and scrolls by
- * 16px. The design system owns the page's ground and type, so it says so.
- */
-const documentCss = `@layer zero.fallback {
-    html, body { margin: 0; block-size: 100%; }
-    body {
-        background: var(--color-base-200);
-        color: var(--color-base-content);
-        font-family: var(--font-sans);
-        -webkit-font-smoothing: antialiased;
-    }
-}`;
 
 export const designSystem: DesignSystemInput<typeof roles> = {
     name: 'mail',
@@ -35,7 +21,9 @@ export const designSystem: DesignSystemInput<typeof roles> = {
         ...layoutRecipes(tokens),
         ...recipes,
     ],
-    css: [layoutCss(tokens), documentCss],
+    // The page's margin, ground and type (#455): the mail client stands on
+    // base-200 so its panes on base-100 read as raised.
+    css: [layoutCss(tokens), documentCss(tokens, { ground: 'base-200' })],
 };
 
 export default designSystem;
