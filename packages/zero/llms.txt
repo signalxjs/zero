@@ -1159,7 +1159,10 @@ the conformance assertion expectAnatomy (@sigx/zero/testing — throws plain
 Error, any test runner). Convention: vendor-prefix the scope (`acme-…`),
 publish a manifest fragment `{package: "<npm specifier>", components:
 [anatomy.toJSON()]}` and optionally a recipe pack (RecipeInput[] against the
-recommended token grammar). A design system opts in by MERGING the fragment
+recommended token grammar). CSS custom properties the component's runtime
+writes inline are declared as `runtimeProperties` on defineAnatomy, each
+named `--<scope>-…` (mergeManifests enforces it); a recipe reads them bare,
+and they are web-only, so read them in `targets.web`. A design system opts in by MERGING the fragment
 (`mergeManifests(base, fragment)` from @sigx/zero-kit, or `--extra-manifest`
 on zero:build/zero:validate) and writing or adopting a recipe; one that never
 merges it leaves the component unstyled but accessible. ZeroScope stays

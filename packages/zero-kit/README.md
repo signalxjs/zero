@@ -1092,6 +1092,36 @@ acyclic part tree, and the naming rule on any `models` it declares (`default<Con
 `<concept>Change`, a named model's concept its name) — so the "no synonyms"
 rule binds on the ecosystem surface, not only on zero's own anatomies.
 
+**Runtime properties** (#456). A component whose runtime writes CSS custom
+properties inline declares them — `runtimeProperties` on `defineAnatomy`,
+which `toJSON()` carries into the fragment's component — and a recipe may
+then read them bare (`var(--ext-stepper-count)`, no fallback, no token
+declaration), exactly like zero's own `RUNTIME_PROPERTIES`. They are
+**web-only**: the lynx target refuses them outside `targets.web`, so a pack
+that reads one in a shared section is degraded to web-only on lynx (the
+`lynx.webOnly` report entry; `zero:fragment` warns that it is not
+lynx-clean). The merge holds each name to six rules, every one a hard error
+naming the fragment, the scope and the property:
+
+1. the key, when present, is a non-empty list with no duplicates;
+2. each name is `--` then kebab-case;
+3. each starts with `--<scope>-` (`--acme-stepper-progress` for `acme-stepper`);
+4. none sits under the token grammar — `--color-*`, a scale category's
+   prefix (`--radius-`, `--size-`, `--font-`, `--text-`, `--space-`, …) or a
+   scalar category's name (`--border`, `--disabled-opacity`) — so a
+   `text-editor` or `color-picker` scope declares none;
+5. none is one of the kit's own runtime or medium properties (a `swipe`
+   scope cannot claim `--swipe-x`, nor a `print` one `--print-ink`);
+6. none is already declared by the base manifest or an earlier fragment
+   (`acme` and `acme-split` could otherwise both claim `--acme-split-size`).
+
+`runtimePropertiesOf(manifest)` is the merged set — `RUNTIME_PROPERTIES`
+plus every component's declaration — that validation (`tokenVocabulary`'s
+`runtime` parameter), the lynx guard (`runtimePropertyMatcher`) and the
+contrast audit (`ThemeEnv.runtime`) all read. `BEHAVIOR_RUNTIME_PROPERTIES`
+is the part of the list no scope owns: the press trio, the swipe pair and the
+anchored-position geometry.
+
 Provenance travels with the merge. Merged scopes are tracked as *external* on
 the compiled design system (`externalScopes`), the generated `register.d.ts`
 excludes exactly them — by name — from its ZeroScope compile gate (the

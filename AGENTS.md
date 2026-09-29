@@ -563,7 +563,10 @@ slides, is fine).
   the private package stays out of the published module graph). That makes
   zero-basic's emitted `register.d.ts` the Exclude-form compile proof
   (`packages/zero/type-tests/ecosystem/`), and zero-heroui the one real
-  build composing api mode with an adopted pack. Private — it proves the loop the
+  build composing api mode with an adopted pack. It is also the proof of
+  fragment-declared runtime properties (#456): the root writes
+  `--ext-stepper-count`, which its anatomy declares, and the pack reads it
+  bare in `targets.web` (`e2e/ext-stepper.spec.ts`). Private — it proves the loop the
   way the heroui skin proves axis shapes.
 - `packages/create-zero-ds` → `@sigx/create-zero-ds` — the scaffold behind
   `pnpm create @sigx/zero-ds <name> --brief <id>` (#401): a Node-only bin with

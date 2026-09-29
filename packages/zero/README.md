@@ -2698,7 +2698,12 @@ same behaviors, held to the same conformance assertion:
   alongside `loading` for the wait before it starts and `complete|error`
   for the outcome. A sortable table column has the sort family,
   `ascending|descending|none` — `aria-sort`'s own spellings (`asc`, `desc`
-  and `unsorted` are the rejected synonyms). `FRAGMENT_VERSION` is the version a
+  and `unsorted` are the rejected synonyms). A component whose runtime writes
+  CSS custom properties inline declares them as `runtimeProperties` (the third
+  argument, beside `models`: `runtimeProperties: ['--ext-stepper-count']`),
+  each under its own scope's prefix — `mergeManifests` enforces the prefix on
+  a fragment — and a recipe may then read them bare; they are web-only, so a
+  pack reads them in `targets.web` (#456). `FRAGMENT_VERSION` is the version a
   fragment declares — here so a package's `./fragment` entry can read it at
   runtime without the kit, which is only its devDependency.
 - `@sigx/zero/behaviors` — controllable state, SSR-safe ids (`createId`, plus
