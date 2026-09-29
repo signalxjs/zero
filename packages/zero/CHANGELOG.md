@@ -42,6 +42,21 @@
   reads them bare, web-only. Zero's own anatomies do not declare theirs yet:
   they are still listed in the kit's `RUNTIME_PROPERTIES`.
 
+- **`Input.Outline`, an outline a floated label can notch, and the
+  slider's handle geometry (#468, part of #413).** `Input.Outline`
+  (optional, inside `Input.Control`) renders `input.outline`, an
+  `aria-hidden` `<fieldset>`, holding `input.notch`, an empty `<legend>`.
+  The runtime publishes the input's visible label's layout inline size on
+  it as `--input-label-inline-size` (px, before transforms; `Input.Label`
+  or an adopted `Field.Label`; `0px` for a visually hidden label or none),
+  so a design system whose label floats onto the border sizes the notch
+  from it and the engine really cuts the border — no surface colour painted
+  behind the label. The slider root now also publishes `--slider-fraction`
+  (the highest value, unitless 0–1) and, while a range model has several
+  thumbs, `--slider-start-fraction` (the lowest), so a skin can cut the
+  track around a handle. Material uses both; the other five skins leave the
+  outline undisplayed.
+
 - **`Input.Affix`, prefix and suffix text as its own part (#467, part of
   #413).** `input.affix` (`placement="start" | "end"` → `data-placement`,
   the same press-to-focus as the adornment) holds text such as `https://`,

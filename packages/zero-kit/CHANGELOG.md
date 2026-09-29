@@ -29,6 +29,14 @@
   and `runtimeProperties`, an older kit rejects a fragment that declares
   `domainFlags` through the schema rather than by name.
 
+- **Runtime properties for notches and gaps (#468, part of #413).**
+  `RUNTIME_PROPERTIES` gains `--input-label-inline-size` (on Input's
+  optional `outline`), `--slider-fraction` and `--slider-start-fraction`,
+  so a recipe reading them validates without a declaration. The
+  design-system skill says to notch a floating label's outline through
+  Input's `outline`/`notch` parts, and to cut a slider handle's gap from
+  the published geometry, never to paint the surface behind the control.
+
 - **`system.custom`, design-system-level custom token values (#424, part
   of #413).** A token declared in `tokens.custom` can take its value once
   in `system.custom`. It is emitted under `:root` (on lynx, resolved into
