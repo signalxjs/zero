@@ -118,10 +118,14 @@ const InputDemos = component(() => {
                 </Field.Root>
             </DemoRow>
             <p>
-                The control is also a row for three affordances.{' '}
-                <code>Adornment</code> puts consumer content at a logical
-                edge (<code>placement="start" | "end"</code>) — a press on it
-                focuses the input. <code>ClearTrigger</code> empties the value
+                The control is also a row for the affordances.{' '}
+                <code>Adornment</code> puts an icon at a logical edge
+                (<code>placement="start" | "end"</code>), and{' '}
+                <code>Affix</code> puts prefix or suffix text there — two parts,
+                because a design system lays them out apart (Material sets an
+                affix on the text line and shows it only once the label has
+                floated). A press on either focuses the input.{' '}
+                <code>ClearTrigger</code> empties the value
                 the way typing would and exists only while there is something
                 to clear; in a <code>search</code> field Escape does the same.{' '}
                 <code>VisibilityTrigger</code> shows a password through{' '}
@@ -147,9 +151,16 @@ const InputDemos = component(() => {
                 <Input.Root type="url" defaultValue="example" data-demo="url-affordances">
                     <Input.Label>Website</Input.Label>
                     <Input.Control>
-                        <Input.Adornment placement="start">https://</Input.Adornment>
+                        <Input.Affix placement="start">https://</Input.Affix>
                         <Input.Input />
-                        <Input.Adornment placement="end">.com</Input.Adornment>
+                        <Input.Affix placement="end">.com</Input.Affix>
+                    </Input.Control>
+                </Input.Root>
+                <Input.Root inputmode="decimal" data-demo="weight-affix">
+                    <Input.Label>Weight</Input.Label>
+                    <Input.Control>
+                        <Input.Input />
+                        <Input.Affix placement="end">kg</Input.Affix>
                     </Input.Control>
                 </Input.Root>
             </DemoRow>

@@ -3560,6 +3560,30 @@ const fieldButton: NonNullable<PartStyles['base']> = {
 };
 
 /**
+ * HeroUI's `startContent` / `endContent`: muted, at the field's own
+ * text size (`--input-text` already follows the size step), ordered
+ * to its edge logically.
+ *
+ * The same slot holds an icon (`adornment`) or prefix/suffix text
+ * (`affix`, #467): this skin sets both alike, the text kept on one line.
+ */
+const inputEdge: PartStyles = {
+    base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        flex: 'none',
+        color: 'var(--hero-muted)',
+        fontSize: 'var(--input-text)',
+        lineHeight: 'var(--leading-none)',
+    },
+    states: { disabled: {} },
+    selectors: {
+        '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
+        '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+    },
+};
+
+/**
  * HeroUI's bordered input. Same chrome as the number input's control, and the
  * same three-step ramp — no `color` axis, because this design system declares
  * none (`roles: {}`); the ring is always `--hero-focus` and the invalid border
@@ -3625,24 +3649,8 @@ export const input: RecipeInput = {
                 '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
-        // HeroUI's `startContent` / `endContent`: muted, at the field's own
-        // text size (`--input-text` already follows the size step), ordered
-        // to its edge logically.
-        adornment: {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                flex: 'none',
-                color: 'var(--hero-muted)',
-                fontSize: 'var(--input-text)',
-                lineHeight: 'var(--leading-none)',
-            },
-            states: { disabled: {} },
-            selectors: {
-                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
-                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
-            },
-        },
+        adornment: inputEdge,
+        affix: { ...inputEdge, base: { ...inputEdge.base, whiteSpace: 'nowrap' } },
         // `isClearable`'s button: the quiet ✕ chrome, inside the field.
         'clear-trigger': {
             ...iconClose,

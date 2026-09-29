@@ -5950,6 +5950,7 @@ const fieldButton: NonNullable<PartStyles['base']> = {
 };
 const affixSize = (fontSize: string) => ({
     adornment: { base: { fontSize } },
+    affix: { base: { fontSize } },
     'clear-trigger': { base: { fontSize } },
     'visibility-trigger': { base: { fontSize } },
 });
@@ -5962,6 +5963,35 @@ const affixSize = (fontSize: string) => ({
 const textFieldPlaceholder = 'color-mix(in oklab, var(--color-base-content) 60%, transparent)';
 /** The ghost field button's held look on lynx — the web's hover wash, on a press. */
 const fieldButtonHeld: CssProps = { color: 'var(--color-base-content)', background: 'var(--color-base-200)' };
+
+/**
+ * daisy's `label` inside `.input`: a quiet prefix/suffix at one edge,
+ * ordered logically so it flips with the reading direction.
+ *
+ * The same slot holds an icon (`adornment`) or prefix/suffix text
+ * (`affix`, #467): this skin sets both alike, the text kept on one line.
+ */
+const inputEdge: PartStyles = {
+    base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        flex: 'none',
+        color: affixInk,
+        fontSize: 'var(--text-sm)',
+        lineHeight: 'var(--leading-none)',
+    },
+    states: { disabled: {} },
+    selectors: {
+        '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
+        '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+    },
+};
+const lynxEdge: PartStyles = {
+    selectors: {
+        '&[data-placement="start"]': { paddingLeft: 'var(--space-md)' },
+        '&[data-placement="end"]': { paddingRight: 'var(--space-md)' },
+    },
+};
 
 /**
  * daisy "input" flavor: the shared field box with nothing in it but the text.
@@ -6030,23 +6060,8 @@ export const input: RecipeInput = {
                 '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
-        // daisy's `label` inside `.input`: a quiet prefix/suffix at one edge,
-        // ordered logically so it flips with the reading direction.
-        adornment: {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                flex: 'none',
-                color: affixInk,
-                fontSize: 'var(--text-sm)',
-                lineHeight: 'var(--leading-none)',
-            },
-            states: { disabled: {} },
-            selectors: {
-                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
-                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
-            },
-        },
+        adornment: inputEdge,
+        affix: { ...inputEdge, base: { ...inputEdge.base, whiteSpace: 'nowrap' } },
         // `btn btn-ghost btn-circle btn-xs` inside the field.
         'clear-trigger': {
             base: fieldButton,
@@ -6114,14 +6129,11 @@ export const input: RecipeInput = {
                         flexShrink: '1',
                     },
                 },
-                // The adornment's edge padding, physical: Android never
-                // resolves the logical spellings (signalxjs/lynx#1084).
-                adornment: {
-                    selectors: {
-                        '&[data-placement="start"]': { paddingLeft: 'var(--space-md)' },
-                        '&[data-placement="end"]': { paddingRight: 'var(--space-md)' },
-                    },
-                },
+                // The adornment's and the affix's edge padding, physical:
+                // Android never resolves the logical spellings
+                // (signalxjs/lynx#1084).
+                adornment: lynxEdge,
+                affix: lynxEdge,
                 // Same for the ghost buttons' end margin; the web's `:hover`
                 // wash answers a press instead.
                 'clear-trigger': {

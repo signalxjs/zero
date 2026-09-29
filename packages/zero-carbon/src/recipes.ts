@@ -3993,6 +3993,29 @@ const fieldButton: NonNullable<PartStyles['base']> = {
 };
 
 /**
+ * Carbon's in-field icon ($icon-secondary), at one edge, ordered
+ * logically.
+ *
+ * The same slot holds an icon (`adornment`) or prefix/suffix text
+ * (`affix`, #467): this skin sets both alike, the text kept on one line.
+ */
+const inputEdge: PartStyles = {
+    base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        flex: 'none',
+        color: iconSecondary,
+        fontSize: 'var(--text-sm)',
+        lineHeight: 'var(--leading-none)',
+    },
+    states: { disabled: {} },
+    selectors: {
+        '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
+        '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+    },
+};
+
+/**
  * Carbon's text input: `field-01` — a filled well with a single strong rule
  * under it, no side or top borders. The inset focus ring and the invalid
  * outline draw on the box, the same way the number input, the select and the
@@ -4059,23 +4082,8 @@ export const input: RecipeInput = {
                 '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
-        // Carbon's in-field icon ($icon-secondary), at one edge, ordered
-        // logically.
-        adornment: {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                flex: 'none',
-                color: iconSecondary,
-                fontSize: 'var(--text-sm)',
-                lineHeight: 'var(--leading-none)',
-            },
-            states: { disabled: {} },
-            selectors: {
-                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
-                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
-            },
-        },
+        adornment: inputEdge,
+        affix: { ...inputEdge, base: { ...inputEdge.base, whiteSpace: 'nowrap' } },
         // Carbon's field icon buttons (the search close, the password
         // toggle): square, full field height, layer hover, inset focus.
         'clear-trigger': {

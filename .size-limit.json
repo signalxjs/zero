@@ -204,7 +204,7 @@
     {
         "name": "@sigx/zero/input",
         "path": "packages/zero/dist/components/input/index.js",
-        "limit": "5.04 kB",
+        "limit": "5.09 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

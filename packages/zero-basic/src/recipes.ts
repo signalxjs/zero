@@ -4664,9 +4664,34 @@ const fieldButton: NonNullable<PartStyles['base']> = {
 };
 const affixSize = (fontSize: string) => ({
     adornment: { base: { fontSize } },
+    affix: { base: { fontSize } },
     'clear-trigger': { base: { fontSize } },
     'visibility-trigger': { base: { fontSize } },
 });
+
+/**
+ * An icon, a unit, a prefix: quieter than the value, and ordered to
+ * its edge with `order` — logical, so it flips with the reading
+ * direction and never needs a physical margin.
+ *
+ * The same slot holds an icon (`adornment`) or prefix/suffix text
+ * (`affix`, #467): this skin sets both alike, the text kept on one line.
+ */
+const inputEdge: PartStyles = {
+    base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        flex: 'none',
+        color: affixInk,
+        fontSize: 'var(--text-sm)',
+        lineHeight: 'var(--leading-none)',
+    },
+    states: { disabled: {} },
+    selectors: {
+        '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-lg)' },
+        '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-lg)' },
+    },
+};
 
 /**
  * The plain text field — the same well of paper the number input, the select
@@ -4753,24 +4778,8 @@ export const input: RecipeInput = {
                 '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
-        // An icon, a unit, a prefix: quieter than the value, and ordered to
-        // its edge with `order` — logical, so it flips with the reading
-        // direction and never needs a physical margin.
-        adornment: {
-            base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                flex: 'none',
-                color: affixInk,
-                fontSize: 'var(--text-sm)',
-                lineHeight: 'var(--leading-none)',
-            },
-            states: { disabled: {} },
-            selectors: {
-                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-lg)' },
-                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-lg)' },
-            },
-        },
+        adornment: inputEdge,
+        affix: { ...inputEdge, base: { ...inputEdge.base, whiteSpace: 'nowrap' } },
         // The two field buttons: the ✕'s quiet caption shape, centred in the
         // row and kept after the text whatever order they are written in.
         'clear-trigger': {

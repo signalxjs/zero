@@ -4735,41 +4735,69 @@ export const input: RecipeInput = {
             selectors: {
                 '&::placeholder': { color: 'var(--color-surface-variant-content)' },
                 ...tfRestingPlaceholder('[data-scope="input"][data-part="root"]', '&::placeholder'),
+                // Beside an affix the text keeps M3's 2dp from it; the affix
+                // carries the 16dp from the container edge (#467).
+                '[data-scope="input"][data-part="control"]:has(> [data-part="affix"][data-placement="start"]) > &': { paddingInlineStart: dp(2) },
+                '[data-scope="input"][data-part="control"]:has(> [data-part="affix"][data-placement="end"]) > &': { paddingInlineEnd: dp(2) },
                 // zero draws its own ClearTrigger and clears on Escape, and Firefox
                 // draws no native clear: hide the engine's cancel button everywhere (#446).
                 '&::-webkit-search-cancel-button': { appearance: 'none', display: 'none' },
                 '&::-webkit-search-decoration': { appearance: 'none' },
             },
         },
-        // M3's leading / trailing icon (and prefix / suffix text): 24dp in
-        // on-surface-variant, 12dp from the container edge, ordered logically.
+        // M3's leading / trailing icon: 24dp in on-surface-variant, centred
+        // in the container 12dp from its edge, ordered logically. A leading
+        // one moves the resting label past it (`tfRoot`).
         adornment: {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                alignSelf: 'center',
                 flex: 'none',
                 minInlineSize: dp(24),
+                blockSize: dp(24),
                 color: affixInk,
-                // Prefix and suffix text in M3's body-large, on the input's
-                // own text band (a labelled filled field sets it lower); an
-                // svg icon in the 24dp slot, centred in the container. The
-                // anatomy cannot say which one it holds, so the svg decides
-                // (#467).
-                ...type('body-large'),
-                alignSelf: 'stretch',
-                paddingBlockStart: `var(--tf-in-top, calc((var(--tf-height) - ${dp(24)}) / 2))`,
-                paddingBlockEnd: `var(--tf-in-bottom, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+                fontSize: dp(24),
+                lineHeight: 'var(--leading-none)',
             },
             states: { disabled: {} },
             selectors: {
                 '& > svg': { inlineSize: dp(24), blockSize: dp(24) },
-                '&:has(> svg)': { paddingBlock: '0' },
                 '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-sm)' },
                 '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-sm)' },
                 // An error turns the trailing icon error, as M3 does.
                 '[data-invalid] > &[data-placement="end"]': { color: 'var(--color-error)' },
             },
+        },
+        // M3's prefix / suffix text (#467): body-large on the input's own
+        // text line (a labelled filled field sets it lower), 16dp from the
+        // container edge and 2dp from the text. It never moves the label,
+        // and it shows only once the label has floated out of its way —
+        // while a visible label rests in the empty field it keeps its room
+        // but paints nothing, so the text does not jump when it appears.
+        affix: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                alignSelf: 'stretch',
+                flex: 'none',
+                whiteSpace: 'nowrap',
+                color: affixInk,
+                ...type('body-large'),
+                paddingBlockStart: `var(--tf-in-top, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+                paddingBlockEnd: `var(--tf-in-bottom, calc((var(--tf-height) - ${dp(24)}) / 2))`,
+                transition: motion('opacity'),
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&[data-placement="start"]': { order: '-1', paddingInlineStart: 'var(--space-md)' },
+                '&[data-placement="end"]': { order: '1', paddingInlineEnd: 'var(--space-md)' },
+                [`[data-scope="input"][data-part="root"]${LABELLED}[data-placeholder]:not(:focus-within) &, ${FIELD_HOST}${LABELLED}[data-placeholder]:not(:focus-within) &`]: {
+                    opacity: '0',
+                },
+            },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
         // M3's trailing icon button: a 40dp circle, on-surface-variant, with
         // the 8% state layer on hover.
