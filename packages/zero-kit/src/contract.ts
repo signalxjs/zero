@@ -429,7 +429,12 @@ export const BEHAVIOR_RUNTIME_PROPERTIES = [
  * position in the stack (`--toast-index`, oldest first, of `--toast-count`)
  * and, measured, its own height and the summed heights of the newer toasts in
  * front of it (`--toast-height`, `--toast-offset`, px — #292), so a recipe can
- * stack the toasts as cards and fan them out. The `--swipe-*` pair is the
+ * stack the toasts as cards and fan them out. Table writes
+ * `--table-column-width` on each `<col>` from its column spec (a
+ * `zero.structure` rule applies it) and `--table-cell-align` on the cells that
+ * name a column, which the cell recipes read (#538). Textarea writes its
+ * autosize row bounds, `--textarea-min-rows` and `--textarea-max-rows`, on an
+ * autosizing `<textarea>` for `css/base.css` to grow it by (#538). The `--swipe-*` pair is the
  * swipe-to-dismiss behavior's drag offset (px, physical, clamped to the
  * dismiss axis — #293), written on a Toast root and a Drawer sheet while it
  * is being swiped and kept after a swipe dismisses it, so the exit leaves from
@@ -469,6 +474,10 @@ export const RUNTIME_PROPERTIES = [
     '--toast-count',
     '--toast-height',
     '--toast-offset',
+    '--table-column-width',
+    '--table-cell-align',
+    '--textarea-min-rows',
+    '--textarea-max-rows',
 ] as const;
 
 /**

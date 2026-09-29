@@ -230,7 +230,8 @@ describe('anatomy registry', () => {
     it('each declaring anatomy\'s toJSON carries its runtimeProperties (#537)', () => {
         const declaring = Object.values(anatomies).filter((a) => a.runtimeProperties !== undefined);
         expect(declaring.map((a) => a.scope).sort()).toEqual([
-            'accordion', 'collapsible', 'countdown', 'diff', 'progress', 'radial-progress', 'slider', 'tabs', 'toast',
+            'accordion', 'collapsible', 'countdown', 'diff', 'progress', 'radial-progress', 'slider', 'table', 'tabs',
+            'textarea', 'toast',
         ]);
         for (const anatomy of declaring) {
             expect(anatomy.toJSON().runtimeProperties, anatomy.scope).toEqual([...anatomy.runtimeProperties!]);

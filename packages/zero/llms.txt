@@ -751,6 +751,10 @@ component renders; the root is called out separately where it carries props.
   ascending|descending|none and wraps its content in the `sort-trigger`
   <button>, with the aria-hidden `sort-indicator` (▲) inside it. The
   runtime never re-orders rows — the app sorts its data from the model.
+  Root `columns` (label/width/align/key): Head renders the widths as a
+  colgroup whose <col>s carry `--table-column-width`, and a cell naming its
+  column carries `--table-cell-align` — both declared `runtimeProperties`
+  (#538), web-only, so a lynx-building skin reads them in `targets.web`.
   Write a Caption — it is the table's accessible name.
 - Divider: Root/Label (#298), role=separator, orientation. Non-focusable;
   aria-orientation emitted only for `vertical`. Label (span, id) is the
@@ -904,7 +908,8 @@ component renders; the root is called out separately where it carries props.
   The textarea part renders `data-autosize` + `--textarea-min-rows`/
   `--textarea-max-rows`; css/base.css grows it (`field-sizing: content`, `lh`
   bounds, `resize: none`) in `@layer zero.structure`, so a design system
-  writes nothing. `createAutosize` measures the border-box chrome
+  writes nothing. The two bounds are declared `runtimeProperties` (#538),
+  web-only. `createAutosize` measures the border-box chrome
   (`--textarea-block-chrome`) and is the scrollHeight fallback where
   `field-sizing` is unsupported. No hidden input, same reason as Input's.
   `modelModifiers` reach the textarea as on Input.

@@ -15,15 +15,23 @@
  * below, and each row is itself held to the behavior's source, so a renamed
  * suffix fails here rather than passing on a stale table.
  *
- * One direction only: declared → written. The reverse (every inline custom
- * property a scope writes is declared) is not checked yet, because Table's
- * and Textarea's inline writes stay undeclared by decision B(a) on #456 —
- * declaring them makes them web-only, and the skins' lynx builds would
- * refuse the table recipe until its reads move into `targets.web`. #538
- * declares them and adds the reverse check.
+ * Both directions (#538). Declared → written, above; and written →
+ * declared: every custom property a component directory's sources write —
+ * an inline style key (`'--table-cell-align': …`) or a
+ * `style.setProperty('--x', …)` — must be in the `runtimeProperties` of an
+ * anatomy that directory's own `anatomy.ts` exports. An undeclared write is
+ * a name a recipe reads on faith: nothing tells a lynx build it is
+ * web-only, and nothing in the manifest tells a design system it exists.
+ *
+ * The shared behaviors stay out of the reverse check. Their writes are not
+ * a scope's: `position.ts` publishes the anchored-position properties
+ * (`--available-width`, `--arrow-x`, …) on every popup of every scope, and
+ * `press.ts` the `--press-*` point on any pressable part — contract-level
+ * names the kit carries itself, not per-anatomy declarations.
  */
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { anatomies } from '@sigx/zero/anatomy';
 
@@ -92,6 +100,53 @@ describe('every declared runtime property is written by its scope\'s sources', (
         ]);
         for (const name of anatomies[scope as keyof typeof anatomies].runtimeProperties!) {
             expect(written.has(name), `${scope}: "${name}" is declared but no source under components/${scope}/ writes it`).toBe(true);
+        }
+    });
+});
+
+/**
+ * A custom property written by a source: a style-object key or a
+ * `setProperty` call. A plain `'--x'` literal elsewhere (a doc comment, a
+ * lookup) is not a write, so the key form needs the colon.
+ */
+const WRITE_PATTERNS = [
+    /'(--[a-z0-9-]+)'\s*:/g,
+    /\.setProperty\(\s*'(--[a-z0-9-]+)'/g,
+];
+
+function writesOf(source: string): string[] {
+    return [...new Set(WRITE_PATTERNS.flatMap((re) => [...source.matchAll(re)].map((m) => m[1]!)))];
+}
+
+/** Every component directory, with the runtime properties its own anatomies declare. */
+const directories = await Promise.all(
+    readdirSync(componentsDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .map(async (d) => {
+            const anatomyFile = resolve(componentsDir, d.name, 'anatomy.ts');
+            const declared = new Set<string>();
+            if (existsSync(anatomyFile)) {
+                const mod: Record<string, unknown> = await import(pathToFileURL(anatomyFile).href);
+                for (const value of Object.values(mod)) {
+                    const list = (value as { runtimeProperties?: readonly string[] } | null)?.runtimeProperties;
+                    for (const name of list ?? []) declared.add(name);
+                }
+            }
+            return { dir: d.name, declared, writes: writesOf(sourcesOf(d.name)) };
+        }),
+);
+
+describe('every custom property a component writes is declared by its anatomy (#538)', () => {
+    it('the scrape finds the known writers', () => {
+        // Guards the patterns themselves: a regex that matched nothing would
+        // pass every row below.
+        const writers = directories.filter((d) => d.writes.length > 0).map((d) => d.dir).sort();
+        expect(writers).toEqual(expect.arrayContaining(['progress', 'slider', 'table', 'tabs', 'textarea', 'toast']));
+    });
+
+    it.each(directories.filter((d) => d.writes.length > 0).map((d) => [d.dir, d] as const))('%s: each written name is declared', (dir, d) => {
+        for (const name of d.writes) {
+            expect(d.declared.has(name), `components/${dir}/ writes "${name}", which no anatomy in components/${dir}/anatomy.ts declares in runtimeProperties`).toBe(true);
         }
     });
 });

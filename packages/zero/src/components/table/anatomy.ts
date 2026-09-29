@@ -46,7 +46,10 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * content model's place for them. The width rides `--table-column-width` on
  * each `<col>` and a `zero.structure` rule applies it, so a design system
  * never has to remember to; alignment rides `--table-cell-align` on the
- * cells that name their column, which the cell recipes read.
+ * cells that name their column, which the cell recipes read. Both are
+ * declared `runtimeProperties` (#538), so a recipe may read them bare —
+ * and, being inline style, they are web-only: a lynx build refuses a read
+ * outside `targets.web`.
  *
  * `stack` on the root (`data-l-stack="md"`, a breakpoint-valued layout
  * attribute) is the responsive stacked mode: below that breakpoint every
@@ -139,6 +142,9 @@ export const tableAnatomy = defineAnatomy('table', {
         tokens: ['color', 'text'],
     },
 }, {
+    // The column spec's width on each `<col>` and its alignment on the cells
+    // that name a column, written inline (#538).
+    runtimeProperties: ['--table-column-width', '--table-cell-align'],
     models: [
         { name: 'sort', concept: 'sort', type: '{ column: string; direction: \'ascending\' | \'descending\' } | null' },
     ],

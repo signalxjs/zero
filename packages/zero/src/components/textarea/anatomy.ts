@@ -15,7 +15,8 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * The `textarea` part offers `autosize` (`Textarea.Root minRows`/`maxRows`):
  * it then renders `data-autosize` and its row bounds as
  * `--textarea-min-rows`/`--textarea-max-rows`, and `css/base.css` grows it in
- * `@layer zero.structure` — nothing for a recipe to style.
+ * `@layer zero.structure` — nothing for a recipe to style. The two are
+ * declared `runtimeProperties` (#538), web-only like every inline write.
  */
 export const textareaAnatomy = defineAnatomy('textarea', {
     root: {
@@ -38,6 +39,8 @@ export const textareaAnatomy = defineAnatomy('textarea', {
         autosize: true,
     },
 }, {
+    // The autosize row bounds, written inline on the `<textarea>` (#538).
+    runtimeProperties: ['--textarea-min-rows', '--textarea-max-rows'],
     models: [
         { concept: 'value', type: 'string', formControl: true },
     ],

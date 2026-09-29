@@ -177,14 +177,21 @@ needs no correction; the indicator stays `display: none` until measured, so
 no transition plays from nowhere), and the toast stack quartet
 `--toast-index`/`--toast-count`/`--toast-height`/`--toast-offset` (#292:
 each root's place in the stack and, measured, its own height and the summed
-heights of the newer toasts in front of it). The scoped ones are declared
+heights of the newer toasts in front of it), and Table's
+`--table-column-width` (on each `<col>`, applied by a `zero.structure` rule)
+and `--table-cell-align` (on the cells that name a column), and Textarea's
+autosize bounds `--textarea-min-rows`/`--textarea-max-rows` (#538). The
+scoped ones are declared
 where they are written: each of zero's anatomies lists its own as
 `runtimeProperties` (#537), which the manifest carries, and the kit's
 `RUNTIME_PROPERTIES` is a derived copy — the behavior list plus every
 declared name, parity-checked against the anatomies. Every declared name
 carries its scope's prefix, bar one reasoned exception (radial-progress
 shares `--progress-percent`, so one recipe idiom serves both), and a source
-scrape holds each declared name to a write in its scope's sources. They are
+scrape holds each declared name to a write in its scope's sources — and,
+the other way (#538), each custom property a
+component directory's sources write inline to a declaration by that
+directory's anatomy, so no inline write goes undeclared. They are
 web-only
 — the lynx target rejects them outside a `targets.web` section — and the
 vocabulary check accepts them without a declaration. An ecosystem component
