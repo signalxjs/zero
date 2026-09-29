@@ -30,10 +30,23 @@
  *   as `yes`: every node of a probe chain is its parent's only child;
  * - `:empty` as `no` (the measured node carries text; ancestors carry a
  *   child) and `:modal` as `no` (nothing in a probe is shown modally);
- * - descendant and child combinators along the chain.
+ * - descendant and child combinators along the chain;
+ * - `:has()` against the probe chain's own nodes (#469). A probe is a closed
+ *   world: below any node there is exactly the declared chain — the next
+ *   node, and so on down to the measured part, which holds only text — and
+ *   that is all the browser probe renders too. So `:has(> x)` on a chain
+ *   node asks whether the next node is `x`, and a relative selector that no
+ *   chain node satisfies is `no`, not `unknown`. Every node below the root
+ *   is its parent's only child, so a sibling step inside the argument is
+ *   `no`; a leading `+`/`~` is `no` below the root and `unknown` on the
+ *   root, whose siblings are the page's. The coverage this buys is the
+ *   probe's, not the app's: a skin's `:has()` asking "does this field hold a
+ *   text field" is answered for the probe, which holds none — the browser
+ *   matrix measures the same render, and its parity block holds the two
+ *   together. A node that says it has children without naming them
+ *   (`hasElementChildren` without `child`) stays `unknown`.
  *
- * Everything else is `unknown`: sibling combinators, `:has()` on a node that
- * has children, `:nth-*()`,
+ * Everything else is `unknown`: sibling combinators, `:nth-*()`,
  * `:placeholder-shown`, form-state pseudo-classes, attribute operators other
  * than `=`, and any selector the tokenizer cannot read at all (a raw `css`
  * block written with `&` nesting is `raw-css`).
@@ -51,6 +64,12 @@ export interface MatchNode {
     parent?: MatchNode;
     /** Whether any element (not text) is a child — a probe's inner node has none, an ancestor has one. */
     hasElementChildren: boolean;
+    /**
+     * The node's only element child, when the chain names it — what `:has()`
+     * reads (#469). A node with `hasElementChildren` and no `child` has
+     * children the matcher cannot see.
+     */
+    child?: MatchNode;
 }
 
 /** `(ids, classes/attributes/pseudo-classes, elements/pseudo-elements)` */
@@ -286,11 +305,7 @@ function matchPseudo(p: Pseudo, node: MatchNode): { match: Match; specificity: S
         case 'disabled':
             return { match: node.attrs.has('data-disabled') ? 'yes' : 'no', specificity: one };
         case 'has':
-            // Every relative selector needs a descendant or sibling to exist;
-            // a node with no element children has none — `:not(:has(> *))`
-            // is how the rating recipes draw the default star. With children
-            // the question needs a real tree, so it stays unknown.
-            return { match: node.hasElementChildren ? 'unknown' : 'no', specificity: one };
+            return matchHas(p.arg ?? '', node);
         default:
             break;
     }
@@ -298,6 +313,92 @@ function matchPseudo(p: Pseudo, node: MatchNode): { match: Match; specificity: S
     if (ALWAYS_NO.has(p.name)) return { match: 'no', specificity: one };
     if (ALWAYS_YES.has(p.name)) return { match: 'yes', specificity: one };
     return { match: 'unknown', specificity: one };
+}
+
+/** A relative selector: `:has()`'s argument member, its leading combinator split off. */
+interface Relative { lead: string; complex: Complex }
+
+const relativeCache = new Map<string, Relative[] | 'raw-css'>();
+
+function parseRelativeList(text: string): Relative[] | 'raw-css' {
+    const hit = relativeCache.get(text);
+    if (hit) return hit;
+    const out: Relative[] = [];
+    let parsed: Relative[] | 'raw-css' = out;
+    for (const member of splitList(text)) {
+        const m = /^([>+~])\s*/.exec(member);
+        const complex = parseComplex(m ? member.slice(m[0].length) : member);
+        // A pseudo-element never matches inside `:has()`.
+        if (complex === 'raw-css' || complex.pseudoElement) { parsed = 'raw-css'; break; }
+        out.push({ lead: m ? m[1]! : ' ', complex });
+    }
+    if (out.length === 0) parsed = 'raw-css';
+    relativeCache.set(text, parsed);
+    return parsed;
+}
+
+/** Specificity of a complex selector — every compound, whether or not it matches. */
+function complexSpecificity(sel: Complex, node: MatchNode): Specificity {
+    let [a, b, d] = [0, 0, 0];
+    for (const c of sel.compounds) {
+        const s = matchCompound(c, node).specificity;
+        a += s[0]; b += s[1]; d += s[2];
+    }
+    return [a, b, d];
+}
+
+/**
+ * `:has()` over the probe chain as a closed world (see the header): the
+ * candidates are the named nodes below `anchor`, each its parent's only
+ * child, and the argument's compounds may only match strictly below it.
+ */
+function matchHas(arg: string, anchor: MatchNode): { match: Match; specificity: Specificity } {
+    const rels = parseRelativeList(arg);
+    if (rels === 'raw-css') return { match: 'unknown', specificity: [0, 1, 0] };
+    // The spec's rule: the most specific member, matching or not.
+    const specificity = rels
+        .map((r) => complexSpecificity(r.complex, anchor))
+        .reduce<Specificity>((best, s) => (compareSpecificity(s, best) > 0 ? s : best), [0, 0, 0]);
+
+    const below: MatchNode[] = [];
+    let open = false; // children exist that the chain does not name
+    for (let n: MatchNode = anchor; ; n = n.child!) {
+        if (!n.child) { open = n.hasElementChildren; break; }
+        below.push(n.child);
+    }
+    const inside = (n: MatchNode | undefined): boolean => {
+        for (let p = n; p; p = p.parent) if (p === anchor) return true;
+        return false;
+    };
+
+    const results: Match[] = rels.map(({ lead, complex }) => {
+        // The anchor's siblings: none below the root, the page's on it.
+        if (lead === '+' || lead === '~') return anchor.parent ? 'no' : 'unknown';
+        const step = (index: number, at: MatchNode): Match => {
+            const own = matchCompound(complex.compounds[index]!, at).match;
+            if (own === 'no') return 'no';
+            if (index === 0) {
+                return all([own, lead === '>' ? (at.parent === anchor ? 'yes' : 'no') : 'yes']);
+            }
+            const combinator = complex.combinators[index - 1]!;
+            // Every node below the anchor is an only child: no siblings.
+            if (combinator === '+' || combinator === '~') return 'no';
+            if (combinator === '>') {
+                const up = at.parent;
+                return up && up !== anchor && inside(up) ? all([own, step(index - 1, up)]) : 'no';
+            }
+            const tries: Match[] = [];
+            for (let p = at.parent; p && p !== anchor; p = p.parent) {
+                const r = step(index - 1, p);
+                tries.push(r);
+                if (r === 'yes') break;
+            }
+            return all([own, any(tries)]);
+        };
+        const found = any(below.map((n) => step(complex.compounds.length - 1, n)));
+        return found === 'no' && open ? 'unknown' : found;
+    });
+    return { match: any(results), specificity };
 }
 
 function matchCompound(c: Compound, node: MatchNode): { match: Match; specificity: Specificity } {

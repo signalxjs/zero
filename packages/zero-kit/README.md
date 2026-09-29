@@ -1312,8 +1312,9 @@ What makes it honest rather than merely static: a browser always produces a
 pixel, and a reader of CSS sometimes cannot. Every such cell is `unmeasured`
 with one of a closed set of reasons — `gradient-or-image` (paint whose extent
 the reader cannot see), `unresolved-var`, `runtime-property` (`--press-*`,
-written inline by the runtime), `unsupported-selector` (`:has()` on a node
-with children, `:nth-*()`, sibling combinators), `unparseable-color`,
+written inline by the runtime), `unsupported-selector` (`:nth-*()`, sibling
+combinators — `:has()` is answered from the probe chain's own nodes, the
+same closed world the browser probe renders, #469), `unparseable-color`,
 `currentcolor-cycle`, `filter-or-blend` (light changed after the fact),
 `unknown-geometry` (a transform with no determinant the reader can take),
 `raw-css`, `conditional-rule` (a declaration under `@supports`, `@container`

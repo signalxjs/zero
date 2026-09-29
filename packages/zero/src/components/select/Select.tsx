@@ -378,7 +378,12 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, sig
     onUnmounted(() => detachReset());
     // Validity lives on the hidden select, which renders only with a `name`;
     // the trigger is what the user fixes.
-    fc.reportValidity({ element: () => hidden, value: () => state.value, focus: () => trigger?.focus() }, onUnmounted);
+    fc.reportValidity({
+        element: () => hidden,
+        value: () => state.value,
+        focus: () => trigger?.focus(),
+        empty: () => listbox.selectedKeys().length === 0,
+    }, onUnmounted);
 
     // Mounted clear-triggers (#387) — what `clearable()` reads.
     const clearTriggers = signal({ mounted: 0 });

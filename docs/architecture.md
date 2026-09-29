@@ -1826,8 +1826,8 @@ Honesty section. These are the edges the tree knows about today:
   spots are a closed list rather than a silent default: interaction
   pseudo-classes are not measured (the resting render, as in the browser
   matrix), a gradient's extent and a `filter`'s effect are not modelled, a
-  selector outside the emitted grammar (`:has()` on a node with children,
-  `:nth-*()`, sibling combinators) is not evaluated, a condition outside
+  selector outside the emitted grammar (`:nth-*()`, sibling combinators) is
+  not evaluated, a condition outside
   `@media` (`@supports`, `@container`) is not decided, and nested same-scope
   instances are not built. Each surfaces as `unmeasured` with its reason;
   `@media` itself is decided against the fixed reference page the browser
@@ -1838,7 +1838,11 @@ Honesty section. These are the edges the tree knows about today:
   skin. What the browser draws and the static reader models are the same
   page, `REFERENCE_MEDIA` included; the UA stylesheet is modelled for the
   elements whose defaults paint (button, the form controls, `a`, `dialog`),
-  and nothing else.
+  and nothing else. `:has()` is answered against the probe chain as a
+  closed world (#469): below a node there is exactly the declared chain,
+  which is all the browser probe renders too, so a relative selector no
+  chain node satisfies is `no` rather than `unknown` — the probe's
+  coverage, not the app's, and the parity gate holds it.
 - **The dual-controller theme desync** ([§6](#6-the-theme-model)) is known
   and deliberately unfixed; consumers that swap design systems at runtime
   carry the playground's capture/re-apply pattern.

@@ -86,6 +86,65 @@ describe('what is evaluated', () => {
     });
 });
 
+describe(':has() over a named chain — a closed world (#469)', () => {
+    /** field.root > field.label, each naming its child the way the matrix builds a probe. */
+    const chain = (...specs: Array<Record<string, string>>): MatchNode[] => {
+        const nodes: MatchNode[] = [];
+        for (const attrs of specs) {
+            const parent = nodes[nodes.length - 1];
+            const n = node(attrs, parent);
+            if (parent) { parent.hasElementChildren = true; parent.child = n; }
+            nodes.push(n);
+        }
+        return nodes;
+    };
+    const [fieldRoot, fieldLabel] = chain(
+        { 'data-scope': 'field', 'data-part': 'root' },
+        { 'data-scope': 'field', 'data-part': 'label' },
+    );
+    const TEXT = ':is([data-scope="input"][data-part="root"], [data-scope="select"][data-part="root"])';
+    const [selRoot, selTrigger, selValue] = chain(
+        { 'data-scope': 'select', 'data-part': 'root' },
+        { 'data-scope': 'select', 'data-part': 'trigger' },
+        { 'data-scope': 'select', 'data-part': 'value', 'data-placeholder': '' },
+    );
+
+    it('answers from the chain\'s own nodes, both ways', () => {
+        // Material's FIELD_HOST: the probe's field holds a label, not a text field.
+        expect(match(`[data-part="root"]:has(> ${TEXT}) > [data-part="label"]`, fieldLabel!).match).toBe('no');
+        expect(match('[data-part="root"]:has(> [data-part="label"])', fieldRoot!).match).toBe('yes');
+        expect(match('[data-part="root"]:has(> *)', fieldRoot!).match).toBe('yes');
+        // Material's LABELLED: the select probe renders no label of its own.
+        expect(match('[data-part="root"]:has(> [data-part="label"]:not([data-visually-hidden])) [data-part="value"]', selValue!).match).toBe('no');
+    });
+
+    it('reaches every descendant, and `>` only the child', () => {
+        expect(match('[data-part="root"]:has([data-placeholder])', selRoot!).match).toBe('yes');
+        expect(match('[data-part="root"]:has(> [data-placeholder])', selRoot!).match).toBe('no');
+        expect(match('[data-part="root"]:has(> [data-part="trigger"] > [data-placeholder])', selRoot!).match).toBe('yes');
+        expect(match('[data-part="root"]:has([data-part="trigger"] [data-part="value"])', selRoot!).match).toBe('yes');
+        // The anchor is `:scope`, never one of the argument's compounds.
+        expect(match('[data-part="root"]:has([data-part="root"] [data-part="trigger"])', selRoot!).match).toBe('no');
+        expect(match('[data-part="trigger"]:has([data-part="value"])', selTrigger!).match).toBe('yes');
+    });
+
+    it('siblings: none below the root, the page\'s on it', () => {
+        expect(match('[data-part="trigger"]:has(+ *)', selTrigger!).match).toBe('no');
+        expect(match('[data-part="root"]:has(~ *)', selRoot!).match).toBe('unknown');
+        expect(match('[data-part="root"]:has(> * + *)', selRoot!).match).toBe('no');
+    });
+
+    it('stays three-valued inside the argument', () => {
+        expect(match('[data-part="root"]:has(> :nth-child(2))', selRoot!).match).toBe('unknown');
+        expect(match('[data-part="root"]:has(> [data-part="popup"]:nth-child(2))', selRoot!).match).toBe('no');
+    });
+
+    it('takes its most specific argument\'s specificity, like :is()', () => {
+        expect(match('[data-part="root"]:has(> [data-a], > [data-b][data-c])', selRoot!).specificity).toEqual([0, 3, 0]);
+        expect(match('[data-part="trigger"]:not(:has(> *))', selValue!).specificity).toEqual([0, 1, 0]);
+    });
+});
+
 describe('what is not', () => {
     it('sibling combinators, :nth-*(), attribute operators other than =', () => {
         expect(match('[data-part="root"] + [data-part="trigger"]', trigger).match).toBe('unknown');

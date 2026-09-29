@@ -3,7 +3,9 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const fieldAnatomy = defineAnatomy('field', {
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'required', 'readonly'],
+        // `placeholder`: the control inside holds no value (#469) — the
+        // text controls' and Select's own flag, mirrored.
+        flags: ['disabled', 'invalid', 'required', 'readonly', 'placeholder'],
         tokens: ['color'],
     },
     label: {
