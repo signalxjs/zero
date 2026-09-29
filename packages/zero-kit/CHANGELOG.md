@@ -4,6 +4,15 @@
 
 ### Added
 
+- **`RUNTIME_PROPERTIES` gains Table's and Textarea's names (#538).**
+  `--table-column-width`, `--table-cell-align`, `--textarea-min-rows` and
+  `--textarea-max-rows`, now declared by zero's anatomies. A recipe may read
+  them bare, and the lynx target refuses them outside `targets.web` — a
+  behavior change for a lynx-building skin that read `--table-cell-align`
+  in a shared section (it was a recipe-local property before): move the
+  default and the reads into `targets.web`, as zero-basic and zero-daisyui
+  now do.
+
 - **`RUNTIME_PROPERTIES` is parity-checked against zero's anatomies
   (#537).** The list must equal `BEHAVIOR_RUNTIME_PROPERTIES` plus every
   name zero's anatomies declare as `runtimeProperties`, with no name twice,
