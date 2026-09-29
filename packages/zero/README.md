@@ -630,7 +630,17 @@ their neighbors, `marks` renders ticks) while a scalar model keeps the native
 bottom-to-top (`data-orientation` on the root and every positioned part,
 `aria-orientation` on the thumbs and the control, pointer mapped through
 `clientY`, Up/Right increase with no RTL mirroring, the native control
-spelled `writing-mode: vertical-lr; direction: rtl`); Select and Combobox group options
+spelled `writing-mode: vertical-lr; direction: rtl`). A `mark` is
+`data-state="active"` while it sits on the span `Slider.Range` fills (min →
+value for one value, lowest → highest for several, ends included) and
+`inactive` off it, so a skin inks the stops on the filled track apart from
+the rest; `Slider.ThumbValue`, placed inside a `Slider.Thumb`, renders that
+thumb's value (through `getValueText`, the plain number without one; its slot
+receives `{ value, index, text }`) as the `thumb-value` part — `aria-hidden`,
+since the thumb announces the value — carrying `data-pressed` while its thumb
+is dragged (a track press included) and `data-focus-visible` while the thumb
+has keyboard focus, which a skin reads to show a per-handle value bubble
+(#490). A pointer press never leaves a thumb `data-focus-visible`; Select and Combobox group options
 (`Group`/`GroupLabel`, the optgroup equivalent).
 
 **Overlays: focus targets, scroll lock, asking before dismissal** (#277).

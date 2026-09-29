@@ -34,6 +34,21 @@
   `createDismissable` takes `ownsKeyboard` (`true` or `'within'`) to say
   which layers count.
 
+- **Slider stop state and a per-thumb value part (#490).** `slider.mark`
+  carries `data-state="active"` while it sits on the span `Slider.Range`
+  fills (min → value for one value, lowest → highest for several, ends
+  included) and `inactive` off it. `Slider.ThumbValue`, placed inside a
+  `Slider.Thumb`, renders the new `thumb-value` part (`parent: 'thumb'`)
+  with that thumb's value through `getValueText` (the plain number without
+  one; the slot receives `{ value, index, text }`). It is `aria-hidden`,
+  carries `data-pressed` while its thumb is dragged (a track press
+  included) and `data-focus-visible` while the thumb has keyboard focus.
+  The six bundled skins ink an active stop apart from the rest, above the
+  filled span, and show the value as a bubble over the thumb while it is
+  dragged or focused; zero-material paints in-range stops on-primary and
+  its bubble is M3's value indicator. A new part is an anatomy change: a
+  design system that styles `slider.mark` should style its two states.
+
 ### Changed
 
 - **`Stack.Item grow` grows from zero (#454).** The design systems now
@@ -48,6 +63,11 @@
 - **The README no longer says Combobox filters hand-written items (#458).**
   Filtering by default applies in data mode (`items`); hand-written items
   are the consumer's to filter unless `filterItems` is set.
+
+- **A pointer press no longer leaves a slider thumb `data-focus-visible`
+  (#490).** The press cancels its default, so Chromium matched
+  `:focus-visible` on the thumb's scripted focus and a drag kept the
+  keyboard ring.
 
 ## [0.17.0] - 2026-09-29
 

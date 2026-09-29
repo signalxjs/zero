@@ -502,7 +502,7 @@ describe('the pass-through reaches every part', () => {
                     <Slider.Label {...p('label')}>Volume</Slider.Label>
                     <Slider.Track {...p('track')}>
                         <Slider.Range {...p('range')} />
-                        <Slider.Thumb {...p('thumb')} />
+                        <Slider.Thumb {...p('thumb')}><Slider.ThumbValue {...p('thumb-value')} /></Slider.Thumb>
                     </Slider.Track>
                     <Slider.ValueText {...p('value-text')} />
                 </Slider.Root>

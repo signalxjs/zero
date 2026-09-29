@@ -6,6 +6,7 @@ export type {
     SliderTrackProps,
     SliderRangeProps,
     SliderThumbProps,
+    SliderThumbValueProps,
     SliderValueTextProps,
     SliderMark,
 } from './Slider.js';

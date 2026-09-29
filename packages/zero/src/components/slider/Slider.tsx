@@ -36,7 +36,11 @@
  * Shift+Arrow move by `largeStep` (default ten steps).
  * `Slider.Range` spans lowest → highest (min → value when single). Pointer
  * presses on the track move the nearest thumb and start a drag. `marks`
- * renders one positioned `mark` part per entry inside the track.
+ * renders one positioned `mark` part per entry inside the track, each
+ * `data-state="active"` while it sits on the span `Slider.Range` paints and
+ * `inactive` off it (#490). `Slider.ThumbValue`, placed inside a thumb,
+ * renders that thumb's formatted value — a per-handle value bubble — and
+ * mirrors the thumb's `pressed` and `focus-visible`.
  *
  * Zero positions the moving parts structurally (absolute + logical
  * `inset-inline-start` percentages, so RTL mirrors for free) and paints
@@ -84,6 +88,14 @@ export type SliderMark = number | { value: number; label?: string };
 /** What a Thumb registers so the root can index and focus it. */
 interface ThumbEntry {
     el(): HTMLElement | null;
+    /**
+     * Focus the thumb for a pointer press. The press cancels its default
+     * (so no text selection starts), which leaves the engine nothing to tell
+     * a pointer focus from a scripted one, and Chromium then matches
+     * `:focus-visible` — a drag would leave the keyboard ring (and the value
+     * bubble, #490) behind. A pointer focus is never focus-visible.
+     */
+    focusFromPointer(): void;
 }
 
 interface SliderContext {
@@ -161,6 +173,13 @@ interface SliderContext {
      * has already moved the thumb) — the drag's end commits against it.
      */
     beginDrag(index: number, before?: readonly number[]): void;
+    /** The index of the thumb being dragged, or null — reactive. */
+    dragging(): number | null;
+    /**
+     * The span `Slider.Range` paints, as values: min → value for one value,
+     * lowest → highest for several. A mark inside it is `active`.
+     */
+    span(): { lo: number; hi: number };
     setTrack(el: HTMLElement | null): void;
 }
 
@@ -200,11 +219,21 @@ function makeInert(): SliderContext {
         focusThumb: () => {},
         trackToValue: () => 0,
         beginDrag: () => {},
+        dragging: () => null,
+        span: () => ({ lo: 0, hi: 0 }),
         setTrack: () => {},
     };
 }
 
 export const useSliderContext = defineInjectable<SliderContext>(() => makeInert());
+
+/** What a Thumb hands the value indicator inside it. */
+interface SliderThumbContext {
+    index(): number;
+    focusVisible(): boolean;
+}
+
+const useSliderThumbContext = defineInjectable<SliderThumbContext | null>(() => null);
 
 /**
  * The track's PADDING box in viewport coordinates. The positioned parts'
@@ -343,7 +372,8 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
     settleAfterMount(onMounted, () => { present.settled = true; });
     const thumbs: ThumbEntry[] = [];
     let track: HTMLElement | null = null;
-    let dragIndex: number | null = null;
+    // Reactive: a thumb's value indicator reads it as its `pressed` flag.
+    const drag = signal({ index: -1 });
     let detachDrag: (() => void) | null = null;
     const hiddenEls: (HTMLInputElement | null)[] = [];
 
@@ -431,7 +461,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
 
     let dragBefore: readonly number[] | null = null;
     const endDrag = (): void => {
-        dragIndex = null;
+        drag.index = -1;
         detachDrag?.();
         const before = dragBefore;
         dragBefore = null;
@@ -485,7 +515,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
             };
         },
         thumbIndex: (entry) => Math.max(0, thumbs.indexOf(entry)),
-        focusThumb: (index) => { thumbs[index]?.el()?.focus(); },
+        focusThumb: (index) => { thumbs[index]?.focusFromPointer(); },
         trackToValue(e) {
             if (!track) return min();
             const rect = paddingBox(track);
@@ -505,10 +535,10 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
         beginDrag(index, before) {
             if (ctx.disabled() || ctx.readonly()) return;
             detachDrag?.();
-            dragIndex = index;
+            drag.index = index;
             dragBefore = [...(before ?? values())];
             const onMove = (e: PointerEvent): void => {
-                if (dragIndex != null) setValueAt(dragIndex, ctx.trackToValue(e));
+                if (drag.index >= 0) setValueAt(drag.index, ctx.trackToValue(e));
             };
             const onEnd = (): void => endDrag();
             window.addEventListener('pointermove', onMove);
@@ -519,6 +549,14 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
                 window.removeEventListener('pointerup', onEnd);
                 window.removeEventListener('pointercancel', onEnd);
                 detachDrag = null;
+            };
+        },
+        dragging: () => (drag.index >= 0 ? drag.index : null),
+        span: () => {
+            const vals = values();
+            return {
+                lo: vals.length > 1 ? Math.min(...vals) : min(),
+                hi: vals.length > 0 ? Math.max(...vals) : min(),
             };
         },
         setTrack: (el) => { track = el; },
@@ -779,10 +817,12 @@ const SliderTrack = component<SliderTrackProps>(({ props, slots }) => {
             {slider.marks().map((mark) => {
                 const value = typeof mark === 'number' ? mark : mark.value;
                 const label = typeof mark === 'number' ? undefined : mark.label;
+                const { lo, hi } = slider.span();
                 return (
                     <span
                         data-scope={SCOPE}
                         data-part="mark"
+                        data-state={value >= lo && value <= hi ? 'active' : 'inactive'}
                         data-orientation={slider.orientation()}
                         data-disabled={dataAttr(slider.disabled())}
                         key={`m${value}`}
@@ -803,9 +843,7 @@ export type SliderRangeProps = WithClass & WithHtmlAttrs;
 const SliderRange = component<SliderRangeProps>(({ props }) => {
     const slider = useSliderContext();
     return () => {
-        const vals = slider.values();
-        const lo = vals.length > 1 ? Math.min(...vals) : slider.min();
-        const hi = vals.length > 0 ? Math.max(...vals) : slider.min();
+        const { lo, hi } = slider.span();
         const start = slider.percentOf(lo);
         const extent = `${slider.percentOf(hi) - start}%`;
         const vertical = slider.orientation() === 'vertical';
@@ -842,10 +880,21 @@ export type SliderThumbProps =
 const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmounted }) => {
     const slider = useSliderContext();
     let el: HTMLElement | null = null;
-    const entry: ThumbEntry = { el: () => el };
+    const focus = signal({ visible: false });
+    let pointerFocus = false;
+    const entry: ThumbEntry = {
+        el: () => el,
+        focusFromPointer: () => {
+            pointerFocus = true;
+            el?.focus();
+            pointerFocus = false;
+            // Already focused (by keyboard, say): the press still ends the
+            // keyboard modality.
+            focus.visible = false;
+        },
+    };
     const unregister = slider.registerThumb(entry);
     onUnmounted(() => unregister());
-    const focus = signal({ visible: false });
     // A drag is a long press — same shape as Control: no pointerleave, no
     // one-shot, the behavior's window release ends it wherever it ends.
     const press = createPressFeedback({
@@ -856,6 +905,7 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
     });
 
     const index = (): number => props.index ?? slider.thumbIndex(entry);
+    defineProvide(useSliderThumbContext, () => ({ index, focusVisible: () => focus.visible }));
 
     return () => {
         const i = index();
@@ -920,12 +970,12 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
                     e.stopPropagation();
                     e.preventDefault();
                     press.onPointerdown(e);
-                    el?.focus();
+                    entry.focusFromPointer();
                     slider.beginDrag(i);
                 }}
                 onPointerup={press.onPointerup}
                 onPointercancel={press.onPointercancel}
-                onFocus={() => { focus.visible = isFocusVisible(el); }}
+                onFocus={() => { focus.visible = !pointerFocus && isFocusVisible(el); }}
                 onBlur={(e: FocusEvent) => {
                     press.onBlur(e);
                     focus.visible = false;
@@ -936,6 +986,46 @@ const SliderThumb = component<SliderThumbProps>(({ props, slots, signal, onUnmou
         );
     };
 }, { name: 'Slider.Thumb' });
+
+export type SliderThumbValueProps =
+    & WithClass
+    & WithHtmlAttrs
+    /** Replaces the formatted value; `text` is what renders by default. */
+    & Define.Slot<'default', { value: number; index: number; text: string }>;
+
+/**
+ * The thumb's own value indicator (#490) — placed inside a `Slider.Thumb`,
+ * it renders that thumb's value through `getValueText` (the plain number
+ * without one). Decorative: the thumb announces the value itself, so this
+ * is `aria-hidden`. It carries `data-pressed` while its thumb is dragged
+ * (a track press that moved it included) and `data-focus-visible` while
+ * its thumb has keyboard focus — the moments a design system shows it.
+ * Outside a thumb it renders nothing.
+ */
+const SliderThumbValue = component<SliderThumbValueProps>(({ props, slots }) => {
+    const slider = useSliderContext();
+    const thumb = useSliderThumbContext();
+    return () => {
+        if (!thumb) return null;
+        const i = thumb.index();
+        const value = slider.values()[i] ?? slider.min();
+        const text = slider.valueTextFor(value, i) ?? String(value);
+        return (
+            <span
+                {...htmlAttrs(props)}
+                data-scope={SCOPE}
+                data-part="thumb-value"
+                data-orientation={slider.orientation()}
+                data-pressed={dataAttr(slider.dragging() === i)}
+                data-focus-visible={dataAttr(thumb.focusVisible())}
+                aria-hidden="true"
+                class={props.class}
+            >
+                {slots.default?.({ value, index: i, text }) ?? text}
+            </span>
+        );
+    };
+}, { name: 'Slider.ThumbValue' });
 
 export type SliderValueTextProps = WithClass & WithHtmlAttrs & Define.Slot<'default', { value: number | number[]; values: number[] }>;
 
@@ -960,5 +1050,6 @@ export const Slider = compound(SliderRoot, {
     Track: SliderTrack,
     Range: SliderRange,
     Thumb: SliderThumb,
+    ThumbValue: SliderThumbValue,
     ValueText: SliderValueText,
 });

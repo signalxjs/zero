@@ -1133,7 +1133,12 @@ describe('assertNoCalcVarChains', () => {
     describe('zero-daisyui focus-visible rings on lynx', () => {
         const PILOT = ['button', 'switch', 'slider', 'toast', 'tabs', 'accordion', 'dialog', 'popover', 'select'];
         const lynxCss = () => compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] }).componentCss;
-        const focusRules = (css: string) => [...css.matchAll(/^(\.[^\n{]*\.zx-f-focus-visible) \{([^}]*)\}/gm)].map((m) => ({ selector: m[1]!, body: m[2]! }));
+        // The slider's value bubble (#490) mirrors its thumb's focus to SHOW
+        // itself — it draws no ring (the thumb wears it), so it is no ring
+        // rule to hold to the restatement.
+        const focusRules = (css: string) => [...css.matchAll(/^(\.[^\n{]*\.zx-f-focus-visible) \{([^}]*)\}/gm)]
+            .map((m) => ({ selector: m[1]!, body: m[2]! }))
+            .filter(({ selector }) => !selector.startsWith('.zx-slider__thumb-value'));
         const RING = /box-shadow: 0 0 0 2px var\(--[a-z0-9-]+\), 0 0 0 4px var\(--[a-z0-9-]+\)/;
 
         it('no pilot scope paints an outline ring', () => {

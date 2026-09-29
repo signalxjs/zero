@@ -2391,6 +2391,7 @@
         box-shadow: var(--shadow-sm);
         cursor: pointer;
         outline: none;
+        z-index: 1;
         touch-action: none;
         transition: box-shadow var(--duration-fast) var(--ease-standard), scale var(--duration-fast) var(--ease-standard);
     }
@@ -2419,13 +2420,58 @@
         margin-block-end: calc(var(--slider-thumb-size) / -2);
     }
 
+    [data-scope="slider"][data-part="thumb-value"] {
+        position: absolute;
+        padding: var(--space-2xs) var(--space-xs);
+        border-radius: var(--radius-selector);
+        background: var(--color-base-content);
+        color: var(--color-base-100);
+        box-shadow: var(--shadow-sm);
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        line-height: 1.25;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="slider"][data-part="thumb-value"][data-pressed] {
+        opacity: 1;
+    }
+
+    [data-scope="slider"][data-part="thumb-value"][data-focus-visible] {
+        opacity: 1;
+    }
+
+    [data-scope="slider"][data-part="thumb-value"][data-orientation="horizontal"] {
+        bottom: calc(100% + var(--space-xs));
+        left: 50%;
+        translate: -50% 0;
+    }
+
+    [data-scope="slider"][data-part="thumb-value"][data-orientation="vertical"] {
+        bottom: 50%;
+        inset-inline-end: calc(100% + var(--space-xs));
+        translate: 0 50%;
+    }
+
     [data-scope="slider"][data-part="mark"] {
+        z-index: 1;
         padding-block-start: calc(var(--slider-track-size) + var(--space-2xs));
         font-family: var(--font-sans);
         font-size: var(--text-xs);
         line-height: 1;
         white-space: nowrap;
         color: var(--hero-muted);
+    }
+
+    [data-scope="slider"][data-part="mark"][data-state="active"] {
+        --slider-stop-ink: var(--hero-primary-ink);
+    }
+
+    [data-scope="slider"][data-part="mark"][data-state="inactive"] {
+        --slider-stop-ink: var(--hero-muted);
     }
 
     [data-scope="slider"][data-part="mark"]::before {
@@ -2435,7 +2481,7 @@
         inset-inline-start: -1px;
         width: 2px;
         height: var(--slider-track-size);
-        background: var(--hero-muted);
+        background: var(--slider-stop-ink);
     }
 
     [data-scope="slider"][data-part="mark"][data-orientation="vertical"] {
