@@ -95,12 +95,11 @@ declare module '@sigx/zero' {
                 axes: { 'shape': 'round' | 'square' };
                 mods: { 'fab': boolean; 'icon': boolean };
             };
-            /** tabs — color, size wired. */
+            /** tabs — color, size, variant wired. */
             'tabs': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-                /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                variant: never;
+                variant: 'primary' | 'secondary';
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
@@ -493,21 +492,19 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** navbar — color, size wired. */
+            /** navbar — color, size, variant wired. */
             'navbar': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-                /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                variant: never;
+                variant: 'small' | 'center-aligned' | 'medium' | 'large' | 'bottom';
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** nav-list — color, size wired. */
+            /** nav-list — color, size, variant wired. */
             'nav-list': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-                /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                variant: never;
+                variant: 'drawer' | 'rail' | 'bar';
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };

@@ -609,7 +609,8 @@ is the visible shortcut hint inside an item (a decorative, `aria-hidden`
 `shortcut` part the skins push to the row's end), and `keyshortcuts` on
 `Menu.Item`, `Menu.CheckboxItem` and `Menu.RadioItem` renders
 `aria-keyshortcuts` so the shortcut is announced once, in a form assistive
-technology parses — zero binds no keys; Dialog has an alert-dialog preset
+technology parses — the item binds no key itself; pass the same string to
+`createHotkeys` or `<Hotkeys>` (see "Keyboard shortcuts"); Dialog has an alert-dialog preset
 (`role="alertdialog"`: no backdrop dismiss, initial focus on the
 least-destructive `Dialog.Cancel`), and every Dialog/Drawer close reports
 why on a `close` event that follows `openChange(false)` — `{ reason, value }`
@@ -721,10 +722,28 @@ selected" becomes `null` from then on (an uncontrolled model seeded `''`
 still reads as empty). The types follow: `items={query.data}` typed
 `T[] | undefined` picks the data overload, so the model is `T | null` (or
 `V | null` with `itemValue`) with no cast. Passing `[]` while loading keeps
-the model's shape fixed from the start. Combobox filters by default — a contains-match on
-the label — `filter` replaces the rule and `filter={false}` shows a
-server-filtered list as is; `Combobox.Empty` renders only while nothing is
-visible. Under `multiple`, Combobox renders each chosen value as a tag in
+the model's shape fixed from the start. In data mode (`items`) Combobox
+filters by default — a contains-match on the label — `filter` replaces the
+rule and `filter={false}` shows a server-filtered list as is. Hand-written
+`Combobox.Item` children are consumer-filtered: render only the ones that
+match `model:inputValue` — or set `filterItems` on the root (#458), and zero
+matches each item's label (`textValue`, else its text) the same way, with a
+`filter` function given the label. An item that does not match stays
+registered (its tag and posted value keep their label) but renders nothing:
+
+```tsx
+<Combobox.Root filterItems model={() => state.from}>
+  <Combobox.Control><Combobox.Input /></Combobox.Control>
+  <Combobox.Popup>
+    {contacts.map((c) => (
+      <Combobox.Item key={c.email} value={c.email} textValue={c.name}>{c.name}</Combobox.Item>
+    ))}
+    <Combobox.Empty>Nobody found</Combobox.Empty>
+  </Combobox.Popup>
+</Combobox.Root>
+```
+
+`Combobox.Empty` renders only while nothing is visible. Under `multiple`, Combobox renders each chosen value as a tag in
 the control (`Combobox.Tags` / `Tag` / `TagLabel` / `TagRemove`; the root's
 `tag` slot supplies per-tag content), and `allowCustom` commits free text on
 Enter.
@@ -2494,6 +2513,56 @@ const Transcript = component(({ props }) => {
 - **Semantics are yours.** A log wants `role="log"`. A `listbox` or `feed`
   wants `aria-setsize={v.count()}` and `aria-posinset={row.index + 1}` on
   each row, because only a window is in the accessibility tree.
+
+## Keyboard shortcuts: `createHotkeys` and `Hotkeys`
+
+`Menu.Item keyshortcuts` announces a shortcut; `createHotkeys` binds it.
+Keys are `aria-keyshortcuts` syntax, so one string does both: modifiers
+(`Control`, `Alt`, `Shift`, `Meta`) joined by `+` to one key named as
+`KeyboardEvent.key` names it (`S`, `?`, `Escape`, `F8`, `Space`), with
+alternatives separated by spaces.
+
+```tsx
+import { createHotkeys, Hotkeys } from '@sigx/zero';
+
+// In a component's setup:
+createHotkeys({
+    'Control+S Meta+S': save,
+    j: next,
+    '?': showHelp,
+}, { enabled: () => !busy.value });
+
+// Or, in JSX alone — a renderless component (`@sigx/zero/hotkeys`):
+<Hotkeys bindings={{ j: next, k: prev, '/': focusSearch, Escape: close }} />
+```
+
+The listener attaches to `document` on mount (or to `target()`, a tracked
+getter — the component's `target` prop) and detaches on unmount; setup
+never touches the DOM, so it is SSR-safe. `bindings` can be a getter, read
+on every keydown. The first binding that matches runs, and the keydown's
+default is prevented. A keydown fires nothing when:
+
+- **it is typing** — from a text-like `<input>`, a `<textarea>`, a
+  `<select>`, contenteditable content, or a `combobox` / `textbox` /
+  `searchbox` role — or it is mid IME composition;
+- **its modifiers differ.** `j` does not fire on Control+J, so the
+  browser's and the OS's chords pass through. Shift is the one leniency: a
+  symbol typed with Shift on one layout and without it on another (`?`,
+  `#`, `/`) matches either way unless the binding says `Shift+`. Letters
+  compare case-insensitively (`Shift+K` is K with Shift down) and fall back
+  to `KeyboardEvent.code`, so macOS's Option+K (which types `˚`) still
+  matches `Alt+K`;
+- **someone else owns the keyboard** — a modal `<dialog>` (Dialog, a modal
+  Drawer), an open Menu, Select, Popover or Combobox popup, or, for a
+  keydown from inside it, a non-modal Dialog or Drawer (the page beside
+  one stays live). A surface that contains the listener's own `target`
+  does not count. A Tooltip or HoverCard never takes the keyboard;
+- **it was already handled** (`defaultPrevented`).
+
+`parseHotkey`, `matchesHotkey(e, spec)`, `isEditableTarget` and
+`keyboardOwnedElsewhere` are exported for a listener of your own.
+`matchesKeyCombo(e, keys)` is `Toast.Viewport`'s `hotkey` form
+(`['altKey', 'KeyT']`).
 
 ## Theme controller
 

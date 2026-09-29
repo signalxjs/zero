@@ -1014,7 +1014,17 @@ export const tabs: RecipeInput = {
     component: 'tabs',
     // Accent default in `tokens:` — the un-attributed render IS the primary
     // variant; `variants.color` only rebinds the custom property.
-    tokens: { '--tabs-accent': 'var(--color-primary)' },
+    // M3's tabs (#419): primary (3dp rounded indicator, the active label in
+    // the role) or secondary (2dp flat indicator, the active label
+    // on-surface). The indicator spans the tab: zero publishes the tab's box,
+    // not its label's, so M3's content-width primary indicator is out of
+    // reach (#530).
+    tokens: {
+        '--tabs-accent': 'var(--color-primary)',
+        '--tabs-active-ink': 'var(--tabs-accent)',
+        '--tabs-ind-size': '3px',
+        '--tabs-ind-radius': '3px',
+    },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' } },
         list: {
@@ -1024,7 +1034,8 @@ export const tabs: RecipeInput = {
                 // offsets from this padding box.
                 position: 'relative',
                 background: 'var(--color-surface)',
-                borderBottom: 'var(--border) solid var(--color-outline)',
+                // M3's tab divider: 1dp outline-variant.
+                borderBottom: 'var(--border) solid var(--color-outline-variant)',
             },
         },
         // NOTE: `active` on a tab is the SELECTED anatomy state, not the
@@ -1034,16 +1045,19 @@ export const tabs: RecipeInput = {
                 appearance: 'none',
                 background: 'none',
                 border: 'none',
-                borderBottom: '3px solid transparent',
+                borderBottom: 'var(--tabs-ind-size) solid transparent',
                 marginBottom: 'calc(-1 * var(--border))',
-                padding: 'var(--space-sm) var(--space-md)',
-                ...label,
-                color: 'var(--color-base-content)',
+                // M3's tab: 48dp, 16dp in, title-small in on-surface-variant.
+                minBlockSize: dp(48),
+                boxSizing: 'border-box',
+                paddingInline: 'var(--space-md)',
+                ...type('title-small'),
+                color: 'var(--color-surface-variant-content)',
                 cursor: 'pointer',
                 transition: motion('color, border-color'),
             },
             states: {
-                active: { color: 'var(--tabs-accent)', borderBottomColor: 'var(--tabs-accent)' },
+                active: { color: 'var(--tabs-active-ink)', borderBottomColor: 'var(--tabs-accent)' },
                 inactive: {},
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
@@ -1061,24 +1075,24 @@ export const tabs: RecipeInput = {
                 boxSizing: 'border-box',
                 pointerEvents: 'none',
                 insetInlineStart: 'var(--tabs-indicator-inset-inline-start)',
-                insetBlockStart: 'calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - 3px)',
+                insetBlockStart: 'calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - var(--tabs-ind-size))',
                 inlineSize: 'var(--tabs-indicator-inline-size)',
-                blockSize: '3px',
-                borderBlockEnd: '3px solid var(--tabs-accent)',
-                borderStartStartRadius: '3px',
-                borderStartEndRadius: '3px',
+                blockSize: 'var(--tabs-ind-size)',
+                borderBlockEnd: 'var(--tabs-ind-size) solid var(--tabs-accent)',
+                borderStartStartRadius: 'var(--tabs-ind-radius)',
+                borderStartEndRadius: 'var(--tabs-ind-radius)',
                 transition: motion('inset-inline-start, inset-block-start, inline-size, block-size'),
             },
             selectors: {
                 // A vertical list: the bar runs down the tab's inline-end
                 // edge instead.
                 '&[data-orientation="vertical"]': {
-                    insetInlineStart: 'calc(var(--tabs-indicator-inset-inline-start) + var(--tabs-indicator-inline-size) - 3px)',
+                    insetInlineStart: 'calc(var(--tabs-indicator-inset-inline-start) + var(--tabs-indicator-inline-size) - var(--tabs-ind-size))',
                     insetBlockStart: 'var(--tabs-indicator-inset-block-start)',
-                    inlineSize: '3px',
+                    inlineSize: 'var(--tabs-ind-size)',
                     blockSize: 'var(--tabs-indicator-block-size)',
                     borderBlockEnd: 'none',
-                    borderInlineEnd: '3px solid var(--tabs-accent)',
+                    borderInlineEnd: 'var(--tabs-ind-size) solid var(--tabs-accent)',
                 },
             },
             at: { 'reduced-motion': { base: { transition: 'none' } } },
@@ -1103,7 +1117,16 @@ export const tabs: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--tabs-accent': `var(--color-${c})`,
         } } }])),
+        variant: {
+            primary: {},
+            secondary: { root: { base: {
+                '--tabs-active-ink': 'var(--color-base-content)',
+                '--tabs-ind-size': '2px',
+                '--tabs-ind-radius': '0',
+            } } },
+        },
     },
+    defaultVariants: { variant: 'primary' },
 };
 
 // ── Disclosure ────────────────────────────────────────────────────────────
@@ -3166,7 +3189,9 @@ export const progress: RecipeInput = {
     // variant; `variants.color` only rebinds the custom properties.
     tokens: {
         '--progress-accent': 'var(--color-primary)',
-        '--progress-track-size': 'calc(var(--size-field) * 1.5)',
+        // M3's linear indicator: 4dp, the active bar standing in a 4dp gap
+        // (painted in the surface behind it, #468) with a 4dp stop at the end.
+        '--progress-track-size': dp(4),
     },
     keyframes: {
         // `transform` has no logical form, so the direction is carried by a value
@@ -3191,12 +3216,27 @@ export const progress: RecipeInput = {
                 background: 'var(--color-surface-container-highest)',
                 overflow: 'hidden',
             },
+            selectors: {
+                // M3's stop indicator at the track's end.
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlock: '0',
+                    insetInlineEnd: '0',
+                    inlineSize: 'var(--progress-track-size)',
+                    borderRadius: '50%',
+                    background: 'var(--progress-accent)',
+                },
+                // A running (indeterminate) bar has no end to mark.
+                '&:has([data-state="indeterminate"])::after': { content: 'none' },
+            },
         },
         range: {
             base: {
                 height: '100%',
                 borderRadius: '624rem',
                 background: 'var(--progress-accent)',
+                boxShadow: '0 0 0 var(--space-2xs) var(--tf-surface)',
                 transition: motion('width, background'),
                 '--progress-sweep-dir': '1',
             },
@@ -3228,11 +3268,11 @@ export const progress: RecipeInput = {
             '--progress-accent': `var(--color-${c})`,
         } } }])),
         size: {
-            xs: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 0.75)' } } },
-            sm: { root: { base: { '--progress-track-size': 'var(--size-field)' } } },
-            md: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 1.5)' } } },
-            lg: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 2)' } } },
-            xl: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 3)' } } },
+            xs: { root: { base: { '--progress-track-size': dp(2) } } },
+            sm: { root: { base: { '--progress-track-size': dp(3) } } },
+            md: {},
+            lg: { root: { base: { '--progress-track-size': dp(8) } } },
+            xl: { root: { base: { '--progress-track-size': dp(12) } } },
         },
     },
     // The track and range carry the state; the wrapper has no appearance of
@@ -5048,13 +5088,15 @@ export const badge: RecipeInput = {
                 gap: '0.375em',
                 background: 'var(--badge-fill)',
                 color: 'var(--badge-ink)',
-                borderRadius: 'var(--radius-extra-small)',
-                padding: 'var(--space-2xs) var(--space-xs)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-xs)',
-                fontWeight: 'var(--weight-medium)',
-                letterSpacing: 'var(--tracking-wide)',
-                lineHeight: 'var(--leading-normal)',
+                // M3's large badge: 16dp tall, fully round, label-small,
+                // 4dp in — error / on-error unless a colour says otherwise.
+                boxSizing: 'border-box',
+                minBlockSize: dp(16),
+                minInlineSize: dp(16),
+                justifyContent: 'center',
+                borderRadius: 'var(--radius-full)',
+                paddingInline: 'var(--space-2xs)',
+                ...type('label-small'),
                 whiteSpace: 'nowrap',
                 textDecoration: 'none',
             },
@@ -5242,9 +5284,11 @@ export const skeleton: RecipeInput = {
 export const spinner: RecipeInput = {
     component: 'spinner',
     tokens: {
-        '--spinner-size': 'calc(var(--size-field) * 0.6)',
+        // M3's circular indicator: 40dp, a 4dp arc in the role, no track
+        // while indeterminate.
+        '--spinner-size': dp(40),
         '--spinner-ink': 'var(--color-primary)',
-        '--spinner-track': 'var(--color-outline)',
+        '--spinner-track': 'transparent',
     },
     parts: {
         root: {
@@ -5254,9 +5298,10 @@ export const spinner: RecipeInput = {
                 blockSize: 'var(--spinner-size)',
                 boxSizing: 'border-box',
                 borderRadius: '50%',
-                border: 'calc(var(--border) * 2) solid var(--spinner-track)',
+                border: 'calc(var(--spinner-size) / 10) solid var(--spinner-track)',
                 borderBlockStartColor: 'var(--spinner-ink)',
-                animation: 'zero-material-spin 0.7s linear infinite',
+                borderInlineEndColor: 'var(--spinner-ink)',
+                animation: 'zero-material-spin 1s linear infinite',
             },
             at: { 'reduced-motion': { base: { animation: 'none' } } },
         },
@@ -5266,11 +5311,11 @@ export const spinner: RecipeInput = {
             '--spinner-ink': `var(--color-${c})`,
         } } }])),
         size: {
-            xs: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.4)' } } },
-            sm: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.5)' } } },
+            xs: { root: { base: { '--spinner-size': dp(16) } } },
+            sm: { root: { base: { '--spinner-size': dp(24) } } },
             md: {},
-            lg: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.8)' } } },
-            xl: { root: { base: { '--spinner-size': 'var(--size-field)' } } },
+            lg: { root: { base: { '--spinner-size': dp(48) } } },
+            xl: { root: { base: { '--spinner-size': dp(64) } } },
         },
     },
     keyframes: { 'zero-material-spin': 'to { transform: rotate(360deg); }' },
@@ -5886,10 +5931,12 @@ export const chatLog: RecipeInput = {
 export const radialProgress: RecipeInput = {
     component: 'radial-progress',
     tokens: {
-        '--radial-size': 'calc(var(--size-selector) * 16)',
-        '--radial-thickness': 'calc(var(--size-selector) * 1.5)',
+        // M3's circular indicator: 48dp, a 4dp stroke over the
+        // surface-container-highest track.
+        '--radial-size': dp(48),
+        '--radial-thickness': dp(4),
         '--radial-ink': 'var(--color-primary)',
-        '--radial-track': 'var(--color-surface-container)',
+        '--radial-track': 'var(--color-surface-container-highest)',
     },
     parts: {
         root: {
@@ -5979,11 +6026,11 @@ export const radialProgress: RecipeInput = {
             '--radial-ink': `var(--color-${c})`,
         } } }])),
         size: {
-            xs: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 10)', '--radial-thickness': 'calc(var(--size-selector) * 1)' } } },
-            sm: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 13)', '--radial-thickness': 'calc(var(--size-selector) * 1.25)' } } },
+            xs: { root: { base: { '--radial-size': dp(24), '--radial-thickness': dp(3) } } },
+            sm: { root: { base: { '--radial-size': dp(36), '--radial-thickness': dp(4) } } },
             md: {},
-            lg: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 20)', '--radial-thickness': 'calc(var(--size-selector) * 2)' } } },
-            xl: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 24)', '--radial-thickness': 'calc(var(--size-selector) * 2.5)' } } },
+            lg: { root: { base: { '--radial-size': dp(64), '--radial-thickness': dp(6) } } },
+            xl: { root: { base: { '--radial-size': dp(96), '--radial-thickness': dp(8) } } },
         },
     },
     keyframes: { 'zero-material-radial-spin': 'to { transform: rotate(360deg); }' },
@@ -6067,6 +6114,15 @@ export const join: RecipeInput = {
  * refills the band with the role pair, which is the M1-era coloured app bar
  * Material still specifies for expressive products.
  */
+/**
+ * M3's top app bar (#419): `small` (64dp, surface, a title-large headline),
+ * `center-aligned` (the `center` part is the centred headline), `medium` and
+ * `large` (112 / 152dp, the headline — the `center` part — on its own row
+ * under the icons, headline-small / headline-medium), and `bottom`, the
+ * bottom app bar (80dp, surface-container). M3 fills a scrolled-under top
+ * bar with surface-container; zero publishes no scroll state for it to key
+ * on (#530).
+ */
 export const navbar: RecipeInput = {
     component: 'navbar',
     parts: {
@@ -6074,13 +6130,17 @@ export const navbar: RecipeInput = {
             base: {
                 display: 'flex',
                 alignItems: 'center',
-                gap: 'var(--space-md)',
-                minBlockSize: '4rem',
-                paddingInline: 'var(--space-lg)',
-                background: 'var(--color-surface-container)',
-                color: 'var(--color-surface-container-content)',
+                gap: 'var(--space-2xs)',
+                boxSizing: 'border-box',
+                minBlockSize: dp(64),
+                paddingInline: 'var(--space-2xs)',
+                background: 'var(--color-surface)',
+                color: 'var(--color-surface-content)',
+                ...type('body-medium'),
             },
         },
+        // The small bar's headline sits here, after the navigation icon:
+        // title-large, 16dp in.
         start: {
             base: {
                 display: 'flex',
@@ -6088,6 +6148,8 @@ export const navbar: RecipeInput = {
                 gap: 'var(--space-sm)',
                 flex: '1 1 0%',
                 justifyContent: 'flex-start',
+                paddingInlineStart: 'var(--space-sm)',
+                ...type('title-large'),
             },
         },
         center: {
@@ -6114,19 +6176,65 @@ export const navbar: RecipeInput = {
             color: `var(--color-${c}-content)`,
         } } }])),
         size: {
-            xs: { root: { base: { minBlockSize: '2.75rem', fontSize: 'var(--text-sm)' } } },
-            sm: { root: { base: { minBlockSize: '3.25rem', fontSize: 'var(--text-sm)' } } },
+            xs: { root: { base: { minBlockSize: dp(48), fontSize: 'var(--text-sm)' } } },
+            sm: { root: { base: { minBlockSize: dp(56), fontSize: 'var(--text-md)' } } },
             md: {},
-            lg: { root: { base: { minBlockSize: '5rem' } } },
-            xl: { root: { base: { minBlockSize: '6rem', fontSize: 'var(--text-lg)' } } },
+            lg: { root: { base: { minBlockSize: dp(72) } } },
+            xl: { root: { base: { minBlockSize: dp(80), fontSize: 'var(--text-2xl)' } } },
+        },
+        variant: {
+            small: {},
+            'center-aligned': { center: { base: { flex: '1 1 auto', ...type('title-large') } } },
+            medium: {
+                root: { base: {
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto',
+                    gridTemplateAreas: '"start end" "center center"',
+                    alignContent: 'space-between',
+                    minBlockSize: dp(112),
+                    paddingBlockEnd: 'var(--space-lg)',
+                } },
+                start: { base: { gridArea: 'start' } },
+                end: { base: { gridArea: 'end' } },
+                center: { base: { gridArea: 'center', justifyContent: 'flex-start', paddingInline: 'var(--space-sm)', ...type('headline-small') } },
+            },
+            large: {
+                root: { base: {
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto',
+                    gridTemplateAreas: '"start end" "center center"',
+                    alignContent: 'space-between',
+                    minBlockSize: dp(152),
+                    paddingBlockEnd: 'var(--space-xl)',
+                } },
+                start: { base: { gridArea: 'start' } },
+                end: { base: { gridArea: 'end' } },
+                center: { base: { gridArea: 'center', justifyContent: 'flex-start', paddingInline: 'var(--space-sm)', ...type('headline-medium') } },
+            },
+            bottom: { root: { base: {
+                minBlockSize: dp(80),
+                paddingInline: 'var(--space-md)',
+                background: 'var(--color-surface-container)',
+                color: 'var(--color-surface-container-content)',
+            } } },
         },
     },
+    defaultVariants: { variant: 'small' },
 };
 
 /**
- * NavList (zero#132) — Material's navigation drawer items: pill rows, a
- * state-layer wash on hover, and the active item as the secondary
- * container with its on-colour — the same pair the role axis remaps.
+ * NavList (zero#132) — M3's navigation, by `variant` (#419):
+ *
+ * - `drawer` (the default): the navigation drawer's 56dp pill rows,
+ *   label-large, the active row on secondary-container, title-small headings.
+ * - `rail`: the navigation rail — an 80dp column of destinations, each an
+ *   icon over a label-medium label, the active one marked by a 56 x 32dp
+ *   pill behind the icon alone (the `icon` part).
+ * - `bar`: the navigation bar — the same destinations laid across an 80dp
+ *   row on surface-container, sharing its width.
+ *
+ * The rail and bar needed no new zero component: `icon` is the part the
+ * active pill rides, which settles #420's question.
  */
 export const navList: RecipeInput = {
     component: 'nav-list',
@@ -6149,20 +6257,19 @@ export const navList: RecipeInput = {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 'var(--space-lg)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-sm)',
+                ...type('label-large'),
                 color: 'var(--color-base-content)',
             },
         },
         group: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
         },
+        // M3's drawer section header: title-small in on-surface-variant.
         heading: {
             base: {
-                ...label,
-                padding: '0 var(--space-lg)',
-                fontSize: 'var(--text-xs)',
-                color: 'var(--color-base-content)',
+                paddingInline: 'var(--space-md)',
+                ...type('title-small'),
+                color: 'var(--color-surface-variant-content)',
             },
         },
         list: {
@@ -6190,11 +6297,12 @@ export const navList: RecipeInput = {
                 textAlign: 'start',
                 inlineSize: '100%',
                 cursor: 'pointer',
-                color: 'var(--nav-ink)',
-                padding: 'var(--space-sm) var(--space-lg)',
+                color: 'var(--color-surface-variant-content)',
+                // M3's drawer item: a 56dp pill, 16dp in, a 12dp icon gap.
+                boxSizing: 'border-box',
+                minBlockSize: dp(56),
+                paddingInline: 'var(--space-md)',
                 borderRadius: '9999px',
-                fontWeight: 'var(--weight-medium)',
-                lineHeight: 'var(--leading-tight)',
                 transition: motion('background, color'),
             },
             states: {
@@ -6207,11 +6315,15 @@ export const navList: RecipeInput = {
         icon: {
             base: {
                 display: 'inline-flex',
-                inlineSize: '1.5em',
+                alignItems: 'center',
+                inlineSize: dp(24),
                 justifyContent: 'center',
                 flex: 'none',
+                fontSize: dp(24),
                 lineHeight: 'var(--leading-none)',
+                transition: motion('background, color'),
             },
+            selectors: { '& > svg': { inlineSize: dp(24), blockSize: dp(24) } },
         },
         meta: {
             base: {
@@ -6224,6 +6336,83 @@ export const navList: RecipeInput = {
         },
     },
     variants: {
+        variant: {
+            drawer: {},
+            rail: {
+                root: { base: { inlineSize: dp(80), alignItems: 'stretch', gap: 'var(--space-xs)' } },
+                list: { base: { gap: 'var(--space-sm)' } },
+                link: {
+                    base: {
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        gap: 'var(--space-2xs)',
+                        minBlockSize: dp(56),
+                        paddingInline: '0',
+                        background: 'transparent',
+                        borderRadius: '0',
+                        textAlign: 'center',
+                        ...type('label-medium'),
+                    },
+                    selectors: {
+                        '&:hover': { background: 'transparent' },
+                        '&[data-state="active"]': { background: 'transparent', color: 'var(--color-base-content)' },
+                    },
+                },
+                // The active indicator: a 56 x 32dp pill behind the icon.
+                icon: {
+                    base: { inlineSize: dp(56), blockSize: dp(32), borderRadius: '9999px' },
+                    selectors: {
+                        '[data-state="active"] > &': { background: 'var(--nav-tint)', color: 'var(--nav-on-tint)' },
+                        '[data-part="link"]:hover:not([data-state="active"]) > &': {
+                            background: 'color-mix(in oklab, var(--color-base-content) 8%, transparent)',
+                        },
+                    },
+                },
+                meta: { base: { display: 'none' } },
+                heading: { base: { display: 'none' } },
+            },
+            bar: {
+                root: { base: {
+                    flexDirection: 'row',
+                    boxSizing: 'border-box',
+                    inlineSize: '100%',
+                    minBlockSize: dp(80),
+                    background: 'var(--color-surface-container)',
+                } },
+                group: { base: { flex: '1 1 auto' } },
+                list: { base: { flexDirection: 'row', flex: '1 1 auto', alignItems: 'center' } },
+                item: { base: { flex: '1 1 0%' } },
+                link: {
+                    base: {
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        gap: 'var(--space-2xs)',
+                        minBlockSize: dp(56),
+                        paddingInline: '0',
+                        background: 'transparent',
+                        borderRadius: '0',
+                        textAlign: 'center',
+                        ...type('label-medium'),
+                    },
+                    selectors: {
+                        '&:hover': { background: 'transparent' },
+                        '&[data-state="active"]': { background: 'transparent', color: 'var(--color-base-content)' },
+                    },
+                },
+                // The active indicator: a 56 x 32dp pill behind the icon.
+                icon: {
+                    base: { inlineSize: dp(56), blockSize: dp(32), borderRadius: '9999px' },
+                    selectors: {
+                        '[data-state="active"] > &': { background: 'var(--nav-tint)', color: 'var(--nav-on-tint)' },
+                        '[data-part="link"]:hover:not([data-state="active"]) > &': {
+                            background: 'color-mix(in oklab, var(--color-base-content) 8%, transparent)',
+                        },
+                    },
+                },
+                meta: { base: { display: 'none' } },
+                heading: { base: { display: 'none' } },
+            },
+        },
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--nav-accent': `var(--color-${c})`,
             '--nav-tint': `var(--color-${c}-container)`,
@@ -6237,6 +6426,7 @@ export const navList: RecipeInput = {
             xl: { root: { base: { fontSize: 'var(--text-lg)' } }, link: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
         },
     },
+    defaultVariants: { variant: 'drawer' },
 };
 
 /**

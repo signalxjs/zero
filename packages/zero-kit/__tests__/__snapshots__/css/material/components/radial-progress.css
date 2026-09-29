@@ -1,9 +1,9 @@
 @layer zero.recipes {
     [data-scope="radial-progress"][data-part="root"] {
-        --radial-size: calc(var(--size-selector) * 16);
-        --radial-thickness: calc(var(--size-selector) * 1.5);
+        --radial-size: 3rem;
+        --radial-thickness: 0.25rem;
         --radial-ink: var(--color-primary);
-        --radial-track: var(--color-surface-container);
+        --radial-track: var(--color-surface-container-highest);
     }
 
     [data-scope="radial-progress"][data-part="root"] {
@@ -87,23 +87,23 @@
     }
 
     [data-scope="radial-progress"][data-part="root"][data-size="xs"] {
-        --radial-size: calc(var(--size-selector) * 10);
-        --radial-thickness: calc(var(--size-selector) * 1);
+        --radial-size: 1.5rem;
+        --radial-thickness: 0.1875rem;
     }
 
     [data-scope="radial-progress"][data-part="root"][data-size="sm"] {
-        --radial-size: calc(var(--size-selector) * 13);
-        --radial-thickness: calc(var(--size-selector) * 1.25);
+        --radial-size: 2.25rem;
+        --radial-thickness: 0.25rem;
     }
 
     [data-scope="radial-progress"][data-part="root"][data-size="lg"] {
-        --radial-size: calc(var(--size-selector) * 20);
-        --radial-thickness: calc(var(--size-selector) * 2);
+        --radial-size: 4rem;
+        --radial-thickness: 0.375rem;
     }
 
     [data-scope="radial-progress"][data-part="root"][data-size="xl"] {
-        --radial-size: calc(var(--size-selector) * 24);
-        --radial-thickness: calc(var(--size-selector) * 2.5);
+        --radial-size: 6rem;
+        --radial-thickness: 0.5rem;
     }
 
     @media (forced-colors: active) {

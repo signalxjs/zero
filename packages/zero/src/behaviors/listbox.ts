@@ -15,7 +15,7 @@ import { dataAttr } from '../contract/data-attrs.js';
 import type { PartProps } from '../contract/props.js';
 
 export type { ListboxCore, ListboxOptions } from './listbox-core.js';
-export { createListboxCore, defaultFilter, stepKeys } from './listbox-core.js';
+export { createListboxCore, defaultFilter, labelContains, stepKeys } from './listbox-core.js';
 
 /** The core's options with the element registry pinned to the web's `HTMLElement` controller. */
 export interface WebListboxOptions<T> extends Omit<ListboxOptions<T>, 'list'> {
@@ -138,7 +138,17 @@ export interface ListboxItem {
 export function createListboxItem<T>(opts: ListboxItemOptions<T>): ListboxItem {
     const { listbox, collection, scope } = opts;
     const key = opts.key;
-    const label = (): string => opts.textValue?.() ?? optionText(opts.getEl()) ?? key();
+    // The element's text is remembered: an item a filter hides renders
+    // nothing (Combobox `filterItems`, #458), and its label must still match
+    // the next query and name its tag.
+    let learned: string | undefined;
+    const label = (): string => {
+        const explicit = opts.textValue?.();
+        if (explicit !== undefined) return explicit;
+        const text = optionText(opts.getEl());
+        if (text !== undefined) learned = text;
+        return learned ?? key();
+    };
 
     const entry: CollectionEntry = { get key() { return key(); }, label, disabled: opts.disabled };
     const unregisterCollection = opts.collect === false ? () => {} : collection.register(entry);

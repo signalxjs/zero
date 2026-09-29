@@ -271,13 +271,10 @@ const NO_VARIANT: Record<string, string> = {
         + 'controls.',
 
     // ── The navigation tier (#339). ──
-    'nav-list': 'no surveyed system varies a sidebar list\'s chrome — daisyUI\'s '
-        + 'menu has size and the shared colour utilities (the color axis, '
-        + 'wired here on the active link), and HeroUI ships no such list (#132).',
-    navbar: 'no surveyed system varies a header bar — daisyUI\'s navbar is '
-        + 'one padded surface recoloured by the shared background utilities '
-        + '(the color axis, wired here), and HeroUI\'s Navbar styles through '
-        + 'isBlurred/isBordered booleans, not a chrome vocabulary.',
+    // nav-list and navbar left this ledger in #419: zero-material wires
+    // `variant` as M3's navigation drawer | rail | bar and its top app bar
+    // small | center-aligned | medium | large | bottom, each with its own
+    // `tokens.scopes` vocabulary.
     breadcrumbs: 'no surveyed system varies a breadcrumb trail — Ant Design\'s '
         + 'Breadcrumb has separator and menu props only, HeroUI\'s underline '
         + 'prop is a hover-decoration mode, and Carbon\'s noTrailingSlash is a '

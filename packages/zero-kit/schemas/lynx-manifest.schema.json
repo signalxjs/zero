@@ -230,6 +230,9 @@
                 "soft": {
                     "type": "boolean"
                 },
+                "axis": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 }

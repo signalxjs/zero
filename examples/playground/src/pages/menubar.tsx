@@ -15,7 +15,7 @@ const MenubarDemos = component(({ signal }) => {
                 a top-level item — moves to the adjacent menu. With a menu
                 open, hovering another trigger switches to it.{' '}
                 <code>Menu.Shortcut</code> draws the hint; the item's{' '}
-                <code>keyshortcuts</code> announces it (zero binds no keys).
+                <code>keyshortcuts</code> announces it; <code>createHotkeys</code> binds it (see Hotkeys).
             </p>
             <Menubar.Root aria-label="Editor" model={() => state.open}>
                 <Menu.Root value="file" onSelect={(v) => console.log('menubar select:', v)}>

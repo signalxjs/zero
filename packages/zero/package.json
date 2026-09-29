@@ -314,6 +314,10 @@
         "./visually-hidden": {
             "types": "./dist/components/visually-hidden/index.d.ts",
             "import": "./dist/components/visually-hidden/index.js"
+        },
+        "./hotkeys": {
+            "types": "./dist/components/hotkeys/index.d.ts",
+            "import": "./dist/components/hotkeys/index.js"
         }
     },
     "files": [

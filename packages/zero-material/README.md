@@ -15,7 +15,7 @@ express M3 is filed as an `m3-finding` issue rather than worked around quietly.
 | Material 3 | How it lands |
 |---|---|
 | Colour from M3's own algorithm: HCT tonal palettes from seed `#6750A4`, light and dark at standard, medium and high contrast (six themes) | `scripts/gen-scheme.mjs` runs `@material/material-color-utilities` (devDependency only) into a checked-in `src/scheme.generated.ts`; `pnpm --filter @sigx/zero-material gen:scheme` regenerates it, and a test fails when it is stale |
-| The full role set: key colours and their containers, seven surface tones, `surface-variant`, the inverse pair, `outline` / `outline-variant`, `scrim`, `shadow` | `roles`. `on-X` is zero's `X-content`. Fills and hairlines opt out of the `color` axis (`soft: false` / `content: false`) |
+| The full role set: key colours and their containers, seven surface tones, `surface-variant`, the inverse pair, `outline` / `outline-variant`, `scrim`, `shadow` | `roles`. `on-X` is zero's `X-content`. Fills and hairlines are declared `axis: false`, off the `color` axis (#425). None of them has a `-soft` tint (`soft: false`), and the hairlines have no ink (`content: false`) |
 | Tonal (container) fills with their `on-*-container` ink | each action role's `-soft` is set to its container per theme, and recipes pair `-container` with `-container-content`. Pairing the key ink with its container instead fails in the high-contrast schemes, where the container goes dark |
 | `info` / `success` / `warning`, which M3 does not define | custom colours harmonised toward the seed, each with the same colour / container quartet |
 | The corner scale, extra-small (4dp) → extra-extra-large (48dp) and full | open keys in `radius`: `--radius-extra-small` … `--radius-full`. `selector` / `field` / `box` remain as aliases, because zero's token hints and structural fallbacks name them |
@@ -104,6 +104,18 @@ by default, outlined with `variant="outlined"`.
 | Sheets: surface-container-low, the large corner on a side sheet's inner edge, the bottom sheet's extra-large top and its 32 × 4dp drag handle, level 1 once modal | Drawer |
 | Overlay triggers and dismiss actions | the outlined button and the text button from #415, with M3's disabled colours |
 | Dividers | 1dp outline-variant |
+
+## M3 navigation and communication (#419)
+
+| M3 | How it lands |
+|---|---|
+| Tabs: primary (3dp rounded indicator, the active label in the role) and secondary (2dp flat indicator, the active label on-surface); 48dp title-small tabs over a 1dp outline-variant divider | Tabs' `variant`. The indicator spans the tab: zero publishes the tab's box, not its label's (#530) |
+| Top app bar: small (64dp, a title-large headline), center-aligned, medium and large (112 / 152dp, the headline on its own row in headline-small / headline-medium); bottom app bar (80dp, surface-container) | Navbar's `variant`. The `center` part is the headline for center-aligned, medium and large. There is no scrolled-under fill: the bar publishes no scroll state (#530) |
+| Navigation drawer: 56dp pill rows, label-large, the active row on secondary-container, title-small headings | NavList, `variant="drawer"` (the default) |
+| Navigation rail and navigation bar: icon over label-medium label, the active pill (56 × 32dp) behind the icon alone; the bar is 80dp on surface-container | NavList, `variant="rail"` / `"bar"`. The pill rides the `icon` part, so no new component was needed (settles #420's rail/bar question) |
+| Linear progress: 4dp, the active bar in a 4dp gap, a stop indicator at the end | Progress. The gap is painted in `--tf-surface` (#468). No Expressive wavy variant yet |
+| Circular progress: 48dp determinate over a surface-container-highest track, 40dp indeterminate with no track, 4dp stroke | RadialProgress and Spinner |
+| Badge: 16dp, fully round, label-small, error / on-error | Badge |
 
 ## What the recipes prove
 

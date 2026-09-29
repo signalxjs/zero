@@ -246,6 +246,10 @@
                     "description": "Emit a <role>-soft tint (explicit value or softMix derivation). Default true.",
                     "type": "boolean"
                 },
+                "axis": {
+                    "description": "Whether the role is a value of the color axis. Default: inferred \u2014 a role with content: false or soft: false is a fill, every other role an axis value (#425).",
+                    "type": "boolean"
+                },
                 "description": {
                     "description": "Intent of the role \u2014 surfaced in the DS manifest for tooling/AI.",
                     "type": "string"

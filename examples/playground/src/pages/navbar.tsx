@@ -1,6 +1,7 @@
 import { component } from 'sigx';
 import { Navbar, Button } from '@sigx/zero';
-import { pickRole, pickScopeVariant } from '../design-systems';
+import { activeVocabulary, pickRole, pickScopeVariant } from '../design-systems';
+import { AxisLabel, DemoRow } from '../demo/Section';
 import type { PageEntry } from './registry';
 
 const NavbarDemos = component(() => () => (
@@ -39,9 +40,42 @@ const NavbarDemos = component(() => () => (
     </>
 ), { name: 'NavbarDemos' });
 
+/**
+ * One bar per variant the live design system declares for navbar — Material
+ * 3's top app bars (#419) — read from the manifest, so a skin with none
+ * renders nothing here. The `center` part carries the headline, which the
+ * medium and large bars set on a row of its own.
+ */
+const NavbarFlavors = component(() => {
+    const flavors = () => activeVocabulary().perScope['navbar']?.variants ?? [];
+    return () => (
+        <>
+            {flavors().map((variant) => (
+                <DemoRow>
+                    <AxisLabel>{variant}</AxisLabel>
+                    <div style="flex: 1">
+                        <Navbar.Root variant={variant}>
+                            <Navbar.Start><span aria-hidden="true">☰</span></Navbar.Start>
+                            <Navbar.Center>{`${variant} bar`}</Navbar.Center>
+                            <Navbar.End><span aria-hidden="true">⋮</span></Navbar.End>
+                        </Navbar.Root>
+                    </div>
+                </DemoRow>
+            ))}
+        </>
+    );
+}, { name: 'NavbarFlavors' });
+
+const NavbarPage = component(() => () => (
+    <>
+        <NavbarDemos />
+        <NavbarFlavors />
+    </>
+), { name: 'NavbarPage' });
+
 export const navbarPage: PageEntry = {
     id: 'navbar',
     title: 'Navbar',
     category: 'Navigation & structure',
-    Demos: NavbarDemos,
+    Demos: NavbarPage,
 };

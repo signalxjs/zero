@@ -55,6 +55,7 @@ import { chatPage } from './chat';
 import { virtualListPage } from './virtual-list';
 import { radialProgressPage } from './radial-progress';
 import { joinPage } from './join';
+import { hotkeysPage } from './hotkeys';
 import { navbarPage } from './navbar';
 import { navListPage } from './nav-list';
 import { appShellPage } from './app-shell';
@@ -106,6 +107,7 @@ export const pages: PageEntry[] = [
     toggleGroupPage,
     swapPage,
     joinPage,
+    hotkeysPage,
     fieldPage,
     formsPage,
     inputPage,

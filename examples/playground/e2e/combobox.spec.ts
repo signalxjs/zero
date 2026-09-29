@@ -335,3 +335,30 @@ test('autoHighlight: Enter picks the first match; unmatched text is added as typ
     const posted = await r('hidden-input').evaluate((el) => Array.from((el as HTMLSelectElement).selectedOptions).map((o) => o.value));
     expect(posted).toEqual(['ada@example.com', 'maya@example.com', 'zed@example.com']);
 });
+
+/**
+ * filterItems (#458): hand-written items narrow by their labels in a real
+ * engine — only the matches are rendered, the arrows and Enter pick among
+ * them, and Combobox.Empty shows when nothing matches.
+ */
+test('filterItems: hand-written items narrow as you type; ArrowDown and Enter pick a visible one (#458)', async ({ page }) => {
+    const r = demoPosting(page, 'combobox', 'sender');
+    await r('input').click();
+    await r('input').pressSequentially('MAR');
+    await expect(r('popup')).toHaveAttribute('data-state', 'open');
+    await expect(r('item')).toHaveText(['Margaret Hamilton', 'Mary Jackson']);
+    await expect(r('empty')).toHaveCount(0);
+    await r('input').pressSequentially('y');
+    await expect(r('item')).toHaveText(['Mary Jackson']);
+    await r('input').press('ArrowDown');
+    await expect(r('item')).toHaveAttribute('data-highlighted', '');
+    await expect(r('input')).toHaveAttribute('aria-activedescendant', (await r('item').getAttribute('id'))!);
+    await r('input').press('Enter');
+    await expect(r('input')).toHaveValue('Mary Jackson');
+    await expect(r('hidden-input')).toHaveValue('mary@example.com');
+
+    await r('input').fill('');
+    await r('input').pressSequentially('zzz');
+    await expect(r('item')).toHaveCount(0);
+    await expect(r('empty')).toHaveText('No sender matches');
+});

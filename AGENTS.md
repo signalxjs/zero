@@ -227,7 +227,9 @@ field without ever blurring it, Escape clears a search field, keyboard Tab
 skips the untabbable clear trigger for the visibility toggle; and, per
 skin in both directions, every affordance sits inside the control at the
 reading edge it names — the recipes order with `order`, which the
-physical-direction lint cannot check), and
+physical-direction lint cannot check), hotkeys (#460: a `<Hotkeys>`
+binding fires from the page but not while typing in an Input, nor while a
+real `showModal()` dialog or a `:popover-open` menu is up), and
 the `createVirtualList` behavior (#56: measured rows tile with no gap
 under real layout, stick-to-bottom follows the tail and lets go on a
 wheel scroll up, a prepend leaves the row being read in place, and no

@@ -39,7 +39,12 @@ export const vocabulary = {
         'surface-variant', 'inverse-surface',
         'inverse-primary', 'outline', 'outline-variant', 'scrim', 'shadow',
     ],
-    variants: ['filled', 'tonal', 'elevated', 'outlined', 'text'],
+    variants: [
+        'filled', 'tonal', 'elevated', 'outlined', 'text',
+        'primary', 'secondary',
+        'small', 'center-aligned', 'medium', 'large', 'bottom',
+        'drawer', 'rail', 'bar',
+    ],
     modifiers: ['icon', 'fab', 'zebra', 'hover', 'inline'],
     axes: { shape: ['circle', 'square', 'rounded', 'round'] },
 } as const;

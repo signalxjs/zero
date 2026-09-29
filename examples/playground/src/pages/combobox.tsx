@@ -24,6 +24,15 @@ const CONTACTS = [
     { name: 'Priya Nair', email: 'priya@example.com' },
 ];
 
+// The filterItems demo's own list: names no other demo on the page shows,
+// so a spec that names a root by its text never matches this one.
+const SENDERS = [
+    { name: 'Grace Hopper', email: 'grace@example.com' },
+    { name: 'Margaret Hamilton', email: 'margaret@example.com' },
+    { name: 'Mary Jackson', email: 'mary@example.com' },
+    { name: 'Radia Perlman', email: 'radia@example.com' },
+];
+
 const AGENTS = [
     { id: 'atlas', name: 'Atlas' },
     { id: 'ada', name: 'Ada' },
@@ -253,6 +262,31 @@ const ComboboxDemos = component(() => {
                     placeholder="Name or address…"
                     emptyText="Press Enter to add this address"
                 />
+            </Field.Root>
+            <h3>Hand-written items, filtered by zero</h3>
+            <p>
+                <small>
+                    <code>filterItems</code> (#458) filters hand-written{' '}
+                    <code>Combobox.Item</code>s by their <code>textValue</code>{' '}
+                    (else their text) as you type — no <code>.filter()</code> of
+                    your own. An item that does not match renders nothing, and{' '}
+                    <code>Combobox.Empty</code> shows when none does.
+                </small>
+            </p>
+            <Field.Root>
+                <Field.Label>Sender</Field.Label>
+                <Combobox.Root filterItems name="sender" placeholder="Filter senders…">
+                    <Combobox.Control>
+                        <Combobox.Input />
+                        <Combobox.Trigger />
+                    </Combobox.Control>
+                    <Combobox.Popup>
+                        {SENDERS.map((c) => (
+                            <Combobox.Item key={c.email} value={c.email} textValue={c.name}>{c.name}</Combobox.Item>
+                        ))}
+                        <Combobox.Empty>No sender matches</Combobox.Empty>
+                    </Combobox.Popup>
+                </Combobox.Root>
             </Field.Root>
             <p>
                 Trigger mode: <code>trigger="@"</code> turns the{' '}
