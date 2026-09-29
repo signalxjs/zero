@@ -1655,8 +1655,10 @@ widths as a `<colgroup>` of `column` parts: each `<col>` carries
 property, never a `width` literal, so a responsive rule can take it back. A
 `Table.Cell` or `Table.HeaderCell` that names its column (`column={2}` or
 `column="age"`) takes the alignment as `--table-cell-align`, which every
-skin's cell recipe reads. A header cell with no children renders its
-column's label. Naming a column the spec doesn't have throws.
+skin's cell recipe reads. Both are the table anatomy's declared
+`runtimeProperties` (#538) — web runtime properties (`RUNTIME_PROPERTIES`),
+so a lynx build reads them only inside `targets.web`. A header cell with no
+children renders its column's label. Naming a column the spec doesn't have throws.
 
 ```tsx
 <Table.Root columns={[{ label: 'Time', width: '8rem' }, { label: 'What' }, { key: 'cost', label: 'Cost', align: 'end' }]}>
@@ -1768,7 +1770,9 @@ growing in `@layer zero.structure` with `field-sizing: content` and `lh`
 bounds — so it is right before hydration (the element's `rows` follows
 `minRows` meanwhile, for engines without `field-sizing`), and a design system has nothing to
 write (the rule also sets `resize: none`, since a manual resize would switch
-the growth off). `createAutosize` (on `@sigx/zero/behaviors`) is the runtime
+the growth off). The two bounds are the textarea anatomy's declared
+`runtimeProperties` (#538), web-only like every inline write.
+`createAutosize` (on `@sigx/zero/behaviors`) is the runtime
 half: it measures the block padding + border a `border-box` element's bounds
 must add (`--textarea-block-chrome`), and on an engine without
 `field-sizing` it measures `scrollHeight` and writes the height inline. Like

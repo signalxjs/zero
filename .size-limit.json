@@ -74,7 +74,7 @@
     {
         "name": "@sigx/zero/anatomy (tooling entry)",
         "path": "packages/zero/dist/anatomy.js",
-        "limit": "4.57 kB",
+        "limit": "4.6 kB",
         "ignore": [
             "sigx",
             "@sigx/runtime-core",
@@ -216,7 +216,7 @@
     {
         "name": "@sigx/zero/textarea",
         "path": "packages/zero/dist/components/textarea/index.js",
-        "limit": "4.27 kB",
+        "limit": "4.28 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -468,7 +468,7 @@
     {
         "name": "@sigx/zero/table",
         "path": "packages/zero/dist/components/table/index.js",
-        "limit": "4.39 kB",
+        "limit": "4.4 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

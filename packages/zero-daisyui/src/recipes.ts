@@ -9454,9 +9454,6 @@ export const table: RecipeInput = {
         },
     },
     tokens: {
-        // The column spec's alignment (#55): a cell that names an aligned
-        // column overrides it inline; everything else reads `start`.
-        '--table-cell-align': 'start',
         '--table-accent': 'var(--color-base-content)',
         '--table-pad-block': 'var(--space-sm)',
         '--table-pad-inline': 'var(--space-md)',
@@ -9521,7 +9518,6 @@ export const table: RecipeInput = {
         'header-cell': {
             base: {
                 padding: 'var(--table-pad-block) var(--table-pad-inline)',
-                textAlign: 'var(--table-cell-align)',
                 fontWeight: 'var(--weight-semibold)',
                 fontSize: 'var(--text-xs)',
                 color: 'color-mix(in oklab, var(--table-accent) 60%, transparent)',
@@ -9580,7 +9576,6 @@ export const table: RecipeInput = {
         cell: {
             base: {
                 padding: 'var(--table-pad-block) var(--table-pad-inline)',
-                textAlign: 'var(--table-cell-align)',
             },
             at: tableStackAt(tokens, 'cell', { paddingInline: '0', paddingBlock: 'var(--space-xs)' }),
         },
@@ -9631,6 +9626,19 @@ export const table: RecipeInput = {
     // `@media` of the stacked mode — lynx-zero resolves `stack` in JS and
     // stamps the parts instead (see `css` below).
     targets: {
+        // The column spec's alignment (#55, #538): a cell that names an
+        // aligned column writes `--table-cell-align` inline, and everything
+        // else reads the `start` default here. A runtime-written property is
+        // web-only (lynx has no inline write to read), so the default and
+        // both reads live in the web section; lynx cells keep the engine's
+        // start alignment.
+        web: {
+            tokens: { '--table-cell-align': 'start' },
+            parts: {
+                'header-cell': { base: { textAlign: 'var(--table-cell-align)' } },
+                cell: { base: { textAlign: 'var(--table-cell-align)' } },
+            },
+        },
         lynx: {
             parts: {
                 // The web's `overflow-x: auto` box: a lynx view clips its

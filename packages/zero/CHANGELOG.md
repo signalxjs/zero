@@ -4,6 +4,16 @@
 
 ### Added
 
+- **Table and Textarea declare their runtime properties (#538).** Table
+  lists `--table-column-width` (on each `<col>`) and `--table-cell-align`
+  (on the cells that name a column), Textarea its autosize bounds
+  `--textarea-min-rows` / `--textarea-max-rows`, as `runtimeProperties`, so
+  `manifest.json` gains the key on both. Like every runtime property they
+  are web-only: a lynx build reads them only inside `targets.web`. Nothing
+  either component renders changes. The parity suite now checks the reverse
+  direction too: every custom property a component directory writes inline
+  must be declared by that directory's anatomy.
+
 - **Zero's own anatomies declare their runtime properties (#537).**
   Progress and RadialProgress (`--progress-percent`, shared so one recipe
   idiom serves both), Slider (`--slider-percent`), Diff (`--diff-percent`),
