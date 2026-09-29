@@ -231,7 +231,12 @@ field without ever blurring it, Escape clears a search field, keyboard Tab
 skips the untabbable clear trigger for the visibility toggle; and, per
 skin in both directions, every affordance sits inside the control at the
 reading edge it names — the recipes order with `order`, which the
-physical-direction lint cannot check), hotkeys (#460: a `<Hotkeys>`
+physical-direction lint cannot check), input-outline (#468, chromium: in
+Material the `notch` legend spans the floated label's painted box in both
+directions, for an `Input.Label` and an adopted `Field.Label`, closes while
+the label rests and opens on focus, and the border's row inside it shows a
+backdrop no stand-in paint could guess; the other skins leave the part
+undisplayed), hotkeys (#460: a `<Hotkeys>`
 binding fires from the page but not while typing in an Input, nor while a
 real `showModal()` dialog or a `:popover-open` menu is up), and
 the `createVirtualList` behavior (#56: measured rows tile with no gap

@@ -1,7 +1,7 @@
 import { component, signal } from 'sigx';
 import { Field, Input } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
-import { pickRole } from '../design-systems';
+import { pickRole, pickScopeVariant } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const InputDemos = component(() => {
@@ -163,6 +163,42 @@ const InputDemos = component(() => {
                         <Input.Affix placement="end">kg</Input.Affix>
                     </Input.Control>
                 </Input.Root>
+            </DemoRow>
+            <p>
+                <code>Outline</code> is optional: a <code>&lt;fieldset&gt;</code>{' '}
+                over the control whose <code>&lt;legend&gt;</code> — the{' '}
+                <code>notch</code> — cuts the gap a floated label sits in. The
+                runtime publishes the label's width as{' '}
+                <code>--input-label-inline-size</code>, so a design system
+                whose label floats onto the border (Material's outlined field)
+                really cuts it, over any background. A skin whose label never
+                floats leaves it undisplayed.
+            </p>
+            <DemoRow gap="1rem" align="flex-end">
+                <Input.Root variant={pickScopeVariant('input', 'outlined')} data-demo="outline-empty">
+                    <Input.Label>Outlined, empty</Input.Label>
+                    <Input.Control>
+                        <Input.Input />
+                        <Input.Outline />
+                    </Input.Control>
+                </Input.Root>
+                <Input.Root variant={pickScopeVariant('input', 'outlined')} defaultValue="Ada Lovelace" data-demo="outline-filled">
+                    <Input.Label>Full name</Input.Label>
+                    <Input.Control>
+                        <Input.Input />
+                        <Input.Outline />
+                    </Input.Control>
+                </Input.Root>
+                <Field.Root data-demo="outline-field">
+                    <Field.Label>Home city</Field.Label>
+                    <Input.Root variant={pickScopeVariant('input', 'outlined')} defaultValue="Uppsala">
+                        <Input.Control>
+                            <Input.Adornment placement="start"><span aria-hidden="true">⌂</span></Input.Adornment>
+                            <Input.Input />
+                            <Input.Outline />
+                        </Input.Control>
+                    </Input.Root>
+                </Field.Root>
             </DemoRow>
             <p><small>
                 Query: <code>{state.query || '—'}</code> · password shown:{' '}
