@@ -8707,9 +8707,9 @@
         color: var(--color-surface-variant-content);
         border: var(--border) solid var(--color-outline-variant);
         border-radius: var(--radius-small);
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-label-large);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
         line-height: var(--leading-label-large);
         transition: background var(--duration-short2) var(--ease-standard), color var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard), box-shadow var(--duration-short2) var(--ease-standard);
@@ -8947,43 +8947,43 @@
     }
 
     [data-scope="chip"][data-part="root"][data-color="primary"] {
-        --chip-fill: var(--color-primary-container);
-        --chip-on-fill: var(--color-primary-container-content);
+        --chip-fill: var(--color-primary-soft);
+        --chip-on-fill: var(--color-primary-soft-content);
     }
 
     [data-scope="chip"][data-part="root"][data-color="secondary"] {
-        --chip-fill: var(--color-secondary-container);
-        --chip-on-fill: var(--color-secondary-container-content);
+        --chip-fill: var(--color-secondary-soft);
+        --chip-on-fill: var(--color-secondary-soft-content);
     }
 
     [data-scope="chip"][data-part="root"][data-color="tertiary"] {
-        --chip-fill: var(--color-tertiary-container);
-        --chip-on-fill: var(--color-tertiary-container-content);
+        --chip-fill: var(--color-tertiary-soft);
+        --chip-on-fill: var(--color-tertiary-soft-content);
     }
 
     [data-scope="chip"][data-part="root"][data-color="error"] {
-        --chip-fill: var(--color-error-container);
-        --chip-on-fill: var(--color-error-container-content);
+        --chip-fill: var(--color-error-soft);
+        --chip-on-fill: var(--color-error-soft-content);
     }
 
     [data-scope="chip"][data-part="root"][data-color="neutral"] {
-        --chip-fill: var(--color-neutral-container);
-        --chip-on-fill: var(--color-neutral-container-content);
+        --chip-fill: var(--color-neutral-soft);
+        --chip-on-fill: var(--color-neutral-soft-content);
     }
 
     [data-scope="chip"][data-part="root"][data-color="info"] {
-        --chip-fill: var(--color-info-container);
-        --chip-on-fill: var(--color-info-container-content);
+        --chip-fill: var(--color-info-soft);
+        --chip-on-fill: var(--color-info-soft-content);
     }
 
     [data-scope="chip"][data-part="root"][data-color="success"] {
-        --chip-fill: var(--color-success-container);
-        --chip-on-fill: var(--color-success-container-content);
+        --chip-fill: var(--color-success-soft);
+        --chip-on-fill: var(--color-success-soft-content);
     }
 
     [data-scope="chip"][data-part="root"][data-color="warning"] {
-        --chip-fill: var(--color-warning-container);
-        --chip-on-fill: var(--color-warning-container-content);
+        --chip-fill: var(--color-warning-soft);
+        --chip-on-fill: var(--color-warning-soft-content);
     }
 
     [data-scope="chip"][data-part="root"][data-size="xs"] {
@@ -9069,43 +9069,43 @@
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="primary"] {
-        --chip-group-fill: var(--color-primary-container);
-        --chip-group-on-fill: var(--color-primary-container-content);
+        --chip-group-fill: var(--color-primary-soft);
+        --chip-group-on-fill: var(--color-primary-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="secondary"] {
-        --chip-group-fill: var(--color-secondary-container);
-        --chip-group-on-fill: var(--color-secondary-container-content);
+        --chip-group-fill: var(--color-secondary-soft);
+        --chip-group-on-fill: var(--color-secondary-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="tertiary"] {
-        --chip-group-fill: var(--color-tertiary-container);
-        --chip-group-on-fill: var(--color-tertiary-container-content);
+        --chip-group-fill: var(--color-tertiary-soft);
+        --chip-group-on-fill: var(--color-tertiary-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="error"] {
-        --chip-group-fill: var(--color-error-container);
-        --chip-group-on-fill: var(--color-error-container-content);
+        --chip-group-fill: var(--color-error-soft);
+        --chip-group-on-fill: var(--color-error-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="neutral"] {
-        --chip-group-fill: var(--color-neutral-container);
-        --chip-group-on-fill: var(--color-neutral-container-content);
+        --chip-group-fill: var(--color-neutral-soft);
+        --chip-group-on-fill: var(--color-neutral-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="info"] {
-        --chip-group-fill: var(--color-info-container);
-        --chip-group-on-fill: var(--color-info-container-content);
+        --chip-group-fill: var(--color-info-soft);
+        --chip-group-on-fill: var(--color-info-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="success"] {
-        --chip-group-fill: var(--color-success-container);
-        --chip-group-on-fill: var(--color-success-container-content);
+        --chip-group-fill: var(--color-success-soft);
+        --chip-group-on-fill: var(--color-success-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="warning"] {
-        --chip-group-fill: var(--color-warning-container);
-        --chip-group-on-fill: var(--color-warning-container-content);
+        --chip-group-fill: var(--color-warning-soft);
+        --chip-group-on-fill: var(--color-warning-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-size="xs"] {

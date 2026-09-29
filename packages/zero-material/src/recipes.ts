@@ -4426,6 +4426,26 @@ export const toggleGroup: RecipeInput = {
 
 // ── Chips ─────────────────────────────────────────────────────────────────
 /**
+ * `pressable()` without its ripple: M3's state layer alone on `::before`,
+ * leaving `::after` free for a drawn glyph (the chip's check). The segmented
+ * button gave this up for an `item-indicator` part (#437); a chip has no
+ * indicator part, so it keeps the trade.
+ */
+const stateLayerOnly = (ink: string): PartStyles => {
+    const layer = pressable('unused', ink);
+    const {
+        '&::after': _ripple,
+        '&[data-press-animating]::after': _wave,
+        ...selectors
+    } = layer.selectors ?? {};
+    return {
+        ...layer,
+        selectors,
+        at: { ...layer.at, 'forced-colors': { selectors: { '&::before': { display: 'none' } } } },
+    };
+};
+
+/**
  * M3's chips (#544) — assist, filter, input and suggestion are one anatomy:
  * a 32dp container on the small corner with a 1dp outline-variant stroke
  * (`outlined`, M3's "flat") or a surface-container-low fill on level 1
@@ -4642,8 +4662,8 @@ export const chip: RecipeInput = {
             {
                 root: {
                     base: {
-                        '--chip-fill': `var(--color-${c}-container)`,
-                        '--chip-on-fill': `var(--color-${c}-container-content)`,
+                        '--chip-fill': `var(--color-${c}-soft)`,
+                        '--chip-on-fill': `var(--color-${c}-soft-content)`,
                     },
                 },
             },
@@ -4697,8 +4717,8 @@ export const chipGroup: RecipeInput = {
             {
                 root: {
                     base: {
-                        '--chip-group-fill': `var(--color-${c}-container)`,
-                        '--chip-group-on-fill': `var(--color-${c}-container-content)`,
+                        '--chip-group-fill': `var(--color-${c}-soft)`,
+                        '--chip-group-on-fill': `var(--color-${c}-soft-content)`,
                     },
                 },
             },

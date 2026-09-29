@@ -17,43 +17,43 @@
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="primary"] {
-        --chip-group-fill: var(--color-primary-container);
-        --chip-group-on-fill: var(--color-primary-container-content);
+        --chip-group-fill: var(--color-primary-soft);
+        --chip-group-on-fill: var(--color-primary-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="secondary"] {
-        --chip-group-fill: var(--color-secondary-container);
-        --chip-group-on-fill: var(--color-secondary-container-content);
+        --chip-group-fill: var(--color-secondary-soft);
+        --chip-group-on-fill: var(--color-secondary-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="tertiary"] {
-        --chip-group-fill: var(--color-tertiary-container);
-        --chip-group-on-fill: var(--color-tertiary-container-content);
+        --chip-group-fill: var(--color-tertiary-soft);
+        --chip-group-on-fill: var(--color-tertiary-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="error"] {
-        --chip-group-fill: var(--color-error-container);
-        --chip-group-on-fill: var(--color-error-container-content);
+        --chip-group-fill: var(--color-error-soft);
+        --chip-group-on-fill: var(--color-error-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="neutral"] {
-        --chip-group-fill: var(--color-neutral-container);
-        --chip-group-on-fill: var(--color-neutral-container-content);
+        --chip-group-fill: var(--color-neutral-soft);
+        --chip-group-on-fill: var(--color-neutral-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="info"] {
-        --chip-group-fill: var(--color-info-container);
-        --chip-group-on-fill: var(--color-info-container-content);
+        --chip-group-fill: var(--color-info-soft);
+        --chip-group-on-fill: var(--color-info-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="success"] {
-        --chip-group-fill: var(--color-success-container);
-        --chip-group-on-fill: var(--color-success-container-content);
+        --chip-group-fill: var(--color-success-soft);
+        --chip-group-on-fill: var(--color-success-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-color="warning"] {
-        --chip-group-fill: var(--color-warning-container);
-        --chip-group-on-fill: var(--color-warning-container-content);
+        --chip-group-fill: var(--color-warning-soft);
+        --chip-group-on-fill: var(--color-warning-soft-content);
     }
 
     [data-scope="chip-group"][data-part="root"][data-size="xs"] {
