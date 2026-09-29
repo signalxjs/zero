@@ -237,6 +237,9 @@ component's anatomy). No component code is ever written or changed.
    - DS-specific tokens (a blur radius, a glow color…) go in `custom`
      declarations (name → `{ description, syntax? }`), valued per-theme in
      `custom` — never in `extra`, which the validator flags as undeclared.
+     A value no theme changes (an opacity, a blur) goes once in
+     `system.custom` instead; a theme then omits it, or overrides it in its
+     own `custom`.
      A custom token inside a category namespace (`--radius-…`) is an error;
      declare it in `system` instead.
 

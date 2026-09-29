@@ -146,6 +146,15 @@ export interface SystemTokens {
     motion?: MotionDecl;
     border?: TokenValue;
     disabledOpacity?: TokenValue;
+    /**
+     * Design-system-level values for declared `tokens.custom` tokens (#424):
+     * name → value, emitted once under the root. For a token that does not
+     * vary by theme — Material 3's state-layer opacities — instead of
+     * restating it in every theme. A theme that differs overrides it in its
+     * own `custom`; a theme may omit any token that has a value here. Keys
+     * must be declared in `tokens.custom`, spelled with or without `--`.
+     */
+    custom?: Record<string, TokenValue>;
 }
 
 type Sub<T, K extends PropertyKey> = K extends keyof T ? NonNullable<T[K]> : never;
@@ -210,7 +219,11 @@ export interface ThemeSystem<T extends SystemTokens> {
     disabledOpacity?: ScalarOverrideOf<Sub<T, 'disabledOpacity'>>;
 }
 
-/** Metadata for a DS-declared custom token (values live per-theme). */
+/**
+ * Metadata for a DS-declared custom token. Its value is set once in
+ * `system.custom`, per theme in `ThemeInput.custom`, or both (a theme's
+ * value wins).
+ */
 export interface CustomTokenDecl {
     /** What the token means — surfaced in the DS manifest for tooling/AI. */
     description?: string;
@@ -249,7 +262,11 @@ export interface ThemeInput<R extends RolesDecl = RolesDecl, T extends SystemTok
     colors: ThemeColors<R>;
     /** Overrides of the design-system-level `system` values — declared keys only. */
     system?: ThemeSystem<T>;
-    /** Values for the design system's declared `custom` tokens. */
+    /**
+     * Values for the design system's declared `custom` tokens. Required for
+     * every declared token that has no `system.custom` value; overrides that
+     * value where it has one.
+     */
     custom?: Record<string, string>;
     /** DS-specific extra tokens, emitted verbatim (undeclared escape hatch — prefer `custom`). */
     extra?: Record<string, string>;
@@ -378,7 +395,11 @@ export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTo
     scopes?: Record<string, ScopeVocabulary>;
     /** Role/base token names sampled into theme swatches. Default: first four roles + base. */
     swatch?: (RoleName<R> | typeof BASE_SURFACE_TOKEN_LIST[number])[];
-    /** DS-declared custom tokens: name → metadata. Values live per-theme in `custom`. */
+    /**
+     * DS-declared custom tokens: name → metadata. Values live in
+     * `system.custom` (design-system level, emitted once) and/or per theme
+     * in `custom` (which wins).
+     */
     custom?: Record<string, CustomTokenDecl>;
     /**
      * Contrast floors over the design system's own tokens, checked in every

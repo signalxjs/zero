@@ -112,8 +112,14 @@ with `sizes`, `variants`, `modifiers`, `axes`, `system`, `custom` and
 `breakpoints`, in the DS's `dist/manifest.json` (which also lists every custom
 property the design system emits, and the axis values each recipe wires, per
 component).
+A `custom` token takes its value once for the whole design system in
+`system.custom` — emitted under `:root`, for a token no theme changes, such
+as Material 3's state-layer opacities — or per theme in `theme.custom`, or
+both, the theme's value winning (#424). Each theme needs a value for every
+declared token that has no `system.custom` one.
 A `custom` token that declares a `syntax` is `@property`-registered too, with
-the default light theme's value as its `initial-value`. That value must be
+the default light theme's value (its own, else the `system.custom` one) as
+its `initial-value`. That value must be
 computationally independent (no `var()`, `env()`, `light-dark()`,
 `currentColor`, or font/container-relative unit such as `em`, `rem`, `ch`,
 `cqi`), or the browser drops the whole rule. The compiler skips such a

@@ -404,6 +404,12 @@ function expandScale(tier: AnyTokenSystem): AnyTokenSystem {
  * in an override would let a theme introduce keys behind the "override only
  * declared keys" rule. `typography.roles` folds in at every tier
  * (`withTypeRoles`) — an override of a role names keys the base declared.
+ *
+ * The base tier's `custom` (#424) — design-system-level values for declared
+ * `tokens.custom` tokens — emits here too, as `--<name>`, so every target
+ * states it once under the root. A theme overrides one in its own `custom`,
+ * which each emitter applies after this map; the override tiers carry no
+ * `custom` (`validateDesignSystem` refuses one there).
  */
 export function resolveSystemTokens(...tiers: (AnyTokenSystem | undefined)[]): Record<string, string> {
     const props: Record<string, string> = {};
@@ -440,7 +446,28 @@ export function resolveSystemTokens(...tiers: (AnyTokenSystem | undefined)[]): R
     for (const [alias, target] of Object.entries(structuralAliases(tiers[0]))) {
         if (!(alias in props) && target in props) props[alias] = `var(${target})`;
     }
+    // Last, like a theme's own `custom` after this map: a custom token lives
+    // outside every category's namespace, so nothing above can collide.
+    Object.assign(props, systemCustomProps(tiers[0]));
     return props;
+}
+
+/**
+ * A system tier's `custom` values (#424) as `--<name>` → value: the
+ * design-system-level values of declared custom tokens. A name may be
+ * spelled with or without its leading `--`, as in `tokens.custom`. Never
+ * throws on a malformed node — the validator reports it.
+ */
+export function systemCustomProps(system: unknown): Record<string, string> {
+    const out: Record<string, string> = {};
+    if (typeof system !== 'object' || system === null) return out;
+    const custom = (system as { custom?: unknown }).custom;
+    if (typeof custom !== 'object' || custom === null || Array.isArray(custom)) return out;
+    for (const [name, value] of Object.entries(custom as Record<string, unknown>)) {
+        if (value === undefined || value === null) continue;
+        out[name.startsWith('--') ? name : `--${name}`] = String(value);
+    }
+    return out;
 }
 
 export function assertKeyframesName(name: string, scope: string): void {

@@ -23,7 +23,7 @@ express M3 is filed as an `m3-finding` issue rather than worked around quietly.
 | Duration tokens `short1` … `extra-long4`, and the easing set | open keys in `motion`. `emphasized` is M3's two-segment path, sampled into `linear()` |
 | M3 Expressive's springs (spatial and effects × fast/default/slow) | simulated and sampled into `linear()` easings, each with a same-named duration |
 | Elevation `level0`–`level5` | open keys inside the closed `shadow` category, deepened under dark themes |
-| State layers: hover 8%, focus 10%, pressed 10%, dragged 16% | `--state-*` custom tokens, including the focus layer beside the focus ring |
+| State layers: hover 8%, focus 10%, pressed 10%, dragged 16% | `--state-*` custom tokens, including the focus layer beside the focus ring. Theme-independent, so they are set once in `system.custom` and emitted under `:root` rather than in each of the six themes (#424) |
 | Window size classes at 600 / 840 / 1200 / 1600 | `breakpoints` `sm` / `md` / `lg` / `xl`, driving a full-screen dialog below `sm` |
 
 ## The M3 component API (#415)
