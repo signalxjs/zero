@@ -187,6 +187,14 @@ body {
     outline-offset: -1px;
 }
 
+/* The Stack.Item grow demo (#454): one line, cut with an ellipsis — the
+   case whose content basis used to squeeze its fixed siblings. */
+.demo-truncate {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 /* The card media demos (#302): an image's intrinsic size is not a card's,
    so a media card takes a width of its own — and never more than its row. */
 .demo-media-card {

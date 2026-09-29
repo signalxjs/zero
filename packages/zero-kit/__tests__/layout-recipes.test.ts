@@ -8,8 +8,10 @@
  * differs — the ramp a skin declares, and the breakpoints it names.
  */
 import { describe, expect, it } from 'vitest';
-import { LAYOUT_SCOPES, axisRoles, layoutCss, layoutRecipes, layoutScopes, resolveRoles } from '@sigx/zero-kit';
-import type { TokensInput } from '@sigx/zero-kit';
+import { LAYOUT_SCOPES, axisRoles, compileDesignSystem, layoutCss, layoutRecipes, layoutScopes, resolveRoles } from '@sigx/zero-kit';
+import type { ManifestComponent, TokensInput } from '@sigx/zero-kit';
+import { anatomies } from '@sigx/zero/anatomy';
+import { compileDesignSystemLynx } from '../src/targets/lynx/index.js';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
@@ -202,6 +204,27 @@ describe('the box recipe', () => {
         // reason nobody could read; omitting it is the honest shape.
         expect(box(herouiDS).variants).toBeUndefined();
         expect(box(carbonDS).variants).toBeUndefined();
+    });
+});
+
+describe('Stack.Item grow', () => {
+    const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
+
+    it('grows from a zero basis, and only a growing item does (#454)', () => {
+        // Left at `auto`, a grow item holding long truncated text started from
+        // the whole text's width and the shrink squeezed its fixed siblings.
+        const css = compileDesignSystem(basicDS, manifest).componentCss['stack']!;
+        expect(css).toMatch(/\[data-scope="stack"\]\[data-part="item"\]\[data-l-grow="1"\] \{\s*flex-basis: 0;\s*\}/);
+        const base = /\[data-scope="stack"\]\[data-part="item"\] \{([^}]*)\}/.exec(css)![1]!;
+        expect(base).not.toContain('flex-basis');
+    });
+
+    it('reaches lynx as the longhand, untouched', () => {
+        // The lynx target mis-parses the `flex` shorthand, so the recipe
+        // never writes it — the longhand has to pass straight through.
+        const css = compileDesignSystemLynx(basicDS as never, manifest).componentCss['stack']!;
+        expect(css).toMatch(/\.zx-stack__item\.zx-l-grow-1 \{\s*flex-basis: 0;\s*\}/);
+        expect(css).not.toMatch(/(^|[\s;{])flex:/);
     });
 });
 

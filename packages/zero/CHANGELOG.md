@@ -49,6 +49,15 @@
   its bubble is M3's value indicator. A new part is an anatomy change: a
   design system that styles `slider.mark` should style its two states.
 
+### Changed
+
+- **`Stack.Item grow` grows from zero (#454).** The design systems now
+  compile `grow` to `flex-grow: 1` plus `flex-basis: 0`, like Tailwind's
+  `flex-1`, so a truncated grow item gives way to a fixed sibling instead
+  of squeezing it. Several `grow` siblings now split the free space
+  equally rather than in proportion to their content. The README
+  documents the pattern.
+
 ### Fixed
 
 - **The README no longer says Combobox filters hand-written items (#458).**
