@@ -270,7 +270,12 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props, expose, onMo
     // keys first, and every text or caret change.
     const claim = useTextControlBinding()?.claim() ?? null;
     let el: HTMLTextAreaElement | null = null;
-    ctx.reportValidity({ element: () => el, value: () => ctx.state.value, focus: () => el?.focus() }, onUnmounted);
+    ctx.reportValidity({
+        element: () => el,
+        value: () => ctx.state.value,
+        focus: () => el?.focus(),
+        empty: () => ctx.text.value === '',
+    }, onUnmounted);
 
     // The app's onInput is attached at mount, not in the JSX: sigx appends
     // the model's own listener after every declared prop, so a JSX onInput

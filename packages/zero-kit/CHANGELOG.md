@@ -72,6 +72,18 @@
 
 ### Changed
 
+- **The static contrast matrix answers `:has()` from the probe chain (#469,
+  part of #413).** A probe is a closed world: below a node there is exactly
+  the declared chain, which is also all the browser probe renders. So
+  `:has()` on a chain node now reads the chain's own nodes, and a relative
+  selector that no chain node satisfies is `no`, where it was `unknown`
+  and left the cell `unsupported-selector`. A sibling step inside the argument is `no`, since
+  every node below the root is an only child, and a leading `+`/`~` on the
+  chain root stays unknown. `:has()` now takes its most specific argument's
+  specificity, as the browser does. zero-material's five floating-label
+  cells (`field.label`, `select.value`) are now measured, and every skin
+  measures 100% of its cells apart from daisyui's and heroui's paint.
+
 - **The layout Box inks a coloured surface with `-soft-content` (#421).**
   `--box-ink` was the role itself, which only reads while the tint stays a
   light wash of the role. A design system whose roles already read on their
@@ -111,6 +123,17 @@
   stays free of visual design; `create-zero-ds` scaffolds now include it.
 
 ### Changed
+
+- **The stack recipe grows its root, and floors whatever grows (part of
+  #459).** `layoutRecipes()`'s stack root declares `--l-grow: 0` with its
+  other defaults and consumes it as `flex-grow`, and
+  `[data-l-grow="1"]` on the root sets `flex-basis: 0` and
+  `min-block-size: 0`. The item's grow rule gains the same
+  `min-block-size: 0`. Behaviour note for a design system that patches the
+  stack recipe: a growing item in a column can now shrink below its
+  content's height, which is what lets a region inside it scroll; the floor
+  never applies to a part that does not grow. `grow` joins the stack's
+  reserved props, so an api axis can no longer take that name.
 
 - **`Stack.Item grow` grows from a zero basis (#454).** `layoutRecipes()`'s
   stack item rule gives `[data-l-grow="1"]` `flex-basis: 0` beside

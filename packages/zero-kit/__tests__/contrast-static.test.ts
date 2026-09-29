@@ -46,13 +46,10 @@ const ALLOWED_UNMEASURED: Record<string, UnmeasuredReason[]> = {
     // `+active` is `filter: brightness(0.92)`; the control fills carry daisy's
     // noise texture as a second background layer; the star preview brightens.
     daisyui: ['filter-or-blend', 'gradient-or-image'],
-    // M3's floating label (#416) is a parent reading its child: a Field.Root
-    // over a text field positions and inks its label from the child's state
-    // (`:has([data-placeholder])`, the child's variant), and a resting label
-    // hides the select's placeholder text the same way. The matcher answers
-    // `:has()` on a node with children as unknown — 5 of ~4,800 cells, the
-    // field label and the select value (#469).
-    material: ['unsupported-selector'],
+    // M3's floating label (#416) reads its field's `data-placeholder` (#469)
+    // and answers "holds a text field" through `:has()`, which the matcher
+    // evaluates against the probe chain's own nodes — every cell measured.
+    material: [],
     brutalist: [],
     // The half star is a hard-stop gradient on `::before`.
     heroui: ['gradient-or-image'],
@@ -96,6 +93,16 @@ describe('the six skins clear the floors statically', () => {
         expect(select.length).toBeGreaterThan(100);
         expect(select.some((c) => c.part === 'item' && c.axes?.color === 'error')).toBe(true);
     });
+
+    it("#469: material's floating-label cells are measured — the field label and the select value", () => {
+        const result = auditDesignSystem(materialDS, manifest, { rules: CONTRAST });
+        for (const theme of result.contrast.themes) {
+            const cells = theme.cells.filter((c) => (c.scope === 'field' && c.part === 'label') || (c.scope === 'select' && c.part === 'value'));
+            expect(cells.length, theme.name).toBeGreaterThan(0);
+            const unmeasured = cells.filter((c) => c.verdict === 'unmeasured').map((c) => `${c.key}: ${c.reason} ${c.detail ?? ''}`);
+            expect(unmeasured, theme.name).toEqual([]);
+        }
+    }, MATRIX_TIMEOUT);
 
     it('a theme filter measures only that theme', () => {
         const result = auditDesignSystem(basicDS, manifest, { rules: CONTRAST, themes: ['basic-dark'] });

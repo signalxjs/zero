@@ -14,6 +14,16 @@
   reads them bare, web-only. Zero's own anatomies do not declare theirs yet:
   they are still listed in the kit's `RUNTIME_PROPERTIES`.
 
+- **`Field.Root` carries `data-placeholder` while its control is empty
+  (#469, part of #413).** A `Field.Root` holding an Input, Textarea,
+  NumberInput, Combobox or Select mirrors that control's own
+  `data-placeholder` onto its root, from mount on, so a skin can style a
+  `Field.Label` (a floating label) from its own field instead of a `:has()`
+  into the control. A control reports it through the new optional
+  `empty()` on `FieldValidityReport`; a field around a control with no
+  notion of empty, or with no control, never carries it. Server markup
+  carries none, since the control reports itself after the root renders.
+
 - **`Combobox.Root` `filterItems` (#458).** Hand-written `Combobox.Item`s
   are filtered by the query when it is set: each item's label (`textValue`,
   else its text) is matched with the default case-insensitive
@@ -80,6 +90,15 @@
   `CollapsibleIndicatorProps`, `AccordionIndicatorProps`.
 
 ### Changed
+
+- **Stack/Row/Col take `grow` (part of #459).** `stack.root`'s layout
+  attributes gain `grow`, so `<Row grow>` or `<Col grow>` nested in another
+  stack takes the room its parent has left. A growing `Stack.Item` wrapper
+  could not do this, because it cannot hand its height on to the stack
+  inside it. A boolean like the item's: `false` renders no attribute. The
+  design systems give a growing root or item `min-block-size: 0`, keyed on
+  `grow` only, so a region inside it scrolls and a non-growing header keeps
+  its content height. The README documents the pattern.
 
 - **`Stack.Item grow` grows from zero (#454).** The design systems now
   compile `grow` to `flex-grow: 1` plus `flex-basis: 0`, like Tailwind's

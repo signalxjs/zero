@@ -13,7 +13,9 @@
  * Any zero form control inside adopts the field's control id, disabled/
  * invalid/required flags and `aria-describedby` automatically — and its
  * `size`, when the control sets none of its own, so a compact field is
- * `<Field.Root size="xs">` rather than a size on every part.
+ * `<Field.Root size="xs">` rather than a size on every part. The other way
+ * round, the root carries `data-placeholder` while a text control or Select
+ * inside holds no value (#469) — the control's own flag, mirrored.
  *
  * Validation (#284) is the platform's constraint API, surfaced:
  *
@@ -231,6 +233,18 @@ const FieldRoot = component<FieldRootProps>(({ props, slots, signal, onMounted, 
         v.validated = true;
     };
     const invalid = (): boolean => !!props.invalid || fieldset.invalid() || (v.validated && !v.shown.validity.valid);
+    // The control's emptiness, mirrored as the root's `data-placeholder`
+    // (#469): a floating label rests from its own field's flag rather than
+    // a `:has()` into the control. The control reports while it sets up —
+    // after this root has rendered — so the flag is read from mount on;
+    // server markup, where nothing mounts, carries none.
+    const mounted = signal({ value: false });
+    onMounted(() => { mounted.value = true; });
+    const empty = (): boolean => {
+        if (!mounted.value) return false;
+        void v.reports;
+        return current()?.empty?.() === true;
+    };
 
     const ctx: FieldContext = {
         inert: false,
@@ -348,6 +362,7 @@ const FieldRoot = component<FieldRootProps>(({ props, slots, signal, onMounted, 
             data-invalid={dataAttr(invalid())}
             data-required={dataAttr(props.required)}
             data-readonly={dataAttr(readonly())}
+            data-placeholder={dataAttr(empty())}
             {...variantAttrs(props)}
             class={props.class}
             ref={(node: HTMLElement | null) => { rootEl = node; }}

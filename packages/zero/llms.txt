@@ -586,7 +586,7 @@ component renders; the root is called out separately where it carries props.
   the radius of the control inside it, so put the item attributes ON the
   control.
 - Stack: Root(orientation, gap/gapX/gapY, pad/padX/padY, align, justify,
-  wrap)/Item(asChild, grow) — the flex row or column an application layout
+  wrap, grow)/Item(asChild, grow) — the flex row or column an application layout
   is made of. Row and Col are the SAME scope with a different default
   orientation, exported as presets: two scopes would mean two recipes and
   two chances for a skin to paint them differently. Prefer them over
@@ -596,7 +596,10 @@ component renders; the root is called out separately where it carries props.
   --space-* ramp (or a breakpoint record), never a length. Item exists only
   so a child can opt into growing, and supports asChild for Join's reason:
   flex-grow applies to the flex ITEM, so a wrapper cannot grow the control
-  inside it. No role — a stack is visual grouping.
+  inside it. Root takes grow too, so a nested Row/Col fills what its parent
+  stack has left (a growing Item wrapper cannot pass its height on); a
+  growing root or item also gets min-block-size: 0, keyed on grow only, so
+  a region inside it can scroll. No role — a stack is visual grouping.
 - Container: Root only(measure, pad/padX/padY) — bounds the page width and
   keeps content off the edges. `measure` is xs|sm|md|lg|xl|prose|full from
   the design system's own --measure-* ramp, a token category of its own

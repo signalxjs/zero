@@ -233,6 +233,12 @@ keystroke a `lazy` or `debounce` model has not taken yet already clears it.
 It is kept off the native element on purpose: `:placeholder-shown` needs a
 `placeholder` attribute to match at all, and re-rendering the native
 element per keystroke would drop a pending `debounce`.
+A `Field.Root` holding one of these controls, or a Select, mirrors the flag
+onto its own `root` (#469), so a skin styles a `Field.Label` from its own
+field instead of a `:has()` into the control. It is set from mount on, since
+the control reports itself after the root renders; server markup carries
+none, and a field around a control with no notion of empty (a checkbox, a
+slider) never has it.
 
 **Input's control holds three affordances (#281).** `Input.Adornment`
 (part `adornment`, `placement="start" | "end"` → `data-placement`) puts
@@ -1987,6 +1993,23 @@ their content:
     <Stack.Item grow asChild>{(p) => <span {...p} class="truncate">{subject}</span>}</Stack.Item>
     <time>Sep 12</time>
 </Row>
+```
+
+**A Row or Col can grow itself** (#459). `grow` on `Stack`, `Row` or
+`Col` makes a nested stack take what its parent stack has left: a growing
+`Stack.Item` wrapper cannot hand its height on to a stack inside it.
+Anything that grows (a root or an item) also gets `min-block-size: 0`, so
+it can shrink below its content and a region inside it scrolls instead of
+pushing the column taller. The floor is keyed on `grow` only, so a header
+Row that does not grow keeps its content height:
+
+```tsx
+<Col class="screen">{/* .screen { block-size: 100dvh } in app CSS */}
+    <Row align="center">…toolbar…</Row>
+    <Row grow>
+        <Stack.Item grow asChild>{(p) => <div {...p} class="scroll">…</div>}</Stack.Item>
+    </Row>
+</Col>
 ```
 
 **The link button.** A link that looks like a button is `asChild` over an

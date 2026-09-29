@@ -1068,6 +1068,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             element: () => hidden ?? (input as HTMLInputElement | null),
             value: () => state.value,
             focus: () => input?.focus(),
+            empty: () => inputValue.value === '' && listbox.selectedKeys().length === 0,
         }, onUnmounted);
     }
 

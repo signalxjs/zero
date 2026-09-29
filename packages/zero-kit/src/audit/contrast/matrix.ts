@@ -103,8 +103,10 @@ function textChain(cell: Cell): StyleNode[] {
             const attrs = attrsOf(cell.scope, n.part);
             if (n.pin) attrs.set('data-state', n.pin);
             const parent = nodes[nodes.length - 1];
-            if (parent) parent.hasElementChildren = true;
-            nodes.push({ scope: cell.scope, part: n.part, element: n.element === 'input' ? 'div' : n.element, attrs, hasElementChildren: false, ...(parent ? { parent } : {}) });
+            const node: StyleNode = { scope: cell.scope, part: n.part, element: n.element === 'input' ? 'div' : n.element, attrs, hasElementChildren: false, ...(parent ? { parent } : {}) };
+            // The chain names every child — `:has()` reads it (#469).
+            if (parent) { parent.hasElementChildren = true; parent.child = node; }
+            nodes.push(node);
         }
     } else {
         nodes.push({ scope: cell.scope, part: cell.part, element: 'div', attrs: attrsOf(cell.scope, cell.part), hasElementChildren: false });
@@ -136,8 +138,9 @@ function indicatorChain(cell: IndicatorCell): StyleNode[] {
         else if (cell.state && n.states.includes(cell.state)) attrs.set('data-state', cell.state);
         if (cell.flag && n.flags.includes(cell.flag)) attrs.set(`data-${cell.flag}`, '');
         const parent = nodes[nodes.length - 1];
-        if (parent) parent.hasElementChildren = true;
-        nodes.push({ scope: cell.scope, part: n.part, element: n.element, attrs, hasElementChildren: false, ...(parent ? { parent } : {}) });
+        const node: StyleNode = { scope: cell.scope, part: n.part, element: n.element, attrs, hasElementChildren: false, ...(parent ? { parent } : {}) };
+        if (parent) { parent.hasElementChildren = true; parent.child = node; }
+        nodes.push(node);
     }
     // A re-carried axis (#94) on its own part; any other on the chain root,
     // where the compiler anchors it.

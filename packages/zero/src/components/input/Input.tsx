@@ -252,6 +252,7 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal, onUnm
         element: () => inputEl,
         value: () => state.value,
         focus: () => inputEl?.focus(),
+        empty: () => text.value === '',
     }, onUnmounted);
 
     return () => (
