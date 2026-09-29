@@ -31,9 +31,14 @@ import { layoutScopes } from '@sigx/zero-kit/define';
 import type { RoleDecl, SystemTokens, ThemeInput, ThemeSystem, TokensInput } from '@sigx/zero-kit';
 import { schemes, type SchemeName } from './scheme.generated.js';
 
-/** A fill or hairline: a token recipes read, never a `color` axis value. */
-const fill = { soft: false } as const;
-const hairline = { content: false, soft: false } as const;
+/**
+ * A fill or hairline: a token recipes read, never a `color` axis value —
+ * said with `axis: false` (#425). `soft: false` is a separate fact: M3 has
+ * no tint of a container, a surface or an outline, so none is emitted. A
+ * fill keeps its ink (`on-*` is `-content`); a hairline has none.
+ */
+const fill = { axis: false, soft: false } as const;
+const hairline = { axis: false, content: false, soft: false } as const;
 
 /**
  * Material's colour roles.
@@ -46,7 +51,7 @@ const hairline = { content: false, soft: false } as const;
  * `-content`, and recipes paint the pair: zero's `-soft` has no ink of its
  * own, and the key colour on its container fails in M3's high-contrast
  * schemes, where the container goes dark (#421). They stay off the axis by
- * declaring `soft: false`, the only way to say "not an axis value" (#425).
+ * declaring `axis: false` (#425).
  */
 export const roles = {
     primary: { description: 'Primary key colour; `-soft` is primary-container' },

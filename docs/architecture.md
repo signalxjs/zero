@@ -1509,8 +1509,9 @@ with the counts it came from, weighted into a total and a letter grade.
 The score is the scalar a generating agent iterates against, and three
 properties are pinned rather than hoped: a declined axis costs nothing
 (`declaredOut` axes and fill roles — `isFillRole` in `contract.ts`, the one
-predicate the skins, the value-coverage guard and the score share, so #286
-is a one-function change — leave the denominator), `skipStates` earns half
+predicate the skins, the value-coverage guard and the score share: an
+explicit `RoleDecl.axis`, else inferred from a `content: false` /
+`soft: false` opt-out (#286, #425) — leave the denominator), `skipStates` earns half
 credit so the score cannot be raised by delegating everything, and the
 weakest theme is the one graded. Per-scope `variant` wiring is not scored:
 the `NO_VARIANT` ledger owns that decision. The six in-repo skins score

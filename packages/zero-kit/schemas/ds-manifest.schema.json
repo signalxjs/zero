@@ -138,6 +138,7 @@
             "properties": {
                 "content": { "type": "boolean" },
                 "soft": { "type": "boolean" },
+                "axis": { "type": "boolean" },
                 "description": { "type": "string" }
             }
         },

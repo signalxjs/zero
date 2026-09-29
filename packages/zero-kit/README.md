@@ -29,7 +29,7 @@ export const designSystem = defineDesignSystem({
     tokens: defineTokens({
         // The color vocabulary is YOURS: declare any roles (omit for the
         // recommended eight). Each emits --color-<role> (+ -content/-soft).
-        roles: { primary: {}, surface: { content: false, soft: false } },
+        roles: { primary: {}, surface: { axis: false, content: false, soft: false } },
         // The size axis is yours too — omit for the recommended xs–xl ramp.
         sizes: ['compact', 'comfortable', 'spacious'],
         // The variant axis, and any custom axes. Declaring them closes the
@@ -91,6 +91,14 @@ validation error) and is written unrounded — `0.125` is `12.5%`, the ratio
 the lynx target and the contrast audit bake. On `:root` each scheme resolves
 its own side, so system dark with no `data-theme` paints the dark theme's
 tint (its explicit value or its own `softMix`), not the light one's.
+A role is a value of the `color` axis unless it says otherwise:
+`axis: false` marks a fill or a hairline — a token recipes read, not a
+colour a control can be — and `axisRoles(roles)` (on `/define`) lists the
+rest, in declaration order, for a skin to key its `color` recipes on.
+Without `axis`, a role that opts out of `-content` or `-soft` is inferred to
+be a fill (`isFillRole`); say `axis` when the token shape and the axis
+disagree (#425). `axis: true` with `content: false` is a validation error —
+an axis value needs the ink a control paints its label with.
 Declared roles are `@property`-registered in the compiled CSS and surfaced,
 with `sizes`, `variants`, `modifiers`, `axes`, `system`, `custom` and
 `breakpoints`, in the DS's `dist/manifest.json` (which also lists every custom
@@ -1049,8 +1057,8 @@ criteria drop out and the weights renormalise, so a report built without a
 validation pass is comparable to one built with it. Three things it
 deliberately does not do: penalise a declined axis (`roles: {}` / `sizes: []`
 are statements — an axis in `declaredOut` leaves the denominator, and a role
-declared as a fill with `content: false` / `soft: false` is a token, not an
-axis value), give full credit for `skipStates` (half — a recipe that skips
+declared `axis: false` — or, without the field, one with `content: false` /
+`soft: false` — is a fill, a token rather than an axis value), give full credit for `skipStates` (half — a recipe that skips
 every state cannot score above 50 on that criterion), or score per-scope
 `variant` wiring (the carriers that leave it unwired do so by recorded
 decision). Every criterion carries the counts it was computed from under
@@ -1168,7 +1176,7 @@ the artifact sees all of them. Twelve rules:
 | `button-affordance` | error | a part zero renders as a real `<button>` with no unconditional `appearance` reset, so the user agent paints its chip | — (set `appearance: none`) |
 | `axis-value-coverage/gap` | error | a declared step a sibling scope implements that this scope neither paints nor claims as its base (#258's shape) | `tokens.scopes` |
 | `axis-value-coverage/ambiguous-base` | error | two values written as empty entries, both claiming the base and rendering identically | — |
-| `axis-value-coverage/unused` | warning | a declared value no recipe paints or claims; or one in no scope's vocabulary | a role declared `content: false` / `soft: false` (a fill, not an axis value) |
+| `axis-value-coverage/unused` | warning | a declared value no recipe paints or claims; or one in no scope's vocabulary | a role declared `axis: false`, or without `axis` one with `content: false` / `soft: false` (a fill, not an axis value) |
 | `axis-coverage` | warning | a styled scope that accepts a declared `color`/`size` axis at runtime and wires nothing — or wires it without keying a part that re-carries it (`scope.part.axis`) | `roles: {}` / `sizes: []`; `tokens.scopes.<scope>.colors: []` / `.sizes: []` |
 | `reduced-motion/loop` | error | an infinite animation in the default render with no `animation: none` for the same selector under `prefers-reduced-motion: reduce` as its only condition — the kit collapses durations there, so a loop strobes rather than stops; a cancel also gated by `@supports` or a second `@media` stops it for some readers, not all | — (a loop that only exists behind `@supports` / `@container` is not the default render's and is not judged) |
 | `contrast/text` | error below 3:1 per cell; warning 3–4.5:1, once per (part, theme) naming the worst cell; `disabled` error below 2:1 pre-fade | a text-bearing part whose computed ink against its effective background clears no floor, in any state × flag combination, in any theme — the design system's own axis surface (every wired `variant`/`color` value, each modifier) included | — |

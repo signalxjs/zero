@@ -99,7 +99,10 @@ component's anatomy). No component code is ever written or changed.
    (`primary|secondary|accent|neutral|info|success|warning|error`, the
    default when `roles` is omitted) unless the brief demands otherwise, and
    add/rename/drop roles freely when it does (e.g. Material-style
-   `surface: { content: false, soft: false }` tonal steps).
+   `surface: { axis: false, soft: false }` tonal steps). `axis: false` keeps
+   a role off the `color` axis — a token recipes read, not a value a control
+   can be; left out, a role with `content: false` or `soft: false` is
+   inferred to be such a fill, and every other role is an axis value.
 
    **Then derive the themes, don't author them.** Name the hues that carry
    the brief and let the kit solve every other colour:
@@ -749,8 +752,8 @@ component's anatomy). No component code is ever written or changed.
         whole system.** Usually it means you declared a vocabulary wider than
         the one you built — narrow the declaration, wire the step, or say the
         vocabulary belongs to one scope in `tokens.scopes`. The one
-        exemption is colour: a role declared `content: false` or `soft: false`
-        is a fill or a hairline (Material's `surface*`, `outline`), which is a
+        exemption is colour: a role declared `axis: false` (or, without
+        `axis`, `content: false` or `soft: false`) is a fill or a hairline (Material's `surface*`, `outline`), which is a
         token and not something a control can be, so it is never expected on
         the `color` axis.
    - **Declare the `variant` axis and any custom axes** (`tokens.variants` /
@@ -1082,7 +1085,7 @@ the reader differentiating. Errors fail the command; warnings fail it under
 | `button-affordance` | error | a part zero renders as a real `<button>` with no unconditional `appearance` reset, so the user agent paints its chip | — (set `appearance: none`) |
 | `axis-value-coverage/gap` | error | a declared step a sibling scope implements that this scope neither paints nor claims as its base | `tokens.scopes` |
 | `axis-value-coverage/ambiguous-base` | error | two values written as empty entries, both claiming the base | — |
-| `axis-value-coverage/unused` | warning | a declared value no recipe paints or claims; or one in no scope's vocabulary | a role declared `content: false` / `soft: false` (a fill, not an axis value) |
+| `axis-value-coverage/unused` | warning | a declared value no recipe paints or claims; or one in no scope's vocabulary | a role declared `axis: false`, or without `axis` one with `content: false` / `soft: false` (a fill, not an axis value) |
 | `axis-coverage` | warning | a styled scope that accepts a declared `color`/`size` axis and wires nothing | `roles: {}` / `sizes: []`; `tokens.scopes.<scope>.colors: []` / `.sizes: []` |
 | `reduced-motion/loop` | error | an infinite animation with no `animation: none` on the same selector under `prefers-reduced-motion: reduce` — the kit collapses durations there, so a loop strobes rather than stops | — |
 
@@ -1168,7 +1171,7 @@ Five live in this repo, in increasing distance from the defaults:
   easings, hard offset shadows drawn in the foreground colour, a 1.414 type
   ratio. Generated from this skill.
 - `@sigx/zero-material` — a foreign vocabulary: thirteen colour roles, a
-  `level1`–`level5` elevation ramp, `soft: false` tonal surfaces, and a role
+  `level1`–`level5` elevation ramp, `axis: false` tonal surfaces and containers, and a role
   (`outline`) with `content: false`. Read this one when the brief needs names
   the recommended eight don't cover.
 - `@sigx/zero-heroui` — a differently *shaped* vocabulary rather than a wider
