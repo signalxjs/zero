@@ -32,7 +32,7 @@ the design system, and markup the app needs that zero lacks lives in the kit.
 
 The design system (`ds`) in more detail:
 - **Look:** indigo on cool neutrals, Inter, a dense 14px scale, light and dark themes.
-- **Typography vocabulary:** the `tone` / `weight` axes and the `truncate` / `clamp` / `unread` / `compact` modifiers.
+- **Typography vocabulary:** the `tone` / `weight` axes and the `truncate` / `clamp` / `compact` modifiers. An unread row is the kit's `mail-row` domain flag `data-x-unread` (#457), which the ds recipe keys as `x-unread`.
 - **Recipes:** recipes for the kit's scopes, plus patches over the baseline.
 - **Grade:** A, with 0 audit findings.
 

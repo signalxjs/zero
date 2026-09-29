@@ -13,8 +13,6 @@
  * - `tone`: the ink.
  * - `weight`: emphasis.
  * - `truncate` / `clamp`: modifiers.
- * - `unread`: the mail row's one domain state, which the closed
- *   `data-state` vocabulary has no word for.
  */
 import type { RolesDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
 import { layoutScopes } from '@sigx/zero-kit/define';
@@ -84,7 +82,7 @@ export const WEIGHTS = ['normal', 'medium', 'semibold', 'bold'] as const;
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
     variants: ['solid', 'outline', 'soft', 'ghost'],
-    modifiers: ['truncate', 'clamp', 'unread', 'compact', 'zebra', 'hover', 'inline'],
+    modifiers: ['truncate', 'clamp', 'compact', 'zebra', 'hover', 'inline'],
     axes: {
         tone: TONES,
         weight: WEIGHTS,
@@ -104,7 +102,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         'mail-heading': { axes: { tone: TONES, weight: WEIGHTS }, modifiers: ['truncate'], colors: [], variants: [] },
         'mail-time': { axes: { tone: TONES, weight: WEIGHTS }, colors: [], variants: [] },
         'mail-icon': { axes: { tone: TONES }, colors: [], variants: [] },
-        'mail-row': { modifiers: ['unread'], colors: [], sizes: [], variants: [] },
+        'mail-row': { colors: [], sizes: [], variants: [] },
         'mail-toolbar': { colors: [], sizes: [], variants: [] },
         'mail-list': { modifiers: ['compact'], colors: [], sizes: [], variants: [] },
         'mail-shell': { colors: [], sizes: [], variants: [] },
