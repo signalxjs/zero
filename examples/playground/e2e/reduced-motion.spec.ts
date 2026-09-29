@@ -206,3 +206,39 @@ for (const ds of DISCLOSURE_EXITS) {
         }
     });
 }
+
+/**
+ * The same close on Collapsible's non-native panel (#453), which has no
+ * `<details>` to hold open: the panel is "open" while it has no `hidden`
+ * attribute. In `chromium` it runs the skin's exit with the attribute still
+ * off; under reduced motion there is no exit, and the panel is hidden again
+ * at once.
+ */
+for (const ds of DISCLOSURE_EXITS) {
+    test(`${ds}: the non-native collapsible panel's close answers prefers-reduced-motion`, async ({ page }, testInfo) => {
+        const reduced = testInfo.project.name === 'reduced-motion';
+        test.skip(
+            !reduced && testInfo.project.name !== 'chromium',
+            'two projects are the whole point; the other engines add nothing here',
+        );
+        await bootPage(page, 'collapsible', ds);
+        const trigger = rootLabelled(page, 'collapsible', 'Card header').getByRole('button', { name: 'Show details' });
+        await trigger.click();
+        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+        // Past the entry, so the close starts from an open, settled panel.
+        await page.waitForTimeout(500);
+        const exit = await trigger.evaluate(async (button: HTMLElement) => {
+            const panel = document.getElementById(button.getAttribute('aria-controls')!)!;
+            button.click();
+            await new Promise((r) => requestAnimationFrame(r));
+            return { name: getComputedStyle(panel).animationName, shown: !panel.hasAttribute('hidden') };
+        });
+        if (reduced) {
+            expect(exit.name, `${ds}: the panel still animates its close under reduced motion`).toBe('none');
+            expect(exit.shown, `${ds}: under reduced motion the panel hides at once`).toBe(false);
+        } else {
+            expect(exit.name, `${ds}: the panel has no exit, so the reduced-motion half proves nothing`).toBe('collapsible-panel-exit');
+            expect(exit.shown, `${ds}: the panel was hidden before the exit could play`).toBe(true);
+        }
+    });
+}

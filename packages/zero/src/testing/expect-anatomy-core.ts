@@ -52,7 +52,8 @@ function fail(anatomy: Anatomy, message: string): never {
  * The anatomy doubles as a test oracle: check every rendered part of a scope
  * against the declaration — known part, `data-state` from the closed set,
  * flags from the declared set, presence-only flag values, and the `hidden`
- * attribute exactly where `hiddenIn` says it goes.
+ * attribute exactly where `hiddenIn` says it goes (`hidden="until-found"`
+ * aside: that keeps the part's box, so it is not what `hiddenIn` means).
  *
  * `elements` is every element in the rendered subtree carrying
  * `data-scope="<scope>"` (the container itself included when it is one).
@@ -126,8 +127,14 @@ export function expectAnatomyElements(
         // in every state it doesn't. An undeclared `hidden` is the failure
         // that matters — it makes a real state invisible to the reader while
         // the contract says it paints.
+        // `hidden="until-found"` is exempt: the UA gives it
+        // `content-visibility: hidden`, not `display: none`, so the part keeps
+        // its box and a design system still styles it (`css/base.css`'s
+        // `[hidden]` guard exempts it for the same reason). Collapsible's
+        // non-native panel is the one (#453).
         const hiddenIn = spec.hiddenIn ?? [];
-        const isHidden = el.getAttribute('hidden') !== null;
+        const hiddenAttr = el.getAttribute('hidden');
+        const isHidden = hiddenAttr !== null && hiddenAttr.toLowerCase() !== 'until-found';
         if (isHidden || hiddenIn.length) {
             const shouldHide = state !== null && hiddenIn.includes(state);
             if (isHidden !== shouldHide) {

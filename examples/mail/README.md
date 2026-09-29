@@ -47,7 +47,7 @@ The design system (`ds`) in more detail:
   - Sort, and a loading skeleton.
 - **Mutations:** archive, delete, spam, move, snooze, label, star and read/unread, each undoable from its toast.
 - **Reading pane:**
-  - The thread with expandable messages.
+  - The thread with expandable messages: each is a non-native `Collapsible` around its card, toggled by the header's chevron (#453).
   - Sender hover cards and attachments.
   - Newer/older navigation.
   - An inline reply that sends into the thread.

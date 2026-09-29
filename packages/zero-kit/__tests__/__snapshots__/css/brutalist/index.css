@@ -769,10 +769,31 @@
         outline-offset: 3px;
     }
 
+    [data-scope="collapsible"][data-part="trigger"]:where(button) {
+        appearance: none;
+        margin: 0;
+        border: 0;
+        background: none;
+        color: inherit;
+        font-style: inherit;
+        line-height: inherit;
+        text-align: start;
+        inline-size: 100%;
+        box-sizing: border-box;
+    }
+
     [data-scope="collapsible"][data-part="panel"] {
         padding: var(--space-md);
         border-top: var(--border) solid var(--color-base-content);
         line-height: var(--leading-normal);
+        overflow: clip;
+    }
+
+    [data-scope="collapsible"][data-part="panel"][data-state="closed"][hidden] {
+        block-size: 0;
+        padding-block: 0;
+        border-block-width: 0;
+        animation: none;
     }
 
     [data-scope="collapsible"][data-part="root"][data-color="primary"] {

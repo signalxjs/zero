@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import { Accordion, Collapsible, accordionAnatomy, collapsibleAnatomy } from '@sigx/zero';
-import { expectAnatomy } from './helpers';
+import { expectAnatomy, supportUntilFound } from './helpers';
 
 let container: HTMLElement;
 beforeEach(() => {
@@ -308,6 +308,36 @@ describe('panel presence (#276)', () => {
         vi.advanceTimersByTime(16);
         await flush();
         expect(details.open).toBe(false);
+    });
+
+    // #453: the same exit on a non-native root — "rendered" is the panel
+    // without `hidden`, and the close lands as `hidden="until-found"`.
+    it('non-native: a close keeps the panel shown until the exit finishes, then hides it until-found', async () => {
+        supportUntilFound();
+        const state = signal({ open: true });
+        render(
+            <Collapsible.Root native={false} model={[state, 'open']}>
+                <Collapsible.Trigger>Toggle</Collapsible.Trigger>
+                <Collapsible.Panel>Content</Collapsible.Panel>
+            </Collapsible.Root>,
+            container,
+        );
+        const panel = container.querySelector<HTMLElement>('[data-scope="collapsible"][data-part="panel"]')!;
+        expect(panel.style.getPropertyValue('--collapsible-panel-height')).toBe('120px');
+        const exit = fakeAnimation(150);
+        animations = [exit];
+        state.open = false;
+        expect(panel.getAttribute('data-state')).toBe('closed');
+        expect(panel.hasAttribute('hidden')).toBe(false);
+        vi.advanceTimersByTime(16);
+        await flush();
+        expect(panel.hasAttribute('hidden')).toBe(false);
+        exit.end();
+        await flush();
+        expect(panel.getAttribute('hidden')).toBe('until-found');
+        // Reopening shows it again at once.
+        state.open = true;
+        expect(panel.hasAttribute('hidden')).toBe(false);
     });
 
     it('reopening during the exit cancels it', async () => {

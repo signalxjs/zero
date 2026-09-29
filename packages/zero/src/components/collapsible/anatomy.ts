@@ -1,16 +1,33 @@
 import { defineAnatomy } from '../../contract/anatomy.js';
 
 /**
- * Collapsible — one native `<details>` disclosure. The panel is labelled by
- * the trigger (no role: a disclosure's content is not a landmark).
+ * Collapsible — one disclosure. The panel is labelled by the trigger (no
+ * role: a disclosure's content is not a landmark).
+ *
+ * Two constructions; `element` records the default. Native (the default):
+ * the root is a `<details>` and the trigger its `<summary>`. `native={false}`
+ * on the root (#453): the root renders a `<div>`, the trigger a `<button
+ * aria-expanded aria-controls>` that can sit anywhere inside the root, and
+ * the panel hides with `hidden="until-found"` — findable, so its
+ * `beforematch` opens it. Only there does the trigger take `asChild` and
+ * lend its bag to another part (`absorbable`, #452): a native `<summary>`
+ * must be the `<details>`' first child and can be nothing else. The root
+ * and the panel are never absorbed: the root contains the other two, and
+ * the panel's hiding and size animation are keyed on its own element.
+ *
+ * `hidden="until-found"` is not `hiddenIn`: the UA gives it
+ * `content-visibility: hidden`, not `display: none` — the panel keeps its
+ * box, and a design system collapses it (`&[hidden]`) like any rendered
+ * part.
  *
  * Runtime-published properties (web-only, #276): the panel carries its
  * measured content size as `--collapsible-panel-height` /
  * `--collapsible-panel-width` (px, `scrollHeight`/`scrollWidth`), fresh while
  * open and re-measured as a close begins. A close flips `data-state` to
- * `closed` at once but keeps the element `open` until the panel's own
- * animations have played, so a recipe animates the close on the panel's
- * `closed` state — `block-size` from `var(--collapsible-panel-height)` to `0`.
+ * `closed` at once but keeps the element `open` (non-native: the panel
+ * without `hidden`) until the panel's own animations have played, so a
+ * recipe animates the close on the panel's `closed` state — `block-size`
+ * from `var(--collapsible-panel-height)` to `0`.
  */
 export const collapsibleAnatomy = defineAnatomy('collapsible', {
     root: {
@@ -25,6 +42,8 @@ export const collapsibleAnatomy = defineAnatomy('collapsible', {
         states: ['open', 'closed'],
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
+        asChild: true,
+        absorbable: true,
     },
     panel: {
         element: 'div',

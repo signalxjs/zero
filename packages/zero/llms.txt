@@ -161,14 +161,17 @@ a part whose anatomy declares `autosize: true` (textarea's `textarea`),
 sized by base.css in `@layer zero.structure`.
 ABSORBABLE (#452): a part whose anatomy declares `absorbable: true`
 (tooltip/menu/popover/dialog/hover-card `trigger`, menu `context-trigger`,
-popover/dialog `close`, dialog `cancel`) may be lent to another zero part
+popover/dialog `close`, dialog `cancel`, and collapsible `trigger` in its
+non-native mode, #453) may be lent to another zero part
 through `lend`; the rendered element keeps the host's own anatomy, so the
 lendable part's recipe is advisory — it styles the part only when it
 renders on its own, never the host it was lent to. Style the host.
-LEND HOSTS (#494, #450, #495): `Button.Root`, `Box`, `Card.Root` and every
-absorbable part (`Tooltip.Trigger`, `Menu.Trigger`, `Menu.ContextTrigger`,
-`Popover.Trigger`/`Close`, `Dialog.Trigger`/`Close`/`Cancel`,
-`HoverCard.Trigger`) take `lend={p}`, so lenders chain: tooltip → menu →
+LEND HOSTS (#494, #450, #495, #453): `Button.Root`, `Box`, `Card.Root` and
+every absorbable part (`Tooltip.Trigger`, `Menu.Trigger`,
+`Menu.ContextTrigger`, `Popover.Trigger`/`Close`,
+`Dialog.Trigger`/`Close`/`Cancel`, `HoverCard.Trigger`, and
+`Collapsible.Trigger` in non-native mode only, #453) take `lend={p}`, so
+lenders chain: tooltip → menu →
 button is `<Tooltip.Trigger asChild>{(t) => <Menu.Trigger asChild lend={t}>
 {(m) => <Button.Root lend={m} aria-label="More">…</Button.Root>}
 </Menu.Trigger>}</Tooltip.Trigger>`. A closer lent to a Button closes
@@ -212,12 +215,20 @@ component renders; the root is called out separately where it carries props.
   its inline-start edge; web-only); display:none until measured and while no
   tab is active. lazyMount renders a panel's content once it has been
   active; unmountOnExit only while active; the panel element always renders.
-- Collapsible: Root(model=open)/Trigger/Panel on native <details>. The
+- Collapsible: Root(model=open, native)/Trigger/Panel on native <details>. The
   panel is labelled by the trigger (no role) and publishes
   --collapsible-panel-height/--collapsible-panel-width (measured px); a
   close flips data-state to closed at once and keeps <details open> until
   the panel's own animations finish, so recipes animate the panel's closed
   state from var(--collapsible-panel-height) to 0 (web-only property).
+  `native={false}` (#453): root is a <div>, Trigger a <button
+  aria-expanded aria-controls> placeable anywhere inside it (asChild, lend;
+  both throw in native mode), Panel `hidden="until-found"` while closed and
+  not exiting — `beforematch` opens it. A recipe collapses the closed panel
+  itself (`&[data-state="closed"][hidden]`: block-size 0, no padding/border;
+  until-found keeps the box) and grows it on the panel's `open` state
+  (there is no ::details-content); `element` in the anatomy is the native
+  default.
 - Accordion: Root(model=string[])/Item/Trigger/Panel on native <details>;
   `multiple`, `collapsible`, `orientation` (vertical default; data-orientation
   on root and trigger), `loop`, `regions`. APG keyboard: arrows move focus

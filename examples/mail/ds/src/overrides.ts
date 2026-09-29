@@ -23,6 +23,14 @@ const ghostTrigger: RecipePatch = {
 const quietInk = 'color-mix(in oklch, var(--color-base-content) 70%, var(--color-base-100))';
 
 export const patches: Record<string, RecipePatch> = {
+    // A message is a Collapsible around a Card (#453): the card is the
+    // surface and pads its own body, so the disclosure adds no frame.
+    collapsible: {
+        parts: {
+            root: { base: { border: 'none', background: 'transparent' } },
+            panel: { base: { padding: '0', borderTop: 'none' } },
+        },
+    },
     'nav-list': { parts: { heading: { base: { color: quietInk } } } },
     pagination: { parts: { ellipsis: { base: { color: quietInk } } } },
     popover: ghostTrigger,

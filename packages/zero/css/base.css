@@ -204,8 +204,9 @@
  * `content-visibility: hidden` instead of `display: none` precisely so
  * find-in-page can reveal it, and forcing `display: none` would destroy that
  * — this guard defeating an intended UA behavior is the very bug it fixes.
- * Zero emits no `until-found` today; the exclusion is what keeps that door
- * open. (Case-insensitive: `hidden` is an enumerated attribute.)
+ * Collapsible's non-native panel (#453) hides that way; its design system
+ * collapses the box the UA leaves it. (Case-insensitive: `hidden` is an
+ * enumerated attribute.)
  */
 @layer zero.structure {
     [data-scope][data-part][hidden]:not([hidden="until-found" i]) {

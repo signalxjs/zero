@@ -1,5 +1,5 @@
 /**
- * Every lend host keeps its word (#452, #494).
+ * Every lend host keeps its word (#452, #494, #450, #495, #453).
  *
  * A host is opt-in: a component whose props take `WithLend` and wraps its
  * bag in `mergePartProps(props.lend, …)`. The sweep finds the hosts by
@@ -17,7 +17,7 @@ import { relative, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { JSXElement } from 'sigx';
-import { Box, Button, Card, Dialog, HoverCard, Menu, Popover, Tooltip } from '@sigx/zero';
+import { Box, Button, Card, Collapsible, Dialog, HoverCard, Menu, Popover, Tooltip } from '@sigx/zero';
 import type { PartProps } from '@sigx/zero';
 
 const componentsDir = resolve(import.meta.dirname, '../src/components');
@@ -152,6 +152,18 @@ const FIXTURES: Record<string, Fixture[]> = {
         part: 'root',
         ownClass: true,
         render: (lend) => <Button.Root lend={lend} class="own-class">Archive</Button.Root>,
+    }],
+    // A host only in non-native mode: a native <summary> refuses `lend` (#453).
+    'collapsible/Collapsible.tsx': [{
+        scope: 'collapsible',
+        part: 'trigger',
+        ownClass: true,
+        render: (lend) => (
+            <Collapsible.Root native={false}>
+                <Collapsible.Trigger lend={lend} class="own-class">Expand</Collapsible.Trigger>
+                <Collapsible.Panel>Body</Collapsible.Panel>
+            </Collapsible.Root>
+        ),
     }],
     'tooltip/Tooltip.tsx': [{
         scope: 'tooltip',

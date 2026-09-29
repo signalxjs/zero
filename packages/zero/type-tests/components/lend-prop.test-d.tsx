@@ -7,12 +7,13 @@
  * an error (`ReservedByZero`) — `lend={p}` is the spelling. #450 adds Box,
  * Card.Root and Menu.ContextTrigger; #495 the Menu, Popover, Dialog and
  * HoverCard triggers (and closes), so tooltip → menu → button chains.
+ * Collapsible's trigger (#453) is a host for its non-native mode.
  *
  * No runtime: a regression here is a compile error in `pnpm test:types`.
  */
 import { component } from 'sigx';
 import type { JSXElement } from 'sigx';
-import { Box, Button, Card, Dialog, HoverCard, Menu, Popover, Tabs, Tooltip } from '@sigx/zero';
+import { Box, Button, Card, Collapsible, Dialog, HoverCard, Menu, Popover, Tabs, Tooltip } from '@sigx/zero';
 import type { PartProps, WithLend } from '@sigx/zero';
 
 const Host = component<WithLend>(() => () => null as unknown as JSXElement);
@@ -76,6 +77,18 @@ export const closeButton = (
     <Dialog.Close asChild>
         {(bag: PartProps) => <Button.Root lend={bag}>Save and close</Button.Root>}
     </Dialog.Close>
+);
+
+export const collapsible = (
+    <Collapsible.Root native={false}>
+        <Tooltip.Trigger asChild>
+            {(t: PartProps) => (
+                <Collapsible.Trigger asChild lend={t}>
+                    {(c: PartProps) => <Button.Root lend={c} aria-label="Expand">v</Button.Root>}
+                </Collapsible.Trigger>
+            )}
+        </Tooltip.Trigger>
+    </Collapsible.Root>
 );
 
 // ── invalid ──

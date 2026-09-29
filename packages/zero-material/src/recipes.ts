@@ -330,6 +330,98 @@ const disclosureExit = (scope: 'collapsible' | 'accordion'): RecipeInput['target
 });
 
 /**
+ * Collapsible's non-native mode (#453): a `<div>` root, a `<button>` trigger
+ * and a panel hidden with `hidden="until-found"`. Nothing lives on
+ * `::details-content` there, so the panel does that wrapper's work itself:
+ * collapsed while `hidden` (the UA's `content-visibility: hidden` keeps the
+ * box — padding and border included — on the page), clipped so its content
+ * never spills out of a box that is growing or shrinking, and grown
+ * from collapsed to `auto` on the open state (`interpolate-size` is the
+ * root's, and inherits); the close is `disclosureExit`'s, as in native mode.
+ * Inert in native mode: a native panel is never `hidden`, and its block size
+ * never moves.
+ *
+ * The trigger sheds the paint a UA `<button>` has and a `<summary>` never
+ * had — only where the recipe's own base leaves a property unset, since this
+ * rule (`:where(button)`, the base's specificity) is emitted after it.
+ * Web-only, like `hidden="until-found"` itself.
+ */
+const BUTTON_RESET: CssProps = {
+    appearance: 'none',
+    margin: '0',
+    padding: '0',
+    border: '0',
+    background: 'none',
+    color: 'inherit',
+    fontFamily: 'inherit',
+    fontSize: 'inherit',
+    fontWeight: 'inherit',
+    fontStyle: 'inherit',
+    lineHeight: 'inherit',
+    letterSpacing: 'inherit',
+    textTransform: 'inherit',
+    textAlign: 'start',
+    inlineSize: '100%',
+    boxSizing: 'border-box',
+};
+/** The reset minus what `base` states itself (a `borderRadius` is no border). */
+const summaryLike = (base: CssProps = {}): CssProps => {
+    const own = Object.keys(base).filter((key) => !key.endsWith('Radius'));
+    return Object.fromEntries(Object.entries(BUTTON_RESET)
+        .filter(([key]) => !own.some((k) => k === key || k.startsWith(key))));
+};
+const withNonNative = (recipe: RecipeInput): RecipeInput => {
+    const web = recipe.targets?.web ?? {};
+    const trigger = web.parts?.trigger ?? {};
+    const panel = web.parts?.panel ?? {};
+    const reduced = panel.at?.['reduced-motion'] ?? {};
+    return {
+        ...recipe,
+        targets: {
+            ...recipe.targets,
+            web: {
+                ...web,
+                parts: {
+                    ...web.parts,
+                    trigger: {
+                        ...trigger,
+                        selectors: { ...trigger.selectors, '&:where(button)': summaryLike(recipe.parts.trigger?.base) },
+                    },
+                    panel: {
+                        ...panel,
+                        base: { ...panel.base, overflow: 'clip' },
+                        selectors: {
+                            ...panel.selectors,
+                            '&[data-state="closed"][hidden]': {
+                                blockSize: '0',
+                                paddingBlock: '0',
+                                borderBlockWidth: '0',
+                                animation: 'none',
+                            },
+                        },
+                        // The open half: from the collapsed box to `auto`.
+                        states: {
+                            ...panel.states,
+                            open: {
+                                ...panel.states?.open,
+                                transition: 'block-size var(--duration-medium2) var(--ease-emphasized), padding-block var(--duration-medium2) var(--ease-emphasized)',
+                            },
+                        },
+                        at: {
+                            ...panel.at,
+                            'reduced-motion': {
+                                ...reduced,
+                                states: { ...reduced.states, open: { transition: 'none' } },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    };
+};
+
+/**
  * Merge presence into a part's own styles per KEY, not per block: a recipe
  * that already writes `states: { open: {} }` — the "deliberately unstyled"
  * idiom — would otherwise replace the open state presence needs and silently
@@ -1110,7 +1202,7 @@ const disclosureSizes: Record<string, Record<string, PartStyles>> = {
     },
 };
 
-export const collapsible: RecipeInput = {
+export const collapsible: RecipeInput = withNonNative({
     component: 'collapsible',
     targets: disclosureExit('collapsible'),
     // Public to a design system derived from this one (#73).
@@ -1144,7 +1236,7 @@ export const collapsible: RecipeInput = {
     },
     keyframes: rippleKeyframes('collapsible'),
     variants: { color: disclosureColors(), size: disclosureSizes },
-};
+});
 
 export const accordion: RecipeInput = {
     component: 'accordion',
