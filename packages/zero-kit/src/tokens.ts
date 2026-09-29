@@ -49,11 +49,31 @@ export type DurationKey = 'instant' | 'fast' | 'normal' | 'slow';
 export type EaseKey = 'linear' | 'standard' | 'emphasized';
 
 /**
+ * One composite type role (#423): the size, line height, weight, tracking
+ * and — optionally — family that together make one typographic voice.
+ *
+ * Each field folds into its ramp under the role's name, so role
+ * `title-medium` emits `--text-title-medium`, `--leading-title-medium`,
+ * `--weight-title-medium`, `--tracking-title-medium` and, when `font` is set,
+ * `--font-title-medium`. Values follow their category's grammar: `leading` is
+ * a unitless multiplier like every `--leading-*`.
+ */
+export interface TypeRoleDecl {
+    size: TokenValue;
+    leading: TokenValue;
+    weight: TokenValue;
+    tracking: TokenValue;
+    /** A family stack, or a reference to one (`var(--font-sans)`). */
+    font?: TokenValue;
+}
+
+/**
  * A design system's typographic voice.
  *
  * `fonts` is FAMILIES — `--font-sans` is a stack, never a size. Sizes are
  * `--text-*`, generated from `scale` or listed in `sizes`, with `sizes`
  * winning per key so a hand-tuned display size can sit on a generated ramp.
+ * `roles` names composite type roles over those ramps (see `TypeRoleDecl`).
  */
 export interface TypographyDecl {
     fonts?: Scale<FontKey>;
@@ -64,6 +84,11 @@ export interface TypographyDecl {
     sizes?: Scale<TextKey>;
     /** Modular scale the `--text-*` ramp is generated from. */
     scale?: TypeScale;
+    /**
+     * Composite type roles: name → `{ size, leading, weight, tracking, font? }`.
+     * A role name must not also be a key of the ramps it folds into.
+     */
+    roles?: Record<string, TypeRoleDecl>;
 }
 
 /**
@@ -130,17 +155,28 @@ type TextKeysOf<T extends SystemTokens> =
         ? never
         : ScaleSteps<Sub<Sub<T, 'typography'>, 'scale'>>);
 
+/** The type-role names this design system declared. */
+type TypeRoleKeysOf<T extends SystemTokens> = Extract<keyof Sub<Sub<T, 'typography'>, 'roles'>, string>;
+
+/** A ramp override: the ramp's own keys plus every declared type role's. */
+type RampOverrideOf<T extends SystemTokens, K extends 'fonts' | 'weights' | 'leading' | 'tracking'> =
+    [Extract<keyof Sub<Sub<T, 'typography'>, K>, string> | TypeRoleKeysOf<T>] extends [never]
+        ? NoKeys
+        : Partial<Record<Extract<keyof Sub<Sub<T, 'typography'>, K>, string> | TypeRoleKeysOf<T>, TokenValue>>;
+
 /** `SystemTokens`, narrowed to what this design system declared. */
 export interface ThemeSystem<T extends SystemTokens> {
     radius?: OverrideOf<Sub<T, 'radius'>>;
     size?: OverrideOf<Sub<T, 'size'>>;
     typography?: {
-        fonts?: OverrideOf<Sub<Sub<T, 'typography'>, 'fonts'>>;
-        weights?: OverrideOf<Sub<Sub<T, 'typography'>, 'weights'>>;
-        leading?: OverrideOf<Sub<Sub<T, 'typography'>, 'leading'>>;
-        tracking?: OverrideOf<Sub<Sub<T, 'typography'>, 'tracking'>>;
-        /** Narrowed to the generated steps plus any explicit `sizes` keys. */
-        sizes?: Partial<Record<TextKeysOf<T>, TokenValue>>;
+        fonts?: RampOverrideOf<T, 'fonts'>;
+        weights?: RampOverrideOf<T, 'weights'>;
+        leading?: RampOverrideOf<T, 'leading'>;
+        tracking?: RampOverrideOf<T, 'tracking'>;
+        /** Narrowed to the generated steps, any explicit `sizes` keys and the type roles. */
+        sizes?: Partial<Record<TextKeysOf<T> | TypeRoleKeysOf<T>, TokenValue>>;
+        /** Per-field overrides of declared type roles — a theme restates only what differs. */
+        roles?: [TypeRoleKeysOf<T>] extends [never] ? NoKeys : Partial<Record<TypeRoleKeysOf<T>, Partial<TypeRoleDecl>>>;
     };
     spacing?: OverrideOf<Sub<T, 'spacing'>>;
     measure?: OverrideOf<Sub<T, 'measure'>>;

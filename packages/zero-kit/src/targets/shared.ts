@@ -19,6 +19,7 @@ import { AXIS_VALUE_PATTERN, TOKEN_CATEGORIES, TOKEN_KEY_PATTERN, systemNodeAt, 
 import type { CssProps, RecipeContext } from '../recipes.js';
 import { BELOW_PREFIX, BUILTIN_CONDITIONS } from '../recipes.js';
 import { generateTypeScale } from '../scale.js';
+import { withTypeRoles } from '../type-roles.js';
 import type { SystemTokens, ThemeSystem, TypographyDecl } from '../tokens.js';
 
 export { DEFAULT_SOFT_MIX } from '../contract.js';
@@ -400,13 +401,17 @@ function expandScale(tier: AnyTokenSystem): AnyTokenSystem {
  * Only the base tier expands a `typography.scale`: `scale` is a DECLARATION —
  * it mints `--text-*` keys — and declarations live in `system`; expanding it
  * in an override would let a theme introduce keys behind the "override only
- * declared keys" rule.
+ * declared keys" rule. `typography.roles` folds in at every tier
+ * (`withTypeRoles`) — an override of a role names keys the base declared.
  */
 export function resolveSystemTokens(...tiers: (AnyTokenSystem | undefined)[]): Record<string, string> {
     const props: Record<string, string> = {};
     for (const [index, raw] of tiers.entries()) {
         if (!raw) continue;
-        const tier = index === 0 ? expandScale(raw) : raw;
+        // Type roles fold into the ramps in every tier (#423): a role is a
+        // declaration in `system`, and a per-field restatement in an
+        // override — both land on the same `--text-<role>`-style keys.
+        const tier = withTypeRoles(index === 0 ? expandScale(raw) : raw);
         for (const category of TOKEN_CATEGORIES) {
             const node = systemNodeAt(tier, category.path);
             if (node === undefined || node === null) continue;

@@ -27,6 +27,7 @@
 import { converter, parse, wcagContrast } from 'culori';
 import type { Color } from 'culori';
 import type { ZeroManifest } from '../contract.js';
+import { TYPE_ROLE_FIELDS, TYPE_ROLES_PATH, withTypeRoles } from '../type-roles.js';
 import { badAxisValue } from './messages.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
@@ -388,6 +389,67 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
     }
 
+    // ── Type roles (#423) ──
+    // A role is a declaration over the ramps: its fields fold into
+    // `typography.sizes` / `leading` / `weights` / `tracking` / `fonts` under
+    // the role's name. So the base tier must spell every required field, a
+    // role name must not also be a key of a ramp it folds into (both would
+    // claim one property), and an override restates fields of declared roles
+    // only. The values answer to their category's grammar.
+    const fieldCategory = new Map(TYPE_ROLE_FIELDS.map((f) => [f.field, TOKEN_CATEGORIES.find((c) => c.id === f.category)!]));
+    const rolesPath = TYPE_ROLES_PATH.join('.');
+    const declaredTypeRoles = new Set<string>();
+    const checkTypeRoles = (where: string, source: unknown, base: boolean): void => {
+        const node = systemNodeAt(source, TYPE_ROLES_PATH);
+        if (node === undefined) return;
+        const at = `${where}.${rolesPath}`;
+        if (!isKeyMap(node)) {
+            error(at, `must be an object of role name → { size, leading, weight, tracking, font? }, got ${Array.isArray(node) ? 'array' : typeof node}`);
+            return;
+        }
+        for (const [name, role] of Object.entries(node)) {
+            if (!TOKEN_KEY_PATTERN.test(name)) {
+                error(at, `role "${name}" is not a kebab-case identifier (it becomes --text-${name}, --leading-${name}, …)`);
+            }
+            if (!isKeyMap(role)) {
+                error(at, `role "${name}" must be an object of { size, leading, weight, tracking, font? }`);
+                continue;
+            }
+            if (!base && !declaredTypeRoles.has(name)) {
+                error(at, `overrides type role "${name}", which the design system never declares in tokens.system.${rolesPath} — declare it there first`);
+            }
+            for (const field of Object.keys(role)) {
+                if (!fieldCategory.has(field as never)) {
+                    error(at, `role "${name}" has an unknown field "${field}" — a type role is { ${TYPE_ROLE_FIELDS.map((f) => f.field).join(', ')} }`);
+                }
+            }
+            for (const { field, required } of TYPE_ROLE_FIELDS) {
+                const value = role[field];
+                const category = fieldCategory.get(field)!;
+                if (value === undefined || value === null) {
+                    if (base && required) error(at, `role "${name}" is missing "${field}" — a type role states its size, leading, weight and tracking together`);
+                    continue;
+                }
+                const bad = badValue(category.syntax, value);
+                if (bad) error(at, `role "${name}".${field}: ${bad}`);
+                if (!base) continue;
+                // A base-tier ramp key spelling the role's name would claim
+                // the same custom property.
+                const ramp = systemNodeAt(source, category.path);
+                if (isKeyMap(ramp) && name in ramp) {
+                    error(
+                        at,
+                        `role "${name}" and tokens.system.${category.path.join('.')}["${name}"] both declare ${category.prefix}${name} — state it once, in the role`,
+                    );
+                }
+            }
+        }
+    };
+    checkTypeRoles('tokens.system', declaredSystem, true);
+    for (const name of categoryKeys(systemNodeAt(declaredSystem, TYPE_ROLES_PATH))) declaredTypeRoles.add(name);
+    /** The base tier with its roles folded in — what an override's keys are checked against. */
+    const declaredRamps = withTypeRoles(declaredSystem);
+
     /**
      * An override may only touch values the design system declares.
      *
@@ -398,6 +460,7 @@ export function validateDesignSystem<R extends RolesDecl>(
      */
     const checkOverride = (where: string, source: unknown) => {
         if (!source) return;
+        checkTypeRoles(where, source, false);
         // `typography.scale` mints new `--text-*` keys, so it is a declaration
         // and belongs in `tokens.system`. `ThemeSystem` has no such field;
         // this is the runtime half, since `validate` sees compiled JS.
@@ -410,7 +473,9 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
         for (const category of TOKEN_CATEGORIES) {
             const path = category.path.join('.');
-            const declaredNode = systemNodeAt(declaredSystem, category.path);
+            // Roles were checked above; the ramps compare against the base
+            // tier's folded keys, so `sizes['title-medium']` restates a role.
+            const declaredNode = systemNodeAt(declaredRamps, category.path);
             const overrideNode = systemNodeAt(source, category.path);
             if (category.shape === 'scalar') {
                 if (overrideNode !== undefined && declaredNode === undefined) {
@@ -1038,8 +1103,11 @@ export function validateDesignSystem<R extends RolesDecl>(
         into?: Array<{ prop: string; value: string }>,
     ): void => {
         if (!tier) return;
+        // Role fields are declarations of `--text-<role>` and siblings too,
+        // so their `var()` references are read with the ramps' (#423).
+        const folded = withTypeRoles(tier);
         for (const category of TOKEN_CATEGORIES) {
-            const node = systemNodeAt(tier, category.path);
+            const node = systemNodeAt(folded, category.path);
             if (node === undefined || node === null) continue;
             const site = `${where}.${category.path.join('.')}`;
             const push = (prop: string, value: string): void => {

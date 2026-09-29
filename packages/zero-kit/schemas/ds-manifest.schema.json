@@ -35,7 +35,7 @@
             "description": "The DECLARED token vocabulary — what the design system says, as opposed to components[*], which is what its recipes deliver.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["roles", "sizes", "variants", "variantsDeclared", "axes", "modifiers", "scopes", "custom", "breakpoints", "system", "systemDark", "properties"],
+            "required": ["roles", "sizes", "variants", "variantsDeclared", "axes", "modifiers", "scopes", "custom", "breakpoints", "typeRoles", "system", "systemDark", "properties"],
             "properties": {
                 "roles": {
                     "description": "Color roles: role name → declaration ({} = full role with -content and -soft). Doubles as the `color` axis vocabulary; empty for a design system with no colour axis.",
@@ -85,6 +85,23 @@
                     "description": "Declared breakpoint names → CSS lengths.",
                     "type": "object",
                     "additionalProperties": { "type": "string" }
+                },
+                "typeRoles": {
+                    "description": "Composite type roles (#423): role name → the custom property each field binds. The values live in system.typography.roles; a role is a unit — tooling styling one role sets all of its properties. {} when none are declared.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["size", "leading", "weight", "tracking"],
+                        "properties": {
+                            "size": { "type": "string", "pattern": "^--text-" },
+                            "leading": { "type": "string", "pattern": "^--leading-" },
+                            "weight": { "type": "string", "pattern": "^--weight-" },
+                            "tracking": { "type": "string", "pattern": "^--tracking-" },
+                            "font": { "type": "string", "pattern": "^--font-" }
+                        }
+                    }
                 },
                 "system": {
                     "description": "DS-level values per token category id (radius, size, typography, …), as authored.",
