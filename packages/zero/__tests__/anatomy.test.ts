@@ -196,6 +196,50 @@ describe('anatomy registry', () => {
         }
     });
 
+    // The one declared runtime property outside its own scope's prefix, and
+    // why. A row whose scope stops declaring the name fails as stale.
+    const RUNTIME_PREFIX_EXCEPTIONS: Record<string, Record<string, string>> = {
+        'radial-progress': {
+            '--progress-percent': "shares Progress's percent so one recipe idiom serves both",
+        },
+    };
+
+    it('every declared runtime property carries its own scope\'s prefix, bar the listed exceptions (#537)', () => {
+        const used = new Set<string>();
+        for (const anatomy of Object.values(anatomies)) {
+            const list = anatomy.runtimeProperties;
+            if (list === undefined) continue;
+            // Absent, never empty, and no name twice — the manifest schema's
+            // shape, failed here at the anatomy rather than downstream.
+            expect(list.length, `${anatomy.scope}: empty runtimeProperties — omit it`).toBeGreaterThan(0);
+            expect(new Set(list).size, `${anatomy.scope}: a runtime property listed twice`).toBe(list.length);
+            for (const name of list) {
+                expect(name, `${anatomy.scope}: "${name}"`).toMatch(/^--[a-z0-9]+(?:-[a-z0-9]+)*$/);
+                const exception = RUNTIME_PREFIX_EXCEPTIONS[anatomy.scope]?.[name];
+                if (exception !== undefined) {
+                    used.add(`${anatomy.scope} ${name}`);
+                    continue;
+                }
+                expect(name.startsWith(`--${anatomy.scope}-`), `${anatomy.scope}: "${name}" does not start with "--${anatomy.scope}-"`).toBe(true);
+            }
+        }
+        const rows = Object.entries(RUNTIME_PREFIX_EXCEPTIONS).flatMap(([scope, names]) => Object.keys(names).map((n) => `${scope} ${n}`));
+        expect(rows.filter((row) => !used.has(row)), 'stale exception rows').toEqual([]);
+    });
+
+    it('each declaring anatomy\'s toJSON carries its runtimeProperties (#537)', () => {
+        const declaring = Object.values(anatomies).filter((a) => a.runtimeProperties !== undefined);
+        expect(declaring.map((a) => a.scope).sort()).toEqual([
+            'accordion', 'collapsible', 'countdown', 'diff', 'progress', 'radial-progress', 'slider', 'tabs', 'toast',
+        ]);
+        for (const anatomy of declaring) {
+            expect(anatomy.toJSON().runtimeProperties, anatomy.scope).toEqual([...anatomy.runtimeProperties!]);
+        }
+        for (const anatomy of Object.values(anatomies).filter((a) => a.runtimeProperties === undefined)) {
+            expect(anatomy.toJSON(), anatomy.scope).not.toHaveProperty('runtimeProperties');
+        }
+    });
+
     it('all states come from the governed vocabulary', () => {
         // Flags have been governed from the start; this is the symmetric half
         // (#317 item 3). A state outside the vocabulary is either a synonym —

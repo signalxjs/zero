@@ -36,4 +36,8 @@ export const radialProgressAnatomy = defineAnatomy('radial-progress', {
         parent: 'root',
         tokens: ['color', 'text'],
     },
+}, {
+    // Progress's own name, not `--radial-progress-percent`: one recipe idiom
+    // reads both (the one cross-scope name, held by anatomy.test.ts).
+    runtimeProperties: ['--progress-percent'],
 });

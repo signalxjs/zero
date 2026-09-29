@@ -58,4 +58,12 @@ export const tabsAnatomy = defineAnatomy('tabs', {
     models: [
         { concept: 'value', type: 'string' },
     ],
+    // The active tab's box on the indicator, relative to the list's padding
+    // box (px, logical), so a recipe slides a mark between tabs (#283).
+    runtimeProperties: [
+        '--tabs-indicator-inset-inline-start',
+        '--tabs-indicator-inset-block-start',
+        '--tabs-indicator-inline-size',
+        '--tabs-indicator-block-size',
+    ],
 });

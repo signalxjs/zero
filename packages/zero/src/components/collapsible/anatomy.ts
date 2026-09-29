@@ -71,4 +71,9 @@ export const collapsibleAnatomy = defineAnatomy('collapsible', {
     models: [
         { concept: 'open', type: 'boolean' },
     ],
+    // Measured on the panel (px) so a recipe can animate a close (#276).
+    runtimeProperties: [
+        '--collapsible-panel-height',
+        '--collapsible-panel-width',
+    ],
 });

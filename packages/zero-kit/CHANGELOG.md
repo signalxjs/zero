@@ -4,6 +4,12 @@
 
 ### Added
 
+- **`RUNTIME_PROPERTIES` is parity-checked against zero's anatomies
+  (#537).** The list must equal `BEHAVIOR_RUNTIME_PROPERTIES` plus every
+  name zero's anatomies declare as `runtimeProperties`, with no name twice,
+  and the behavior list must carry every position and arrow property. The
+  values are unchanged.
+
 - **Domain flags for ecosystem fragments (#457).** A fragment part may
   declare `domainFlags: ['unread']`, rendered as `data-x-unread=""` and
   keyed `x-unread` everywhere after the anatomy. `mergeManifests` validates
