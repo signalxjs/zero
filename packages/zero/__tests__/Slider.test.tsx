@@ -232,6 +232,135 @@ describe('Slider range', () => {
     });
 });
 
+describe('Slider stop state and thumb value (#490)', () => {
+    const states = () => [...container.querySelectorAll<HTMLElement>('[data-part="mark"]')].map((m) => m.getAttribute('data-state'));
+
+    it('a mark is active on the range span, ends included, and inactive off it', async () => {
+        const state = signal({ price: [20, 60] });
+        const { thumbs } = mountRange(state, { marks: [0, 20, 40, 60, 80, 100] });
+        expect(states()).toEqual(['inactive', 'active', 'active', 'active', 'inactive', 'inactive']);
+        expectAnatomy(container, sliderAnatomy);
+        key(thumbs[1]!, 'End');
+        await Promise.resolve();
+        expect(states()).toEqual(['inactive', 'active', 'active', 'active', 'active', 'active']);
+    });
+
+    it('under one value the span runs from min to the value', () => {
+        const state = signal({ volume: 50 });
+        render(
+            <Slider.Root model={[state, 'volume']} min={0} max={100} marks={[0, 50, 75]}>
+                <Slider.Track>
+                    <Slider.Range />
+                    <Slider.Thumb label="Volume" />
+                </Slider.Track>
+            </Slider.Root>,
+            container,
+        );
+        expect(states()).toEqual(['active', 'active', 'inactive']);
+    });
+
+    function mountValues(state: { price: number[] }, getValueText?: (v: number, i: number) => string) {
+        render(
+            <Slider.Root model={[state, 'price']} min={0} max={100} getValueText={getValueText}>
+                <Slider.Track>
+                    <Slider.Range />
+                    <Slider.Thumb label="Minimum price"><Slider.ThumbValue /></Slider.Thumb>
+                    <Slider.Thumb label="Maximum price">
+                        <Slider.ThumbValue>{({ value, index }: { value: number; index: number }) => `#${index}:${value}`}</Slider.ThumbValue>
+                    </Slider.Thumb>
+                </Slider.Track>
+            </Slider.Root>,
+            container,
+        );
+        return {
+            thumbs: container.querySelectorAll<HTMLElement>('[data-part="thumb"]'),
+            values: container.querySelectorAll<HTMLElement>('[data-part="thumb-value"]'),
+            track: container.querySelector<HTMLElement>('[data-part="track"]')!,
+        };
+    }
+
+    it('renders each thumb\'s formatted value inside it, hidden from assistive tech', async () => {
+        const state = signal({ price: [20, 60] });
+        const { thumbs, values } = mountValues(state, (v) => `$${v}`);
+        expect(values.length).toBe(2);
+        expect(values[0]!.parentElement).toBe(thumbs[0]);
+        expect(values[0]!.textContent).toBe('$20');
+        expect(values[1]!.textContent).toBe('#1:60');
+        expect(values[0]!.getAttribute('aria-hidden')).toBe('true');
+        expectAnatomy(container, sliderAnatomy);
+        key(thumbs[0]!, 'ArrowRight');
+        await Promise.resolve();
+        expect(values[0]!.textContent).toBe('$21');
+    });
+
+    it('falls back to the plain number without getValueText', () => {
+        const { values } = mountValues(signal({ price: [20, 60] }));
+        expect(values[0]!.textContent).toBe('20');
+    });
+
+    it('is pressed while its own thumb is dragged — a track press included', async () => {
+        const state = signal({ price: [20, 60] });
+        const { values, track } = mountValues(state);
+        trackBox(track);
+        expect(values[0]!.hasAttribute('data-pressed')).toBe(false);
+        track.dispatchEvent(new PointerEvent('pointerdown', { button: 0, clientX: 70, bubbles: true }));
+        await Promise.resolve();
+        expect(values[1]!.getAttribute('data-pressed')).toBe('');
+        expect(values[0]!.hasAttribute('data-pressed')).toBe(false);
+        window.dispatchEvent(new PointerEvent('pointerup', {}));
+        await Promise.resolve();
+        expect(values[1]!.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('mirrors its thumb\'s focus-visible', async () => {
+        const { thumbs, values } = mountValues(signal({ price: [20, 60] }));
+        const realMatches = thumbs[0]!.matches.bind(thumbs[0]);
+        thumbs[0]!.matches = ((selector: string) =>
+            (selector === ':focus-visible' ? true : realMatches(selector))) as HTMLElement['matches'];
+        thumbs[0]!.focus();
+        await Promise.resolve();
+        expect(values[0]!.getAttribute('data-focus-visible')).toBe('');
+        expect(values[1]!.hasAttribute('data-focus-visible')).toBe(false);
+        thumbs[0]!.blur();
+        await Promise.resolve();
+        expect(values[0]!.hasAttribute('data-focus-visible')).toBe(false);
+    });
+
+    it('a pointer press focuses the thumb without focus-visible, even where the engine would say so', async () => {
+        const { thumbs, values, track } = mountValues(signal({ price: [20, 60] }));
+        trackBox(track);
+        // Chromium matches :focus-visible on a focus scripted from a
+        // cancelled press — the stub stands in for that.
+        for (const t of thumbs) {
+            const realMatches = t.matches.bind(t);
+            t.matches = ((selector: string) =>
+                (selector === ':focus-visible' ? true : realMatches(selector))) as HTMLElement['matches'];
+        }
+        thumbs[0]!.dispatchEvent(new PointerEvent('pointerdown', { button: 0, clientX: 20, bubbles: true }));
+        await Promise.resolve();
+        expect(document.activeElement).toBe(thumbs[0]);
+        expect(thumbs[0]!.hasAttribute('data-focus-visible')).toBe(false);
+        expect(values[0]!.hasAttribute('data-focus-visible')).toBe(false);
+        window.dispatchEvent(new PointerEvent('pointerup', {}));
+        // A track press focuses the nearest thumb the same way.
+        track.dispatchEvent(new PointerEvent('pointerdown', { button: 0, clientX: 70, bubbles: true }));
+        await Promise.resolve();
+        expect(document.activeElement).toBe(thumbs[1]);
+        expect(thumbs[1]!.hasAttribute('data-focus-visible')).toBe(false);
+        window.dispatchEvent(new PointerEvent('pointerup', {}));
+    });
+
+    it('renders nothing outside a thumb', () => {
+        render(
+            <Slider.Root defaultValue={[10, 20]}>
+                <Slider.ThumbValue />
+            </Slider.Root>,
+            container,
+        );
+        expect(container.querySelector('[data-part="thumb-value"]')).toBeNull();
+    });
+});
+
 describe('Slider orientation (#170)', () => {
     const rect = { left: 0, top: 0, right: 10, bottom: 100, width: 10, height: 100, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
 

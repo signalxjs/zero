@@ -2881,6 +2881,8 @@ export const slider: RecipeInput = {
     // track sizes and every projection (native and composed) reads them.
     tokens: {
         '--slider-accent': 'var(--color-primary)',
+        // The ink of a stop standing on the active track (#490).
+        '--slider-on-accent': 'var(--color-primary-content)',
         '--slider-inactive': 'var(--color-surface-container-highest)',
         '--slider-track-size': dp(16),
         '--slider-handle-size': dp(44),
@@ -2895,6 +2897,7 @@ export const slider: RecipeInput = {
             states: {
                 disabled: {
                     '--slider-accent': 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+                    '--slider-on-accent': 'var(--color-inverse-surface-content)',
                     '--slider-inactive': 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
                 },
             },
@@ -3036,16 +3039,50 @@ export const slider: RecipeInput = {
             },
             at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
-        // M3's stops: 4dp dots on the track, the label under it. One ink for
-        // all: a stop cannot tell whether it sits on the active track (#490).
+        // M3's value indicator (#490): an inverse-surface bubble over the
+        // handle, label-large in inverse-on-surface, grown in while the
+        // handle is dragged or keyboard-focused. Where it sits is web
+        // geometry (targets.web below).
+        'thumb-value': {
+            base: {
+                position: 'absolute',
+                boxSizing: 'border-box',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: dp(48),
+                blockSize: dp(44),
+                paddingInline: 'var(--space-md)',
+                borderRadius: 'var(--radius-full)',
+                background: 'var(--color-inverse-surface)',
+                color: 'var(--color-inverse-surface-content)',
+                ...type('label-large'),
+                whiteSpace: 'nowrap',
+                pointerEvents: 'none',
+                opacity: '0',
+                transition: motion('opacity'),
+            },
+            states: {
+                pressed: { opacity: '1' },
+                'focus-visible': { opacity: '1' },
+            },
+        },
+        // M3's stops: 4dp dots on the track, the label under it. A stop on
+        // the active track is on-primary, one on the inactive track primary
+        // (#490) — above the range, which would otherwise cover the first.
         mark: {
             base: {
+                zIndex: '1',
                 paddingBlockStart: 'calc(var(--slider-track-size) + var(--space-2xs))',
                 ...type('label-medium'),
                 whiteSpace: 'nowrap',
                 color: 'var(--color-surface-variant-content)',
             },
-            states: { disabled: {} },
+            states: {
+                active: { '--slider-stop-ink': 'var(--slider-on-accent)' },
+                inactive: { '--slider-stop-ink': 'var(--slider-accent)' },
+                disabled: {},
+            },
             selectors: {
                 '&::before': {
                     content: '""',
@@ -3055,7 +3092,7 @@ export const slider: RecipeInput = {
                     width: dp(4),
                     height: dp(4),
                     borderRadius: '50%',
-                    background: 'var(--color-surface-variant-content)',
+                    background: 'var(--slider-stop-ink)',
                 },
             },
         },
@@ -3064,6 +3101,7 @@ export const slider: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--slider-accent': `var(--color-${c})`,
+            '--slider-on-accent': `var(--color-${c}-content)`,
         } } }])),
         // M3 Expressive's slider sizes by their track: XS (16dp, the default,
         // at `md`), S (24dp) and M (40dp, a 52dp handle) above it, and two
@@ -3159,6 +3197,20 @@ export const slider: RecipeInput = {
                             marginInlineStart: 'calc(var(--slider-handle-size) / -2)',
                             marginBlockEnd: 'calc(var(--slider-handle-width) / -2)',
                         },
+                    },
+                },
+                // The value bubble (#490): over the thumb, centred on it — `left:
+                // 50%` with its `-50%` pull-back is symmetric centring, not a side —
+                // and, upright, beside it on the inline-start side, away from the
+                // mark labels. Web-only: lynx renders no value bubble yet.
+                'thumb-value': {
+                    // The grow-in: `scale` is web-only (lynx drops the
+                    // standalone transform properties).
+                    base: { scale: '0.85', transition: motion('opacity, scale') },
+                    states: { pressed: { scale: '1' }, 'focus-visible': { scale: '1' } },
+                    selectors: {
+                        '&[data-orientation="horizontal"]': { bottom: `calc(100% + ${dp(4)})`, left: '50%', translate: '-50% 0', transformOrigin: 'bottom center' },
+                        '&[data-orientation="vertical"]': { bottom: '50%', insetInlineEnd: `calc(100% + ${dp(4)})`, translate: '0 50%' },
                     },
                 },
                 // The label sits beside the channel, centred on its stop.
