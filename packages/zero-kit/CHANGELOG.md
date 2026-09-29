@@ -4,6 +4,16 @@
 
 ### Added
 
+- **`layoutRecipes` emits `app-shell` (#459, #542).** `LAYOUT_SCOPES`
+  grows by `'app-shell'`, so every design system spreading
+  `layoutRecipes(tokens)` and `layoutScopes` gets the frame's recipe and
+  its axis waiver: a flex-column root at `block-size: 100dvh;
+  max-block-size: 100%` that clips with `overflow: clip`, body and main that
+  grow and may shrink below their content, and a `flow-root` region that is
+  the only scroll box (`overflow: auto; overscroll-behavior: contain`).
+  Geometry only, in flex longhands; it compiles for lynx with nothing
+  dropped. `RESERVED_PROPS_BY_SCOPE` gains the `app-shell` entry.
+
 - **Domain flags for ecosystem fragments (#457).** A fragment part may
   declare `domainFlags: ['unread']`, rendered as `data-x-unread=""` and
   keyed `x-unread` everywhere after the anatomy. `mergeManifests` validates

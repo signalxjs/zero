@@ -4,6 +4,18 @@
 
 ### Added
 
+- **`AppShell`, the app frame (#459, #542).** A new layout scope,
+  `app-shell` (subpath `@sigx/zero/app-shell`): `AppShell.Root` claims the
+  viewport (`100dvh`, capped by a sized parent) and never scrolls itself,
+  `AppShell.Body` is the row under the app bar, `AppShell.Main` renders
+  `<main>`, and `AppShell.Region` renders a named, always-focusable
+  `<section aria-label={label} tabindex="0">` that is the scroll box.
+  `label` is required. Geometry only — no axes, no layout attributes, no
+  `asChild`. It complements the Navbar + Drawer + NavList composition
+  (#133) rather than replacing it. New exports: `AppShell`,
+  `appShellAnatomy`, `AppShellRootProps`, `AppShellBodyProps`,
+  `AppShellMainProps`, `AppShellRegionProps`.
+
 - **Domain flags for ecosystem components (#457).** A fragment part
   declares `domainFlags: ['unread']` and renders `data-x-unread=""`, so a
   component can say a fact of its own domain (a mail row's unread, a
