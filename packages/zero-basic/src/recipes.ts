@@ -4003,6 +4003,229 @@ export const toggleGroup: RecipeInput = {
     defaultVariants: { color: 'primary' },
 };
 
+/**
+ * Chip (#544) — toggle's furniture, compacted: a hairline pill with a
+ * base-content label until a selectable chip is on, when it takes the
+ * soft-chip grammar (softMix wash, role ink, the hairline re-inked at 20%
+ * role). `root` is the box and `action` fills it, so the hover and press
+ * films land on the action alone and a trailing `remove` keeps a wash of its
+ * own.
+ *
+ * The accent reads the group's first: a `color` on `chip-group` publishes
+ * `--chip-group-*`, which every chip inside falls back to — a group recolours
+ * its chips without either scope reaching into the other, and a chip's own
+ * `color` still wins.
+ */
+export const chip: RecipeInput = {
+    component: 'chip',
+    hooks: {
+        properties: {
+            '--chip-accent': 'The accent colour.',
+            '--chip-soft': 'The soft fill of a selected chip.',
+            '--chip-ink': 'The ink of a selected chip.',
+        },
+    },
+    tokens: {
+        '--chip-accent': 'var(--chip-group-accent, var(--color-primary))',
+        '--chip-soft': 'var(--chip-group-soft, var(--color-primary-soft))',
+        '--chip-ink': `var(--chip-group-ink, ${softInk('primary')})`,
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                verticalAlign: 'middle',
+                maxWidth: '100%',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderRadius: 'var(--radius-selector)',
+                fontSize: 'var(--text-sm)',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'color var(--duration-fast) var(--ease-standard), '
+                    + 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                on: {
+                    background: 'var(--chip-soft)',
+                    color: 'var(--chip-ink)',
+                    borderColor: 'color-mix(in oklch, var(--chip-accent) 20%, transparent)',
+                },
+                off: {},
+                selected: {},
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+        },
+        action: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                minWidth: '0',
+                margin: '0',
+                padding: 'var(--space-xs) var(--space-md)',
+                background: 'transparent',
+                color: 'inherit',
+                border: 'none',
+                borderRadius: 'inherit',
+                font: 'inherit',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-none)',
+                fontVariantNumeric: 'tabular-nums',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                on: {},
+                off: {},
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // Hover on an on chip raises the tint one step rather than
+                // fading toward the furniture wash (toggle's rule).
+                '&[data-state="on"]:hover': {
+                    background: 'color-mix(in oklch, var(--chip-accent) 6%, var(--chip-soft))',
+                },
+                '&[data-disabled]:hover': { background: 'transparent' },
+                ...pressedInk,
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                flexShrink: '0',
+                fontSize: '1.1em',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        label: {
+            base: {
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+            },
+        },
+        // combobox's tag-remove, at the chip's own scale: a glyph inside the
+        // pill, washed on hover, never an accented control.
+        remove: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: '0',
+                margin: '0 var(--space-2xs)',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                lineHeight: 'var(--leading-none)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-disabled]:hover': { background: 'transparent' },
+                ...pressedInk,
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(
+            ROLES.map((c) => [
+                c,
+                {
+                    root: {
+                        base: {
+                            '--chip-accent': `var(--color-${c})`,
+                            '--chip-soft': `var(--color-${c}-soft)`,
+                            '--chip-ink': softInk(c),
+                        },
+                    },
+                },
+            ]),
+        ),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)' } }, action: { base: { padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } }, action: { base: { padding: 'var(--space-xs) var(--space-sm)' } } },
+            // The base IS the middle step (toggle-group's rule).
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } }, action: { base: { padding: 'var(--space-sm) var(--space-lg)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)' } }, action: { base: { padding: 'var(--space-md) var(--space-xl)' } } },
+        },
+    },
+};
+
+/**
+ * ChipGroup (#544) — a wrapping row of chips. The chips are chip parts and
+ * keep the chip recipe; the group owns the flow and publishes its `color` as
+ * `--chip-group-*` for the chips inside to read (see `chip`).
+ */
+export const chipGroup: RecipeInput = {
+    component: 'chip-group',
+    hooks: {
+        properties: {
+            '--chip-group-accent': 'The accent colour the chips inside fall back to.',
+            '--chip-group-soft': 'The soft fill the chips inside fall back to.',
+            '--chip-group-ink': 'The selected ink the chips inside fall back to.',
+        },
+    },
+    tokens: {
+        '--chip-group-accent': 'var(--color-primary)',
+        '--chip-group-soft': 'var(--color-primary-soft)',
+        '--chip-group-ink': softInk('primary'),
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+            },
+            // Each chip carries the flag itself; the root only lays them out.
+            states: { disabled: {}, invalid: {}, required: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column', alignItems: 'flex-start' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(
+            ROLES.map((c) => [
+                c,
+                {
+                    root: {
+                        base: {
+                            '--chip-group-accent': `var(--color-${c})`,
+                            '--chip-group-soft': `var(--color-${c}-soft)`,
+                            '--chip-group-ink': softInk(c),
+                        },
+                    },
+                },
+            ]),
+        ),
+        size: {
+            xs: { root: { base: { gap: 'var(--space-xs)' } } },
+            sm: { root: { base: { gap: 'var(--space-xs)' } } },
+            md: {},
+            lg: { root: { base: { gap: 'var(--space-md)' } } },
+            xl: { root: { base: { gap: 'var(--space-lg)' } } },
+        },
+    },
+};
+
 export const numberInput: RecipeInput = {
     component: 'number-input',
     tokens: { '--number-input-accent': 'var(--color-primary)' },
@@ -8038,7 +8261,7 @@ export const diff: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, avatarGroup, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    toggle, toggleGroup, chip, chipGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,

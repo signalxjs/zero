@@ -453,6 +453,21 @@ export function validateRecipes(
         for (const prop of Object.values(properties)) roleByProperty.set(prop, role);
     }
 
+    /**
+     * Component tokens another recipe publishes as a public hook (#551) —
+     * how a group scope hands context to a separate item scope it contains:
+     * `chip-group` publishes `--chip-group-accent` on its root, and a chip
+     * reads it through a fallback, so a chip outside any group still renders.
+     * Accepted only WITH a fallback: the publisher is an ancestor at best,
+     * never a guarantee.
+     */
+    const published = new Map<string, string>();
+    for (const r of recipes) {
+        for (const name of Object.keys(r.hooks?.properties ?? {})) {
+            if (Object.hasOwn(r.tokens ?? {}, name)) published.set(name, r.component);
+        }
+    }
+
     /** component scope → the roles its `color` axis wires. Compared at the end. */
     const colorAxisByComponent = new Map<string, Set<string>>();
 
@@ -557,6 +572,7 @@ export function validateRecipes(
                 const token = match[1]!;
                 const hasFallback = Boolean(match[2]);
                 if (vocabulary.names.has(token) || local.has(token)) continue;
+                if (hasFallback && published.has(token) && published.get(token) !== recipe.component) continue;
                 const near = vocabulary.nearest(token);
                 const hint = near ? ` — did you mean "${near}"?` : '';
                 if (hasFallback) {

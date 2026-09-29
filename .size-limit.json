@@ -166,6 +166,30 @@
         ]
     },
     {
+        "name": "@sigx/zero/chip",
+        "path": "packages/zero/dist/components/chip/index.js",
+        "limit": "6.05 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/chip-group",
+        "path": "packages/zero/dist/components/chip-group/index.js",
+        "limit": "4.03 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
         "name": "@sigx/zero/number-input",
         "path": "packages/zero/dist/components/number-input/index.js",
         "limit": "6051 B",

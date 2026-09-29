@@ -12,6 +12,7 @@ import type { AnyComponentFactory } from 'sigx';
 import { buttonPage } from './button';
 import { togglePage } from './toggle';
 import { toggleGroupPage } from './toggle-group';
+import { chipPage } from './chip';
 import { swapPage } from './swap';
 import { fieldPage } from './field';
 import { formsPage } from './forms';
@@ -105,6 +106,7 @@ export const pages: PageEntry[] = [
     buttonPage,
     togglePage,
     toggleGroupPage,
+    chipPage,
     swapPage,
     joinPage,
     hotkeysPage,

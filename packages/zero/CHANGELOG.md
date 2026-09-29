@@ -109,6 +109,24 @@
   notion of empty, or with no control, never carries it. Server markup
   carries none, since the control reports itself after the root renders.
 
+- **`Chip` and `ChipGroup` (#544, part of #413).** Two new components
+  for Material's assist, filter, input and suggestion chips, and for any
+  tag, filter pill or entity token. A chip mixes up to three behaviours.
+  `Chip.Action` is a button, or a link through `asChild`. A `selectable`
+  chip is a toggle: `aria-pressed`, with `on | off` on `root` and `action`,
+  and it binds its own `selected` model. A `removable` chip has a trailing
+  `Chip.Remove`, which is out of the tab order, and Backspace/Delete on the
+  action also emit `remove`. `ChipGroup.Root` is a `role="group"` with one
+  roving tab stop across the chips' actions. The arrows are orientation-
+  and RTL-aware, skip disabled chips and wrap by default. With `selectable`
+  it owns one value model, a `string`, or a `string[]` under `multiple`
+  (ToggleGroup's rule), and posts it through a hidden `<select>` while
+  `name` is set. Removing a chip inside a group first hands focus to the
+  next enabled chip, else the previous one, so focus never falls to
+  `<body>` when the app drops the chip. New anatomies: `chip` (`root`,
+  `action`, `icon`, `label`, `remove`) and `chip-group` (`root`,
+  `hidden-input`). Subpath exports `@sigx/zero/chip` and
+  `@sigx/zero/chip-group`.
 - **`Combobox.Root` `filterItems` (#458).** Hand-written `Combobox.Item`s
   are filtered by the query when it is set: each item's label (`textValue`,
   else its text) is matched with the default case-insensitive

@@ -132,6 +132,38 @@ describe('token references', () => {
         }).errors).toEqual([]);
     });
 
+    it('accepts a fallback read of a token another recipe publishes as a hook (#551)', () => {
+        // A group scope handing context to a separate item scope: tabs
+        // publishes `--tabs-accent`, and switch reads it with a fallback.
+        const publisher: RecipeInput = {
+            ...tabsWith({ color: 'var(--tabs-accent)' }),
+            hooks: { properties: { '--tabs-accent': 'The accent.' } },
+            tokens: { '--tabs-accent': 'var(--color-primary)' },
+        };
+        const reader = (value: string): RecipeInput => ({
+            component: 'switch',
+            parts: {
+                control: {
+                    base: { background: value },
+                    states: { 'focus-visible': { outline: '1px solid' } },
+                },
+            },
+            skipStates: { root: ['focus-visible'] },
+        });
+        const run = (recipes: RecipeInput[]) => {
+            const r = validateDesignSystem({ ...dsWith(publisher), recipes }, manifest);
+            return [...r.errors, ...r.warnings].map((e) => e.message).filter((m) => m.includes('--tabs-accent'));
+        };
+        expect(run([publisher, reader('var(--tabs-accent, var(--color-primary))')])).toEqual([]);
+        // Without a fallback it still resolves to nothing outside the publisher.
+        expect(run([publisher, reader('var(--tabs-accent)')]))
+            .toContainEqual(expect.stringContaining('resolves to nothing'));
+        // A token the other recipe declares but does not publish stays private.
+        const { hooks: _hooks, ...unpublished } = publisher;
+        expect(run([unpublished, reader('var(--tabs-accent, var(--color-primary))')]))
+            .toContainEqual(expect.stringContaining('has a fallback'));
+    });
+
     it('looks inside nested functions and conditional styles', () => {
         expect(check({
             component: 'tabs',

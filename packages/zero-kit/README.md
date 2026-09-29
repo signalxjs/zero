@@ -447,7 +447,7 @@ npx sigx zero:validate --report
 
 [`@sigx/create-zero-ds`](../create-zero-ds) lays down the whole package from
 nothing: the brief's tokens and worked Button (`src/tokens.ts`,
-`src/button.ts`), `@sigx/zero-basic`'s 58 recipes as `src/baseline.ts`, and a
+`src/button.ts`), `@sigx/zero-basic`'s 60 recipes as `src/baseline.ts`, and a
 `src/recipes.ts` that composes them through `fitRecipesToVocabulary` — so the
 first build styles every component, whatever axis shape the brief declares.
 `--brief` takes `brutalist | glass | corporate | terminal | riso | seeded | basic`;
@@ -729,6 +729,14 @@ Hooks are metadata: they never reach the CSS. `validateDesignSystem` errors
 on a hook that names nothing the recipe has, and the DS manifest carries them
 as `components[scope].hooks`, where tooling and the docs site read the public
 surface. `extendRecipe` patches `hooks` like any other section.
+
+A published custom property is public to the design system's other recipes
+too. A `var()` read with a fallback of a token another recipe declares in
+`tokens` and lists in `hooks.properties` is not an undeclared reference. That
+is how a group hands context to a separate item scope inside it:
+`chip-group` publishes `--chip-group-accent`, and a chip reads
+`var(--chip-group-accent, var(--color-primary))`, so a chip outside any
+group still renders.
 
 `extendDesignSystem` records its provenance on the result: `derivedFrom: {
 name, patches }`, each patched scope with the base recipe as the patch found

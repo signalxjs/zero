@@ -3490,6 +3490,179 @@ export const toggleGroup: RecipeInput = {
     },
 };
 
+// ── Chip (#544) ───────────────────────────────────────────────────────────
+/**
+ * Carbon's Tag (v11): a pill on the layer above the surface — the one place
+ * this square skin rounds a corner, because Carbon's own tags do. 24px tall
+ * at md (18 / 24 / 32 across sm–lg, the ramp extended to 40 / 48 above).
+ * A selectable tag that is on takes Carbon's selected-inverse fill: the
+ * surface and its ink swap, the same high-contrast flip Carbon draws. `root`
+ * is the box and `action` fills it, so the hover and press washes land on the
+ * action alone and a trailing `remove` (the dismissible tag's 16px close)
+ * keeps a wash of its own. No colour axis, and `kind` stays Button-only.
+ */
+const chipOnHover = 'color-mix(in oklab, var(--color-base-100) 12%, transparent)';
+const chipOnActive = 'color-mix(in oklab, var(--color-base-100) 22%, transparent)';
+
+export const chip: RecipeInput = {
+    component: 'chip',
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                verticalAlign: 'middle',
+                maxWidth: '100%',
+                minHeight: '1.5rem',
+                background: 'var(--color-base-300)',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '1rem',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                transition: motion('background, color'),
+            },
+            states: {
+                on: {
+                    background: 'var(--color-base-content)',
+                    color: 'var(--color-base-100)',
+                },
+                off: {},
+                selected: {},
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+        },
+        action: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                alignSelf: 'stretch',
+                gap: 'var(--space-xs)',
+                minWidth: '0',
+                margin: '0',
+                padding: '0 var(--space-sm)',
+                background: 'transparent',
+                color: 'inherit',
+                border: 'none',
+                borderRadius: 'inherit',
+                font: 'inherit',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'inherit',
+                lineHeight: 'var(--leading-none)',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: layerHover },
+                on: {},
+                off: {},
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+                // On the inverse fill the ink-mix washes vanish — wash toward
+                // the surface instead, later in source so it wins.
+                '&[data-state="on"]:hover:not([data-disabled])': { background: chipOnHover },
+                '&[data-state="on"][data-pressed]:not([data-disabled])': { background: chipOnActive },
+                '&[data-disabled]:hover': { background: 'transparent' },
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                flexShrink: '0',
+                fontSize: '1rem',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        label: {
+            base: {
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+            },
+        },
+        // The dismissible tag's close: a 16px round target inside the pill's
+        // trailing end, washed on hover like combobox's tag-remove.
+        remove: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: '0',
+                inlineSize: '1rem',
+                blockSize: '1rem',
+                margin: '0 var(--space-2xs)',
+                padding: '0',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                lineHeight: 'var(--leading-none)',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: layerHover },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+                '[data-state="on"] > &:hover:not([data-disabled])': { background: chipOnHover },
+                '[data-state="on"] > &[data-pressed]:not([data-disabled])': { background: chipOnActive },
+                '&[data-disabled]:hover': { background: 'transparent' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { minHeight: '1.125rem' } }, action: { base: { padding: '0 var(--space-xs)' } } },
+            // The base IS the middle step.
+            md: {},
+            lg: { root: { base: { minHeight: '2rem', fontSize: 'var(--text-sm)' } }, action: { base: { padding: '0 var(--space-md)' } } },
+            xl: { root: { base: { minHeight: '2.5rem', fontSize: 'var(--text-sm)' } }, action: { base: { padding: '0 var(--space-md)' } } },
+            '2xl': { root: { base: { minHeight: '3rem', fontSize: 'var(--text-md)' } }, action: { base: { padding: '0 var(--space-lg)' } } },
+        },
+    },
+};
+
+// ── Chip group ────────────────────────────────────────────────────────────
+/** A wrapping row of tags; the chips keep the chip recipe, the group owns the flow. */
+export const chipGroup: RecipeInput = {
+    component: 'chip-group',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+            },
+            // Each chip carries the flag itself; the root only lays them out.
+            states: { disabled: {}, invalid: {}, required: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column', alignItems: 'flex-start' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { gap: 'var(--space-xs)' } } },
+            md: {},
+            lg: { root: { base: { gap: 'var(--space-md)' } } },
+            xl: { root: { base: { gap: 'var(--space-md)' } } },
+            '2xl': { root: { base: { gap: 'var(--space-lg)' } } },
+        },
+    },
+};
+
 // ── Number input ──────────────────────────────────────────────────────────
 export const numberInput: RecipeInput = {
     component: 'number-input',
@@ -6878,7 +7051,7 @@ export const diff: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, avatarGroup, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    toggle, toggleGroup, chip, chipGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,

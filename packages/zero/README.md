@@ -32,7 +32,7 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 
 Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · HoverCard · Menu · Menubar ·
 Select · Switch · Checkbox · CheckboxGroup · RadioGroup · Slider · Progress ·
-Field · Fieldset · Avatar · AvatarGroup · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
+Field · Fieldset · Avatar · AvatarGroup · Toast · Combobox · Toggle · ToggleGroup · Chip · ChipGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · EmptyState · Badge · Divider ·
 Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · ChatLog · RadialProgress · Join ·
 Navbar · NavList · Breadcrumbs · Pagination · Steps · Drawer · Table · FileUpload · Carousel · Swap · Countdown · Diff
@@ -70,7 +70,7 @@ run once at the component boundary; timing reaches the element.
 `createControllableState` (public, `@sigx/zero/behaviors`) returns that
 Model, and `createInertState` seeds a part's fallback context.
 
-**Value shapes follow `multiple`.** Select, Combobox and ToggleGroup hold
+**Value shapes follow `multiple`.** Select, Combobox, ToggleGroup and a selectable ChipGroup hold
 one value in single mode (`T | null` / `V | null` for a data-driven Select or
 Combobox, `string` for hand-written items and for ToggleGroup) and an array
 under `multiple` — typed through the overloads, so a string signal never
@@ -78,7 +78,7 @@ binds a multiple group. RadioGroup takes `items` too (`itemKey` is the
 posted value, `itemLabel`, `itemDisabled`, the `item` slot); its model stays
 the string a native radio group posts.
 
-**One roving tab stop, whatever the model says.** Tabs, ToggleGroup, Steps
+**One roving tab stop, whatever the model says.** Tabs, ToggleGroup, ChipGroup, Steps
 and TreeView keep exactly one item in the tab order: the selected item while
 it is rendered and enabled, else the first enabled item. Once the group has
 mounted, a value that names nothing (a typo, a removed item) or only
@@ -88,6 +88,44 @@ because an unregistered value may still name an item that renders later.
 Horizontal arrow keys follow the reading direction: under `dir="rtl"`
 ArrowRight moves to the item on the visual right, which is the previous one
 in DOM order.
+
+**Chips: action, selection, removal (#544).** A `Chip` is some mix of
+three behaviours, and the design system decides which one looks like an
+assist, filter, input or suggestion chip:
+
+```tsx
+<ChipGroup.Root label="Filters" selectable multiple model={() => state.filters}>
+    <Chip.Root value="open"><Chip.Action>Open</Chip.Action></Chip.Root>
+    <Chip.Root value="mine"><Chip.Action><Chip.Icon>★</Chip.Icon>Mine</Chip.Action></Chip.Root>
+</ChipGroup.Root>
+
+<ChipGroup.Root label="Recipients">
+    <Chip.Root value="ada" removable onRemove={() => drop('ada')}>
+        <Chip.Action><Chip.Label>Ada Lovelace</Chip.Label></Chip.Action>
+        <Chip.Remove />
+    </Chip.Root>
+</ChipGroup.Root>
+```
+
+- **Action.** `Chip.Action` is a `<button>`, or a link through `asChild`.
+- **Selection.** A `selectable` chip is a toggle: the action carries
+  `aria-pressed`, and `root` and `action` hold `data-state="on" | "off"`
+  (with `data-selected` on `root`). Standalone, it binds its own boolean
+  model (`model` / `defaultSelected` / `selectedChange`). Inside a
+  `selectable` group, the group's value decides it.
+- **Removal.** `removable` enables Backspace/Delete on the action (announced
+  through `aria-keyshortcuts`), and `Chip.Remove` is the trailing button
+  (default glyph `×`, name `Remove <text>`). The button is out of the tab
+  order, the combobox tag's rule. Both emit `remove`, and the app drops the
+  chip. Inside a group, focus first moves to the next enabled chip, else the
+  previous one.
+
+`ChipGroup.Root` is a `role="group"` named by `label`, with one roving tab
+stop across the actions. Without `selectable` it has no model, and the chips
+only act or remove. With it, the value is a `string` (`''` when nothing is
+chosen; `deselectable={false}` keeps one) or, under `multiple`, a
+`string[]`. The group posts it through a hidden `<select>` while `name` is
+set.
 
 **A disabled TreeView node still navigates.** A pointer can focus a disabled
 node, and from there the arrow keys, Home/End and typeahead move to its

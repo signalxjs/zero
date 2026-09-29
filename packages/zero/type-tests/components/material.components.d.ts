@@ -37,6 +37,8 @@ import type { Toast as ZToast } from '@sigx/zero/toast';
 import type { Combobox as ZCombobox } from '@sigx/zero/combobox';
 import type { Toggle as ZToggle } from '@sigx/zero/toggle';
 import type { ToggleGroup as ZToggleGroup } from '@sigx/zero/toggle-group';
+import type { Chip as ZChip } from '@sigx/zero/chip';
+import type { ChipGroup as ZChipGroup } from '@sigx/zero/chip-group';
 import type { NumberInput as ZNumberInput } from '@sigx/zero/number-input';
 import type { RatingGroup as ZRatingGroup } from '@sigx/zero/rating-group';
 import type { TreeView as ZTreeView } from '@sigx/zero/tree-view';
@@ -317,6 +319,23 @@ type ToggleGroupProps = {
 };
 type ToggleGroupAdapted = Adapted<typeof ZToggleGroup, ZeroAxisProp, ToggleGroupProps>;
 export declare const ToggleGroup: ToggleGroupAdapted & AdaptedStatics<typeof ZToggleGroup> & { Root: ToggleGroupAdapted };
+
+/** chip — variant ← variant. Attributes stay zero-spelled. */
+type ChipProps = {
+    color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    'variant'?: 'outlined' | 'elevated';
+};
+type ChipAdapted = Adapted<typeof ZChip, ZeroAxisProp | 'variant', ChipProps>;
+export declare const Chip: ChipAdapted & AdaptedStatics<typeof ZChip> & { Root: ChipAdapted };
+
+/** chip-group — no vendor route; the wired surface keeps zero's names. */
+type ChipGroupProps = {
+    color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type ChipGroupAdapted = Adapted<typeof ZChipGroup, ZeroAxisProp, ChipGroupProps>;
+export declare const ChipGroup: ChipGroupAdapted & AdaptedStatics<typeof ZChipGroup> & { Root: ChipGroupAdapted };
 
 /** number-input — variant ← variant. Attributes stay zero-spelled. */
 type NumberInputProps = {

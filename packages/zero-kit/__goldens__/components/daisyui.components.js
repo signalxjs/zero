@@ -61,6 +61,8 @@ export { Toast } from '@sigx/zero/toast';
 export { Combobox } from '@sigx/zero/combobox';
 export { Toggle } from '@sigx/zero/toggle';
 export { ToggleGroup } from '@sigx/zero/toggle-group';
+export { Chip } from '@sigx/zero/chip';
+export { ChipGroup } from '@sigx/zero/chip-group';
 export { NumberInput } from '@sigx/zero/number-input';
 export { RatingGroup } from '@sigx/zero/rating-group';
 export { TreeView } from '@sigx/zero/tree-view';

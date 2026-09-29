@@ -399,6 +399,8 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         'number-input': { variants: ['filled', 'outlined'] },
         select: { variants: ['filled', 'outlined'] },
         combobox: { variants: ['filled', 'outlined'] },
+        // M3's chips (#544): flat (outlined) or elevated.
+        chip: { variants: ['outlined', 'elevated'] },
         // M3's cards (#418).
         card: { variants: ['elevated', 'filled', 'outlined'] },
         // M3's navigation (#419).
