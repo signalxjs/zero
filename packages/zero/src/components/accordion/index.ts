@@ -4,5 +4,6 @@ export type {
     AccordionItemProps,
     AccordionTriggerProps,
     AccordionPanelProps,
+    AccordionIndicatorProps,
 } from './Accordion.js';
 export { accordionAnatomy } from './anatomy.js';

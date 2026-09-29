@@ -396,7 +396,7 @@ describe('the pass-through reaches every part', () => {
         accordion: () => (
             <Accordion.Root {...p('root')}>
                 <Accordion.Item {...p('item')} value="a">
-                    <Accordion.Trigger {...p('trigger')}>A</Accordion.Trigger>
+                    <Accordion.Trigger {...p('trigger')}>A<Accordion.Indicator {...p('indicator')} /></Accordion.Trigger>
                     <Accordion.Panel {...p('panel')}>Body</Accordion.Panel>
                 </Accordion.Item>
             </Accordion.Root>
@@ -421,7 +421,7 @@ describe('the pass-through reaches every part', () => {
         ),
         collapsible: () => (
             <Collapsible.Root {...p('root')}>
-                <Collapsible.Trigger {...p('trigger')}>More</Collapsible.Trigger>
+                <Collapsible.Trigger {...p('trigger')}>More<Collapsible.Indicator {...p('indicator')} /></Collapsible.Trigger>
                 <Collapsible.Panel {...p('panel')}>Body</Collapsible.Panel>
             </Collapsible.Root>
         ),
@@ -547,7 +547,7 @@ describe('the pass-through reaches every part', () => {
         toggle: () => <Toggle {...p('root')} label="Bold">B</Toggle>,
         'toggle-group': () => (
             <ToggleGroup.Root {...p('root')} label="Align">
-                <ToggleGroup.Item {...p('item')} value="left">L</ToggleGroup.Item>
+                <ToggleGroup.Item {...p('item')} value="left"><ToggleGroup.ItemIndicator {...p('item-indicator')} />L</ToggleGroup.Item>
             </ToggleGroup.Root>
         ),
         'tree-view': () => (

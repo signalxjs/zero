@@ -20,6 +20,10 @@
  * way a `<details>` close can animate (#276). The panel is labelled by the
  * trigger.
  *
+ * A `Collapsible.Indicator` inside the trigger (#437) is the disclosure's
+ * optional mark — an empty, `aria-hidden` span mirroring `open|closed` that
+ * a design system draws a chevron in.
+ *
  * `native={false}` (#453) trades the native pair for a construction that
  * composes: a `<summary>` must be its `<details>`' first child, so it can
  * never sit inside another part's layout (a Card header, a table row). The
@@ -382,8 +386,36 @@ const CollapsiblePanel = component<CollapsiblePanelProps>(({ props, slots, onMou
     };
 }, { name: 'Collapsible.Panel' });
 
+// ── Indicator ──
+
+/** Decorative: always `aria-hidden` — the trigger's `aria-expanded` carries the state. */
+export type CollapsibleIndicatorProps = WithClass & Omit<WithHtmlAttrs, 'aria-hidden'> & Define.Slot<'default'>;
+
+/**
+ * The trigger's optional disclosure mark (#437): place it inside
+ * `Collapsible.Trigger` and it mirrors the disclosure's `open|closed` — a
+ * design system draws a chevron there and turns it. Zero renders an empty
+ * span; children (an icon) are the app's own.
+ */
+const CollapsibleIndicator = component<CollapsibleIndicatorProps>(({ props, slots }) => {
+    const ctx = useCollapsibleContext();
+    return () => (
+        <span
+            {...htmlAttrs(props)}
+            data-scope={SCOPE}
+            data-part="indicator"
+            data-state={stateAttr(ctx.state.value, 'open', 'closed')}
+            aria-hidden="true"
+            class={props.class}
+        >
+            {slots.default?.()}
+        </span>
+    );
+}, { name: 'Collapsible.Indicator' });
+
 export const Collapsible = compound(CollapsibleRoot, {
     Root: CollapsibleRoot,
     Trigger: CollapsibleTrigger,
     Panel: CollapsiblePanel,
+    Indicator: CollapsibleIndicator,
 });
