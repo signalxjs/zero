@@ -194,6 +194,18 @@ body {
     max-inline-size: 100%;
 }
 
+/* The menu page's lent context surface (#450): a fixed-height column the
+   card, with no wrapper between them, fills as its flex item. */
+.demo-context-column {
+    display: flex;
+    flex-direction: column;
+    block-size: 14rem;
+}
+.demo-context-column > [data-scope="card"][data-part="root"] {
+    flex: 1 1 auto;
+    min-block-size: 0;
+}
+
 /* The responsive drawer's page (#82): the docked panel beside the content. */
 .demo-dock {
     display: flex;

@@ -1,8 +1,9 @@
 import { component } from 'sigx';
+import type { PartProps } from '@sigx/zero';
 import {
     Avatar, Badge, Button, Checkbox, Col, EmptyState, Menu, Row, Select, Skeleton, Stack, Tabs, Toggle,
 } from '@sigx/zero';
-import { ActionButton, Heading, Icon, MailList, MailRow, Text, Time, Toolbar } from '@sigx/zero-mail-kit';
+import { ActionButton, Heading, Icon, MailList, MailRow, MenuAction, Text, Time, Toolbar } from '@sigx/zero-mail-kit';
 import { initials, LABELS, participants, snippet } from '../data/mock';
 import type { Category, FolderId, Thread } from '../data/mock';
 import { route } from '../router';
@@ -23,7 +24,7 @@ const MOVE_TARGETS: FolderId[] = ['inbox', 'archive', 'spam', 'trash'];
 /** The Move / Label / Snooze menus, shared by the toolbar, the row menu and the reading pane. */
 export const MoveMenu = component(() => () => (
     <Menu.Root onSelect={(v: string) => moveTo(v as FolderId)}>
-        <Menu.Trigger variant="ghost" size="sm" aria-label="Move to"><Icon name="folder" /></Menu.Trigger>
+        <MenuAction icon="folder" label="Move to" />
         <Menu.Popup>
             <Menu.GroupLabel>Move to</Menu.GroupLabel>
             {MOVE_TARGETS.map((f) => {
@@ -39,7 +40,7 @@ export const LabelMenu = component(() => () => {
     const has = (label: string): boolean => ids.length > 0 && st.threads.filter((t) => ids.includes(t.id)).every((t) => t.labels.includes(label as never));
     return (
         <Menu.Root closeOnSelect={false}>
-            <Menu.Trigger variant="ghost" size="sm" aria-label="Labels"><Icon name="tag" /></Menu.Trigger>
+            <MenuAction icon="tag" label="Labels" />
             <Menu.Popup>
                 <Menu.GroupLabel>Label as</Menu.GroupLabel>
                 {LABELS.map((l) => (
@@ -54,7 +55,7 @@ export const LabelMenu = component(() => () => {
 
 export const SnoozeMenu = component(() => () => (
     <Menu.Root onSelect={(v: string) => snooze(Number(v))}>
-        <Menu.Trigger variant="ghost" size="sm" aria-label="Snooze"><Icon name="clock" /></Menu.Trigger>
+        <MenuAction icon="clock" label="Snooze" />
         <Menu.Popup>
             <Menu.GroupLabel>Snooze until…</Menu.GroupLabel>
             <Menu.Item value="0.25">Later today</Menu.Item>
@@ -302,8 +303,9 @@ export const MessageList = component(() => () => {
             </Col>
             {st.loading ? <LoadingRows /> : list.length === 0 ? <Empty /> : (
                 <Menu.Root onSelect={rowAction}>
-                    <Menu.ContextTrigger>
-                        <MailList.Root
+                    <Menu.ContextTrigger asChild>
+                        {(p: PartProps) => <MailList.Root
+                            lend={p}
                             label={`${heading()} — ${list.length} conversations`}
                             mods={{ compact: st.density === 'compact' }}
                             count={list.length}
@@ -315,7 +317,7 @@ export const MessageList = component(() => () => {
                             onToggle={(i: number) => { const t = list[i]; if (t) toggleSelected(t.id); }}
                             // The window can briefly ask for an index past a list that just shrank.
                             renderRow={(i) => (list[i] ? <Row_ thread={list[i]!} index={i} /> : null)}
-                        />
+                        />}
                     </Menu.ContextTrigger>
                     <RowMenu />
                 </Menu.Root>

@@ -140,3 +140,84 @@ test('a keyboard-opened menu\'s arrow points at its trigger (#279)', async ({ pa
     await page.keyboard.press('ArrowDown');
     await expect(popup.getByRole('menuitem', { name: 'Newest first' })).toBeFocused();
 });
+
+/**
+ * Tooltip → Menu.Trigger → Button.Root (#495): one element, the Button's,
+ * carrying the menu button's ARIA and the tooltip's hover label. Named by
+ * its accessible name, the menu through the `aria-controls` the lent menu
+ * trigger put on the Button, and the tooltip by its text.
+ */
+test.describe('a tooltip lent through a Menu.Trigger to a Button (#495)', () => {
+    const more = (page: Page) => page.getByRole('button', { name: 'More actions', exact: true });
+    const tip = (page: Page) =>
+        page.locator('[data-scope="tooltip"][data-part="popup"]', { hasText: /^More actions$/ });
+    const menu = (page: Page) => controlledPopup(page, more(page), 'the More actions trigger');
+
+    test('the element is the Button, with the menu button\'s ARIA', async ({ page }) => {
+        const b = more(page);
+        await expect(b).toHaveAttribute('data-scope', 'button');
+        await expect(b).toHaveAttribute('data-part', 'root');
+        await expect(b).toHaveAttribute('aria-haspopup', 'menu');
+        await expect(b).toHaveAttribute('aria-expanded', 'false');
+        await expect(page.locator('[data-demo="menu-tooltip-lend"] [data-scope="menu"][data-part="trigger"]')).toHaveCount(0);
+        await expect(page.locator('[data-demo="menu-tooltip-lend"] [data-scope="tooltip"][data-part="trigger"]')).toHaveCount(0);
+    });
+
+    test('hover shows the tooltip; a click opens the menu without it', async ({ page }) => {
+        const b = more(page);
+        await b.hover();
+        await expect(tip(page)).toHaveAttribute('data-state', 'open');
+        await expect(b).toHaveAccessibleDescription('More actions');
+
+        await b.click();
+        const popup = await menu(page);
+        await expect(popup).toHaveAttribute('data-state', 'open');
+        await expect(popup).toBeVisible();
+        await expect(b).toHaveAttribute('aria-expanded', 'true');
+        await expect(tip(page)).toHaveAttribute('data-state', 'closed');
+        // The pointer still rests on the Button: the tooltip stays shut over
+        // the menu the press opened.
+        await page.waitForTimeout(900);
+        await expect(tip(page)).toHaveAttribute('data-state', 'closed');
+        await expect(popup).toHaveAttribute('data-state', 'open');
+    });
+
+    test('Escape closes the menu first; focus returns to the Button', async ({ page }) => {
+        const errors: string[] = [];
+        page.on('pageerror', (e) => errors.push(e.message));
+        const b = more(page);
+        // A script focus matches :focus-visible — the keyboard path, which
+        // shows the tooltip; its own Escape closes only the tooltip.
+        await b.focus();
+        await expect(tip(page)).toHaveAttribute('data-state', 'open');
+        await page.keyboard.press('Escape');
+        await expect(tip(page)).toHaveAttribute('data-state', 'closed');
+        await expect(b).toBeFocused();
+
+        await page.keyboard.press('ArrowDown');
+        const popup = await menu(page);
+        await expect(popup).toHaveAttribute('data-state', 'open');
+        await expect(popup.getByRole('menuitem', { name: 'Pin' })).toBeFocused();
+        await expect(tip(page)).toHaveAttribute('data-state', 'closed');
+
+        // One Escape closes the menu and nothing else is left open behind it
+        // but, at most, the tooltip.
+        await page.keyboard.press('Escape');
+        await expect(popup).toHaveAttribute('data-state', 'closed');
+        await expect(b).toBeFocused();
+        await expect(b).toHaveAttribute('aria-expanded', 'false');
+
+        // Decision G (#452): focus handed back by the keyboard close is a
+        // keyboard focus, so the tooltip opens again — accepted, and pinned
+        // here. The next Escape closes it and leaves the menu shut.
+        await expect(tip(page)).toHaveAttribute('data-state', 'open');
+        // Really showing: the focus lands inside the menu's own hide, when
+        // a popover cannot show yet — the tooltip waits for it to finish.
+        await expect(tip(page)).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(tip(page)).toHaveAttribute('data-state', 'closed');
+        await expect(popup).toHaveAttribute('data-state', 'closed');
+        await expect(b).toBeFocused();
+        expect(errors).toEqual([]);
+    });
+});

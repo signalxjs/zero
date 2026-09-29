@@ -380,8 +380,12 @@ in a spread. The host merges the two bags with `mergePartProps(outer, own)`:
 | `id`, `role`, single-value `aria-*` | host's, else lender's; two different values throw |
 | everything else | host wins, `class` concatenates |
 
-Hosts are opt-in: `Button.Root`, and `Tooltip.Trigger` so lenders chain
-(#494), and `Collapsible.Trigger` in its non-native mode (#453). `__tests__/lend-hosts.test.tsx` finds every host by the `WithLend`
+Hosts are opt-in: `Button.Root` (#494), `Box` and `Card.Root` (#450), and
+every absorbable part, so lenders chain — `Tooltip.Trigger` (#494),
+`Menu.ContextTrigger` (#450), `Menu.Trigger`, `Popover.Trigger`/`Close`,
+`Dialog.Trigger`/`Close`/`Cancel` and `HoverCard.Trigger` (#495), and
+`Collapsible.Trigger` in its non-native mode (#453).
+A tooltip lent to a `Menu.Trigger` lent to a `Button.Root` is one element. `__tests__/lend-hosts.test.tsx` finds every host by the `WithLend`
 in its props, fails when a host has no render fixture (or a fixture's
 component stopped being one), and renders each with a probe bag: the host
 keeps its scope and part, joins the lent `aria-describedby`, fires the lent

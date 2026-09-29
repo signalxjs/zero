@@ -255,6 +255,10 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
 
     // Non-native: a disclosure button (APG) — or, asChild, whatever the app
     // renders, lent on to another zero part if it likes.
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which a host chaining this one
+    // through `lend` would feel on every re-render.
+    const setEl = (node: HTMLElement | null): void => { el = node; };
     const bag = (): PartProps => {
         const disabled = ctx.disabled();
         return mergePartProps(props.lend, {
@@ -262,6 +266,9 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
             id: ctx.ids.trigger,
             'data-scope': SCOPE,
             'data-part': 'trigger',
+            // In the bag so a lent class concatenates; kept off an asChild bag,
+            // where the slot's element owns its class.
+            ...(props.asChild ? {} : { class: props.class }),
             'data-state': stateAttr(ctx.state.value, 'open', 'closed'),
             'data-disabled': dataAttr(disabled),
             'data-focus-visible': dataAttr(focus.visible),
@@ -294,7 +301,7 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
                 press.onBlur(e);
                 focus.visible = false;
             },
-            ref: (node: HTMLElement | null) => { el = node; },
+            ref: setEl,
         });
     };
 
@@ -302,7 +309,7 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <button type="button" class={props.class} {...b} disabled={ctx.disabled()}>
+            <button type="button" {...b} disabled={ctx.disabled()}>
                 {slots.default?.(b)}
             </button>
         );

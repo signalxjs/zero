@@ -77,6 +77,24 @@ const setRef = (ref: RefLike, el: unknown): void => {
     else ref.current = el;
 };
 
+/**
+ * Chained refs, cached per (lender ref, host ref) pair: two stable refs merge
+ * to a stable chained ref. sigx patches a CHANGED ref as detach(null) +
+ * attach(el), so a fresh chain per render would re-run both refs on every
+ * host re-render (a virtual list's viewport observer, say).
+ */
+const chainedRefs = new WeakMap<object, WeakMap<object, (el: unknown) => void>>();
+const chainRefs = (lent: RefLike, mine: RefLike): ((el: unknown) => void) => {
+    let byMine = chainedRefs.get(lent);
+    if (!byMine) chainedRefs.set(lent, byMine = new WeakMap());
+    let chained = byMine.get(mine);
+    if (!chained) {
+        chained = (el: unknown) => { setRef(lent, el); setRef(mine, el); };
+        byMine.set(mine, chained);
+    }
+    return chained;
+};
+
 const isInert = (own: Record<string, unknown>): boolean =>
     own['aria-disabled'] === 'true' || own['aria-disabled'] === true
     || own['data-disabled'] !== undefined
@@ -99,7 +117,8 @@ const tokens = (value: unknown): string[] =>
  *   the host is inert (`aria-disabled`, `data-disabled`, `disabled`) the
  *   lender's click/auxclick/keydown/contextmenu are skipped; focus, blur and
  *   pointer handlers still run.
- * - `ref` chains, lender first. IDREF-list ARIA joins, lender tokens first.
+ * - `ref` chains, lender first; the same two refs always give the same
+ *   chained ref, so stable refs stay stable across re-renders. IDREF-list ARIA joins, lender tokens first.
  * - `id`, `role` and other `aria-*`: the host's, else the lender's; both set
  *   and different throws. `tabIndex`: the lower of two numbers.
  * - `class` concatenates; any other key: the host's when it has the key
@@ -153,9 +172,7 @@ export function mergePartProps<T extends Record<string, unknown>>(outer: LentBag
         if (key === 'ref') {
             const mine = own.ref;
             if (!isRef(value)) continue;
-            out.ref = isRef(mine)
-                ? (el: unknown) => { setRef(value, el); setRef(mine, el); }
-                : value;
+            out.ref = isRef(mine) ? chainRefs(value, mine) : value;
             continue;
         }
         if (IDREF_LISTS.has(key)) {

@@ -401,6 +401,8 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         'number-input': { variants: ['filled', 'outlined'] },
         select: { variants: ['filled', 'outlined'] },
         combobox: { variants: ['filled', 'outlined'] },
+        // M3's cards (#418).
+        card: { variants: ['elevated', 'filled', 'outlined'] },
         // A field reads its text field's variant to float its label there,
         // and has none of its own.
         field: { variants: [] },

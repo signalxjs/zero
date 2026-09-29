@@ -1,6 +1,6 @@
 import { component } from 'sigx';
 import type { PartProps } from '@sigx/zero';
-import { Menu } from '@sigx/zero';
+import { Button, Card, Menu, Tooltip } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const MenuDemos = component(() => () => (
@@ -73,6 +73,38 @@ const MenuDemos = component(() => () => (
             </Menu.Popup>
         </Menu.Root>
 
+        <h3>Lent to a zero component</h3>
+        <p>
+            When the surface is itself a zero component, lend it the bag:{' '}
+            <code>{'<Menu.ContextTrigger asChild>{(p) => <Card.Root lend={p}>…'}</code>.
+            No wrapper renders, so the card is the flex item that fills this
+            column, it keeps its own anatomy, and Shift+F10 anchors the menu
+            to the card's own box.
+        </p>
+        <div class="demo-context-column" data-demo="context-card">
+            <Menu.Root onSelect={(v) => console.log('card context select:', v)}>
+                <Menu.ContextTrigger asChild>
+                    {(p: PartProps) => (
+                        <Card.Root lend={p}>
+                            <Card.Header>
+                                <Card.Title>Quarterly report</Card.Title>
+                                <Card.Description>Right-click anywhere on this card</Card.Description>
+                            </Card.Header>
+                            <Card.Body>
+                                <Button.Root>Focus me, then Shift+F10</Button.Root>
+                            </Card.Body>
+                        </Card.Root>
+                    )}
+                </Menu.ContextTrigger>
+                <Menu.Popup>
+                    <Menu.Item value="open">Open</Menu.Item>
+                    <Menu.Item value="share">Share</Menu.Item>
+                    <Menu.Separator />
+                    <Menu.Item value="archive">Archive</Menu.Item>
+                </Menu.Popup>
+            </Menu.Root>
+        </div>
+
         <h2>Link items</h2>
         <p>
             An <code>asChild</code> item can be a real <code>&lt;a href&gt;</code>:
@@ -90,6 +122,45 @@ const MenuDemos = component(() => () => (
                 </Menu.Item>
             </Menu.Popup>
         </Menu.Root>
+
+        <h2>Icon trigger with a tooltip</h2>
+        <p>
+            Three parts, one element (#495): a <code>Tooltip.Trigger</code>{' '}
+            lends its bag to a <code>Menu.Trigger</code>, which lends the two
+            on to a <code>Button.Root</code> —{' '}
+            <code>{'<Tooltip.Trigger asChild>{(t) => <Menu.Trigger asChild lend={t}>{(m) => <Button.Root lend={m}>…'}</code>.
+            The button keeps its own anatomy and paint; hover labels it, a
+            click or ArrowDown opens the menu, and Escape closes the menu before
+            anything else.
+        </p>
+        <div data-demo="menu-tooltip-lend">
+            <Menu.Root onSelect={(v) => console.log('more actions select:', v)}>
+                <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                        {(t: PartProps) => (
+                            <Menu.Trigger asChild lend={t}>
+                                {(m: PartProps) => (
+                                    <Button.Root lend={m} aria-label="More actions">
+                                        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                            <circle cx="3" cy="8" r="1.5" />
+                                            <circle cx="8" cy="8" r="1.5" />
+                                            <circle cx="13" cy="8" r="1.5" />
+                                        </svg>
+                                    </Button.Root>
+                                )}
+                            </Menu.Trigger>
+                        )}
+                    </Tooltip.Trigger>
+                    <Tooltip.Popup>More actions</Tooltip.Popup>
+                </Tooltip.Root>
+                <Menu.Popup>
+                    <Menu.Item value="pin">Pin</Menu.Item>
+                    <Menu.Item value="mute">Mute</Menu.Item>
+                    <Menu.Separator />
+                    <Menu.Item value="report">Report…</Menu.Item>
+                </Menu.Popup>
+            </Menu.Root>
+        </div>
 
         <h2>Selection items</h2>
         <p>

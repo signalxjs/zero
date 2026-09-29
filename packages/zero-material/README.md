@@ -90,6 +90,21 @@ by default, outlined with `variant="outlined"`.
 | Slider (M3 Expressive): a 16dp track, a 4 × 44dp bar handle in a 6dp gap that narrows to 2dp while pressed, a stop indicator at the track's end, dot stops | `--slider-track-size` / `--slider-handle-size` / `--slider-handle-width` / `--slider-gap`, read by both projections (native and composed) and by the vertical rail. The size axis steps Expressive's tracks (8 / 12 / 16 / 24 / 40dp). The gap is painted with `--tf-surface` (#468). The inactive track stays surface-container-highest, not Expressive's secondary-container, which in the high-contrast schemes sits within 1.6:1 of primary. Stops take one ink and there is no value bubble (#490) |
 | Disabled | M3's explicit colours in place of an opacity fade: outlines, fills and handles at 38% on-surface, tracks at 12%, a selected checkbox's mark and a selected switch's handle in `surface` |
 
+## M3 containment and overlays (#418)
+
+| M3 | How it lands |
+|---|---|
+| Motion: a surface enters on emphasized-decelerate (400ms) and leaves on emphasized-accelerate (200ms) | `popupPresence` puts the entry on `open` and the exit on the base, so menus, popovers, tooltips and dialogs share M3's pair |
+| Cards: elevated (surface-container-low, level 1), filled (surface-container-highest), outlined (surface under a 1dp outline-variant), on the medium corner, 16dp in | Card's `variant`. A `color` makes it tonal: the role's container under its on-container ink |
+| Dialog: surface-container-high on the extra-large corner at level 3, 280–560dp wide, headline-small over body-medium, text-button actions, the scrim at 32% | full-screen below `sm`. A full-screen dialog chosen per use rather than per viewport needs a popup variant zero can't pass (#514) |
+| Menus and listboxes: surface-container at level 2 on the extra-small corner, 48dp label-large items 12dp in, outline-variant dividers | Menu, submenus, and the Select and Combobox listboxes |
+| Plain tooltip: inverse-surface, body-small, 24dp tall at least, 200dp wide at most | Tooltip |
+| Rich tooltip: surface-container at level 2 on the medium corner, a title-small subhead, body-medium text, text-button actions | Popover and HoverCard. Tooltip can't take a `rich` variant: its popup can't see the trigger's axes (#514) |
+| Snackbar: inverse-surface at level 3 on the extra-small corner, body-medium, an inverse-primary action | Toast. A role colours the leading marker as its container, ringed in the snackbar's ink. The promise indicator is monochrome, because no role has an ink for the inverse surface in every scheme |
+| Sheets: surface-container-low, the large corner on a side sheet's inner edge, the bottom sheet's extra-large top and its 32 × 4dp drag handle, level 1 once modal | Drawer |
+| Overlay triggers and dismiss actions | the outlined button and the text button from #415, with M3's disabled colours |
+| Dividers | 1dp outline-variant |
+
 ## What the recipes prove
 
 | Material | How it lands |
@@ -151,11 +166,10 @@ the axis instead of past an empty half of each item.
 
 ## Disabled overlay triggers
 
-A disabled Dialog, Popover, Tooltip, Menu or Drawer trigger fades:
-`opacity: var(--disabled-opacity)` and `cursor: not-allowed` (#191). Since
-#415, Button itself disables with M3's explicit colours instead. The triggers
-follow when the overlays are rebuilt to M3's specs (#418). The dismiss actions (Dialog's close and cancel,
-and the close on Popover and Drawer) fade the same way. These parts paint the
+A disabled Dialog, Popover, Tooltip, Menu or Drawer trigger takes M3's
+disabled button colours, the way a disabled Button does (#415, #418): the
+label at 38% on-surface, the outline at 12%, and `cursor: not-allowed`. The dismiss actions (Dialog's close and cancel,
+and the close on Popover and Drawer) disable the same way. These parts paint the
 accent ink, and that overrides the browser's grey text for `:disabled`. Before
 this change a disabled trigger lost only its hover layer and kept its full
 colour and pointer cursor.

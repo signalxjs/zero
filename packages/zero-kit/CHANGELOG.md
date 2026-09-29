@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-09-28
+
 ### Added
 
 - **`native` is a reserved Collapsible root prop (#453).**

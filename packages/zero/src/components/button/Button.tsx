@@ -137,6 +137,10 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal, onMounted
     // A Space press on a synthesized button activates on release, like the
     // native one does — and only if the press started here.
     let spaceDown = false;
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which every lender chained
+    // through `lend` would feel on every re-render.
+    const setEl = (node: HTMLElement | null): void => { el = node; };
     // Always on: one listener set, zero work until a press, and whether
     // anything visible happens is the design system's call (CSS on
     // data-pressed / data-press-animating / --press-*), not the app's.
@@ -184,6 +188,9 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal, onMounted
             ...attrs,
             'data-scope': SCOPE,
             'data-part': 'root',
+            // In the bag so a lent class concatenates; kept off an asChild bag,
+            // where the slot's element owns its class.
+            ...(props.asChild ? {} : { class: props.class }),
             'data-state': props.loading ? 'loading' : undefined,
             'data-disabled': dataAttr(props.disabled),
             'data-focus-visible': dataAttr(focus.visible),
@@ -199,7 +206,7 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal, onMounted
             ...(props.loading ? { 'aria-busy': 'true' as const } : {}),
             ...contract,
             ...variantAttrs(props),
-            ref: (node: HTMLElement | null) => { el = node; },
+            ref: setEl,
             onClick: (e: MouseEvent) => {
                 if (inert()) {
                     e.preventDefault();
@@ -266,7 +273,6 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal, onMounted
                 name={props.name}
                 value={props.value}
                 form={props.form}
-                class={props.class}
                 // focusableWhenDisabled trades the native attribute for
                 // aria-disabled (in the bag) — the native one drops focus.
                 disabled={props.disabled && !props.focusableWhenDisabled}

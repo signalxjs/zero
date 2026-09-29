@@ -362,3 +362,23 @@ test('design-system swap mid-ripple leaves no stale press state', async ({ page 
     await expect.poll(() => page.locator('[data-press-animating]').count()).toBe(0);
     await expect.poll(() => page.locator('[data-pressed]').count()).toBe(0);
 });
+
+test('a Dialog trigger lent to a Button: one press, the Button\'s (#495)', async ({ page }) => {
+    test.skip(media(test.info().project.name), 'covered by the media-specific tests');
+    // Press ownership (#452): the lent dialog trigger's bag carries no press
+    // handlers the Button would double up — the element's own part owns the
+    // feedback, so the log holds one button/root pair and no dialog/trigger.
+    const trigger = page.getByRole('button', { name: 'Edit profile', exact: true });
+    await trigger.scrollIntoViewIfNeeded();
+    await clearLog(page);
+    await trigger.click();
+    const popup = await controlledPopup(page, trigger, 'the Edit profile trigger');
+    await expect(popup).toHaveAttribute('data-state', 'open');
+    const log = await logWith(page, 'button/root:data-pressed:off');
+    // Let any straggling press write land before counting.
+    await page.waitForTimeout(300);
+    const pressed = (await readLog(page)).filter((e) => e.includes(':data-pressed:'));
+    expect(pressed).toEqual(['button/root:data-pressed:on', 'button/root:data-pressed:off']);
+    expect(log.filter((e) => e.startsWith('dialog/'))).toEqual([]);
+    expect((await readLog(page)).filter((e) => e.startsWith('dialog/'))).toEqual([]);
+});

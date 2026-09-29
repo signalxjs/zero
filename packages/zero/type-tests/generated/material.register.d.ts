@@ -350,12 +350,11 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** card — color, size wired. */
+            /** card — color, size, variant wired. */
             'card': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-                /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                variant: never;
+                variant: 'elevated' | 'filled' | 'outlined';
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };

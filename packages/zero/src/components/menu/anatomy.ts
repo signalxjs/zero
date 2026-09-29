@@ -89,6 +89,11 @@ export const menuAnatomy = defineAnatomy('menu', {
     // the surface is a tab stop whenever the consumer makes it one, Escape
     // restores focus to it, and without the flag a design system has nothing
     // to hang its own ring on — the UA default is the only alternative.
+    // Absorbable (#450): lent through asChild + `lend` to a zero host (a
+    // Card.Root, a Box), the part renders no element of its own — the host
+    // keeps its anatomy and takes the ARIA and handlers, and Shift+F10
+    // anchors to the host's box. The declaration above stays, for the
+    // wrapper a plain ContextTrigger still renders.
     'context-trigger': {
         element: 'div',
         states: ['open', 'closed'],

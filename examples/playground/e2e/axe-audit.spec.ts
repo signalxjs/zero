@@ -107,6 +107,8 @@ const SCANS: Record<string, Scan[]> = {
         { name: 'non-dismissible dialog', open: openDialog('Open required dialog') },
         { name: 'alertdialog', open: openDialog('Delete file…') },
         { name: 'alertdialog with dependents', open: openDialog('Delete workspace…') },
+        // #495: the trigger and a close lent to Button.Root.
+        { name: 'dialog lent to a Button', open: openDialog('Edit profile') },
     ],
     drawer: [{
         name: 'modal drawer',
@@ -167,7 +169,28 @@ const SCANS: Record<string, Scan[]> = {
                 await openSub(page, 'Send to');
             },
         },
+        {
+            // #450: the surface lent to a Card.Root — no wrapper, so the
+            // card itself carries aria-haspopup/aria-controls.
+            // axe treats aria-haspopup as a global and passes it on any
+            // role, so this scan cannot catch a host WITH a role (grid,
+            // listbox, …) taking `lend`, where aria-haspopup means that
+            // widget's own popup: such a host needs a manual check.
+            name: 'context menu lent to a card',
+            open: async (page) => {
+                const card = page.locator('[data-demo="context-card"] [data-scope="card"][data-part="root"]');
+                await card.scrollIntoViewIfNeeded();
+                await card.click({ button: 'right' });
+                const popup = await controlledPopup(page, card, 'the lent card surface');
+                await expect(popup).toHaveAttribute('data-state', 'open');
+                await expect(popup).toBeVisible();
+            },
+        },
         { name: 'selection-items menu', open: (page) => openMenu(page, 'View') },
+        // #495: a Tooltip lent to a Menu.Trigger lent to a Button.Root — one
+        // element carrying the menu button's ARIA and the tooltip's
+        // description, with the menu open.
+        { name: 'menu and tooltip lent to a Button', open: (page) => openMenu(page, 'More actions') },
     ],
     menubar: [
         {

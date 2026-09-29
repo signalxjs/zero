@@ -3,7 +3,7 @@ import {
     Avatar, Badge, Button, Card, Col, Collapsible, Container, Divider, EmptyState, Grid, HoverCard, Kbd, Menu, Row,
     Stack, Textarea, Toggle, formatBytes,
 } from '@sigx/zero';
-import { ActionButton, Heading, Icon, Shell, Text, Time, Toolbar } from '@sigx/zero-mail-kit';
+import { ActionButton, Heading, Icon, MenuAction, Shell, Text, Time, Toolbar } from '@sigx/zero-mail-kit';
 import type { IconName } from '@sigx/zero-mail-kit';
 import { initials, LABELS, ME } from '../data/mock';
 import type { Attachment, Contact, Message } from '../data/mock';
@@ -198,7 +198,7 @@ export const ReadingPane = component(() => () => {
                             if (v === 'collapse') for (const m of t.messages) st.expanded[m.id] = false;
                         }}
                     >
-                        <Menu.Trigger variant="ghost" size="sm" aria-label="More actions"><Icon name="more" /></Menu.Trigger>
+                        <MenuAction icon="more" label="More actions" />
                         <Menu.Popup>
                             <Menu.Item value="reply"><Icon name="reply" /> Reply<Menu.Shortcut>R</Menu.Shortcut></Menu.Item>
                             <Menu.Item value="reply-all"><Icon name="reply-all" /> Reply all<Menu.Shortcut>A</Menu.Shortcut></Menu.Item>

@@ -166,8 +166,16 @@ non-native mode, #453) may be lent to another zero part
 through `lend`; the rendered element keeps the host's own anatomy, so the
 lendable part's recipe is advisory — it styles the part only when it
 renders on its own, never the host it was lent to. Style the host.
-LEND HOSTS (#494): `Button.Root`, `Tooltip.Trigger` and (non-native
-mode only, #453) `Collapsible.Trigger` take `lend={p}`.
+LEND HOSTS (#494, #450, #495, #453): `Button.Root`, `Box`, `Card.Root` and
+every absorbable part (`Tooltip.Trigger`, `Menu.Trigger`,
+`Menu.ContextTrigger`, `Popover.Trigger`/`Close`,
+`Dialog.Trigger`/`Close`/`Cancel`, `HoverCard.Trigger`, and
+`Collapsible.Trigger` in non-native mode only, #453) take `lend={p}`, so
+lenders chain: tooltip → menu →
+button is `<Tooltip.Trigger asChild>{(t) => <Menu.Trigger asChild lend={t}>
+{(m) => <Button.Root lend={m} aria-label="More">…</Button.Root>}
+</Menu.Trigger>}</Tooltip.Trigger>`. A closer lent to a Button closes
+before the Button's onClick: veto on the closer's onClick.
 One rule: a raw element spreads the bag (`<button {...p}>`), a zero
 component gets `lend={p}` — spreading onto a component is a type error.
 `<Tooltip.Trigger asChild>{(p) => <Button.Root lend={p} aria-label="Archive"

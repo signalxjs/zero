@@ -52,7 +52,13 @@ const disabledDecls = (compiled: CompiledDesignSystem, scope: string, part: stri
         .filter((r) => r.selector.replace(/:not\(\[data-disabled\]\)/g, '').includes('[data-disabled]'))
         .flatMap((r) => r.decls);
 
-const fades = (decls: readonly string[]): boolean => decls.some((d) => /^opacity\s*:/.test(d));
+/**
+ * Whether a disabled part recedes: a uniform `opacity` fade, or M3's explicit
+ * disabled ink — the label at 38% on-surface (material since #415/#418),
+ * which dims the part without fading its outline and elevation with it.
+ */
+const fades = (decls: readonly string[]): boolean =>
+    decls.some((d) => /^opacity\s*:/.test(d) || (/^color\s*:/.test(d) && d.includes('38%')));
 
 describe('disabled overlay triggers fade', () => {
     it('declares a trigger on every overlay scope', () => {
@@ -69,7 +75,7 @@ describe('disabled overlay triggers fade', () => {
         expect(unfaded).toEqual([]);
     });
 
-    it('material: the button disables the M3 way, the triggers fade and refuse the pointer', () => {
+    it('material: the button and the overlay triggers disable the M3 way and refuse the pointer', () => {
         const compiled = SYSTEMS.find(([n]) => n === 'material')![1];
         // M3's disabled button (#415) is explicit colour, not a fade: the
         // label at 38% on-surface over a 10% container, and not-allowed.
@@ -77,10 +83,13 @@ describe('disabled overlay triggers fade', () => {
             'color: color-mix(in oklch, var(--color-base-content) 38%, transparent)',
             'cursor: not-allowed',
         ]));
+        // Since #418 the overlay triggers are M3 outlined buttons and recede
+        // the same way: the 38% label and not-allowed.
         for (const scope of OVERLAY_SCOPES) {
-            expect(disabledDecls(compiled, scope, 'trigger'), scope).toEqual(
-                expect.arrayContaining(['opacity: var(--disabled-opacity)', 'cursor: not-allowed']),
-            );
+            expect(disabledDecls(compiled, scope, 'trigger'), scope).toEqual(expect.arrayContaining([
+                'color: color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+                'cursor: not-allowed',
+            ]));
         }
     });
 

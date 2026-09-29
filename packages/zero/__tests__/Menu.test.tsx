@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
-import { Menu, menuAnatomy } from '@sigx/zero';
-import type { PositionOptions, PositionStrategy } from '@sigx/zero';
+import { Box, Card, Menu, menuAnatomy, mergePartProps } from '@sigx/zero';
+import type { PartProps, PositionAnchor, PositionOptions, PositionStrategy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 import { describeTriggerHandlers } from './trigger-handlers';
 
@@ -1227,6 +1227,136 @@ describe('Menu.ContextTrigger', () => {
         surface.focus();
         await tick();
         expect(surface.hasAttribute('data-focus-visible')).toBe(false);
+    });
+});
+
+describe('Menu.ContextTrigger lent to a zero host (#450)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    afterEach(() => { container.remove(); });
+
+    function mountLent(opts: { hostDisabled?: boolean; strategy?: PositionStrategy } = {}) {
+        render(
+            <Menu.Root positionStrategy={opts.strategy}>
+                <Menu.ContextTrigger asChild>
+                    {(p) => (
+                        <Card.Root lend={p} aria-disabled={opts.hostDisabled ? 'true' : undefined}>
+                            <span>Right-click the card</span>
+                        </Card.Root>
+                    )}
+                </Menu.ContextTrigger>
+                <Menu.Popup>
+                    <Menu.Item value="copy">Copy</Menu.Item>
+                    <Menu.Item value="paste">Paste</Menu.Item>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        return container.querySelector<HTMLElement>('[data-scope="card"][data-part="root"]')!;
+    }
+    const popupState = () => container.querySelector('[data-scope="menu"][data-part="popup"]')!.getAttribute('data-state');
+
+    it('renders no context-trigger element: the card is the surface, with its own anatomy', () => {
+        const card = mountLent();
+        expect(container.querySelector('[data-part="context-trigger"]')).toBeNull();
+        expect(card.getAttribute('data-scope')).toBe('card');
+        expect(card.hasAttribute('data-state')).toBe(false);
+        expect(card.getAttribute('aria-haspopup')).toBe('menu');
+        const popup = container.querySelector<HTMLElement>('[data-scope="menu"][data-part="popup"]')!;
+        expect(card.getAttribute('aria-controls')).toBe(popup.id);
+        expectAnatomy(container, menuAnatomy);
+    });
+
+    it('a contextmenu on the card opens the menu, a task later', async () => {
+        const card = mountLent();
+        const e = new MouseEvent('contextmenu', { clientX: 40, clientY: 30, bubbles: true, cancelable: true });
+        card.dispatchEvent(e);
+        expect(e.defaultPrevented).toBe(true);
+        expect(popupState()).toBe('closed');
+        await tick();
+        expect(popupState()).toBe('open');
+    });
+
+    it('Shift+F10 opens the menu anchored to the card element', async () => {
+        const anchors: PositionAnchor[] = [];
+        const card = mountLent({ strategy: { apply: (a) => { anchors.push(a); return () => {}; } } });
+        const e = new KeyboardEvent('keydown', { key: 'F10', shiftKey: true, bubbles: true, cancelable: true });
+        card.dispatchEvent(e);
+        expect(e.defaultPrevented).toBe(true);
+        await tick();
+        expect(popupState()).toBe('open');
+        expect(anchors.at(-1)).toBe(card);
+    });
+
+    it('a disabled host skips the contextmenu and keydown paths', async () => {
+        const card = mountLent({ hostDisabled: true });
+        const e = new MouseEvent('contextmenu', { clientX: 10, clientY: 10, bubbles: true, cancelable: true });
+        card.dispatchEvent(e);
+        expect(e.defaultPrevented).toBe(false);
+        card.dispatchEvent(new KeyboardEvent('keydown', { key: 'F10', shiftKey: true, bubbles: true, cancelable: true }));
+        await tick();
+        expect(popupState()).toBe('closed');
+    });
+
+    it('a re-rendering host keeps one chained ref: its own ref never detaches', async () => {
+        // sigx patches a CHANGED ref as ref(null) + ref(el); a host that
+        // re-renders often (a virtual list while scrolling) must not see its
+        // own ref churn because the lent one was chained afresh.
+        const own = vi.fn();
+        const state = signal({ n: 0 });
+        const Host = component<{ lend?: PartProps }>(({ props }) => () => (
+            <div {...mergePartProps(props.lend, {
+                'data-scope': 'host',
+                'data-part': 'root',
+                'data-n': String(state.n),
+                ref: own,
+            })}>Host {state.n}</div>
+        ));
+        render(
+            <Menu.Root>
+                <Menu.ContextTrigger asChild>
+                    {(p) => <Host lend={p} />}
+                </Menu.ContextTrigger>
+                <Menu.Popup><Menu.Item value="a">A</Menu.Item></Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        const host = container.querySelector<HTMLElement>('[data-scope="host"]')!;
+        for (let i = 1; i <= 4; i++) {
+            state.n = i;
+            await tick();
+        }
+        expect(host.getAttribute('data-n')).toBe('4');
+        // The lender re-renders too: opening flips its data-state.
+        host.dispatchEvent(new KeyboardEvent('keydown', { key: 'F10', shiftKey: true, bubbles: true, cancelable: true }));
+        await tick();
+        expect(popupState()).toBe('open');
+        state.n = 5;
+        await tick();
+        expect(own).toHaveBeenCalledTimes(1);
+        expect(own).toHaveBeenCalledWith(host);
+        expect(own).not.toHaveBeenCalledWith(null);
+    });
+
+    it('a Box hosts it the same way', async () => {
+        render(
+            <Menu.Root>
+                <Menu.ContextTrigger asChild>
+                    {(p) => <Box lend={p} pad="md">Zone</Box>}
+                </Menu.ContextTrigger>
+                <Menu.Popup><Menu.Item value="a">A</Menu.Item></Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        expect(container.querySelector('[data-part="context-trigger"]')).toBeNull();
+        const box = container.querySelector<HTMLElement>('[data-scope="box"][data-part="root"]')!;
+        expect(box.getAttribute('aria-haspopup')).toBe('menu');
+        box.dispatchEvent(new MouseEvent('contextmenu', { clientX: 5, clientY: 5, bubbles: true, cancelable: true }));
+        await tick();
+        expect(popupState()).toBe('open');
     });
 });
 

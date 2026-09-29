@@ -2124,7 +2124,9 @@ The ordering is fixed:
   ```tsx
   <Dialog.Close onClick={(e) => { if (!save()) e.preventDefault(); }}>Save and close</Dialog.Close>
   ```
-  The closer's other three handlers follow the trigger rule.
+  The closer's other three handlers follow the trigger rule. A closer lent
+  to a `Button.Root` (#495) closes before the Button's own `onClick` runs,
+  so the veto belongs on the closer's `onClick`, as here.
 - **Disabled** skips every app handler — on an asChild element too, which
   the native `disabled` does not protect. (HoverCard's trigger is a link and
   has no `disabled`.)
@@ -2188,11 +2190,84 @@ on. `lend` is a prop on the host, `asChild` stays the transport:
 </Tooltip.Trigger>
 ```
 
-The hosts today are `Button.Root`, `Tooltip.Trigger` and — in its
-non-native mode (#453) — `Collapsible.Trigger`; the other triggers become
-hosts in #495. A component author makes a
+The hosts are `Button.Root`, `Box`, `Card.Root` and every absorbable part:
+`Tooltip.Trigger`, `Menu.Trigger`, `Menu.ContextTrigger`,
+`Popover.Trigger`, `Popover.Close`, `Dialog.Trigger`, `Dialog.Close`,
+`Dialog.Cancel`, `HoverCard.Trigger` (#450, #494, #495) and — in its
+non-native mode (#453) — `Collapsible.Trigger`. A component author makes a
 part a host with `WithLend` and `mergePartProps(props.lend, ownBag)`
 (exported for that); an app never calls it.
+
+**Menu, Dialog and Popover triggers on a Button (#495).** The overlay
+triggers and closers both lend and host, so an icon menu button with a hover
+label is three parts and one element:
+
+```tsx
+<Menu.Root onSelect={act}>
+    <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+            {(t) => (
+                <Menu.Trigger asChild lend={t}>
+                    {(m) => <Button.Root lend={m} variant="ghost" aria-label="More actions"><MoreIcon /></Button.Root>}
+                </Menu.Trigger>
+            )}
+        </Tooltip.Trigger>
+        <Tooltip.Popup>More actions</Tooltip.Popup>
+    </Tooltip.Root>
+    <Menu.Popup>…</Menu.Popup>
+</Menu.Root>
+```
+
+The `<button>` is `button.root`, with the Button's paint and press
+feedback; the menu trigger adds `aria-haspopup`/`aria-expanded`/
+`aria-controls`, the click toggle and ArrowDown/ArrowUp, and the tooltip
+its hover label and `aria-describedby`. A press dismisses the tooltip, so it
+never covers the menu it opened. Escape closes the menu first; a keyboard
+close hands focus back to the Button, which is a keyboard focus, so the
+tooltip shows again — the next Escape closes it. In a `Menubar` the lent
+trigger keeps `role="menuitem"` and the bar's roving `tabIndex`: those are
+the trigger's own, and they merge onto the Button.
+
+`Dialog.Trigger`, `Popover.Trigger` and the closers lend the same way —
+`<Dialog.Close asChild value="save">{(p) => <Button.Root lend={p}>Save and
+close</Button.Root>}</Dialog.Close>`. The closer's handlers run first, so
+it closes before the Button's own `onClick`: veto on `Dialog.Close`'s
+`onClick`, and a `loading` or disabled Button closes nothing, since an inert
+host skips the lent click. Press feedback belongs to the element's own part
+(the Button's), never the lender's. An `id` set on the host that differs from
+the lender's (the menu trigger names the popup's label) throws — leave it to
+the lender.
+
+**The context menu on a zero component (#450).** `Menu.ContextTrigger` is
+the right-click surface: `contextmenu` opens the menu at the pointer, and
+Shift+F10 or the ContextMenu key open it anchored to the surface's box. On
+its own it renders a wrapper `<div>` around its content. When the surface
+is itself a zero component, lend it the bag instead — `Card.Root`, `Box`
+(and `Menu.ContextTrigger` itself) take `lend`:
+
+```tsx
+<Menu.Root onSelect={act}>
+    <Menu.ContextTrigger asChild>
+        {(p) => <Card.Root lend={p}>…</Card.Root>}
+    </Menu.ContextTrigger>
+    <Menu.Popup>…</Menu.Popup>
+</Menu.Root>
+```
+
+No `context-trigger` element renders at all: the card is the surface, so it
+stays the flex or grid item its layout placed, with its own `data-scope`/
+`data-part` — the lent anatomy is dropped (`mergePartProps`, the #452
+composition rule). The card gains `aria-haspopup="menu"` and `aria-controls`
+and the surface's handlers, chained before its own, and the lent ref gives
+the menu the card's element, so the keyboard anchor is the card's own box.
+A raw element still takes the bag by spreading (`<div {...p}>`); a zero
+component takes it through `lend`, since a spread onto a component loses
+the ref.
+
+To switch the surface off, **disable the host**: `aria-disabled="true"` on
+the card makes it inert, and an inert host skips the lent `contextmenu`
+and `keydown` handlers (focus and blur still run). `disabled` on
+`Menu.ContextTrigger` works on both shapes.
 
 **The hover card (#290).** A preview on the way to a destination — the
 profile behind an `@mention`, the page behind a link — whose content may be

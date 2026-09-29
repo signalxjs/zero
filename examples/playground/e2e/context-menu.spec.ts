@@ -5,7 +5,7 @@
  * Escape restores focus to the surface.
  */
 import { test, expect } from '@playwright/test';
-import { controlledPopup, settledBox } from './demo';
+import { controlledPopup, rootLabelled, settledBox } from './demo';
 import { bootPage } from './nav';
 
 test.beforeEach(async ({ page }) => {
@@ -155,4 +155,60 @@ test('outside click closes via light dismiss', async ({ page }) => {
     await expectShowing(await popup(page));
     await page.locator('h1').click();
     await expect(await popup(page)).toHaveAttribute('data-state', 'closed');
+});
+
+/**
+ * The surface lent to a zero host (#450): `Menu.ContextTrigger asChild` into
+ * `Card.Root lend={p}`. No wrapper renders, so the card is the flex item of
+ * its column — which a wrapper `<div>` between them used to break — and
+ * Shift+F10 anchors to the card's own box, since the lent ref reaches it.
+ */
+test.describe('lent to a Card.Root', () => {
+    const column = (page: import('@playwright/test').Page) => page.locator('[data-demo="context-card"]');
+    const card = (page: import('@playwright/test').Page) =>
+        rootLabelled(page, 'card', 'Right-click anywhere on this card');
+    const cardPopup = (page: import('@playwright/test').Page) =>
+        controlledPopup(page, card(page), 'lent card surface');
+
+    test('no context-trigger renders, and the card fills its column', async ({ page }) => {
+        await column(page).scrollIntoViewIfNeeded();
+        await expect(column(page).locator('[data-scope="menu"][data-part="context-trigger"]')).toHaveCount(0);
+        await expect(card(page)).toHaveAttribute('aria-haspopup', 'menu');
+        const cb = await settledBox(column(page), 'card column');
+        const kb = await settledBox(card(page), 'lent card');
+        expect(Math.abs(kb.height - cb.height)).toBeLessThanOrEqual(1);
+        expect(Math.abs(kb.width - cb.width)).toBeLessThanOrEqual(1);
+    });
+
+    test('right-click opens the popup at the pointer', async ({ page }) => {
+        await card(page).scrollIntoViewIfNeeded();
+        const kb = await settledBox(card(page), 'lent card');
+        const x = kb.x + 60;
+        const y = kb.y + 40;
+        await page.mouse.click(x, y, { button: 'right' });
+        const p = await cardPopup(page);
+        await expectShowing(p);
+        const pb = await settledBox(p, 'lent card popup');
+        expect(Math.abs(pb.x - x)).toBeLessThan(24);
+        expect(pb.y).toBeGreaterThan(y);
+        expect(pb.y - y).toBeLessThan(24);
+    });
+
+    test('Shift+F10 from inside the card anchors the popup to the card', async ({ page }) => {
+        const inside = card(page).getByRole('button', { name: 'Focus me, then Shift+F10' });
+        await inside.scrollIntoViewIfNeeded();
+        await inside.focus();
+        await page.keyboard.press('Shift+F10');
+        const p = await cardPopup(page);
+        await expectShowing(p);
+        const kb = await settledBox(card(page), 'lent card');
+        const pb = await settledBox(p, 'lent card popup');
+        // bottom-start off the card's own rect (flip may put it above): the
+        // popup's inline start meets the card's, and it sits against one of
+        // the card's block edges — not at a stale pointer, not at a wrapper.
+        expect(Math.abs(pb.x - kb.x)).toBeLessThan(24);
+        const below = Math.abs(pb.y - (kb.y + kb.height));
+        const above = Math.abs(pb.y + pb.height - kb.y);
+        expect(Math.min(below, above)).toBeLessThan(24);
+    });
 });

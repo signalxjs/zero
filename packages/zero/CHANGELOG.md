@@ -2,17 +2,28 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-09-28
+
 ### Added — composing zero parts (#452, #492)
 
 - **`mergePartProps(outer, own)`**, for component authors. It merges a lent
   part's asChild bag into a host's own props. The host keeps its anatomy.
   The lender's runtime-written `data-*` is dropped, and paint or `hidden`
   set on it throws. Handlers and refs chain, lender first, and an inert
-  host skips the lender's activation handlers. IDREF-list ARIA is joined.
+  host skips the lender's activation handlers. The same two refs always
+  chain to the same function, so a re-rendering host never sees its ref
+  detach and re-attach. IDREF-list ARIA is joined.
   `id`, `role` and other `aria-*` fill in, and a conflict throws.
   `tabIndex` takes the lower value, and `class` is concatenated. It is
   DOM-free and also exported from `@sigx/zero/contract/core`.
 - **`WithLend`**, the `lend={p}` prop type, next to `WithAsChild`.
+- **`Menu.ContextTrigger`, `Box` and `Card.Root` take `lend` (#450).**
+  `<Menu.ContextTrigger asChild>{(p) => <Card.Root lend={p}>…</Card.Root>}`
+  renders no `context-trigger` wrapper: the card stays the item its layout
+  placed, keeps its own anatomy, and gains `aria-haspopup`/`aria-controls`
+  and the surface's handlers. Shift+F10 anchors the menu to the card's own
+  box. To switch the surface off, disable the host (`aria-disabled`): an
+  inert host skips the lent `contextmenu` and `keydown`.
 - **`createPressFeedback` `owner`.** With `{ scope, part }` set, a press on
   an element whose `data-scope`/`data-part` differ does nothing. Every zero
   part passes its own.
@@ -40,6 +51,23 @@
   is a host too, so lenders chain. The README's Patterns section teaches
   the rule: a raw element spreads the bag, a zero component takes
   `lend={p}`.
+- **The overlay triggers take `lend` (#495).** `Menu.Trigger`,
+  `Popover.Trigger`, `Popover.Close`, `Dialog.Trigger`, `Dialog.Close`,
+  `Dialog.Cancel` and `HoverCard.Trigger` are hosts, so they lend and host
+  alike: `<Tooltip.Trigger asChild>{(t) => <Menu.Trigger asChild lend={t}>{(m)
+  => <Button.Root lend={m}>…</Button.Root>}</Menu.Trigger>}</Tooltip.Trigger>`
+  is one Button with the menu button's ARIA and keys and a hover label. A
+  lent Menubar trigger keeps `role="menuitem"` and the roving `tabIndex`. A
+  closer lent to a Button closes before the Button's `onClick`: veto on the
+  closer's `onClick`; an inert (`loading`, disabled) Button closes nothing.
+  Every host puts its own `class` in the merged bag, so a lent `class`
+  concatenates rather than replacing it (`Tooltip.Trigger` and
+  `Button.Root` included), and passes one ref for the part's life, so a
+  chain never detaches and re-attaches its lenders' refs on a re-render.
+  Focus handed back by the menu's native Escape close lands on the Button
+  mid-hide, when no popover may show: the tooltip shows once the hide is
+  done, and `Menu.Popup` moves focus into the menu untracked, so the
+  tooltip's state never re-runs the menu's show.
 - **`Collapsible.Root` `native={false}` (#453).** A composable mode for a
   disclosure whose trigger sits inside another part's layout (a Card
   header): the root renders a `<div>`, the trigger a `<button

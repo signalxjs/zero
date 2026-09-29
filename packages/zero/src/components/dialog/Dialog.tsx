@@ -47,8 +47,9 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { createTopLayerExit } from '../../behaviors/top-layer-exit.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
+import { mergePartProps } from '../../contract/merge-part-props.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithHtmlAttrs, WithInteractionHandlers, WithLend, WithVariantAxes, WithVisuallyHidden } from '../../contract/props.js';
 import { dialogAnatomy } from './anatomy.js';
 import { mountScope } from '../../behaviors/mount-scope.js';
 
@@ -268,6 +269,13 @@ export type DialogTriggerProps =
      * `disabled`. They reach an `asChild` element through the bag.
      */
     & WithInteractionHandlers
+    /**
+     * Another zero part's asChild bag (#452) — a `Tooltip.Trigger`'s, say —
+     * so lenders chain: tooltip → dialog → a `Button.Root` that renders the
+     * element. Its handlers and ref run before the trigger's own, its IDREF
+     * ARIA joins, and its anatomy is dropped: the trigger keeps its own.
+     */
+    & WithLend
     & Define.Slot<'default', PartProps>;
 
 const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal }) => {
@@ -280,10 +288,20 @@ const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal }) =
         isDisabled: () => !!props.disabled,
     });
 
-    const bag = (): PartProps => ({
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which a host chaining this one
+    // through `lend` would feel on every re-render.
+    const setEl = (node: HTMLElement | null): void => { el = node; dialog.trigger.el = node; };
+
+    // A lent bag (#452) merges under the part's own: its anatomy dropped,
+    // its handlers and ref chained first.
+    const bag = (): PartProps => mergePartProps(props.lend, {
         ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'trigger',
+        // In the bag so a lent class concatenates; kept off an asChild bag,
+        // where the slot's element owns its class.
+        ...(props.asChild ? {} : { class: props.class }),
         ...variantAttrs(props),
         'data-state': stateAttr(dialog.state.value, 'open', 'closed'),
         'data-disabled': dataAttr(props.disabled),
@@ -314,14 +332,14 @@ const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal }) =
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
         onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; dialog.trigger.el = node; },
-    });
+        ref: setEl,
+    } satisfies PartProps);
 
     return () => {
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <button type="button" class={props.class} {...b} disabled={props.disabled}>
+            <button type="button" {...b} disabled={props.disabled}>
                 {slots.default?.(b)}
             </button>
         );
@@ -597,6 +615,14 @@ export type DialogCloseProps =
      * `onBlur` run after the part's own handling.
      */
     & WithInteractionHandlers
+    /**
+     * Another zero part's asChild bag (#452) — a `Tooltip.Trigger`'s, say.
+     * Its handlers and ref run before the close's own, its IDREF ARIA
+     * joins, and its anatomy is dropped: the close keeps its own. Lent on
+     * to a `Button.Root` in turn, the close closes BEFORE the Button's own
+     * `onClick` runs: veto in this part's `onClick`, not the Button's.
+     */
+    & WithLend
     & Define.Slot<'default', PartProps>;
 
 const DialogClose = component<DialogCloseProps>(({ props, slots, signal }) => {
@@ -609,10 +635,20 @@ const DialogClose = component<DialogCloseProps>(({ props, slots, signal }) => {
         isDisabled: () => !!props.disabled,
     });
 
-    const bag = (): PartProps => ({
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which a host chaining this one
+    // through `lend` would feel on every re-render.
+    const setEl = (node: HTMLElement | null): void => { el = node; };
+
+    // A lent bag (#452) merges under the part's own: its anatomy dropped,
+    // its handlers and ref chained first.
+    const bag = (): PartProps => mergePartProps(props.lend, {
         ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'close',
+        // In the bag so a lent class concatenates; kept off an asChild bag,
+        // where the slot's element owns its class.
+        ...(props.asChild ? {} : { class: props.class }),
         // The native spelling rides along too: an asChild <button> keeps
         // `<form method="dialog">` semantics without re-threading it.
         value: props.value,
@@ -643,14 +679,14 @@ const DialogClose = component<DialogCloseProps>(({ props, slots, signal }) => {
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
         onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; },
-    });
+        ref: setEl,
+    } satisfies PartProps);
 
     return () => {
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <button type="button" class={props.class} {...b} disabled={props.disabled}>
+            <button type="button" {...b} disabled={props.disabled}>
                 {slots.default?.(b)}
             </button>
         );
@@ -672,6 +708,14 @@ export type DialogCancelProps =
      * `onBlur` run after the part's own handling.
      */
     & WithInteractionHandlers
+    /**
+     * Another zero part's asChild bag (#452) — a `Tooltip.Trigger`'s, say.
+     * Its handlers and ref run before the cancel's own, its IDREF ARIA
+     * joins, and its anatomy is dropped: the cancel keeps its own. Lent on
+     * to a `Button.Root` in turn, the cancel closes BEFORE the Button's own
+     * `onClick` runs: veto in this part's `onClick`, not the Button's.
+     */
+    & WithLend
     & Define.Slot<'default', PartProps>;
 
 /**
@@ -690,10 +734,20 @@ const DialogCancel = component<DialogCancelProps>(({ props, slots, signal }) => 
         isDisabled: () => !!props.disabled,
     });
 
-    const bag = (): PartProps => ({
+    // One ref for the part's life: a ref that changed between renders is
+    // patched as detach(null) + attach(el), which a host chaining this one
+    // through `lend` would feel on every re-render.
+    const setEl = (node: HTMLElement | null): void => { el = node; };
+
+    // A lent bag (#452) merges under the part's own: its anatomy dropped,
+    // its handlers and ref chained first.
+    const bag = (): PartProps => mergePartProps(props.lend, {
         ...htmlAttrs(props),
         'data-scope': SCOPE,
         'data-part': 'cancel',
+        // In the bag so a lent class concatenates; kept off an asChild bag,
+        // where the slot's element owns its class.
+        ...(props.asChild ? {} : { class: props.class }),
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
         autofocus: dialog.role() === 'alertdialog' ? true : undefined,
@@ -722,14 +776,14 @@ const DialogCancel = component<DialogCancelProps>(({ props, slots, signal }) => 
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
         onPointerleave: press.onPointerleave,
-        ref: (node: HTMLElement | null) => { el = node; },
-    });
+        ref: setEl,
+    } satisfies PartProps);
 
     return () => {
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
-            <button type="button" class={props.class} {...b} disabled={props.disabled}>
+            <button type="button" {...b} disabled={props.disabled}>
                 {slots.default?.(b)}
             </button>
         );
