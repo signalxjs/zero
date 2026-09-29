@@ -768,7 +768,10 @@ root and handle, `aria-disabled`, out of the tab order, no keys, no drag.
 **Values a recipe can read** (#537). Progress and RadialProgress write
 `--progress-percent` on their root (one name for both, so one recipe idiom
 paints a bar and a ring; absent while indeterminate), Slider
-`--slider-percent` and Diff `--diff-percent` on theirs, and Countdown the
+`--slider-percent` — beside it the unitless `--slider-fraction` and, while
+several thumbs share the rail, the lowest one's `--slider-start-fraction`
+(#468), so a recipe can cut the track around a handle — and Diff
+`--diff-percent` on theirs, and Countdown the
 raw number as `--countdown-value` on its value part. Each anatomy declares
 its names as `runtimeProperties`, so `manifest.json` lists them per
 component; they are web-only runtime properties (`RUNTIME_PROPERTIES`) a

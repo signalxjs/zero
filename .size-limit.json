@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "79.55 kB",
+        "limit": "79.98 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -74,7 +74,7 @@
     {
         "name": "@sigx/zero/anatomy (tooling entry)",
         "path": "packages/zero/dist/anatomy.js",
-        "limit": "4.57 kB",
+        "limit": "4.62 kB",
         "ignore": [
             "sigx",
             "@sigx/runtime-core",
@@ -204,7 +204,7 @@
     {
         "name": "@sigx/zero/input",
         "path": "packages/zero/dist/components/input/index.js",
-        "limit": "5.67 kB",
+        "limit": "5.68 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -624,7 +624,7 @@
     {
         "name": "@sigx/zero/steps",
         "path": "packages/zero/dist/components/steps/index.js",
-        "limit": "5.67 kB",
+        "limit": "5.68 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

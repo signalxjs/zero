@@ -31,8 +31,9 @@
 
 - **Runtime properties for notches and gaps (#468, part of #413).**
   `RUNTIME_PROPERTIES` gains `--input-label-inline-size` (on Input's
-  optional `outline`), `--slider-fraction` and `--slider-start-fraction`,
-  so a recipe reading them validates without a declaration. The
+  optional `outline`), `--slider-fraction` and `--slider-start-fraction` —
+  the names Input's and Slider's anatomies now declare — so a recipe
+  reading them validates without a declaration. The
   design-system skill says to notch a floating label's outline through
   Input's `outline`/`notch` parts, and to cut a slider handle's gap from
   the published geometry, never to paint the surface behind the control.

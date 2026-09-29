@@ -54,8 +54,9 @@
   behind the label. The slider root now also publishes `--slider-fraction`
   (the highest value, unitless 0–1) and, while a range model has several
   thumbs, `--slider-start-fraction` (the lowest), so a skin can cut the
-  track around a handle. Material uses both; the other five skins leave the
-  outline undisplayed.
+  track around a handle. Input's and Slider's anatomies declare the new
+  names as `runtimeProperties` (#537). Material uses both; the other five
+  skins leave the outline undisplayed.
 
 - **`Input.Affix`, prefix and suffix text as its own part (#467, part of
   #413).** `input.affix` (`placement="start" | "end"` → `data-placement`,
