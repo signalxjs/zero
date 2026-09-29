@@ -174,49 +174,49 @@
     [data-scope="switch"][data-part="root"][data-color="primary"] {
         --switch-accent: var(--color-primary);
         --switch-on-accent: var(--color-primary-content);
-        --switch-soft: var(--color-primary-container);
+        --switch-soft: var(--color-primary-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="secondary"] {
         --switch-accent: var(--color-secondary);
         --switch-on-accent: var(--color-secondary-content);
-        --switch-soft: var(--color-secondary-container);
+        --switch-soft: var(--color-secondary-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="tertiary"] {
         --switch-accent: var(--color-tertiary);
         --switch-on-accent: var(--color-tertiary-content);
-        --switch-soft: var(--color-tertiary-container);
+        --switch-soft: var(--color-tertiary-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="error"] {
         --switch-accent: var(--color-error);
         --switch-on-accent: var(--color-error-content);
-        --switch-soft: var(--color-error-container);
+        --switch-soft: var(--color-error-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="neutral"] {
         --switch-accent: var(--color-neutral);
         --switch-on-accent: var(--color-neutral-content);
-        --switch-soft: var(--color-neutral-container);
+        --switch-soft: var(--color-neutral-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="info"] {
         --switch-accent: var(--color-info);
         --switch-on-accent: var(--color-info-content);
-        --switch-soft: var(--color-info-container);
+        --switch-soft: var(--color-info-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="success"] {
         --switch-accent: var(--color-success);
         --switch-on-accent: var(--color-success-content);
-        --switch-soft: var(--color-success-container);
+        --switch-soft: var(--color-success-soft);
     }
 
     [data-scope="switch"][data-part="root"][data-color="warning"] {
         --switch-accent: var(--color-warning);
         --switch-on-accent: var(--color-warning-content);
-        --switch-soft: var(--color-warning-container);
+        --switch-soft: var(--color-warning-soft);
     }
 
     @media (hover: none) {

@@ -127,7 +127,7 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
     for (const [role, decl] of Object.entries(roles)) {
         names.add(`--color-${role}`);
         if (decl.content !== false) names.add(`--color-${role}-content`);
-        if (decl.soft !== false) names.add(`--color-${role}-soft`);
+        if (decl.soft !== false) names.add(`--color-${role}-soft`).add(`--color-${role}-soft-content`);
     }
     for (const surface of BASE_SURFACE_TOKEN_LIST) names.add(`--color-${surface}`);
 

@@ -162,16 +162,17 @@ describe('the box recipe', () => {
     const box = (ds: (typeof SKINS)[number][1]) =>
         layoutRecipes(ds.tokens as TokensInput).find((r) => r.component === 'box')!;
 
-    it('tints with the SOFT role, and inks with the role itself', () => {
+    it('tints with the SOFT role, and inks with the soft tint\'s own ink', () => {
         // A panel is a large area of colour, and a large area of
         // `--color-error` is a warning label rather than a container. `-soft`
         // is the tint the token contract derives against base-100 for exactly
-        // this; its readable ink is then the role, not `-content`, which is
-        // the ink for the solid fill.
+        // this; its readable ink is `-soft-content` (#421) — not `-content`,
+        // which is the ink for the solid fill, and not the role itself, which
+        // only reads while the tint stays a light wash of it.
         const colors = box(basicDS).variants!['color']!;
         expect(colors['error']!['root']!.base).toEqual({
             '--box-surface': 'var(--color-error-soft)',
-            '--box-ink': 'var(--color-error)',
+            '--box-ink': 'var(--color-error-soft-content)',
         });
     });
 

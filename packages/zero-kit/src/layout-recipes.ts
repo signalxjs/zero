@@ -485,8 +485,11 @@ function centerRecipe(): RecipeInput {
  * `--box-surface` is the role's SOFT tint rather than the role itself. A
  * panel is a large area of colour, and a large area of `--color-error` is a
  * warning label, not a container; `-soft` is the tint the token contract
- * derives against `base-100` for exactly this. Its readable ink is then the
- * role's own colour, not `-content`, which is the ink for the SOLID fill.
+ * derives against `base-100` for exactly this. Its ink is the soft tint's
+ * own, `-soft-content` — not `-content`, which is the ink for the SOLID
+ * fill. It defaults to the role's colour, which reads while the tint is a
+ * light wash of it; a skin whose soft fill inverts (Material's containers
+ * go dark in the high-contrast schemes) sets it (#421).
  */
 function boxRecipe(tokens: TokensInput): RecipeInput {
     // `resolveRoles`, not `?? {}`: the declaration grammar distinguishes
@@ -528,7 +531,7 @@ function boxRecipe(tokens: TokensInput): RecipeInput {
                         root: {
                             base: {
                                 '--box-surface': `var(--color-${role}-soft)`,
-                                '--box-ink': `var(--color-${role})`,
+                                '--box-ink': `var(--color-${role}-soft-content)`,
                             },
                         },
                     }])),

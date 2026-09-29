@@ -263,7 +263,9 @@ one of them is geometry and `data-color` on geometry would paint nothing.
 `Box` is the exception that proves the split: it is the tier's one scope that
 PAINTS, so it wires `color` like any content component, and declares `size`
 out of existence because a Box's size IS its padding and `pad` already says
-that.
+that. A coloured Box is the role's soft tint under the tint's own ink,
+`--color-<role>-soft-content` (#421) — never the role itself, which only
+reads while the tint stays a light wash of it.
 
 `Container` is why the token contract gained a category. Bounding a page needs
 a page-scale length, and nothing in `TOKEN_CATEGORIES` reached one:
@@ -627,6 +629,11 @@ the set down). The other rules worth knowing:
   (` — suggest primary-content: oklch(…)`) and as `ValidationIssue.suggest
   { token, value }` under `rule: 'contrast-floor'`, so an agent iterating
   on a generated theme pastes the value rather than guessing a lightness.
+  The pairs include every soft tint under its ink,
+  `<role>-soft`/`<role>-soft-content` (#421), measured as painted: a tint
+  the theme leaves out is the compiler's `softMix` derivation, and an unset
+  ink is the role colour it defaults to — so a role that only reads as a
+  light wash is told, and the fix names the token to set.
   `rule` and `suggest` are optional on every issue; a rule carries them
   only when it can vouch for a fix. A role pair is measured as painted,
   through the one reading the validator and the report share
@@ -1263,7 +1270,8 @@ layers in each compiled tokens.css — every declared colour role (typed
 `<color>`, so theme switches animate) plus declared customs carrying a
 `syntax`. They cannot live in zero's base.css, which does not know the
 declared role names; `-soft` is unregistered because its value can be
-`color-mix()`, invalid as an `initial-value`.
+`color-mix()`, invalid as an `initial-value`, and `-soft-content` because
+its default is `var(--color-<role>)`.
 
 **Reduced motion** collapses every *declared* duration key to `0.01ms` —
 not `0ms`, because a zero duration suppresses the `transitionend` /
@@ -1336,7 +1344,8 @@ Selection is three-valued: an explicit theme name, or `null` = follow the
 system. The system default needs **no JavaScript**: compiled CSS uses
 `light-dark()` with `color-scheme: light dark` on `:root` (colour tokens
 only, each derived `-soft` resolved per scheme from that theme's explicit
-value or its own `softMix` — a non-colour token that differs between the default themes goes into
+value or its own `softMix`, and each `-soft-content` from its explicit value
+or the role — a non-colour token that differs between the default themes goes into
 a `prefers-color-scheme: dark` block instead, because `light-dark()` is a
 `<color>` function). A design system with no distinct `defaultDark` has one
 scheme, and `:root` states its default theme's own — `color-scheme: dark` for
@@ -1498,9 +1507,11 @@ trigger's `::after` chevron).
 
 **Colour is derived before it is authored.** `derivePalette` /
 `deriveThemePair` (`packages/zero-kit/src/palette.ts`, on `./define`) turn
-seed hues into the exact token set `requiredColorTokens(roles)` names, with
+seed hues into the token set `requiredColorTokens(roles)` names, with
 every `<role>`/`<role>-content` pair solved to its floor (4.5:1; 7:1 for
-`base-100`/`base-content`) and every value clamped into sRGB *before* the
+`base-100`/`base-content`) — plus a `<role>-soft-content` solved to 4.5:1
+for each role that does not read on its own tint (#421) — and every value
+clamped into sRGB *before* the
 validator ever sees it — the guarantee is measured on the formatted
 `oklch()` string, so what the validator re-parses is what the solver
 measured. The module carries no dependency: the `./define` graph may only

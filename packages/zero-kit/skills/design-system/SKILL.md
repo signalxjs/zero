@@ -139,6 +139,11 @@ component's anatomy). No component code is ever written or changed.
      paste that rather than guessing).
    - oklch() everywhere; keep hue families consistent between light and dark.
    - `softMix` (0.08–0.2) controls the derived `-soft` tinted surfaces.
+     Their ink, `x-soft-content`, defaults to `x` itself and is measured
+     against `x-soft` like `x-content` against `x` (#421). A light, bright
+     role — amber, yellow, a pale neutral — rarely reads on its own tint:
+     set `x-soft-content` to the validator's `suggest` value rather than
+     darkening the role.
    - **Structural feel goes in `system`, declared once for the whole design
      system — not repeated per theme.** Categories today: `radius`
      (selector/field/box), `size` (selector/field), `spacing`, `shadow`,

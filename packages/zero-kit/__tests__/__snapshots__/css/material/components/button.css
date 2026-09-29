@@ -127,64 +127,64 @@
     [data-scope="button"][data-part="root"][data-color="primary"] {
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
-        --btn-soft: var(--color-primary-container);
-        --btn-on-soft: var(--color-primary-container-content);
+        --btn-soft: var(--color-primary-soft);
+        --btn-on-soft: var(--color-primary-soft-content);
         --btn-ink: var(--color-primary);
     }
 
     [data-scope="button"][data-part="root"][data-color="secondary"] {
         --btn-accent: var(--color-secondary);
         --btn-on-accent: var(--color-secondary-content);
-        --btn-soft: var(--color-secondary-container);
-        --btn-on-soft: var(--color-secondary-container-content);
+        --btn-soft: var(--color-secondary-soft);
+        --btn-on-soft: var(--color-secondary-soft-content);
         --btn-ink: var(--color-secondary);
     }
 
     [data-scope="button"][data-part="root"][data-color="tertiary"] {
         --btn-accent: var(--color-tertiary);
         --btn-on-accent: var(--color-tertiary-content);
-        --btn-soft: var(--color-tertiary-container);
-        --btn-on-soft: var(--color-tertiary-container-content);
+        --btn-soft: var(--color-tertiary-soft);
+        --btn-on-soft: var(--color-tertiary-soft-content);
         --btn-ink: var(--color-tertiary);
     }
 
     [data-scope="button"][data-part="root"][data-color="error"] {
         --btn-accent: var(--color-error);
         --btn-on-accent: var(--color-error-content);
-        --btn-soft: var(--color-error-container);
-        --btn-on-soft: var(--color-error-container-content);
+        --btn-soft: var(--color-error-soft);
+        --btn-on-soft: var(--color-error-soft-content);
         --btn-ink: var(--color-error);
     }
 
     [data-scope="button"][data-part="root"][data-color="neutral"] {
         --btn-accent: var(--color-neutral);
         --btn-on-accent: var(--color-neutral-content);
-        --btn-soft: var(--color-neutral-container);
-        --btn-on-soft: var(--color-neutral-container-content);
+        --btn-soft: var(--color-neutral-soft);
+        --btn-on-soft: var(--color-neutral-soft-content);
         --btn-ink: var(--color-neutral);
     }
 
     [data-scope="button"][data-part="root"][data-color="info"] {
         --btn-accent: var(--color-info);
         --btn-on-accent: var(--color-info-content);
-        --btn-soft: var(--color-info-container);
-        --btn-on-soft: var(--color-info-container-content);
+        --btn-soft: var(--color-info-soft);
+        --btn-on-soft: var(--color-info-soft-content);
         --btn-ink: var(--color-info);
     }
 
     [data-scope="button"][data-part="root"][data-color="success"] {
         --btn-accent: var(--color-success);
         --btn-on-accent: var(--color-success-content);
-        --btn-soft: var(--color-success-container);
-        --btn-on-soft: var(--color-success-container-content);
+        --btn-soft: var(--color-success-soft);
+        --btn-on-soft: var(--color-success-soft-content);
         --btn-ink: var(--color-success);
     }
 
     [data-scope="button"][data-part="root"][data-color="warning"] {
         --btn-accent: var(--color-warning);
         --btn-on-accent: var(--color-warning-content);
-        --btn-soft: var(--color-warning-container);
-        --btn-on-soft: var(--color-warning-container-content);
+        --btn-soft: var(--color-warning-soft);
+        --btn-on-soft: var(--color-warning-soft-content);
         --btn-ink: var(--color-warning);
     }
 

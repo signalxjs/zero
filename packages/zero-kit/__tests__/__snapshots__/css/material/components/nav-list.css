@@ -121,50 +121,50 @@
 
     [data-scope="nav-list"][data-part="root"][data-color="primary"] {
         --nav-accent: var(--color-primary);
-        --nav-tint: var(--color-primary-container);
-        --nav-on-tint: var(--color-primary-container-content);
+        --nav-tint: var(--color-primary-soft);
+        --nav-on-tint: var(--color-primary-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="secondary"] {
         --nav-accent: var(--color-secondary);
-        --nav-tint: var(--color-secondary-container);
-        --nav-on-tint: var(--color-secondary-container-content);
+        --nav-tint: var(--color-secondary-soft);
+        --nav-on-tint: var(--color-secondary-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="tertiary"] {
         --nav-accent: var(--color-tertiary);
-        --nav-tint: var(--color-tertiary-container);
-        --nav-on-tint: var(--color-tertiary-container-content);
+        --nav-tint: var(--color-tertiary-soft);
+        --nav-on-tint: var(--color-tertiary-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="error"] {
         --nav-accent: var(--color-error);
-        --nav-tint: var(--color-error-container);
-        --nav-on-tint: var(--color-error-container-content);
+        --nav-tint: var(--color-error-soft);
+        --nav-on-tint: var(--color-error-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="neutral"] {
         --nav-accent: var(--color-neutral);
-        --nav-tint: var(--color-neutral-container);
-        --nav-on-tint: var(--color-neutral-container-content);
+        --nav-tint: var(--color-neutral-soft);
+        --nav-on-tint: var(--color-neutral-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="info"] {
         --nav-accent: var(--color-info);
-        --nav-tint: var(--color-info-container);
-        --nav-on-tint: var(--color-info-container-content);
+        --nav-tint: var(--color-info-soft);
+        --nav-on-tint: var(--color-info-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="success"] {
         --nav-accent: var(--color-success);
-        --nav-tint: var(--color-success-container);
-        --nav-on-tint: var(--color-success-container-content);
+        --nav-tint: var(--color-success-soft);
+        --nav-on-tint: var(--color-success-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-color="warning"] {
         --nav-accent: var(--color-warning);
-        --nav-tint: var(--color-warning-container);
-        --nav-on-tint: var(--color-warning-container-content);
+        --nav-tint: var(--color-warning-soft);
+        --nav-on-tint: var(--color-warning-soft-content);
     }
 
     [data-scope="nav-list"][data-part="root"][data-size="xs"] {

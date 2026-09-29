@@ -114,6 +114,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'accent-content': 'oklch(14% 0.03 90)',
                 neutral: 'oklch(62% 0.02 150)',
                 'neutral-content': 'oklch(12% 0.01 150)',
+                'neutral-soft-content': 'oklch(63.1% 0.02 150)',
 
                 info: 'oklch(80% 0.15 195)',
                 'info-content': 'oklch(14% 0.03 195)',

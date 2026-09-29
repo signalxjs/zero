@@ -11,18 +11,24 @@
  * The color contract is a naming GRAMMAR, not a vocabulary: a design system
  * declares its own role names (`roles`), and every color token is
  * `--color-<role>` with the suffix semantics `-content` (readable foreground
- * on the role color, contrast-validated) and `-soft` (tinted surface derived
+ * on the role color, contrast-validated), `-soft` (tinted surface derived
  * against `base-100`, mixed in oklab at the theme's `softMix` — every emit
  * target derives it the same way, so one theme tints identically
- * everywhere). Only the base surfaces are fixed — they anchor soft
- * derivation, `light-dark()` root emission and theme swatches.
+ * everywhere) and `-soft-content` (readable foreground on the soft surface,
+ * contrast-validated; defaults to the role colour, #421). Only the base
+ * surfaces are fixed — they anchor soft derivation, `light-dark()` root
+ * emission and theme swatches.
  */
 
 /** Declaration of one color role in a design system's vocabulary. */
 export interface RoleDecl {
     /** Emit + require + contrast-check a `<role>-content` pairing. Default true. */
     content?: boolean;
-    /** Emit a `<role>-soft` tint (explicit value or `softMix` derivation). Default true. */
+    /**
+     * Emit a `<role>-soft` tint (explicit value or `softMix` derivation) and
+     * its ink, `<role>-soft-content` (explicit value, else the role colour —
+     * #421). Default true.
+     */
     soft?: boolean;
     /**
      * Whether the role is a value of the `color` axis (#425). Default: inferred
@@ -323,12 +329,23 @@ export function requiredColorTokens(roles: Record<string, RoleDecl>): string[] {
     ];
 }
 
-/** `bg` / `fg` pairs the validator contrast-checks for a declaration. */
+/**
+ * `bg` / `fg` pairs the validator contrast-checks for a declaration: every
+ * role on its `-content`, every soft tint under its `-soft-content` ink
+ * (#421 — a theme that sets neither is measuring the role colour on its own
+ * derived tint, which is what a soft surface paints by default), and the
+ * base surfaces under `base-content`. The soft pair's two tokens are
+ * optional in a theme; `withDerivedSoft` fills in what the compiler
+ * derives before a pair is measured.
+ */
 export function contrastPairs(roles: Record<string, RoleDecl>): readonly (readonly [string, string])[] {
     return [
         ...Object.entries(roles)
             .filter(([, decl]) => decl.content !== false)
             .map(([name]) => [name, `${name}-content`] as const),
+        ...Object.entries(roles)
+            .filter(([, decl]) => decl.soft !== false)
+            .map(([name]) => [`${name}-soft`, `${name}-soft-content`] as const),
         ['base-100', 'base-content'],
         ['base-200', 'base-content'],
         ['base-300', 'base-content'],
@@ -929,7 +946,7 @@ export interface ZeroManifest {
     zeroVersion: string;
     tokens: {
         colors: {
-            convention: { prefix: string; contentSuffix: string; softSuffix: string };
+            convention: { prefix: string; contentSuffix: string; softSuffix: string; softContentSuffix: string };
             required: string[];
             recommendedRoles: string[];
         };

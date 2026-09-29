@@ -114,14 +114,15 @@
                     "required": ["convention", "required", "recommendedRoles"],
                     "properties": {
                         "convention": {
-                            "description": "The color-token naming grammar: --color-<role>, with -content (readable foreground) and -soft (tinted surface) suffixes.",
+                            "description": "The color-token naming grammar: --color-<role>, with -content (readable foreground), -soft (tinted surface) and -soft-content (readable foreground on the tinted surface) suffixes.",
                             "type": "object",
                             "additionalProperties": false,
-                            "required": ["prefix", "contentSuffix", "softSuffix"],
+                            "required": ["prefix", "contentSuffix", "softSuffix", "softContentSuffix"],
                             "properties": {
                                 "prefix": { "const": "--color-" },
                                 "contentSuffix": { "const": "-content" },
-                                "softSuffix": { "const": "-soft" }
+                                "softSuffix": { "const": "-soft" },
+                                "softContentSuffix": { "const": "-soft-content" }
                             }
                         },
                         "required": {

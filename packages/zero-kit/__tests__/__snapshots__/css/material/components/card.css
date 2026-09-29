@@ -98,51 +98,51 @@
     }
 
     [data-scope="card"][data-part="root"][data-color="primary"] {
-        --card-fill: var(--color-primary-container);
-        --card-ink: var(--color-primary-container-content);
-        --card-subtle: var(--color-primary-container-content);
+        --card-fill: var(--color-primary-soft);
+        --card-ink: var(--color-primary-soft-content);
+        --card-subtle: var(--color-primary-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="secondary"] {
-        --card-fill: var(--color-secondary-container);
-        --card-ink: var(--color-secondary-container-content);
-        --card-subtle: var(--color-secondary-container-content);
+        --card-fill: var(--color-secondary-soft);
+        --card-ink: var(--color-secondary-soft-content);
+        --card-subtle: var(--color-secondary-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="tertiary"] {
-        --card-fill: var(--color-tertiary-container);
-        --card-ink: var(--color-tertiary-container-content);
-        --card-subtle: var(--color-tertiary-container-content);
+        --card-fill: var(--color-tertiary-soft);
+        --card-ink: var(--color-tertiary-soft-content);
+        --card-subtle: var(--color-tertiary-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="error"] {
-        --card-fill: var(--color-error-container);
-        --card-ink: var(--color-error-container-content);
-        --card-subtle: var(--color-error-container-content);
+        --card-fill: var(--color-error-soft);
+        --card-ink: var(--color-error-soft-content);
+        --card-subtle: var(--color-error-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="neutral"] {
-        --card-fill: var(--color-neutral-container);
-        --card-ink: var(--color-neutral-container-content);
-        --card-subtle: var(--color-neutral-container-content);
+        --card-fill: var(--color-neutral-soft);
+        --card-ink: var(--color-neutral-soft-content);
+        --card-subtle: var(--color-neutral-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="info"] {
-        --card-fill: var(--color-info-container);
-        --card-ink: var(--color-info-container-content);
-        --card-subtle: var(--color-info-container-content);
+        --card-fill: var(--color-info-soft);
+        --card-ink: var(--color-info-soft-content);
+        --card-subtle: var(--color-info-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="success"] {
-        --card-fill: var(--color-success-container);
-        --card-ink: var(--color-success-container-content);
-        --card-subtle: var(--color-success-container-content);
+        --card-fill: var(--color-success-soft);
+        --card-ink: var(--color-success-soft-content);
+        --card-subtle: var(--color-success-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-color="warning"] {
-        --card-fill: var(--color-warning-container);
-        --card-ink: var(--color-warning-container-content);
-        --card-subtle: var(--color-warning-container-content);
+        --card-fill: var(--color-warning-soft);
+        --card-ink: var(--color-warning-soft-content);
+        --card-subtle: var(--color-warning-soft-content);
     }
 
     [data-scope="card"][data-part="root"][data-size="xs"] {

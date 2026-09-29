@@ -64,9 +64,11 @@ export interface DerivePaletteOptions<R extends RolesDecl = RolesDecl> {
     /**
      * The design system's role vocabulary. Omitted → the recommended eight,
      * exactly as `TokensInput.roles` reads it. `{}` → base surfaces only.
-     * The result carries **exactly** `requiredColorTokens(roles)`: no
-     * `-content` for a `content: false` role, never a `-soft` (the compiler
-     * derives those from `softMix`).
+     * The result carries `requiredColorTokens(roles)` — no `-content` for a
+     * `content: false` role, never a `-soft` (the compiler derives those
+     * from `softMix`) — plus a `<role>-soft-content` for each role whose own
+     * colour does not reach `floors.content` on its soft tint (#421); every
+     * other soft ink stays the role, the compiler's default.
      */
     roles?: R;
     scheme: 'light' | 'dark';
@@ -364,7 +366,9 @@ function contentFor(role: Oklch, preset: SchemePreset, floor: number): Oklch | n
  * Guarantees, measured on the emitted strings: every `<role>` /
  * `<role>-content` pair ≥ `floors.content` (default 4.5:1); every role
  * against `base-200` and against its own soft surface ≥ `floors.ink`
- * (default 3:1);
+ * (default 3:1); every soft ink (the role, or the `<role>-soft-content`
+ * emitted where the role falls short) on its soft surface ≥
+ * `floors.content`;
  * `base-100`/`base-content` ≥ `floors.base` (default 7:1) with
  * `base-200`/`base-300` ≥ 4.5:1 against the same ink; every value inside
  * the sRGB gamut; a seeded hue preserved to the tenth of a degree.
@@ -506,12 +510,38 @@ export function derivePalette<R extends RolesDecl = RolesDecl>(opts: DerivePalet
         }
         out[name] = formatOklch(role);
         if (content) out[`${name}-content`] = formatOklch(content);
+
+        // The soft tint's ink (#421). The role clears the ink floor on its
+        // soft surface, which is enough for a mark but not for a label; text
+        // on the tint is held to the content floor like `-content` on the
+        // role. The compiler's default ink is the role, so a token is only
+        // emitted where the role falls short — solved from the role, so the
+        // ink keeps its hue. Same 8-bit margin as the ink floor above.
+        if (roles[name]!.soft !== false) {
+            const printed = quantize(role);
+            const soft = mixOklab(printed, base100, softMix);
+            if (contrastRatio(printed, soft) < contentFloor + inkMargin) {
+                const softInk = solveContentLightness(printed, soft, contentFloor + inkMargin * 1.5);
+                if (!softInk) {
+                    throw new Error(
+                        `[zero-kit] derivePalette: no ${name}-soft-content lightness reaches ${contentFloor}:1 against ` +
+                        `its soft surface ${formatOklch(soft)} (softMix ${softMix}) — lower floors.content or softMix`,
+                    );
+                }
+                out[`${name}-soft-content`] = formatOklch(softInk);
+            }
+        }
     }
 
-    // Exactly the contract's key set, in the contract's order — nothing the
-    // validator would call undeclared, nothing it would call missing.
+    // The contract's key set, in the contract's order — nothing the
+    // validator would call undeclared, nothing it would call missing — then
+    // the soft inks the roles needed.
     const ordered: Record<string, string> = {};
     for (const token of requiredColorTokens(roles)) ordered[token] = out[token]!;
+    for (const name of names) {
+        const softInk = out[`${name}-soft-content`];
+        if (softInk) ordered[`${name}-soft-content`] = softInk;
+    }
     return ordered as ThemeColors<R>;
 }
 

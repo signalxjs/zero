@@ -4,7 +4,8 @@
  *
  * No fixture recipe: `packages/zero-material` IS the executing artifact. The
  * row states the shape the package proves reachable — M3's full colour-role
- * set (#414: the eight action roles, their containers, the seven-step surface
+ * set (#414: the eight action roles, the four key-colour containers — the
+ * rest reach the recipes as each role's soft pair, #421 — the seven-step surface
  * family, the inverse pair, `outline` / `outline-variant`, `scrim`, `shadow`)
  * — and, since #415, M3's component API: Button's five styles by M3's names
  * (`filled`, `tonal`, `elevated`, `outlined`, `text` — `exact`), its
@@ -32,7 +33,6 @@ export const vocabulary = {
     roles: [
         'primary', 'secondary', 'tertiary', 'error', 'neutral', 'info', 'success', 'warning',
         'primary-container', 'secondary-container', 'tertiary-container', 'error-container',
-        'info-container', 'success-container', 'warning-container', 'neutral-container',
         'surface', 'surface-dim', 'surface-bright',
         'surface-container-lowest', 'surface-container-low', 'surface-container',
         'surface-container-high', 'surface-container-highest',

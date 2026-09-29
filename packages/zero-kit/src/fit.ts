@@ -229,7 +229,12 @@ function rewriteRefs(value: string, admits: Admits, counters: Counters): string 
         if (admits.names.has(name)) return whole;
         if (name.startsWith('--color-')) {
             const role = name.slice('--color-'.length);
-            const replacement = role.endsWith('-content')
+            // `-soft-content` is ink ON a soft surface, whose stand-in is
+            // base-200 — so it reads as base-content, not as the base-100
+            // a solid fill's `-content` becomes.
+            const replacement = role.endsWith('-soft-content')
+                ? 'base-content'
+                : role.endsWith('-content')
                 ? 'base-100'
                 : role.endsWith('-soft')
                     ? 'base-200'

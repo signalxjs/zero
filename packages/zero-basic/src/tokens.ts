@@ -196,6 +196,9 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     // petrol blue-black ink protagonist (hue 205), a muted copper
     // counterpoint (hue 55), statuses desaturated to printed-ink density.
     // Chroma ceiling 0.14; no pure white and no pure black anywhere.
+    // A `<role>-soft-content` is set only where the role itself does not
+    // read at AA on its own soft tint — the ink a soft surface (the layout
+    // Box) paints with; every other soft ink defaults to the role (#421).
     themes: {
         basic: {
             colorScheme: 'light',
@@ -221,6 +224,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'success-content': 'oklch(98% 0.01 155)',
                 warning: 'oklch(65% 0.12 85)',
                 'warning-content': 'oklch(18% 0.04 85)',
+                'warning-soft-content': 'oklch(52.5% 0.109 85)',
                 error: 'oklch(47% 0.14 25)',
                 'error-content': 'oklch(98% 0.01 25)',
             },
@@ -242,6 +246,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'accent-content': 'oklch(21% 0.05 60)',
                 neutral: 'oklch(33% 0.012 260)',
                 'neutral-content': 'oklch(92% 0.005 260)',
+                'neutral-soft-content': 'oklch(60% 0.012 260)',
                 info: 'oklch(75% 0.09 245)',
                 'info-content': 'oklch(20% 0.05 245)',
                 success: 'oklch(74% 0.10 155)',

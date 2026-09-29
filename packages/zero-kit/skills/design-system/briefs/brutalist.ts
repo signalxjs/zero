@@ -120,6 +120,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'secondary-content': 'oklch(100% 0 0)',
                 accent: 'oklch(58% 0.16 92)',
                 'accent-content': 'oklch(0% 0 0)',
+                'accent-soft-content': 'oklch(51% 0.106 92)',
                 neutral: 'oklch(0% 0 0)',
                 'neutral-content': 'oklch(100% 0 0)',
 
@@ -129,6 +130,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'success-content': 'oklch(100% 0 0)',
                 warning: 'oklch(58% 0.16 92)',
                 'warning-content': 'oklch(0% 0 0)',
+                'warning-soft-content': 'oklch(51% 0.106 92)',
                 error: 'oklch(50% 0.22 28)',
                 'error-content': 'oklch(100% 0 0)',
             },

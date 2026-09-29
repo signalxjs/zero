@@ -16,6 +16,8 @@
  */
 import { interpolate, parse, wcagContrast } from 'culori';
 import type { Color } from 'culori';
+import type { RoleDecl } from '../contract.js';
+import { bakeSoft } from './color-bake.js';
 
 /** A CSS colour literal parsed the way CSS reads it: case-insensitively. */
 export function parseCssColor(value: string): Color | undefined {
@@ -59,4 +61,31 @@ export function measureRolePair(colors: Record<string, string>, bg: string, fg: 
     }
     const ink = compositeOver(f, surface);
     return { ratio: wcagContrast(ink, surface), bg: surface, fg: ink, translucentFg: (f.alpha ?? 1) < 1, translucentBg: surface !== b };
+}
+
+/**
+ * A theme's colours plus the soft pair the compiler fills in when the theme
+ * leaves it out (#421): each `<role>-soft` it derives (the role mixed into
+ * `base-100` at `softMix`, baked the way every target bakes it) and each
+ * `<role>-soft-content`, which defaults to the role colour. What the soft
+ * pair of `contrastPairs` is measured against — the colours a reader sees.
+ * A derivation that cannot be baked is left out; the pair then goes
+ * unmeasured, as a missing role pair does.
+ */
+export function withDerivedSoft(
+    colors: Record<string, string>,
+    roles: Record<string, RoleDecl>,
+    softMix: number,
+): Record<string, string> {
+    const out: Record<string, string> = { ...colors };
+    for (const [name, decl] of Object.entries(roles)) {
+        if (decl.soft === false) continue;
+        const role = colors[name];
+        const base = colors['base-100'];
+        if (!out[`${name}-soft`] && role && base) {
+            try { out[`${name}-soft`] = bakeSoft(role, base, softMix, 'contrast'); } catch { /* the validator names the bad colour */ }
+        }
+        if (!out[`${name}-soft-content`] && role) out[`${name}-soft-content`] = role;
+    }
+    return out;
 }

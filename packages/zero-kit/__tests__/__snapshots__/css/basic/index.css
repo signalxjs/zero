@@ -34,13 +34,21 @@
         --color-base-300: light-dark(oklch(91.5% 0.008 260), oklch(28.5% 0.016 260));
         --color-base-content: light-dark(oklch(26% 0.015 260), oklch(91% 0.006 260));
         --color-primary-soft: light-dark(color-mix(in oklab, var(--color-primary) 10%, var(--color-base-100)), color-mix(in oklab, var(--color-primary) 14%, var(--color-base-100)));
+        --color-primary-soft-content: var(--color-primary);
         --color-secondary-soft: light-dark(color-mix(in oklab, var(--color-secondary) 10%, var(--color-base-100)), color-mix(in oklab, var(--color-secondary) 14%, var(--color-base-100)));
+        --color-secondary-soft-content: var(--color-secondary);
         --color-accent-soft: light-dark(color-mix(in oklab, var(--color-accent) 10%, var(--color-base-100)), color-mix(in oklab, var(--color-accent) 14%, var(--color-base-100)));
+        --color-accent-soft-content: var(--color-accent);
         --color-neutral-soft: light-dark(color-mix(in oklab, var(--color-neutral) 10%, var(--color-base-100)), color-mix(in oklab, var(--color-neutral) 14%, var(--color-base-100)));
+        --color-neutral-soft-content: light-dark(var(--color-neutral), oklch(60% 0.012 260));
         --color-info-soft: light-dark(color-mix(in oklab, var(--color-info) 10%, var(--color-base-100)), color-mix(in oklab, var(--color-info) 14%, var(--color-base-100)));
+        --color-info-soft-content: var(--color-info);
         --color-success-soft: light-dark(color-mix(in oklab, var(--color-success) 10%, var(--color-base-100)), color-mix(in oklab, var(--color-success) 14%, var(--color-base-100)));
+        --color-success-soft-content: var(--color-success);
         --color-warning-soft: light-dark(color-mix(in oklab, var(--color-warning) 10%, var(--color-base-100)), color-mix(in oklab, var(--color-warning) 14%, var(--color-base-100)));
+        --color-warning-soft-content: light-dark(oklch(52.5% 0.109 85), var(--color-warning));
         --color-error-soft: light-dark(color-mix(in oklab, var(--color-error) 10%, var(--color-base-100)), color-mix(in oklab, var(--color-error) 14%, var(--color-base-100)));
+        --color-error-soft-content: var(--color-error);
         --radius-selector: 0.25rem;
         --radius-field: 0.25rem;
         --radius-box: 0.5rem;
@@ -133,13 +141,21 @@
         --color-base-300: oklch(91.5% 0.008 260);
         --color-base-content: oklch(26% 0.015 260);
         --color-primary-soft: color-mix(in oklab, var(--color-primary) 10%, var(--color-base-100));
+        --color-primary-soft-content: var(--color-primary);
         --color-secondary-soft: color-mix(in oklab, var(--color-secondary) 10%, var(--color-base-100));
+        --color-secondary-soft-content: var(--color-secondary);
         --color-accent-soft: color-mix(in oklab, var(--color-accent) 10%, var(--color-base-100));
+        --color-accent-soft-content: var(--color-accent);
         --color-neutral-soft: color-mix(in oklab, var(--color-neutral) 10%, var(--color-base-100));
+        --color-neutral-soft-content: var(--color-neutral);
         --color-info-soft: color-mix(in oklab, var(--color-info) 10%, var(--color-base-100));
+        --color-info-soft-content: var(--color-info);
         --color-success-soft: color-mix(in oklab, var(--color-success) 10%, var(--color-base-100));
+        --color-success-soft-content: var(--color-success);
         --color-warning-soft: color-mix(in oklab, var(--color-warning) 10%, var(--color-base-100));
+        --color-warning-soft-content: oklch(52.5% 0.109 85);
         --color-error-soft: color-mix(in oklab, var(--color-error) 10%, var(--color-base-100));
+        --color-error-soft-content: var(--color-error);
         --shadow-xs: 0 1px 2px oklch(25% 0.02 260 / 0.05);
         --shadow-sm: 0 1px 3px oklch(25% 0.02 260 / 0.07);
         --shadow-md: 0 2px 8px -2px oklch(25% 0.02 260 / 0.09);
@@ -169,13 +185,21 @@
         --color-base-300: oklch(28.5% 0.016 260);
         --color-base-content: oklch(91% 0.006 260);
         --color-primary-soft: color-mix(in oklab, var(--color-primary) 14%, var(--color-base-100));
+        --color-primary-soft-content: var(--color-primary);
         --color-secondary-soft: color-mix(in oklab, var(--color-secondary) 14%, var(--color-base-100));
+        --color-secondary-soft-content: var(--color-secondary);
         --color-accent-soft: color-mix(in oklab, var(--color-accent) 14%, var(--color-base-100));
+        --color-accent-soft-content: var(--color-accent);
         --color-neutral-soft: color-mix(in oklab, var(--color-neutral) 14%, var(--color-base-100));
+        --color-neutral-soft-content: oklch(60% 0.012 260);
         --color-info-soft: color-mix(in oklab, var(--color-info) 14%, var(--color-base-100));
+        --color-info-soft-content: var(--color-info);
         --color-success-soft: color-mix(in oklab, var(--color-success) 14%, var(--color-base-100));
+        --color-success-soft-content: var(--color-success);
         --color-warning-soft: color-mix(in oklab, var(--color-warning) 14%, var(--color-base-100));
+        --color-warning-soft-content: var(--color-warning);
         --color-error-soft: color-mix(in oklab, var(--color-error) 14%, var(--color-base-100));
+        --color-error-soft-content: var(--color-error);
         --shadow-xs: 0 1px 2px oklch(0% 0 0 / 0.25);
         --shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.30);
         --shadow-md: inset 0 1px 0 oklch(100% 0 0 / 0.06), 0 2px 8px -2px oklch(0% 0 0 / 0.35);
@@ -320,42 +344,42 @@
 
     [data-scope="box"][data-part="root"][data-color="primary"] {
         --box-surface: var(--color-primary-soft);
-        --box-ink: var(--color-primary);
+        --box-ink: var(--color-primary-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="secondary"] {
         --box-surface: var(--color-secondary-soft);
-        --box-ink: var(--color-secondary);
+        --box-ink: var(--color-secondary-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="accent"] {
         --box-surface: var(--color-accent-soft);
-        --box-ink: var(--color-accent);
+        --box-ink: var(--color-accent-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="neutral"] {
         --box-surface: var(--color-neutral-soft);
-        --box-ink: var(--color-neutral);
+        --box-ink: var(--color-neutral-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="info"] {
         --box-surface: var(--color-info-soft);
-        --box-ink: var(--color-info);
+        --box-ink: var(--color-info-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="success"] {
         --box-surface: var(--color-success-soft);
-        --box-ink: var(--color-success);
+        --box-ink: var(--color-success-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="warning"] {
         --box-surface: var(--color-warning-soft);
-        --box-ink: var(--color-warning);
+        --box-ink: var(--color-warning-soft-content);
     }
 
     [data-scope="box"][data-part="root"][data-color="error"] {
         --box-surface: var(--color-error-soft);
-        --box-ink: var(--color-error);
+        --box-ink: var(--color-error-soft-content);
     }
 }
 

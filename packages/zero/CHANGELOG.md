@@ -49,6 +49,12 @@
   its bubble is M3's value indicator. A new part is an anatomy change: a
   design system that styles `slider.mark` should style its two states.
 
+- **`--color-<role>-soft-content` in the token contract (#421, part of
+  #413).** The colour grammar gains a fourth suffix: the readable ink on a
+  role's soft tint, which is the role colour unless a theme sets it. The
+  manifest's `tokens.colors.convention` carries `softContentSuffix:
+  '-soft-content'`.
+
 ### Changed
 
 - **`Stack.Item grow` grows from zero (#454).** The design systems now

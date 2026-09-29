@@ -25,7 +25,7 @@
  *   component lagging behind its siblings does.
  */
 import type { ManifestComponent, ManifestPart, ZeroManifest } from '../contract.js';
-import { contrastPairs } from '../contract.js';
+import { DEFAULT_SOFT_MIX, contrastPairs } from '../contract.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../design-system.js';
 import { axisClaims, offeredFor, undeclaredAxes } from '../design-system.js';
 import type { ScopeVocabulary } from '../tokens.js';
@@ -33,7 +33,7 @@ import type { PartStyles, RecipeInput } from '../recipes.js';
 import type { DesignSystemApi, MappedGrade } from '../api.js';
 import { apiGrade, modifierGrade } from '../api.js';
 import type { ValidationResult } from './validate.js';
-import { measureRolePair } from './role-contrast.js';
+import { measureRolePair, withDerivedSoft } from './role-contrast.js';
 import type { ContrastMatrix } from '../audit/contrast/matrix.js';
 import type { ReportScore } from './score.js';
 import { computeScore, formatScore } from './score.js';
@@ -490,7 +490,8 @@ function divergence(compiled: CompiledDesignSystem): Record<string, AxisDivergen
 function themeReports(ds: DesignSystemInput, compiled: CompiledDesignSystem): ThemeContrastReport[] {
     const pairs = contrastPairs(compiled.tokens.roles);
     return Object.entries(ds.tokens.themes).map(([name, theme]) => {
-        const colors = theme.colors as Record<string, string>;
+        // The soft pair as painted, the validator's reading (#421).
+        const colors = withDerivedSoft(theme.colors as Record<string, string>, compiled.tokens.roles, theme.softMix ?? DEFAULT_SOFT_MIX);
         const measured: Array<{ bg: string; fg: string; ratio: number }> = [];
         for (const [bg, fg] of pairs) {
             // The validator's own reading (translucency composited, colour
