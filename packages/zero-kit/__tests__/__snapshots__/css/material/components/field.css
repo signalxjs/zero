@@ -140,6 +140,10 @@
         opacity: 1;
     }
 
+    [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])):has([data-scope="input"][data-part="outline"]) > [data-scope="field"][data-part="label"] {
+        background: transparent;
+    }
+
     [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])) > [data-scope="field"][data-part="label"][data-required]::after {
         color: inherit;
     }
@@ -241,6 +245,12 @@
 
         [data-scope="field"][data-part="error"] {
             font-size: var(--text-md);
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="field"][data-part="root"]:has(> :is([data-scope="input"][data-part="root"], [data-scope="textarea"][data-part="root"], [data-scope="number-input"][data-part="root"], [data-scope="select"][data-part="root"], [data-scope="combobox"][data-part="root"])):has([data-scope="input"][data-part="outline"]):is(:focus-within, :not([data-placeholder])) > [data-scope="field"][data-part="label"] {
+            background: Canvas;
         }
     }
 

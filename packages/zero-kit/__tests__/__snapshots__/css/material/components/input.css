@@ -90,6 +90,10 @@
         content: " *";
     }
 
+    [data-scope="input"][data-part="root"]:has([data-scope="input"][data-part="outline"]) > [data-scope="input"][data-part="label"] {
+        background: transparent;
+    }
+
     [data-scope="input"][data-part="control"] {
         box-sizing: border-box;
         min-block-size: var(--tf-height);
@@ -133,6 +137,12 @@
         cursor: not-allowed;
         --tf-indicator-color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
         --tf-outline-color: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+    }
+
+    [data-scope="input"][data-part="control"]:has(> [data-part="outline"]) {
+        position: relative;
+        border-color: transparent;
+        box-shadow: inset 0 calc(-1 * var(--tf-indicator)) 0 var(--tf-indicator-color);
     }
 
     [data-scope="input"][data-part="input"] {
@@ -182,6 +192,35 @@
 
     [data-scope="input"][data-part="input"]::-webkit-search-decoration {
         appearance: none;
+    }
+
+    [data-scope="input"][data-part="outline"] {
+        position: absolute;
+        inset: calc(-1 * var(--tf-outline-width));
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        min-inline-size: 0;
+        border: calc(var(--tf-outline-width) + var(--tf-ring)) solid var(--tf-outline-color);
+        border-radius: var(--tf-radius);
+        pointer-events: none;
+        transition: border-color var(--duration-short2) var(--ease-standard);
+    }
+
+    [data-scope="input"][data-part="notch"] {
+        display: block;
+        box-sizing: border-box;
+        inline-size: 0;
+        block-size: 0;
+        padding: 0;
+        margin-inline-start: calc(var(--tf-label-start-floated) - var(--tf-outline-width) - var(--tf-ring));
+        font-size: 0;
+        line-height: 0;
+        transition: inline-size var(--duration-short3) var(--ease-standard);
+    }
+
+    [data-scope="input"][data-part="root"]:is(:focus-within, :not([data-placeholder])) [data-scope="input"][data-part="notch"] {
+        inline-size: calc(var(--input-label-inline-size, 0px) * 0.75);
     }
 
     [data-scope="input"][data-part="adornment"] {
@@ -390,8 +429,20 @@
     }
 
     @media (forced-colors: active) {
+        [data-scope="input"][data-part="root"]:has([data-scope="input"][data-part="outline"]):is(:focus-within, :not([data-placeholder])) > [data-scope="input"][data-part="label"] {
+            background: Canvas;
+        }
+
         [data-scope="input"][data-part="control"] {
             border: 1px solid CanvasText;
+        }
+
+        [data-scope="input"][data-part="control"]:has(> [data-part="outline"]) {
+            border-color: CanvasText;
+        }
+
+        [data-scope="input"][data-part="outline"] {
+            display: none;
         }
     }
 
@@ -401,6 +452,14 @@
         }
 
         [data-scope="input"][data-part="control"] {
+            transition: none;
+        }
+
+        [data-scope="input"][data-part="outline"] {
+            transition: none;
+        }
+
+        [data-scope="input"][data-part="notch"] {
             transition: none;
         }
 

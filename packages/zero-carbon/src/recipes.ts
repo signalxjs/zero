@@ -4104,6 +4104,12 @@ export const input: RecipeInput = {
                 ...focusRing,
             },
         },
+        // The optional outline (#468) exists to be notched for a floated
+        // label. This skin's label sits above the field and never floats,
+        // so the control keeps its own plain border and the outline stays
+        // undisplayed: placing one changes nothing.
+        outline: { base: { display: 'none' } },
+        notch: { base: { display: 'none' } },
     },
     variants: {
         /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */

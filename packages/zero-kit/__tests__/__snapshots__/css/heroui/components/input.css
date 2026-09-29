@@ -189,6 +189,14 @@
         background: var(--color-base-200);
     }
 
+    [data-scope="input"][data-part="outline"] {
+        display: none;
+    }
+
+    [data-scope="input"][data-part="notch"] {
+        display: none;
+    }
+
     [data-scope="input"][data-part="root"][data-size="sm"] {
         --input-text: var(--text-xs);
     }

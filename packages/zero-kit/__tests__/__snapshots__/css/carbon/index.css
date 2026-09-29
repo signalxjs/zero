@@ -4963,6 +4963,14 @@
         outline-offset: -2px;
     }
 
+    [data-scope="input"][data-part="outline"] {
+        display: none;
+    }
+
+    [data-scope="input"][data-part="notch"] {
+        display: none;
+    }
+
     @scope ([data-scope="input"][data-part="root"][data-size="sm"]) to ([data-scope="input"][data-part="root"]) {
         [data-scope="input"][data-part="control"] {
             min-height: 2rem;
