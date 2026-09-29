@@ -8,8 +8,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { PartProps } from '@sigx/zero';
-import { Badge, Breadcrumbs, breadcrumbsAnatomy, Menu, Navbar, navbarAnatomy, NavList, navListAnatomy, Pagination, paginationAnatomy, useBreadcrumbsContext } from '@sigx/zero';
-import { component, signal } from 'sigx';
+import { Badge, Breadcrumbs, breadcrumbsAnatomy, Menu, Navbar, navbarAnatomy, NavList, navListAnatomy, Pagination, paginationAnatomy, useBreadcrumbsContext, zeroPlugin } from '@sigx/zero';
+import { component, defineApp, signal } from 'sigx';
+import { renderToString } from '@sigx/server-renderer';
 import type { JSXElement } from 'sigx';
 import { expectAnatomy } from './helpers';
 
@@ -60,11 +61,112 @@ describe('Navbar', () => {
         expect(container.querySelector(selector('navbar', 'end'))).toBeNull();
     });
 
-    it('declares no states and no flags — a bar has no lifecycle', () => {
+    it('declares no states, and one flag: the root\'s scrolled (#530)', () => {
         for (const name of navbarAnatomy.partNames()) {
             expect(navbarAnatomy.parts[name].states).toBeUndefined();
-            expect(navbarAnatomy.parts[name].flags).toBeUndefined();
+            expect(navbarAnatomy.parts[name].flags).toEqual(name === 'root' ? ['scrolled'] : undefined);
         }
+    });
+
+    describe('data-scrolled (#530)', () => {
+        const frame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()));
+        const scrollTo = (target: Element | Window, top: number): void => {
+            const el = target === window ? (document.scrollingElement ?? document.documentElement) : target as Element;
+            el.scrollTop = top;
+            target.dispatchEvent(new Event('scroll'));
+        };
+        const root = () => part(container, 'navbar', 'root');
+
+        it('follows the document scroller by default', () => {
+            scrollTo(window, 0);
+            render(<Navbar.Root><Navbar.Start>Logo</Navbar.Start></Navbar.Root>, container);
+            expect(root().hasAttribute('data-scrolled')).toBe(false);
+            scrollTo(window, 40);
+            expect(root().getAttribute('data-scrolled')).toBe('');
+            expectAnatomy(container, navbarAnatomy);
+            scrollTo(window, 0);
+            expect(root().hasAttribute('data-scrolled')).toBe(false);
+        });
+
+        it('reads the position on mount, not only on the next scroll', () => {
+            const box = document.createElement('div');
+            document.body.appendChild(box);
+            box.scrollTop = 10;
+            render(<Navbar.Root scrollContainer={box}>x</Navbar.Root>, container);
+            expect(root().getAttribute('data-scrolled')).toBe('');
+            box.remove();
+        });
+
+        it('watches a named container — an element, a ref or a getter — and ignores the document', async () => {
+            for (const make of [
+                (el: HTMLElement) => el,
+                (el: HTMLElement) => ({ current: el }),
+                (el: HTMLElement) => () => el,
+            ]) {
+                container.innerHTML = '';
+                const box = document.createElement('div');
+                document.body.appendChild(box);
+                render(<Navbar.Root scrollContainer={make(box)}>x</Navbar.Root>, container);
+                await frame();
+                scrollTo(window, 30);
+                expect(root().hasAttribute('data-scrolled')).toBe(false);
+                scrollTo(box, 30);
+                expect(root().getAttribute('data-scrolled')).toBe('');
+                scrollTo(box, 0);
+                expect(root().hasAttribute('data-scrolled')).toBe(false);
+                scrollTo(window, 0);
+                render(null, container);
+                box.remove();
+            }
+        });
+
+        it('reads a ref that fills after mount — a sibling rendered after the bar', async () => {
+            const ref: { current: HTMLElement | null } = { current: null };
+            const App = component(() => () => (
+                <div>
+                    <Navbar.Root scrollContainer={ref}>x</Navbar.Root>
+                    <main ref={(el: HTMLElement | null) => { ref.current = el; }} />
+                </div>
+            ));
+            render(<App />, container);
+            await frame();
+            scrollTo(ref.current!, 5);
+            expect(root().getAttribute('data-scrolled')).toBe('');
+        });
+
+        it('switches containers when the prop changes, and detaches on unmount', async () => {
+            const a = document.createElement('div');
+            const b = document.createElement('div');
+            document.body.append(a, b);
+            const state = signal({ target: a as HTMLElement });
+            const App = component(() => () => <Navbar.Root scrollContainer={() => state.target}>x</Navbar.Root>);
+            render(<App />, container);
+            scrollTo(a, 5);
+            expect(root().getAttribute('data-scrolled')).toBe('');
+            // A new getter re-resolves: b sits at the top, and a no longer counts.
+            state.target = b;
+            await frame();
+            expect(root().hasAttribute('data-scrolled')).toBe(false);
+            scrollTo(a, 9);
+            expect(root().hasAttribute('data-scrolled')).toBe(false);
+            scrollTo(b, 9);
+            expect(root().getAttribute('data-scrolled')).toBe('');
+            const remove = vi.spyOn(b, 'removeEventListener');
+            render(null, container);
+            expect(remove).toHaveBeenCalledWith('scroll', expect.any(Function));
+            a.remove();
+            b.remove();
+        });
+
+        it('renders no flag on the server, even over a scrolled document', async () => {
+            scrollTo(window, 50);
+            const app = defineApp(<Navbar.Root><Navbar.Start>Logo</Navbar.Start></Navbar.Root>);
+            app.use(zeroPlugin());
+            const html = await renderToString(app);
+            expect(html).toContain('data-scope="navbar"');
+            expect(html).not.toContain('data-scrolled');
+            scrollTo(window, 0);
+        });
     });
 
     it('passes the variant axes through on the root', () => {

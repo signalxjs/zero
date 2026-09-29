@@ -425,7 +425,9 @@ export const BEHAVIOR_RUNTIME_PROPERTIES = [
  * `--tabs-indicator-*` quartet is written on Tabs' `indicator`: the active
  * tab's box relative to the list's padding box (px, logical — the inline
  * offset from the inline-start edge), so a recipe slides a mark between tabs
- * (#283). The `--toast-*` quartet is written on every Toast root: its
+ * (#283), and beside it the `--tabs-indicator-content-*` pair: the inline
+ * extent of the active tab's optional `tab-label` (the tab's own without
+ * one), for a content-width mark (#530). The `--toast-*` quartet is written on every Toast root: its
  * position in the stack (`--toast-index`, oldest first, of `--toast-count`)
  * and, measured, its own height and the summed heights of the newer toasts in
  * front of it (`--toast-height`, `--toast-offset`, px — #292), so a recipe can
@@ -474,6 +476,8 @@ export const RUNTIME_PROPERTIES = [
     '--tabs-indicator-inset-block-start',
     '--tabs-indicator-inline-size',
     '--tabs-indicator-block-size',
+    '--tabs-indicator-content-inset-inline-start',
+    '--tabs-indicator-content-inline-size',
     '--toast-index',
     '--toast-count',
     '--toast-height',
@@ -590,6 +594,7 @@ export const FLAG_VOCABULARY = [
     'press-animating',
     'swiping',
     'clearable',
+    'scrolled',
 ] as const;
 
 /**

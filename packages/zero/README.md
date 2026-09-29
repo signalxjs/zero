@@ -633,6 +633,21 @@ it and hand the active tab's own underline over to it; daisyui, brutalist
 and heroui keep their static active style and render it `display: none`.
 The four names are the tabs anatomy's declared `runtimeProperties` (#537).
 
+**A Tabs indicator can run under the label** (#530). Wrap a tab's text in the
+optional `Tabs.TabLabel` span and the indicator also publishes that label's
+inline extent, in the same list coordinates, as
+`--tabs-indicator-content-inset-inline-start` and
+`--tabs-indicator-content-inline-size`. A skin reads them for a
+content-width mark — Material 3's primary tabs underline the label, not the
+tab — and keeps the full-tab quartet for everything else. Without a label
+the pair repeats the tab's own inline offset and size, so a recipe may use
+it unconditionally. The label is only a measuring hook: the tab keeps the
+role, the name and the ink.
+
+```tsx
+<Tabs.Tab value="a"><Tabs.TabLabel>Profile</Tabs.TabLabel></Tabs.Tab>
+```
+
 ```tsx
 <Tabs.Root defaultValue="a" lazyMount>
     <Tabs.List aria-label="Account">
@@ -2031,7 +2046,19 @@ once:
 ```
 
 The page keeps one banner (the Navbar's `<header>`, at document scope) and
-one navigation landmark (NavList's `<nav>`) in both regimes. Page CSS
+one navigation landmark (NavList's `<nav>`) in both regimes.
+
+**A Navbar knows when content is scrolled under it** (#530). `Navbar.Root`
+carries `data-scrolled` while the content it sits over is scrolled past its
+top — the document scroller by default. A shell whose `<main>` is the
+scroller names it with `scrollContainer`: an element, a `{ current }` ref or
+a getter, read after mount, so it may name an element rendered after the
+bar. The flag is set on mount, never in server markup. zero-material fills a
+scrolled-under top app bar with surface-container off it.
+
+```tsx
+<Navbar.Root scrollContainer={() => mainEl}>…</Navbar.Root>
+``` Page CSS
 sits outside or after the four layers — `@layer zero, app;` first in the
 app's entry stylesheet (docs/architecture.md, "App CSS").
 

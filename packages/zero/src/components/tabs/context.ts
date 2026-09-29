@@ -21,6 +21,12 @@ export interface TabsContext {
     tabId(value: string): string;
     panelId(value: string): string;
     keydown(e: KeyboardEvent, value: string): void;
+    /**
+     * Bumped whenever a `Tabs.TabLabel` mounts or unmounts (#530), so the
+     * indicator re-measures when the label it reads comes or goes.
+     */
+    labelsVersion(): number;
+    labelsChanged(): void;
 }
 
 function makeInertTabs(): TabsContext {
@@ -37,6 +43,8 @@ function makeInertTabs(): TabsContext {
         tabId: (v) => `zx-tabs-inert-tab-${v}`,
         panelId: (v) => `zx-tabs-inert-panel-${v}`,
         keydown: () => {},
+        labelsVersion: () => 0,
+        labelsChanged: () => {},
     };
 }
 

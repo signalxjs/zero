@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
-import { signal } from 'sigx';
+import { component, signal } from 'sigx';
 import { Tabs, tabsAnatomy, type PartProps } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
@@ -294,6 +294,129 @@ describe('Tabs.Indicator (#283)', () => {
         layout(boxes);
         await mount({ defaultValue: '' });
         expect(indicator().style.display).toBe('none');
+    });
+});
+
+describe('Tabs.TabLabel — the content geometry (#530)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    afterEach(() => {
+        vi.restoreAllMocks();
+        container.remove();
+    });
+
+    // The list at (10, 20), 300 wide. First's tab at +2..+82 holds a label
+    // at +22..+62; Second's tab at +90..+180 holds one at +110..+160.
+    const boxes = (el: Element) => {
+        const part = el.getAttribute('data-part');
+        if (part === 'list') return { left: 10, top: 20, width: 300, height: 40 };
+        const first = el.textContent === 'First';
+        if (part === 'tab') {
+            return first ? { left: 12, top: 22, width: 80, height: 36 } : { left: 100, top: 22, width: 90, height: 36 };
+        }
+        if (part === 'tab-label') {
+            return first ? { left: 32, top: 30, width: 40, height: 20 } : { left: 120, top: 30, width: 50, height: 20 };
+        }
+        return null;
+    };
+
+    const content = () => {
+        const style = container.querySelector<HTMLElement>('[data-part="indicator"]')!.style;
+        return ['content-inset-inline-start', 'content-inline-size']
+            .map((name) => style.getPropertyValue(`--tabs-indicator-${name}`));
+    };
+
+    const mount = async (opts: { labels?: boolean; dir?: 'rtl' } = {}) => {
+        if (opts.dir) container.style.direction = opts.dir;
+        const labels = opts.labels ?? true;
+        render(
+            <Tabs.Root defaultValue="a">
+                <Tabs.List>
+                    <Tabs.Tab value="a">{labels ? <Tabs.TabLabel>First</Tabs.TabLabel> : 'First'}</Tabs.Tab>
+                    <Tabs.Tab value="b">{labels ? <Tabs.TabLabel>Second</Tabs.TabLabel> : 'Second'}</Tabs.Tab>
+                    <Tabs.Indicator />
+                </Tabs.List>
+                <Tabs.Panel value="a">Panel A</Tabs.Panel>
+                <Tabs.Panel value="b">Panel B</Tabs.Panel>
+            </Tabs.Root>,
+            container,
+        );
+        await frame();
+    };
+
+    it('renders a span inside its tab, with a valid anatomy, and leaves the semantics on the tab', async () => {
+        layout(boxes);
+        await mount();
+        expectAnatomy(container, tabsAnatomy);
+        const label = container.querySelector<HTMLElement>('[data-part="tab-label"]')!;
+        expect(label.tagName).toBe('SPAN');
+        expect(label.parentElement!.getAttribute('role')).toBe('tab');
+        expect(label.hasAttribute('role')).toBe(false);
+    });
+
+    it('publishes the active label\'s inline extent beside the tab\'s box, and follows the value', async () => {
+        layout(boxes);
+        await mount();
+        expect(content()).toEqual(['22px', '40px']);
+        container.querySelectorAll<HTMLElement>('[data-part="tab"]')[1]!.click();
+        await frame();
+        expect(content()).toEqual(['110px', '50px']);
+    });
+
+    it('measures the label from the inline-start edge under RTL', async () => {
+        layout(boxes);
+        await mount({ dir: 'rtl' });
+        // The list's right edge is 310; First's label ends at 72 → 238px.
+        expect(content()).toEqual(['238px', '40px']);
+    });
+
+    it('falls back to the tab\'s own inline extent without a label', async () => {
+        layout(boxes);
+        await mount({ labels: false });
+        expect(content()).toEqual(['2px', '80px']);
+    });
+
+    it('undoes a scale on the pressed tab for the label too', async () => {
+        // First pressed at 0.5 about its centre (52, 40): the tab paints at
+        // 32..72 and its label at 42..62.
+        const scaled = (el: Element) => {
+            const part = el.getAttribute('data-part');
+            if (el.textContent === 'First' && part === 'tab') return { left: 32, top: 31, width: 40, height: 18 };
+            if (el.textContent === 'First' && part === 'tab-label') return { left: 42, top: 35, width: 20, height: 10 };
+            return boxes(el);
+        };
+        layout(scaled);
+        const real = window.getComputedStyle;
+        vi.spyOn(window, 'getComputedStyle').mockImplementation((el: Element, pseudo?: string | null) => {
+            const cs = real(el, pseudo);
+            if (el.getAttribute('data-part') !== 'tab' || el.textContent !== 'First') return cs;
+            return new Proxy(cs, { get: (t, k) => (k === 'transform' ? 'matrix(0.5, 0, 0, 0.5, 0, 0)' : Reflect.get(t, k)) });
+        });
+        await mount();
+        expect(content()).toEqual(['22px', '40px']);
+    });
+
+    it('re-measures when a label mounts after the indicator did', async () => {
+        layout(boxes);
+        const state = signal({ labelled: false });
+        const App = component(() => () => (
+            <Tabs.Root defaultValue="a">
+                <Tabs.List>
+                    <Tabs.Tab value="a">{state.labelled ? <Tabs.TabLabel>First</Tabs.TabLabel> : 'First'}</Tabs.Tab>
+                    <Tabs.Indicator />
+                </Tabs.List>
+            </Tabs.Root>
+        ));
+        render(<App />, container);
+        await frame();
+        expect(content()).toEqual(['2px', '80px']);
+        state.labelled = true;
+        await frame();
+        await frame();
+        expect(content()).toEqual(['22px', '40px']);
     });
 });
 

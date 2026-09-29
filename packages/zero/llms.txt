@@ -13,7 +13,8 @@
   checked|unchecked, active|inactive).
 - Boolean flags are presence-only: `data-disabled=""`, never ="false".
   Vocabulary: disabled, highlighted, selected, invalid, required, readonly,
-  placeholder, focus-visible, pressed, press-animating, swiping, clearable.
+  placeholder, focus-visible, pressed, press-animating, swiping, clearable,
+  scrolled.
 - Domain flags (#457; ECOSYSTEM parts only, never zero's own): a fragment
   part declares `domainFlags: ['unread']` and renders `data-x-unread=""`
   (`domainFlagAttrs({ unread })`, presence-only). The shared vocabulary above
@@ -23,6 +24,11 @@
 - `data-clearable` (#387; select trigger, value, indicator): present exactly
   while the Select.ClearTrigger renders — a skin reserves the button's width
   off it (no `:has()`; lynx stamps it as `zx-f-clearable`).
+- `data-scrolled` (#530; navbar root): present while the content under the
+  bar is scrolled past its top — the document scroller, or the element the
+  root's `scrollContainer` names (element, `{ current }` ref or getter).
+  Set after mount only (never in SSR markup). A skin fills a scrolled-under
+  app bar off it.
 - Swipe to dismiss (#293; toast root, drawer sheet panel — `createSwipe`):
   `data-swiping` while the part is dragged toward its dismiss edge (past a
   10px slop), the offset as `--swipe-x`/`--swipe-y` (px, physical, clamped
@@ -213,13 +219,17 @@ component renders; the root is called out separately where it carries props.
   feedback (data-pressed / data-press-animating / --press-*), as do all
   interactive parts — see the press-feedback bullet above.
 - Tabs: Root(model=value, lazyMount, unmountOnExit)/List/Tab(value,asChild)/
-  Indicator/Panel(value). APG tabs, roving arrows, automatic|manual
+  TabLabel/Indicator/Panel(value). APG tabs, roving arrows, automatic|manual
   activation, orientation. Indicator is an optional aria-hidden span inside
   the list publishing the active tab's box as
   --tabs-indicator-inset-inline-start/-inset-block-start/-inline-size/
   -block-size (px, relative to the list's padding box, inline offset from
   its inline-start edge; web-only); display:none until measured and while no
-  tab is active. lazyMount renders a panel's content once it has been
+  tab is active. TabLabel (#530) is an optional span around a tab's text;
+  the indicator then also publishes that label's inline extent as
+  --tabs-indicator-content-inset-inline-start/-content-inline-size (the
+  tab's own extent without a label), for a content-width mark (M3's
+  primary tabs). lazyMount renders a panel's content once it has been
   active; unmountOnExit only while active; the panel element always renders.
 - Collapsible: Root(model=open, native)/Trigger/Panel on native <details>. The
   panel is labelled by the trigger (no role) and publishes
@@ -767,12 +777,12 @@ component renders; the root is called out separately where it carries props.
   reference). Label `placement` 'start'|'end' → data-placement (logical
   edge; absent = centred). `decorative` renders role=none with no
   aria-orientation and no aria-labelledby.
-- Navbar: Root/Start/Center/End — the landmark header bar, pure
-  composition (no states, no behavior). Root is a <header> (the banner
-  landmark at document scope), NOT a <nav>: the bar holds non-navigation
-  content too, so the consumer wraps the actual link set in its own
-  labelled <nav> inside a section. start/end are the logical pair, so RTL
-  mirrors free.
+- Navbar: Root(scrollContainer)/Start/Center/End — the landmark header bar,
+  composition plus one flag: `data-scrolled` on the root (#530, above).
+  Root is a <header> (the banner landmark at document scope), NOT a <nav>:
+  the bar holds non-navigation content too, so the consumer wraps the
+  actual link set in its own labelled <nav> inside a section. start/end are
+  the logical pair, so RTL mirrors free.
 - NavList: Root(label)/Group/Heading/List/Item/Link(current,asChild)/Icon/
   Meta (#132) — the sidebar's navigation list, and the <nav> Navbar points
   at: exactly the links. Root is a labelled <nav> landmark over <ul> lists;

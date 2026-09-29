@@ -79,6 +79,13 @@ import { TOKEN_KEY_PATTERN } from './tokens.js';
  * the flag it had to reach up with `:has(> [data-part="clear-trigger"])`,
  * which the lynx class grammar cannot express and which only matched a
  * clear-trigger that was a direct child of the root.
+ *
+ * `scrolled` is present on a bar while the content it sits over is scrolled
+ * past its block-start edge (#530 — `navbar.root`, which watches the
+ * document scroller or a named scroll container). It is the scrolled-under
+ * state an app bar fills itself on; a skin cannot derive it in CSS, because
+ * a scroll-driven animation only reaches the scroller's own descendants, not
+ * a sibling header. Set only after mount, so server markup never carries it.
  */
 export const FLAG_VOCABULARY = [
     'disabled',
@@ -93,6 +100,7 @@ export const FLAG_VOCABULARY = [
     'press-animating',
     'swiping',
     'clearable',
+    'scrolled',
 ] as const;
 
 export type FlagName = typeof FLAG_VOCABULARY[number];
