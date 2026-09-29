@@ -869,6 +869,19 @@ export interface ManifestPart {
      */
     carries?: readonly string[];
     /**
+     * Present when the part MIRRORS the carrier's whole axis surface (#514)
+     * — zero's `PartSpec.mirrorsAxes`. The runtime copies every axis
+     * attribute the carrier renders (named, custom and `data-mod-*`) onto
+     * the part, so it is an axis anchor of its own: the web compiler roots
+     * every axis rule for this part, and for each part inside it, here
+     * instead of on the carrier (`axisAnchor`). The fragment-rooted scopes'
+     * popups declare it — top-layer siblings the carrier can never reach.
+     * Presence-only. `mergeManifests` holds a fragment to the invariants:
+     * never the carrier, no `parent`, no `pseudo`, not `absorbable`, no
+     * `carries`.
+     */
+    mirrorsAxes?: true;
+    /**
      * States in which zero's runtime sets `hidden` on this part, so it paints
      * nothing while it is in them (avatar's `image` while `error`). Styling
      * such a state identically to a visible one is correct, not lazy — the
@@ -1012,6 +1025,24 @@ export function carrierPart(component: ManifestComponent): string {
 }
 
 /**
+ * Where `part`'s axis attributes are read from — the part that ANCHORS its
+ * axis rules: the nearest part up the declared tree (the part itself
+ * included) that is the scope's carrier or mirrors it (`mirrorsAxes`,
+ * #514). `undefined` when the chain reaches neither: a top-layer sibling of
+ * the carrier that mirrors nothing, where a carrier-anchored rule is dead.
+ */
+export function axisAnchor(component: ManifestComponent, part: string): string | undefined {
+    const byName = new Map(component.parts.map((p) => [p.name, p]));
+    const carrier = carrierPart(component);
+    let cursor = byName.get(part);
+    for (let hops = 0; cursor && hops <= component.parts.length; hops++) {
+        if (cursor.name === carrier || cursor.mirrorsAxes) return cursor.name;
+        cursor = cursor.parent === undefined ? undefined : byName.get(cursor.parent);
+    }
+    return undefined;
+}
+
+/**
  * The parts that carry `axis` for `part`, nearest first — the part itself
  * when it re-carries the axis (`ManifestPart.carries`, #94), then each
  * containing part up the declared tree that does. The scope's carrier is not
@@ -1026,7 +1057,9 @@ export function carriersOf(component: ManifestComponent, part: string, axis: str
     let cursor = byName.get(part);
     // Bounded like mergeManifests' acyclicity walk: a hand-built manifest
     // with a cycle must fail somewhere else, by name — not hang here.
-    for (let hops = 0; cursor && cursor.name !== carrier && hops <= component.parts.length; hops++) {
+    // A mirroring part (#514) ends the walk like the carrier: it anchors
+    // every axis for its subtree, and callers anchor on it separately.
+    for (let hops = 0; cursor && cursor.name !== carrier && !cursor.mirrorsAxes && hops <= component.parts.length; hops++) {
         if (cursor.carries?.includes(axis)) out.push(cursor.name);
         cursor = cursor.parent === undefined ? undefined : byName.get(cursor.parent);
     }

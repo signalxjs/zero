@@ -279,6 +279,26 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                         throw new Error(`[zero-kit] ${at(part.name)} is a pseudo part — it renders no element to carry an attribute`);
                     }
                 }
+                if (part.mirrorsAxes !== undefined) {
+                    // An axis anchor of its own (#514): the runtime copies the
+                    // carrier's whole surface onto it. Only a top-level part
+                    // the carrier cannot reach means anything — and it needs
+                    // an element to hold the attributes.
+                    if (part.mirrorsAxes !== true) {
+                        throw new Error(`[zero-kit] ${at(part.name)} has a "mirrorsAxes" that is not true — it is presence-only, omit the key when the part mirrors nothing`);
+                    }
+                    if (part.name === carrierPart(component)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} is the scope's carrier — it renders the axes already, so it has nothing to mirror`);
+                    }
+                    if (part.parent !== undefined) {
+                        throw new Error(`[zero-kit] ${at(part.name)} mirrors the axes but declares a parent ("${part.parent}") — a mirroring part is a top-level sibling of the carrier, which is why it needs the copy`);
+                    }
+                    for (const key of ['pseudo', 'absorbable', 'carries'] as const) {
+                        if (part[key] !== undefined) {
+                            throw new Error(`[zero-kit] ${at(part.name)} mirrors the axes and declares "${key}" — ${key === 'carries' ? 'it has every axis already' : 'a mirroring part needs an element of its own'}`);
+                        }
+                    }
+                }
                 if (part.absorbable !== undefined) {
                     // A lent part (#452) renders no element of its own — the
                     // host's anatomy wins — so everything that needs one is

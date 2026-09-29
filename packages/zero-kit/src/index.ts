@@ -262,6 +262,7 @@ export {
     tokenProperty,
     carrierPart,
     carriersOf,
+    axisAnchor,
     partFlagKeys,
     domainFlagKey,
     DOMAIN_FLAG_PREFIX,

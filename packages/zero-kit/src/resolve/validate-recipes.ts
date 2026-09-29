@@ -1123,7 +1123,9 @@ export function validateRecipes(
         // element the part never sits under, and the rule is dead. Rules on
         // the carrier itself are flat and perfectly alive (#321 wires
         // exactly those), as are rules for any part whose declared `parent`
-        // chain reaches the carrier.
+        // chain reaches the carrier — or a part that MIRRORS the carrier's
+        // axes (#514, `mirrorsAxes`: the overlay popups render the trigger's
+        // attributes themselves, and the compiler roots their rules there).
         if (!partsByName.has('root')) {
             // Anatomies cannot be empty, so the fallback carrier always
             // exists — same invariant `carrierPart` in contract.ts relies on.
@@ -1131,7 +1133,7 @@ export function validateRecipes(
             const reachesCarrier = (name: string): boolean => {
                 let cursor = partsByName.get(name);
                 while (cursor) {
-                    if (cursor.name === carrier) return true;
+                    if (cursor.name === carrier || cursor.mirrorsAxes) return true;
                     cursor = cursor.parent === undefined ? undefined : partsByName.get(cursor.parent);
                 }
                 return false;
@@ -1142,7 +1144,7 @@ export function validateRecipes(
             // and compounds anchor on the carrier alone.
             const carriedHere = (axis: string, part: string): boolean => {
                 let cursor = partsByName.get(part);
-                while (cursor && cursor.name !== carrier) {
+                while (cursor && cursor.name !== carrier && !cursor.mirrorsAxes) {
                     if (cursor.carries?.includes(axis)) return true;
                     cursor = cursor.parent === undefined ? undefined : partsByName.get(cursor.parent);
                 }
@@ -1159,7 +1161,7 @@ export function validateRecipes(
                 error(
                     `${where}.variants`,
                     `"${recipe.component}" has no "root" part, so the variant attribute sits on "${carrier}" — ` +
-                    `and ${dead.map((p) => `"${p}"`).join(', ')} never renders under it, so the generated ` +
+                    `and ${dead.map((p) => `"${p}"`).join(', ')} never renders under it or under a part that mirrors its axes (mirrorsAxes), so the generated ` +
                     'descendant selectors would not match and the rules are dead',
                 );
             }
