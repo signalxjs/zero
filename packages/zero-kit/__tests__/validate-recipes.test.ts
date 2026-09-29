@@ -7,7 +7,7 @@
  * much as the first.
  */
 import { describe, it, expect } from 'vitest';
-import { validateDesignSystem } from '@sigx/zero-kit';
+import { mergeManifests, validateDesignSystem } from '@sigx/zero-kit';
 import type { CssProps, DesignSystemInput, ManifestComponent, RecipeInput } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
@@ -69,6 +69,35 @@ describe('token references', () => {
     it('suggests the nearest declared token', () => {
         expect(check(tabsWith({ padding: 'var(--spce-md)' })).errors)
             .toContainEqual(expect.stringContaining('did you mean "--space-md"'));
+    });
+
+    describe("a fragment's declared runtime property (#456)", () => {
+        const fragmentWith = (runtimeProperties?: string[]) => mergeManifests(manifest, {
+            version: 1,
+            package: '@acme/zero-x',
+            components: [{
+                scope: 'acme-x',
+                parts: [{ name: 'root', element: 'div', selectors: {} }],
+                ...(runtimeProperties ? { runtimeProperties } : {}),
+            }],
+        });
+        const reading = (value: string): RecipeInput => ({ component: 'acme-x', parts: { root: { base: { inlineSize: value } } } });
+        const checkAgainst = (m: typeof manifest, recipe: RecipeInput) =>
+            validateDesignSystem(dsWith(recipe), m).errors.map((e) => e.message);
+
+        it('resolves bare when the merged scope declares it', () => {
+            expect(checkAgainst(fragmentWith(['--acme-x-size']), reading('var(--acme-x-size)'))).toEqual([]);
+        });
+
+        it('is "never declares" when the scope does not', () => {
+            expect(checkAgainst(fragmentWith(), reading('var(--acme-x-size)')))
+                .toContainEqual(expect.stringContaining('"--acme-x-size", which this design system never declares'));
+        });
+
+        it('is the "did you mean" for a near miss', () => {
+            expect(checkAgainst(fragmentWith(['--acme-x-size']), reading('var(--acme-x-sise)')))
+                .toContainEqual(expect.stringContaining('did you mean "--acme-x-size"'));
+        });
     });
 
     it('only warns when there is a fallback', () => {

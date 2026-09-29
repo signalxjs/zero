@@ -19,7 +19,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import type { ValidateFunction } from 'ajv/dist/2020.js';
-import { anatomies } from '@sigx/zero/anatomy';
+import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
 import {
     RECOMMENDED_ROLE_LIST,
     BASE_SURFACE_TOKEN_LIST,
@@ -58,6 +58,9 @@ const validateTokens = ajv.compile(loadSchema('tokens'));
 const validateRecipe = ajv.compile(loadSchema('recipe'));
 const validateReport = ajv.compile(loadSchema('report'));
 const validateAudit = ajv.compile(loadSchema('audit'));
+// After the manifest schema: its `$defs/component` is what a fragment's
+// components `$ref`, resolved by `$id` in this one instance.
+const validateFragment = ajv.compile(loadSchema('fragment'));
 
 /**
  * JSON roundtrip before validating. The design systems are authored as TS
@@ -191,10 +194,43 @@ describe('manifest.schema.json', () => {
         expect(validateManifest(empty)).toBe(false);
     });
 
+    it('carries runtimeProperties on a component, and rejects an empty, duplicated or ungrammatical list (#456)', () => {
+        const withRuntime = (runtimeProperties: unknown) => {
+            const m = asJson(manifest) as typeof manifest;
+            (m.components.find((c) => c.scope === 'badge') as { runtimeProperties?: unknown }).runtimeProperties = runtimeProperties;
+            return m;
+        };
+        expectValid(validateManifest, withRuntime(['--badge-count']), 'manifest with runtimeProperties');
+        expect(validateManifest(withRuntime([]))).toBe(false);
+        expect(validateManifest(withRuntime(['--badge-count', '--badge-count']))).toBe(false);
+        expect(validateManifest(withRuntime(['badge-count']))).toBe(false);
+        expect(validateManifest(withRuntime(['--Badge-count']))).toBe(false);
+        expect(validateManifest(withRuntime(['--badge--count']))).toBe(false);
+    });
+
     it('rejects a non-kebab flag name', () => {
         const bad = asJson(manifest) as typeof manifest;
         (bad.attributeSpec.flagVocabulary as string[]).push('Focus_Visible');
         expect(validateManifest(bad)).toBe(false);
+    });
+});
+
+describe('fragment.schema.json', () => {
+    // defineAnatomy's own output, with and without the key: the schema is
+    // held to what the authoring helper emits.
+    const component = (runtimeProperties?: readonly `--${string}`[]) => asJson(defineAnatomy('acme-stepper', {
+        root: { element: 'div' },
+    }, runtimeProperties ? { runtimeProperties } : {}).toJSON());
+    const fragmentOf = (c: unknown) => ({ version: 1, package: '@acme/zero-stepper', components: [c] });
+
+    it('accepts a component with and without runtimeProperties', () => {
+        expectValid(validateFragment, fragmentOf(component()), 'fragment without runtimeProperties');
+        expectValid(validateFragment, fragmentOf(component(['--acme-stepper-count'])), 'fragment with runtimeProperties');
+    });
+
+    it('rejects an empty list and an ungrammatical name through the component $ref', () => {
+        expect(validateFragment(fragmentOf({ ...(component() as object), runtimeProperties: [] }))).toBe(false);
+        expect(validateFragment(fragmentOf({ ...(component() as object), runtimeProperties: ['acme-stepper-count'] }))).toBe(false);
     });
 });
 

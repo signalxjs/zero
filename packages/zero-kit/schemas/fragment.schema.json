@@ -21,7 +21,7 @@
             "pattern": "^(@[a-z0-9~][\\w.~-]*/)?[a-z0-9~][\\w.~-]*(/[\\w.~-]+)*$"
         },
         "components": {
-            "description": "The anatomies this package ships, in zero's manifest component shape. Scope names SHOULD carry a vendor prefix (e.g. `acme-stepper`) — the merge hard-errors on any collision with the base manifest or another fragment.",
+            "description": "The anatomies this package ships, in zero's manifest component shape. Scope names SHOULD carry a vendor prefix (e.g. `acme-stepper`) — the merge hard-errors on any collision with the base manifest or another fragment. A component's runtimeProperties carry the same prefix: each name starts with --<scope>-, and the merge hard-errors on a name outside it, under the token grammar, among the behavior-level runtime properties, or already declared by the base manifest or another fragment.",
             "type": "array",
             "items": { "$ref": "manifest.schema.json#/$defs/component" },
             "minItems": 1

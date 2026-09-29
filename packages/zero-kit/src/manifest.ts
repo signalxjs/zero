@@ -24,9 +24,12 @@ import {
     LAYOUT_ATTR_NAMES,
     STATE_NAMES,
     STATE_SYNONYMS,
+    TOKEN_CATEGORIES,
     TOKEN_KEY_PATTERN,
     VARIANT_AXES,
     carrierPart,
+    MEDIUM_PROPERTIES,
+    RUNTIME_PROPERTIES,
 } from './contract.js';
 
 export { FRAGMENT_VERSION };
@@ -55,6 +58,23 @@ const MODEL_CONCEPT_PATTERN = /^[a-z][A-Za-z0-9]*$/;
 const MODEL_MEMBER_PATTERN = /^[A-Z][A-Za-z0-9]*$/;
 /** The closed key set of a model entry (the schema's `$defs/model`). */
 const MODEL_KEYS = new Set(['name', 'concept', 'type', 'member', 'multiple', 'formControl', 'default', 'change']);
+
+/** A runtime-property name: `--` then kebab-case (the schema's pattern). */
+const RUNTIME_PROPERTY_PATTERN = /^--[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/**
+ * The token grammar a fragment's runtime property may never sit under: the
+ * colour prefix, every scale category's prefix (`--text-` covers
+ * `--text-fixed-` too) and every scalar category's exact name. A runtime
+ * name there would read as a token to every consumer — the vocabulary, the
+ * fit's category collapse (`fit.ts`), a reader — so a `text-editor` or
+ * `color-picker` scope declares none (#456).
+ */
+const TOKEN_GRAMMAR_PREFIXES = ['--color-', ...TOKEN_CATEGORIES.filter((c) => c.shape === 'scale').map((c) => c.prefix)];
+const TOKEN_GRAMMAR_NAMES = new Set<string>(TOKEN_CATEGORIES.filter((c) => c.shape === 'scalar').map((c) => c.prefix));
+
+/** The kit's own names a fragment can never claim, whatever its scope. */
+const RESERVED_RUNTIME_NAMES = new Set<string>([...RUNTIME_PROPERTIES, ...MEDIUM_PROPERTIES]);
 
 export interface ManifestFragment {
     /**
@@ -86,6 +106,18 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
         base.components.map((c) => [c.scope, c.package ?? '@sigx/zero']),
     );
     const merged: ManifestComponent[] = [...base.components];
+    // Runtime property → who declares it, merge-wide. Seeded from the base
+    // (whose own duplicates — progress and radial-progress both write
+    // `--progress-percent` — are zero's business, checked by zero's suite);
+    // a fragment then may claim nothing already in it, since one scope's
+    // name can prefix another's (`acme` and `acme-split` could both claim
+    // `--acme-split-size`).
+    const runtimeOwners = new Map<string, string>();
+    for (const c of base.components) {
+        for (const name of c.runtimeProperties ?? []) {
+            if (!runtimeOwners.has(name)) runtimeOwners.set(name, `${c.package ?? '@sigx/zero'} scope "${c.scope}"`);
+        }
+    }
 
     for (const [index, fragment] of fragments.entries()) {
         const where = typeof fragment?.package === 'string' && fragment.package.length > 0
@@ -340,6 +372,40 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                             throw new Error(`[zero-kit] ${label}: "${flag}" is presence-only — true or omitted, never ${String(model[flag])}`);
                         }
                     }
+                }
+            }
+            // The runtime properties a fragment declares (#456): each one
+            // becomes a name every recipe may read bare and the lynx target
+            // refuses, so the fragment must own it outright.
+            if (component.runtimeProperties !== undefined) {
+                const label = `${where}: "${component.scope}" runtimeProperties`;
+                if (!Array.isArray(component.runtimeProperties) || component.runtimeProperties.length === 0) {
+                    throw new Error(`[zero-kit] ${label} is not a non-empty array — omit the key when the component writes none`);
+                }
+                if (new Set(component.runtimeProperties).size !== component.runtimeProperties.length) {
+                    throw new Error(`[zero-kit] ${label} lists a property twice`);
+                }
+                const prefix = `--${component.scope}-`;
+                for (const name of component.runtimeProperties) {
+                    if (typeof name !== 'string' || !RUNTIME_PROPERTY_PATTERN.test(name)) {
+                        throw new Error(`[zero-kit] ${label}: "${String(name)}" is not a custom property name — "--" then kebab-case`);
+                    }
+                    if (!name.startsWith(prefix)) {
+                        throw new Error(`[zero-kit] ${label}: "${name}" does not start with "${prefix}" — a fragment's runtime properties carry the scope's own prefix`);
+                    }
+                    if (TOKEN_GRAMMAR_NAMES.has(name) || TOKEN_GRAMMAR_PREFIXES.some((p) => name.startsWith(p))) {
+                        throw new Error(`[zero-kit] ${label}: "${name}" sits under the token grammar — a runtime property there would read as a design token; rename the scope or the property`);
+                    }
+                    if (RESERVED_RUNTIME_NAMES.has(name)) {
+                        throw new Error(`[zero-kit] ${label}: "${name}" is one of the kit's own runtime or medium properties — a fragment cannot claim it`);
+                    }
+                    const claimed = runtimeOwners.get(name);
+                    if (claimed) {
+                        throw new Error(`[zero-kit] ${label}: "${name}" is already declared by ${claimed} — two components cannot claim one runtime property`);
+                    }
+                }
+                for (const name of component.runtimeProperties) {
+                    runtimeOwners.set(name, `${fragment.package} scope "${component.scope}"`);
                 }
             }
             const owner = owners.get(component.scope);

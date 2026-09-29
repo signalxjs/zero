@@ -4,6 +4,16 @@
 
 ### Added
 
+- **`defineAnatomy` declares `runtimeProperties` (#456).** A component
+  whose runtime writes CSS custom properties inline lists them in the third
+  argument, beside `models` (`runtimeProperties: ['--ext-stepper-count']`,
+  typed `` `--${string}`[] ``). `Anatomy.runtimeProperties` keeps the
+  declaration, and `toJSON()` emits `runtimeProperties` on the component only
+  when the list is non-empty, as it does `models`. The kit's `mergeManifests`
+  holds an ecosystem fragment's names to its scope's prefix; a recipe then
+  reads them bare, web-only. Zero's own anatomies do not declare theirs yet:
+  they are still listed in the kit's `RUNTIME_PROPERTIES`.
+
 - **`Input.Affix`, prefix and suffix text as its own part (#467, part of
   #413).** `input.affix` (`placement="start" | "end"` → `data-placement`,
   the same press-to-focus as the adornment) holds text such as `https://`,

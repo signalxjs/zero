@@ -9,7 +9,7 @@
  * off-ramp steps and what survives must still wire the axis.
  */
 import { describe, it, expect } from 'vitest';
-import { auditDesignSystem, fitRecipesToVocabulary } from '@sigx/zero-kit';
+import { auditDesignSystem, compileDesignSystem, fitRecipesToVocabulary, validateDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent, TokensInput } from '@sigx/zero-kit';
 import { SIZE_SCALE_LIST } from '@sigx/zero/contract';
 import { fragment, recipes } from '@sigx/zero-ext-example/fragment';
@@ -54,5 +54,26 @@ describe('ext-stepper recipe pack', () => {
         const stepper = recipes.find((r) => r.component === 'ext-stepper')!;
         const opacity = stepper.parts.item?.states?.disabled?.opacity;
         expect(opacity).toMatch(/^var\(--disabled-opacity\b/);
+    });
+
+    describe('the runtime property the root publishes (#456)', () => {
+        it('rides the fragment, so an adopter learns it from the manifest', () => {
+            expect(components[0]!.runtimeProperties).toEqual(['--ext-stepper-count']);
+        });
+
+        it('is read bare in the web target only, and validates without a declaration', () => {
+            const ds = adopter(SIZE_SCALE_LIST);
+            const result = validateDesignSystem(ds, manifest);
+            expect(result.errors.map((e) => e.message).filter((m) => m.includes('--ext-stepper-count'))).toEqual([]);
+            expect(result.errors).toEqual([]);
+            const css = compileDesignSystem(ds, manifest).componentCss['ext-stepper']!;
+            expect(css).toContain('repeat(var(--ext-stepper-count), minmax(min-content, 1fr))');
+            // Web-only: the shared section never reads it, so the lynx view
+            // keeps the pack (the lynx compile itself is held in the kit's
+            // lynx-recipe-css suite).
+            const stepper = recipes.find((r) => r.component === 'ext-stepper')!;
+            expect(JSON.stringify(stepper.parts)).not.toContain('--ext-stepper-count');
+            expect(JSON.stringify(stepper.variants)).not.toContain('--ext-stepper-count');
+        });
     });
 });

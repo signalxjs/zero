@@ -37,6 +37,9 @@ export const stepperAnatomy = defineAnatomy('acme-stepper', {
         tokens: ['color', 'radius-selector', 'text'],
         asChild: true,
     },
+}, {
+    // What the runtime writes inline: the root publishes its item count.
+    runtimeProperties: ['--acme-stepper-count'],
 });
 ```
 
@@ -53,6 +56,13 @@ Rules that make it a *zero* anatomy:
 - A part whose job is paint rather than text — a check, a dot, a needle —
   declares `paint` (`true`, or `{ glyph?, only?, host? }`), and the contrast
   audit measures it against the 3:1 non-text floor like zero's own marks.
+- A CSS custom property the runtime writes inline (a count, a measured
+  size) is declared in `runtimeProperties`, and each name starts with
+  `--<scope>-` (`--acme-stepper-count`). A recipe then reads it bare, with no
+  fallback and no token declaration. The merge refuses a name outside the
+  prefix, one under the token grammar (`--color-*`, `--space-*`, …), one of
+  the kit's own runtime properties, or one another scope already declared
+  (#456).
 - `anatomy.toJSON()` emits exactly the manifest component shape — you never
   hand-write manifest JSON.
 
@@ -221,6 +231,12 @@ Two declarations keep that honest instead of padded:
   declares) — the waiver `layoutScopes` gives the layout tier. A design
   system that adopts you by hand spreads it the same way. Only empty lists:
   narrowing to values is the adopter's decision, in its vocabulary.
+- **A runtime property is web-only** — read it in the recipe's
+  `targets.web` section. The lynx target refuses one anywhere else, so a pack
+  that reads `var(--acme-stepper-count)` in a shared section costs every
+  adopter your scope on lynx (`zero:fragment` warns that the pack is not
+  lynx-clean). `@sigx/zero-ext-example` lays its root out as a grid from its
+  count this way, and keeps the shared flex row for lynx.
 - **States that look alike on purpose are declared alike** —
   `sameAs: { root: { complete: 'loading' } }` on the recipe excuses that one
   pair from the state-legibility guard (every other pair must still differ)

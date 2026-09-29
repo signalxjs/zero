@@ -236,6 +236,52 @@ describe('the lynx target', () => {
         expect(readFileSync(join(dir, 'lynx/index.css'), 'utf8')).not.toContain('acme-stepper');
     });
 
+    it("degrades a pack whose shared section reads its OWN declared runtime property (#456)", async () => {
+        // The fragment declares `--acme-stepper-count`, so the web validator
+        // resolves the bare read — and the lynx guard, built from the same
+        // merged manifest, refuses it outside targets.web, which degrades
+        // the pack on lynx exactly like a zero runtime property does.
+        const counted = defineAnatomy('acme-stepper', {
+            'root': { element: 'div' },
+            'item': { element: 'button', parent: 'root', states: ['active', 'inactive'] },
+        }, { runtimeProperties: ['--acme-stepper-count'] });
+        const pack: EcosystemPack = {
+            ...packOf('@acme/stepper', [{
+                ...packRecipe,
+                parts: {
+                    ...packRecipe.parts,
+                    root: { base: { display: 'grid', gridTemplateColumns: 'repeat(var(--acme-stepper-count), 1fr)' } },
+                },
+            }]),
+            fragment: { version: 1, package: '@acme/stepper', components: [counted.toJSON()] as ManifestComponent[] },
+        };
+        const dir = outDir();
+        const log = logger();
+        const { result } = await runStandardBuild({
+            designSystem: ds(recommendedTokens, [{
+                component: 'button',
+                parts: { root: { base: { appearance: 'none' }, states: { 'focus-visible': { outline: '2px solid black' } } } },
+            }]),
+            manifest: baseManifest(),
+            ecosystem: { packs: [pack] },
+            targets: ['web', 'lynx'],
+            audit: false,
+            outDir: dir,
+            logger: log,
+        });
+
+        expect(result.ok).toBe(true);
+        const report = JSON.parse(readFileSync(join(dir, 'report.json'), 'utf8')) as {
+            lynx?: { webOnly?: { scope: string; package: string }[] };
+        };
+        expect(report.lynx?.webOnly).toEqual([
+            expect.objectContaining({ scope: 'acme-stepper', package: '@acme/stepper' }),
+        ]);
+        expect(readFileSync(join(dir, 'css/components/acme-stepper.css'), 'utf8'))
+            .toContain('repeat(var(--acme-stepper-count), 1fr)');
+        expect(readFileSync(join(dir, 'lynx/index.css'), 'utf8')).not.toContain('acme-stepper');
+    });
+
     it('degrades on the runtime-property refusal specifically, by type', () => {
         // The degradation is gated on `instanceof LynxRuntimePropertyError`,
         // not on matching a message, so that it cannot silently widen to every

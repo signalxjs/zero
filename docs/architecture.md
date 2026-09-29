@@ -131,10 +131,11 @@ the recipe's own transition springs it back. `start`/`end` resolve against
 the reading direction at the press. Like `press-animating` it is a gesture
 frame, not a resting style, so the contrast matrices do not cross it.
 
-**Runtime-published properties are a closed list.** Beside the attributes,
+**Runtime-published properties are declared.** Beside the attributes,
 the DOM runtime writes a few custom properties that recipes may read —
-`RUNTIME_PROPERTIES` in zero-kit's contract: the press trio and the swipe
-pair above,
+`RUNTIME_PROPERTIES` in zero-kit's contract: the behavior-level ones
+(`BEHAVIOR_RUNTIME_PROPERTIES` — the press trio and the swipe pair above,
+and the position and arrow properties below), then the scoped ones,
 `--progress-percent`, `--slider-percent`, `--diff-percent`,
 `--countdown-value`, and the disclosure panel sizes
 `--accordion-panel-height`/`--accordion-panel-width` and
@@ -148,7 +149,18 @@ list's padding box, the inline offset from its inline-start edge so RTL
 needs no correction; the indicator stays `display: none` until measured, so
 no transition plays from nowhere). They are web-only
 — the lynx target rejects them outside a `targets.web` section — and the
-vocabulary check accepts them without a declaration. The disclosure sizes
+vocabulary check accepts them without a declaration. An ecosystem component
+declares its own the same way (#456): `runtimeProperties` on
+`defineAnatomy` reaches its fragment's component as a list of names, each
+under the scope's own prefix (`--ext-stepper-count`), and
+`mergeManifests` refuses one outside that prefix, under the token grammar
+(`--color-*`, a scale category's prefix, a scalar category's name), among
+the kit's own runtime or medium properties, or already declared by the
+base manifest or an earlier fragment. Everything downstream reads the
+merged set, `runtimePropertiesOf(manifest)`: the recipe and token
+vocabulary, the lynx guard (`runtimePropertyMatcher`, built once per
+compile) and the contrast cascade (`ThemeEnv.runtime`), so a fragment's
+name is exactly as web-only, and exactly as bare-readable, as zero's own. The disclosure sizes
 pair with a runtime deferral: a close flips `data-state` to `closed` at once
 but keeps the `<details>` `open` until the panel's own animations have
 finished (`createAnimatedExit`, the machinery behind the top-layer exit
@@ -1141,7 +1153,9 @@ token grammar (`colors`, `categories`, recommended ramps), and `components`
 `parent`, `states`, `flags`, `placements`, `layout`, `carries`, `hiddenIn`, `paint`, `pseudo`, hints, and
 ready-made per-state selector fragments (what the recipe compiler
 consumes), with `absorbable: true` on a part that may lend its asChild bag
-to a host and then renders no element of its own (#452, [§2](#2-the-anatomy-contract)), and — for a component whose API carries state — `models`: one
+to a host and then renders no element of its own (#452, [§2](#2-the-anatomy-contract)),
+`runtimeProperties` on a component whose runtime writes custom properties
+inline (#456, [§2](#2-the-anatomy-contract); absent when there are none), and — for a component whose API carries state — `models`: one
 entry per model with what it binds (`name`, absent for the unnamed `model`
 prop), its `concept`, its value `type`, the compound `member` that carries
 it when not Root, `multiple` / `formControl`, and the two companion names
@@ -1693,7 +1707,10 @@ the architecture facts, briefly:
   adopter's: a pack cannot narrow, only decline.
 - **The lynx target degrades for packs and fails for first parties.** The
   lynx emitter rejects references to `RUNTIME_PROPERTIES` (`var(--press-x)`
-  and the rest of the web press-feedback surface). A first-party recipe in
+  and the rest of the web press-feedback surface) and to every
+  `runtimeProperties` name the merged manifest's fragments declare (#456),
+  so a pack reading its own property outside `targets.web` degrades the
+  same way. A first-party recipe in
   that position fails the build, as it should; a discovered pack's loses only
   the lynx target, recorded in `report.json` under `lynx.webOnly` — the
   design system's author neither wrote that recipe nor can fix it, and a

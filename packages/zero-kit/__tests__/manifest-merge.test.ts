@@ -328,6 +328,91 @@ describe('mergeManifests', () => {
         expect(bad({ pseudo: { of: 'root', selector: '::after' } })).toThrow(/absorbable and declares "pseudo"/);
         expect(bad({})).not.toThrow();
     });
+
+    // ── Runtime properties (#456): a fragment's own, under its own prefix ──
+    const withRuntime = (scope: string, runtimeProperties: unknown, pkg = '@acme/zero-stepper'): ManifestFragment => ({
+        version: 1,
+        package: pkg,
+        components: [{
+            scope,
+            parts: [{ name: 'root', element: 'div', selectors: {} }],
+            runtimeProperties: runtimeProperties as string[],
+        }],
+    });
+
+    it('accepts a runtime property under the scope prefix, and carries it through', () => {
+        const merged = mergeManifests(baseManifest(), withRuntime('acme-stepper', ['--acme-stepper-progress']));
+        expect(merged.components.find((c) => c.scope === 'acme-stepper')!.runtimeProperties).toEqual(['--acme-stepper-progress']);
+    });
+
+    it('rejects an empty or duplicated list, and a name outside the grammar', () => {
+        expect(() => mergeManifests(baseManifest(), withRuntime('acme-stepper', [])))
+            .toThrow(/fragment "@acme\/zero-stepper": "acme-stepper" runtimeProperties is not a non-empty array/);
+        expect(() => mergeManifests(baseManifest(), withRuntime('acme-stepper', '--acme-stepper-x')))
+            .toThrow(/not a non-empty array/);
+        expect(() => mergeManifests(baseManifest(), withRuntime('acme-stepper', ['--acme-stepper-x', '--acme-stepper-x'])))
+            .toThrow(/"acme-stepper" runtimeProperties lists a property twice/);
+        expect(() => mergeManifests(baseManifest(), withRuntime('acme-stepper', ['acme-stepper-progress'])))
+            .toThrow(/"acme-stepper" runtimeProperties: "acme-stepper-progress" is not a custom property name/);
+        expect(() => mergeManifests(baseManifest(), withRuntime('acme-stepper', ['--acme-stepper-Progress'])))
+            .toThrow(/is not a custom property name/);
+    });
+
+    it("rejects a name outside the scope's own prefix", () => {
+        expect(() => mergeManifests(baseManifest(), withRuntime('acme-stepper', ['--progress'])))
+            .toThrow(/"acme-stepper" runtimeProperties: "--progress" does not start with "--acme-stepper-"/);
+        expect(() => mergeManifests(baseManifest(), withRuntime('acme-stepper', ['--other-x'])))
+            .toThrow(/"--other-x" does not start with "--acme-stepper-"/);
+        // The bare scope is not a name under it.
+        expect(() => mergeManifests(baseManifest(), withRuntime('acme-stepper', ['--acme-stepper'])))
+            .toThrow(/does not start with "--acme-stepper-"/);
+    });
+
+    it('rejects a name under the token grammar, whatever the scope is called', () => {
+        expect(() => mergeManifests(baseManifest(), withRuntime('text-editor', ['--text-editor-caret'])))
+            .toThrow(/"text-editor" runtimeProperties: "--text-editor-caret" sits under the token grammar/);
+        expect(() => mergeManifests(baseManifest(), withRuntime('color-picker', ['--color-picker-hue'])))
+            .toThrow(/"--color-picker-hue" sits under the token grammar/);
+        expect(() => mergeManifests(baseManifest(), withRuntime('space-map', ['--space-map-zoom'])))
+            .toThrow(/sits under the token grammar/);
+        expect(() => mergeManifests(baseManifest(), withRuntime('ease-curve', ['--ease-curve-t'])))
+            .toThrow(/sits under the token grammar/);
+    });
+
+    it("rejects the kit's own behavior-level and medium properties", () => {
+        expect(() => mergeManifests(baseManifest(), withRuntime('swipe', ['--swipe-x'])))
+            .toThrow(/"swipe" runtimeProperties: "--swipe-x" is one of the kit's own runtime or medium properties/);
+        expect(() => mergeManifests(baseManifest(), withRuntime('print', ['--print-ink'])))
+            .toThrow(/"--print-ink" is one of the kit's own runtime or medium properties/);
+        // A scoped zero name is reserved too — checked before the scope
+        // collision, so the diagnostic names the property.
+        expect(() => mergeManifests(baseManifest(), withRuntime('slider', ['--slider-percent'])))
+            .toThrow(/"--slider-percent" is one of the kit's own runtime or medium properties/);
+    });
+
+    it('rejects a name another fragment already declared, in either merge order', () => {
+        const acme = withRuntime('acme', ['--acme-split-size'], '@acme/zero-a');
+        const split = withRuntime('acme-split', ['--acme-split-size'], '@acme/zero-split');
+        expect(() => mergeManifests(baseManifest(), acme, split))
+            .toThrow(/fragment "@acme\/zero-split": "acme-split" runtimeProperties: "--acme-split-size" is already declared by @acme\/zero-a scope "acme"/);
+        expect(() => mergeManifests(baseManifest(), split, acme))
+            .toThrow(/"--acme-split-size" is already declared by @acme\/zero-split scope "acme-split"/);
+    });
+
+    it("rejects a name the base manifest declares, while the base's own duplicates stay legal", () => {
+        const base = {
+            components: [
+                { scope: 'progress', parts: [{ name: 'root', element: 'div', selectors: {} }], runtimeProperties: ['--progress-percent'] },
+                { scope: 'radial-progress', parts: [{ name: 'root', element: 'div', selectors: {} }], runtimeProperties: ['--progress-percent'] },
+                { scope: 'acme-gauge', parts: [{ name: 'root', element: 'div', selectors: {} }], runtimeProperties: ['--acme-gauge-fill'], package: '@acme/zero-gauge' },
+            ] as ManifestComponent[],
+        };
+        expect(() => mergeManifests(base, withRuntime('acme-stepper', ['--acme-stepper-x']))).not.toThrow();
+        expect(() => mergeManifests(base, withRuntime('acme-gauge-x', ['--acme-gauge-x-fill']))).not.toThrow();
+        // `acme-gauge-fill` would be a scope of its own; the name is taken.
+        expect(() => mergeManifests(base, withRuntime('acme', ['--acme-gauge-fill'])))
+            .toThrow(/"--acme-gauge-fill" is already declared by @acme\/zero-gauge scope "acme-gauge"/);
+    });
 });
 
 describe('a merged ecosystem scope in the pipeline', () => {

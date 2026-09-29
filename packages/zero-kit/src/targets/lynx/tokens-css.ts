@@ -41,6 +41,7 @@ import { STRUCTURAL_FALLBACKS, assertTokenValue, resolveSystemTokens } from '../
  */
 export { STRUCTURAL_FALLBACKS };
 import type { LynxCapabilityReport } from './capabilities.js';
+import type { RuntimePropertyMatcher } from './capabilities.js';
 import { bakeColor, bakeColorValue, bakeSoft, hasComparisonFunction, hasSvgDataUri, hasUnsupportedColorFunction, LYNX_REM_PX, LynxRuntimePropertyError, remToPx, runtimePropertyIn, SVG_DATA_URI_DETAIL } from './capabilities.js';
 import { HOST_CLASS, themeClass } from './class-names.js';
 import type { LynxThemeColors } from './recipe-css.js';
@@ -175,6 +176,7 @@ function bakedNonColor(
     themeColors: Record<string, string>,
     where: string,
     report: LynxCapabilityReport,
+    runtime: RuntimePropertyMatcher | undefined,
 ): Record<string, string> {
     const resolved = resolvedNonColor(input, theme);
     // Written into `--prop: value;` verbatim, like a recipe value (#183).
@@ -183,11 +185,11 @@ function bakedNonColor(
     const inlined = inlineNonColorVars(resolved, where, report);
 
     for (const [prop, value] of Object.entries(inlined)) {
-        const runtime = runtimePropertyIn(`${prop} ${value}`);
-        if (runtime) {
+        const found = runtimePropertyIn(`${prop} ${value}`, runtime);
+        if (found) {
             throw new LynxRuntimePropertyError(
-                `[zero-kit] ${where}: "${prop}" references ${runtime}, a web-runtime-published property with no lynx equivalent — move it into a web-only section`,
-                runtime,
+                `[zero-kit] ${where}: "${prop}" references ${found}, a web-runtime-published property with no lynx equivalent — move it into a web-only section`,
+                found,
             );
         }
         if (hasSvgDataUri(value)) {
@@ -297,6 +299,8 @@ export function lynxRefusedImageTokens<R extends RolesDecl, T extends SystemToke
 export function compileLynxTokensCss<R extends RolesDecl, T extends SystemTokens>(
     input: TokensInput<R, T>,
     report: LynxCapabilityReport,
+    /** Built from `runtimePropertiesOf(manifest)`; defaults to zero's own list. */
+    runtime?: RuntimePropertyMatcher,
 ): string {
     const roles = resolveRoles(input.roles);
     const light = input.themes[input.defaultLight];
@@ -305,7 +309,7 @@ export function compileLynxTokensCss<R extends RolesDecl, T extends SystemTokens
     const themeDecls = (name: string, theme: AnyTheme): string[] => {
         const where = `lynx tokens, theme "${name}"`;
         const colors = bakedColors(theme, roles, where, report);
-        const nonColor = bakedNonColor(input, theme, colors, where, report);
+        const nonColor = bakedNonColor(input, theme, colors, where, report, runtime);
         return [
             ...Object.entries(colors).map(([token, value]) => `--color-${token}: ${value};`),
             ...Object.entries(nonColor).map(([prop, value]) => `${prop}: ${value};`),

@@ -188,20 +188,37 @@ export const INTERACTION_STATE_CLASSES: Record<string, string | null> = {
     active: 'zx-f-pressed',
 };
 
+/** Finds the runtime-published property a declaration name/value references, if any. */
+export type RuntimePropertyMatcher = (text: string) => string | undefined;
+
 /**
- * A reference to a runtime-published property (`var(--press-x)` …) — the
- * web-only mechanism the contract's `RUNTIME_PROPERTIES` doc names. Matching
- * the bare property too (not only `var()`) so a recipe *writing* one of these
- * on lynx is caught as well; both spellings depend on the same absent
- * runtime.
+ * A matcher for references to runtime-published properties
+ * (`var(--press-x)` …) — the web-only mechanism the contract's
+ * `RUNTIME_PROPERTIES` doc names. Built from a name set so a build can pass
+ * `runtimePropertiesOf(manifest)`, which adds what an ecosystem fragment
+ * declares (#456). Matching the bare property too (not only `var()`) so a
+ * recipe *writing* one of these on lynx is caught as well; both spellings
+ * depend on the same absent runtime.
  */
-const RUNTIME_PROPERTY_PATTERN = new RegExp(
-    `(?:^|[^a-zA-Z0-9-])(${RUNTIME_PROPERTIES.map((p) => p.replace(/[-]/g, '\\-')).join('|')})(?![a-zA-Z0-9-])`,
-);
+export function runtimePropertyMatcher(names: Iterable<string>): RuntimePropertyMatcher {
+    const list = [...new Set(names)];
+    // Longest first so a name that prefixes another can never win the
+    // alternation early; the lookarounds already bound it, but the order
+    // makes the reported name the whole one either way.
+    list.sort((a, b) => b.length - a.length);
+    if (list.length === 0) return () => undefined;
+    const pattern = new RegExp(
+        `(?:^|[^a-zA-Z0-9-])(${list.map((p) => p.replace(/[-]/g, '\\-')).join('|')})(?![a-zA-Z0-9-])`,
+    );
+    return (text) => pattern.exec(text)?.[1];
+}
+
+/** The matcher over zero's own `RUNTIME_PROPERTIES` — what a caller without a manifest gets. */
+const DEFAULT_MATCHER = runtimePropertyMatcher(RUNTIME_PROPERTIES);
 
 /** The runtime property a declaration value/name references, if any. */
-export function runtimePropertyIn(text: string): string | undefined {
-    return RUNTIME_PROPERTY_PATTERN.exec(text)?.[1];
+export function runtimePropertyIn(text: string, match: RuntimePropertyMatcher = DEFAULT_MATCHER): string | undefined {
+    return match(text);
 }
 
 /**

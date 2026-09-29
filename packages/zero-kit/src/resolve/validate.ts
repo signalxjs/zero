@@ -47,6 +47,7 @@ import {
     requiredColorTokens,
     resolveRoles,
     resolveSizes,
+    runtimePropertiesOf,
 } from '../contract.js';
 import type { RolesDecl } from '../tokens.js';
 import { validateApi } from '../api.js';
@@ -1226,7 +1227,9 @@ export function validateDesignSystem<R extends RolesDecl>(
     // reference INSIDE a token value (`--shadow-md: 0 0 8px
     // var(--color-brnad)`) compiled clean and resolved to nothing at runtime.
     // Same walk, same messages, at the layer the tokens are declared.
-    const vocabulary = tokenVocabulary(ds.tokens);
+    // The runtime-published names come from the merged manifest, so a name
+    // an ecosystem fragment declares resolves bare like zero's own (#456).
+    const vocabulary = tokenVocabulary(ds.tokens, runtimePropertiesOf(manifest));
     /** Every token declaration site: where (for diagnostics) + prop + value. */
     const tokenDeclarations: Array<{ where: string; prop: string; value: string }> = [];
     const collectCategories = (
