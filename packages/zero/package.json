@@ -219,6 +219,10 @@
             "types": "./dist/components/container/index.d.ts",
             "import": "./dist/components/container/index.js"
         },
+        "./app-shell": {
+            "types": "./dist/components/app-shell/index.d.ts",
+            "import": "./dist/components/app-shell/index.js"
+        },
         "./spinner": {
             "types": "./dist/components/spinner/index.d.ts",
             "import": "./dist/components/spinner/index.js"

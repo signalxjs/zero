@@ -13,7 +13,10 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { PartProps } from '@sigx/zero';
-import { Box, Center, Col, Container, Grid, Row, Spacer, Stack, boxAnatomy, centerAnatomy, containerAnatomy, gridAnatomy, spacerAnatomy, stackAnatomy } from '@sigx/zero';
+import {
+    AppShell, Box, Center, Col, Container, Grid, Row, Spacer, Stack,
+    appShellAnatomy, boxAnatomy, centerAnatomy, containerAnatomy, gridAnatomy, spacerAnatomy, stackAnatomy,
+} from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 let container: HTMLElement;
@@ -273,5 +276,87 @@ describe('Container', () => {
     it('refuses a measure outside the ramp', () => {
         expect(() => render(<Container measure={'2xl' as never} />, container))
             .toThrow(/not a value of "measure"/);
+    });
+});
+
+describe('AppShell', () => {
+    const shell = (region: Record<string, unknown> = {}) => (
+        <AppShell.Root>
+            <AppShell.Body>
+                <AppShell.Main>
+                    <Row grow gap="none">
+                        <AppShell.Region label="Messages" {...region}>list</AppShell.Region>
+                        <AppShell.Region label="Reading pane">body</AppShell.Region>
+                    </Row>
+                </AppShell.Main>
+            </AppShell.Body>
+        </AppShell.Root>
+    );
+
+    it('renders a valid anatomy on the full composition', () => {
+        render(shell(), container);
+        expectAnatomy(container, appShellAnatomy);
+        expect(container.querySelectorAll('[data-scope="app-shell"][data-part="region"]')).toHaveLength(2);
+    });
+
+    it('renders the landmarks: <main>, and each region a named, focusable <section>', () => {
+        render(shell(), container);
+        expect(part('app-shell', 'root').tagName).toBe('DIV');
+        expect(part('app-shell', 'body').tagName).toBe('DIV');
+        expect(part('app-shell', 'main').tagName).toBe('MAIN');
+        const region = part('app-shell', 'region');
+        expect(region.tagName).toBe('SECTION');
+        expect(region.getAttribute('aria-label')).toBe('Messages');
+        // Always focusable: WebKit does not make a scroller focusable, so a
+        // text-only region would be unreachable by keyboard otherwise.
+        expect(region.getAttribute('tabindex')).toBe('0');
+    });
+
+    it('carries no axis and no layout attribute — it is geometry only', () => {
+        render(shell(), container);
+        for (const el of container.querySelectorAll('[data-scope="app-shell"]')) {
+            const names = el.getAttributeNames();
+            expect(names.filter((n) => n.startsWith('data-l-') || ['data-color', 'data-size', 'data-variant'].includes(n))).toEqual([]);
+        }
+    });
+
+    it('forwards id, aria-* and data-* on every part', () => {
+        render((
+            <AppShell.Root id="app" data-probe="root">
+                <AppShell.Body aria-hidden="false" data-probe="body">
+                    <AppShell.Main id="content" aria-describedby="hint" data-probe="main">
+                        <AppShell.Region label="List" id="list" aria-busy="true" data-probe="region">x</AppShell.Region>
+                    </AppShell.Main>
+                </AppShell.Body>
+            </AppShell.Root>
+        ), container);
+        expect(part('app-shell', 'root').id).toBe('app');
+        expect(part('app-shell', 'body').getAttribute('aria-hidden')).toBe('false');
+        expect(part('app-shell', 'main').id).toBe('content');
+        expect(part('app-shell', 'main').getAttribute('aria-describedby')).toBe('hint');
+        const region = part('app-shell', 'region');
+        expect(region.id).toBe('list');
+        expect(region.getAttribute('aria-busy')).toBe('true');
+        for (const name of ['root', 'body', 'main', 'region']) {
+            expect(part('app-shell', name).getAttribute('data-probe')).toBe(name);
+        }
+    });
+
+    it('the part attributes win over the pass-through', () => {
+        // `label` names the region; an `aria-label` from the bag loses to it.
+        render(shell({ 'aria-label': 'Other' }), container);
+        expect(part('app-shell', 'region').getAttribute('aria-label')).toBe('Messages');
+    });
+
+    it('refuses a reserved data-* (the untyped caller — TS refuses it)', () => {
+        const attrs: Record<string, unknown> = { 'data-state': 'open' };
+        expect(() => render(<AppShell.Main {...attrs}>x</AppShell.Main>, container)).toThrow(/data-state/);
+    });
+
+    it('requires a label on a region', () => {
+        // Type-level only: an unnamed <section> is not a region landmark.
+        // @ts-expect-error — `label` is required
+        const node = <AppShell.Region>x</AppShell.Region>;
+        expect(node).toBeTruthy();
     });
 });

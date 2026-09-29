@@ -36,7 +36,7 @@ Field · Fieldset · Avatar · AvatarGroup · Toast · Combobox · Toggle · Tog
 RatingGroup · TreeView · Input · Textarea · Card · Alert · EmptyState · Badge · Divider ·
 Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · ChatLog · RadialProgress · Join ·
 Navbar · NavList · Breadcrumbs · Pagination · Steps · Drawer · Table · FileUpload · Carousel · Swap · Countdown · Diff
-Stack (Row/Col) · Spacer · Grid · Center · Box · Container
+Stack (Row/Col) · Spacer · Grid · Center · Box · Container · AppShell
 
 All state is one two-way `model` prop (sigx `Define.Model`) — bind a signal
 property with `model={() => state.open}`, or leave it uncontrolled with
@@ -1971,41 +1971,73 @@ Every shipped skin draws the rule as two flex segments (border-painted
 is no label and part around one when there is; the colour axis inks the
 line, never the words.
 
-**The app shell.** A composition, not a component (#133): `Navbar` for the
-top bar, a responsive `Drawer` for the sidebar with a `NavList` inside it,
-and a `Container` for `<main>`. `Drawer.Root` renders no element, so it
-wraps the whole shell and its trigger can sit in the bar; at or above
-`md` the panel docks open in flow and the trigger hides, below it the
-navigation is a sheet the trigger opens — from the design system's own
-breakpoint, correct before any script runs. The navigation is rendered
-once:
+**AppShell: the frame** (#459). `AppShell.Root`, `Body`, `Main` and
+`Region` (scope `app-shell`, subpath `@sigx/zero/app-shell`) are the
+full-height frame an application sits in — the part of the layout that is
+elements as well as geometry, so a layout attribute cannot say it:
+
+- `Root` claims the viewport: `block-size: 100dvh`, capped by
+  `max-block-size: 100%`, so inside a sized parent (a docs page, a demo) it
+  takes that parent's height instead. It clips (`overflow: clip`) and never
+  scrolls itself.
+- `Body` is the row under the app bar — a docked sidebar beside `Main` —
+  and fills the height that is left.
+- `Main` renders `<main>`, so the landmark needs no `asChild` markup.
+- `Region` renders `<section aria-label={label} tabindex="0">`: a named
+  region landmark, and THE scroll box (`overflow: auto`,
+  `overscroll-behavior: contain`). `label` is required — an unnamed
+  `<section>` is not a landmark. It is always focusable, because WebKit does
+  not make a scroller focusable and a keyboard could not otherwise scroll a
+  text-only region.
+
+It is geometry only — no axes, no layout attributes, no `asChild` — and
+every design system gets the same recipe from the kit's `layoutRecipes`. A
+skin that wants paint on the frame (a `main` background, a thin scrollbar)
+patches that recipe. Every part forwards `id`, `aria-*` and `data-*`.
+
+**The app shell.** The `AppShell` frame around a composition (#133):
+`Navbar` for the top bar, a responsive `Drawer` for the sidebar with a
+`NavList` inside it, and `AppShell.Main` for `<main>` with the scrolling
+regions inside it. `Drawer.Root` renders no element, so it wraps the whole
+shell and its trigger can sit in the bar; at or above `md` the panel docks
+open in flow and the trigger hides, below it the navigation is a sheet the
+trigger opens — from the design system's own breakpoint, correct before any
+script runs. The navigation is rendered once:
 
 ```tsx
-<Drawer.Root modal={{ below: 'md' }}>
-    <Navbar.Root>
-        <Navbar.Start>
-            <Drawer.Trigger aria-label="Open navigation">☰</Drawer.Trigger>
-            <strong>Acme</strong>
-        </Navbar.Start>
-        <Navbar.End>…</Navbar.End>
-    </Navbar.Root>
-    <Row align="start" gap="none">
-        <Drawer.Panel measure="xs">
-            <Drawer.Title visuallyHidden>Navigation</Drawer.Title>
-            <NavList.Root label="Main">…</NavList.Root>
-            <Drawer.Close>Close navigation</Drawer.Close>
-        </Drawer.Panel>
-        <Stack.Item grow asChild>
-            {(p) => <main {...p}><Container measure="md" padY="lg">…</Container></main>}
-        </Stack.Item>
-    </Row>
-</Drawer.Root>
+<AppShell.Root>
+    <Drawer.Root modal={{ below: 'md' }}>
+        <Navbar.Root>
+            <Navbar.Start>
+                <Drawer.Trigger aria-label="Open navigation">☰</Drawer.Trigger>
+                <strong>Acme</strong>
+            </Navbar.Start>
+            <Navbar.End>…</Navbar.End>
+        </Navbar.Root>
+        <AppShell.Body>
+            <Drawer.Panel measure="xs">
+                <Drawer.Title visuallyHidden>Navigation</Drawer.Title>
+                <NavList.Root label="Main">…</NavList.Root>
+                <Drawer.Close>Close navigation</Drawer.Close>
+            </Drawer.Panel>
+            <AppShell.Main>
+                <Row grow gap="none">
+                    <AppShell.Region label="Messages">…</AppShell.Region>
+                    <AppShell.Region label="Reading pane">
+                        <Container measure="md" padY="lg">…</Container>
+                    </AppShell.Region>
+                </Row>
+            </AppShell.Main>
+        </AppShell.Body>
+    </Drawer.Root>
+</AppShell.Root>
 ```
 
-The page keeps one banner (the Navbar's `<header>`, at document scope) and
-one navigation landmark (NavList's `<nav>`) in both regimes. Page CSS
-sits outside or after the four layers — `@layer zero, app;` first in the
-app's entry stylesheet (docs/architecture.md, "App CSS").
+The page keeps one banner (the Navbar's `<header>`, at document scope), one
+navigation landmark (NavList's `<nav>`) and one `<main>` in both regimes,
+and each region scrolls on its own while the frame and the document stay
+put. Page CSS sits outside or after the four layers — `@layer zero, app;`
+first in the app's entry stylesheet (docs/architecture.md, "App CSS").
 
 **`Stack.Item grow` grows from zero** (#454). The design systems compile
 `grow` to `flex-grow: 1` and `flex-basis: 0`, like Tailwind's `flex-1`, so a

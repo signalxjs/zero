@@ -410,6 +410,48 @@
 }
 
 @layer zero.recipes {
+    [data-scope="app-shell"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        block-size: 100dvh;
+        max-block-size: 100%;
+        min-inline-size: 0;
+        overflow: clip;
+    }
+
+    [data-scope="app-shell"][data-part="body"] {
+        display: flex;
+        flex-direction: row;
+        flex-grow: 1;
+        flex-shrink: 1;
+        flex-basis: auto;
+        min-block-size: 0;
+        min-inline-size: 0;
+    }
+
+    [data-scope="app-shell"][data-part="main"] {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        flex-shrink: 1;
+        flex-basis: auto;
+        min-block-size: 0;
+        min-inline-size: 0;
+    }
+
+    [data-scope="app-shell"][data-part="region"] {
+        display: flow-root;
+        flex-grow: 1;
+        flex-shrink: 1;
+        flex-basis: auto;
+        min-block-size: 0;
+        min-inline-size: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+    }
+}
+
+@layer zero.recipes {
     [data-scope="tabs"][data-part="root"] {
         --tabs-accent: var(--color-primary);
     }

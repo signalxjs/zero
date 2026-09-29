@@ -13,7 +13,7 @@ import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
 import { anatomies } from '@sigx/zero/anatomy';
 import {
-    Accordion, Alert, Avatar, AvatarGroup, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, ChatLog, Checkbox, CheckboxGroup,
+    Accordion, Alert, AppShell, Avatar, AvatarGroup, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, ChatLog, Checkbox, CheckboxGroup,
     Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, EmptyState, Field, Fieldset, FileUpload, Grid,
     HoverCard, Indicator, Input, Join, Kbd, Menu, Menubar, Navbar, NavList, NumberInput, Pagination, Popover, Progress,
     RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spacer, Spinner, Stack, Stats,
@@ -237,6 +237,15 @@ describe('the pass-through reaches every part', () => {
                 <Alert.Description {...p('description')}>D</Alert.Description>
                 <Alert.Close {...p('close')} />
             </Alert.Root>
+        ),
+        'app-shell': () => (
+            <AppShell.Root {...p('root')}>
+                <AppShell.Body {...p('body')}>
+                    <AppShell.Main {...p('main')}>
+                        <AppShell.Region {...p('region')} label="R">x</AppShell.Region>
+                    </AppShell.Main>
+                </AppShell.Body>
+            </AppShell.Root>
         ),
         'empty-state': () => (
             <EmptyState.Root {...p('root')}>

@@ -12,6 +12,7 @@ import type { Grid as ZGrid } from '@sigx/zero/grid';
 import type { Center as ZCenter } from '@sigx/zero/center';
 import type { Box as ZBox } from '@sigx/zero/box';
 import type { Container as ZContainer } from '@sigx/zero/container';
+import type { AppShell as ZAppShell } from '@sigx/zero/app-shell';
 import type { Button as ZButton } from '@sigx/zero/button';
 import type { Tabs as ZTabs } from '@sigx/zero/tabs';
 import type { Collapsible as ZCollapsible } from '@sigx/zero/collapsible';
@@ -104,6 +105,11 @@ export declare const Box: BoxAdapted & { Root: BoxAdapted };
 type ContainerProps = Record<never, never>;
 type ContainerAdapted = Adapted<typeof ZContainer, ZeroAxisProp, ContainerProps>;
 export declare const Container: ContainerAdapted & { Root: ContainerAdapted };
+
+/** app-shell — no vendor route; the wired surface keeps zero's names. */
+type AppShellProps = Record<never, never>;
+type AppShellAdapted = Adapted<typeof ZAppShell, ZeroAxisProp, AppShellProps>;
+export declare const AppShell: AppShellAdapted & AdaptedStatics<typeof ZAppShell> & { Root: AppShellAdapted };
 
 /** button — size ← size (3 respelled); variant ← variant; shape ← axes.shape; fab ← mods.fab; icon ← mods.icon. Attributes stay zero-spelled. */
 type ButtonProps = {

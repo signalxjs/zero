@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Checkbox, CheckboxGroup, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, Field, FileUpload, Indicator, Input, Join, Kbd, Menu, Menubar, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
+import { Alert, AppShell, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Checkbox, CheckboxGroup, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, Field, FileUpload, Indicator, Input, Join, Kbd, Menu, Menubar, Navbar, NumberInput, Pagination, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, clearThemes, createToaster, registerThemes, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -516,5 +516,31 @@ describe('SSR', () => {
         expect(root).toMatch(/\srole="region"/);
         expect(root).toMatch(/\saria-label="Revenue"/);
         expect(root).not.toMatch(/aria-labelledby/);
+    });
+
+    // #542: the frame's landmarks are real elements on the server — `<main>`
+    // and a named, focusable `<section>` — not something a mount adds.
+    it('server-renders the app shell with its <main> and a named, focusable region', async () => {
+        const tree = () => (
+            <AppShell.Root>
+                <AppShell.Body>
+                    <AppShell.Main>
+                        <AppShell.Region label="Messages">list</AppShell.Region>
+                    </AppShell.Main>
+                </AppShell.Body>
+            </AppShell.Root>
+        );
+        const html = await renderApp(tree());
+        expect(html).toBe(await renderApp(tree()));
+        const main = html.match(/<main[^>]*>/)?.[0] ?? '';
+        expect(main).toMatch(/\sdata-scope="app-shell"/);
+        expect(main).toMatch(/\sdata-part="main"/);
+        const region = html.match(/<section[^>]*>/)?.[0] ?? '';
+        expect(region).toMatch(/\sdata-scope="app-shell"/);
+        expect(region).toMatch(/\sdata-part="region"/);
+        expect(region).toMatch(/\saria-label="Messages"/);
+        // sigx serialises the prop as `tabIndex`; HTML attribute names are
+        // case-insensitive, so it parses as `tabindex` (the Menubar test does the same).
+        expect(region).toMatch(/\stabindex="0"/i);
     });
 });

@@ -4,6 +4,15 @@
 
 ### Added
 
+- **`layoutRecipes` emits `app-shell` (#459, #542).** `LAYOUT_SCOPES`
+  grows by `'app-shell'`, so every design system spreading
+  `layoutRecipes(tokens)` and `layoutScopes` gets the frame's recipe and
+  its axis waiver: a flex-column root at `block-size: 100dvh;
+  max-block-size: 100%` that clips with `overflow: clip`, body and main that
+  grow and may shrink below their content, and a `flow-root` region that is
+  the only scroll box (`overflow: auto; overscroll-behavior: contain`).
+  Geometry only, in flex longhands; it compiles for lynx with nothing
+  dropped. `RESERVED_PROPS_BY_SCOPE` gains the `app-shell` entry.
 - **`RUNTIME_PROPERTIES` is parity-checked against zero's anatomies
   (#537).** The list must equal `BEHAVIOR_RUNTIME_PROPERTIES` plus every
   name zero's anatomies declare as `runtimeProperties`, with no name twice,

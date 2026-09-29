@@ -294,6 +294,8 @@ export { Box, boxAnatomy } from './components/box/index.js';
 export type { BoxRootProps } from './components/box/index.js';
 export { Container, containerAnatomy } from './components/container/index.js';
 export type { ContainerRootProps } from './components/container/index.js';
+export { AppShell, appShellAnatomy } from './components/app-shell/index.js';
+export type { AppShellRootProps, AppShellBodyProps, AppShellMainProps, AppShellRegionProps } from './components/app-shell/index.js';
 
 export { Spinner, spinnerAnatomy } from './components/spinner/index.js';
 export type { SpinnerRootProps } from './components/spinner/index.js';
