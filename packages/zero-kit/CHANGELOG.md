@@ -82,6 +82,17 @@
 
 ### Changed
 
+- **The stack recipe grows its root, and floors whatever grows (part of
+  #459).** `layoutRecipes()`'s stack root declares `--l-grow: 0` with its
+  other defaults and consumes it as `flex-grow`, and
+  `[data-l-grow="1"]` on the root sets `flex-basis: 0` and
+  `min-block-size: 0`. The item's grow rule gains the same
+  `min-block-size: 0`. Behaviour note for a design system that patches the
+  stack recipe: a growing item in a column can now shrink below its
+  content's height, which is what lets a region inside it scroll; the floor
+  never applies to a part that does not grow. `grow` joins the stack's
+  reserved props, so an api axis can no longer take that name.
+
 - **`Stack.Item grow` grows from a zero basis (#454).** `layoutRecipes()`'s
   stack item rule gives `[data-l-grow="1"]` `flex-basis: 0` beside
   `flex-grow: 1`, like Tailwind's `flex-1`. A grow item that held long
