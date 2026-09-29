@@ -3002,6 +3002,14 @@ export const chip: RecipeInput = {
                 selected: {},
                 disabled: { opacity: 'var(--disabled-opacity)', boxShadow: 'none' },
             },
+            // Forced colours revalue every author fill, so a selected chip
+            // would read exactly like an unselected one: the system's
+            // selection pair says it instead (Material's rule).
+            at: {
+                'forced-colors': {
+                    states: { on: { background: 'Highlight', color: 'HighlightText', borderColor: 'Highlight' } },
+                },
+            },
         },
         action: {
             base: {

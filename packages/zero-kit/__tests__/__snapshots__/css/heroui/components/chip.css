@@ -134,4 +134,12 @@
             padding: var(--space-sm) var(--space-lg);
         }
     }
+
+    @media (forced-colors: active) {
+        [data-scope="chip"][data-part="root"][data-state="on"] {
+            background: Highlight;
+            color: HighlightText;
+            border-color: Highlight;
+        }
+    }
 }
