@@ -42,6 +42,18 @@
 
 ### Changed
 
+- **The static contrast matrix answers `:has()` from the probe chain (#469,
+  part of #413).** A probe is a closed world: below a node there is exactly
+  the declared chain, which is also all the browser probe renders. So
+  `:has()` on a chain node now reads the chain's own nodes, and a relative
+  selector that no chain node satisfies is `no`, where it was `unknown`
+  and left the cell `unsupported-selector`. A sibling step inside the argument is `no`, since
+  every node below the root is an only child, and a leading `+`/`~` on the
+  chain root stays unknown. `:has()` now takes its most specific argument's
+  specificity, as the browser does. zero-material's five floating-label
+  cells (`field.label`, `select.value`) are now measured, and every skin
+  measures 100% of its cells apart from daisyui's and heroui's paint.
+
 - **The layout Box inks a coloured surface with `-soft-content` (#421).**
   `--box-ink` was the role itself, which only reads while the tint stays a
   light wash of the role. A design system whose roles already read on their

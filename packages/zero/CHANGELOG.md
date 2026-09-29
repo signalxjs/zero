@@ -4,6 +4,16 @@
 
 ### Added
 
+- **`Field.Root` carries `data-placeholder` while its control is empty
+  (#469, part of #413).** A `Field.Root` holding an Input, Textarea,
+  NumberInput, Combobox or Select mirrors that control's own
+  `data-placeholder` onto its root, from mount on, so a skin can style a
+  `Field.Label` (a floating label) from its own field instead of a `:has()`
+  into the control. A control reports it through the new optional
+  `empty()` on `FieldValidityReport`; a field around a control with no
+  notion of empty, or with no control, never carries it. Server markup
+  carries none, since the control reports itself after the root renders.
+
 - **`Combobox.Root` `filterItems` (#458).** Hand-written `Combobox.Item`s
   are filtered by the query when it is set: each item's label (`textValue`,
   else its text) is matched with the default case-insensitive
