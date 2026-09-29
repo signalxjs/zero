@@ -13,7 +13,7 @@
  * <Combobox.Root items={results} filter={false} model={() => state.country}
  *     model:inputValue={() => state.query} />
  *
- * // Hand-written items: what you render is what is visible — filter yourself.
+ * // Hand-written items: what you render is what is visible — filter yourself…
  * <Combobox.Root model={() => state.fruit} model:inputValue={() => state.query}>
  *     <Combobox.Control><Combobox.Input /><Combobox.Trigger /></Combobox.Control>
  *     <Combobox.Popup>
@@ -21,6 +21,17 @@
  *             <Combobox.Item value={f} key={f}>{f}</Combobox.Item>
  *         ))}
  *         <Combobox.Empty>No fruit found</Combobox.Empty>
+ *     </Combobox.Popup>
+ * </Combobox.Root>
+ *
+ * // …or let zero do it (#458): `filterItems` matches each item's label.
+ * <Combobox.Root filterItems model={() => state.from}>
+ *     <Combobox.Control><Combobox.Input /></Combobox.Control>
+ *     <Combobox.Popup>
+ *         {contacts.map((c) => (
+ *             <Combobox.Item value={c.email} textValue={c.name} key={c.email}>{c.name}</Combobox.Item>
+ *         ))}
+ *         <Combobox.Empty>Nobody found</Combobox.Empty>
  *     </Combobox.Popup>
  * </Combobox.Root>
  * ```
@@ -33,7 +44,10 @@
  * items whose label contains the query (`filter` replaces the rule,
  * `filter={false}` shows everything), and a preset value's label reaches the
  * input before any item mounts. Hand-written items register into the same
- * collection and stay consumer-filtered. `Combobox.Empty` renders only while
+ * collection and stay consumer-filtered — unless `filterItems` is set: then
+ * each is matched by its label (`textValue`, else its text) with the same
+ * rule or the `filter` function (given the label), and one that does not
+ * match stays registered but renders nothing. `Combobox.Empty` renders only while
  * the visible list is empty. Under `multiple` a selection toggles, clears
  * the input and keeps the popup open.
  *
@@ -100,7 +114,7 @@ import { onFormReset } from '../../behaviors/form-reset.js';
 import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { createListController, type ListController } from '../../behaviors/list.js';
 import {
-    announceGroupLabel, createGroupPresence, createListbox, createListboxItem, type GroupPresence, type Listbox,
+    announceGroupLabel, createGroupPresence, createListbox, createListboxItem, labelContains, type GroupPresence, type Listbox,
 } from '../../behaviors/listbox.js';
 import { syncPopover } from '../../behaviors/popover-sync.js';
 import type { ListboxWindowHost, ListboxWindowing, VirtualListbox } from '../../behaviors/virtual-listbox.js';
@@ -145,6 +159,8 @@ interface ComboboxContext {
     tagLabel(key: string): string;
     /** Deselect one chosen value (a tag's remove). */
     remove(key: string): void;
+    /** Under `filterItems`: a hand-written item the query hides (#458). */
+    itemFiltered(key: string): boolean;
     /** A key on a focused tag (#411): move between tags, remove, or return to the input. */
     tagKeydown(e: KeyboardEvent, key: string, el: HTMLElement): void;
     /** A focused tag lost focus — resyncs like the input's blur when focus left the combobox. */
@@ -207,6 +223,7 @@ function makeInert(): ComboboxContext {
         multiple: () => false,
         tagLabel: (key) => key,
         remove: () => {},
+        itemFiltered: () => false,
         tagKeydown: () => {},
         tagBlur: () => {},
         clearable: () => false,
@@ -254,7 +271,7 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     & Define.Model<'open', boolean>
     & Define.Prop<'defaultOpen', boolean, false>
     & Define.Event<'openChange', boolean>
-    /** The items as data. Absent → hand-written `Combobox.Item` children, consumer-filtered. */
+    /** The items as data. Absent → hand-written `Combobox.Item` children, consumer-filtered unless `filterItems`. */
     & Define.Prop<'items', ReadonlyArray<T>, false>
     & Define.Prop<'itemKey', (item: T) => string, false>
     & Define.Prop<'itemLabel', (item: T) => string, false>
@@ -263,9 +280,21 @@ export type ComboboxRootProps<T = unknown, M = unknown> =
     /**
      * Data-mode visibility: the default is a case-insensitive contains-match
      * on the label; a function replaces it; `false` shows every item (a
-     * server-filtered list).
+     * server-filtered list). Under `filterItems` the same prop rules the
+     * hand-written items, and a function is given each item's LABEL (hence
+     * `T` is `string` on the hand-written root).
      */
     & Define.Prop<'filter', false | ((item: T, query: string) => boolean), false>
+    /**
+     * Filter hand-written `Combobox.Item`s by the query (#458), off by
+     * default: an item whose label (`textValue`, else its text) does not
+     * contain the typed text, case-insensitively — or fails a `filter`
+     * function — stays registered but renders nothing, and the highlight,
+     * the arrows, `aria-activedescendant` and `Combobox.Empty` follow what
+     * is shown. Without it, hand-written items are the consumer's to filter.
+     * Ignored in data mode (`items`), which always filters.
+     */
+    & Define.Prop<'filterItems', boolean, false>
     /** Rendered as `Combobox.Empty` by the data expansion while nothing is visible. */
     & Define.Prop<'emptyText', string, false>
     /**
@@ -535,6 +564,19 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     const trig = signal({ token: null as TriggerToken | null, dismissed: false, textId: '' });
     let textEl: HTMLTextAreaElement | HTMLInputElement | null = null;
 
+    // `filterItems` (#458): hand-written items narrowed by their labels.
+    // `filter={false}` still shows everything; a function sees the label.
+    const filtersItems = (): boolean => !!props.filterItems && props.filter !== false;
+    const matchesLabel = (label: string, query: string): boolean => (typeof props.filter === 'function'
+        ? (props.filter as (item: unknown, query: string) => boolean)(label, query)
+        : labelContains(label, query));
+    /** A registered hand-written item the query filters out — it renders nothing. */
+    const itemFiltered = (key: string): boolean => {
+        if (collection.mode() !== 'jsx' || !filtersItems()) return false;
+        const query = inputValue.value;
+        return query !== '' && !matchesLabel(collection.label(key), query);
+    };
+
     const listbox = createListbox<unknown>({
         collection,
         selection: triggerMode ? noSelection : state,
@@ -543,6 +585,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         idBase: baseId,
         query: () => inputValue.value,
         filter: props.filter,
+        // Hand-written items only; `filter={false}` still shows everything.
+        filterItems: filtersItems,
+        labelFilter: matchesLabel,
         emptyValue,
         // A single selection fills the input with the label and closes; a
         // multiple one toggles, clears the query and stays open.
@@ -1041,6 +1086,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         multiple,
         tagLabel,
         remove,
+        itemFiltered,
         tagKeydown,
         tagBlur,
         clearable: () => !triggerMode && (inputValue.value !== '' || listbox.selectedKeys().length > 0),
@@ -1400,8 +1446,9 @@ export type ComboboxRoot = {
     // overload (an inference-priority quirk the type test pins).
     // Hand-written items (no `items`): a key IS its value, so the model is
     // the <select>'s string — '' for nothing selected — or string[].
-    (props: JsxProps<ComboboxRootProps<unknown, string>> & { items?: undefined; defaultValue?: string; itemValue?: undefined; multiple?: false }): JSXElement;
-    (props: JsxProps<ComboboxRootProps<unknown, string[]>> & { items?: undefined; defaultValue?: string[]; itemValue?: undefined; multiple: true }): JSXElement;
+    // `T` is the label a `filter` function sees under `filterItems`.
+    (props: JsxProps<ComboboxRootProps<string, string>> & { items?: undefined; defaultValue?: string; itemValue?: undefined; multiple?: false }): JSXElement;
+    (props: JsxProps<ComboboxRootProps<string, string[]>> & { items?: undefined; defaultValue?: string[]; itemValue?: undefined; multiple: true }): JSXElement;
     // An item model is `T | null`: nothing selected is `null` (the runtime
     // writes it on clear, reset and a platform write), never a fake item.
     // `items` may be `undefined` while a list loads (`items={query.data}`,
@@ -1850,6 +1897,9 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
         measure?.(node);
     };
     onMounted(() => {
+        // Learn the label while the element is here: under `filterItems` a
+        // hidden item renders nothing, and must still match by its text.
+        combobox.collection.label(props.value);
         // Hand-written items: a value set before this item existed could
         // not reflect its label into the input (the collection only learns
         // the label from the element). Deferred: a write during the mount
@@ -1877,6 +1927,9 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
     });
 
     return () => {
+        // Filtered out (`filterItems`, #458): still registered — its label,
+        // tag and hidden-select option stay — but nothing is rendered.
+        if (combobox.itemFiltered(props.value)) return null;
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
         return (
