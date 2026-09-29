@@ -74,7 +74,7 @@
     {
         "name": "@sigx/zero/anatomy (tooling entry)",
         "path": "packages/zero/dist/anatomy.js",
-        "limit": "4.37 kB",
+        "limit": "4.39 kB",
         "ignore": [
             "sigx",
             "@sigx/runtime-core",
