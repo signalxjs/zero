@@ -64,6 +64,12 @@
   equally rather than in proportion to their content. The README
   documents the pattern.
 
+- **The `radius-*` token hints name structural roles (#422).** Documented on
+  `TokenHint` and in `css/base.css`: a design system may play a role with a
+  key of its own through `@sigx/zero-kit`'s `system.structural`, and its
+  compiled manifest's `tokens.structural` records the token that does.
+  No runtime change.
+
 ### Fixed
 
 - **The README no longer says Combobox filters hand-written items (#458).**
