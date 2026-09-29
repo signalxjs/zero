@@ -56,6 +56,22 @@ describe('ext-stepper recipe pack', () => {
         expect(opacity).toMatch(/^var\(--disabled-opacity\b/);
     });
 
+    describe('the optional domain flag (#457)', () => {
+        it('rides the fragment: the item declares it and its selector', () => {
+            const item = components[0]!.parts.find((p) => p.name === 'item')!;
+            expect(item.domainFlags).toEqual(['optional']);
+            expect(item.selectors['x-optional']).toBe('[data-x-optional]');
+        });
+
+        it('compiles the pack\'s x-optional state to a dashed border on the flag', () => {
+            const ds = adopter(SIZE_SCALE_LIST);
+            expect(validateDesignSystem(ds, manifest).errors).toEqual([]);
+            const css = compileDesignSystem(ds, manifest).componentCss['ext-stepper']!;
+            const rule = new RegExp(String.raw`\[data-scope="ext-stepper"\]\[data-part="item"\]\[data-x-optional\][^{]*\{[^}]*border-style:\s*dashed`);
+            expect(css).toMatch(rule);
+        });
+    });
+
     describe('the runtime property the root publishes (#456)', () => {
         it('rides the fragment, so an adopter learns it from the manifest', () => {
             expect(components[0]!.runtimeProperties).toEqual(['--ext-stepper-count']);
