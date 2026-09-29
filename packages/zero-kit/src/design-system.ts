@@ -3,6 +3,8 @@
  * into the artifacts a DS package ships — per-component CSS files, a
  * combined index, and theme metadata for the runtime registry.
  */
+import type { TypeRoleField } from './type-roles.js';
+import { typeRoleProperties, typeRolesOf } from './type-roles.js';
 import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
 import { DEFAULT_ROLES, defaultSwatch, resolveRoles, resolveSizes } from './contract.js';
 import type { CompiledComponentApi, DesignSystemApi } from './api.js';
@@ -197,6 +199,14 @@ export interface CompiledDesignSystem {
         scopes: Record<string, ScopeVocabulary>;
         custom: Record<string, CustomTokenDecl>;
         breakpoints: Record<string, string>;
+        /**
+         * The declared composite type roles (#423): role → the custom
+         * property each field binds (`{ size: '--text-title-medium', … }`),
+         * in declaration order ({} when none are declared). The values live
+         * in `system.typography.roles`; this is the unit tooling reads — a
+         * generator styling "title-medium" sets all of them, never a mix.
+         */
+        typeRoles: Record<string, Partial<Record<TypeRoleField, string>>>;
         /** DS-level values per category id, e.g. `{ radius: { field: '0.5rem' } }`. */
         system: Record<string, unknown>;
         /** Overrides applied to dark-scheme themes. */
@@ -506,6 +516,9 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
             ),
             custom: ds.tokens.custom ?? {},
             breakpoints: ds.tokens.breakpoints ?? {},
+            typeRoles: Object.fromEntries(
+                Object.entries(typeRolesOf(ds.tokens.system)).map(([name, role]) => [name, typeRoleProperties(name, role)]),
+            ),
             system: (ds.tokens.system ?? {}) as Record<string, unknown>,
             systemDark: (ds.tokens.systemDark ?? {}) as Record<string, unknown>,
             properties: emittedProperties(tokensCss),

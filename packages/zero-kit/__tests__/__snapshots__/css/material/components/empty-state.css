@@ -25,9 +25,9 @@
     }
 
     [data-scope="empty-state"][data-part="title"] {
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-lg);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
         margin: 0;
         line-height: var(--leading-tight);

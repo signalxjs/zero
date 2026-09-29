@@ -14,9 +14,9 @@
     }
 
     [data-scope="fieldset"][data-part="legend"] {
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-label-large);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
         padding: 0;
         margin-block-end: var(--space-sm);

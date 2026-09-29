@@ -182,6 +182,15 @@ component's anatomy). No component code is ever written or changed.
      validator rejects `700px` and `1.5rem`, because CSS drops both silently.
      Fluid type belongs in `sizes` as a `clamp()`, not in the generator: the
      bounds are a design decision, not a ratio.
+     A brief that names **type roles** (Material's `title-medium`, a
+     "caption" / "eyebrow" voice) declares them whole under
+     `typography.roles` — name → `{ size, leading, weight, tracking, font? }`.
+     Each field emits into its ramp under the role's name
+     (`--text-title-medium`, `--leading-title-medium`, `--weight-title-medium`,
+     `--tracking-title-medium`, `--font-title-medium`); a recipe block reads
+     all of one role's tokens, and the validator warns when it mixes two. A
+     role name must not also be a key in `sizes` / `leading` / `weights` /
+     `tracking` / `fonts`.
    - **Density and elevation are personality axes too.** `spacing` emits
      `--space-*` (padding, gap, margin) and `shadow` emits `--shadow-*`.
      Recipes reference them instead of literal rems and box-shadows, so the

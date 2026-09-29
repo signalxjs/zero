@@ -19,6 +19,8 @@ import {
 } from '../contract.js';
 import type { RolesDecl, ScopeVocabulary, TokensInput } from '../tokens.js';
 import { systemNodeAt } from '../contract.js';
+import { typeRoleProperties, typeRolesOf, withTypeRoles } from '../type-roles.js';
+import type { TypeRoleField } from '../type-roles.js';
 import { nearestOf } from './nearest.js';
 
 /**
@@ -101,6 +103,12 @@ export interface TokenVocabulary {
      * as it did before this existed.
      */
     forScope(scope: string): ScopeView;
+    /**
+     * The declared composite type roles (#423): role → the custom property
+     * each of its fields binds. Recipes are checked against it so one
+     * declaration block does not pair two roles' tokens.
+     */
+    typeRoles: Readonly<Record<string, Partial<Record<TypeRoleField, string>>>>;
     /** Closest known name, for a "did you mean" hint. */
     nearest(name: string): string | undefined;
 }
@@ -126,11 +134,13 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
     // ── categories: what this design system declared, plus the recommended
     // keys `@sigx/zero/css` ships fallbacks for (those always resolve, so a
     // recipe may reference them even if the design system never set them) ──
+    // Type roles fold into the ramps first (#423), so `--text-<role>` and
+    // its siblings are declared names like any ramp key.
     const tiers = [
         tokens.system,
         tokens.systemDark,
         ...Object.values(tokens.themes ?? {}).map((t) => (t as { system?: unknown }).system),
-    ];
+    ].map((tier) => withTypeRoles(tier));
     for (const category of TOKEN_CATEGORIES) {
         if (category.shape === 'scalar') {
             names.add(tokenProperty(category));
@@ -179,9 +189,13 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
     const sizes = resolveSizes(tokens.sizes);
     const roleNames = new Set(Object.keys(roles));
     const scopes = tokens.scopes ?? {};
+    const typeRoles = Object.fromEntries(
+        Object.entries(typeRolesOf(tokens.system)).map(([name, role]) => [name, typeRoleProperties(name, role)]),
+    );
 
     return {
         names,
+        typeRoles,
         sizes,
         sizesDeclared: tokens.sizes !== undefined,
         roles: roleNames,

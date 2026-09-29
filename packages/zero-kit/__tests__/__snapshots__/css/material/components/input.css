@@ -50,10 +50,10 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         pointer-events: none;
-        font-family: var(--font-sans);
+        font-family: var(--font-body-large);
         font-size: var(--text-body-large);
         line-height: var(--leading-body-large);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-large);
         letter-spacing: var(--tracking-body-large);
         color: var(--color-surface-variant-content);
         padding-inline: var(--tf-label-pad);
@@ -143,10 +143,10 @@
         outline: none;
         background: transparent;
         color: inherit;
-        font-family: var(--font-sans);
+        font-family: var(--font-body-large);
         font-size: var(--text-body-large);
         line-height: var(--leading-body-large);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-large);
         letter-spacing: var(--tracking-body-large);
         padding-inline: var(--space-md);
         padding-block-start: var(--tf-in-top, calc((var(--tf-height) - 1.5rem) / 2));
@@ -183,10 +183,10 @@
         flex: none;
         min-inline-size: 1.5rem;
         color: var(--color-surface-variant-content);
-        font-family: var(--font-sans);
+        font-family: var(--font-body-large);
         font-size: var(--text-body-large);
         line-height: var(--leading-body-large);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-large);
         letter-spacing: var(--tracking-body-large);
         align-self: stretch;
         padding-block-start: var(--tf-in-top, calc((var(--tf-height) - 1.5rem) / 2));

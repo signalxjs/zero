@@ -18,9 +18,9 @@
     }
 
     [data-scope="tree-view"][data-part="label"] {
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-label-large);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
         color: var(--color-base-content);
         padding: var(--space-2xs) var(--space-md);

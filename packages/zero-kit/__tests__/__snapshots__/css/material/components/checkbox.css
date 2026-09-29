@@ -190,10 +190,10 @@
     }
 
     [data-scope="checkbox"][data-part="label"] {
-        font-family: var(--font-sans);
+        font-family: var(--font-body-large);
         font-size: var(--text-body-large);
         line-height: var(--leading-body-large);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-large);
         letter-spacing: var(--tracking-body-large);
     }
 

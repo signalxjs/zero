@@ -307,7 +307,7 @@
             }
         },
         "typography": {
-            "description": "The design system's typographic voice. `fonts` is FAMILIES \u2014 sizes are --text-*, listed in `sizes` or generated from `scale`.",
+            "description": "The design system's typographic voice. `fonts` is FAMILIES \u2014 sizes are --text-*, listed in `sizes` or generated from `scale`; `roles` names composite type roles over the ramps.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -328,6 +328,66 @@
                 },
                 "scale": {
                     "$ref": "#/$defs/typeScale"
+                },
+                "roles": {
+                    "description": "Composite type roles (#423): name \u2192 { size, leading, weight, tracking, font? }. Each field folds into its ramp under the role's name (--text-<role>, --leading-<role>, --weight-<role>, --tracking-<role>, --font-<role>), and the DS manifest records the role as a unit. A role name must not also be a key of a ramp it folds into.",
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/$defs/typeRole"
+                    }
+                }
+            }
+        },
+        "typeRole": {
+            "description": "One composite type role. `leading` is a unitless multiplier like every --leading-* value; `font` is a family stack or a reference to one.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "size",
+                "leading",
+                "weight",
+                "tracking"
+            ],
+            "properties": {
+                "size": {
+                    "$ref": "#/$defs/tokenValue"
+                },
+                "leading": {
+                    "$ref": "#/$defs/tokenValue"
+                },
+                "weight": {
+                    "$ref": "#/$defs/tokenValue"
+                },
+                "tracking": {
+                    "$ref": "#/$defs/tokenValue"
+                },
+                "font": {
+                    "$ref": "#/$defs/tokenValue"
+                }
+            }
+        },
+        "typeRoleOverride": {
+            "description": "A per-theme restatement of a declared type role \u2014 only the fields that differ.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "size": {
+                    "$ref": "#/$defs/tokenValue"
+                },
+                "leading": {
+                    "$ref": "#/$defs/tokenValue"
+                },
+                "weight": {
+                    "$ref": "#/$defs/tokenValue"
+                },
+                "tracking": {
+                    "$ref": "#/$defs/tokenValue"
+                },
+                "font": {
+                    "$ref": "#/$defs/tokenValue"
                 }
             }
         },
@@ -350,6 +410,16 @@
                 },
                 "sizes": {
                     "$ref": "#/$defs/scale"
+                },
+                "roles": {
+                    "description": "Per-field overrides of type roles declared in the base tier.",
+                    "type": "object",
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/$defs/typeRoleOverride"
+                    }
                 }
             }
         },
