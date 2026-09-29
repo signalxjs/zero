@@ -233,6 +233,12 @@ keystroke a `lazy` or `debounce` model has not taken yet already clears it.
 It is kept off the native element on purpose: `:placeholder-shown` needs a
 `placeholder` attribute to match at all, and re-rendering the native
 element per keystroke would drop a pending `debounce`.
+A `Field.Root` holding one of these controls, or a Select, mirrors the flag
+onto its own `root` (#469), so a skin styles a `Field.Label` from its own
+field instead of a `:has()` into the control. It is set from mount on, since
+the control reports itself after the root renders; server markup carries
+none, and a field around a control with no notion of empty (a checkbox, a
+slider) never has it.
 
 **Input's control holds three affordances (#281).** `Input.Adornment`
 (part `adornment`, `placement="start" | "end"` → `data-placement`) puts

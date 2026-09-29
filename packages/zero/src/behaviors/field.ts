@@ -58,6 +58,14 @@ export interface FieldValidityReport {
     value(): unknown;
     /** Focus the control the user fixes (the trigger, not a hidden `<select>`). */
     focus(): void;
+    /**
+     * Whether the control holds no value — read reactively. The text
+     * controls and Select report it, and it is exactly their root's
+     * `data-placeholder`, which `Field.Root` mirrors (#469) so a skin can
+     * style the field from its control's emptiness without `:has()`. A
+     * control that leaves it out (a checkbox, a slider) is never empty.
+     */
+    empty?(): boolean;
 }
 
 export interface FieldContext {

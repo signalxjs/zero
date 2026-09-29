@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
-import { Combobox, Input, NumberInput, Textarea } from '@sigx/zero';
+import { Checkbox, Combobox, Field, Input, NumberInput, Select, Textarea } from '@sigx/zero';
 
 let container: HTMLElement;
 beforeEach(() => {
@@ -156,5 +156,90 @@ describe('data-placeholder on the text controls', () => {
         type(part('textarea', 'textarea') as HTMLTextAreaElement, 'hi there');
         expect(flagged(part('combobox', 'root'))).toBe(false);
         expect(flagged(part('textarea', 'root'))).toBe(false);
+    });
+});
+
+/**
+ * #469: `Field.Root` mirrors its control's emptiness, so a skin's floating
+ * label reads its own field's flag instead of a `:has()` into the control.
+ */
+describe('data-placeholder on Field.Root', () => {
+    it('follows an Input inside, both ways', () => {
+        render(
+            <Field.Root>
+                <Field.Label>Name</Field.Label>
+                <Input.Root>
+                    <Input.Control><Input.Input /></Input.Control>
+                </Input.Root>
+            </Field.Root>,
+            container,
+        );
+        expect(flagged(part('field', 'root'))).toBe(true);
+        type(part('input', 'input') as HTMLInputElement, 'Ada');
+        expect(flagged(part('field', 'root'))).toBe(false);
+        type(part('input', 'input') as HTMLInputElement, '');
+        expect(flagged(part('field', 'root'))).toBe(true);
+    });
+
+    it('follows a Textarea, a NumberInput draft and a Combobox the way their roots do', () => {
+        const state = signal({ n: null as number | null, pick: [] as string[] });
+        render(
+            <div>
+                <Field.Root id="t"><Textarea.Root><Textarea.Textarea /></Textarea.Root></Field.Root>
+                <Field.Root id="n">
+                    <NumberInput.Root model={() => state.n}>
+                        <NumberInput.Control><NumberInput.Input /></NumberInput.Control>
+                    </NumberInput.Root>
+                </Field.Root>
+                <Field.Root id="c">
+                    <Combobox.Root multiple model={[state, 'pick']}>
+                        <Combobox.Control><Combobox.Input /></Combobox.Control>
+                        <Combobox.Popup><Combobox.Item value="apple">Apple</Combobox.Item></Combobox.Popup>
+                    </Combobox.Root>
+                </Field.Root>
+            </div>,
+            container,
+        );
+        const root = (id: string): HTMLElement => container.querySelector<HTMLElement>(`#${id}`)!;
+        for (const id of ['t', 'n', 'c']) expect(flagged(root(id)), id).toBe(true);
+        type(container.querySelector<HTMLTextAreaElement>('#t textarea')!, 'Notes');
+        expect(flagged(root('t'))).toBe(false);
+        // An uncommitted draft is text in the field — not empty.
+        type(container.querySelector<HTMLInputElement>('#n input')!, '4');
+        expect(state.n).toBe(null);
+        expect(flagged(root('n'))).toBe(false);
+        state.pick = ['apple'];
+        expect(flagged(root('c'))).toBe(false);
+        state.pick = [];
+        expect(flagged(root('c'))).toBe(true);
+    });
+
+    it('follows a Select: nothing chosen is empty', () => {
+        const state = signal({ fruit: undefined as string | undefined });
+        render(
+            <Field.Root>
+                <Field.Label>Fruit</Field.Label>
+                <Select.Root model={[state, 'fruit']} placeholder="Pick…">
+                    <Select.Trigger label="Fruit"><Select.Value /></Select.Trigger>
+                    <Select.Popup><Select.Item value="apple">Apple</Select.Item></Select.Popup>
+                </Select.Root>
+            </Field.Root>,
+            container,
+        );
+        expect(flagged(part('field', 'root'))).toBe(true);
+        state.fruit = 'apple';
+        expect(flagged(part('field', 'root'))).toBe(false);
+    });
+
+    it('is never set for a control with no emptiness, nor for a Field with no control', () => {
+        render(
+            <div>
+                <Field.Root id="box"><Checkbox.Root>Subscribe</Checkbox.Root></Field.Root>
+                <Field.Root id="bare"><Field.Label>Alone</Field.Label></Field.Root>
+            </div>,
+            container,
+        );
+        expect(flagged(container.querySelector('#box')!)).toBe(false);
+        expect(flagged(container.querySelector('#bare')!)).toBe(false);
     });
 });
