@@ -575,6 +575,12 @@
         display: none;
     }
 
+    [data-scope="tabs"][data-part="tab-label"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+
     [data-scope="tabs"][data-part="panel"] {
         font-size: var(--text-md);
     }

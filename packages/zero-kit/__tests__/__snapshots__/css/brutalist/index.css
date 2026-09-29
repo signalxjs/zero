@@ -669,6 +669,12 @@
         display: none;
     }
 
+    [data-scope="tabs"][data-part="tab-label"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+
     [data-scope="tabs"][data-part="panel"] {
         border: var(--border) solid var(--color-base-content);
         border-radius: 0;

@@ -613,6 +613,10 @@ export const tabs: RecipeInput = {
             },
             at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
+        // The tab's optional text wrapper (#530), which the indicator
+        // measures for its content geometry: an icon beside the text sits on
+        // its centre line, and the ink stays the tab's.
+        'tab-label': { base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-xs)' } },
         panel: {
             base: { fontSize: 'var(--text-sm)', color: 'var(--color-base-content)' },
             states: { active: {}, inactive: {} },

@@ -394,6 +394,10 @@ export const tabs: RecipeInput = {
         // accent fill is the mark, so a `Tabs.Indicator` renders nothing
         // here (#283).
         indicator: { base: { display: 'none' } },
+        // The tab's optional text wrapper (#530), which the indicator
+        // measures for its content geometry: an icon beside the text sits on
+        // its centre line, and the ink stays the tab's.
+        'tab-label': { base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-xs)' } },
         panel: {
             base: { ...inked, padding: 'var(--space-lg)', boxShadow: 'var(--shadow-md)', lineHeight: 'var(--leading-normal)' },
             states: { active: {}, inactive: {} },

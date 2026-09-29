@@ -579,6 +579,10 @@ export const tabs: RecipeInput = {
             },
             selectors: { ...pressedInk },
         },
+        // The tab's optional text wrapper (#530), which the indicator
+        // measures for its content geometry: an icon beside the text sits on
+        // its centre line, and the ink stays the tab's.
+        'tab-label': { base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-xs)' } },
         panel: {
             base: { fontSize: 'var(--text-md)', fontVariantNumeric: 'tabular-nums' },
             states: { active: {}, inactive: {} },
