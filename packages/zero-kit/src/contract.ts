@@ -24,6 +24,15 @@ export interface RoleDecl {
     content?: boolean;
     /** Emit a `<role>-soft` tint (explicit value or `softMix` derivation). Default true. */
     soft?: boolean;
+    /**
+     * Whether the role is a value of the `color` axis (#425). Default: inferred
+     * — a role that opts out of `-content` or `-soft` is a fill or a hairline,
+     * every other role is an axis value (`isFillRole`). Say it explicitly when
+     * the token shape and the axis disagree: Material's containers carry an
+     * ink but are no axis value (`axis: false`). `axis: true` needs the
+     * `-content` ink a control paints its label with.
+     */
+    axis?: boolean;
     /** Intent of the role — surfaced in the DS manifest for tooling/AI. */
     description?: string;
 }
@@ -285,14 +294,16 @@ export function resolveRoles(roles: Record<string, RoleDecl> | undefined): Recor
  * Whether a role is a fill or a hairline rather than an action colour.
  *
  * `tokens.roles` does double duty as the palette and as the `color` axis
- * vocabulary (#286). A role that opts out of `-content` or `-soft` —
- * Material's tonal `surface*` family, its `outline` — is a token a recipe
+ * vocabulary (#286). A role declared `axis: false` — Material's tonal
+ * `surface*` and `*-container` families, its `outline` — is a token a recipe
  * reads, not a value a consumer can pass as `color`; every skin filters it
  * out of the axis, the value-coverage guard exempts it, and the score leaves
- * it out of the vocabulary denominator. One predicate, so #286 becomes a
- * one-function change when the declaration grows an explicit field.
+ * it out of the vocabulary denominator. Without an explicit `axis` the
+ * membership is inferred from the token shape, as it was before the field
+ * existed (#425): a role that opts out of `-content` or `-soft` is a fill.
  */
 export function isFillRole(decl: RoleDecl | undefined): boolean {
+    if (decl?.axis !== undefined) return !decl.axis;
     return decl?.content === false || decl?.soft === false;
 }
 

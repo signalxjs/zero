@@ -234,6 +234,15 @@ export function validateDesignSystem<R extends RolesDecl>(
         if (RESERVED_ROLE_NAMES.has(name)) {
             error('tokens.roles', `role "${name}" is a CSS keyword — resolveColorToken would never resolve it to var(--color-${name})`);
         }
+        // A `color` axis value is something a control can BE: its recipes
+        // paint the label in `-content`, which a role without one never emits.
+        if (roles[name]?.axis === true && roles[name]?.content === false) {
+            error(
+                'tokens.roles',
+                `role "${name}" is declared \`axis: true\` with \`content: false\` — a \`color\` axis value needs the ` +
+                `--color-${name}-content ink a control paints its label with; drop \`content: false\` or \`axis: true\``,
+            );
+        }
     }
     // A role emits `--color-<role>` plus `-content`/`-soft` per its
     // declaration, so two roles can quietly emit the same property: role
