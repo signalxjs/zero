@@ -26,6 +26,8 @@ export { triState, toggleTriState } from './tri-state.js';
 export type { TriState } from './tri-state.js';
 export { mountScope } from './mount-scope.js';
 export { timingModifiers } from './model-modifiers.js';
+export { createAxisMirror, INERT_AXIS_MIRROR } from './axis-mirror.js';
+export type { AxisMirror, AxisAttrs } from './axis-mirror.js';
 
 export type { HighlightStep, ItemElement, ListController, ListItem } from './list-core.js';
 export { createListController, moveHighlight, sortByDomOrder } from './list-core.js';

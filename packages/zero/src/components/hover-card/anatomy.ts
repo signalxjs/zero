@@ -18,8 +18,10 @@ export const hoverCardAnatomy = defineAnatomy('hover-card', {
     // POSITION_PROPERTIES — `--anchor-width`/`--anchor-height`,
     // `--available-width`/`--available-height`, `--transform-origin`.
     // Content may be interactive (links, buttons), so no `role="tooltip"`.
+    // Mirrors the trigger's axis attributes (#514) — see `PartSpec.mirrorsAxes`.
     popup: {
         element: 'div',
+        mirrorsAxes: true,
         states: ['open', 'closed'],
         placements: [...PLACEMENT_VOCABULARY],
         tokens: ['color', 'radius-box', 'text'],

@@ -361,6 +361,40 @@ describe('anatomy registry', () => {
         }
     });
 
+    it('a part that mirrors the axes is a top-level sibling of its carrier', () => {
+        // `mirrorsAxes` (#514): the runtime copies the carrier's whole axis
+        // surface onto the part, and the compiler anchors axis rules there.
+        // That only means something for a part the carrier can never reach
+        // — top-level, not the carrier, rendering an element of its own —
+        // and a part that has every axis re-carries none on top.
+        type Part = { mirrorsAxes?: unknown; parent?: string; pseudo?: unknown; absorbable?: unknown; carries?: unknown };
+        const mirroring: string[] = [];
+        for (const anatomy of Object.values(anatomies)) {
+            const parts: Record<string, Part> = anatomy.parts;
+            const carrier = 'root' in parts ? 'root' : Object.keys(parts)[0];
+            for (const [name, part] of Object.entries(parts)) {
+                if (!('mirrorsAxes' in part)) continue;
+                const at = `${anatomy.scope}.${name}`;
+                mirroring.push(at);
+                expect(part.mirrorsAxes, `${at}: mirrorsAxes is presence-only — true or omitted`).toBe(true);
+                expect(name, `${at}: the carrier cannot mirror itself`).not.toBe(carrier);
+                expect(part.parent, `${at}: a mirroring part is top-level`).toBeUndefined();
+                expect(part.pseudo, `${at}: mirrorsAxes with pseudo`).toBeUndefined();
+                expect(part.absorbable, `${at}: mirrorsAxes with absorbable`).toBeUndefined();
+                expect(part.carries, `${at}: mirrorsAxes with carries`).toBeUndefined();
+            }
+        }
+        // The fragment-rooted scopes: each popup takes its trigger's axes.
+        expect(mirroring.sort()).toEqual([
+            'dialog.popup',
+            'drawer.panel',
+            'hover-card.popup',
+            'menu.popup',
+            'popover.popup',
+            'tooltip.popup',
+        ]);
+    });
+
     it('a paint declaration is consistent with its own part', () => {
         // `paint` (#31) is what the contrast audit measures as a mark. `only`
         // names one of the part's own flags; `host` names a rendered part

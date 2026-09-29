@@ -36,6 +36,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
+import { createAxisMirror, INERT_AXIS_MIRROR, type AxisMirror } from '../../behaviors/axis-mirror.js';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { askToPrevent, createDismissable, type InteractOutsideEvent } from '../../behaviors/dismiss.js';
@@ -86,6 +87,8 @@ interface DialogContext {
     ids: { popup: string; title: string; description: string };
     /** The rendered Trigger — where a non-modal close restores focus when the element focused before opening cannot take it. */
     trigger: { el: HTMLElement | null };
+    /** The Trigger's axis attributes, mirrored onto the popup (#514, `mirrorsAxes`). */
+    axes: AxisMirror;
     /** Title/Description report their presence so the popup's ARIA refs never dangle. */
     titlePresent(): boolean;
     descriptionPresent(): boolean;
@@ -113,6 +116,7 @@ function makeInert(): DialogContext {
         role: () => 'dialog',
         ids: { popup: 'zx-dialog-inert', title: 'zx-dialog-inert-title', description: 'zx-dialog-inert-desc' },
         trigger: { el: null },
+        axes: INERT_AXIS_MIRROR,
         titlePresent: () => false,
         descriptionPresent: () => false,
         setTitlePresent: () => {},
@@ -231,6 +235,7 @@ const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) =
             description: `${baseId}-desc`,
         },
         trigger: { el: null },
+        axes: createAxisMirror(),
         titlePresent: () => present.title,
         descriptionPresent: () => present.description,
         setTitlePresent: (p) => { present.title = p; },
@@ -278,8 +283,10 @@ export type DialogTriggerProps =
     & WithLend
     & Define.Slot<'default', PartProps>;
 
-const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal }) => {
+const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal, onUnmounted }) => {
     const dialog = useDialogContext();
+    // The popup renders the same axis attributes (#514).
+    onUnmounted(dialog.axes.publish(() => variantAttrs(props)));
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
@@ -472,6 +479,7 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted, onUn
         return (
             <dialog
                 {...attrs}
+                {...dialog.axes.attrs()}
                 id={dialog.ids.popup}
                 data-scope={SCOPE}
                 data-part="popup"

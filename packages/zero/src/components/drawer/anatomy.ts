@@ -65,17 +65,20 @@ export const drawerAnatomy = defineAnatomy('drawer', {
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },
+    // Mirrors the trigger's axis attributes (#514) — see `PartSpec.mirrorsAxes`.
     panel: {
         element: 'dialog',
+        mirrorsAxes: true,
         states: ['open', 'closed'],
         placements: ['start', 'end', 'top', 'bottom'],
         // Present while a modal sheet is being swiped back to its edge
         // (#293), with the drag offset as `--swipe-x` / `--swipe-y`.
         flags: ['swiping'],
         // The panel's width, from the `--measure-*` ramp — Container's
-        // reasoning for a layout attribute over the `size` axis, plus one of
-        // Drawer's own: `size` rides the trigger (the carrier), and the
-        // panel is not inside it, so no trigger-carried axis can reach it.
+        // reasoning for a layout attribute over the `size` axis: a width is
+        // geometry off the `--measure-*` ramp, not a step of the control
+        // ramp. (The panel does see the trigger's `size` since #514 — it
+        // mirrors every axis — but a recipe's ramp is not a measure.)
         layout: ['measure', 'dock', 'dock-above'],
         tokens: ['color'],
     },

@@ -37,6 +37,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define } from 'sigx';
+import { createAxisMirror, INERT_AXIS_MIRROR, type AxisMirror } from '../../behaviors/axis-mirror.js';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
@@ -57,6 +58,8 @@ const SCOPE = popoverAnatomy.scope;
 
 interface PopoverContext {
     state: ControllableState<boolean>;
+    /** The Trigger's axis attributes, mirrored onto the popup (#514, `mirrorsAxes`). */
+    axes: AxisMirror;
     ids: { popup: string; title: string; description: string };
     /**
      * Title/Description report their presence so the popup's ARIA refs never
@@ -87,6 +90,7 @@ interface PopoverContext {
 function makeInert(): PopoverContext {
     return {
         state: createInertState<boolean>(false),
+        axes: INERT_AXIS_MIRROR,
         ids: { popup: 'zx-popover-inert', title: 'zx-popover-inert-title', description: 'zx-popover-inert-description' },
         titlePresent: () => false,
         setTitlePresent: () => {},
@@ -160,6 +164,7 @@ const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal })
 
     const ctx: PopoverContext = {
         state,
+        axes: createAxisMirror(),
         ids: { popup: `${baseId}-popup`, title: `${baseId}-title`, description: `${baseId}-description` },
         titlePresent: () => present.title > 0,
         setTitlePresent: (p) => { present.title += p ? 1 : -1; },
@@ -235,8 +240,10 @@ export type PopoverTriggerProps =
     & WithLend
     & Define.Slot<'default', PartProps>;
 
-const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal }) => {
+const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal, onUnmounted }) => {
     const popover = usePopoverContext();
+    // The popup renders the same axis attributes (#514).
+    onUnmounted(popover.axes.publish(() => variantAttrs(props)));
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
     const press = createPressFeedback({
@@ -365,6 +372,7 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
         return (
             <div
                 {...attrs}
+                {...popover.axes.attrs()}
                 id={popover.ids.popup}
                 data-scope={SCOPE}
                 data-part="popup"

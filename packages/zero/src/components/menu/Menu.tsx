@@ -88,6 +88,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect, untrack, watch } from 'sigx';
 import type { Define } from 'sigx';
+import { createAxisMirror, INERT_AXIS_MIRROR, type AxisMirror } from '../../behaviors/axis-mirror.js';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createListController, type ListItem } from '../../behaviors/list.js';
@@ -114,6 +115,8 @@ const SCOPE = menuAnatomy.scope;
 
 interface MenuContext {
     state: ControllableState<boolean>;
+    /** The Trigger's axis attributes, mirrored onto the popup (#514, `mirrorsAxes`). */
+    axes: AxisMirror;
     /**
      * The enclosing `Menubar.Root`'s context, or the inert fallback
      * (`bar.inert`) for a menu outside any bar. Captured by the root: the
@@ -204,6 +207,7 @@ function graceHover(grace: PointerGrace, hover: () => void) {
 function makeInert(): MenuContext {
     return {
         state: createInertState<boolean>(false),
+        axes: INERT_AXIS_MIRROR,
         bar: inertMenubarContext(),
         value: () => '',
         list: createListController(),
@@ -342,6 +346,7 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal, onUnmou
 
     const ctx: MenuContext = {
         state,
+        axes: createAxisMirror(),
         bar,
         value,
         list,
@@ -520,6 +525,8 @@ export type MenuTriggerProps =
 
 const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
     const menu = useMenuContext();
+    // The popup renders the same axis attributes (#514).
+    onUnmounted(menu.axes.publish(() => variantAttrs(props)));
     const bar = menu.bar;
     const inBar = !bar.inert;
     let el: HTMLElement | null = null;
@@ -899,6 +906,7 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
         return (
             <div
                 {...attrs}
+                {...menu.axes.attrs()}
                 id={menu.ids.popup}
                 data-scope={SCOPE}
                 data-part="popup"
@@ -1386,6 +1394,8 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
     // unchanged. Selection bubbles to the root; ArrowLeft steps back out.
     const subCtx: MenuContext = {
         state,
+        // A sub-popup sits inside the root popup, whose mirrored axes reach it.
+        axes: parent.axes,
         bar: parent.bar,
         value: parent.value,
         list,
