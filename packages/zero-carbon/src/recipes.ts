@@ -2016,6 +2016,8 @@ export const slider: RecipeInput = {
                 background: 'var(--color-base-content)',
                 cursor: 'pointer',
                 outline: 'none',
+                // Over the ticks, which sit over the filled span.
+                zIndex: '1',
                 touchAction: 'none',
                 transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
             },
@@ -2029,8 +2031,36 @@ export const slider: RecipeInput = {
                 disabled: { cursor: 'not-allowed' },
             },
         },
+        // The thumb's value (#490) in the tooltip's inverse chip over the
+        // handle, shown while it is dragged or keyboard-focused. Where it
+        // sits is web geometry (targets.web below).
+        'thumb-value': {
+            base: {
+                position: 'absolute',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                background: 'var(--color-base-content)',
+                color: 'var(--color-base-100)',
+                borderRadius: 'var(--radius-field)',
+                boxShadow: 'var(--shadow-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1.25',
+                whiteSpace: 'nowrap',
+                pointerEvents: 'none',
+                opacity: '0',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                pressed: { opacity: '1' },
+                'focus-visible': { opacity: '1' },
+            },
+        },
+        // A notch in the hairline rail; on the filled span it is cut in the
+        // page's own ink, above the span that would otherwise cover it
+        // (#490).
         mark: {
             base: {
+                zIndex: '1',
                 paddingBlockStart: 'calc(0.125rem + var(--space-2xs))',
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
@@ -2038,7 +2068,11 @@ export const slider: RecipeInput = {
                 whiteSpace: 'nowrap',
                 color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
             },
-            states: { disabled: {} },
+            states: {
+                active: { '--slider-stop-ink': 'var(--color-base-100)' },
+                inactive: { '--slider-stop-ink': 'var(--carbon-line)' },
+                disabled: {},
+            },
             selectors: {
                 '&::before': {
                     content: '""',
@@ -2047,7 +2081,7 @@ export const slider: RecipeInput = {
                     insetInlineStart: '-1px',
                     width: '2px',
                     height: '0.125rem',
-                    background: 'var(--carbon-line)',
+                    background: 'var(--slider-stop-ink)',
                 },
             },
         },
@@ -2137,6 +2171,16 @@ export const slider: RecipeInput = {
                             marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
                             marginBlockEnd: 'calc(var(--slider-thumb-size) / -2)',
                         },
+                    },
+                },
+                // The value bubble (#490): over the thumb, centred on it — `left:
+                // 50%` with its `-50%` pull-back is symmetric centring, not a side —
+                // and, upright, beside it on the inline-start side, away from the
+                // mark labels. Web-only: lynx renders no value bubble yet.
+                'thumb-value': {
+                    selectors: {
+                        '&[data-orientation="horizontal"]': { bottom: 'calc(100% + var(--space-xs))', left: '50%', translate: '-50% 0' },
+                        '&[data-orientation="vertical"]': { bottom: '50%', insetInlineEnd: 'calc(100% + var(--space-xs))', translate: '0 50%' },
                     },
                 },
                 // The label sits beside the channel, centred on its tick.
