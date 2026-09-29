@@ -224,6 +224,10 @@ describe('manifest.schema.json', () => {
             (m.components.find((c) => c.scope === 'badge') as { runtimeProperties?: unknown }).runtimeProperties = runtimeProperties;
             return m;
         };
+        // Zero's own anatomies declare theirs (#537), so the manifest the
+        // first test validates already carries the key.
+        expect((asJson(manifest) as typeof manifest).components.find((c) => c.scope === 'toast')!.runtimeProperties)
+            .toEqual(['--toast-index', '--toast-count', '--toast-height', '--toast-offset']);
         expectValid(validateManifest, withRuntime(['--badge-count']), 'manifest with runtimeProperties');
         expect(validateManifest(withRuntime([]))).toBe(false);
         expect(validateManifest(withRuntime(['--badge-count', '--badge-count']))).toBe(false);

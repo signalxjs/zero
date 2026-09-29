@@ -35,4 +35,8 @@ export const countdownAnatomy = defineAnatomy('countdown', {
         parent: 'value',
         tokens: ['color', 'text'],
     },
+}, {
+    // The raw number on the value part, for a recipe that wants the property
+    // rather than the rendered digits.
+    runtimeProperties: ['--countdown-value'],
 });

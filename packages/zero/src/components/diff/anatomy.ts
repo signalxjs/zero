@@ -54,4 +54,6 @@ export const diffAnatomy = defineAnatomy('diff', {
     models: [
         { concept: 'value', type: 'number' },
     ],
+    // On the root, the divider's position as a percent.
+    runtimeProperties: ['--diff-percent'],
 });

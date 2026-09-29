@@ -57,4 +57,9 @@ export const accordionAnatomy = defineAnatomy('accordion', {
     models: [
         { concept: 'value', type: 'string[]' },
     ],
+    // Measured on the panel (px) so a recipe can animate a close (#276).
+    runtimeProperties: [
+        '--accordion-panel-height',
+        '--accordion-panel-width',
+    ],
 });

@@ -174,7 +174,18 @@ indicator's box `--tabs-indicator-inset-inline-start`/
 `--tabs-indicator-block-size` (#283: the active tab's box relative to the
 list's padding box, the inline offset from its inline-start edge so RTL
 needs no correction; the indicator stays `display: none` until measured, so
-no transition plays from nowhere). They are web-only
+no transition plays from nowhere), and the toast stack quartet
+`--toast-index`/`--toast-count`/`--toast-height`/`--toast-offset` (#292:
+each root's place in the stack and, measured, its own height and the summed
+heights of the newer toasts in front of it). The scoped ones are declared
+where they are written: each of zero's anatomies lists its own as
+`runtimeProperties` (#537), which the manifest carries, and the kit's
+`RUNTIME_PROPERTIES` is a derived copy — the behavior list plus every
+declared name, parity-checked against the anatomies. Every declared name
+carries its scope's prefix, bar one reasoned exception (radial-progress
+shares `--progress-percent`, so one recipe idiom serves both), and a source
+scrape holds each declared name to a write in its scope's sources. They are
+web-only
 — the lynx target rejects them outside a `targets.web` section — and the
 vocabulary check accepts them without a declaration. An ecosystem component
 declares its own the same way (#456): `runtimeProperties` on

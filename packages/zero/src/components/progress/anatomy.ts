@@ -28,4 +28,8 @@ export const progressAnatomy = defineAnatomy('progress', {
         parent: 'root',
         tokens: ['color', 'text'],
     },
+}, {
+    // Written on the root, from the value against min/max; absent while
+    // indeterminate.
+    runtimeProperties: ['--progress-percent'],
 });
