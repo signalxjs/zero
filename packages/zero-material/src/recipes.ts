@@ -1090,11 +1090,12 @@ export const tabs: RecipeInput = {
     component: 'tabs',
     // Accent default in `tokens:` — the un-attributed render IS the primary
     // variant; `variants.color` only rebinds the custom property.
-    // M3's tabs (#419): primary (3dp rounded indicator, the active label in
-    // the role) or secondary (2dp flat indicator, the active label
-    // on-surface). The indicator spans the tab: zero publishes the tab's box,
-    // not its label's, so M3's content-width primary indicator is out of
-    // reach (#530).
+    // M3's tabs (#419): primary (3dp rounded indicator under the label, the
+    // active label in the role) or secondary (2dp flat indicator across the
+    // tab, the active label on-surface). The primary indicator is
+    // content-width: it reads the `--tabs-indicator-content-*` pair, which
+    // is the active tab's `Tabs.TabLabel` when it holds one and the tab's
+    // own extent when not (#530).
     tokens: {
         '--tabs-accent': 'var(--color-primary)',
         '--tabs-active-ink': 'var(--tabs-accent)',
@@ -1143,16 +1144,21 @@ export const tabs: RecipeInput = {
             },
         }),
         // MD3's primary-tab indicator: the 3px accent bar with rounded top
-        // corners, sliding to the active tab's box. A border rather than a
+        // corners, sliding to the active tab's LABEL — content-width, at
+        // least 24dp, centred on the label when it is narrower (#530). The
+        // secondary variant widens it to the tab. A border rather than a
         // fill, so forced colours keep it.
         indicator: {
             base: {
+                '--tabs-ind-inline': `max(${dp(24)}, var(--tabs-indicator-content-inline-size))`,
+                '--tabs-ind-at': 'calc(var(--tabs-indicator-content-inset-inline-start) '
+                    + '+ (var(--tabs-indicator-content-inline-size) - var(--tabs-ind-inline)) / 2)',
                 position: 'absolute',
                 boxSizing: 'border-box',
                 pointerEvents: 'none',
-                insetInlineStart: 'var(--tabs-indicator-inset-inline-start)',
+                insetInlineStart: 'var(--tabs-ind-at)',
                 insetBlockStart: 'calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - var(--tabs-ind-size))',
-                inlineSize: 'var(--tabs-indicator-inline-size)',
+                inlineSize: 'var(--tabs-ind-inline)',
                 blockSize: 'var(--tabs-ind-size)',
                 borderBlockEnd: 'var(--tabs-ind-size) solid var(--tabs-accent)',
                 borderStartStartRadius: 'var(--tabs-ind-radius)',
@@ -1173,6 +1179,10 @@ export const tabs: RecipeInput = {
             },
             at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
+        // The tab's optional text wrapper (#530), which the indicator
+        // measures for its content geometry: an icon beside the text sits on
+        // its centre line, and the ink stays the tab's.
+        'tab-label': { base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-xs)' } },
         panel: {
             base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-md)', lineHeight: 'var(--leading-normal)' },
             states: { active: {}, inactive: {} },
@@ -1195,11 +1205,18 @@ export const tabs: RecipeInput = {
         } } }])),
         variant: {
             primary: {},
-            secondary: { root: { base: {
-                '--tabs-active-ink': 'var(--color-base-content)',
-                '--tabs-ind-size': '2px',
-                '--tabs-ind-radius': '0',
-            } } },
+            secondary: {
+                root: { base: {
+                    '--tabs-active-ink': 'var(--color-base-content)',
+                    '--tabs-ind-size': '2px',
+                    '--tabs-ind-radius': '0',
+                } },
+                // The secondary indicator spans the whole tab.
+                indicator: { base: {
+                    '--tabs-ind-inline': 'var(--tabs-indicator-inline-size)',
+                    '--tabs-ind-at': 'var(--tabs-indicator-inset-inline-start)',
+                } },
+            },
         },
     },
     defaultVariants: { variant: 'primary' },
@@ -6369,19 +6386,18 @@ export const join: RecipeInput = {
 };
 
 /**
- * Navbar — M3's top app bar: a surface-container band, no border (Material
- * separates by tone, not line), the title area in the headline type. Colour
- * refills the band with the role pair, which is the M1-era coloured app bar
+ * Navbar — M3's top app bar: a surface band, no border (Material separates
+ * by tone, not line), the title area in the headline type. Colour refills
+ * the band with the role pair, which is the M1-era coloured app bar
  * Material still specifies for expressive products.
- */
-/**
+ *
  * M3's top app bar (#419): `small` (64dp, surface, a title-large headline),
  * `center-aligned` (the `center` part is the centred headline), `medium` and
  * `large` (112 / 152dp, the headline — the `center` part — on its own row
  * under the icons, headline-small / headline-medium), and `bottom`, the
- * bottom app bar (80dp, surface-container). M3 fills a scrolled-under top
- * bar with surface-container; zero publishes no scroll state for it to key
- * on (#530).
+ * bottom app bar (80dp, surface-container). A top bar with content
+ * scrolled under it fills with surface-container, keyed on the root's
+ * `scrolled` flag (#530); a coloured bar keeps its role pair.
  */
 export const navbar: RecipeInput = {
     component: 'navbar',
@@ -6397,7 +6413,16 @@ export const navbar: RecipeInput = {
                 background: 'var(--color-surface)',
                 color: 'var(--color-surface-content)',
                 ...type('body-medium'),
+                transition: motion('background-color, color'),
             },
+            selectors: {
+                // Scrolled under: surface-container, M3's on-scroll fill.
+                '&[data-scrolled]:not([data-color])': {
+                    background: 'var(--color-surface-container)',
+                    color: 'var(--color-surface-container-content)',
+                },
+            },
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
         },
         // The small bar's headline sits here, after the navigation icon:
         // title-large, 16dp in.

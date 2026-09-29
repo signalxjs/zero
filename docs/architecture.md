@@ -109,8 +109,14 @@ says the same thing to ecosystem fragments.
 
 **Flags are a closed shared vocabulary.** `FLAG_VOCABULARY`: `disabled`,
 `highlighted`, `selected`, `invalid`, `required`, `readonly`, `placeholder`,
-`focus-visible`, `pressed`, `press-animating`, `swiping`, `clearable`.
-Components never invent synonyms; a new flag is a contract change.
+`focus-visible`, `pressed`, `press-animating`, `swiping`, `clearable`,
+`scrolled`. Components never invent synonyms; a new flag is a contract
+change. `scrolled` (#530) is on `navbar.root` while the content the bar sits
+over is scrolled past its block-start edge — the document scroller, or the
+container its `scrollContainer` prop names — set after mount only, so
+server markup never carries it. It is the one scroll state a skin cannot
+derive: a scroll-driven animation reaches only the scroller's descendants,
+never a sibling header.
 `clearable` (#387) marks the parts that make room for a rendered
 clear-trigger — the select's trigger, value and indicator — exactly while it
 renders (one is mounted, something is selected, the control is editable), so
@@ -174,7 +180,11 @@ indicator's box `--tabs-indicator-inset-inline-start`/
 `--tabs-indicator-block-size` (#283: the active tab's box relative to the
 list's padding box, the inline offset from its inline-start edge so RTL
 needs no correction; the indicator stays `display: none` until measured, so
-no transition plays from nowhere), the toast stack quartet
+no transition plays from nowhere) with the content pair
+`--tabs-indicator-content-inset-inline-start`/
+`--tabs-indicator-content-inline-size` beside it (#530: the inline extent
+of the active tab's optional `tab-label`, the tab's own without one, so a
+skin draws a content-width mark), the toast stack quartet
 `--toast-index`/`--toast-count`/`--toast-height`/`--toast-offset` (#292:
 each root's place in the stack and, measured, its own height and the summed
 heights of the newer toasts in front of it), the slider's handle geometry

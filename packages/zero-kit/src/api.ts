@@ -286,7 +286,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     menubar: ['defaultValue', 'id', 'loop', 'title', 'value'],
     menu: ['alignOffset', 'arrowPadding', 'closeOnSelect', 'collisionPadding', 'defaultOpen', 'loop', 'offset', 'placement', 'positionStrategy', 'value'],
     'nav-list': ['id', 'label', 'title'],
-    navbar: ['id', 'role', 'title'],
+    navbar: ['id', 'role', 'scrollContainer', 'title'],
     'number-input': ['allowWheel', 'clampOnBlur', 'defaultValue', 'form', 'format', 'formatOptions', 'id', 'invalid', 'largeStep', 'locale', 'max', 'min', 'name', 'parse', 'readonly', 'required', 'role', 'step', 'title', 'value'],
     pagination: ['boundaryCount', 'count', 'defaultPage', 'firstLabel', 'getPageHref', 'id', 'label', 'lastLabel', 'nextLabel', 'pageLabel', 'prevLabel', 'role', 'siblingCount', 'title', 'value', 'withEdges'],
     popover: ['alignOffset', 'arrowPadding', 'collisionPadding', 'defaultOpen', 'finalFocus', 'initialFocus', 'offset', 'placement', 'positionStrategy', 'value'],

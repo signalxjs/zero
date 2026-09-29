@@ -4,6 +4,13 @@
 
 ### Added
 
+- **The `scrolled` flag and the tabs content geometry (#530).**
+  `FLAG_VOCABULARY` gains `scrolled`, mirroring zero, so a fragment may
+  declare it. `RUNTIME_PROPERTIES` gains
+  `--tabs-indicator-content-inset-inline-start` and
+  `--tabs-indicator-content-inline-size`, and the reserved props of the
+  `navbar` scope gain `scrollContainer`.
+
 - **`RUNTIME_PROPERTIES` is parity-checked against zero's anatomies
   (#537).** The list must equal `BEHAVIOR_RUNTIME_PROPERTIES` plus every
   name zero's anatomies declare as `runtimeProperties`, with no name twice,

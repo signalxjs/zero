@@ -66,9 +66,45 @@ const NavbarFlavors = component(() => {
     );
 }, { name: 'NavbarFlavors' });
 
+/**
+ * The scrolled-under state (#530): a bar over its own scroll box, watching
+ * that box through `scrollContainer` rather than the document. Scroll the
+ * box and the root carries `data-scrolled` — material fills it with
+ * surface-container. The bars above watch the document, so scrolling the
+ * page flags them the same way.
+ */
+const NavbarScrolled = component(() => {
+    let box: HTMLElement | null = null;
+    return () => (
+        <>
+            <p>
+                Scrolled under: the bar below watches its own scroll box
+                (<code>scrollContainer</code>), and carries{' '}
+                <code>data-scrolled</code> once the box leaves the top.
+            </p>
+            <div
+                data-demo="navbar-scroll-box"
+                // A scroll box a keyboard can reach and scroll, named.
+                role="region"
+                aria-label="Inbox messages"
+                tabIndex={0}
+                style="block-size: 12rem; overflow: auto; border: 1px solid color-mix(in oklab, currentColor 25%, transparent)"
+                ref={(el: HTMLElement | null) => { box = el; }}
+            >
+                <Navbar.Root scrollContainer={() => box} class="demo-sticky-bar">
+                    <Navbar.Start><strong>Inbox</strong></Navbar.Start>
+                    <Navbar.End><span aria-hidden="true">⋮</span></Navbar.End>
+                </Navbar.Root>
+                {Array.from({ length: 12 }, (_, i) => <p style="margin: 0.75rem 1rem">{`Message ${i + 1}`}</p>)}
+            </div>
+        </>
+    );
+}, { name: 'NavbarScrolled' });
+
 const NavbarPage = component(() => () => (
     <>
         <NavbarDemos />
+        <NavbarScrolled />
         <NavbarFlavors />
     </>
 ), { name: 'NavbarPage' });

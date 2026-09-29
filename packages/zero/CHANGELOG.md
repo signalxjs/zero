@@ -4,6 +4,21 @@
 
 ### Added
 
+- **Tabs publish the active label's extent; Navbar knows when content is
+  scrolled under it (#530).** `Tabs.TabLabel` renders an optional
+  `tabs.tab-label` span (`parent: 'tab'`) around a tab's text. When the
+  active tab holds one, `Tabs.Indicator` also publishes that label's inline
+  extent as `--tabs-indicator-content-inset-inline-start` and
+  `--tabs-indicator-content-inline-size` (px, in the same list coordinates
+  as the full-tab quartet, RTL-correct); without a label the pair repeats
+  the tab's own extent. Both names join the tabs anatomy's
+  `runtimeProperties`. `scrolled` joins the shared flag vocabulary:
+  `Navbar.Root` carries `data-scrolled` while the document scroller, or the
+  container its new `scrollContainer` prop names (an element, a `{ current }`
+  ref or a getter), is scrolled past zero. It is set after mount only, so
+  server markup never carries it. New export type `NavbarScrollContainer`
+  and `TabsTabLabelProps`.
+
 - **Zero's own anatomies declare their runtime properties (#537).**
   Progress and RadialProgress (`--progress-percent`, shared so one recipe
   idiom serves both), Slider (`--slider-percent`), Diff (`--diff-percent`),

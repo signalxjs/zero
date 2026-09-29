@@ -220,3 +220,11 @@ body {
     gap: 1rem;
     align-items: flex-start;
 }
+
+/* A bar pinned to the top of its own scroll box — the navbar page's
+   scrolled-under demo (#530). */
+.demo-sticky-bar {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+}

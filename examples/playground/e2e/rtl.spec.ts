@@ -47,6 +47,12 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { controlledPopup, demoLabelled, rootLabelled, settledBox, DESIGN_SYSTEMS } from './demo';
 
+/**
+ * The skins whose tabs indicator is content-width (#530): it runs under the
+ * active tab's label, so that is the box it must land on.
+ */
+const CONTENT_WIDTH_TABS = new Set(['material']);
+
 /** The skins whose modal drawer sheet slides (#83); basic and brutalist keep the fade. */
 const SLIDES: ReadonlySet<string> = new Set(['daisyui', 'material', 'heroui', 'carbon']);
 
@@ -399,16 +405,18 @@ for (const ds of DESIGN_SYSTEMS) {
          * list's inline-start edge, so `inset-inline-start` lands it on the
          * active tab under RTL with no correction. A skin that keeps a
          * static active style renders it `display: none`; there is nothing
-         * to measure.
+         * to measure. A content-width skin (#530) draws it under the active
+         * tab's label instead, which is measured the same way.
          */
         test('the tabs indicator lands on the active tab', async ({ page }) => {
             const parts = demoLabelled(page, 'tabs', 'Overview');
             const indicator = parts('indicator');
             const display = await indicator.evaluate((el) => getComputedStyle(el).display);
             test.skip(display === 'none', `${ds} keeps a static active tab style`);
-            const tab = parts('tab').filter({ hasText: 'Details' });
-            await tab.click();
-            await expect(tab).toHaveAttribute('data-state', 'active');
+            const target = parts('tab').filter({ hasText: 'Details' });
+            await target.click();
+            await expect(target).toHaveAttribute('data-state', 'active');
+            const tab = CONTENT_WIDTH_TABS.has(ds) ? parts('tab-label').filter({ hasText: 'Details' }) : target;
             const edges = async () => {
                 const [t, i] = await Promise.all([tab.boundingBox(), indicator.boundingBox()]);
                 if (!t || !i) return Infinity;

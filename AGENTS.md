@@ -188,7 +188,12 @@ trigger into the card's links, keyboard focus opening it and focus inside
 holding it open, Escape handing focus back to the trigger without reopening
 it, and the arrow's geometry), tabs (one roving tab stop, automatic
 activation, and the #283 indicator landing on the active tab within 1px and
-sliding there — and not under reduced motion), accordion (#276: arrows/Home/End move focus between triggers
+sliding there — and not under reduced motion; `tabs-content-width` holds
+material's primary indicator to the active `tab-label` in both directions
+and its secondary one to the tab, #530), navbar-scrolled (#530: a real
+wheel flags `data-scrolled` on the bar over the scroller it watches — the
+document, or its `scrollContainer` — and on no other bar; material fills
+the scrolled bar with surface-container), accordion (#276: arrows/Home/End move focus between triggers
 that all stay tabbable, panels are regions named by their triggers, and a
 close PLAYS — sampled per frame, the panel shrinks inside a still-open
 `<details>` and never snaps back before it shuts, for Collapsible too), slider drag under implicit pointer capture (and, since
@@ -314,7 +319,8 @@ not mirror (#291), a
 while `data-placement` stays the logical `bottom-start` (#264), a divider
 label placed at `start` sits in the reading-start half of its rule and one
 at `end` in the other (#298), and in the
-skins that draw it, the tabs indicator lands on the active tab (#283). It
+skins that draw it, the tabs indicator lands on the active tab (#283) — on
+its label, in a content-width skin (#530). It
 exists because a `transform` has no logical spelling, so the kit's
 physical-direction lint cannot see it — the two checks are complementary, not
 redundant;

@@ -18,6 +18,14 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * resizes. Until the first measurement, and while no tab is active, the
  * indicator is not displayed — so a recipe's transition on those properties
  * never plays on first paint.
+ *
+ * `tab-label` is an optional span an app places inside a tab around its
+ * text (#530). When the active tab holds one, the indicator also carries
+ * that label's inline extent as `--tabs-indicator-content-inset-inline-start`
+ * and `--tabs-indicator-content-inline-size` (same list coordinates), so a
+ * skin can draw a content-width mark — Material 3's primary tabs underline
+ * the label, not the tab. Without a label the content pair repeats the
+ * tab's own inline offset and size, so a recipe may use it unconditionally.
  */
 export const tabsAnatomy = defineAnatomy('tabs', {
     root: {
@@ -36,6 +44,11 @@ export const tabsAnatomy = defineAnatomy('tabs', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
+    },
+    'tab-label': {
+        element: 'span',
+        parent: 'tab',
+        tokens: ['text'],
     },
     indicator: {
         element: 'span',
@@ -59,11 +72,14 @@ export const tabsAnatomy = defineAnatomy('tabs', {
         { concept: 'value', type: 'string' },
     ],
     // The active tab's box on the indicator, relative to the list's padding
-    // box (px, logical), so a recipe slides a mark between tabs (#283).
+    // box (px, logical), so a recipe slides a mark between tabs (#283) —
+    // plus its label's inline extent, for a content-width mark (#530).
     runtimeProperties: [
         '--tabs-indicator-inset-inline-start',
         '--tabs-indicator-inset-block-start',
         '--tabs-indicator-inline-size',
         '--tabs-indicator-block-size',
+        '--tabs-indicator-content-inset-inline-start',
+        '--tabs-indicator-content-inline-size',
     ],
 });

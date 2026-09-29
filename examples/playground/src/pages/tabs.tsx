@@ -12,6 +12,10 @@ import type { PageEntry } from './registry';
  * that slide a mark between tabs (basic, material, carbon) draw it from the
  * published `--tabs-indicator-*` box; the rest keep their static active
  * style and render it `display: none`.
+ *
+ * Each tab's text sits in a `Tabs.TabLabel` (#530), so the indicator also
+ * publishes the active label's extent: material's primary indicator runs
+ * under the label rather than across the tab.
  */
 const TabsDemos = component(() => {
     const state = signal({ tab: 'overview' });
@@ -19,10 +23,10 @@ const TabsDemos = component(() => {
     return () => (
         <Tabs.Root model={() => state.tab}>
             <Tabs.List>
-                <Tabs.Tab value="overview">Overview</Tabs.Tab>
-                <Tabs.Tab value="details">Details</Tabs.Tab>
-                <Tabs.Tab value="history">History</Tabs.Tab>
-                <Tabs.Tab value="disabled" disabled>Disabled</Tabs.Tab>
+                <Tabs.Tab value="overview"><Tabs.TabLabel>Overview</Tabs.TabLabel></Tabs.Tab>
+                <Tabs.Tab value="details"><Tabs.TabLabel>Details</Tabs.TabLabel></Tabs.Tab>
+                <Tabs.Tab value="history"><Tabs.TabLabel>History</Tabs.TabLabel></Tabs.Tab>
+                <Tabs.Tab value="disabled" disabled><Tabs.TabLabel>Disabled</Tabs.TabLabel></Tabs.Tab>
                 <Tabs.Indicator />
             </Tabs.List>
             <Tabs.Panel value="overview">
@@ -51,7 +55,10 @@ const TabsDemos = component(() => {
  * manifest's, not a retyped literal — the same rule the select page follows
  * for its scope. Tab labels carry the flavor name rather than the main
  * demo's Overview/Details set, so `demoLabelled('tabs', 'Overview')` in the
- * interaction specs keeps resolving to exactly one instance.
+ * interaction specs keeps resolving to exactly one instance. Each list
+ * carries an indicator and labelled tabs, so a skin that draws its flavors
+ * differently (material's content-width primary against its full-width
+ * secondary, #530) shows both.
  */
 const TabsFlavors = component(() => {
     const flavors = () => activeVocabulary().perScope['tabs']?.variants ?? [];
@@ -63,8 +70,9 @@ const TabsFlavors = component(() => {
                     <AxisLabel>{variant}</AxisLabel>
                     <Tabs.Root variant={variant} defaultValue="one">
                         <Tabs.List>
-                            <Tabs.Tab value="one">{`${variant} one`}</Tabs.Tab>
-                            <Tabs.Tab value="two">{`${variant} two`}</Tabs.Tab>
+                            <Tabs.Tab value="one"><Tabs.TabLabel>{`${variant} one`}</Tabs.TabLabel></Tabs.Tab>
+                            <Tabs.Tab value="two"><Tabs.TabLabel>{`${variant} two`}</Tabs.TabLabel></Tabs.Tab>
+                            <Tabs.Indicator />
                         </Tabs.List>
                         <Tabs.Panel value="one"><p>{`The ${variant} flavor.`}</p></Tabs.Panel>
                         <Tabs.Panel value="two"><p>Second panel.</p></Tabs.Panel>

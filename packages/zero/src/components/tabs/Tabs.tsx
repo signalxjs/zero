@@ -19,7 +19,9 @@
  * `Tabs.Indicator` (optional, inside the list) publishes the active tab's
  * box as `--tabs-indicator-*` so a recipe can slide a mark between tabs;
  * root `lazyMount` / `unmountOnExit` defer or drop inactive panels' content
- * (#283).
+ * (#283). `Tabs.TabLabel` (optional, inside a tab) wraps the tab's text, and
+ * the indicator then publishes that label's inline extent too, for a
+ * content-width mark (#530).
  */
 import { component, compound, effect } from 'sigx';
 import type { Define } from 'sigx';
@@ -66,7 +68,7 @@ export type TabsRootProps =
     & WithHtmlAttrs
     & Define.Slot<'default'>;
 
-const TabsRoot = component<TabsRootProps>(({ props, slots, emit, onMounted }) => {
+const TabsRoot = component<TabsRootProps>(({ props, slots, emit, onMounted, signal }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
@@ -79,6 +81,7 @@ const TabsRoot = component<TabsRootProps>(({ props, slots, emit, onMounted }) =>
     const baseId = createId('zx-tabs');
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
     const activationMode = (): TabsActivationMode => props.activationMode ?? 'automatic';
+    const labels = signal({ version: 0 });
 
     const roving = createRovingKeydown({
         list,
@@ -102,6 +105,8 @@ const TabsRoot = component<TabsRootProps>(({ props, slots, emit, onMounted }) =>
         tabId: (value) => `${baseId}-tab-${idToken(value)}`,
         panelId: (value) => `${baseId}-panel-${idToken(value)}`,
         keydown: roving,
+        labelsVersion: () => labels.version,
+        labelsChanged: () => { labels.version++; },
     };
     provideTabsContext(ctx);
 
@@ -239,6 +244,26 @@ const TabsTab = component<TabsTabProps>(({ props, slots, onMounted, onUnmounted,
     };
 }, { name: 'Tabs.Tab' });
 
+// ── Tab label ──
+
+export type TabsTabLabelProps = WithClass & WithHtmlAttrs & Define.Slot<'default'>;
+
+/**
+ * The tab's text, wrapped (#530): optional, and only a measuring hook — the
+ * indicator reads its inline extent as the content geometry. Semantics stay
+ * on the tab.
+ */
+const TabsTabLabel = component<TabsTabLabelProps>(({ props, slots, onMounted, onUnmounted }) => {
+    const tabs = useTabsContext();
+    onMounted(() => tabs.labelsChanged());
+    onUnmounted(() => tabs.labelsChanged());
+    return () => (
+        <span {...htmlAttrs(props)} data-scope={SCOPE} data-part="tab-label" class={props.class}>
+            {slots.default?.()}
+        </span>
+    );
+}, { name: 'Tabs.TabLabel' });
+
 // ── Panel ──
 
 export type TabsPanelProps =
@@ -288,10 +313,23 @@ const TabsPanel = component<TabsPanelProps>(({ props, slots }) => {
 /** Always `aria-hidden`: the indicator is decoration; the tabs carry the semantics. */
 export type TabsIndicatorProps = WithClass & WithHtmlAttrs;
 
-/** The active tab's box in the list's content coordinates (px). */
-interface IndicatorBox { inlineStart: number; blockStart: number; inlineSize: number; blockSize: number }
+/**
+ * The active tab's box in the list's content coordinates (px), plus the
+ * inline extent of its label — the tab's own when it holds no `tab-label`.
+ */
+interface IndicatorBox {
+    inlineStart: number;
+    blockStart: number;
+    inlineSize: number;
+    blockSize: number;
+    contentInlineStart: number;
+    contentInlineSize: number;
+}
 
 const LIST_SELECTOR = `[data-scope="${SCOPE}"][data-part="list"]`;
+const LABEL_SELECTOR = `[data-scope="${SCOPE}"][data-part="tab-label"]`;
+
+interface Rect { left: number; top: number; width: number; height: number }
 
 /**
  * The tab's layout box relative to the list's padding box, in the list's
@@ -299,40 +337,58 @@ const LIST_SELECTOR = `[data-scope="${SCOPE}"][data-part="list"]`;
  * the inline offset taken from the list's inline-start edge — a recipe's
  * `inset-inline-start` then lands on the tab in both directions. A scale or
  * translate on the tab (a press or hover effect) is undone, so a value that
- * changes mid-press does not measure the pressed box.
+ * changes mid-press does not measure the pressed box; the label, inside the
+ * tab, is carried back through the same transform.
  */
-function measureTab(list: HTMLElement, tab: HTMLElement): IndicatorBox | null {
+function measureTab(list: HTMLElement, tab: HTMLElement, label: HTMLElement | null): IndicatorBox | null {
     if (tab.getClientRects().length === 0) return null;
     const lr = list.getBoundingClientRect();
     const tr = tab.getBoundingClientRect();
-    let { left, top, width, height } = tr;
+    // Maps a rect painted inside the tab back to its untransformed layout.
+    let untransform = (r: Rect): Rect => ({ left: r.left, top: r.top, width: r.width, height: r.height });
     const transform = getComputedStyle(tab).transform;
     if (transform && transform !== 'none' && typeof DOMMatrixReadOnly === 'function') {
         const m = new DOMMatrixReadOnly(transform);
-        // A scale/translate about the default centre origin: the rect's
-        // centre is the layout centre moved by the translation.
+        // A scale/translate about the default centre origin: the painted
+        // centre is the layout centre moved by the translation, and every
+        // point inside is scaled about it.
         if (m.b === 0 && m.c === 0 && m.a > 0 && m.d > 0) {
-            const cx = left + width / 2 - m.e;
-            const cy = top + height / 2 - m.f;
-            width /= m.a;
-            height /= m.d;
-            left = cx - width / 2;
-            top = cy - height / 2;
+            const pcx = tr.left + tr.width / 2;
+            const pcy = tr.top + tr.height / 2;
+            const cx = pcx - m.e;
+            const cy = pcy - m.f;
+            untransform = (r) => ({
+                left: cx + (r.left - pcx) / m.a,
+                top: cy + (r.top - pcy) / m.d,
+                width: r.width / m.a,
+                height: r.height / m.d,
+            });
         }
     }
+    const t = untransform(tr);
     const cs = getComputedStyle(list);
     const px = (v: string): number => parseFloat(v) || 0;
-    const inlineStart = cs.direction === 'rtl'
-        ? (lr.right - px(cs.borderRightWidth)) - (left + width) - list.scrollLeft
-        : left - (lr.left + px(cs.borderLeftWidth)) + list.scrollLeft;
-    const blockStart = top - (lr.top + px(cs.borderTopWidth)) + list.scrollTop;
+    const rtl = cs.direction === 'rtl';
+    const inlineOffset = (r: Rect): number => rtl
+        ? (lr.right - px(cs.borderRightWidth)) - (r.left + r.width) - list.scrollLeft
+        : r.left - (lr.left + px(cs.borderLeftWidth)) + list.scrollLeft;
+    const blockStart = t.top - (lr.top + px(cs.borderTopWidth)) + list.scrollTop;
+    const content = label && label.getClientRects().length > 0 ? untransform(label.getBoundingClientRect()) : t;
     const round = (n: number): number => Math.round(n * 100) / 100;
-    return { inlineStart: round(inlineStart), blockStart: round(blockStart), inlineSize: round(width), blockSize: round(height) };
+    return {
+        inlineStart: round(inlineOffset(t)),
+        blockStart: round(blockStart),
+        inlineSize: round(t.width),
+        blockSize: round(t.height),
+        contentInlineStart: round(inlineOffset(content)),
+        contentInlineSize: round(content.width),
+    };
 }
 
 const sameBox = (a: IndicatorBox | null, b: IndicatorBox | null): boolean =>
     a === b || (!!a && !!b && a.inlineStart === b.inlineStart && a.blockStart === b.blockStart
-        && a.inlineSize === b.inlineSize && a.blockSize === b.blockSize);
+        && a.inlineSize === b.inlineSize && a.blockSize === b.blockSize
+        && a.contentInlineStart === b.contentInlineStart && a.contentInlineSize === b.contentInlineSize);
 
 const TabsIndicator = component<TabsIndicatorProps>(({ props, signal, onMounted, onUnmounted }) => {
     const tabs = useTabsContext();
@@ -346,14 +402,17 @@ const TabsIndicator = component<TabsIndicatorProps>(({ props, signal, onMounted,
         const list = el?.closest<HTMLElement>(LIST_SELECTOR) ?? null;
         const value = tabs.state.value;
         const tab = value !== '' ? tabs.list.find(value)?.el() ?? null : null;
+        const label = tab?.querySelector<HTMLElement>(LABEL_SELECTOR) ?? null;
         if (observer) {
             // The list, and every tab: a sibling that changes size (a
             // bolder active label) moves the active tab without resizing it.
+            // And the active tab's label, which can change size alone.
             const now = new Set<Element>(list ? [list, ...tabs.list.items().map((i) => i.el()).filter((e): e is HTMLElement => !!e)] : []);
+            if (label) now.add(label);
             for (const node of observed) if (!now.has(node)) { observer.unobserve(node); observed.delete(node); }
             for (const node of now) if (!observed.has(node)) { observer.observe(node); observed.add(node); }
         }
-        const box = list && tab?.isConnected && list.contains(tab) ? measureTab(list, tab) : null;
+        const box = list && tab?.isConnected && list.contains(tab) ? measureTab(list, tab, label) : null;
         if (!sameBox(box, state.box)) state.box = box;
     };
     // After the render the value change caused, and before that frame paints.
@@ -370,6 +429,7 @@ const TabsIndicator = component<TabsIndicatorProps>(({ props, signal, onMounted,
         effect(() => {
             void tabs.state.value;
             void tabs.orientation();
+            void tabs.labelsVersion();
             schedule();
         });
     }));
@@ -400,6 +460,8 @@ const TabsIndicator = component<TabsIndicatorProps>(({ props, signal, onMounted,
                         '--tabs-indicator-inset-block-start': `${box.blockStart}px`,
                         '--tabs-indicator-inline-size': `${box.inlineSize}px`,
                         '--tabs-indicator-block-size': `${box.blockSize}px`,
+                        '--tabs-indicator-content-inset-inline-start': `${box.contentInlineStart}px`,
+                        '--tabs-indicator-content-inline-size': `${box.contentInlineSize}px`,
                     }
                     : { display: 'none' }}
                 ref={(node: HTMLElement | null) => { el = node; }}
@@ -412,6 +474,7 @@ export const Tabs = compound(TabsRoot, {
     Root: TabsRoot,
     List: TabsList,
     Tab: TabsTab,
+    TabLabel: TabsTabLabel,
     Indicator: TabsIndicator,
     Panel: TabsPanel,
 });

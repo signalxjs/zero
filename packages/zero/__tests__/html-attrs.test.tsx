@@ -536,7 +536,7 @@ describe('the pass-through reaches every part', () => {
         tabs: () => (
             <Tabs.Root {...p('root')} defaultValue="a">
                 <Tabs.List {...p('list')}>
-                    <Tabs.Tab {...p('tab')} value="a">A</Tabs.Tab>
+                    <Tabs.Tab {...p('tab')} value="a"><Tabs.TabLabel {...p('tab-label')}>A</Tabs.TabLabel></Tabs.Tab>
                     <Tabs.Indicator {...p('indicator')} />
                 </Tabs.List>
                 <Tabs.Panel {...p('panel')} value="a">Body</Tabs.Panel>

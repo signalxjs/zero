@@ -14,7 +14,7 @@ export { Button, buttonAnatomy } from './components/button/index.js';
 export type { ButtonRootProps } from './components/button/index.js';
 
 export { Tabs, tabsAnatomy, useTabsContext } from './components/tabs/index.js';
-export type { TabsRootProps, TabsListProps, TabsTabProps, TabsPanelProps, TabsContext, TabsActivationMode } from './components/tabs/index.js';
+export type { TabsRootProps, TabsListProps, TabsTabProps, TabsTabLabelProps, TabsPanelProps, TabsContext, TabsActivationMode } from './components/tabs/index.js';
 
 export { Collapsible, collapsibleAnatomy, useCollapsibleContext } from './components/collapsible/index.js';
 export type { CollapsibleRootProps, CollapsibleTriggerProps, CollapsiblePanelProps, CollapsibleIndicatorProps } from './components/collapsible/index.js';
@@ -355,7 +355,7 @@ export type { JoinRootProps, JoinItemProps } from './components/join/index.js';
 export { Navbar, navbarAnatomy } from './components/navbar/index.js';
 export { NavList, navListAnatomy } from './components/nav-list/index.js';
 export type { NavListRootProps, NavListPartProps, NavListLinkProps } from './components/nav-list/index.js';
-export type { NavbarRootProps, NavbarSectionProps } from './components/navbar/index.js';
+export type { NavbarRootProps, NavbarScrollContainer, NavbarSectionProps } from './components/navbar/index.js';
 
 export { Breadcrumbs, breadcrumbsAnatomy, useBreadcrumbsContext } from './components/breadcrumbs/index.js';
 export type {
