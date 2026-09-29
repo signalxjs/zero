@@ -15,6 +15,25 @@
   mode (`items`), which always filters. A listbox item now remembers the
   text it last rendered, so a hidden item still matches by it.
 
+- **`createHotkeys` and `<Hotkeys>` bind keyboard shortcuts (#460).**
+  Keys use `aria-keyshortcuts` syntax (`"Control+S Meta+S"`, `"j"`,
+  `"Shift+?"`), so the string `Menu.Item keyshortcuts` announces is the
+  string that binds it. `createHotkeys(bindings, { enabled, target })` runs
+  from setup and listens on `document` (or `target()`) while mounted;
+  `<Hotkeys bindings enabled target>` (`@sigx/zero/hotkeys`) is the same
+  as a renderless component, not a scope. A keydown fires nothing from an
+  editable target (text inputs, textarea, select, contenteditable, the
+  `combobox`/`textbox`/`searchbox` roles), mid IME composition, when it
+  was already handled, when its modifiers differ from the binding's (Shift
+  is lenient for a symbol such as `?`), or while a modal `<dialog>` or an
+  open Menu, Select, Popover or Combobox popup owns the keyboard. A
+  keydown from inside an open non-modal Dialog or Drawer is theirs too;
+  the rest of the page stays live. `parseHotkey`, `matchesHotkey`,
+  `isEditableTarget`, `keyboardOwnedElsewhere` and `matchesKeyCombo` (the
+  `Toast.Viewport hotkey` form, which Toast now imports) are exported.
+  `createDismissable` takes `ownsKeyboard` (`true` or `'within'`) to say
+  which layers count.
+
 ### Fixed
 
 - **The README no longer says Combobox filters hand-written items (#458).**
