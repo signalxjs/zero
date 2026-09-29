@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`RoleDecl.axis` (#425, part of #413).** A role can now say whether it
+  is a value of the `color` axis. Left out, membership is inferred as
+  before: a role with `content: false` or `soft: false` is a fill, every
+  other role an axis value. `isFillRole` (and so `axisRoles`, the
+  `axis-value-coverage/unused` exemption and the score's vocabulary
+  denominator) reads the declared field first, so a fill can keep its ink
+  and a soft tint, and an action role can drop its tint and stay on the
+  axis. The tokens, DS-manifest and lynx-manifest schemas accept the key.
+  `axis: true` with `content: false` is a validation error, because an axis
+  value needs the `-content` ink a control paints its label with.
+
 ## [0.17.0] - 2026-09-29
 
 ### Added
