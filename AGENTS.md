@@ -193,7 +193,11 @@ that all stay tabbable, panels are regions named by their triggers, and a
 close PLAYS — sampled per frame, the panel shrinks inside a still-open
 `<details>` and never snaps back before it shuts, for Collapsible too), slider drag under implicit pointer capture (and, since
 #170, a vertical slider: bottom-to-top drags on both projections, and a
-rail every skin stands upright, measured in boxes), tree-view
+rail every skin stands upright, measured in boxes; and since #490, per
+skin on chromium, an active stop painted above the filled span in its own
+ink, and the thumb-value bubble hidden at rest, shown while its thumb is
+dragged or keyboard-focused, centred over it — and upright, beside it on
+the inline-start side in both directions), tree-view
 keyboard (expand/descend/collapse/climb, typeahead against the accessible
 text, and since #287 `multiple`: the APG multi-select keys and the
 modifier clicks, whose Shift+click must select rows rather than text), the steps wizard (#296: arrows rove onto
@@ -227,7 +231,9 @@ field without ever blurring it, Escape clears a search field, keyboard Tab
 skips the untabbable clear trigger for the visibility toggle; and, per
 skin in both directions, every affordance sits inside the control at the
 reading edge it names — the recipes order with `order`, which the
-physical-direction lint cannot check), and
+physical-direction lint cannot check), hotkeys (#460: a `<Hotkeys>`
+binding fires from the page but not while typing in an Input, nor while a
+real `showModal()` dialog or a `:popover-open` menu is up), and
 the `createVirtualList` behavior (#56: measured rows tile with no gap
 under real layout, stick-to-bottom follows the tail and lets go on a
 wheel scroll up, a prepend leaves the row being read in place, and no

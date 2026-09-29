@@ -28,6 +28,7 @@ export type {
     ThemeSystem,
     TokenValue,
     TokensInput,
+    TypeRoleDecl,
     TypographyDecl,
 } from './tokens.js';
 export { defineTokens } from './tokens.js';

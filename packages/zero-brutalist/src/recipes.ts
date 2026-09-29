@@ -1692,6 +1692,8 @@ export const slider: RecipeInput = {
     // pseudo-element below adds the same two borders back.
     tokens: {
         '--slider-accent': 'var(--color-primary)',
+        // The tick ink on the filled span (#490).
+        '--slider-on-accent': 'var(--color-primary-content)',
         '--slider-track-size': 'calc(var(--size-field) * 5)',
         // The handle is the channel's inked box plus one space step, which
         // the centring splits into half a step of overhang on each edge —
@@ -1874,6 +1876,8 @@ export const slider: RecipeInput = {
                 boxShadow: 'var(--shadow-xs)',
                 cursor: 'pointer',
                 outline: 'none',
+                // Over the ticks, which sit over the filled span.
+                zIndex: '1',
                 touchAction: 'none',
             },
             states: {
@@ -1885,15 +1889,46 @@ export const slider: RecipeInput = {
                 ...focusRing,
             },
         },
+        // The thumb's value (#490) as the tooltip's neutral slab, stamped
+        // over the handle while it is dragged or keyboard-focused — cut in,
+        // never faded: brutalism has no half-visible states. Where it sits
+        // is web geometry (targets.web below).
+        'thumb-value': {
+            base: {
+                position: 'absolute',
+                background: 'var(--color-neutral)',
+                color: 'var(--color-neutral-content)',
+                border: 'var(--border) solid var(--color-base-content)',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+                whiteSpace: 'nowrap',
+                pointerEvents: 'none',
+                visibility: 'hidden',
+            },
+            states: {
+                pressed: { visibility: 'visible' },
+                'focus-visible': { visibility: 'visible' },
+            },
+        },
+        // A tick through the channel; on the filled span it takes the
+        // accent's own ink, above the span that would otherwise cover it
+        // (#490).
         mark: {
             base: {
+                zIndex: '1',
                 paddingBlockStart: 'calc(var(--slider-track-size) + var(--border) * 2 + var(--space-2xs))',
                 ...label,
                 fontSize: 'var(--text-xs)',
                 lineHeight: '1',
                 whiteSpace: 'nowrap',
             },
-            states: { disabled: {} },
+            states: {
+                active: { '--slider-stop-ink': 'var(--slider-on-accent)' },
+                inactive: { '--slider-stop-ink': 'var(--color-base-content)' },
+                disabled: {},
+            },
             selectors: {
                 '&::before': {
                     content: '""',
@@ -1902,7 +1937,7 @@ export const slider: RecipeInput = {
                     insetInlineStart: '-1px',
                     width: '2px',
                     height: 'calc(var(--slider-track-size) + var(--border) * 2)',
-                    background: 'var(--color-base-content)',
+                    background: 'var(--slider-stop-ink)',
                 },
             },
         },
@@ -1911,6 +1946,7 @@ export const slider: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--slider-accent': `var(--color-${c})`,
+            '--slider-on-accent': `var(--color-${c}-content)`,
         } } }])),
         // Now that the widget is rebuilt, the ramp sizes what a slider is made
         // of rather than its box: it moves the channel — progress's own steps,
@@ -1993,6 +2029,16 @@ export const slider: RecipeInput = {
                             marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
                             marginBlockEnd: 'calc(var(--slider-thumb-size) / -2)',
                         },
+                    },
+                },
+                // The value bubble (#490): over the thumb, centred on it — `left:
+                // 50%` with its `-50%` pull-back is symmetric centring, not a side —
+                // and, upright, beside it on the inline-start side, away from the
+                // mark labels. Web-only: lynx renders no value bubble yet.
+                'thumb-value': {
+                    selectors: {
+                        '&[data-orientation="horizontal"]': { bottom: 'calc(100% + var(--space-xs))', left: '50%', translate: '-50% 0' },
+                        '&[data-orientation="vertical"]': { bottom: '50%', insetInlineEnd: 'calc(100% + var(--space-xs))', translate: '0 50%' },
                     },
                 },
                 // The label sits beside the channel, centred on its tick.

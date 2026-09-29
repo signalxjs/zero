@@ -16,6 +16,7 @@ export type {
     ShadowKey,
     SpaceKey,
     TrackingKey,
+    TypeRoleDecl,
     TypographyDecl,
     WeightKey,
     RolesDecl,
@@ -35,6 +36,8 @@ export { compileTokensCss } from './targets/web/tokens-css.js';
 export { compileBreakpointsCss } from './targets/web/breakpoints-css.js';
 
 export type { TypeScale } from './scale.js';
+export type { TypeRoleField } from './type-roles.js';
+export { TYPE_ROLE_FIELDS, typeRoleProperties, withTypeRoles } from './type-roles.js';
 export { generateTypeScale } from './scale.js';
 export type { DerivePaletteOptions, DeriveThemePairOptions, Harmony, Oklch, RoleSeed } from './palette.js';
 export { clampChroma, contrastRatio, derivePalette, deriveThemePair, formatOklch, solveContentLightness } from './palette.js';

@@ -85,6 +85,7 @@
  * ledger, and keeps its teeth.
  */
 import type { RoleDecl } from '../../contract.js';
+import { isFillRole } from '../../contract.js';
 import type { CompiledDesignSystem } from '../../design-system.js';
 import { axisClaims, offeredFor } from '../../design-system.js';
 import type { CssRule } from '../css-rules.js';
@@ -355,16 +356,17 @@ export function unusedVocabulary(
 }
 
 /**
- * A role that opted out of `-content` or `-soft` is a fill or a hairline —
- * Material's tonal `surface*` family, its `outline` — which is a token, not
- * something a control can be coloured. `tokens.roles` does double duty as the
- * palette and as the `color` vocabulary, and SKILL.md already tells authors to
+ * A role off the `color` axis — declared `axis: false`, or inferred from an
+ * opt-out of `-content` or `-soft` — is a fill or a hairline: Material's
+ * tonal `surface*` family, its `outline`. That is a token, not something a
+ * control can be coloured. `tokens.roles` does double duty as the palette
+ * and as the `color` vocabulary, and SKILL.md already tells authors to
  * filter exactly this predicate out of the axis. So a role like that which no
  * recipe wires is the declaration working as intended, not a gap — and it is
  * recorded as a waiver rather than dropped, so the let-through stays visible.
+ * The same predicate as `isFillRole`, which the skins and the score read.
  */
-export const isFillOrHairline = (decl: RoleDecl | undefined): boolean =>
-    decl?.content === false || decl?.soft === false;
+export const isFillOrHairline = (decl: RoleDecl | undefined): boolean => isFillRole(decl);
 
 export function run(ctx: AuditContext): RuleOutput {
     const { compiled, cssRules } = ctx;

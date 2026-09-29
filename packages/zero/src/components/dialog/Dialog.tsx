@@ -374,6 +374,8 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted, onUn
         dismiss: () => dialog.requestClose('escape'),
         outsidePress: false,
         onEscapeKeyDown: (e) => { dialog.escapeKeyDown(e); },
+        // Non-modal: the page stays live; only keys typed inside are ours.
+        ownsKeyboard: 'within',
     });
 
     // A non-modal dialog open on first render is plain markup: emit `open`

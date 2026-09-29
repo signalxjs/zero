@@ -1,6 +1,9 @@
 @layer zero.recipes {
     [data-scope="tabs"][data-part="root"] {
         --tabs-accent: var(--color-primary);
+        --tabs-active-ink: var(--tabs-accent);
+        --tabs-ind-size: 3px;
+        --tabs-ind-radius: 3px;
     }
 
     [data-scope="tabs"][data-part="root"] {
@@ -13,7 +16,7 @@
         display: flex;
         position: relative;
         background: var(--color-surface);
-        border-bottom: var(--border) solid var(--color-outline);
+        border-bottom: var(--border) solid var(--color-outline-variant);
     }
 
     [data-scope="tabs"][data-part="tab"] {
@@ -23,20 +26,23 @@
         appearance: none;
         background: none;
         border: none;
-        border-bottom: 3px solid transparent;
+        border-bottom: var(--tabs-ind-size) solid transparent;
         margin-bottom: calc(-1 * var(--border));
-        padding: var(--space-sm) var(--space-md);
-        font-family: var(--font-sans);
-        font-size: var(--text-label-large);
-        font-weight: var(--weight-medium);
-        letter-spacing: var(--tracking-label-large);
-        color: var(--color-base-content);
+        min-block-size: 3rem;
+        box-sizing: border-box;
+        padding-inline: var(--space-md);
+        font-family: var(--font-title-small);
+        font-size: var(--text-title-small);
+        line-height: var(--leading-title-small);
+        font-weight: var(--weight-title-small);
+        letter-spacing: var(--tracking-title-small);
+        color: var(--color-surface-variant-content);
         cursor: pointer;
         transition: color var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="tabs"][data-part="tab"][data-state="active"] {
-        color: var(--tabs-accent);
+        color: var(--tabs-active-ink);
         border-bottom-color: var(--tabs-accent);
     }
 
@@ -99,22 +105,22 @@
         box-sizing: border-box;
         pointer-events: none;
         inset-inline-start: var(--tabs-indicator-inset-inline-start);
-        inset-block-start: calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - 3px);
+        inset-block-start: calc(var(--tabs-indicator-inset-block-start) + var(--tabs-indicator-block-size) - var(--tabs-ind-size));
         inline-size: var(--tabs-indicator-inline-size);
-        block-size: 3px;
-        border-block-end: 3px solid var(--tabs-accent);
-        border-start-start-radius: 3px;
-        border-start-end-radius: 3px;
+        block-size: var(--tabs-ind-size);
+        border-block-end: var(--tabs-ind-size) solid var(--tabs-accent);
+        border-start-start-radius: var(--tabs-ind-radius);
+        border-start-end-radius: var(--tabs-ind-radius);
         transition: inset-inline-start var(--duration-short2) var(--ease-standard), inset-block-start var(--duration-short2) var(--ease-standard), inline-size var(--duration-short2) var(--ease-standard), block-size var(--duration-short2) var(--ease-standard);
     }
 
     [data-scope="tabs"][data-part="indicator"][data-orientation="vertical"] {
-        inset-inline-start: calc(var(--tabs-indicator-inset-inline-start) + var(--tabs-indicator-inline-size) - 3px);
+        inset-inline-start: calc(var(--tabs-indicator-inset-inline-start) + var(--tabs-indicator-inline-size) - var(--tabs-ind-size));
         inset-block-start: var(--tabs-indicator-inset-block-start);
-        inline-size: 3px;
+        inline-size: var(--tabs-ind-size);
         block-size: var(--tabs-indicator-block-size);
         border-block-end: none;
-        border-inline-end: 3px solid var(--tabs-accent);
+        border-inline-end: var(--tabs-ind-size) solid var(--tabs-accent);
     }
 
     [data-scope="tabs"][data-part="panel"] {
@@ -153,6 +159,12 @@
 
     [data-scope="tabs"][data-part="root"][data-color="warning"] {
         --tabs-accent: var(--color-warning);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-variant="secondary"] {
+        --tabs-active-ink: var(--color-base-content);
+        --tabs-ind-size: 2px;
+        --tabs-ind-radius: 0;
     }
 
     @scope ([data-scope="tabs"][data-part="root"][data-size="xs"]) to ([data-scope="tabs"][data-part="root"]) {

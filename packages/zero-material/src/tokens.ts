@@ -14,9 +14,8 @@
  *   opt out of the `color` axis (`soft: false` / `content: false`).
  * - **Shape** is M3's corner scale, extra-small → extra-extra-large + full.
  * - **Type** is M3's fifteen type roles (display/headline/title/body/label ×
- *   large/medium/small), spread across four ramps with parallel keys — see
- *   the `type()` helper in `recipes.ts` for why (zero-kit has no composite
- *   type-role category; #423).
+ *   large/medium/small), each declared whole under `typography.roles` —
+ *   size, line height, weight, tracking and family as one unit.
  * - **Motion** is M3's duration tokens (short1 … extra-long4), its easing set,
  *   and the M3 Expressive springs as `linear()` curves.
  * - **Elevation** is `level0`…`level5`; **state layers** are tokens rather
@@ -31,9 +30,14 @@ import { layoutScopes } from '@sigx/zero-kit/define';
 import type { RoleDecl, SystemTokens, ThemeInput, ThemeSystem, TokensInput } from '@sigx/zero-kit';
 import { schemes, type SchemeName } from './scheme.generated.js';
 
-/** A fill or hairline: a token recipes read, never a `color` axis value. */
-const fill = { soft: false } as const;
-const hairline = { content: false, soft: false } as const;
+/**
+ * A fill or hairline: a token recipes read, never a `color` axis value —
+ * said with `axis: false` (#425). `soft: false` is a separate fact: M3 has
+ * no tint of a container, a surface or an outline, so none is emitted. A
+ * fill keeps its ink (`on-*` is `-content`); a hairline has none.
+ */
+const fill = { axis: false, soft: false } as const;
+const hairline = { axis: false, content: false, soft: false } as const;
 
 /**
  * Material's colour roles.
@@ -46,7 +50,7 @@ const hairline = { content: false, soft: false } as const;
  * `-content`, and recipes paint the pair: zero's `-soft` has no ink of its
  * own, and the key colour on its container fails in M3's high-contrast
  * schemes, where the container goes dark (#421). They stay off the axis by
- * declaring `soft: false`, the only way to say "not an axis value" (#425).
+ * declaring `axis: false` (#425).
  */
 export const roles = {
     primary: { description: 'Primary key colour; `-soft` is primary-container' },
@@ -89,11 +93,20 @@ export const roles = {
 const dp = (n: number): string => `${n / 16}rem`;
 
 /**
- * An M3 line height as zero's unitless `leading`: the kit's leading category
- * is `<number>`-only, and M3 states line heights in dp, so each is divided by
- * its role's size — the same box, and it scales with the text (#423).
+ * One M3 type role from its spec columns: size and line height in dp, weight,
+ * tracking. The kit's `leading` is a unitless multiplier, and M3 states line
+ * heights in dp, so the line height is divided by the size — the same box,
+ * and it scales with the text. Kept a multiplier on purpose: a role's
+ * `leading` folds into `--leading-<role>`, which every design system reads as
+ * unitless.
  */
-const lh = (lineHeight: number, size: number): number => Math.round((lineHeight / size) * 1e5) / 1e5;
+const role = (size: number, lineHeight: number, weight: 400 | 500, tracking: string) => ({
+    size: dp(size),
+    leading: Math.round((lineHeight / size) * 1e5) / 1e5,
+    weight,
+    tracking,
+    font: 'var(--font-sans)',
+});
 
 export const system = {
     /**
@@ -219,10 +232,11 @@ export const system = {
     },
 
     /**
-     * M3's type scale. Each of the fifteen roles is a size, a line height and
-     * a tracking under the same key (`--text-title-medium`,
-     * `--leading-title-medium`, `--tracking-title-medium`); its weight is
-     * regular (`normal`) or `medium`, recorded in `recipes.ts`'s `type()`.
+     * M3's type scale, as fifteen composite type roles (#423): each role's
+     * size, line height, weight and tracking are declared together, and emit
+     * `--text-<role>`, `--leading-<role>`, `--weight-<role>`,
+     * `--tracking-<role>` and `--font-<role>` — `type()` in `recipes.ts`
+     * reads one role whole.
      *
      * The recommended `xs`…`3xl` ramp is kept for the size axes the shared
      * recipes key on, each step on an M3 size — except `lg`, which has no M3
@@ -234,47 +248,8 @@ export const system = {
             mono: '"Roboto Mono", ui-monospace, SFMono-Regular, monospace',
         },
         weights: { normal: 400, medium: 500, semibold: 500, bold: 700 },
-        leading: {
-            none: 1,
-            tight: 1.25,
-            normal: 1.5,
-            relaxed: 1.6,
-            'display-large': lh(64, 57),
-            'display-medium': lh(52, 45),
-            'display-small': lh(44, 36),
-            'headline-large': lh(40, 32),
-            'headline-medium': lh(36, 28),
-            'headline-small': lh(32, 24),
-            'title-large': lh(28, 22),
-            'title-medium': lh(24, 16),
-            'title-small': lh(20, 14),
-            'body-large': lh(24, 16),
-            'body-medium': lh(20, 14),
-            'body-small': lh(16, 12),
-            'label-large': lh(20, 14),
-            'label-medium': lh(16, 12),
-            'label-small': lh(16, 11),
-        },
-        tracking: {
-            tight: '0em',
-            normal: '0.00625em',
-            wide: '0.03125em',
-            'display-large': dp(-0.25),
-            'display-medium': '0rem',
-            'display-small': '0rem',
-            'headline-large': '0rem',
-            'headline-medium': '0rem',
-            'headline-small': '0rem',
-            'title-large': '0rem',
-            'title-medium': dp(0.15),
-            'title-small': dp(0.1),
-            'body-large': dp(0.5),
-            'body-medium': dp(0.25),
-            'body-small': dp(0.4),
-            'label-large': dp(0.1),
-            'label-medium': dp(0.5),
-            'label-small': dp(0.5),
-        },
+        leading: { none: 1, tight: 1.25, normal: 1.5, relaxed: 1.6 },
+        tracking: { tight: '0em', normal: '0.00625em', wide: '0.03125em' },
         sizes: {
             xs: dp(12),
             sm: dp(14),
@@ -283,21 +258,24 @@ export const system = {
             xl: dp(22),
             '2xl': dp(24),
             '3xl': dp(36),
-            'display-large': dp(57),
-            'display-medium': dp(45),
-            'display-small': dp(36),
-            'headline-large': dp(32),
-            'headline-medium': dp(28),
-            'headline-small': dp(24),
-            'title-large': dp(22),
-            'title-medium': dp(16),
-            'title-small': dp(14),
-            'body-large': dp(16),
-            'body-medium': dp(14),
-            'body-small': dp(12),
-            'label-large': dp(14),
-            'label-medium': dp(12),
-            'label-small': dp(11),
+        },
+        /** size / line height in dp, weight, tracking — M3's own columns. */
+        roles: {
+            'display-large': role(57, 64, 400, dp(-0.25)),
+            'display-medium': role(45, 52, 400, '0rem'),
+            'display-small': role(36, 44, 400, '0rem'),
+            'headline-large': role(32, 40, 400, '0rem'),
+            'headline-medium': role(28, 36, 400, '0rem'),
+            'headline-small': role(24, 32, 400, '0rem'),
+            'title-large': role(22, 28, 400, '0rem'),
+            'title-medium': role(16, 24, 500, dp(0.15)),
+            'title-small': role(14, 20, 500, dp(0.1)),
+            'body-large': role(16, 24, 400, dp(0.5)),
+            'body-medium': role(14, 20, 400, dp(0.25)),
+            'body-small': role(12, 16, 400, dp(0.4)),
+            'label-large': role(14, 20, 500, dp(0.1)),
+            'label-medium': role(12, 16, 500, dp(0.5)),
+            'label-small': role(11, 16, 500, dp(0.5)),
         },
     },
 } as const satisfies SystemTokens;
@@ -348,7 +326,13 @@ function theme(
  * filled, tonal, elevated, outlined and text. Button offers all five, toggle
  * the four M3 toggles. Exported `as const` so `defineApi` narrows against it.
  */
-export const variants = ['filled', 'tonal', 'elevated', 'outlined', 'text'] as const;
+export const variants = [
+    'filled', 'tonal', 'elevated', 'outlined', 'text',
+    // Cards (#418) take elevated / filled / outlined from the list above.
+    'primary', 'secondary',
+    'small', 'center-aligned', 'medium', 'large', 'bottom',
+    'drawer', 'rail', 'bar',
+] as const;
 
 /**
  * Presence-only modifiers, each narrowed to its scope in `scopes`:
@@ -403,6 +387,10 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
         combobox: { variants: ['filled', 'outlined'] },
         // M3's cards (#418).
         card: { variants: ['elevated', 'filled', 'outlined'] },
+        // M3's navigation (#419).
+        tabs: { variants: ['primary', 'secondary'] },
+        navbar: { variants: ['small', 'center-aligned', 'medium', 'large', 'bottom'] },
+        'nav-list': { variants: ['drawer', 'rail', 'bar'] },
         // A field reads its text field's variant to float its label there,
         // and has none of its own.
         field: { variants: [] },

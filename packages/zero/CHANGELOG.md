@@ -2,6 +2,73 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`Combobox.Root` `filterItems` (#458).** Hand-written `Combobox.Item`s
+  are filtered by the query when it is set: each item's label (`textValue`,
+  else its text) is matched with the default case-insensitive
+  contains-match, or with a `filter` function, which on the hand-written
+  root is given the label. An item that does not match stays registered, so
+  its tag, input text and posted option keep their label, but it renders
+  nothing, and the highlight, the arrows, `aria-activedescendant` and
+  `Combobox.Empty` follow what is shown. Off by default, and ignored in data
+  mode (`items`), which always filters. A listbox item now remembers the
+  text it last rendered, so a hidden item still matches by it.
+
+- **`createHotkeys` and `<Hotkeys>` bind keyboard shortcuts (#460).**
+  Keys use `aria-keyshortcuts` syntax (`"Control+S Meta+S"`, `"j"`,
+  `"Shift+?"`), so the string `Menu.Item keyshortcuts` announces is the
+  string that binds it. `createHotkeys(bindings, { enabled, target })` runs
+  from setup and listens on `document` (or `target()`) while mounted;
+  `<Hotkeys bindings enabled target>` (`@sigx/zero/hotkeys`) is the same
+  as a renderless component, not a scope. A keydown fires nothing from an
+  editable target (text inputs, textarea, select, contenteditable, the
+  `combobox`/`textbox`/`searchbox` roles), mid IME composition, when it
+  was already handled, when its modifiers differ from the binding's (Shift
+  is lenient for a symbol such as `?`), or while a modal `<dialog>` or an
+  open Menu, Select, Popover or Combobox popup owns the keyboard. A
+  keydown from inside an open non-modal Dialog or Drawer is theirs too;
+  the rest of the page stays live. `parseHotkey`, `matchesHotkey`,
+  `isEditableTarget`, `keyboardOwnedElsewhere` and `matchesKeyCombo` (the
+  `Toast.Viewport hotkey` form, which Toast now imports) are exported.
+  `createDismissable` takes `ownsKeyboard` (`true` or `'within'`) to say
+  which layers count.
+
+- **Slider stop state and a per-thumb value part (#490).** `slider.mark`
+  carries `data-state="active"` while it sits on the span `Slider.Range`
+  fills (min → value for one value, lowest → highest for several, ends
+  included) and `inactive` off it. `Slider.ThumbValue`, placed inside a
+  `Slider.Thumb`, renders the new `thumb-value` part (`parent: 'thumb'`)
+  with that thumb's value through `getValueText` (the plain number without
+  one; the slot receives `{ value, index, text }`). It is `aria-hidden`,
+  carries `data-pressed` while its thumb is dragged (a track press
+  included) and `data-focus-visible` while the thumb has keyboard focus.
+  The six bundled skins ink an active stop apart from the rest, above the
+  filled span, and show the value as a bubble over the thumb while it is
+  dragged or focused; zero-material paints in-range stops on-primary and
+  its bubble is M3's value indicator. A new part is an anatomy change: a
+  design system that styles `slider.mark` should style its two states.
+
+### Changed
+
+- **`Stack.Item grow` grows from zero (#454).** The design systems now
+  compile `grow` to `flex-grow: 1` plus `flex-basis: 0`, like Tailwind's
+  `flex-1`, so a truncated grow item gives way to a fixed sibling instead
+  of squeezing it. Several `grow` siblings now split the free space
+  equally rather than in proportion to their content. The README
+  documents the pattern.
+
+### Fixed
+
+- **The README no longer says Combobox filters hand-written items (#458).**
+  Filtering by default applies in data mode (`items`); hand-written items
+  are the consumer's to filter unless `filterItems` is set.
+
+- **A pointer press no longer leaves a slider thumb `data-focus-visible`
+  (#490).** The press cancels its default, so Chromium matched
+  `:focus-visible` on the thumb's scripted focus and a drag kept the
+  keyboard ring.
+
 ## [0.17.0] - 2026-09-29
 
 ### Added

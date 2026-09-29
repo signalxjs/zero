@@ -131,7 +131,7 @@ export const menuAnatomy = defineAnatomy('menu', {
     // (`Menu.Shortcut`). Decorative (`aria-hidden`): the item's own
     // `keyshortcuts` prop is what AT announces, as `aria-keyshortcuts`.
     // `parent` names the popup, like `item-indicator`: it sits in whichever
-    // row kind hosts it. Zero binds no keys.
+    // row kind hosts it. Binding the key is `createHotkeys`'s job.
     shortcut: {
         element: 'span',
         parent: 'popup',

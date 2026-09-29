@@ -1,8 +1,8 @@
 @layer zero.recipes {
     [data-scope="spinner"][data-part="root"] {
-        --spinner-size: calc(var(--size-field) * 0.6);
+        --spinner-size: 2.5rem;
         --spinner-ink: var(--color-primary);
-        --spinner-track: var(--color-outline);
+        --spinner-track: transparent;
     }
 
     [data-scope="spinner"][data-part="root"] {
@@ -11,9 +11,10 @@
         block-size: var(--spinner-size);
         box-sizing: border-box;
         border-radius: 50%;
-        border: calc(var(--border) * 2) solid var(--spinner-track);
+        border: calc(var(--spinner-size) / 10) solid var(--spinner-track);
         border-block-start-color: var(--spinner-ink);
-        animation: zero-material-spin 0.7s linear infinite;
+        border-inline-end-color: var(--spinner-ink);
+        animation: zero-material-spin 1s linear infinite;
     }
 
     [data-scope="spinner"][data-part="root"][data-color="primary"] {
@@ -49,19 +50,19 @@
     }
 
     [data-scope="spinner"][data-part="root"][data-size="xs"] {
-        --spinner-size: calc(var(--size-field) * 0.4);
+        --spinner-size: 1rem;
     }
 
     [data-scope="spinner"][data-part="root"][data-size="sm"] {
-        --spinner-size: calc(var(--size-field) * 0.5);
+        --spinner-size: 1.5rem;
     }
 
     [data-scope="spinner"][data-part="root"][data-size="lg"] {
-        --spinner-size: calc(var(--size-field) * 0.8);
+        --spinner-size: 3rem;
     }
 
     [data-scope="spinner"][data-part="root"][data-size="xl"] {
-        --spinner-size: var(--size-field);
+        --spinner-size: 4rem;
     }
 
     @media (prefers-reduced-motion: reduce) {

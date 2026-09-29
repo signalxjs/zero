@@ -4,6 +4,34 @@
 
 ### Added
 
+- **`RoleDecl.axis` (#425, part of #413).** A role can now say whether it
+  is a value of the `color` axis. Left out, membership is inferred as
+  before: a role with `content: false` or `soft: false` is a fill, every
+  other role an axis value. `isFillRole` (and so `axisRoles`, the
+  `axis-value-coverage/unused` exemption and the score's vocabulary
+  denominator) reads the declared field first, so a fill can keep its ink
+  and a soft tint, and an action role can drop its tint and stay on the
+  axis. The tokens, DS-manifest and lynx-manifest schemas accept the key.
+  `axis: true` with `content: false` is a validation error, because an axis
+  value needs the `-content` ink a control paints its label with.
+
+- **`typography.roles`: composite type roles (#423, part of #413).**
+  `system.typography.roles` declares a role whole — name →
+  `{ size, leading, weight, tracking, font? }` — and each field folds into
+  its ramp under the role's name, so `title-medium` emits
+  `--text-title-medium`, `--leading-title-medium`, `--weight-title-medium`,
+  `--tracking-title-medium` and, with a family, `--font-title-medium`: the
+  same properties the parallel-keys spelling produced. The validator requires
+  the four core fields, holds each to its category's grammar (`leading` stays
+  unitless), rejects a role name that is also a key of a ramp it folds into,
+  and lets a theme or `systemDark` restate fields of declared roles only.
+  The DS and lynx manifests gain `tokens.typeRoles` (role → the property
+  each field binds; `{}` when none), and recipe validation warns when one
+  declaration block reads two roles' tokens. `tokens.schema.json` gains
+  `typography.roles`; `withTypeRoles`, `typeRoleProperties`,
+  `TYPE_ROLE_FIELDS` and the `TypeRoleDecl` type are exported. A kit older
+  than this rejects a manifest carrying `typeRoles` against its schema.
+
 - **`documentCss`, an opt-in document baseline (#455).** On
   `@sigx/zero-kit/define` (and the barrel): `documentCss(tokens, options?)`
   returns `html, body { margin: 0; block-size: 100% }` and a `body` on
@@ -14,6 +42,21 @@
   design system adds it to its `css`, which compiles inside
   `@layer zero.recipes`, so unlayered app CSS still wins. Zero's own CSS
   stays free of visual design; `create-zero-ds` scaffolds now include it.
+
+### Changed
+
+- **`Stack.Item grow` grows from a zero basis (#454).** `layoutRecipes()`'s
+  stack item rule gives `[data-l-grow="1"]` `flex-basis: 0` beside
+  `flex-grow: 1`, like Tailwind's `flex-1`. A grow item that held long
+  truncated (nowrap) text used to start from the whole text's width,
+  overflow its row, and squeeze its fixed siblings: a timestamp beside a
+  subject wrapped. It now takes only the room its siblings leave.
+  Behaviour change: several `grow` siblings split the free space equally
+  instead of in proportion to their content, and a grow item in a column
+  stack with no definite height grows from 0 rather than from its content
+  height. Written as the `flex-basis` longhand, so the lynx target passes
+  it through unchanged. Every design system's compiled `stack` CSS gains
+  the rule.
 
 ## [0.17.0] - 2026-09-29
 

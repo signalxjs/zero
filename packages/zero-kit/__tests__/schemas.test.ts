@@ -468,6 +468,21 @@ describe('tokens.schema.json', () => {
         expectValid(validateTokens, with_((t) => { t.custom = { ink: { syntax: '<length> | <percentage>' } }; }), 'a multi-type syntax');
     });
 
+    it('accepts typography.roles and a theme restating one field, and rejects a partial or unknown-field role (#423)', () => {
+        const role = { size: '1rem', leading: 1.5, weight: 500, tracking: '0rem', font: 'var(--font-sans)' };
+        const withRoles = (roles: unknown, themeRoles?: unknown) => {
+            const t = structuredClone(asJson(basicDS.tokens)) as { system: Record<string, Record<string, unknown>>; themes: Record<string, Record<string, unknown>>; defaultLight: string };
+            t.system['typography'] = { ...t.system['typography'], roles };
+            if (themeRoles) t.themes[t.defaultLight]!['system'] = { typography: { roles: themeRoles } };
+            return t;
+        };
+        expectValid(validateTokens, withRoles({ 'title-medium': role }, { 'title-medium': { weight: 600 } }), 'type roles');
+        const { tracking: _t, ...partial } = role;
+        expect(validateTokens(withRoles({ 'title-medium': partial }))).toBe(false);
+        expect(validateTokens(withRoles({ 'title-medium': { ...role, lineHeight: 1.5 } }))).toBe(false);
+        expect(validateTokens(withRoles({ 'Title Medium': role }))).toBe(false);
+    });
+
     it('rejects an unknown top-level key', () => {
         const bad = asJson(basicDS.tokens) as Record<string, unknown>;
         bad['palette'] = {};

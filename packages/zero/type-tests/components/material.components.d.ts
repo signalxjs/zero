@@ -117,12 +117,13 @@ type ButtonProps = {
 type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'fab' | 'icon' | 'shape' | 'size' | 'variant', ButtonProps>;
 export declare const Button: ButtonAdapted & AdaptedStatics<typeof ZButton> & { Root: ButtonAdapted };
 
-/** tabs — no vendor route; the wired surface keeps zero's names. */
+/** tabs — variant ← variant. Attributes stay zero-spelled. */
 type TabsProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    'variant'?: 'primary' | 'secondary';
 };
-type TabsAdapted = Adapted<typeof ZTabs, ZeroAxisProp, TabsProps>;
+type TabsAdapted = Adapted<typeof ZTabs, ZeroAxisProp | 'variant', TabsProps>;
 export declare const Tabs: TabsAdapted & AdaptedStatics<typeof ZTabs> & { Root: TabsAdapted };
 
 /** collapsible — no vendor route; the wired surface keeps zero's names. */
@@ -496,20 +497,22 @@ type JoinProps = {
 type JoinAdapted = Adapted<typeof ZJoin, ZeroAxisProp, JoinProps>;
 export declare const Join: JoinAdapted & AdaptedStatics<typeof ZJoin> & { Root: JoinAdapted };
 
-/** navbar — no vendor route; the wired surface keeps zero's names. */
+/** navbar — variant ← variant. Attributes stay zero-spelled. */
 type NavbarProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    'variant'?: 'small' | 'center-aligned' | 'medium' | 'large' | 'bottom';
 };
-type NavbarAdapted = Adapted<typeof ZNavbar, ZeroAxisProp, NavbarProps>;
+type NavbarAdapted = Adapted<typeof ZNavbar, ZeroAxisProp | 'variant', NavbarProps>;
 export declare const Navbar: NavbarAdapted & AdaptedStatics<typeof ZNavbar> & { Root: NavbarAdapted };
 
-/** nav-list — no vendor route; the wired surface keeps zero's names. */
+/** nav-list — variant ← variant. Attributes stay zero-spelled. */
 type NavListProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    'variant'?: 'drawer' | 'rail' | 'bar';
 };
-type NavListAdapted = Adapted<typeof ZNavList, ZeroAxisProp, NavListProps>;
+type NavListAdapted = Adapted<typeof ZNavList, ZeroAxisProp | 'variant', NavListProps>;
 export declare const NavList: NavListAdapted & AdaptedStatics<typeof ZNavList> & { Root: NavListAdapted };
 
 /** breadcrumbs — no vendor route; the wired surface keeps zero's names. */

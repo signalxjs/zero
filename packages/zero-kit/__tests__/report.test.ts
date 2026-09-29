@@ -112,7 +112,8 @@ describe('the gate — the report names exactly the axes the register artifact t
 
         const material = reportFor(materialDS as DesignSystemInput);
         expect(styled(material, 'button').never).toEqual([]);
-        expect(styled(material, 'tabs').never).toEqual(['variant']);
+        // material wires tabs' variant since #419 (M3 primary | secondary).
+        expect(styled(material, 'progress').never).toEqual(['variant']);
     });
 });
 

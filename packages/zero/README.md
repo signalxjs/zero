@@ -609,7 +609,8 @@ is the visible shortcut hint inside an item (a decorative, `aria-hidden`
 `shortcut` part the skins push to the row's end), and `keyshortcuts` on
 `Menu.Item`, `Menu.CheckboxItem` and `Menu.RadioItem` renders
 `aria-keyshortcuts` so the shortcut is announced once, in a form assistive
-technology parses — zero binds no keys; Dialog has an alert-dialog preset
+technology parses — the item binds no key itself; pass the same string to
+`createHotkeys` or `<Hotkeys>` (see "Keyboard shortcuts"); Dialog has an alert-dialog preset
 (`role="alertdialog"`: no backdrop dismiss, initial focus on the
 least-destructive `Dialog.Cancel`), and every Dialog/Drawer close reports
 why on a `close` event that follows `openChange(false)` — `{ reason, value }`
@@ -629,7 +630,17 @@ their neighbors, `marks` renders ticks) while a scalar model keeps the native
 bottom-to-top (`data-orientation` on the root and every positioned part,
 `aria-orientation` on the thumbs and the control, pointer mapped through
 `clientY`, Up/Right increase with no RTL mirroring, the native control
-spelled `writing-mode: vertical-lr; direction: rtl`); Select and Combobox group options
+spelled `writing-mode: vertical-lr; direction: rtl`). A `mark` is
+`data-state="active"` while it sits on the span `Slider.Range` fills (min →
+value for one value, lowest → highest for several, ends included) and
+`inactive` off it, so a skin inks the stops on the filled track apart from
+the rest; `Slider.ThumbValue`, placed inside a `Slider.Thumb`, renders that
+thumb's value (through `getValueText`, the plain number without one; its slot
+receives `{ value, index, text }`) as the `thumb-value` part — `aria-hidden`,
+since the thumb announces the value — carrying `data-pressed` while its thumb
+is dragged (a track press included) and `data-focus-visible` while the thumb
+has keyboard focus, which a skin reads to show a per-handle value bubble
+(#490). A pointer press never leaves a thumb `data-focus-visible`; Select and Combobox group options
 (`Group`/`GroupLabel`, the optgroup equivalent).
 
 **Overlays: focus targets, scroll lock, asking before dismissal** (#277).
@@ -721,10 +732,28 @@ selected" becomes `null` from then on (an uncontrolled model seeded `''`
 still reads as empty). The types follow: `items={query.data}` typed
 `T[] | undefined` picks the data overload, so the model is `T | null` (or
 `V | null` with `itemValue`) with no cast. Passing `[]` while loading keeps
-the model's shape fixed from the start. Combobox filters by default — a contains-match on
-the label — `filter` replaces the rule and `filter={false}` shows a
-server-filtered list as is; `Combobox.Empty` renders only while nothing is
-visible. Under `multiple`, Combobox renders each chosen value as a tag in
+the model's shape fixed from the start. In data mode (`items`) Combobox
+filters by default — a contains-match on the label — `filter` replaces the
+rule and `filter={false}` shows a server-filtered list as is. Hand-written
+`Combobox.Item` children are consumer-filtered: render only the ones that
+match `model:inputValue` — or set `filterItems` on the root (#458), and zero
+matches each item's label (`textValue`, else its text) the same way, with a
+`filter` function given the label. An item that does not match stays
+registered (its tag and posted value keep their label) but renders nothing:
+
+```tsx
+<Combobox.Root filterItems model={() => state.from}>
+  <Combobox.Control><Combobox.Input /></Combobox.Control>
+  <Combobox.Popup>
+    {contacts.map((c) => (
+      <Combobox.Item key={c.email} value={c.email} textValue={c.name}>{c.name}</Combobox.Item>
+    ))}
+    <Combobox.Empty>Nobody found</Combobox.Empty>
+  </Combobox.Popup>
+</Combobox.Root>
+```
+
+`Combobox.Empty` renders only while nothing is visible. Under `multiple`, Combobox renders each chosen value as a tag in
 the control (`Combobox.Tags` / `Tag` / `TagLabel` / `TagRemove`; the root's
 `tag` slot supplies per-tag content), and `allowCustom` commits free text on
 Enter.
@@ -1918,6 +1947,20 @@ one navigation landmark (NavList's `<nav>`) in both regimes. Page CSS
 sits outside or after the four layers — `@layer zero, app;` first in the
 app's entry stylesheet (docs/architecture.md, "App CSS").
 
+**`Stack.Item grow` grows from zero** (#454). The design systems compile
+`grow` to `flex-grow: 1` and `flex-basis: 0`, like Tailwind's `flex-1`, so a
+grow item takes only the room its siblings leave. A truncated line beside a
+fixed label therefore gives way instead of squeezing the label onto two
+lines, and several `grow` siblings split the free space equally, whatever
+their content:
+
+```tsx
+<Row gap="md" align="center">
+    <Stack.Item grow asChild>{(p) => <span {...p} class="truncate">{subject}</span>}</Stack.Item>
+    <time>Sep 12</time>
+</Row>
+```
+
 **The link button.** A link that looks like a button is `asChild` over an
 `<a>`. It is a real link, with middle-click, "copy link" and the right role,
 and it wears the button's anatomy and recipe:
@@ -2480,6 +2523,56 @@ const Transcript = component(({ props }) => {
 - **Semantics are yours.** A log wants `role="log"`. A `listbox` or `feed`
   wants `aria-setsize={v.count()}` and `aria-posinset={row.index + 1}` on
   each row, because only a window is in the accessibility tree.
+
+## Keyboard shortcuts: `createHotkeys` and `Hotkeys`
+
+`Menu.Item keyshortcuts` announces a shortcut; `createHotkeys` binds it.
+Keys are `aria-keyshortcuts` syntax, so one string does both: modifiers
+(`Control`, `Alt`, `Shift`, `Meta`) joined by `+` to one key named as
+`KeyboardEvent.key` names it (`S`, `?`, `Escape`, `F8`, `Space`), with
+alternatives separated by spaces.
+
+```tsx
+import { createHotkeys, Hotkeys } from '@sigx/zero';
+
+// In a component's setup:
+createHotkeys({
+    'Control+S Meta+S': save,
+    j: next,
+    '?': showHelp,
+}, { enabled: () => !busy.value });
+
+// Or, in JSX alone — a renderless component (`@sigx/zero/hotkeys`):
+<Hotkeys bindings={{ j: next, k: prev, '/': focusSearch, Escape: close }} />
+```
+
+The listener attaches to `document` on mount (or to `target()`, a tracked
+getter — the component's `target` prop) and detaches on unmount; setup
+never touches the DOM, so it is SSR-safe. `bindings` can be a getter, read
+on every keydown. The first binding that matches runs, and the keydown's
+default is prevented. A keydown fires nothing when:
+
+- **it is typing** — from a text-like `<input>`, a `<textarea>`, a
+  `<select>`, contenteditable content, or a `combobox` / `textbox` /
+  `searchbox` role — or it is mid IME composition;
+- **its modifiers differ.** `j` does not fire on Control+J, so the
+  browser's and the OS's chords pass through. Shift is the one leniency: a
+  symbol typed with Shift on one layout and without it on another (`?`,
+  `#`, `/`) matches either way unless the binding says `Shift+`. Letters
+  compare case-insensitively (`Shift+K` is K with Shift down) and fall back
+  to `KeyboardEvent.code`, so macOS's Option+K (which types `˚`) still
+  matches `Alt+K`;
+- **someone else owns the keyboard** — a modal `<dialog>` (Dialog, a modal
+  Drawer), an open Menu, Select, Popover or Combobox popup, or, for a
+  keydown from inside it, a non-modal Dialog or Drawer (the page beside
+  one stays live). A surface that contains the listener's own `target`
+  does not count. A Tooltip or HoverCard never takes the keyboard;
+- **it was already handled** (`defaultPrevented`).
+
+`parseHotkey`, `matchesHotkey(e, spec)`, `isEditableTarget` and
+`keyboardOwnedElsewhere` are exported for a listener of your own.
+`matchesKeyCombo(e, keys)` is `Toast.Viewport`'s `hotkey` form
+(`['altKey', 'KeyT']`).
 
 ## Theme controller
 

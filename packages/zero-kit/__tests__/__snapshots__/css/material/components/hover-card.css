@@ -34,10 +34,10 @@
         padding-block-end: var(--space-xs);
         padding-inline: var(--space-md);
         max-inline-size: 20rem;
-        font-family: var(--font-sans);
+        font-family: var(--font-body-medium);
         font-size: var(--text-body-medium);
         line-height: var(--leading-body-medium);
-        font-weight: var(--weight-normal);
+        font-weight: var(--weight-body-medium);
         letter-spacing: var(--tracking-body-medium);
         transform-origin: var(--transform-origin, center);
         --tf-surface: var(--color-surface-container);

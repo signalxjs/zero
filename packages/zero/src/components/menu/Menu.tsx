@@ -66,7 +66,8 @@
  *
  * `Menu.Shortcut` is the visible shortcut hint inside an item — decorative
  * (`aria-hidden`); the item's `keyshortcuts` prop renders
- * `aria-keyshortcuts`, which is what AT announces. Zero binds no keys.
+ * `aria-keyshortcuts`, which is what AT announces. The item binds no key
+ * itself: pass the same string to `createHotkeys` (or `<Hotkeys>`).
  *
  * Inside a `Menubar.Root` the root's `value` names the menu, its open state
  * follows the bar's model and its Trigger becomes a roving `menuitem` of the
@@ -1028,8 +1029,9 @@ export type MenuItemProps =
     & Define.Prop<'textValue', string, false>
     /**
      * The keyboard shortcut the app binds for this item, in
-     * `aria-keyshortcuts` syntax (`"Control+S"`). Announced only — zero binds
-     * no keys; pair it with a visible `Menu.Shortcut`.
+     * `aria-keyshortcuts` syntax (`"Control+S"`). Announced only — bind the
+     * same string with `createHotkeys` (or `<Hotkeys>`), and pair it with a
+     * visible `Menu.Shortcut`.
      */
     & Define.Prop<'keyshortcuts', string, false>
     & WithDisabled
@@ -1080,8 +1082,9 @@ export type MenuCheckboxItemProps =
     & Define.Prop<'textValue', string, false>
     /**
      * The keyboard shortcut the app binds for this item, in
-     * `aria-keyshortcuts` syntax (`"Control+S"`). Announced only — zero binds
-     * no keys; pair it with a visible `Menu.Shortcut`.
+     * `aria-keyshortcuts` syntax (`"Control+S"`). Announced only — bind the
+     * same string with `createHotkeys` (or `<Hotkeys>`), and pair it with a
+     * visible `Menu.Shortcut`.
      */
     & Define.Prop<'keyshortcuts', string, false>
     & WithDisabled
@@ -1186,8 +1189,9 @@ export type MenuRadioItemProps =
     & Define.Prop<'textValue', string, false>
     /**
      * The keyboard shortcut the app binds for this item, in
-     * `aria-keyshortcuts` syntax (`"Control+S"`). Announced only — zero binds
-     * no keys; pair it with a visible `Menu.Shortcut`.
+     * `aria-keyshortcuts` syntax (`"Control+S"`). Announced only — bind the
+     * same string with `createHotkeys` (or `<Hotkeys>`), and pair it with a
+     * visible `Menu.Shortcut`.
      */
     & Define.Prop<'keyshortcuts', string, false>
     & WithDisabled
@@ -1841,7 +1845,7 @@ export type MenuShortcutProps = WithClass & WithHtmlAttrs & Define.Slot<'default
  * The visible keyboard-shortcut hint inside an item (`⌘S`, `Ctrl+S`).
  * Hidden from AT — the item's `keyshortcuts` prop states the shortcut as
  * `aria-keyshortcuts` instead, so it is announced once, in a form a reader
- * can parse. Zero binds no keys.
+ * can parse. Binding the key is `createHotkeys`'s job.
  */
 const MenuShortcut = component<MenuShortcutProps>(({ props, slots }) => {
     return () => (

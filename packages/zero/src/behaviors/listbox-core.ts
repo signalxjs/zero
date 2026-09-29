@@ -34,10 +34,19 @@ export interface ListboxOptions<T> {
     /**
      * Data-mode visibility: the default is a case-insensitive contains-match
      * on the label; a function replaces it; `false` shows every item (a
-     * server-filtered list). JSX mode is always consumer-filtered — what is
-     * rendered is what is visible.
+     * server-filtered list). Data mode only: JSX mode is consumer-filtered —
+     * what is rendered is what is visible — unless `filterItems` opts in.
      */
     filter?: false | ((item: T, query: string) => boolean);
+    /**
+     * JSX-mode visibility (#458), off by default: while it reads true and the
+     * query is non-empty, a registered key is visible only when its label
+     * (`collection.label`) passes `labelFilter` — by default the same
+     * case-insensitive contains-match as data mode. Ignored in data mode.
+     */
+    filterItems?: () => boolean;
+    /** The JSX-mode predicate under `filterItems`, given the label and the query. */
+    labelFilter?: (label: string, query: string) => boolean;
     /**
      * The single-select "nothing chosen" value, written by `clear()` and
      * read as empty. Defaults to `''` (a key model's empty); a data-driven
@@ -78,8 +87,13 @@ export interface ListboxCore<T> {
     activeDescendant(open: boolean): string | undefined;
 }
 
+/** The default rule on a bare label: a case-insensitive contains-match. */
+export function labelContains(label: string, query: string): boolean {
+    return label.toLowerCase().includes(query.toLowerCase());
+}
+
 export function defaultFilter<T>(collection: Collection<T, unknown>): (item: T, query: string) => boolean {
-    return (item, query) => collection.labelOf(item).toLowerCase().includes(query.toLowerCase());
+    return (item, query) => labelContains(collection.labelOf(item), query);
 }
 
 /** One step through `keys`: relative steps clamp at the edges (APG listbox: no wrap). */
@@ -119,8 +133,15 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
 
     const visibleKeys = (): string[] => {
         if (collection.mode() === 'data') return visibleItems().map((item) => collection.keyOf(item));
-        // JSX mode: the rendered items, in DOM order when the registry knows it.
-        const registered = collection.keys();
+        // JSX mode: the rendered items, in DOM order when the registry knows
+        // it — narrowed by their labels under `filterItems` (#458). A key the
+        // filter drops stays registered (its item renders nothing), so its
+        // label, disabled state and hidden-select option survive.
+        const query = opts.query?.() ?? '';
+        const matches = opts.labelFilter ?? labelContains;
+        const registered = opts.filterItems?.() && query !== ''
+            ? collection.keys().filter((k) => matches(collection.label(k), query))
+            : collection.keys();
         if (!opts.list) return registered;
         const known = new Set(registered);
         const ordered = opts.list.items().map((i) => i.value).filter((k) => known.has(k));

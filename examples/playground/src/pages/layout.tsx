@@ -127,6 +127,22 @@ const LayoutDemos = component(() => () => (
                 </Stack.Item>
             </Row>
         </DemoRow>
+        <p>
+            It grows from a zero basis, like Tailwind's <code>flex-1</code>, so
+            it takes only the room its siblings leave. A long truncated line
+            gives way to the fixed date beside it instead of squeezing it
+            onto two lines, and several <code>grow</code> siblings split the
+            free space equally.
+        </p>
+        {/* Not inside a DemoRow: that is a flex row too, and would size this
+            Row by its content — the full line — rather than by the column. */}
+        <Row class={BOUND} gap="md" align="center">
+            <Stack.Item grow class="demo-truncate">
+                Re: the quarterly layout review — notes, open questions, and the
+                long tail of follow-ups nobody has claimed yet
+            </Stack.Item>
+            <span>Sep 12</span>
+        </Row>
 
         <h3>Responsive</h3>
         <p>

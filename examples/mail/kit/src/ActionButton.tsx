@@ -28,7 +28,7 @@ export type ActionButtonProps =
     & Define.Prop<'icon', IconName, true>
     /** The accessible name, and the tooltip's text. */
     & Define.Prop<'label', string, true>
-    /** A key hint shown in the tooltip (display only — bind it with Hotkeys). */
+    /** A key hint shown in the tooltip (display only — bind it with zero's Hotkeys). */
     & Define.Prop<'shortcut', string, false>
     & Define.Prop<'disabled', boolean, false>
     & Define.Prop<'pressed', boolean, false>

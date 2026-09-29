@@ -235,6 +235,10 @@
         flex-grow: var(--l-grow);
         min-inline-size: 0;
     }
+
+    [data-scope="stack"][data-part="item"][data-l-grow="1"] {
+        flex-basis: 0;
+    }
 }
 
 @layer zero.recipes {
@@ -3748,6 +3752,7 @@
 @layer zero.recipes {
     [data-scope="slider"][data-part="root"] {
         --slider-accent: var(--color-primary);
+        --slider-on-accent: var(--color-primary-content);
         --slider-track-size: calc(var(--size-field) * 5);
         --slider-thumb-size: calc(var(--slider-track-size) + var(--border) * 2 + var(--space-sm));
     }
@@ -3945,6 +3950,7 @@
         box-shadow: var(--shadow-xs);
         cursor: pointer;
         outline: none;
+        z-index: 1;
         touch-action: none;
     }
 
@@ -3975,7 +3981,45 @@
         margin-block-end: calc(var(--slider-thumb-size) / -2);
     }
 
+    [data-scope="slider"][data-part="thumb-value"] {
+        position: absolute;
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+        border: var(--border) solid var(--color-base-content);
+        padding: var(--space-2xs) var(--space-sm);
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+        line-height: 1;
+        white-space: nowrap;
+        pointer-events: none;
+        visibility: hidden;
+    }
+
+    [data-scope="slider"][data-part="thumb-value"][data-pressed] {
+        visibility: visible;
+    }
+
+    [data-scope="slider"][data-part="thumb-value"][data-focus-visible] {
+        visibility: visible;
+    }
+
+    [data-scope="slider"][data-part="thumb-value"][data-orientation="horizontal"] {
+        bottom: calc(100% + var(--space-xs));
+        left: 50%;
+        translate: -50% 0;
+    }
+
+    [data-scope="slider"][data-part="thumb-value"][data-orientation="vertical"] {
+        bottom: 50%;
+        inset-inline-end: calc(100% + var(--space-xs));
+        translate: 0 50%;
+    }
+
     [data-scope="slider"][data-part="mark"] {
+        z-index: 1;
         padding-block-start: calc(var(--slider-track-size) + var(--border) * 2 + var(--space-2xs));
         font-family: var(--font-mono);
         font-weight: var(--weight-semibold);
@@ -3986,6 +4030,14 @@
         white-space: nowrap;
     }
 
+    [data-scope="slider"][data-part="mark"][data-state="active"] {
+        --slider-stop-ink: var(--slider-on-accent);
+    }
+
+    [data-scope="slider"][data-part="mark"][data-state="inactive"] {
+        --slider-stop-ink: var(--color-base-content);
+    }
+
     [data-scope="slider"][data-part="mark"]::before {
         content: "";
         position: absolute;
@@ -3993,7 +4045,7 @@
         inset-inline-start: -1px;
         width: 2px;
         height: calc(var(--slider-track-size) + var(--border) * 2);
-        background: var(--color-base-content);
+        background: var(--slider-stop-ink);
     }
 
     [data-scope="slider"][data-part="mark"][data-orientation="vertical"] {
@@ -4021,34 +4073,42 @@
 
     [data-scope="slider"][data-part="root"][data-color="primary"] {
         --slider-accent: var(--color-primary);
+        --slider-on-accent: var(--color-primary-content);
     }
 
     [data-scope="slider"][data-part="root"][data-color="secondary"] {
         --slider-accent: var(--color-secondary);
+        --slider-on-accent: var(--color-secondary-content);
     }
 
     [data-scope="slider"][data-part="root"][data-color="accent"] {
         --slider-accent: var(--color-accent);
+        --slider-on-accent: var(--color-accent-content);
     }
 
     [data-scope="slider"][data-part="root"][data-color="neutral"] {
         --slider-accent: var(--color-neutral);
+        --slider-on-accent: var(--color-neutral-content);
     }
 
     [data-scope="slider"][data-part="root"][data-color="info"] {
         --slider-accent: var(--color-info);
+        --slider-on-accent: var(--color-info-content);
     }
 
     [data-scope="slider"][data-part="root"][data-color="success"] {
         --slider-accent: var(--color-success);
+        --slider-on-accent: var(--color-success-content);
     }
 
     [data-scope="slider"][data-part="root"][data-color="warning"] {
         --slider-accent: var(--color-warning);
+        --slider-on-accent: var(--color-warning-content);
     }
 
     [data-scope="slider"][data-part="root"][data-color="error"] {
         --slider-accent: var(--color-error);
+        --slider-on-accent: var(--color-error-content);
     }
 
     [data-scope="slider"][data-part="root"][data-size="xs"] {

@@ -15,11 +15,11 @@ express M3 is filed as an `m3-finding` issue rather than worked around quietly.
 | Material 3 | How it lands |
 |---|---|
 | Colour from M3's own algorithm: HCT tonal palettes from seed `#6750A4`, light and dark at standard, medium and high contrast (six themes) | `scripts/gen-scheme.mjs` runs `@material/material-color-utilities` (devDependency only) into a checked-in `src/scheme.generated.ts`; `pnpm --filter @sigx/zero-material gen:scheme` regenerates it, and a test fails when it is stale |
-| The full role set: key colours and their containers, seven surface tones, `surface-variant`, the inverse pair, `outline` / `outline-variant`, `scrim`, `shadow` | `roles`. `on-X` is zero's `X-content`. Fills and hairlines opt out of the `color` axis (`soft: false` / `content: false`) |
+| The full role set: key colours and their containers, seven surface tones, `surface-variant`, the inverse pair, `outline` / `outline-variant`, `scrim`, `shadow` | `roles`. `on-X` is zero's `X-content`. Fills and hairlines are declared `axis: false`, off the `color` axis (#425). None of them has a `-soft` tint (`soft: false`), and the hairlines have no ink (`content: false`) |
 | Tonal (container) fills with their `on-*-container` ink | each action role's `-soft` is set to its container per theme, and recipes pair `-container` with `-container-content`. Pairing the key ink with its container instead fails in the high-contrast schemes, where the container goes dark |
 | `info` / `success` / `warning`, which M3 does not define | custom colours harmonised toward the seed, each with the same colour / container quartet |
 | The corner scale, extra-small (4dp) → extra-extra-large (48dp) and full | open keys in `radius`: `--radius-extra-small` … `--radius-full`. `selector` / `field` / `box` remain as aliases, because zero's token hints and structural fallbacks name them |
-| The fifteen type roles (display … label × large/medium/small) | a size, a unitless line height and a tracking under one key (`--text-title-medium`, `--leading-title-medium`, `--tracking-title-medium`), composed by the recipes' `type()` helper |
+| The fifteen type roles (display … label × large/medium/small) | zero-kit's `typography.roles` (#423): each role's size, line height, weight, tracking and family declared as one unit, emitting `--text-title-medium`, `--leading-title-medium`, `--weight-title-medium`, `--tracking-title-medium` and `--font-title-medium`, and recorded in the manifest's `tokens.typeRoles`. The recipes' `type()` helper reads one role whole. M3's dp line heights are divided by the size, since `--leading-*` is a unitless multiplier: the same box, and it scales with the text |
 | Duration tokens `short1` … `extra-long4`, and the easing set | open keys in `motion`. `emphasized` is M3's two-segment path, sampled into `linear()` |
 | M3 Expressive's springs (spatial and effects × fast/default/slow) | simulated and sampled into `linear()` easings, each with a same-named duration |
 | Elevation `level0`–`level5` | open keys inside the closed `shadow` category, deepened under dark themes |
@@ -87,7 +87,7 @@ by default, outlined with `variant="outlined"`.
 | Checkbox: an 18dp box with a 2dp corner and a 2dp on-surface-variant outline (on-surface on hover), the stroked check drawn on, a 40dp state layer | `--checkbox-size` is 18dp at `md` (14 / 16 / 18 / 22 / 26 across the ramp), the corner is the `selector` radius, and the halo is 40/18 of the box |
 | Radio: a 20dp ring, a 10dp dot, a 40dp state layer | `--radio-size` is 20dp at `md` (16 / 18 / 20 / 24 / 28), and the halo is twice the ring |
 | Switch: a 52 × 32 track in surface-container-highest, the handle 16 → 24dp when selected and 28dp while pressed, on-surface-variant / primary-container on hover | the handle travels and grows on the fast spatial spring; the press and hover colours hang off the control's flags |
-| Slider (M3 Expressive): a 16dp track, a 4 × 44dp bar handle in a 6dp gap that narrows to 2dp while pressed, a stop indicator at the track's end, dot stops | `--slider-track-size` / `--slider-handle-size` / `--slider-handle-width` / `--slider-gap`, read by both projections (native and composed) and by the vertical rail. The size axis steps Expressive's tracks (8 / 12 / 16 / 24 / 40dp). The gap is painted with `--tf-surface` (#468). The inactive track stays surface-container-highest, not Expressive's secondary-container, which in the high-contrast schemes sits within 1.6:1 of primary. Stops take one ink and there is no value bubble (#490) |
+| Slider (M3 Expressive): a 16dp track, a 4 × 44dp bar handle in a 6dp gap that narrows to 2dp while pressed, a stop indicator at the track's end, dot stops | `--slider-track-size` / `--slider-handle-size` / `--slider-handle-width` / `--slider-gap`, read by both projections (native and composed) and by the vertical rail. The size axis steps Expressive's tracks (8 / 12 / 16 / 24 / 40dp). The gap is painted with `--tf-surface` (#468). The inactive track stays surface-container-highest, not Expressive's secondary-container, which in the high-contrast schemes sits within 1.6:1 of primary. A stop on the active track is on-primary and one on the inactive track primary, painted above the filled span (the mark's `active`/`inactive` state), and `Slider.ThumbValue` is M3's value indicator: an inverse-surface bubble in label-large over the handle, grown in while it is dragged or keyboard-focused (#490) |
 | Disabled | M3's explicit colours in place of an opacity fade: outlines, fills and handles at 38% on-surface, tracks at 12%, a selected checkbox's mark and a selected switch's handle in `surface` |
 
 ## M3 containment and overlays (#418)
@@ -104,6 +104,18 @@ by default, outlined with `variant="outlined"`.
 | Sheets: surface-container-low, the large corner on a side sheet's inner edge, the bottom sheet's extra-large top and its 32 × 4dp drag handle, level 1 once modal | Drawer |
 | Overlay triggers and dismiss actions | the outlined button and the text button from #415, with M3's disabled colours |
 | Dividers | 1dp outline-variant |
+
+## M3 navigation and communication (#419)
+
+| M3 | How it lands |
+|---|---|
+| Tabs: primary (3dp rounded indicator, the active label in the role) and secondary (2dp flat indicator, the active label on-surface); 48dp title-small tabs over a 1dp outline-variant divider | Tabs' `variant`. The indicator spans the tab: zero publishes the tab's box, not its label's (#530) |
+| Top app bar: small (64dp, a title-large headline), center-aligned, medium and large (112 / 152dp, the headline on its own row in headline-small / headline-medium); bottom app bar (80dp, surface-container) | Navbar's `variant`. The `center` part is the headline for center-aligned, medium and large. There is no scrolled-under fill: the bar publishes no scroll state (#530) |
+| Navigation drawer: 56dp pill rows, label-large, the active row on secondary-container, title-small headings | NavList, `variant="drawer"` (the default) |
+| Navigation rail and navigation bar: icon over label-medium label, the active pill (56 × 32dp) behind the icon alone; the bar is 80dp on surface-container | NavList, `variant="rail"` / `"bar"`. The pill rides the `icon` part, so no new component was needed (settles #420's rail/bar question) |
+| Linear progress: 4dp, the active bar in a 4dp gap, a stop indicator at the end | Progress. The gap is painted in `--tf-surface` (#468). No Expressive wavy variant yet |
+| Circular progress: 48dp determinate over a surface-container-highest track, 40dp indeterminate with no track, 4dp stroke | RadialProgress and Spinner |
+| Badge: 16dp, fully round, label-small, error / on-error | Badge |
 
 ## What the recipes prove
 
