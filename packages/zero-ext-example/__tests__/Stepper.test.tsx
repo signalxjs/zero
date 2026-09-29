@@ -7,6 +7,7 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
+import { component, signal } from 'sigx';
 import { expectAnatomy } from '@sigx/zero/testing';
 import { ExtStepper as Stepper, stepperAnatomy } from '@sigx/zero-ext-example';
 
@@ -34,6 +35,31 @@ describe('Stepper (ecosystem acceptance)', () => {
     it('renders a valid anatomy per the published conformance assertion', () => {
         mountStepper(container);
         expectAnatomy(container, stepperAnatomy);
+    });
+
+    it('publishes its item count as the declared runtime property, and follows an unmount (#456)', async () => {
+        // The one runtime property the anatomy declares: the pack's web grid
+        // reads it bare, so it must be on the root, current, and nothing else.
+        expect(stepperAnatomy.toJSON().runtimeProperties).toEqual(['--ext-stepper-count']);
+        const state = signal({ extra: true });
+        const Demo = component(() => () => (
+            <Stepper.Root defaultStep="cart" label="Checkout">
+                <Stepper.Item value="cart">Cart</Stepper.Item>
+                <Stepper.Item value="details">Details</Stepper.Item>
+                <Stepper.Item value="pay">Pay</Stepper.Item>
+                {state.extra ? <Stepper.Item value="done">Done</Stepper.Item> : null}
+            </Stepper.Root>
+        ));
+        render(<Demo />, container);
+        const root = container.querySelector<HTMLElement>('[data-scope="ext-stepper"][data-part="root"]')!;
+        const count = (): string => root.style.getPropertyValue('--ext-stepper-count');
+        for (let i = 0; i < 8; i++) await Promise.resolve();
+        expect(count()).toBe('4');
+        expectAnatomy(container, stepperAnatomy);
+        state.extra = false;
+        for (let i = 0; i < 4; i++) await Promise.resolve();
+        expect(items(container)).toHaveLength(3);
+        expect(count()).toBe('3');
     });
 
     it('derives complete/active/inactive from DOM order and the model', () => {

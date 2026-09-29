@@ -23,4 +23,9 @@ export const stepperAnatomy = defineAnatomy('ext-stepper', {
     // What the API binds (#451): the manifest says so, and mergeManifests
     // holds the companions to the naming rule.
     models: [{ concept: 'step', type: 'string' }],
+    // What the runtime writes inline (#456): the root publishes its item
+    // count, under the scope's own prefix, which mergeManifests enforces.
+    // A recipe may then read it bare; it is web-only, so the pack reads it
+    // in `targets.web` alone.
+    runtimeProperties: ['--ext-stepper-count'],
 });

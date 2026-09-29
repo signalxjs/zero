@@ -147,6 +147,23 @@ export const recipes: RecipeInput[] = [{
     // Android (measured, signalxjs/lynx#1084), so the emitter refuses them;
     // physical spellings are that target's norm (no RTL flow on lynx).
     targets: {
+        // The root's runtime property (#456): on the web the steps share the
+        // row evenly, one track per item, sized from the count the runtime
+        // writes. A BARE reference, no fallback — the fragment declares the
+        // name, so the validator resolves it like zero's own. It lives here
+        // and not in the shared section because it is web-only: the lynx
+        // guard refuses it anywhere else, which would make the whole pack
+        // web-only there. The shared flex row stays lynx's layout.
+        web: {
+            parts: {
+                root: {
+                    base: {
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(var(--ext-stepper-count), minmax(min-content, 1fr))',
+                    },
+                },
+            },
+        },
         lynx: {
             parts: {
                 item: {

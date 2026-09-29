@@ -34,6 +34,16 @@ What it publishes to design systems, from the data-only `./fragment` entry:
   un-attributed render is the middle step, as in every sibling skin. A disabled item fades by the adopter's own
   `--disabled-opacity`, never a literal of the pack's.
 
+**A declared runtime property** (#456). The root writes its item count
+inline as `--ext-stepper-count`, and the anatomy declares it
+(`runtimeProperties: ['--ext-stepper-count']`), so the fragment carries it
+and `mergeManifests` holds it to the `--ext-stepper-` prefix. The pack reads
+it bare, and only in `targets.web`: there the root is a grid with one equal
+track per item (`repeat(var(--ext-stepper-count), minmax(min-content, 1fr))`),
+while the shared section keeps the flex row, so an adopter's lynx build keeps
+the scope. `examples/playground/e2e/ext-stepper.spec.ts` measures the tracks
+in basic and heroui.
+
 `@sigx/zero-basic` consumes both — which makes it the end-to-end proof that a
 merged scope compiles, that the generated `register.d.ts` takes the
 `Exclude<…>` form and still typechecks (`type-tests/ecosystem/`), and that a
