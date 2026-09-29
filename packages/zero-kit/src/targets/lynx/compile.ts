@@ -24,12 +24,12 @@ import { createRequire } from 'node:module';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import type { ValidateFunction } from 'ajv/dist/2020.js';
 import type { ZeroManifest } from '../../contract.js';
-import { TOKEN_KEY_PATTERN } from '../../contract.js';
+import { runtimePropertiesOf, TOKEN_KEY_PATTERN } from '../../contract.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../../design-system.js';
 import { resolveRecipeForTarget } from '../../recipes.js';
 import type { DesignSystemManifest } from '../../artifacts.js';
 import type { LynxCapabilityReport } from './capabilities.js';
-import { emptyReport } from './capabilities.js';
+import { emptyReport, runtimePropertyMatcher } from './capabilities.js';
 import { CLASS_GRAMMAR_VERSION } from './class-names.js';
 import { compileLynxRecipeCss } from './recipe-css.js';
 import { compileLynxTokensCss, lynxRefusedImageTokens, lynxThemeColors } from './tokens-css.js';
@@ -56,7 +56,11 @@ export function compileDesignSystemLynx(
     manifest: Pick<ZeroManifest, 'components'>,
 ): CompiledLynxTarget {
     const report = emptyReport();
-    const tokensCss = compileLynxTokensCss(ds.tokens, report);
+    // One matcher per build, over zero's list plus every name the merged
+    // manifest's components declare — a fragment's own runtime properties
+    // are refused outside targets.web exactly like zero's (#456).
+    const runtime = runtimePropertyMatcher(runtimePropertiesOf(manifest));
+    const tokensCss = compileLynxTokensCss(ds.tokens, report, runtime);
     // The recipe emitter restates theme-dependent declarations once per
     // theme; these are the literal color maps it bakes them against.
     const themes = lynxThemeColors(ds.tokens);
@@ -89,7 +93,7 @@ export function compileDesignSystemLynx(
         // scope is only known at this level, and everything the emitter adds
         // while compiling this recipe belongs to this recipe.
         const before = { translated: report.translated.length, dropped: report.dropped.length };
-        const css = compileLynxRecipeCss(resolveRecipeForTarget(recipe, 'lynx'), component, report, themes, refusedImageVars);
+        const css = compileLynxRecipeCss(resolveRecipeForTarget(recipe, 'lynx'), component, report, themes, refusedImageVars, runtime);
         // By index: `slice` would allocate a copy per recipe, and the work
         // should be proportional to the findings added, not to the report.
         for (let i = before.translated; i < report.translated.length; i++) {

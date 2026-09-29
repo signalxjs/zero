@@ -71,6 +71,7 @@ import {
     LynxRuntimePropertyError,
     remToPx,
     runtimePropertyIn,
+    type RuntimePropertyMatcher,
     SVG_DATA_URI_DETAIL,
 } from './capabilities.js';
 import { HOST_CLASS, axisClass, flagClass, layoutClass, modClass, orientationClass, partClass, placementClass, stateClass, themeClass } from './class-names.js';
@@ -298,6 +299,7 @@ function checkedProps(
     where: string,
     report: LynxCapabilityReport,
     refusedImageVars: ReadonlySet<string> = NO_REFUSED_VARS,
+    runtime?: RuntimePropertyMatcher,
 ): CheckedProps {
     const out: CssProps = {};
     const perTheme: CssProps = {};
@@ -315,11 +317,11 @@ function checkedProps(
         if (physicalSize) {
             report.translated.push({ where, what: `${kebab(authoredProp)}: ${value}`, detail: `${LOGICAL_SIZE_DETAIL} (${physicalSize})` });
         }
-        const runtime = runtimePropertyIn(`${prop} ${value}`);
-        if (runtime) {
+        const found = runtimePropertyIn(`${prop} ${value}`, runtime);
+        if (found) {
             throw new LynxRuntimePropertyError(
-                `[zero-kit] ${where}: "${prop}" references ${runtime}, a web-runtime-published property with no lynx equivalent — move the declaration into the recipe's web target section`,
-                runtime,
+                `[zero-kit] ${where}: "${prop}" references ${found}, a web-runtime-published property with no lynx equivalent — move the declaration into the recipe's web target section`,
+                found,
             );
         }
         const kebabProp = kebab(prop);
@@ -481,8 +483,9 @@ function emitChecked(
     report: LynxCapabilityReport,
     themes: readonly LynxThemeColors[],
     refusedImageVars: ReadonlySet<string>,
+    runtime: RuntimePropertyMatcher | undefined,
 ): void {
-    const checked = checkedProps(props, where, report, refusedImageVars);
+    const checked = checkedProps(props, where, report, refusedImageVars, runtime);
     if (Object.keys(checked.props).length > 0) {
         rules.push(`${selector} {\n${declBlock(checked.props, '    ', where)}\n}`);
     }
@@ -528,12 +531,13 @@ function emitPartStyles(
     report: LynxCapabilityReport,
     themes: readonly LynxThemeColors[],
     refusedImageVars: ReadonlySet<string>,
+    runtime: RuntimePropertyMatcher | undefined,
 ): void {
     const part = findPart(component, partName);
     const where = `lynx recipe for "${component.scope}"."${partName}"`;
     const base = `.${partClass(component.scope, partName)}${extraClasses}`;
     const rule = (selector: string, props: CssProps) => {
-        emitChecked(selector, props, where, rules, report, themes, refusedImageVars);
+        emitChecked(selector, props, where, rules, report, themes, refusedImageVars, runtime);
     };
 
     if (styles.base && Object.keys(styles.base).length > 0) {
@@ -606,6 +610,12 @@ export function compileLynxRecipeCss(
     report: LynxCapabilityReport,
     themes: readonly LynxThemeColors[] = [],
     refusedImageVars: ReadonlySet<string> = NO_REFUSED_VARS,
+    /**
+     * The runtime-property matcher, built from `runtimePropertiesOf(manifest)`
+     * so a fragment's declared names are refused too; defaults to zero's own
+     * `RUNTIME_PROPERTIES`.
+     */
+    runtime?: RuntimePropertyMatcher,
 ): string {
     if (recipe.component !== component.scope) {
         throw new Error(
@@ -625,11 +635,12 @@ export function compileLynxRecipeCss(
             report,
             themes,
             refusedImageVars,
+            runtime,
         );
     }
 
     for (const [partName, styles] of Object.entries(recipe.parts)) {
-        emitPartStyles(component, partName, styles, '', rules, report, themes, refusedImageVars);
+        emitPartStyles(component, partName, styles, '', rules, report, themes, refusedImageVars, runtime);
     }
 
     // `composes` in every form — explicit parts, borrowed axis values (#91)
@@ -658,7 +669,7 @@ export function compileLynxRecipeCss(
             for (const [partName, styles] of Object.entries(parts)) {
                 // No `:not()` default twin: the runtime always stamps a
                 // concrete axis class, explicit or default.
-                emitPartStyles(component, partName, styles, compound, rules, report, themes, refusedImageVars);
+                emitPartStyles(component, partName, styles, compound, rules, report, themes, refusedImageVars, runtime);
             }
         }
     }
@@ -666,7 +677,7 @@ export function compileLynxRecipeCss(
     for (const [name, parts] of Object.entries(recipe.modifiers ?? {})) {
         const compound = `.${modClass(assertAxisToken('modifier', name, scope))}`;
         for (const [partName, styles] of Object.entries(parts)) {
-            emitPartStyles(component, partName, styles, compound, rules, report, themes, refusedImageVars);
+            emitPartStyles(component, partName, styles, compound, rules, report, themes, refusedImageVars, runtime);
         }
     }
 
@@ -681,7 +692,7 @@ export function compileLynxRecipeCss(
                 : `.${axisClass(axis, assertAxisToken('value', value, scope))}`)
             .join('');
         for (const [partName, styles] of Object.entries(compoundVariant.parts)) {
-            emitPartStyles(component, partName, styles, compound, rules, report, themes, refusedImageVars);
+            emitPartStyles(component, partName, styles, compound, rules, report, themes, refusedImageVars, runtime);
         }
     }
 
@@ -745,11 +756,11 @@ export function compileLynxRecipeCss(
             report.translated.push({ where, what: `logical sizing properties (${sized.count})`, detail: LOGICAL_SIZE_DETAIL });
         }
         const body = sized.css;
-        const runtime = runtimePropertyIn(body);
-        if (runtime) {
+        const found = runtimePropertyIn(body, runtime);
+        if (found) {
             throw new LynxRuntimePropertyError(
-                `[zero-kit] ${where}: references ${runtime}, a web-runtime-published property with no lynx equivalent — move the keyframes into the recipe's web target section`,
-                runtime,
+                `[zero-kit] ${where}: references ${found}, a web-runtime-published property with no lynx equivalent — move the keyframes into the recipe's web target section`,
+                found,
             );
         }
         if (CURRENT_COLOR.test(body)) {

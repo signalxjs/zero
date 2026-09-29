@@ -24,6 +24,21 @@ describe('defineAnatomy', () => {
         expect(() => JSON.stringify(json)).not.toThrow();
     });
 
+    it('emits runtimeProperties only when there are some, like models (#456)', () => {
+        // Absent, never empty: the manifest schema holds the key to
+        // `minItems: 1` (validated in zero-kit's schemas suite).
+        expect(a.toJSON()).not.toHaveProperty('runtimeProperties');
+        expect(defineAnatomy('demo', { root: { element: 'div' } }, { runtimeProperties: [] }).toJSON())
+            .not.toHaveProperty('runtimeProperties');
+        const declared = ['--demo-count'] as const;
+        const withRuntime = defineAnatomy('demo', { root: { element: 'div' } }, { runtimeProperties: declared });
+        expect(withRuntime.runtimeProperties).toEqual(['--demo-count']);
+        const json = withRuntime.toJSON();
+        expect(json.runtimeProperties).toEqual(['--demo-count']);
+        // A copy: the JSON is a snapshot, not a view onto the declaration.
+        expect(json.runtimeProperties).not.toBe(declared);
+    });
+
     describe('pseudo parts', () => {
         const withPseudo = defineAnatomy('demo', {
             popup: { element: 'dialog', states: ['open', 'closed'] },

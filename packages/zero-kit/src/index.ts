@@ -101,6 +101,10 @@ export {
 } from './targets/web/components-dts.js';
 export type { ComponentsEmitOptions } from './targets/web/components-dts.js';
 export { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
+// The lynx guard's matcher over a runtime-property set — build one from
+// `runtimePropertiesOf(manifest)` to refuse a fragment's declared names (#456).
+export { runtimePropertyMatcher } from './targets/lynx/capabilities.js';
+export type { RuntimePropertyMatcher } from './targets/lynx/capabilities.js';
 export { axisClaims, defineDesignSystem, compileDesignSystem, externalPackage, offeredFor, undeclaredAxes } from './design-system.js';
 
 export type {
@@ -270,6 +274,8 @@ export {
     VARIANT_AXES,
     RESERVED_AXES,
     RUNTIME_PROPERTIES,
+    BEHAVIOR_RUNTIME_PROPERTIES,
+    runtimePropertiesOf,
     POSITION_PROPERTIES,
     ARROW_PROPERTIES,
     MEDIUM_PROPERTIES,

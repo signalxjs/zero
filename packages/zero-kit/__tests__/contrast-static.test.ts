@@ -419,6 +419,20 @@ describe('contrast/unmeasured — never a silent pass', () => {
         expect(result.summary.info).toBe(1);
     });
 
+    it("reads a manifest-declared runtime property as runtime-property, not unresolved-var (#456)", () => {
+        // The matrix hands the cascade `runtimePropertiesOf(manifest)`, so a
+        // name a component declares (as a fragment's do) is known to be the
+        // runtime's to write.
+        const declaring = {
+            components: manifest.components.map((c) => (c.scope === 'kbd' ? { ...c, runtimeProperties: ['--kbd-ink'] } : c)),
+        };
+        const recipe: RecipeInput = { component: 'kbd', parts: { root: { base: { color: 'var(--kbd-ink)' } } } };
+        const reasons = (m: typeof manifest) => [...new Set(auditDesignSystem(fixture([recipe]), m, { rules: CONTRAST })
+            .contrast.themes[0]!.cells.filter((c) => c.scope === 'kbd').map((c) => c.reason))];
+        expect(reasons(declaring)).toEqual(['runtime-property']);
+        expect(reasons(manifest)).toEqual(['unresolved-var']);
+    });
+
     it('the chained cell budget is a ceiling, tripped rather than silently applied', () => {
         expect(() => auditDesignSystem(basicDS, manifest, { rules: CONTRAST, axisCellBudget: 10 }))
             .toThrow(/chained axis cells .* exceed the budget \(10\)/);

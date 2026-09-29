@@ -226,6 +226,15 @@ describe('what stops a reading', () => {
         expect(reasonOf(() => colorOf(a!, 'self', env))).toBe('runtime-property');
     });
 
+    it("a fragment-declared runtime property, once the env carries the build's set (#456)", () => {
+        const [a] = computeChain(chain(['a', {}]), css('[data-scope="x"][data-part="a"] { color: var(--acme-x-ink); }'), env);
+        // Without the set it is a name nothing defines…
+        expect(reasonOf(() => colorOf(a!, 'self', env))).toBe('unresolved-var');
+        // …with it, a value the runtime writes and no stylesheet can know.
+        const declared = { ...env, runtime: new Set(['--press-x', '--acme-x-ink']) };
+        expect(reasonOf(() => colorOf(a!, 'self', declared))).toBe('runtime-property');
+    });
+
     it('a value culori cannot evaluate', () => {
         const [a] = computeChain(chain(['a', {}]), css('[data-scope="x"][data-part="a"] { color: oklch(calc(1rem) 0 0); }'), env);
         expect(reasonOf(() => colorOf(a!, 'self', env))).toBe('unparseable-color');

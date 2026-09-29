@@ -25,6 +25,7 @@
  * claims.
  */
 import type { ManifestComponent } from '../../contract.js';
+import { runtimePropertiesOf } from '../../contract.js';
 import type { AuditContext } from '../context.js';
 import { styledScopes } from '../context.js';
 import type { CssRule } from '../css-rules.js';
@@ -336,7 +337,10 @@ export function buildContrastMatrix(ctx: AuditContext, options: ContrastOptions 
     }
     const indicators = indicatorCellsFor(components, wired);
 
-    const envs = themeEnvironments(ctx.ds).filter((env) => !options.themes || options.themes.includes(env.name));
+    const runtime = runtimePropertiesOf(ctx.manifest);
+    const envs = themeEnvironments(ctx.ds)
+        .filter((env) => !options.themes || options.themes.includes(env.name))
+        .map((env) => ({ ...env, runtime }));
     const rulesOf = (scope: string): readonly CssRule[] => ctx.cssRules.get(scope) ?? [];
 
     return {

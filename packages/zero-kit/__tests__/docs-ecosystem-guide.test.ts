@@ -71,5 +71,7 @@ describe('docs/building-your-own-component.md', () => {
         const stepper = merged.components.find((c) => c.scope === 'acme-stepper');
         expect(stepper, 'the guide’s fragment did not merge').toBeDefined();
         expect(stepper?.package).toBe('@acme/zero-stepper');
+        // §1's runtime property survives the merge under its own prefix (#456).
+        expect(stepper?.runtimeProperties).toEqual(['--acme-stepper-count']);
     });
 });

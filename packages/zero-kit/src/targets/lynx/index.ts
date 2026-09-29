@@ -16,7 +16,7 @@ export {
     placementClass,
     themeClass,
 } from './class-names.js';
-export type { LynxCapabilityReport, LynxFinding } from './capabilities.js';
+export type { LynxCapabilityReport, LynxFinding, RuntimePropertyMatcher } from './capabilities.js';
 export {
     INTERACTION_STATE_CLASSES,
     bakeColor,
@@ -33,6 +33,7 @@ export {
     LynxRuntimePropertyError,
     remToPx,
     runtimePropertyIn,
+    runtimePropertyMatcher,
 } from './capabilities.js';
 export { STRUCTURAL_FALLBACKS, compileLynxTokensCss, lynxRefusedImageTokens, lynxThemeColors } from './tokens-css.js';
 export type { LynxThemeColors } from './recipe-css.js';
