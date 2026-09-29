@@ -562,6 +562,40 @@ does not ship invisible parts: its own lynx build fails on the dangling-var
 check, which names the property. A pack that wants to survive that adopter
 too can still write `var(--space-md, 0.5rem)`.
 
+### 3.1c Type roles are a unit over the ramps
+
+A type scale like Material 3's names *roles* — `title-medium` is a size, a
+line height, a weight, a tracking and a family chosen together. The
+typography ramps (`sizes`, `leading`, `weights`, `tracking`, `fonts`) can
+hold those values under parallel keys, but nothing in that shape says they
+form one role, and nothing stops a recipe pairing `--text-title-medium` with
+`--leading-body-small` (#423). `system.typography.roles` states the unit:
+name → `{ size, leading, weight, tracking, font? }`.
+
+A role is a **declaration over the existing categories, not a category of
+its own**. `withTypeRoles` (`src/type-roles.ts`) folds each field into its
+ramp under the role's name before anything reads the ramps, so role
+`title-medium` emits exactly `--text-title-medium`, `--leading-title-medium`,
+`--weight-title-medium`, `--tracking-title-medium` (and `--font-title-medium`
+when it names a family) — the same properties, the same `--text-fixed-*`
+alias, and the same token-tier resolution as any ramp key. Emission (web and
+lynx), the token vocabulary, the register artifact's key unions, the
+contrast audit's environment and the override check all read the folded
+ramps, so none of them grew a role branch. Values answer to their
+category's grammar: a role's `leading` is unitless like every `--leading-*`.
+
+What the role adds is the unit, in three places. **Validation**: the base
+tier states all four required fields, a role name may not also be a key of a
+ramp it folds into (both would claim one property), and an override (a theme
+or `systemDark`) restates fields of *declared* roles only — or restates a
+role-emitted key through its ramp (`sizes['title-medium']`). **The DS
+manifest** records `tokens.typeRoles`: role → the custom property each field
+binds, so a generator styling "title-medium" sets all of them. **Recipe
+validation** warns when one declaration block reads two roles' tokens across
+`font-size` / `line-height` / `font-weight` / `letter-spacing` /
+`font-family`; a role beside a plain ramp step (`--text-md` over a role's
+weight) is a deliberate override and passes.
+
 ### 3.2 Build-time validation
 
 Two questions are asked at build time, by two different mechanisms.
@@ -1068,8 +1102,9 @@ the package's `dist/manifest.json`, governed by
 `$schema`, `manifestVersion` (`const 1` — consumers hard-check the number
 rather than sniffing keys), `zeroVersion` (the kit's own version; lockstep
 makes them the same train), `name`, `themes`, `tokens` (roles, sizes,
-variants, axes, modifiers, scopes, custom, breakpoints, system/systemDark,
-and `properties` — every custom property the compiled tokens.css actually
+variants, axes, modifiers, scopes, custom, breakpoints, `typeRoles` (each
+declared type role → the properties it binds, [§3.1c](#31c-type-roles-are-a-unit-over-the-ramps)),
+system/systemDark, and `properties` — every custom property the compiled tokens.css actually
 emits, read back off the stylesheet so it cannot drift), and `components` —
 a **record**, scope → the harvested `CompiledComponentAxes`
 ([§3.4](#34-harvest)) — plus, per scope, the recipe's declared public

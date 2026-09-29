@@ -31,10 +31,10 @@
         min-block-size: 3rem;
         box-sizing: border-box;
         padding-inline: var(--space-md);
-        font-family: var(--font-sans);
+        font-family: var(--font-title-small);
         font-size: var(--text-title-small);
         line-height: var(--leading-title-small);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-title-small);
         letter-spacing: var(--tracking-title-small);
         color: var(--color-surface-variant-content);
         cursor: pointer;

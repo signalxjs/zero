@@ -18,10 +18,10 @@
         justify-content: center;
         border-radius: var(--radius-full);
         padding-inline: var(--space-2xs);
-        font-family: var(--font-sans);
+        font-family: var(--font-label-small);
         font-size: var(--text-label-small);
         line-height: var(--leading-label-small);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-small);
         letter-spacing: var(--tracking-label-small);
         white-space: nowrap;
         text-decoration: none;

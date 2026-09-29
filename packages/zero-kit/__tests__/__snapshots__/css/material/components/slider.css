@@ -26,9 +26,9 @@
     }
 
     [data-scope="slider"][data-part="label"] {
-        font-family: var(--font-sans);
+        font-family: var(--font-label-large);
         font-size: var(--text-label-large);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-large);
         letter-spacing: var(--tracking-label-large);
     }
 
@@ -233,10 +233,10 @@
 
     [data-scope="slider"][data-part="mark"] {
         padding-block-start: calc(var(--slider-track-size) + var(--space-2xs));
-        font-family: var(--font-sans);
+        font-family: var(--font-label-medium);
         font-size: var(--text-label-medium);
         line-height: var(--leading-label-medium);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-medium);
         letter-spacing: var(--tracking-label-medium);
         white-space: nowrap;
         color: var(--color-surface-variant-content);
@@ -266,10 +266,10 @@
     }
 
     [data-scope="slider"][data-part="value-text"] {
-        font-family: var(--font-sans);
+        font-family: var(--font-label-medium);
         font-size: var(--text-label-medium);
         line-height: var(--leading-label-medium);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-label-medium);
         letter-spacing: var(--tracking-label-medium);
         color: var(--color-surface-variant-content);
     }

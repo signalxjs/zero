@@ -15,6 +15,23 @@
   `axis: true` with `content: false` is a validation error, because an axis
   value needs the `-content` ink a control paints its label with.
 
+- **`typography.roles`: composite type roles (#423, part of #413).**
+  `system.typography.roles` declares a role whole — name →
+  `{ size, leading, weight, tracking, font? }` — and each field folds into
+  its ramp under the role's name, so `title-medium` emits
+  `--text-title-medium`, `--leading-title-medium`, `--weight-title-medium`,
+  `--tracking-title-medium` and, with a family, `--font-title-medium`: the
+  same properties the parallel-keys spelling produced. The validator requires
+  the four core fields, holds each to its category's grammar (`leading` stays
+  unitless), rejects a role name that is also a key of a ramp it folds into,
+  and lets a theme or `systemDark` restate fields of declared roles only.
+  The DS and lynx manifests gain `tokens.typeRoles` (role → the property
+  each field binds; `{}` when none), and recipe validation warns when one
+  declaration block reads two roles' tokens. `tokens.schema.json` gains
+  `typography.roles`; `withTypeRoles`, `typeRoleProperties`,
+  `TYPE_ROLE_FIELDS` and the `TypeRoleDecl` type are exported. A kit older
+  than this rejects a manifest carrying `typeRoles` against its schema.
+
 ### Changed
 
 - **`Stack.Item grow` grows from a zero basis (#454).** `layoutRecipes()`'s

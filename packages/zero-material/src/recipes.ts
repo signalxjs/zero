@@ -68,24 +68,22 @@ const dp = (n: number): string => `${n / 16}rem`;
 type TypeRole = `${'display' | 'headline' | 'title' | 'body' | 'label'}-${'large' | 'medium' | 'small'}`;
 
 /**
- * An M3 type role as one declaration block. zero-kit has no composite
- * type-role token, so a role's size, line height and tracking are three
- * ramps under one key (`tokens.ts`), and its weight — regular or medium —
- * is recorded here (#423).
+ * An M3 type role as one declaration block — every field read from the one
+ * role `tokens.ts` declares under `typography.roles`.
  */
 const type = (role: TypeRole): CssProps => ({
-    fontFamily: 'var(--font-sans)',
+    fontFamily: `var(--font-${role})`,
     fontSize: `var(--text-${role})`,
     lineHeight: `var(--leading-${role})`,
-    fontWeight: /^(title-(medium|small)|label-)/.test(role) ? 'var(--weight-medium)' : 'var(--weight-normal)',
+    fontWeight: `var(--weight-${role})`,
     letterSpacing: `var(--tracking-${role})`,
 });
 
 /** M3's label-large, less its line height — the caller sets the box. */
 const label: CssProps = {
-    fontFamily: 'var(--font-sans)',
+    fontFamily: 'var(--font-label-large)',
     fontSize: 'var(--text-label-large)',
-    fontWeight: 'var(--weight-medium)',
+    fontWeight: 'var(--weight-label-large)',
     letterSpacing: 'var(--tracking-label-large)',
 };
 

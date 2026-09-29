@@ -891,6 +891,40 @@ an adopter that emits lynx and omits a category fails its own lynx build on
 the dangling-var check, which names the property. A pack that wants to survive
 that adopter too can still write `var(--space-md, 0.5rem)`.
 
+## Type roles
+
+A type scale that names roles — Material 3's `title-medium`, a brief's
+"caption" voice — declares each role whole under `system.typography.roles`
+(#423):
+
+```ts
+typography: {
+    fonts: { sans: 'Roboto, system-ui, sans-serif' },
+    roles: {
+        'title-medium': { size: '1rem', leading: 1.5, weight: 500, tracking: '0.009375rem', font: 'var(--font-sans)' },
+        'body-small': { size: '0.75rem', leading: 1.33333, weight: 400, tracking: '0.025rem' },
+    },
+}
+```
+
+Each field folds into its ramp under the role's name, so `title-medium`
+emits `--text-title-medium`, `--leading-title-medium`, `--weight-title-medium`,
+`--tracking-title-medium` and — because it names a family —
+`--font-title-medium`: the same properties the parallel-keys spelling
+produced, now declared as one unit. `size`, `leading`, `weight` and
+`tracking` are required; `font` is optional; each value follows its
+category's grammar, so `leading` stays a unitless multiplier. A role name
+may not also be a key of a ramp it folds into.
+
+The unit is visible downstream. The DS manifest records `tokens.typeRoles`
+(role → the property each field binds), and recipe validation warns when
+one declaration block reads two roles — `font-size` from `title-medium` with
+`line-height` from `body-small`. A role beside a plain ramp step passes. A
+theme restates only what differs:
+`system: { typography: { roles: { 'title-medium': { weight: 600 } } } }`.
+`withTypeRoles` (exported) is the fold itself, for tooling that reads the
+ramps.
+
 ## Ecosystem components
 
 An ecosystem component package is a peer of `@sigx/zero`: it builds its

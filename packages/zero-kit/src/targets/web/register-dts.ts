@@ -17,6 +17,7 @@
  * plain single-quoting is safe.
  */
 import { TOKEN_CATEGORIES, systemNodeAt } from '../../contract.js';
+import { withTypeRoles } from '../../type-roles.js';
 import type { CompiledComponentAxes, CompiledDesignSystem } from '../../design-system.js';
 // The "declared out of existence" predicate is shared with the coverage report,
 // so the two artifacts name the same axes by construction (see
@@ -28,7 +29,8 @@ const union = (values: readonly string[]): string =>
 
 /** The per-category token unions: recommended keys ∪ declared system/systemDark keys. */
 function tokenUnions(compiled: CompiledDesignSystem): Array<[string, string]> {
-    const tiers = [compiled.tokens.system, compiled.tokens.systemDark];
+    // Type roles fold into the ramps (#423): `--text-<role>` is a text key.
+    const tiers = [compiled.tokens.system, compiled.tokens.systemDark].map((tier) => withTypeRoles(tier));
     const entries: Array<[string, string]> = [];
     for (const category of TOKEN_CATEGORIES) {
         if (category.shape === 'scalar') continue; // keyless — nothing to union

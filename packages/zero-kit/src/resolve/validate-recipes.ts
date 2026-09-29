@@ -16,8 +16,12 @@ import { nearestOf } from './nearest.js';
 import type { CssProps, PartStyles, RecipeInput } from '../recipes.js';
 import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';
+import { TYPE_ROLE_FIELDS } from '../type-roles.js';
 
 const VAR_REF = /var\(\s*(--[A-Za-z0-9_-]+)\s*(,)?/g;
+
+/** The CSS properties a type role's fields set (`TYPE_ROLE_FIELDS`), plus the `font` shorthand. */
+const TYPE_PROPERTIES: ReadonlySet<string> = new Set([...TYPE_ROLE_FIELDS.map((f) => f.cssProperty), 'font']);
 const HEX = /#[0-9a-fA-F]{3,8}\b/g;
 const COLOR_FN = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/gi;
 /** A bare time, i.e. not `var(--duration-…)`. */
@@ -443,6 +447,12 @@ export function validateRecipes(
 
     const byScope = new Map(manifest.components.map((c) => [c.scope, c]));
 
+    /** A type role's bound custom property → that role (#423). */
+    const roleByProperty = new Map<string, string>();
+    for (const [role, properties] of Object.entries(vocabulary.typeRoles ?? {})) {
+        for (const prop of Object.values(properties)) roleByProperty.set(prop, role);
+    }
+
     /** component scope → the roles its `color` axis wires. Compared at the end. */
     const colorAxisByComponent = new Map<string, Set<string>>();
 
@@ -581,6 +591,33 @@ export function validateRecipes(
                     `${where}.${path}`,
                     `"${prop}" uses a literal duration — reference var(--duration-*) so reduced motion applies`,
                 );
+            }
+        }
+
+        // ── one type role per declaration block (#423) ──
+        // A declared type role is a unit: its size, leading, weight and
+        // tracking were chosen together. A block that sets `font-size` from
+        // one role and `line-height` from another has almost certainly
+        // mis-keyed one of them, and the page shows it only as text that
+        // looks slightly wrong.
+        if (roleByProperty.size > 0) {
+            for (const { path, props } of declarations(recipe)) {
+                const seen = new Map<string, string>(); // role → the property that read it
+                for (const [rawProp, raw] of Object.entries(props)) {
+                    const prop = kebabProp(rawProp);
+                    if (!TYPE_PROPERTIES.has(prop)) continue;
+                    for (const match of String(raw).matchAll(VAR_REF)) {
+                        const role = roleByProperty.get(match[1]!);
+                        if (role !== undefined && !seen.has(role)) seen.set(role, prop);
+                    }
+                }
+                if (seen.size > 1) {
+                    const read = [...seen].map(([role, prop]) => `${prop} from "${role}"`).join(', ');
+                    warn(
+                        `${where}.${path}`,
+                        `mixes type roles (${read}) — a type role's size, leading, weight and tracking are one unit; read them from one role`,
+                    );
+                }
             }
         }
 
