@@ -138,6 +138,13 @@ describe('Button', () => {
             <Button.Root axes={{ 'Not Kebab': 'x' }}>Save</Button.Root>,
             container,
         )).toThrow(/not a kebab-case identifier/);
+
+        // data-x-* is the domain-flag namespace (#457): an axis there would
+        // render an attribute a recipe keys as a presence flag.
+        expect(() => render(
+            <Button.Root axes={{ 'x-unread': 'yes' }}>Save</Button.Root>,
+            container,
+        )).toThrow(/domain-flag namespace/);
     });
 
     it('refuses an axis that already has a prop of its own', () => {

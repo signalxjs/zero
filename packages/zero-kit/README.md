@@ -1092,6 +1092,24 @@ acyclic part tree, and the naming rule on any `models` it declares (`default<Con
 `<concept>Change`, a named model's concept its name) — so the "no synonyms"
 rule binds on the ecosystem surface, not only on zero's own anatomies.
 
+**Domain flags** (#457) are the one flag family a fragment names itself. A
+part declares `domainFlags: ['unread']` and renders `data-x-unread=""` (the
+fixed `DOMAIN_FLAG_PREFIX`, `data-x-`); after the anatomy the flag is keyed
+`x-unread` (`domainFlagKey`), so a recipe writes
+`states: { 'x-unread': { fontWeight: … } }` or `'&[data-x-unread]'`, the web
+target compiles it to `[data-scope=…][data-part=…][data-x-unread]`, the lynx
+target to `.zx-<scope>__<part>.zx-f-x-unread`, coverage counts it with the
+flags and the contrast audit crosses it like one. `partFlagKeys(part)` is the
+one enumeration of a part's flag keys. The merge refuses a domain flag that
+is `[]` or repeats a name, is not kebab-case, is named like a shared flag
+(`selected` — "declare it in flags"), a state (`open`), a state synonym
+(`expanded` — "synonym of state `open`") or an interaction state (`hover`),
+sits on a pseudo or an absorbable part, or lacks
+`selectors['x-<name>'] = '[data-x-<name>]'`. `tokens.axes`,
+`tokens.scopes.*.axes` and an api `as:` rename may not use the `x-` prefix.
+A domain flag carries no accessibility meaning: the component still exposes
+the fact as text or ARIA.
+
 **Runtime properties** (#456). A component whose runtime writes CSS custom
 properties inline declares them — `runtimeProperties` on `defineAnatomy`,
 which `toJSON()` carries into the fragment's component — and a recipe may

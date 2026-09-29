@@ -25,7 +25,7 @@
  *   component lagging behind its siblings does.
  */
 import type { ManifestComponent, ManifestPart, ZeroManifest } from '../contract.js';
-import { DEFAULT_SOFT_MIX, contrastPairs } from '../contract.js';
+import { DEFAULT_SOFT_MIX, contrastPairs, partFlagKeys } from '../contract.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../design-system.js';
 import { axisClaims, offeredFor, undeclaredAxes } from '../design-system.js';
 import type { ScopeVocabulary } from '../tokens.js';
@@ -95,7 +95,7 @@ export interface PartReport {
     styled: boolean;
     /** Coverage of `ManifestPart.states` — the closed `data-state` vocabulary. */
     states: CoverageSplit;
-    /** Coverage of `ManifestPart.flags` — the presence-only flags. */
+    /** Coverage of `ManifestPart.flags` — the presence-only flags, domain flags (`x-<name>`) included. */
     flags: CoverageSplit;
 }
 
@@ -439,7 +439,9 @@ function partReport(
         // that as `coveredIndirectly`.
         styled: scan !== undefined,
         states: splitCoverage(part.states ?? [], part.selectors, scan, skipped),
-        flags: splitCoverage(part.flags ?? [], part.selectors, scan, skipped),
+        // Domain flags (#457) fold into flag coverage under their `x-<name>`
+        // key, which is how a recipe keys them and `selectors` resolves them.
+        flags: splitCoverage(partFlagKeys(part), part.selectors, scan, skipped),
     };
 }
 

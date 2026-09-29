@@ -15,8 +15,10 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
+    FRAGMENT_VERSION,
     buildReport,
     compileDesignSystem,
+    mergeManifests,
     compileRegisterDts,
     formatReport,
     validateDesignSystem,
@@ -27,7 +29,7 @@ import type {
     ManifestComponent,
     StyledComponentReport,
 } from '@sigx/zero-kit';
-import { anatomies } from '@sigx/zero/anatomy';
+import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
 import { auditDesignSystem, summarizeContrast } from '@sigx/zero-kit';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -351,6 +353,36 @@ describe('state and flag coverage', () => {
         expect(flags.covered).toEqual(['focus-visible']);
         expect(flags.coveredIndirectly).toEqual(['disabled', 'pressed']);
         expect(flags.uncovered).toEqual(['press-animating']);
+    });
+
+    it('counts a domain flag with the flags, under its x- key (#457)', () => {
+        const rowManifest = mergeManifests(manifest, {
+            version: FRAGMENT_VERSION,
+            package: '@acme/zero-row',
+            components: [defineAnatomy('acme-row', {
+                'root': { element: 'div', flags: ['selected'], domainFlags: ['unread', 'flagged'] },
+            }).toJSON() as ManifestComponent],
+        });
+        const ds: DesignSystemInput = {
+            ...(basicDS as DesignSystemInput),
+            recipes: [{
+                component: 'acme-row',
+                parts: {
+                    root: {
+                        states: { 'x-unread': { fontWeight: '600' } },
+                        selectors: { '&[data-x-flagged][data-selected]': { color: 'red' } },
+                    },
+                },
+            }],
+        };
+        const report = buildReport(compileDesignSystem(ds, rowManifest), ds, rowManifest);
+        const flags = styled(report, 'acme-row').parts['root']!.flags;
+        expect(flags.covered).toEqual(['selected', 'x-flagged', 'x-unread']);
+        expect(flags.uncovered).toEqual([]);
+
+        const bare = { ...ds, recipes: [{ component: 'acme-row', parts: { root: { base: { color: 'red' } } } }] };
+        const uncovered = styled(buildReport(compileDesignSystem(bare, rowManifest), bare, rowManifest), 'acme-row').parts['root']!.flags;
+        expect(uncovered.uncovered).toEqual(['selected', 'x-flagged', 'x-unread']);
     });
 
     it('round-trips `skipStates` as deliberately skipped, per part', () => {

@@ -64,6 +64,12 @@ describe('validateApi — vendor prop names', () => {
         expect(issues.map((i) => i.message).join()).toContain('part of the anatomy contract');
     });
 
+    it('rejects an `as` inside the domain-flag namespace (#457)', () => {
+        const issues = errors({ variant: { as: 'x-kind' } });
+        expect(issues.map((i) => i.message).join()).toContain('inside the domain-flag namespace');
+        expect(errors({ variant: { as: 'xKind' } }).map((i) => i.message).join()).not.toContain('domain-flag');
+    });
+
     it('rejects an `as` shadowing a structural prop', () => {
         const issues = errors({ variant: { as: 'asChild' } });
         expect(issues.map((i) => i.message).join()).toContain('structural prop');

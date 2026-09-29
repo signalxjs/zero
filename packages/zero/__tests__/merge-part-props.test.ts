@@ -43,8 +43,17 @@ describe('mergePartProps', () => {
             'data-pressed': '',
             'data-visually-hidden': '',
             'data-autosize': '',
+            // A domain flag (#457) is runtime anatomy too: the host writes its own.
+            'data-x-unread': '',
         }), own({ 'data-state': 'idle' }));
         expect(out).toEqual(own({ 'data-state': 'idle' }));
+    });
+
+    it('row 2: the host keeps its own domain flag, the lender\'s never lands (#457)', () => {
+        const out = mergePartProps(bag({ 'data-x-unread': '', 'data-x-optional': '' }), own({ 'data-x-optional': undefined }));
+        expect(out['data-x-unread']).toBeUndefined();
+        expect('data-x-unread' in out).toBe(false);
+        expect(out['data-x-optional']).toBeUndefined();
     });
 
     it.each([

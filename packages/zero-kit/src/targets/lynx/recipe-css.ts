@@ -51,7 +51,7 @@
  *   See `emitChecked`.
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
-import { carrierPart, parseLayoutAttr } from '../../contract.js';
+import { carrierPart, parseLayoutAttr, partFlagKeys } from '../../contract.js';
 import type { CssProps, PartStyles, RecipeInput } from '../../recipes.js';
 import { assertAxisToken, assertKeyframesName, declBlock, findPart, kebab } from '../shared.js';
 import type { ChainVocabulary } from './calc-chains.js';
@@ -86,14 +86,16 @@ function stateClassFor(component: ManifestComponent, part: ManifestPart, state: 
     // part with a machine state named `active` styles `.zx-s-active`, not the
     // pressed flag.
     if (part.states?.includes(state)) return `.${stateClass(state)}`;
-    if (part.flags?.includes(state)) return `.${flagClass(state)}`;
+    // A domain flag (#457) is keyed `x-<name>`, and its class is the flag
+    // class of that key: `x-unread` → `.zx-f-x-unread`.
+    if (partFlagKeys(part).includes(state)) return `.${flagClass(state)}`;
     if (state in INTERACTION_STATE_CLASSES) {
         const cls = INTERACTION_STATE_CLASSES[state];
         return cls ? `.${cls}` : null;
     }
     const known = [
         ...(part.states ?? []),
-        ...(part.flags ?? []),
+        ...partFlagKeys(part),
         ...Object.keys(INTERACTION_STATE_CLASSES),
     ].join(', ');
     throw new Error(
@@ -175,7 +177,9 @@ function translateAttrCompound(
         const name = m[1]!;
         const value = m[2];
         if (value === undefined) {
-            if (!part.flags?.includes(name)) {
+            // `[data-x-unread]` reads as the name `x-unread` — a domain
+            // flag's key (#457) — so it translates like a shared flag.
+            if (!partFlagKeys(part).includes(name)) {
                 return { drop: `the "${part.name}" part declares no "${name}" flag, so the runtime never stamps it — dropped` };
             }
             flags.add(name);

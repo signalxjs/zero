@@ -54,6 +54,9 @@ export {
     STATE_NAMES,
     STATE_SYNONYMS,
     PLACEMENT_VOCABULARY,
+    DOMAIN_FLAG_PREFIX,
+    domainFlagKey,
+    domainFlagAttrs,
     dataAttr,
     stateAttr,
 } from './data-attrs.js';

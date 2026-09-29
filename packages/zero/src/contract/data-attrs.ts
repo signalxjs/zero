@@ -40,10 +40,19 @@
  *   module because every component imports it, and a table only the layout
  *   tier reads has no business on that path. A part declares which ones it
  *   may carry as `PartSpec.layout`, exactly as it declares `placements`.
+ * - Domain flags render under the `data-x-` prefix (`data-x-unread=""`,
+ *   #457): presence-only facts an ECOSYSTEM scope declares per part as
+ *   `PartSpec.domainFlags` — a mail row's `unread`, a stepper item's
+ *   `optional`. The shared flag vocabulary below stays closed; the namespace
+ *   is what lets a component say a fact of its own domain without claiming a
+ *   shared word. A domain flag is a styling and tooling fact the scope owns:
+ *   it carries no accessibility meaning, so the component still exposes the
+ *   fact as text or ARIA. zero's own anatomies never declare one.
  *
  * The split is machine-checkable: a part has at most one `data-state` value
  * from a closed set, plus any subset of its declared flags.
  */
+import { TOKEN_KEY_PATTERN } from './tokens.js';
 
 /**
  * The shared boolean-flag vocabulary. Components never invent synonyms —
@@ -87,6 +96,48 @@ export const FLAG_VOCABULARY = [
 ] as const;
 
 export type FlagName = typeof FLAG_VOCABULARY[number];
+
+/**
+ * The namespace fragment-declared domain flags render into (#457):
+ * `domainFlags: ['unread']` → `data-x-unread=""`. A fixed namespace, like
+ * `data-mod-` and `data-l-`, so it is reserved once and can never collide
+ * with a shared flag, a state or a custom axis. The kit keeps an identical
+ * copy; `contract-parity.test.ts` holds the two honest.
+ */
+export const DOMAIN_FLAG_PREFIX = 'data-x-';
+
+/**
+ * The key a domain flag takes everywhere after the anatomy — in `selectors`,
+ * a recipe's `states`, a contrast cell and a lynx flag class:
+ * `unread` → `x-unread`. The prefix keeps it clear of every state, shared
+ * flag and interaction state (`hover`, `focus`, …).
+ */
+export const domainFlagKey = <N extends string>(name: N): `x-${N}` => `x-${name}`;
+
+/**
+ * Presence-only domain-flag attributes, spread-friendly:
+ * `domainFlagAttrs({ unread: !read })` → `{ 'data-x-unread': '' | undefined }`
+ * — an `undefined` value removes the attribute, never `="false"`.
+ *
+ * Throws on a non-kebab name (`variantAttrs`' reason: the name comes from
+ * component code, and a silently malformed attribute is the failure to
+ * avoid). It does NOT check the name against the anatomy — `dataAttr` does
+ * not either; `expectAnatomy` is the oracle for that.
+ */
+export function domainFlagAttrs<const F extends Record<string, unknown>>(
+    flags: F,
+): { [K in keyof F & string as `data-x-${K}`]: '' | undefined } {
+    const attrs: Record<string, '' | undefined> = {};
+    for (const name of Object.keys(flags)) {
+        if (!TOKEN_KEY_PATTERN.test(name)) {
+            throw new Error(
+                `[zero] domainFlagAttrs: "${name}" is not a kebab-case identifier — it becomes the attribute name ${DOMAIN_FLAG_PREFIX}${name}`,
+            );
+        }
+        attrs[`${DOMAIN_FLAG_PREFIX}${name}`] = flags[name] ? '' : undefined;
+    }
+    return attrs as { [K in keyof F & string as `data-x-${K}`]: '' | undefined };
+}
 
 /**
  * The governed `data-state` vocabulary, grouped by family. Flags have been a

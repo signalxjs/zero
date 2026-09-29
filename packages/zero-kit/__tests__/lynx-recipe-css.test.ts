@@ -4,7 +4,7 @@
  * whole compiled recipes — flat compounds only, nothing lynx cannot parse.
  */
 import { describe, expect, it } from 'vitest';
-import { anatomies } from '@sigx/zero/anatomy';
+import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
 import type { ManifestComponent } from '@sigx/zero-kit';
 import { fitRecipesToVocabulary, mergeManifests } from '@sigx/zero-kit';
 import { fragment as stepperFragment, recipes as stepperRecipes } from '@sigx/zero-ext-example/fragment';
@@ -170,6 +170,30 @@ describe('compileLynxRecipeCss', () => {
         expect(dropped).toContain('selectors["&[data-open]"]');
         expect(dropped).toContain('selectors["&[data-pressed]:not([data-selected])"]');
         expect(dropped).toContain('selectors["&:not([data-disabled])"]');
+        expectFlatCompounds(css);
+    });
+
+    it('projects a domain flag onto its flag class, keyed and as an attribute compound (#457)', () => {
+        const row = defineAnatomy('acme-row', {
+            'root': { element: 'div', flags: ['selected'], domainFlags: ['unread'] },
+        }).toJSON() as ManifestComponent;
+        const { css, report } = compile({
+            component: 'acme-row',
+            parts: {
+                root: {
+                    states: { 'x-unread': { fontWeight: '600' } },
+                    selectors: {
+                        '&[data-x-unread][data-selected]': { color: 'blue' },
+                        '&[data-x-nope]': { color: 'red' },
+                    },
+                },
+            },
+        }, row);
+        expect(css).toContain('.zx-acme-row__root.zx-f-x-unread {');
+        expect(css).toContain('.zx-acme-row__root.zx-f-x-unread.zx-f-selected {');
+        expect(report.dropped.map((f) => f.what)).toContain('selectors["&[data-x-nope]"]');
+        expect(() => compile({ component: 'acme-row', parts: { root: { states: { unread: { color: 'red' } } } } }, row))
+            .toThrow(/unknown state "unread" \(known: selected, x-unread,/);
         expectFlatCompounds(css);
     });
 

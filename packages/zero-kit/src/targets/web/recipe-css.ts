@@ -5,6 +5,9 @@
  * State names resolve through the anatomy manifest:
  * - machine states → `[data-state="open"]`
  * - boolean flags → `[data-disabled]`
+ * - domain flags (#457), keyed `x-<name>` → `[data-x-unread]` — no logic
+ *   of their own: the key resolves through the part's `selectors` like any
+ *   flag, and an undeclared one is the same hard error
  * - interaction states → real pseudo-classes (`:hover:not([data-disabled])`)
  *
  * Unknown parts or states are hard errors — the manifest is the contract,

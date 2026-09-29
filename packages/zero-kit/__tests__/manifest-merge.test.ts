@@ -329,6 +329,59 @@ describe('mergeManifests', () => {
         expect(bad({})).not.toThrow();
     });
 
+    // ── Domain flags (#457): the scope's own presence-only facts ──
+    const rowAnatomy = (domainFlags: readonly string[]) => defineAnatomy('acme-row', {
+        'root': { element: 'div', flags: ['selected'], domainFlags },
+        'label': { element: 'span', parent: 'root' },
+    });
+    const rowFragment = (component: ManifestComponent): ManifestFragment => ({
+        version: 1,
+        package: '@acme/zero-row',
+        components: [component],
+    });
+
+    it('accepts a part declaring domainFlags, and carries them and their x- selectors through', () => {
+        const merged = mergeManifests(baseManifest(), rowFragment(rowAnatomy(['unread', 'has-attachment']).toJSON() as ManifestComponent));
+        const root = merged.components.find((c) => c.scope === 'acme-row')!.parts.find((p) => p.name === 'root')!;
+        expect(root.domainFlags).toEqual(['unread', 'has-attachment']);
+        expect(root.selectors['x-unread']).toBe('[data-x-unread]');
+        expect(root.selectors['x-has-attachment']).toBe('[data-x-has-attachment]');
+    });
+
+    it('refuses a domain flag the shared vocabularies already give a meaning, with a hint', () => {
+        const merge = (name: string) => () => mergeManifests(baseManifest(), rowFragment(rowAnatomy([name]).toJSON() as ManifestComponent));
+        expect(merge('selected')).toThrow(/"selected", which is a shared flag — declare it in "flags"/);
+        expect(merge('open')).toThrow(/"open", which is a governed state/);
+        expect(merge('expanded')).toThrow(/"expanded", which is a synonym of state "open"/);
+        expect(merge('hover')).toThrow(/"hover", which is an interaction state/);
+        expect(merge('Unread')).toThrow(/not a kebab-case identifier/);
+    });
+
+    it('refuses a malformed domainFlags declaration', () => {
+        const withRoot = (root: object) => () => mergeManifests(baseManifest(), withParts([
+            { name: 'root', selectors: { 'x-unread': '[data-x-unread]' }, ...root },
+        ]));
+        expect(withRoot({ domainFlags: [] })).toThrow(/"domainFlags" that is not a non-empty array/);
+        expect(withRoot({ domainFlags: ['unread', 'unread'] })).toThrow(/lists a name in "domainFlags" twice/);
+        expect(withRoot({ domainFlags: ['unread'] })).not.toThrow();
+        // The selector is what the recipe path resolves: a hand-written JSON
+        // fragment that forgets or misspells it fails by name.
+        expect(withRoot({ domainFlags: ['unread'], selectors: {} })).toThrow(/selectors\["x-unread"\] is missing — expected "\[data-x-unread\]"/);
+        expect(withRoot({ domainFlags: ['unread'], selectors: { 'x-unread': '[data-unread]' } })).toThrow(/selectors\["x-unread"\] is "\[data-unread\]"/);
+    });
+
+    it('refuses domainFlags on a part that renders no element of its own', () => {
+        const flagged = { domainFlags: ['unread'], selectors: { 'x-unread': '[data-x-unread]' } };
+        expect(() => mergeManifests(baseManifest(), withParts([
+            { name: 'root' },
+            { name: 'glow', pseudo: { of: 'root', selector: '::after' }, ...flagged },
+        ]))).toThrow(/pseudo part — it renders no element to carry a domain flag/);
+        expect(() => mergeManifests(baseManifest(), withParts([
+            { name: 'root' },
+            { name: 'trigger', element: 'button', asChild: true, absorbable: true, ...flagged },
+        ]))).toThrow(/absorbable and declares "domainFlags"/);
+    });
+
     // ── Runtime properties (#456): a fragment's own, under its own prefix ──
     const withRuntime = (scope: string, runtimeProperties: unknown, pkg = '@acme/zero-stepper'): ManifestFragment => ({
         version: 1,

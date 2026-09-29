@@ -19,7 +19,7 @@ const {
     RECOMMENDED_ROLE_LIST, BASE_SURFACE_TOKEN_LIST,
     TOKEN_CATEGORIES, SIZE_SCALE_LIST, FLAG_VOCABULARY, VARIANT_AXES,
     STATE_VOCABULARY, STATE_SYNONYMS, PLACEMENT_VOCABULARY,
-    LAYOUT_ATTR_PREFIX, LAYOUT_VOCABULARY,
+    LAYOUT_ATTR_PREFIX, LAYOUT_VOCABULARY, DOMAIN_FLAG_PREFIX,
 } = await import(distContract);
 
 const manifest = {
@@ -37,6 +37,10 @@ const manifest = {
             Object.entries(STATE_VOCABULARY).map(([family, states]) => [family, [...states]]),
         ),
         stateSynonyms: { ...STATE_SYNONYMS },
+        // The namespace an ecosystem part's declared `domainFlags` render
+        // into (#457): `unread` → `data-x-unread=""`, keyed `x-unread` in
+        // `selectors` and recipes. zero's own parts never declare one.
+        domainFlagPrefix: DOMAIN_FLAG_PREFIX,
         // The closed data-placement vocabulary; each part declares its subset
         // as `placements`.
         placementVocabulary: [...PLACEMENT_VOCABULARY],

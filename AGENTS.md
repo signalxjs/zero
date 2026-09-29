@@ -694,6 +694,14 @@ reopen the PR (or push an empty commit to it) to start CI.
   Shared flag vocabulary: `data-disabled`, `data-highlighted`, `data-selected`,
   `data-invalid`, `data-required`, `data-readonly`, `data-placeholder`,
   `data-focus-visible`, `data-pressed`. Never invent synonyms.
+- Domain flags (#457, ecosystem scopes only — zero's own anatomies never
+  declare one): a part lists `domainFlags: ['unread']` and renders
+  `data-x-unread=""` (`domainFlagAttrs`). The `data-x-` namespace is fixed;
+  after the anatomy the key is `x-<name>` (selectors, recipe `states`,
+  contrast cells, lynx `zx-f-x-<name>`). `expectAnatomy` and
+  `mergeManifests` check it, and a name is never a shared flag, state,
+  state synonym or interaction state. No accessibility meaning: the
+  component still exposes the fact as text or ARIA.
 - `data-placement` is declared contract data, not a free attribute: a part
   that can carry it lists its subset of `PLACEMENT_VOCABULARY` as
   `placements` in its anatomy (the anchored-position popups, toast's

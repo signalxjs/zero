@@ -73,6 +73,10 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // rules that can never match — silently, since a presence-only selector
     // has nothing to compare against.
     MOD_ATTR_PREFIX: [zero.MOD_ATTR_PREFIX, kit.MOD_ATTR_PREFIX],
+    // The domain-flag namespace (#457). The runtime renders `data-x-<name>`
+    // and the anatomy writes `selectors['x-<name>']`, which the kit resolves;
+    // a drift would compile rules for attributes nothing ever renders.
+    DOMAIN_FLAG_PREFIX: [zero.DOMAIN_FLAG_PREFIX, kit.DOMAIN_FLAG_PREFIX],
     // The layout family. The prefix is load-bearing on both sides — it is
     // what keeps seventeen ordinary words out of RESERVED_AXES — and the
     // vocabulary itself must not drift, because a design system's compiled
@@ -105,6 +109,7 @@ const KNOWN_UNSHARED: Record<string, string> = {
     layoutAttrSpec: 'function — compared by behavior, not by value',
     parseLayoutAttr: 'function — compared by behavior, not by value',
     isLayoutValue: 'function — compared by behavior, not by value',
+    domainFlagKey: 'function — compared by behavior, not by value',
 };
 
 describe('kit ↔ zero contract parity', () => {
@@ -112,6 +117,15 @@ describe('kit ↔ zero contract parity', () => {
     it.each(Object.keys(SHARED))('%s is identical in both contract copies', (name) => {
         const [fromZero, fromKit] = SHARED[name]!;
         expect(fromKit).toEqual(fromZero);
+    });
+
+    it('domainFlagKey agrees, and the key is the prefix tail', () => {
+        for (const name of ['unread', 'optional', 'has-attachment', 'x']) {
+            expect(kit.domainFlagKey(name)).toBe(zero.domainFlagKey(name));
+            // `data-${key}` IS the rendered attribute: the web compiler's
+            // selectors and the lynx flag class both lean on it.
+            expect(`data-${kit.domainFlagKey(name)}`).toBe(`${zero.DOMAIN_FLAG_PREFIX}${name}`);
+        }
     });
 
     it('the layout attribute parse agrees on every name both copies can render', () => {

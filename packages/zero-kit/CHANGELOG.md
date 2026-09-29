@@ -4,6 +4,25 @@
 
 ### Added
 
+- **Domain flags for ecosystem fragments (#457).** A fragment part may
+  declare `domainFlags: ['unread']`, rendered as `data-x-unread=""` and
+  keyed `x-unread` everywhere after the anatomy. `mergeManifests` validates
+  the declaration: a non-empty array without duplicates, kebab names, none a
+  shared flag, a governed state, a state synonym (with the member as the
+  hint) or an interaction state, not on a pseudo or an absorbable part, and
+  `selectors['x-<name>'] === '[data-x-<name>]'` for each. New exports
+  `DOMAIN_FLAG_PREFIX`, `domainFlagKey` (parity-tested against
+  `@sigx/zero`) and `partFlagKeys(part)`, which every flag consumer now
+  reads: recipe validation (`states: { 'x-unread': … }` compiles to
+  `[data-x-unread]`), the lynx target (`.zx-f-x-unread`, and
+  `&[data-x-unread]` translates), coverage in the report and score, and
+  the contrast cells. `manifest.schema.json` accepts `part.domainFlags` and
+  requires `attributeSpec.domainFlagPrefix` (`"data-x-"`);
+  `fragment.schema.json` takes the key through the part definition.
+  `FRAGMENT_VERSION` stays 1, so, as with `carries`, `absorbable`, `models`
+  and `runtimeProperties`, an older kit rejects a fragment that declares
+  `domainFlags` through the schema rather than by name.
+
 - **`system.custom`, design-system-level custom token values (#424, part
   of #413).** A token declared in `tokens.custom` can take its value once
   in `system.custom`. It is emitted under `:root` (on lynx, resolved into
@@ -71,6 +90,11 @@
   that does not reach `floors.content` on its own tint.
 
 ### Changed
+
+- **Axis names starting `x-` are refused (#457).** `tokens.axes`,
+  `tokens.scopes.*.axes` and an api `as:` rename in the `x-` prefix would
+  render inside the `data-x-` domain-flag namespace, which zero's runtime
+  refuses.
 
 - **The static contrast matrix answers `:has()` from the probe chain (#469,
   part of #413).** A probe is a closed world: below a node there is exactly

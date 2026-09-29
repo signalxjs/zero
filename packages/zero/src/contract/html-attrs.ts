@@ -12,7 +12,7 @@
  * lib.dom-free, like `variant-attrs.ts`: the type and the runtime half name
  * no DOM shape.
  */
-import { FLAG_VOCABULARY } from './data-attrs.js';
+import { DOMAIN_FLAG_PREFIX, FLAG_VOCABULARY } from './data-attrs.js';
 import { MOD_ATTR_PREFIX, VARIANT_AXES } from './variant-attrs.js';
 
 /**
@@ -32,8 +32,9 @@ const LAYOUT_PREFIX = 'data-l-';
  * on any element of its own. A design system selects on every one of them, so
  * an app writing `data-state="open"` from outside would make the skin's
  * `[data-state="open"]` rules match something the component never said.
- * The `data-mod-` and `data-l-` namespaces are owned too (by `mods` and the
- * layout props); those are prefixes, checked separately.
+ * The `data-mod-`, `data-l-` and `data-x-` namespaces are owned too (by
+ * `mods`, the layout props and a part's declared domain flags, #457); those
+ * are prefixes, checked separately.
  */
 export const RESERVED_DATA_ATTRS: ReadonlySet<string> = new Set([
     'data-scope',
@@ -71,7 +72,8 @@ type ReservedDataAttr =
  * - `aria-*` — any; the part's own ARIA wins where it sets the same name
  *   (a Tab's `aria-selected` is the component's, not the app's).
  * - `data-*` — any the contract does not own: `data-row-id`, `data-testid`.
- *   A reserved name (`data-state`, `data-color`, `data-mod-*`, …) throws in
+ *   A reserved name (`data-state`, `data-color`, `data-mod-*`, `data-x-*`,
+ *   …) throws in
  *   {@link htmlAttrs}, and the spelled-out ones are compile errors too.
  * - `id`, `title`, `role` — the global attributes an app reaches for daily.
  *
@@ -82,8 +84,8 @@ type ReservedDataAttr =
  * `` `data-${string}` `` pattern member is ignored in JSX, and worse, it
  * absorbs the literal reserved names out of `keyof` so sigx's JSX
  * signature (a `Pick` over the props) drops them. So the type spells out
- * only the names it can enforce; the prefixes (`data-mod-*`, `data-l-*`)
- * answer to the runtime guard.
+ * only the names it can enforce; the prefixes (`data-mod-*`, `data-l-*`,
+ * `data-x-*`) answer to the runtime guard.
  */
 export type WithHtmlAttrs =
     & { id?: string; title?: string; role?: string }
@@ -96,7 +98,10 @@ const isForwarded = (key: string): boolean =>
 const isReserved = (key: string): boolean =>
     RESERVED_DATA_ATTRS.has(key)
     || key.startsWith(MOD_ATTR_PREFIX)
-    || key.startsWith(LAYOUT_PREFIX);
+    || key.startsWith(LAYOUT_PREFIX)
+    // A domain flag is the component's own fact (#457): an app forging
+    // `data-x-unread` would make the skin paint a state the part never said.
+    || key.startsWith(DOMAIN_FLAG_PREFIX);
 
 /**
  * Pick the forwardable attributes out of a part's props.

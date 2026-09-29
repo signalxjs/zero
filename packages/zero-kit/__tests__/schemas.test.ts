@@ -31,6 +31,7 @@ import {
     PLACEMENT_VOCABULARY,
     LAYOUT_ATTR_PREFIX,
     LAYOUT_VOCABULARY,
+    DOMAIN_FLAG_PREFIX,
 } from '@sigx/zero/contract';
 import { AUDIT_RULES, auditDesignSystem, buildAuditArtifact, buildDsManifest, buildReport, compileDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
@@ -109,6 +110,7 @@ const manifest = {
         ),
         stateSynonyms: { ...STATE_SYNONYMS },
         placementVocabulary: [...PLACEMENT_VOCABULARY],
+        domainFlagPrefix: DOMAIN_FLAG_PREFIX,
         layoutPrefix: LAYOUT_ATTR_PREFIX,
         layoutVocabulary: Object.fromEntries(
             Object.entries(LAYOUT_VOCABULARY).map(([attr, spec]) => [
@@ -192,6 +194,28 @@ describe('manifest.schema.json', () => {
         const empty = asJson(manifest) as typeof manifest;
         (empty.components.find((c) => c.scope === 'badge') as { models?: unknown[] }).models = [];
         expect(validateManifest(empty)).toBe(false);
+    });
+
+    it('names the domain-flag namespace, and holds a part\'s domainFlags to its shape (#457)', () => {
+        expect(manifest.attributeSpec.domainFlagPrefix).toBe('data-x-');
+        const wrongPrefix = asJson(manifest) as typeof manifest;
+        (wrongPrefix.attributeSpec as { domainFlagPrefix: string }).domainFlagPrefix = 'data-d-';
+        expect(validateManifest(wrongPrefix)).toBe(false);
+        const noPrefix = asJson(manifest) as typeof manifest;
+        delete (noPrefix.attributeSpec as { domainFlagPrefix?: string }).domainFlagPrefix;
+        expect(validateManifest(noPrefix)).toBe(false);
+
+        const withFlags = (domainFlags: unknown): unknown => {
+            const m = asJson(manifest) as typeof manifest;
+            const part = m.components[0]!.parts[0] as { domainFlags?: unknown; selectors: Record<string, string> };
+            part.domainFlags = domainFlags;
+            part.selectors['x-unread'] = '[data-x-unread]';
+            return m;
+        };
+        expectValid(validateManifest, withFlags(['unread']), 'a part with domainFlags');
+        expect(validateManifest(withFlags([]))).toBe(false);
+        expect(validateManifest(withFlags(['unread', 'unread']))).toBe(false);
+        expect(validateManifest(withFlags(['Unread']))).toBe(false);
     });
 
     it('carries runtimeProperties on a component, and rejects an empty, duplicated or ungrammatical list (#456)', () => {

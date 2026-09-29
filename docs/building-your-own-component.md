@@ -52,6 +52,15 @@ Rules that make it a *zero* anatomy:
   `loading|running|paused|denied|cancelled|complete|error` rather than
   borrowing `active`/`closed`. Boolean flags come from zero's shared
   `FLAG_VOCABULARY` (never invent synonyms) and render presence-only.
+- A fact of your own domain that zero has no word for — a row is unread, a
+  step is optional — is a **domain flag**: `domainFlags: ['optional']` on
+  the part, rendered as `data-x-optional=""` with
+  `{...domainFlagAttrs({ optional: props.optional })}`, and keyed
+  `'x-optional'` in your recipe pack (`states: { 'x-optional': … }`). Never
+  a shared flag, a state or a synonym of one (the merge refuses those, with
+  a hint), never on a pseudo or absorbable part. It carries no
+  accessibility meaning: say the fact in text or ARIA as well (a visually
+  hidden ", optional", an `aria-label` prefix).
 - A part the runtime hides with `hidden` in some state declares `hiddenIn`.
 - A part whose job is paint rather than text — a check, a dot, a needle —
   declares `paint` (`true`, or `{ glyph?, only?, host? }`), and the contrast

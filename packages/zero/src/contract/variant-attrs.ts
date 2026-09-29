@@ -7,7 +7,7 @@
  */
 import type { ColorValue, SizeScale } from './tokens.js';
 import { TOKEN_KEY_PATTERN as AXIS_NAME_PATTERN } from './tokens.js';
-import { FLAG_VOCABULARY } from './data-attrs.js';
+import { DOMAIN_FLAG_PREFIX, FLAG_VOCABULARY } from './data-attrs.js';
 
 /**
  * Axis names `axes` may not use, because the anatomy contract already gives
@@ -84,6 +84,13 @@ export function variantAttrs(props: {
         if (RESERVED_AXES.has(axis)) {
             throw new Error(
                 `[zero] axes: "${axis}" is part of the anatomy contract — data-${axis} already means something and cannot be overwritten`,
+            );
+        }
+        if (`data-${axis}`.startsWith(DOMAIN_FLAG_PREFIX)) {
+            // data-x-* is the domain-flag namespace (#457): an axis there
+            // would render an attribute a recipe keys as a presence flag.
+            throw new Error(
+                `[zero] axes: "${axis}" is inside the domain-flag namespace — ${DOMAIN_FLAG_PREFIX}* is reserved for a part's declared domainFlags`,
             );
         }
         if (!AXIS_NAME_PATTERN.test(axis)) {

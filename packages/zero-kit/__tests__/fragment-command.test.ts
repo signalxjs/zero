@@ -79,6 +79,25 @@ describe('checkFragment', () => {
         });
     });
 
+    it('passes a fragment whose part declares a domain flag, and a pack that keys it (#457)', () => {
+        const row = defineAnatomy('acme-stepper', {
+            'root': { element: 'div' },
+            'item': { element: 'button', parent: 'root', states: ['active', 'inactive'], domainFlags: ['optional'] },
+        });
+        const keyed: RecipeInput = {
+            ...recipe,
+            parts: {
+                ...recipe.parts,
+                item: { ...recipe.parts.item, states: { ...recipe.parts.item!.states, 'x-optional': { borderStyle: 'dashed' } } },
+            },
+        };
+        const result = checkFragment(input({
+            module: { fragment: fragment({ components: [row.toJSON()] as ManifestComponent[] }), recipes: [keyed] },
+        }));
+        expect(result.findings).toEqual([]);
+        expect((result.json as { components: ManifestComponent[] }).components[0]!.parts[1]!.domainFlags).toEqual(['optional']);
+    });
+
     it('catches a version literal that has fallen behind the kit', () => {
         // The literal is hand-written on purpose — importing FRAGMENT_VERSION
         // would drag the kit into the data entry's runtime graph. This check
