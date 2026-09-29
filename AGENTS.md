@@ -193,7 +193,11 @@ that all stay tabbable, panels are regions named by their triggers, and a
 close PLAYS — sampled per frame, the panel shrinks inside a still-open
 `<details>` and never snaps back before it shuts, for Collapsible too), slider drag under implicit pointer capture (and, since
 #170, a vertical slider: bottom-to-top drags on both projections, and a
-rail every skin stands upright, measured in boxes), tree-view
+rail every skin stands upright, measured in boxes; and since #490, per
+skin on chromium, an active stop painted above the filled span in its own
+ink, and the thumb-value bubble hidden at rest, shown while its thumb is
+dragged or keyboard-focused, centred over it — and upright, beside it on
+the inline-start side in both directions), tree-view
 keyboard (expand/descend/collapse/climb, typeahead against the accessible
 text, and since #287 `multiple`: the APG multi-select keys and the
 modifier clicks, whose Shift+click must select rows rather than text), the steps wizard (#296: arrows rove onto

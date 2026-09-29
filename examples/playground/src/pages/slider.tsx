@@ -3,7 +3,9 @@ import { Field, Progress, Slider } from '@sigx/zero';
 import type { PageEntry } from './registry';
 
 const SliderDemos = component(() => {
-    const state = signal({ volume: 40, price: [120, 350], level: 30, gain: 60, window: [20, 60], committed: '—' });
+    const state = signal({ volume: 40, price: [120, 350], level: 30, gain: 60, window: [20, 60], committed: '—', grid: 40, band: [30, 70] });
+    // Stops every ten, bare: the ticks alone show the grid (#490).
+    const tens = Array.from({ length: 11 }, (_, i) => i * 10);
 
     return () => (
         <>
@@ -62,6 +64,34 @@ const SliderDemos = component(() => {
                 <Slider.ValueText />
             </Slider.Root>
             <p><small>Last committed: <code data-demo="slider-committed">{state.committed}</code></small></p>
+            <h2>Stops and value bubbles</h2>
+            <p>
+                A mark is <code>data-state="active"</code> while it sits on
+                the span <code>Slider.Range</code> fills and{' '}
+                <code>inactive</code> off it, so a skin inks the stops on
+                the filled track apart from the rest.{' '}
+                <code>Slider.ThumbValue</code>, placed inside a thumb,
+                renders that thumb's value and mirrors its{' '}
+                <code>pressed</code> and <code>focus-visible</code> — every
+                skin shows it as a bubble while the thumb is dragged or
+                keyboard-focused (Material's value indicator).
+            </p>
+            <Slider.Root model={() => state.grid} min={0} max={100} step={10} marks={tens}>
+                <Slider.Label>Stop grid</Slider.Label>
+                <Slider.Track>
+                    <Slider.Range />
+                    <Slider.Thumb label="Stop grid"><Slider.ThumbValue /></Slider.Thumb>
+                </Slider.Track>
+            </Slider.Root>
+            <Slider.Root model={() => state.band} min={0} max={100} step={10} marks={tens} getValueText={(v) => `${v}%`}>
+                <Slider.Label>Band</Slider.Label>
+                <Slider.Track>
+                    <Slider.Range />
+                    <Slider.Thumb label="Band start"><Slider.ThumbValue /></Slider.Thumb>
+                    <Slider.Thumb label="Band end"><Slider.ThumbValue /></Slider.Thumb>
+                </Slider.Track>
+                <Slider.ValueText />
+            </Slider.Root>
             <h2>Vertical</h2>
             <p>
                 <code>orientation="vertical"</code> runs the rail bottom-to-top,
@@ -72,7 +102,7 @@ const SliderDemos = component(() => {
                     <Slider.Label>Level</Slider.Label>
                     <Slider.Track>
                         <Slider.Range />
-                        <Slider.Thumb label="Level" />
+                        <Slider.Thumb label="Level"><Slider.ThumbValue /></Slider.Thumb>
                     </Slider.Track>
                     <Slider.ValueText />
                 </Slider.Root>
