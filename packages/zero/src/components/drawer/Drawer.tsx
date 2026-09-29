@@ -471,6 +471,8 @@ const DrawerPanel = component<DrawerPanelProps>(({ props, slots, onMounted, onUn
         dismiss: () => drawer.requestClose('escape'),
         outsidePress: false,
         onEscapeKeyDown: (e) => { drawer.escapeKeyDown(e); },
+        // Non-modal: the page stays live; only keys typed inside are ours.
+        ownsKeyboard: 'within',
     });
 
     // An inline drawer open on first render is plain markup: emit `open` so

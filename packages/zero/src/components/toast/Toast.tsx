@@ -45,6 +45,7 @@ import type { Define } from 'sigx';
 import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
+import { matchesKeyCombo } from '../../behaviors/hotkeys.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { htmlAttrs, variantAttrs } from '../../contract/props.js';
@@ -164,7 +165,6 @@ function renderToastSlot(slot: (data: ToastData) => unknown, data: ToastData): u
 const ROOT_SELECTOR = `[data-scope="${SCOPE}"][data-part="root"]`;
 const DEFAULT_HOTKEY: readonly string[] = ['F8'];
 const DEFAULT_LABEL = 'Notifications ({hotkey})';
-const MODIFIER_KEYS = new Set(['altKey', 'ctrlKey', 'metaKey', 'shiftKey']);
 
 /**
  * The swipe that fits a placement: off the side a toast sits on — toward the
@@ -190,12 +190,6 @@ function hotkeyText(keys: readonly string[]): string {
 function viewportLabel(template: string, keys: readonly string[] | null): string {
     if (keys) return template.replace(/\{hotkey\}/g, hotkeyText(keys));
     return template.replace(/\s*\(\{hotkey\}\)/g, '').replace(/\{hotkey\}/g, '').trim();
-}
-
-/** Every key in the combination is down: modifiers by flag, the rest by `code` or `key`. */
-function matchesHotkey(e: KeyboardEvent, keys: readonly string[]): boolean {
-    return keys.every((k) =>
-        MODIFIER_KEYS.has(k) ? !!(e as unknown as Record<string, boolean>)[k] : e.code === k || e.key === k);
 }
 
 export type ToastViewportProps =
@@ -420,7 +414,7 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, signal, onM
                 if (!on || typeof document === 'undefined') return;
                 const onKeydown = (e: KeyboardEvent): void => {
                     const keys = hotkeys();
-                    if (!keys || e.defaultPrevented || !matchesHotkey(e, keys)) return;
+                    if (!keys || e.defaultPrevented || !matchesKeyCombo(e, keys)) return;
                     const first = el?.querySelector<HTMLElement>(ROOT_SELECTOR);
                     if (!first) return;
                     e.preventDefault();

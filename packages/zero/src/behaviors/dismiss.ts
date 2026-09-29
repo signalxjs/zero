@@ -98,13 +98,40 @@ export interface DismissableOptions {
      * handler that calls `preventDefault()` keeps the layer open.
      */
     onInteractOutside?(e: PointerEvent): void;
+    /**
+     * Whether the open layer owns the keyboard, for document-level shortcuts
+     * (`createHotkeys`): `true` while it is up (Combobox's list), `'within'`
+     * for keydowns from inside its surface only (a non-modal Dialog or
+     * Drawer, which leave the rest of the page live), `false` (default) never
+     * (Tooltip, HoverCard — they never take the keyboard).
+     */
+    ownsKeyboard?: boolean | 'within';
 }
 
 interface Layer {
     dismiss(): void;
+    ownsKeyboard: boolean | 'within';
+    getElement(): HTMLElement | null;
 }
 
 const layerStack: Layer[] = [];
+
+/**
+ * The surfaces of the open layers that own the keyboard for a keydown from
+ * `origin`: every `ownsKeyboard: true` layer, and each `'within'` layer
+ * whose surface holds `origin`. Client-only state; empty on the server.
+ */
+export function keyboardOwningLayers(origin: EventTarget | null = null): HTMLElement[] {
+    const out: HTMLElement[] = [];
+    for (const layer of layerStack) {
+        if (!layer.ownsKeyboard) continue;
+        const el = layer.getElement();
+        if (!el) continue;
+        if (layer.ownsKeyboard === 'within' && !(origin instanceof Node && el.contains(origin))) continue;
+        out.push(el);
+    }
+    return out;
+}
 
 /**
  * True when `target` sits inside an open native top-layer surface nested
@@ -134,7 +161,11 @@ export function createDismissable(opts: DismissableOptions): void {
         (open, _prev, onCleanup) => {
             if (!open) return;
 
-            const layer: Layer = { dismiss: () => opts.dismiss() };
+            const layer: Layer = {
+                dismiss: () => opts.dismiss(),
+                ownsKeyboard: opts.ownsKeyboard ?? false,
+                getElement: () => opts.getElement(),
+            };
             layerStack.push(layer);
 
             const onPointerdown = (e: PointerEvent) => {
