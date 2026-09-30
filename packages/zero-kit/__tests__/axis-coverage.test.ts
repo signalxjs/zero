@@ -148,6 +148,9 @@ const NO_VARIANT: Record<string, string> = {
         + 'Avatar.Group, Chakra AvatarGroup and HeroUI AvatarGroup style the '
         + 'avatars, and the group only spaces them (#297).',
     'toggle-group': 'Radix Themes SegmentedControl varies as surface | classic.',
+    'chip-group': 'no surveyed system varies a chip set — M3 chip sets, '
+        + 'Mantine Chip.Group and Carbon tag groups style the chips, and the '
+        + 'group only lays them out (#544). chip itself wires M3 outlined | elevated.',
     // tabs left this ledger in #377: zero-daisyui wires `variant` as daisy's
     // border | lift | box flavors, with its own `tokens.scopes.tabs`
     // vocabulary. (The survey rows that justified the deferral: HeroUI v3

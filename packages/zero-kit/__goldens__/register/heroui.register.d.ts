@@ -337,6 +337,26 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** chip — size wired. */
+            'chip': {
+                /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
+                color: never;
+                size: 'sm' | 'md' | 'lg';
+                /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** chip-group — size wired. */
+            'chip-group': {
+                /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
+                color: never;
+                size: 'sm' | 'md' | 'lg';
+                /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** number-input — size wired. */
             'number-input': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */

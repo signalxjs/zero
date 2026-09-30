@@ -157,10 +157,10 @@ describe('declaring a per-scope vocabulary', () => {
 
     it('rejects a scope that is not a component in the anatomy', () => {
         const { errors } = issues(ds(
-            { variants: ['solid'], scopes: { chip: { variants: ['solid'] } } },
+            { variants: ['solid'], scopes: { fab: { variants: ['solid'] } } },
             [button(['solid'])],
         ));
-        expect(has(errors, '"chip" is not a component in zero\'s anatomy')).toBe(true);
+        expect(has(errors, '"fab" is not a component in zero\'s anatomy')).toBe(true);
     });
 
     it('rejects `parts` by name, so per-part stays additive', () => {

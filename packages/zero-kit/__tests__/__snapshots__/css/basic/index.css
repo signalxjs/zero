@@ -5741,6 +5741,317 @@
 }
 
 @layer zero.recipes {
+    [data-scope="chip"][data-part="root"] {
+        --chip-accent: var(--chip-group-accent, var(--color-primary));
+        --chip-soft: var(--chip-group-soft, var(--color-primary-soft));
+        --chip-ink: var(--chip-group-ink, var(--color-primary));
+    }
+
+    [data-scope="chip"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+        max-width: 100%;
+        background: transparent;
+        color: var(--color-base-content);
+        border: var(--border) solid var(--color-base-300);
+        border-radius: var(--radius-selector);
+        font-size: var(--text-sm);
+        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="root"][data-state="on"] {
+        background: var(--chip-soft);
+        color: var(--chip-ink);
+        border-color: color-mix(in oklch, var(--chip-accent) 20%, transparent);
+    }
+
+    [data-scope="chip"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="chip"][data-part="action"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+        min-width: 0;
+        margin: 0;
+        padding: var(--space-xs) var(--space-md);
+        background: transparent;
+        color: inherit;
+        border: none;
+        border-radius: inherit;
+        font: inherit;
+        font-weight: var(--weight-medium);
+        line-height: var(--leading-none);
+        font-variant-numeric: tabular-nums;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="action"]:hover:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="chip"][data-part="action"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="chip"][data-part="action"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="chip"][data-part="action"][data-state="on"]:hover {
+        background: color-mix(in oklch, var(--chip-accent) 6%, var(--chip-soft));
+    }
+
+    [data-scope="chip"][data-part="action"][data-disabled]:hover {
+        background: transparent;
+    }
+
+    [data-scope="chip"][data-part="action"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
+    }
+
+    [data-scope="chip"][data-part="icon"] {
+        display: inline-flex;
+        flex-shrink: 0;
+        font-size: 1.1em;
+        line-height: var(--leading-none);
+    }
+
+    [data-scope="chip"][data-part="label"] {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    [data-scope="chip"][data-part="remove"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin: 0 var(--space-2xs);
+        padding: var(--space-2xs) var(--space-xs);
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        line-height: var(--leading-none);
+        border-radius: var(--radius-selector);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="remove"]:hover:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    }
+
+    [data-scope="chip"][data-part="remove"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="chip"][data-part="remove"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="chip"][data-part="remove"][data-disabled]:hover {
+        background: transparent;
+    }
+
+    [data-scope="chip"][data-part="remove"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="primary"] {
+        --chip-accent: var(--color-primary);
+        --chip-soft: var(--color-primary-soft);
+        --chip-ink: var(--color-primary);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="secondary"] {
+        --chip-accent: var(--color-secondary);
+        --chip-soft: var(--color-secondary-soft);
+        --chip-ink: var(--color-secondary);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="accent"] {
+        --chip-accent: var(--color-accent);
+        --chip-soft: var(--color-accent-soft);
+        --chip-ink: var(--color-accent);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="neutral"] {
+        --chip-accent: var(--color-neutral);
+        --chip-soft: var(--color-neutral-soft);
+        --chip-ink: var(--color-base-content);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="info"] {
+        --chip-accent: var(--color-info);
+        --chip-soft: var(--color-info-soft);
+        --chip-ink: var(--color-info);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="success"] {
+        --chip-accent: var(--color-success);
+        --chip-soft: var(--color-success-soft);
+        --chip-ink: var(--color-success);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="warning"] {
+        --chip-accent: var(--color-warning);
+        --chip-soft: var(--color-warning-soft);
+        --chip-ink: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="error"] {
+        --chip-accent: var(--color-error);
+        --chip-soft: var(--color-error-soft);
+        --chip-ink: var(--color-error);
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="xs"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="sm"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="lg"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="xl"] {
+        font-size: var(--text-lg);
+    }
+
+    @scope ([data-scope="chip"][data-part="root"][data-size="xs"]) to ([data-scope="chip"][data-part="root"]) {
+        [data-scope="chip"][data-part="action"] {
+            padding: var(--space-2xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="chip"][data-part="root"][data-size="sm"]) to ([data-scope="chip"][data-part="root"]) {
+        [data-scope="chip"][data-part="action"] {
+            padding: var(--space-xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="chip"][data-part="root"][data-size="lg"]) to ([data-scope="chip"][data-part="root"]) {
+        [data-scope="chip"][data-part="action"] {
+            padding: var(--space-sm) var(--space-lg);
+        }
+    }
+
+    @scope ([data-scope="chip"][data-part="root"][data-size="xl"]) to ([data-scope="chip"][data-part="root"]) {
+        [data-scope="chip"][data-part="action"] {
+            padding: var(--space-md) var(--space-xl);
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="chip"][data-part="root"][data-state="on"] {
+            background: Highlight;
+            color: HighlightText;
+            border-color: Highlight;
+        }
+    }
+}
+
+@layer zero.recipes {
+    [data-scope="chip-group"][data-part="root"] {
+        --chip-group-accent: var(--color-primary);
+        --chip-group-soft: var(--color-primary-soft);
+        --chip-group-ink: var(--color-primary);
+    }
+
+    [data-scope="chip-group"][data-part="root"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="primary"] {
+        --chip-group-accent: var(--color-primary);
+        --chip-group-soft: var(--color-primary-soft);
+        --chip-group-ink: var(--color-primary);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="secondary"] {
+        --chip-group-accent: var(--color-secondary);
+        --chip-group-soft: var(--color-secondary-soft);
+        --chip-group-ink: var(--color-secondary);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="accent"] {
+        --chip-group-accent: var(--color-accent);
+        --chip-group-soft: var(--color-accent-soft);
+        --chip-group-ink: var(--color-accent);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="neutral"] {
+        --chip-group-accent: var(--color-neutral);
+        --chip-group-soft: var(--color-neutral-soft);
+        --chip-group-ink: var(--color-base-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="info"] {
+        --chip-group-accent: var(--color-info);
+        --chip-group-soft: var(--color-info-soft);
+        --chip-group-ink: var(--color-info);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="success"] {
+        --chip-group-accent: var(--color-success);
+        --chip-group-soft: var(--color-success-soft);
+        --chip-group-ink: var(--color-success);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="warning"] {
+        --chip-group-accent: var(--color-warning);
+        --chip-group-soft: var(--color-warning-soft);
+        --chip-group-ink: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="error"] {
+        --chip-group-accent: var(--color-error);
+        --chip-group-soft: var(--color-error-soft);
+        --chip-group-ink: var(--color-error);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="xs"] {
+        gap: var(--space-xs);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="sm"] {
+        gap: var(--space-xs);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="lg"] {
+        gap: var(--space-md);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="xl"] {
+        gap: var(--space-lg);
+    }
+}
+
+@layer zero.recipes {
     [data-scope="number-input"][data-part="root"] {
         --number-input-accent: var(--color-primary);
     }

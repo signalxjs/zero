@@ -8689,6 +8689,443 @@
 }
 
 @layer zero.recipes {
+    [data-scope="chip"][data-part="root"] {
+        --chip-fill: var(--chip-group-fill, var(--color-secondary-container));
+        --chip-on-fill: var(--chip-group-on-fill, var(--color-secondary-container-content));
+        --chip-icon: var(--color-primary);
+        --chip-height: 2rem;
+    }
+
+    [data-scope="chip"][data-part="root"] {
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: stretch;
+        vertical-align: middle;
+        max-inline-size: 100%;
+        block-size: var(--chip-height);
+        background: transparent;
+        color: var(--color-surface-variant-content);
+        border: var(--border) solid var(--color-outline-variant);
+        border-radius: var(--radius-small);
+        font-family: var(--font-label-large);
+        font-size: var(--text-label-large);
+        font-weight: var(--weight-label-large);
+        letter-spacing: var(--tracking-label-large);
+        line-height: var(--leading-label-large);
+        transition: background var(--duration-short2) var(--ease-standard), color var(--duration-short2) var(--ease-standard), border-color var(--duration-short2) var(--ease-standard), box-shadow var(--duration-short2) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="root"][data-state="on"] {
+        background: var(--chip-fill);
+        color: var(--chip-on-fill);
+        border-color: transparent;
+    }
+
+    [data-scope="chip"][data-part="root"][data-disabled] {
+        color: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+        border-color: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+    }
+
+    [data-scope="chip"][data-part="root"][data-state="on"][data-disabled] {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+    }
+
+    [data-scope="chip"][data-part="action"] {
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+        appearance: none;
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        flex: 1 1 auto;
+        gap: 0.5rem;
+        min-inline-size: 0;
+        margin: 0;
+        padding-block: 0;
+        padding-inline: 1rem;
+        background: transparent;
+        color: inherit;
+        border: none;
+        border-radius: inherit;
+        font: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        transition: padding var(--duration-short2) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="action"][data-state="on"] {
+        padding-inline-start: 0.5rem;
+    }
+
+    [data-scope="chip"][data-part="action"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="chip"][data-part="action"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="chip"][data-part="action"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: currentColor;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-short2) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="action"]:hover:not([data-disabled])::before {
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="chip"][data-part="action"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
+    }
+
+    [data-scope="chip"][data-part="action"][data-pressed]:not([data-disabled])::before {
+        opacity: var(--state-pressed);
+    }
+
+    [data-scope="chip"][data-part="action"]:has(> [data-scope="chip"][data-part="icon"]) {
+        padding-inline-start: 0.5rem;
+    }
+
+    [data-scope="chip"][data-part="root"]:has(> [data-scope="chip"][data-part="remove"]) > [data-scope="chip"][data-part="action"] {
+        padding-inline-end: 0.5rem;
+    }
+
+    [data-scope="chip"][data-part="action"]::after {
+        content: "";
+        order: -1;
+        flex: none;
+        inline-size: 0;
+        block-size: 1.125rem;
+        margin-inline-end: calc(0.5rem * -1);
+        background: currentColor;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") center / contain no-repeat;
+        opacity: 0;
+        transition: inline-size var(--duration-short4) var(--ease-emphasized-decelerate), margin var(--duration-short4) var(--ease-emphasized-decelerate), opacity var(--duration-short2) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="action"][data-state="on"]::after {
+        inline-size: 1.125rem;
+        margin-inline-end: 0;
+        opacity: 1;
+    }
+
+    [data-scope="chip"][data-part="icon"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        inline-size: 1.125rem;
+        block-size: 1.125rem;
+        font-size: 1.125rem;
+        line-height: 1;
+        color: var(--chip-icon);
+    }
+
+    [data-scope="chip"][data-part="action"][data-state="on"] > [data-scope="chip"][data-part="icon"] {
+        display: none;
+    }
+
+    [data-scope="chip"][data-part="root"][data-disabled] [data-scope="chip"][data-part="icon"] {
+        color: inherit;
+    }
+
+    [data-scope="chip"][data-part="label"] {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    [data-scope="chip"][data-part="remove"] {
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        align-self: center;
+        flex: none;
+        inline-size: 1.125rem;
+        block-size: 1.125rem;
+        margin-inline: 0.5rem;
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-full);
+        background: transparent;
+        color: inherit;
+        font-family: var(--font-sans);
+        font-size: 1.125rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    [data-scope="chip"][data-part="remove"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="chip"][data-part="remove"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="chip"][data-part="remove"]::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        background: currentColor;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-short2) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="remove"]:hover:not([data-disabled], [data-readonly])::before {
+        opacity: var(--state-hover);
+    }
+
+    [data-scope="chip"][data-part="remove"]:is(:focus-visible, [data-focus-visible]):not([data-disabled])::before {
+        opacity: var(--state-focus);
+    }
+
+    [data-scope="chip"][data-part="remove"][data-pressed]:not([data-disabled])::before {
+        opacity: var(--state-pressed);
+    }
+
+    [data-scope="chip"][data-part="remove"][data-state="unchecked"]::before {
+        background: var(--color-base-content);
+    }
+
+    [data-scope="chip"][data-part="remove"][data-state="unchecked"]::after {
+        background: var(--color-base-content);
+    }
+
+    [data-scope="chip"][data-part="remove"]::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        background: currentColor;
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="chip"][data-part="remove"][data-press-animating]::after {
+        animation: chip-ripple var(--duration-long2) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="root"][data-variant="elevated"] {
+        background: var(--color-surface-container-low);
+        border-color: transparent;
+        box-shadow: var(--shadow-level1);
+    }
+
+    [data-scope="chip"][data-part="root"][data-variant="elevated"][data-state="on"] {
+        background: var(--chip-fill);
+    }
+
+    [data-scope="chip"][data-part="root"][data-variant="elevated"][data-disabled] {
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        box-shadow: none;
+    }
+
+    [data-scope="chip"][data-part="root"][data-variant="elevated"]:has(> [data-scope="chip"][data-part="action"]:hover):not([data-disabled]) {
+        box-shadow: var(--shadow-level2);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="primary"] {
+        --chip-fill: var(--color-primary-soft);
+        --chip-on-fill: var(--color-primary-soft-content);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="secondary"] {
+        --chip-fill: var(--color-secondary-soft);
+        --chip-on-fill: var(--color-secondary-soft-content);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="tertiary"] {
+        --chip-fill: var(--color-tertiary-soft);
+        --chip-on-fill: var(--color-tertiary-soft-content);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="error"] {
+        --chip-fill: var(--color-error-soft);
+        --chip-on-fill: var(--color-error-soft-content);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="neutral"] {
+        --chip-fill: var(--color-neutral-soft);
+        --chip-on-fill: var(--color-neutral-soft-content);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="info"] {
+        --chip-fill: var(--color-info-soft);
+        --chip-on-fill: var(--color-info-soft-content);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="success"] {
+        --chip-fill: var(--color-success-soft);
+        --chip-on-fill: var(--color-success-soft-content);
+    }
+
+    [data-scope="chip"][data-part="root"][data-color="warning"] {
+        --chip-fill: var(--color-warning-soft);
+        --chip-on-fill: var(--color-warning-soft-content);
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="xs"] {
+        --chip-height: 1.5rem;
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="sm"] {
+        --chip-height: 1.75rem;
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="lg"] {
+        --chip-height: 2.5rem;
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="xl"] {
+        --chip-height: 3rem;
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="chip"][data-part="root"][data-state="on"] {
+            background: Highlight;
+            color: HighlightText;
+            border-color: Highlight;
+        }
+
+        [data-scope="chip"][data-part="action"]::before {
+            display: none;
+        }
+
+        [data-scope="chip"][data-part="action"]::after {
+            forced-color-adjust: none;
+        }
+
+        [data-scope="chip"][data-part="remove"]::before {
+            display: none;
+        }
+
+        [data-scope="chip"][data-part="remove"]::after {
+            display: none;
+        }
+    }
+
+    @media (hover: none) {
+        [data-scope="chip"][data-part="action"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
+
+        [data-scope="chip"][data-part="remove"]:hover:not([data-disabled], [data-readonly])::before {
+            opacity: 0;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="chip"][data-part="action"] {
+            transition: none;
+        }
+
+        [data-scope="chip"][data-part="action"]::after {
+            transition: none;
+        }
+    }
+}
+@keyframes chip-ripple {
+    from { transform: translate(-50%, -50%) scale(0); opacity: var(--state-pressed); } 60% { transform: translate(-50%, -50%) scale(1); opacity: var(--state-pressed); } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
+@layer zero.recipes {
+    [data-scope="chip-group"][data-part="root"] {
+        --chip-group-fill: var(--color-secondary-container);
+        --chip-group-on-fill: var(--color-secondary-container-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="primary"] {
+        --chip-group-fill: var(--color-primary-soft);
+        --chip-group-on-fill: var(--color-primary-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="secondary"] {
+        --chip-group-fill: var(--color-secondary-soft);
+        --chip-group-on-fill: var(--color-secondary-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="tertiary"] {
+        --chip-group-fill: var(--color-tertiary-soft);
+        --chip-group-on-fill: var(--color-tertiary-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="error"] {
+        --chip-group-fill: var(--color-error-soft);
+        --chip-group-on-fill: var(--color-error-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="neutral"] {
+        --chip-group-fill: var(--color-neutral-soft);
+        --chip-group-on-fill: var(--color-neutral-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="info"] {
+        --chip-group-fill: var(--color-info-soft);
+        --chip-group-on-fill: var(--color-info-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="success"] {
+        --chip-group-fill: var(--color-success-soft);
+        --chip-group-on-fill: var(--color-success-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="warning"] {
+        --chip-group-fill: var(--color-warning-soft);
+        --chip-group-on-fill: var(--color-warning-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="xs"] {
+        gap: 0.25rem;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="sm"] {
+        gap: 0.25rem;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="lg"] {
+        gap: 0.75rem;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="xl"] {
+        gap: 1rem;
+    }
+}
+
+@layer zero.recipes {
     [data-scope="number-input"][data-part="root"] {
         position: relative;
         display: inline-flex;

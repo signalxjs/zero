@@ -2948,6 +2948,234 @@ export const toggleGroup: RecipeInput = {
     defaultVariants: { color: 'primary' },
 };
 
+// ── Chip ──────────────────────────────────────────────────────────────────
+/**
+ * Chip (#544) — combobox's stamped tag, made free-standing: an inked box,
+ * mono caps, no radius, sitting on a hard `xs` shadow. A selectable chip
+ * that is on takes toggle's grammar — inverted fill, shadow gone, stamped
+ * down into where the shadow was. `root` is the box and `action` fills it,
+ * so the hover block and the press stamp land on the action alone; a
+ * trailing `remove` is its own cell behind a hard interior rule, with a
+ * wash of its own.
+ *
+ * The accent reads the group's first: a `color` on `chip-group` publishes
+ * `--chip-group-*`, which every chip inside falls back to — a group
+ * recolours its chips without either scope reaching into the other, and a
+ * chip's own `color` still wins.
+ */
+export const chip: RecipeInput = {
+    component: 'chip',
+    hooks: {
+        properties: {
+            '--chip-accent': 'The fill of an on chip.',
+            '--chip-on-accent': 'The ink on --chip-accent.',
+        },
+    },
+    tokens: {
+        '--chip-accent': 'var(--chip-group-accent, var(--color-primary))',
+        '--chip-on-accent': 'var(--chip-group-on-accent, var(--color-primary-content))',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                verticalAlign: 'middle',
+                maxWidth: '100%',
+                ...inked,
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                boxShadow: 'var(--shadow-xs)',
+                transition: motion('box-shadow, transform, background, color'),
+            },
+            states: {
+                // On = stamped down: inverted fill, shadow gone, sitting
+                // where the shadow was (toggle's rule).
+                on: {
+                    background: 'var(--chip-accent)',
+                    color: 'var(--chip-on-accent)',
+                    boxShadow: 'none',
+                    transform: 'translate(2px, 2px)',
+                },
+                off: {},
+                selected: {},
+                disabled: { opacity: 'var(--disabled-opacity)', boxShadow: 'none' },
+            },
+            // Forced colours revalue every author fill, so a selected chip
+            // would read exactly like an unselected one: the system's
+            // selection pair says it instead (Material's rule).
+            at: {
+                'forced-colors': {
+                    states: { on: { background: 'Highlight', color: 'HighlightText', borderColor: 'Highlight' } },
+                },
+            },
+        },
+        action: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                minWidth: '0',
+                margin: '0',
+                padding: 'var(--space-xs) var(--space-sm)',
+                background: 'transparent',
+                color: 'inherit',
+                border: 'none',
+                borderRadius: 'inherit',
+                font: 'inherit',
+                letterSpacing: 'inherit',
+                textTransform: 'inherit',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                on: {},
+                off: {},
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // The on fill lives on the root; hover must not paint the
+                // base-200 block over it.
+                '&[data-state="on"]:hover': { background: 'transparent' },
+                '&[data-disabled]:hover': { background: 'transparent' },
+                // A shallow stamp: the chip is already a small plate.
+                '&[data-pressed]:not([data-disabled])': { transform: 'translate(1px, 1px)' },
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                flexShrink: '0',
+                fontSize: '1.1em',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        label: {
+            base: {
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+            },
+        },
+        // combobox's tag-remove, as a cell of its own: a hard interior rule
+        // in the chip's current ink, then the bare glyph.
+        remove: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: '0',
+                margin: '0',
+                padding: '0 var(--space-xs)',
+                border: 'none',
+                borderInlineStart: 'var(--border) solid currentColor',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // On an on chip the base-200 block would sit under the
+                // on-accent ink; wash the accent instead.
+                '[data-scope="chip"][data-part="root"][data-state="on"] > &:hover': {
+                    background: 'color-mix(in oklab, var(--chip-on-accent) 15%, var(--chip-accent))',
+                },
+                '&[data-disabled]:hover': { background: 'transparent' },
+                '&[data-pressed]:not([data-disabled])': { transform: 'translate(1px, 1px)' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [
+            c,
+            {
+                root: {
+                    base: {
+                        '--chip-accent': `var(--color-${c})`,
+                        '--chip-on-accent': `var(--color-${c}-content)`,
+                    },
+                },
+            },
+        ])),
+        size: {
+            xs: { action: { base: { padding: 'var(--space-2xs) var(--space-xs)' } } },
+            sm: { action: { base: { padding: 'var(--space-2xs) var(--space-sm)' } } },
+            // The base IS the middle step (toggle-group's rule).
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)' } }, action: { base: { padding: 'var(--space-sm) var(--space-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)' } }, action: { base: { padding: 'var(--space-md) var(--space-lg)' } } },
+        },
+    },
+};
+
+// ── Chip group ────────────────────────────────────────────────────────────
+/**
+ * ChipGroup (#544) — a wrapping row of chips. The chips keep the chip
+ * recipe; the group owns the flow and publishes its `color` as
+ * `--chip-group-*` for the chips inside to read (see `chip`).
+ */
+export const chipGroup: RecipeInput = {
+    component: 'chip-group',
+    hooks: {
+        properties: {
+            '--chip-group-accent': 'The on fill the chips inside fall back to.',
+            '--chip-group-on-accent': 'The ink on --chip-group-accent.',
+        },
+    },
+    tokens: {
+        '--chip-group-accent': 'var(--color-primary)',
+        '--chip-group-on-accent': 'var(--color-primary-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+            },
+            // Each chip carries the flag itself; the root only lays them out.
+            states: { disabled: {}, invalid: {}, required: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column', alignItems: 'flex-start' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [
+            c,
+            {
+                root: {
+                    base: {
+                        '--chip-group-accent': `var(--color-${c})`,
+                        '--chip-group-on-accent': `var(--color-${c}-content)`,
+                    },
+                },
+            },
+        ])),
+        size: {
+            xs: { root: { base: { gap: 'var(--space-xs)' } } },
+            sm: { root: { base: { gap: 'var(--space-xs)' } } },
+            md: {},
+            lg: { root: { base: { gap: 'var(--space-md)' } } },
+            xl: { root: { base: { gap: 'var(--space-lg)' } } },
+        },
+    },
+};
+
 // ── Number input ──────────────────────────────────────────────────────────
 /**
  * A framed counting slab: the `control` is one inked box holding the two
@@ -6467,7 +6695,7 @@ export const diff: RecipeInput = {
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, hoverCard, menu, menubar, select,
     switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, avatarGroup, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    toggle, toggleGroup, chip, chipGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,

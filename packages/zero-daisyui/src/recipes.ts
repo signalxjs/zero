@@ -5276,6 +5276,240 @@ export const toggleGroup: RecipeInput = {
     },
 };
 
+/**
+ * Chip (#544) — daisy has no chip, so this is daisy 5's `filter` idiom (a
+ * row of `btn-sm` radios whose checked one turns `btn-primary`) drawn with
+ * the badge's pill: a base-200 fill inside a base-300 hairline at
+ * `--radius-selector`, semibold, until a selectable chip is on — then the
+ * solid accent fill with its `-content` ink, toggle's on state. `root` is
+ * the box and `action` fills it, so the hover wash (base-300 at rest,
+ * daisy's own 7%-black btn hover on the accent) lands on the action alone
+ * and a trailing `remove` keeps the combobox tag-remove's wash of its own.
+ *
+ * The accent reads the group's first: a `color` on `chip-group` publishes
+ * `--chip-group-*`, which every chip inside falls back to — a group recolours
+ * its chips without either scope reaching into the other, and a chip's own
+ * `color` still wins.
+ */
+export const chip: RecipeInput = {
+    component: 'chip',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--chip-accent': 'The fill of a selected chip.',
+            '--chip-on-accent': 'The ink on --chip-accent.',
+        },
+    },
+    tokens: {
+        '--chip-accent': 'var(--chip-group-accent, var(--color-primary))',
+        '--chip-on-accent': 'var(--chip-group-on-accent, var(--color-primary-content))',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                verticalAlign: 'middle',
+                maxWidth: '100%',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-selector)',
+                fontSize: 'var(--text-sm)',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'color var(--duration-fast) var(--ease-standard), '
+                    + 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                on: {
+                    background: 'var(--chip-accent)',
+                    color: 'var(--chip-on-accent)',
+                    borderColor: 'var(--chip-accent)',
+                },
+                off: {},
+                selected: {},
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+            // Forced colours revalue every author fill, so a selected chip
+            // would read exactly like an unselected one: the system's
+            // selection pair says it instead (Material's rule).
+            at: {
+                'forced-colors': {
+                    states: { on: { background: 'Highlight', color: 'HighlightText', borderColor: 'Highlight' } },
+                },
+            },
+        },
+        action: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375em',
+                minWidth: '0',
+                margin: '0',
+                padding: 'var(--space-xs) var(--space-md)',
+                background: 'transparent',
+                color: 'inherit',
+                border: 'none',
+                borderRadius: 'inherit',
+                font: 'inherit',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                on: {},
+                off: {},
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // On beats hover by source order at equal specificity: an on
+                // chip darkens its fill daisy's way (the btn hover mixes 7%
+                // black into its colour) instead of fading to base-300.
+                '&[data-state="on"]:hover': {
+                    background: 'color-mix(in oklab, var(--chip-accent) 93%, black)',
+                },
+                '&[data-disabled]:hover': { background: 'transparent' },
+                // Pressed: the runtime's press feedback, not `:active` — the
+                // btn's 1px sink, on the label rather than the whole pill.
+                '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' },
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                flexShrink: '0',
+                fontSize: '1.1em',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        label: {
+            base: {
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+            },
+        },
+        // combobox's tag-remove, at the chip's own scale: a glyph inside the
+        // pill, washed in its own ink on hover, never an accented control.
+        remove: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: '0',
+                margin: '0 var(--space-2xs)',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                lineHeight: 'var(--leading-none)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklab, currentColor 10%, transparent)' },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-disabled]:hover': { background: 'transparent' },
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklab, currentColor 18%, transparent)',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(
+            ROLES.map((c) => [
+                c,
+                {
+                    root: {
+                        base: {
+                            '--chip-accent': `var(--color-${c})`,
+                            '--chip-on-accent': `var(--color-${c}-content)`,
+                        },
+                    },
+                },
+            ]),
+        ),
+        // daisy's badge ramp: xs/sm stay at the smallest type and tighten
+        // the pill; the base IS the middle step (toggle-group's rule).
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)' } }, action: { base: { padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } }, action: { base: { padding: 'var(--space-xs) var(--space-sm)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } }, action: { base: { padding: 'var(--space-sm) var(--space-lg)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)' } }, action: { base: { padding: 'var(--space-md) var(--space-xl)' } } },
+        },
+    },
+};
+
+/**
+ * ChipGroup (#544) — daisy's `filter`: a wrapping row of chips. The chips
+ * keep the chip recipe; the group owns the flow and publishes its `color`
+ * as `--chip-group-*` for the chips inside to read (see `chip`).
+ */
+export const chipGroup: RecipeInput = {
+    component: 'chip-group',
+    // Public to a design system derived from this one (#73).
+    hooks: {
+        properties: {
+            '--chip-group-accent': 'The selected fill the chips inside fall back to.',
+            '--chip-group-on-accent': 'The ink on --chip-group-accent the chips inside fall back to.',
+        },
+    },
+    tokens: {
+        '--chip-group-accent': 'var(--color-primary)',
+        '--chip-group-on-accent': 'var(--color-primary-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+            },
+            // Each chip carries the flag itself; the root only lays them out.
+            states: { disabled: {}, invalid: {}, required: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column', alignItems: 'flex-start' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(
+            ROLES.map((c) => [
+                c,
+                {
+                    root: {
+                        base: {
+                            '--chip-group-accent': `var(--color-${c})`,
+                            '--chip-group-on-accent': `var(--color-${c}-content)`,
+                        },
+                    },
+                },
+            ]),
+        ),
+        size: {
+            xs: { root: { base: { gap: 'var(--space-xs)' } } },
+            sm: { root: { base: { gap: 'var(--space-xs)' } } },
+            md: {},
+            lg: { root: { base: { gap: 'var(--space-md)' } } },
+            xl: { root: { base: { gap: 'var(--space-lg)' } } },
+        },
+    },
+};
+
 // daisy "join" of an input and two btns: one bordered capsule (the control),
 // hairline seams on the triggers' inner edges, neutral btn fills for the steppers.
 export const numberInput: RecipeInput = {
@@ -10447,7 +10681,7 @@ export const diff: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, avatarGroup, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    toggle, toggleGroup, chip, chipGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,

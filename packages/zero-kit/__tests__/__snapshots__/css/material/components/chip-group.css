@@ -1,0 +1,74 @@
+@layer zero.recipes {
+    [data-scope="chip-group"][data-part="root"] {
+        --chip-group-fill: var(--color-secondary-container);
+        --chip-group-on-fill: var(--color-secondary-container-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="primary"] {
+        --chip-group-fill: var(--color-primary-soft);
+        --chip-group-on-fill: var(--color-primary-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="secondary"] {
+        --chip-group-fill: var(--color-secondary-soft);
+        --chip-group-on-fill: var(--color-secondary-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="tertiary"] {
+        --chip-group-fill: var(--color-tertiary-soft);
+        --chip-group-on-fill: var(--color-tertiary-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="error"] {
+        --chip-group-fill: var(--color-error-soft);
+        --chip-group-on-fill: var(--color-error-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="neutral"] {
+        --chip-group-fill: var(--color-neutral-soft);
+        --chip-group-on-fill: var(--color-neutral-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="info"] {
+        --chip-group-fill: var(--color-info-soft);
+        --chip-group-on-fill: var(--color-info-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="success"] {
+        --chip-group-fill: var(--color-success-soft);
+        --chip-group-on-fill: var(--color-success-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="warning"] {
+        --chip-group-fill: var(--color-warning-soft);
+        --chip-group-on-fill: var(--color-warning-soft-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="xs"] {
+        gap: 0.25rem;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="sm"] {
+        gap: 0.25rem;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="lg"] {
+        gap: 0.75rem;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="xl"] {
+        gap: 1rem;
+    }
+}

@@ -89,16 +89,16 @@ describe("zero-basic's recipes fit riso's tokens (roles: {}, sizes: [], fused va
           {
             "collapsedCategoryRefs": 15,
             "droppedAxisValues": 0,
-            "droppedColorValues": 472,
+            "droppedColorValues": 488,
             "droppedCompounds": 4,
             "droppedConditions": 7,
             "droppedDefaults": 9,
             "droppedModifiers": 3,
-            "droppedSizeValues": 294,
+            "droppedSizeValues": 304,
             "droppedVariantBlocks": 3,
             "droppedVariantValues": 5,
             "identity": false,
-            "rewrittenRoleRefs": 182,
+            "rewrittenRoleRefs": 190,
           }
         `);
     });

@@ -14,6 +14,7 @@ import { component, signal } from 'sigx';
 import { anatomies } from '@sigx/zero/anatomy';
 import {
     Accordion, Alert, Avatar, AvatarGroup, Badge, Box, Breadcrumbs, Button, Card, Carousel, Center, Chat, ChatLog, Checkbox, CheckboxGroup,
+    Chip, ChipGroup,
     Collapsible, Combobox, Container, Countdown, Dialog, Diff, Divider, Drawer, EmptyState, Field, Fieldset, FileUpload, Grid,
     HoverCard, Indicator, Input, Join, Kbd, Menu, Menubar, Navbar, NavList, NumberInput, Pagination, Popover, Progress,
     RadialProgress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spacer, Spinner, Stack, Stats,
@@ -548,6 +549,17 @@ describe('the pass-through reaches every part', () => {
                 <Textarea.Textarea {...p('textarea')} />
             </Textarea.Root>
         ),
+        chip: () => (
+            <Chip.Root {...p('root')} removable>
+                <Chip.Action {...p('action')}><Chip.Icon {...p('icon')}>*</Chip.Icon><Chip.Label {...p('label')}>Ada</Chip.Label></Chip.Action>
+                <Chip.Remove {...p('remove')} />
+            </Chip.Root>
+        ),
+        'chip-group': () => (
+            <ChipGroup.Root {...p('root')} label="Filters">
+                <Chip.Root value="a"><Chip.Action>A</Chip.Action></Chip.Root>
+            </ChipGroup.Root>
+        ),
         toggle: () => <Toggle {...p('root')} label="Bold">B</Toggle>,
         'toggle-group': () => (
             <ToggleGroup.Root {...p('root')} label="Align">
@@ -738,6 +750,7 @@ describe('the pass-through reaches every part', () => {
         slider: ['mark', 'hidden-input'],
         switch: ['control', 'thumb', 'label', 'hidden-input'],
         'toggle-group': ['hidden-input'],
+        'chip-group': ['hidden-input'],
     };
 
     /**

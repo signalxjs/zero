@@ -1,0 +1,21 @@
+@layer zero.recipes {
+    [data-scope="chip-group"][data-part="root"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="sm"] {
+        gap: var(--space-xs);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="lg"] {
+        gap: var(--space-md);
+    }
+}

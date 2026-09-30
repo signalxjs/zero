@@ -104,6 +104,14 @@
   `ThemeEnv.runtime` carries it into the contrast cascade; both default to
   `RUNTIME_PROPERTIES`.
 
+- **A recipe may read another recipe's published hook (#551).** A
+  `var()` reference with a fallback to a component token that another
+  recipe both declares in `tokens` and publishes in `hooks.properties` no
+  longer warns as undeclared. This is how a group scope hands context to a
+  separate item scope inside it: `chip-group` publishes its `color` as
+  `--chip-group-*`, and a chip falls back to it, so a chip outside any
+  group still renders. A reference without a fallback is still an error,
+  and a token another recipe declares without publishing it stays private.
 - **`RoleDecl.axis` (#425, part of #413).** A role can now say whether it
   is a value of the `color` axis. Left out, membership is inferred as
   before: a role with `content: false` or `soft: false` is a fill, every

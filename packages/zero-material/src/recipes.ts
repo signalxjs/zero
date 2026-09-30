@@ -4424,6 +4424,315 @@ export const toggleGroup: RecipeInput = {
     defaultVariants: { color: 'secondary' },
 };
 
+// ── Chips ─────────────────────────────────────────────────────────────────
+/**
+ * `pressable()` without its ripple: M3's state layer alone on `::before`,
+ * leaving `::after` free for a drawn glyph (the chip's check). The segmented
+ * button gave this up for an `item-indicator` part (#437); a chip has no
+ * indicator part, so it keeps the trade.
+ */
+const stateLayerOnly = (ink: string): PartStyles => {
+    const layer = pressable('unused', ink);
+    const {
+        '&::after': _ripple,
+        '&[data-press-animating]::after': _wave,
+        ...selectors
+    } = layer.selectors ?? {};
+    return {
+        ...layer,
+        selectors,
+        at: { ...layer.at, 'forced-colors': { selectors: { '&::before': { display: 'none' } } } },
+    };
+};
+
+/**
+ * M3's chips (#544) — assist, filter, input and suggestion are one anatomy:
+ * a 32dp container on the small corner with a 1dp outline-variant stroke
+ * (`outlined`, M3's "flat") or a surface-container-low fill on level 1
+ * (`elevated`), label-large text, 16dp side padding that drops to 8dp beside
+ * a leading icon, a check or a trailing remove.
+ *
+ * Selected (a filter or input chip) moves to secondary-container with no
+ * stroke, and M3's check slides in before the label — segmented button's
+ * check, the same `::after` grown from zero width, so the label moves over
+ * rather than jumping; a leading icon gives its slot up to it. The action
+ * keeps M3's state layer and gives up the ripple for the check (the
+ * segmented button's trade). The trailing remove is M3's 18dp icon with its
+ * own circular state layer.
+ *
+ * `--chip-group-fill` / `--chip-group-on-fill` are the group's `color`,
+ * which the chips inside fall back to (see `chipGroup`).
+ */
+export const chip: RecipeInput = {
+    component: 'chip',
+    hooks: {
+        properties: {
+            '--chip-fill': 'The fill of a selected chip.',
+            '--chip-on-fill': 'The ink on --chip-fill.',
+            '--chip-icon': 'The leading icon ink of an unselected chip.',
+        },
+    },
+    tokens: {
+        '--chip-fill': 'var(--chip-group-fill, var(--color-secondary-container))',
+        '--chip-on-fill': 'var(--chip-group-on-fill, var(--color-secondary-container-content))',
+        '--chip-icon': 'var(--color-primary)',
+        '--chip-height': dp(32),
+    },
+    parts: {
+        root: {
+            base: {
+                boxSizing: 'border-box',
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                verticalAlign: 'middle',
+                maxInlineSize: '100%',
+                blockSize: 'var(--chip-height)',
+                background: 'transparent',
+                color: 'var(--color-surface-variant-content)',
+                border: 'var(--border) solid var(--color-outline-variant)',
+                borderRadius: 'var(--radius-small)',
+                ...label,
+                lineHeight: 'var(--leading-label-large)',
+                transition: motion('background, color, border-color, box-shadow'),
+            },
+            states: {
+                on: {
+                    background: 'var(--chip-fill)',
+                    color: 'var(--chip-on-fill)',
+                    borderColor: 'transparent',
+                },
+                off: {},
+                selected: {},
+                disabled: {
+                    color: 'color-mix(in oklch, var(--color-base-content) 38%, transparent)',
+                    borderColor: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+                },
+            },
+            selectors: {
+                '&[data-state="on"][data-disabled]': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+                },
+            },
+            at: {
+                'forced-colors': {
+                    states: { on: { background: 'Highlight', color: 'HighlightText', borderColor: 'Highlight' } },
+                },
+            },
+        },
+        action: withPresence(stateLayerOnly('currentColor'), {
+            base: {
+                appearance: 'none',
+                boxSizing: 'border-box',
+                display: 'inline-flex',
+                alignItems: 'center',
+                flex: '1 1 auto',
+                gap: dp(8),
+                minInlineSize: '0',
+                margin: '0',
+                paddingBlock: '0',
+                paddingInline: dp(16),
+                background: 'transparent',
+                color: 'inherit',
+                border: 'none',
+                borderRadius: 'inherit',
+                font: 'inherit',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: motion('padding'),
+            },
+            states: {
+                on: { paddingInlineStart: dp(8) },
+                off: {},
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // A leading icon takes M3's 8dp inset.
+                '&:has(> [data-scope="chip"][data-part="icon"])': { paddingInlineStart: dp(8) },
+                // The trailing remove owns the end inset; the action stops at
+                // M3's 8dp gap before it.
+                '[data-scope="chip"][data-part="root"]:has(> [data-scope="chip"][data-part="remove"]) > &': {
+                    paddingInlineEnd: dp(8),
+                },
+                // The check (see the recipe's doc).
+                '&::after': {
+                    content: '""',
+                    order: '-1',
+                    flex: 'none',
+                    inlineSize: '0',
+                    blockSize: dp(18),
+                    marginInlineEnd: `calc(${dp(8)} * -1)`,
+                    background: 'currentColor',
+                    mask: CHECK_MASK,
+                    opacity: '0',
+                    transition:
+                        'inline-size var(--duration-short4) var(--ease-emphasized-decelerate), '
+                        + 'margin var(--duration-short4) var(--ease-emphasized-decelerate), '
+                        + 'opacity var(--duration-short2) var(--ease-standard)',
+                },
+                '&[data-state="on"]::after': { inlineSize: dp(18), marginInlineEnd: '0', opacity: '1' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, selectors: { '&::after': { transition: 'none' } } },
+                'forced-colors': { selectors: { '&::after': { forcedColorAdjust: 'none' } } },
+            },
+        }),
+        icon: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flex: 'none',
+                inlineSize: dp(18),
+                blockSize: dp(18),
+                fontSize: dp(18),
+                lineHeight: '1',
+                color: 'var(--chip-icon)',
+            },
+            selectors: {
+                // Selected, the check takes the leading slot.
+                '[data-scope="chip"][data-part="action"][data-state="on"] > &': { display: 'none' },
+                '[data-scope="chip"][data-part="root"][data-disabled] &': { color: 'inherit' },
+            },
+        },
+        label: {
+            base: {
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+            },
+        },
+        remove: withPresence(pressableCentered('chip', dp(24), 'currentColor'), {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                alignSelf: 'center',
+                flex: 'none',
+                inlineSize: dp(18),
+                blockSize: dp(18),
+                marginInline: dp(8),
+                padding: '0',
+                border: 'none',
+                borderRadius: 'var(--radius-full)',
+                background: 'transparent',
+                color: 'inherit',
+                fontFamily: 'var(--font-sans)',
+                fontSize: dp(18),
+                lineHeight: '1',
+                cursor: 'pointer',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        }),
+    },
+    keyframes: rippleKeyframes('chip'),
+    variants: {
+        // M3's flat chip is the outlined base; `elevated` trades the stroke
+        // for surface-container-low on level 1, and lifts to level 2 on hover.
+        variant: {
+            outlined: {},
+            elevated: {
+                root: {
+                    base: {
+                        background: 'var(--color-surface-container-low)',
+                        borderColor: 'transparent',
+                        boxShadow: 'var(--shadow-level1)',
+                    },
+                    states: {
+                        on: { background: 'var(--chip-fill)' },
+                        disabled: {
+                            background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+                            boxShadow: 'none',
+                        },
+                    },
+                    selectors: {
+                        '&:has(> [data-scope="chip"][data-part="action"]:hover):not([data-disabled])': {
+                            boxShadow: 'var(--shadow-level2)',
+                        },
+                    },
+                },
+            },
+        },
+        color: Object.fromEntries(ROLES.map((c) => [
+            c,
+            {
+                root: {
+                    base: {
+                        '--chip-fill': `var(--color-${c}-soft)`,
+                        '--chip-on-fill': `var(--color-${c}-soft-content)`,
+                    },
+                },
+            },
+        ])),
+        // M3 ships one 32dp chip; the ramp steps the container around it.
+        size: {
+            xs: { root: { base: { '--chip-height': dp(24) } } },
+            sm: { root: { base: { '--chip-height': dp(28) } } },
+            md: {},
+            lg: { root: { base: { '--chip-height': dp(40) } } },
+            xl: { root: { base: { '--chip-height': dp(48) } } },
+        },
+    },
+};
+
+/**
+ * M3's chip set (#544): a wrapping row with an 8dp gap. It publishes its
+ * `color` as `--chip-group-fill` / `--chip-group-on-fill`, which the chips
+ * inside fall back to; a chip's own `color` still wins.
+ */
+export const chipGroup: RecipeInput = {
+    component: 'chip-group',
+    hooks: {
+        properties: {
+            '--chip-group-fill': 'The selected fill the chips inside fall back to.',
+            '--chip-group-on-fill': 'The ink on --chip-group-fill.',
+        },
+    },
+    tokens: {
+        '--chip-group-fill': 'var(--color-secondary-container)',
+        '--chip-group-on-fill': 'var(--color-secondary-container-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: dp(8),
+            },
+            // Each chip carries the flag itself; the root only lays them out.
+            states: { disabled: {}, invalid: {}, required: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column', alignItems: 'flex-start' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [
+            c,
+            {
+                root: {
+                    base: {
+                        '--chip-group-fill': `var(--color-${c}-soft)`,
+                        '--chip-group-on-fill': `var(--color-${c}-soft-content)`,
+                    },
+                },
+            },
+        ])),
+        size: {
+            xs: { root: { base: { gap: dp(4) } } },
+            sm: { root: { base: { gap: dp(4) } } },
+            md: {},
+            lg: { root: { base: { gap: dp(12) } } },
+            xl: { root: { base: { gap: dp(16) } } },
+        },
+    },
+};
+
 // ── Number input ──────────────────────────────────────────────────────────
 /**
  * The stepper: an icon button riding inside the outlined field. Bounded
@@ -8184,7 +8493,7 @@ export const diff: RecipeInput = {
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, hoverCard, menu, menubar, select,
     switchRecipe, checkbox, checkboxGroup, radioGroup, field, fieldset, slider, progress, avatar, avatarGroup, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    toggle, toggleGroup, chip, chipGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,

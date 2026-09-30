@@ -311,6 +311,8 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     timeline: ['id', 'role', 'title'],
     toast: ['id', 'title', 'toast'],
     toggle: ['defaultPressed', 'id', 'label', 'title', 'value'],
+    chip: ['defaultSelected', 'id', 'label', 'removable', 'role', 'selectable', 'title', 'value'],
+    'chip-group': ['defaultValue', 'deselectable', 'form', 'id', 'invalid', 'label', 'loop', 'multiple', 'name', 'required', 'selectable', 'title', 'value'],
     'toggle-group': ['defaultValue', 'deselectable', 'form', 'id', 'invalid', 'label', 'loop', 'multiple', 'name', 'required', 'title', 'value'],
     tooltip: ['alignOffset', 'arrowPadding', 'closeDelay', 'collisionPadding', 'defaultOpen', 'offset', 'openDelay', 'placement', 'positionStrategy', 'value'],
     'tree-view': ['checkable', 'defaultCheckedValues', 'defaultExpandedValues', 'defaultValue', 'expandOnClick', 'id', 'multiple', 'role', 'title', 'value'],

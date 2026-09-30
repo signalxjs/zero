@@ -229,7 +229,10 @@ A product skin built on this one with `extendDesignSystem` (from
 `components[scope].hooks`. Today that is the component-level colour and
 metric properties of button (`--btn-accent`, `--btn-on-accent`, `--btn-soft`,
 `--btn-ink`), switch (`--switch-size`, `--switch-accent`, `--switch-ink`),
-badge, table, card, timeline, toggle-group, skeleton and collapsible; the
+badge, table, card, timeline, toggle-group, chip (`--chip-accent`,
+`--chip-on-accent`) and chip-group (`--chip-group-accent`,
+`--chip-group-on-accent`, which a chip inside falls back to), skeleton and
+collapsible; the
 dialog popup's `zero-daisy-pop` keyframe; and the collapsible trigger's
 `::after` chevron. Anything else a patch reaches — `--switch-p`, the spinner
 keyframes, the menu's checkmark `::after` — is private and may change in any

@@ -3526,6 +3526,167 @@ export const toggleGroup: RecipeInput = {
     },
 };
 
+// ── Chip (#544) ───────────────────────────────────────────────────────────
+/**
+ * HeroUI v3's Chip: a full-round pill in the default `soft` treatment — a
+ * base-200 fill, content ink, no border — which is the combobox tag's look
+ * at a control's scale. A selectable chip that is on takes the primary fill
+ * and its ink (the button's `primary` pair), because heroui has no colour
+ * axis to key a tint on. `root` is the box and `action` fills it, so the
+ * hover film lands on the action alone and a trailing `remove` keeps a wash
+ * of its own. `variant` stays button-only (#175).
+ */
+const chipWash = 'color-mix(in oklch, var(--color-base-content) 8%, transparent)';
+
+export const chip: RecipeInput = {
+    component: 'chip',
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                verticalAlign: 'middle',
+                maxWidth: '100%',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '9999px',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                transition: motion('background, color'),
+            },
+            states: {
+                on: { background: 'var(--hero-primary)', color: 'var(--hero-primary-ink)' },
+                off: {},
+                // `data-selected` mirrors `on` — the primary fill already says it.
+                selected: {},
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+            // Forced colours revalue every author fill, so a selected chip
+            // would read exactly like an unselected one: the system's
+            // selection pair says it instead (Material's rule).
+            at: {
+                'forced-colors': {
+                    states: { on: { background: 'Highlight', color: 'HighlightText', borderColor: 'Highlight' } },
+                },
+            },
+        },
+        action: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                minWidth: '0',
+                margin: '0',
+                padding: 'var(--space-xs) var(--space-md)',
+                background: 'transparent',
+                color: 'inherit',
+                border: 'none',
+                borderRadius: 'inherit',
+                font: 'inherit',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-none)',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: chipWash },
+                on: {},
+                off: {},
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-disabled]:hover': { background: 'transparent' },
+                ...pressScale,
+            },
+        },
+        icon: {
+            base: {
+                display: 'inline-flex',
+                flexShrink: '0',
+                fontSize: '1.1em',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        label: {
+            base: {
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+            },
+        },
+        // The combobox tag-remove at the chip's scale: HeroUI's close button,
+        // a glyph inside the pill, washed on hover.
+        remove: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: '0',
+                margin: '0 var(--space-2xs)',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                lineHeight: 'var(--leading-none)',
+                borderRadius: '9999px',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: chipWash },
+                disabled: { cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-disabled]:hover': { background: 'transparent' },
+                ...pressScale,
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } }, action: { base: { padding: 'var(--space-2xs) var(--space-sm)' } } },
+            // The base IS the middle step.
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } }, action: { base: { padding: 'var(--space-sm) var(--space-lg)' } } },
+        },
+    },
+};
+
+// ── Chip group ────────────────────────────────────────────────────────────
+/** A wrapping row of chips; the chips keep the chip recipe. */
+export const chipGroup: RecipeInput = {
+    component: 'chip-group',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+            },
+            // Each chip carries the flag itself; the root only lays them out.
+            states: { disabled: {}, invalid: {}, required: {} },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column', alignItems: 'flex-start' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { gap: 'var(--space-xs)' } } },
+            md: {},
+            lg: { root: { base: { gap: 'var(--space-md)' } } },
+        },
+    },
+};
+
 /**
  * Merge presence into a part's own styles per KEY, so a recipe that already
  * writes `states: { open: {} }` does not replace the open state presence needs.
@@ -6330,7 +6491,7 @@ export const diff: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, hoverCard, menu, menubar,
     field, fieldset, checkbox, checkboxGroup, radioGroup, progress, slider, accordion, select, button, avatar, avatarGroup, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    toggle, toggleGroup, chip, chipGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, emptyState, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, chatLog, radialProgress, join,
     navbar, navList, breadcrumbs, pagination, steps, drawer,

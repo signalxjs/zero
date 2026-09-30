@@ -4201,6 +4201,227 @@
 }
 
 @layer zero.recipes {
+    [data-scope="chip"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+        max-width: 100%;
+        min-height: 1.5rem;
+        background: var(--color-base-300);
+        color: var(--color-base-content);
+        border: none;
+        border-radius: 1rem;
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        transition: background var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="root"][data-state="on"] {
+        background: var(--color-base-content);
+        color: var(--color-base-100);
+    }
+
+    [data-scope="chip"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="chip"][data-part="action"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        align-self: stretch;
+        gap: var(--space-xs);
+        min-width: 0;
+        margin: 0;
+        padding: 0 var(--space-sm);
+        background: transparent;
+        color: inherit;
+        border: none;
+        border-radius: inherit;
+        font: inherit;
+        font-weight: var(--weight-normal);
+        letter-spacing: inherit;
+        line-height: var(--leading-none);
+        text-decoration: none;
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="action"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="chip"][data-part="action"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="chip"][data-part="action"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="chip"][data-part="action"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
+    [data-scope="chip"][data-part="action"][data-state="on"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-100) 12%, transparent);
+    }
+
+    [data-scope="chip"][data-part="action"][data-state="on"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-100) 22%, transparent);
+    }
+
+    [data-scope="chip"][data-part="action"][data-disabled]:hover {
+        background: transparent;
+    }
+
+    [data-scope="chip"][data-part="icon"] {
+        display: inline-flex;
+        flex-shrink: 0;
+        font-size: 1rem;
+        line-height: var(--leading-none);
+    }
+
+    [data-scope="chip"][data-part="label"] {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    [data-scope="chip"][data-part="remove"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        inline-size: 1rem;
+        block-size: 1rem;
+        margin: 0 var(--space-2xs);
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        line-height: var(--leading-none);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="chip"][data-part="remove"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="chip"][data-part="remove"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="chip"][data-part="remove"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="chip"][data-part="remove"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
+    [data-state="on"] > [data-scope="chip"][data-part="remove"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-100) 12%, transparent);
+    }
+
+    [data-state="on"] > [data-scope="chip"][data-part="remove"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-100) 22%, transparent);
+    }
+
+    [data-scope="chip"][data-part="remove"][data-disabled]:hover {
+        background: transparent;
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="sm"] {
+        min-height: 1.125rem;
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="lg"] {
+        min-height: 2rem;
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="xl"] {
+        min-height: 2.5rem;
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="chip"][data-part="root"][data-size="2xl"] {
+        min-height: 3rem;
+        font-size: var(--text-md);
+    }
+
+    @scope ([data-scope="chip"][data-part="root"][data-size="sm"]) to ([data-scope="chip"][data-part="root"]) {
+        [data-scope="chip"][data-part="action"] {
+            padding: 0 var(--space-xs);
+        }
+    }
+
+    @scope ([data-scope="chip"][data-part="root"][data-size="lg"]) to ([data-scope="chip"][data-part="root"]) {
+        [data-scope="chip"][data-part="action"] {
+            padding: 0 var(--space-md);
+        }
+    }
+
+    @scope ([data-scope="chip"][data-part="root"][data-size="xl"]) to ([data-scope="chip"][data-part="root"]) {
+        [data-scope="chip"][data-part="action"] {
+            padding: 0 var(--space-md);
+        }
+    }
+
+    @scope ([data-scope="chip"][data-part="root"][data-size="2xl"]) to ([data-scope="chip"][data-part="root"]) {
+        [data-scope="chip"][data-part="action"] {
+            padding: 0 var(--space-lg);
+        }
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="chip"][data-part="root"][data-state="on"] {
+            background: Highlight;
+            color: HighlightText;
+            border-color: Highlight;
+        }
+    }
+}
+
+@layer zero.recipes {
+    [data-scope="chip-group"][data-part="root"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="sm"] {
+        gap: var(--space-xs);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="lg"] {
+        gap: var(--space-md);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="xl"] {
+        gap: var(--space-md);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="2xl"] {
+        gap: var(--space-lg);
+    }
+}
+
+@layer zero.recipes {
     [data-scope="number-input"][data-part="root"] {
         display: inline-flex;
         flex-direction: column;

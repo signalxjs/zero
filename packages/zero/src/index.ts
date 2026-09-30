@@ -177,6 +177,10 @@ export type { ToggleRootProps } from './components/toggle/index.js';
 
 export { ToggleGroup, toggleGroupAnatomy, useToggleGroupContext } from './components/toggle-group/index.js';
 export type { ToggleGroupRootProps, ToggleGroupItemProps, ToggleGroupItemIndicatorProps } from './components/toggle-group/index.js';
+export { Chip, chipAnatomy, useChipContext } from './components/chip/index.js';
+export type { ChipRootProps, ChipActionProps, ChipSlotProps, ChipRemoveProps } from './components/chip/index.js';
+export { ChipGroup, chipGroupAnatomy, useChipGroupContext } from './components/chip-group/index.js';
+export type { ChipGroupRootProps, ChipGroupContext, ChipSelection } from './components/chip-group/index.js';
 
 export { NumberInput, numberInputAnatomy, useNumberInputContext } from './components/number-input/index.js';
 export type {

@@ -305,6 +305,23 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** chip — color, size, variant wired. */
+            'chip': {
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                variant: 'outlined' | 'elevated';
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** chip-group — color, size wired. */
+            'chip-group': {
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** number-input — color, size, variant wired. */
             'number-input': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning';

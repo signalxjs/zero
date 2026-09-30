@@ -118,6 +118,22 @@ by default, outlined with `variant="outlined"`.
 | Circular progress: 48dp determinate over a surface-container-highest track, 40dp indeterminate with no track, 4dp stroke | RadialProgress and Spinner |
 | Badge: 16dp, fully round, label-small, error / on-error | Badge |
 
+## M3 chips (#544)
+
+M3's assist, filter, input and suggestion chips are zero's `Chip` inside an
+optional `ChipGroup` (M3's chip set). The four types are the behaviours a chip
+mixes (an action, `selectable`, `removable`), not four components.
+
+| M3 | How it lands |
+|---|---|
+| Container: 32dp, small (8dp) corner, 1dp outline-variant stroke, label-large | the chip's `root`. The `size` ramp steps the height 24 / 28 / 32 / 40 / 48dp around M3's single 32dp chip |
+| Flat and elevated chips | the `variant` axis on chip, `outlined` (the default) or `elevated`: surface-container-low on level 1, lifting to level 2 on hover |
+| Leading icon: 18dp in primary, 8dp inset | `Chip.Icon`. The action's start padding drops from 16dp to 8dp beside it |
+| Selected filter or input chip: secondary-container with no stroke, the check before the label | the root's `on` state. The check is segmented button's, grown from zero width, and it takes a leading icon's slot. `color` on the chip, or on its group, rebinds the container role |
+| Input chip's trailing remove icon | `Chip.Remove`: 18dp with its own circular state layer, 8dp from the end |
+| State layers: hover 8%, focus and pressed 10% | the action's state layer in its current ink. The check gives up the ripple, as the segmented button does |
+| Disabled | the label at 38% on-surface and the stroke at 12%. A selected chip keeps a 12% container |
+
 ## What the recipes prove
 
 | Material | How it lands |

@@ -41,6 +41,8 @@ export default defineLibConfig({
         'components/combobox/index': 'src/components/combobox/index.ts',
         'components/toggle/index': 'src/components/toggle/index.ts',
         'components/toggle-group/index': 'src/components/toggle-group/index.ts',
+        'components/chip/index': 'src/components/chip/index.ts',
+        'components/chip-group/index': 'src/components/chip-group/index.ts',
         'components/number-input/index': 'src/components/number-input/index.ts',
         'components/rating-group/index': 'src/components/rating-group/index.ts',
         'components/tree-view/index': 'src/components/tree-view/index.ts',

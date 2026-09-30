@@ -520,7 +520,7 @@ would render it as an element.
 
 **The registry is typed closed.** `anatomies` in
 `packages/zero/src/anatomy.ts` is declared `as const satisfies
-Record<string, Anatomy>` — 64 components — so `ZeroScope` is a closed literal
+Record<string, Anatomy>` — 66 components — so `ZeroScope` is a closed literal
 union. That closure is load-bearing: the generated register artifact asserts
 its scope keys against it at compile time ([§3.5](#35-the-register-artifact)),
 which is what makes a typo'd or version-skewed scope a compile error instead
@@ -1622,7 +1622,7 @@ Node-only bin with no runtime dependencies, templates embedded at build time
 with the lockstep ranges — lockstep is what makes embedding and reading the
 installed packages content-identical, and neither source file is reachable
 through an `exports` map anyway). The generated package is the brief's tokens
-and worked Button over **zero-basic's 58 recipes as the baseline**, composed
+and worked Button over **zero-basic's 60 recipes as the baseline**, composed
 in `src/recipes.ts` through `fitRecipesToVocabulary` — the kit's one
 non-`define*` export on `/define`, a pure function that keeps exactly what
 the tokens declare (roles, the size ramp, the variant vocabulary, custom
@@ -1663,7 +1663,13 @@ deletes a custom property the base recipe uses that is neither a hook nor
 contract (the token grammar, runtime and medium properties), names or
 redefines a base keyframe that is not a hook, or styles a base-drawn pseudo
 on a part where it is not a hook. A warning, not an error: a private name is
-a stability risk across the base's releases, not a broken build. Two things
+a stability risk across the base's releases, not a broken build. A hook is
+also public to the design system's OTHER recipes (#551). A `var()` read with
+a fallback of a token another recipe declares in `tokens` and publishes as a
+hook is not an undeclared reference. That is how a group scope hands context
+to a separate item scope inside it: `chip-group` publishes its `color` as
+`--chip-group-*`, and each chip falls back to it, so a chip outside any
+group still renders. Two things
 are deliberately absent. Selector shapes have no hook grammar — the anatomy's
 parts and states are already the contract a patch should key on — and a hook
 carries no `since`, because lockstep versioning makes the kit version the

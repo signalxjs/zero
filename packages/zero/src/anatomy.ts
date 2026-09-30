@@ -33,6 +33,8 @@ import { toastAnatomy } from './components/toast/anatomy.js';
 import { comboboxAnatomy } from './components/combobox/anatomy.js';
 import { toggleAnatomy } from './components/toggle/anatomy.js';
 import { toggleGroupAnatomy } from './components/toggle-group/anatomy.js';
+import { chipAnatomy } from './components/chip/anatomy.js';
+import { chipGroupAnatomy } from './components/chip-group/anatomy.js';
 import { numberInputAnatomy } from './components/number-input/anatomy.js';
 import { ratingGroupAnatomy } from './components/rating-group/anatomy.js';
 import { treeViewAnatomy } from './components/tree-view/anatomy.js';
@@ -78,7 +80,7 @@ export {
     tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, hoverCardAnatomy, menuAnatomy, menubarAnatomy,
     fieldAnatomy, fieldsetAnatomy, checkboxAnatomy, checkboxGroupAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
     avatarAnatomy, avatarGroupAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
-    ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
+    chipAnatomy, chipGroupAnatomy, ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
     stackAnatomy, spacerAnatomy, gridAnatomy, centerAnatomy, boxAnatomy, containerAnatomy,
     kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy, chatLogAnatomy, emptyStateAnatomy,
@@ -113,6 +115,8 @@ export const anatomies = {
     combobox: comboboxAnatomy,
     toggle: toggleAnatomy,
     'toggle-group': toggleGroupAnatomy,
+    chip: chipAnatomy,
+    'chip-group': chipGroupAnatomy,
     'number-input': numberInputAnatomy,
     'rating-group': ratingGroupAnatomy,
     'tree-view': treeViewAnatomy,

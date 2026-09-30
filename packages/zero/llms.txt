@@ -156,7 +156,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-64 components ship today. Every part each renders is listed below, in
+66 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -1121,6 +1121,25 @@ component renders; the root is called out separately where it carries props.
   fields under `multiple`; required blocks submit and focuses the group's
   tab stop; form reset() restores defaultValue.
 
+- Chip: Root(value, selectable, model=selected, defaultSelected, removable,
+  onRemove, label, disabled)/Action(asChild)/Icon/Label/Remove(label). A
+  compact element that is some mix of three behaviours: Action is a
+  <button> (or an asChild link); `selectable` makes it a toggle
+  (aria-pressed, data-state on|off on root and action, data-selected on
+  root) binding its own boolean model standalone, the group's value inside a
+  selectable ChipGroup; `removable` makes Backspace/Delete on the action
+  emit `remove` (aria-keyshortcuts), and Remove is the trailing button
+  (tabIndex -1, default glyph ×, aria-label "Remove <text>"). root carries
+  the axes; data-state appears only while selectable.
+- ChipGroup: Root(model=string | string[], selectable, multiple,
+  deselectable, loop, label, orientation). role=group with ONE roving tab
+  stop across the chips' actions (orientation- and RTL-aware, skips
+  disabled, wraps). No model unless `selectable`; then ToggleGroup's rule:
+  string ('' = none) or string[] under `multiple`. A removal inside the
+  group hands focus to the next enabled chip, else the previous, before
+  `remove` runs. Form contract like ToggleGroup (hidden <select>, only while
+  selectable and named).
+
 Named models (first used by Combobox; the convention for every multi-state
 component): a component has exactly ONE unnamed `model` — its essential
 value, what `hidden-input` posts. Every additional controllable state is a
@@ -1130,7 +1149,7 @@ named model bound as `model:<stateName>` in JSX (sigx
 value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
-Avatar, AvatarGroup, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, ChatLog, Checkbox, CheckboxGroup, Collapsible, Combobox, Dialog,
+Avatar, AvatarGroup, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, ChatLog, Checkbox, CheckboxGroup, Chip, ChipGroup, Collapsible, Combobox, Dialog,
 Divider, EmptyState, Field, Fieldset, HoverCard, Indicator, Input, Join, Kbd, Menu, Menubar, NumberInput,
 Navbar, NavList, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,

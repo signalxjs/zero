@@ -1,0 +1,74 @@
+@layer zero.recipes {
+    [data-scope="chip-group"][data-part="root"] {
+        --chip-group-accent: var(--color-primary);
+        --chip-group-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-orientation="vertical"] {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="primary"] {
+        --chip-group-accent: var(--color-primary);
+        --chip-group-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="secondary"] {
+        --chip-group-accent: var(--color-secondary);
+        --chip-group-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="accent"] {
+        --chip-group-accent: var(--color-accent);
+        --chip-group-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="neutral"] {
+        --chip-group-accent: var(--color-neutral);
+        --chip-group-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="info"] {
+        --chip-group-accent: var(--color-info);
+        --chip-group-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="success"] {
+        --chip-group-accent: var(--color-success);
+        --chip-group-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="warning"] {
+        --chip-group-accent: var(--color-warning);
+        --chip-group-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-color="error"] {
+        --chip-group-accent: var(--color-error);
+        --chip-group-on-accent: var(--color-error-content);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="xs"] {
+        gap: var(--space-xs);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="sm"] {
+        gap: var(--space-xs);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="lg"] {
+        gap: var(--space-md);
+    }
+
+    [data-scope="chip-group"][data-part="root"][data-size="xl"] {
+        gap: var(--space-lg);
+    }
+}
