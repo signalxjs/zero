@@ -30,8 +30,8 @@ importers:
   .:
     devDependencies:
       '@sigx/cli':
-        specifier: ^0.12.0
-        version: 0.12.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
+        specifier: ^0.14.0
+        version: 0.14.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
       '@size-limit/preset-small-lib':
         specifier: ^12.1.0
         version: 12.1.0(size-limit@12.1.0)
@@ -94,8 +94,8 @@ importers:
   examples/mail/ds:
     devDependencies:
       '@sigx/cli':
-        specifier: ^0.12.0
-        version: 0.12.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
+        specifier: ^0.14.0
+        version: 0.14.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
       '@sigx/zero':
         specifier: workspace:^
         version: link:../../../packages/zero
@@ -336,8 +336,8 @@ importers:
   packages/zero-ext-example:
     devDependencies:
       '@sigx/cli':
-        specifier: ^0.12.0
-        version: 0.12.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
+        specifier: ^0.14.0
+        version: 0.14.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
       '@sigx/reactivity':
         specifier: 'catalog:'
         version: 1.0.1
@@ -384,8 +384,8 @@ importers:
   packages/zero-kit:
     dependencies:
       '@sigx/cli':
-        specifier: ^0.12.0
-        version: 0.12.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
+        specifier: ^0.14.0
+        version: 0.14.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
       ajv:
         specifier: ^8.20.0
         version: 8.20.0
@@ -871,8 +871,8 @@ packages:
   '@sigx/args@0.13.0':
     resolution: {integrity: sha512-k4f0UVmxe40CLSIBQ/3EvuQYCfePCBitaiNGX1Q9kViQM0I/8pRevN3Uneacu8RmTT6N0Bb/TKgtI2neytzlDg==}
 
-  '@sigx/cli@0.12.0':
-    resolution: {integrity: sha512-/yIe8f5TpNfIMqPVl+U/kNRTIxgKeCMLh7Br3GU6O0ngK870krb2Y6KYETLMnLQ6fVzPUgpmXoC83wGgI8awmQ==}
+  '@sigx/cli@0.14.0':
+    resolution: {integrity: sha512-XHcDtLelMhXY51Hje3PZmt35/oMfa9PHVMikDNYboWe4HEof+cppBNuGA5loWDwIO6jWe3l0Yz0s1Q7jx8+q5A==}
     hasBin: true
 
   '@sigx/reactivity@1.0.1':
@@ -1860,7 +1860,7 @@ snapshots:
 
   '@sigx/args@0.13.0': {}
 
-  '@sigx/cli@0.12.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))':
+  '@sigx/cli@0.14.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))':
     dependencies:
       '@sigx/args': 0.13.0
       '@sigx/terminal': 0.13.0(@sigx/reactivity@1.0.1)(@sigx/runtime-core@1.0.1(@sigx/reactivity@1.0.1))
