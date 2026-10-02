@@ -48,7 +48,7 @@
         "@sigx/zero": "workspace:^"
     },
     "devDependencies": {
-        "@sigx/cli": "^0.12.0",
+        "@sigx/cli": "^0.14.0",
         "@sigx/zero": "workspace:^",
         "@sigx/zero-kit": "workspace:^",
         "@sigx/zero-mail-kit": "workspace:^",
